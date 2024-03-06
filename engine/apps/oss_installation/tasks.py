@@ -1,5 +1,4 @@
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.utils import timezone
 
 from apps.base.utils import live_settings
@@ -13,7 +12,7 @@ logger = get_task_logger(__name__)
 @shared_dedicated_queue_retry_task()
 def send_usage_stats_report():
     logger.info("Start send_usage_stats_report")
-    OssInstallation = apps.get_model("oss_installation", "OssInstallation")
+    from apps.oss_installation.models import OssInstallation
 
     installation = OssInstallation.objects.get_or_create()[0]
     enabled = live_settings.SEND_ANONYMOUS_USAGE_STATS
@@ -35,7 +34,8 @@ def send_cloud_heartbeat_task():
 
 @shared_dedicated_queue_retry_task()
 def sync_users_with_cloud():
-    CloudConnector = apps.get_model("oss_installation", "CloudConnector")
+    from apps.oss_installation.models import CloudConnector
+
     logger.info("Start sync_users_with_cloud")
     if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
         connector = CloudConnector.objects.first()

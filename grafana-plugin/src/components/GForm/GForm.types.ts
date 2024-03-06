@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export enum FormItemType {
   'Input' = 'input',
   'Password' = 'password',
@@ -8,16 +10,19 @@ export enum FormItemType {
   'Switch' = 'switch',
   'RemoteSelect' = 'remoteselect',
   'Monaco' = 'monaco',
+  'Other' = 'other',
+  'PlainLabel' = 'plainlabel',
 }
 
 export interface FormItem {
   name: string;
-  label?: string;
+  label?: ReactNode;
   type: FormItemType;
   disabled?: boolean;
-  description?: string;
+  description?: ReactNode;
+  placeholder?: string;
   normalize?: (value: any) => any;
-  isVisible?: (data: any) => any;
+  isHidden?: (data: any) => any;
   getDisabled?: (value: any) => any;
   validation?: {
     required?: boolean;
@@ -25,4 +30,5 @@ export interface FormItem {
   };
   extra?: any;
   collapsed?: boolean;
+  render?: boolean;
 }

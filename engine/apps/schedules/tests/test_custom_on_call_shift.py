@@ -1,8 +1,8 @@
+import datetime
 from calendar import monthrange
 from unittest.mock import patch
 
 import pytest
-import pytz
 from django.utils import timezone
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
@@ -577,7 +577,7 @@ def test_rolling_users_event_with_interval_monthly(
     user_2 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
+    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30, tzinfo=datetime.timezone.utc)
     days_for_next_month_1 = monthrange(2022, 10)[1]
     days_for_next_month_2 = monthrange(2022, 11)[1] + days_for_next_month_1
     days_for_next_month_3 = monthrange(2022, 12)[1] + days_for_next_month_2
@@ -941,7 +941,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=datetime.timezone.utc)
     days_in_curr_month = monthrange(2022, 12)[1]
     days_in_next_month = monthrange(2023, 1)[1]
 
@@ -997,7 +997,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly_by_monthday(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=datetime.timezone.utc)
     days_in_curr_month = monthrange(2022, 12)[1]
     days_in_next_month = monthrange(2023, 1)[1]
 
@@ -1297,7 +1297,7 @@ def test_get_oncall_users_for_empty_schedule(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
 
-    assert schedules.get_oncall_users()[schedule.pk] == []
+    assert list(schedules.get_oncall_users()[schedule]) == []
 
 
 @pytest.mark.django_db
@@ -1408,11 +1408,12 @@ def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
     schedule.save(update_fields=["cached_ical_file_overrides"])
 
     # Get on-call users for 6 February 2023 11:30 UTC
-    events_datetime = timezone.datetime(2023, 2, 6, 11, 30, tzinfo=timezone.utc)
+    events_datetime = timezone.datetime(2023, 2, 6, 11, 30, tzinfo=datetime.timezone.utc)
     schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
     oncall_users = schedules.get_oncall_users(events_datetime=events_datetime)
 
-    assert oncall_users == {schedule.pk: [user]}
+    assert len(oncall_users) == 1
+    assert list(oncall_users[schedule]) == [user]
 
 
 @pytest.mark.django_db
@@ -1748,7 +1749,7 @@ def test_week_start_changed_daily_shift(
     on_call_shift.add_rolling_users(rolling_users)
 
     ical_data = on_call_shift.convert_to_ical()
-    expected_start = "DTSTART;VALUE=DATE-TIME:{}T000000Z".format(last_sunday.strftime("%Y%m%d"))
+    expected_start = "DTSTART:{}T000000Z".format(last_sunday.strftime("%Y%m%d"))
     assert expected_start in ical_data
 
 

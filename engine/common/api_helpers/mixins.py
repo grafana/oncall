@@ -3,9 +3,11 @@ import math
 import typing
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
-from rest_framework import status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.request import Request
@@ -24,6 +26,10 @@ from apps.base.messaging import get_messaging_backends
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+
+X_INSTANCE_CONTEXT = "X-Instance-Context"
+
+X_GRAFANA_CONTEXT = "X-Grafana-Context"
 
 
 class UpdateSerializerMixin:
@@ -141,42 +147,15 @@ class RateLimitHeadersMixin:
         return super().handle_exception(exc)
 
 
-class OrderedModelSerializerMixin:
-    def _change_position(self, order, instance):
-        if order is not None:
-            if order >= 0:
-                instance.to(order)
-            elif order == -1:
-                instance.bottom()
-            else:
-                raise BadRequest(detail="Invalid value for position field")
-
-    def _validate_order(self, order, filter_kwargs):
-        if order is not None and (self.instance is None or self.instance.order != order):
-            last_instance = self.Meta.model.objects.filter(**filter_kwargs).order_by("order").last()
-            max_order = last_instance.order if last_instance else -1
-            if self.instance is None:
-                max_order += 1
-            if order > max_order:
-                raise BadRequest(detail="Invalid value for position field")
-
-    def _validate_manual_order(self, order):
-        """
-        For manual ordering validate just that order is valid PositiveIntegrer.
-        User of manual ordering is responsible for correct ordering.
-        However, manual ordering not intended for use somewhere, except terraform provider.
-        """
-
-        # https://docs.djangoproject.com/en/4.1/ref/models/fields/#positiveintegerfield
-        MAX_POSITIVE_INTEGER = 2147483647
-        if order is not None and order < 0 or order > MAX_POSITIVE_INTEGER:
-            raise BadRequest(detail="Invalid value for position field")
+_MT = typing.TypeVar("_MT", bound=models.Model)
 
 
-class PublicPrimaryKeyMixin:
-    def get_object(self):
+class PublicPrimaryKeyMixin(typing.Generic[_MT]):
+    def get_object(self, queryset_kwargs=None) -> _MT:
         pk = self.kwargs["pk"]
-        queryset = self.filter_queryset(self.get_queryset())
+        if queryset_kwargs is None:
+            queryset_kwargs = {}
+        queryset = self.filter_queryset(self.get_queryset(**queryset_kwargs))
 
         try:
             obj = queryset.get(public_primary_key=pk)
@@ -270,6 +249,8 @@ ACKNOWLEDGE_CONDITION = "acknowledge_condition"
 GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
 ROUTE = "route"
+ALERT_GROUP_MULTI_LABEL = "alert_group_multi_label"
+ALERT_GROUP_DYNAMIC_LABEL = "alert_group_dynamic_label"
 
 NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     SLACK: AlertSlackTemplater,
@@ -280,15 +261,22 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
 }
 
 # add additionally supported messaging backends
-for backend_id, backend in get_messaging_backends():
+for _, backend in get_messaging_backends():
     if backend.templater is not None:
         NOTIFICATION_CHANNEL_OPTIONS.append(backend.slug)
         NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend.slug] = backend.get_templater_class()
 
 APPEARANCE_TEMPLATE_NAMES = [TITLE, MESSAGE, IMAGE_URL]
-BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
-ROUTE_TEMPLATE_NAMES = [ROUTE]
-ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES + ROUTE_TEMPLATE_NAMES
+BEHAVIOUR_TEMPLATE_NAMES = [
+    RESOLVE_CONDITION,
+    ACKNOWLEDGE_CONDITION,
+    GROUPING_ID,
+    SOURCE_LINK,
+    ROUTE,
+    ALERT_GROUP_MULTI_LABEL,
+    ALERT_GROUP_DYNAMIC_LABEL,
+]
+ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
 class PreviewTemplateException(Exception):
@@ -296,6 +284,24 @@ class PreviewTemplateException(Exception):
 
 
 class PreviewTemplateMixin:
+    @extend_schema(
+        description="Preview template",
+        request=inline_serializer(
+            name="PreviewTemplateRequest",
+            fields={
+                "template_body": serializers.CharField(required=False, allow_null=True),
+                "template_name": serializers.CharField(required=False, allow_null=True),
+                "payload": serializers.DictField(required=False, allow_null=True),
+            },
+        ),
+        responses=inline_serializer(
+            name="PreviewTemplateResponse",
+            fields={
+                "preview": serializers.CharField(allow_null=True),
+                "is_valid_json_object": serializers.BooleanField(),
+            },
+        ),
+    )
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)
@@ -348,15 +354,16 @@ class PreviewTemplateMixin:
                 templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
-        elif attr_name in ROUTE_TEMPLATE_NAMES:
-            try:
-                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
-        response = {"preview": templated_attr}
+        response = {"preview": templated_attr, "is_valid_json_object": self.is_valid_json_object(templated_attr)}
         return Response(response, status=status.HTTP_200_OK)
+
+    def is_valid_json_object(self, json_str):
+        try:
+            return isinstance(json.loads(json_str), dict)
+        except ValueError:
+            return False
 
     def get_alert_to_template(self, payload=None):
         raise NotImplementedError
@@ -367,8 +374,6 @@ class PreviewTemplateMixin:
         attr_name = None
         destination = None
         if template_param.startswith(tuple(BEHAVIOUR_TEMPLATE_NAMES)):
-            attr_name = template_param
-        if template_param.startswith(tuple(ROUTE_TEMPLATE_NAMES)):
             attr_name = template_param
         elif template_param.startswith(tuple(NOTIFICATION_CHANNEL_OPTIONS)):
             for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:
@@ -394,10 +399,16 @@ class GrafanaHeadersMixin:
 
     @cached_property
     def grafana_context(self) -> GrafanaContext:
-        grafana_context: GrafanaContext = json.loads(self.request.headers["X-Grafana-Context"])
+        if X_GRAFANA_CONTEXT in self.request.headers:
+            grafana_context: GrafanaContext = json.loads(self.request.headers[X_GRAFANA_CONTEXT])
+        else:
+            grafana_context = None
         return grafana_context
 
     @cached_property
     def instance_context(self) -> InstanceContext:
-        instance_context: InstanceContext = json.loads(self.request.headers["X-Instance-Context"])
+        if X_INSTANCE_CONTEXT in self.request.headers:
+            instance_context: InstanceContext = json.loads(self.request.headers[X_INSTANCE_CONTEXT])
+        else:
+            instance_context = None
         return instance_context

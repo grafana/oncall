@@ -1,5 +1,6 @@
 import logging
 from random import randint
+from string import Template
 from typing import Optional
 
 import requests
@@ -34,12 +35,12 @@ class ZvonokPhoneProvider(PhoneProvider):
             response.raise_for_status()
             body = response.json()
             if not body:
-                logger.error(f"ZvonokPhoneProvider.make_notification_call: failed, empty body")
+                logger.error("ZvonokPhoneProvider.make_notification_call: failed, empty body")
                 raise FailedToMakeCall(graceful_msg=f"Failed make notification call to {number}, empty body")
             call_id = body.get("call_id")
 
             if not call_id:
-                logger.error(f"ZvonokPhoneProvider.make_notification_call: failed, missing call id")
+                logger.error("ZvonokPhoneProvider.make_notification_call: failed, missing call id")
                 raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(body, number))
 
             logger.info(f"ZvonokPhoneProvider.make_notification_call: success, call_id {call_id}")
@@ -66,7 +67,7 @@ class ZvonokPhoneProvider(PhoneProvider):
             response.raise_for_status()
             body = response.json()
             if not body:
-                logger.error(f"ZvonokPhoneProvider.make_call: failed, empty body")
+                logger.error("ZvonokPhoneProvider.make_call: failed, empty body")
                 raise FailedToMakeCall(graceful_msg=f"Failed make call to {number}, empty body")
 
             call_id = body.get("call_id")
@@ -104,19 +105,29 @@ class ZvonokPhoneProvider(PhoneProvider):
         return f"Failed make call to {number}"
 
     def make_verification_call(self, number: str):
-        code = str(randint(100000, 999999))
+        code = self._generate_verification_code()
         cache.set(self._cache_key(number), code, timeout=10 * 60)
         codewspaces = "   ".join(code)
 
         body = None
         speaker = live_settings.ZVONOK_SPEAKER_ID
 
+        if live_settings.ZVONOK_VERIFICATION_TEMPLATE:
+            message = Template(live_settings.ZVONOK_VERIFICATION_TEMPLATE).safe_substitute(
+                verification_code=codewspaces
+            )
+        else:
+            message = f"Your verification code is {codewspaces}"
         try:
-            response = self._call_create(number, f"Your verification code is {codewspaces}", speaker)
+            response = self._call_create(
+                number,
+                message,
+                speaker,
+            )
             response.raise_for_status()
             body = response.json()
             if not body:
-                logger.error(f"ZvonokPhoneProvider.make_verification_call: failed, empty body")
+                logger.error("ZvonokPhoneProvider.make_verification_call: failed, empty body")
                 raise FailedToMakeCall(graceful_msg=f"Failed make verification call to {number}, empty body")
 
             call_id = body.get("call_id")
@@ -138,6 +149,9 @@ class ZvonokPhoneProvider(PhoneProvider):
 
     def _cache_key(self, number):
         return f"zvonok_provider_{number}"
+
+    def _generate_verification_code(self):
+        return str(randint(100000, 999999))
 
     @property
     def flags(self) -> ProviderFlags:

@@ -65,3 +65,9 @@
 .template-block-codeeditor div[aria-label='Code editor container'] {
   border-bottom: none;
 }
+
+.template-editor-block-content {
+  height: calc(100% - 57px);
+  border-left: var(--border-weak);
+  border-right: var(--border-weak);
+}

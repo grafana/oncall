@@ -35,7 +35,7 @@ class RouteRegexDebuggerView(APIView):
         MAX_INCIDENTS_TO_SHOW = 5
         INCIDENTS_TO_LOOKUP = 100
         for ag in (
-            AlertGroup.unarchived_objects.prefetch_related(Prefetch("alerts", queryset=Alert.objects.order_by("pk")))
+            AlertGroup.objects.prefetch_related(Prefetch("alerts", queryset=Alert.objects.order_by("pk")))
             .filter(channel__organization=organization, channel__team=team)
             .order_by("-started_at")[:INCIDENTS_TO_LOOKUP]
         ):

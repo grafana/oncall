@@ -13,6 +13,7 @@ $LARGE-MARGIN: 24px;
   &__heading-container {
     display: flex;
     gap: $FLEX-GAP;
+    align-items: center;
   }
 
   &__heading {
@@ -52,6 +53,20 @@ $LARGE-MARGIN: 24px;
   &__input-field {
     margin-right: 24px;
   }
+
+  &__name {
+    margin: 0;
+  }
+}
+
+.contactpoints-warning {
+  padding-top: 12px;
+}
+
+.contact-point__container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
 }
 
 .integration__actionItem {
@@ -73,11 +88,6 @@ $LARGE-MARGIN: 24px;
   }
 }
 
-.loadingPlaceholder {
-  margin-bottom: 0;
-  margin-right: 4px;
-}
-
 .integration__description-alert {
   padding-top: 24px;
 
@@ -91,14 +101,14 @@ $LARGE-MARGIN: 24px;
 }
 
 .routesSection {
-  padding-top: 20px;
-
   &__heading {
     font-size: 16px;
   }
+}
 
-  &__add {
-    margin-bottom: $LARGE-MARGIN;
+:global(.theme-light) {
+  .input {
+    border: var(--border-weak);
   }
 }
 
@@ -106,6 +116,7 @@ $LARGE-MARGIN: 24px;
   flex-grow: 1;
   max-width: calc(100% - 80px);
 }
+
 .input-with-toggler {
   max-width: calc(100% - 134px);
 }
@@ -114,10 +125,6 @@ $LARGE-MARGIN: 24px;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-.tag,
-.how-to-connect__tag {
-  height: 25px;
 }
 
 .heartbeat-badge {
@@ -198,10 +205,31 @@ $LARGE-MARGIN: 24px;
   }
 }
 
-.radius {
-  border-radius: 4px;
-}
-
 .inline-switch {
   height: 34px;
+  border: var(--border-weak);
+}
+
+.contactpoints {
+  &__table {
+    margin-bottom: 24px;
+  }
+  &__connect {
+    padding: 12px;
+    margin-bottom: 24px;
+    border: var(--border-weak);
+    border-radius: var(--border-radius);
+  }
+  &__connect-toggler {
+    width: 100%;
+  }
+  &__connect-toggler:hover {
+    cursor: pointer;
+  }
+}
+
+.link-flex {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
 }

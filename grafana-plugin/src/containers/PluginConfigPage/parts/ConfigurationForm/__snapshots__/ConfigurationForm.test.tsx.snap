@@ -4,7 +4,7 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
 <body>
   <div>
     <form
-      class="css-xs0vux"
+      class="css-1srg48i"
       data-testid="plugin-configuration-form"
     >
       <div
@@ -50,68 +50,58 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
         </span>
       </div>
       <div
-        class="css-8e5b3"
+        class="css-1rplq84"
       >
         <div
-          class="css-jt4xma-Label"
+          class="css-l4ykjo-Label"
         >
           <label>
             <div
-              class="css-xhqy0o"
+              class="css-70qvj9"
             >
               OnCall backend URL
             </div>
           </label>
         </div>
         <div>
-          <div
-            class="css-1wz1ggz-input-wrapper"
-            data-testid="input-wrapper"
-          >
+          <div>
             <div
-              class="css-1w5c5dq-input-inputWrapper"
+              class="css-1skhtb9-input-wrapper"
+              data-testid="input-wrapper"
             >
-              <input
-                class="css-12lx392-input-input"
-                data-testid="onCallApiUrl"
-                name="onCallApiUrl"
-              />
+              <div
+                class="css-10lnb82-input-inputWrapper"
+              >
+                <input
+                  class="css-11mwy6h-input-input"
+                  data-testid="onCallApiUrl"
+                  name="onCallApiUrl"
+                />
+              </div>
             </div>
           </div>
           <div
-            class="css-1gd2lua"
+            class="css-1fhgjcy"
           >
             <div
-              class="css-mw0th3"
+              class="css-9z7wq3"
               role="alert"
             >
               <div
-                class="css-wf08df-Icon"
-              >
-                <svg
-                  class="css-1ah41zt"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12,16a1,1,0,1,0,1,1A1,1,0,0,0,12,16Zm10.67,1.47-8.05-14a3,3,0,0,0-5.24,0l-8,14A3,3,0,0,0,3.94,22H20.06a3,3,0,0,0,2.61-4.53Zm-1.73,2a1,1,0,0,1-.88.51H3.94a1,1,0,0,1-.88-.51,1,1,0,0,1,0-1l8-14a1,1,0,0,1,1.78,0l8.05,14A1,1,0,0,1,20.94,19.49ZM12,8a1,1,0,0,0-1,1v4a1,1,0,0,0,2,0V9A1,1,0,0,0,12,8Z"
-                  />
-                </svg>
-              </div>
+                class="css-1j2891d-Icon"
+              />
               Must be a valid URL
             </div>
           </div>
         </div>
       </div>
       <button
-        class="css-z53gi5-button"
+        class="css-td06pi-button"
         disabled=""
         type="submit"
       >
         <span
-          class="css-1mhnkuh"
+          class="css-1riaxdn"
         >
           Connect
         </span>
@@ -125,7 +115,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
 <body>
   <div>
     <form
-      class="css-xs0vux"
+      class="css-1srg48i"
       data-testid="plugin-configuration-form"
     >
       <div
@@ -171,32 +161,34 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
         </span>
       </div>
       <div
-        class="css-8e5b3"
+        class="css-1rplq84"
       >
         <div
-          class="css-jt4xma-Label"
+          class="css-l4ykjo-Label"
         >
           <label>
             <div
-              class="css-xhqy0o"
+              class="css-70qvj9"
             >
               OnCall backend URL
             </div>
           </label>
         </div>
         <div>
-          <div
-            class="css-xcstkt-input-wrapper"
-            data-testid="input-wrapper"
-          >
+          <div>
             <div
-              class="css-1w5c5dq-input-inputWrapper"
+              class="css-1cvb0sk-input-wrapper"
+              data-testid="input-wrapper"
             >
-              <input
-                class="css-1mlczho-input-input"
-                data-testid="onCallApiUrl"
-                name="onCallApiUrl"
-              />
+              <div
+                class="css-10lnb82-input-inputWrapper"
+              >
+                <input
+                  class="css-8tk2dk-input-input"
+                  data-testid="onCallApiUrl"
+                  name="onCallApiUrl"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -263,11 +255,11 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
         </span>
       </div>
       <button
-        class="css-z53gi5-button"
+        class="css-td06pi-button"
         type="submit"
       >
         <span
-          class="css-1mhnkuh"
+          class="css-1riaxdn"
         >
           Connect
         </span>

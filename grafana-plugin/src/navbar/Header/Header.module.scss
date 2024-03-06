@@ -4,7 +4,8 @@
 
 .header-topnavbar {
   padding-top: 0;
-  padding-bottom: 36px;
+  padding-bottom: 0;
+  margin-bottom: 32px;
 }
 
 .navbar-heading {
@@ -25,6 +26,7 @@
 .navbar-left {
   display: flex;
   flex-basis: 100%;
+  align-items: flex-start;
 }
 
 .navbar-heading-container {
@@ -34,6 +36,7 @@
   flex-direction: row;
   column-gap: 8px;
   row-gap: 8px;
+  margin-left: -50px;
 }
 
 .irm-icon {
@@ -44,11 +47,23 @@
 }
 
 .banners {
-  padding-top: 12px;
   margin-bottom: 24px;
 
   &:empty {
     padding-top: 0;
     margin-bottom: 0;
   }
+}
+
+.logo-container,
+.page-header__img {
+  height: 32px;
+}
+
+.logo-container {
+  margin-top: 2px;
+}
+
+.page-header__title {
+  margin-bottom: 8px;
 }

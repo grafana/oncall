@@ -1,0 +1,20 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30001
+        hostPort: 30001
+      - containerPort: 30002
+        hostPort: 30002
+    # https://stackoverflow.com/a/62695918
+    extraMounts:
+      # this basically mounts local directories into the kind node
+      # so that we can later use a volumeMount to mount from the kind-control-plane Docker container
+      # onto various containers
+      - hostPath: ./grafana-plugin
+        containerPath: /oncall-plugin
+      - hostPath: ./dev
+        containerPath: /dev-config
+      - hostPath: ./engine
+        containerPath: /engine

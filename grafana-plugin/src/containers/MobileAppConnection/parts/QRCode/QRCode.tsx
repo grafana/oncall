@@ -1,22 +1,20 @@
 import React, { FC } from 'react';
 
-import QRCodeBase from 'react-qr-code';
+import { QRCodeSVG } from 'qrcode.react';
 
-import Block from 'components/GBlock/Block';
+import { Block } from 'components/GBlock/Block';
 
 type Props = {
   value: string;
   className?: string;
 };
 
-const QRCode: FC<Props> = (props: Props) => {
+export const QRCode: FC<Props> = (props: Props) => {
   const { value, className = '' } = props;
 
   return (
     <Block bordered className={className}>
-      <QRCodeBase value={value} />
+      <QRCodeSVG value={value} size={256} />
     </Block>
   );
 };
-
-export default QRCode;

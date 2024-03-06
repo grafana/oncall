@@ -7,8 +7,8 @@ from calendar import monthrange
 from uuid import uuid4
 
 import pytz
+import recurring_ical_events
 from dateutil import relativedelta
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -17,9 +17,9 @@ from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Event
-from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.tasks import (
+    check_gaps_and_empty_shifts_in_schedule,
     drop_cached_ical_task,
     refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
@@ -53,6 +53,7 @@ def generate_public_primary_key_for_custom_oncall_shift():
 
 
 class CustomOnCallShift(models.Model):
+    parent_shift: typing.Optional["CustomOnCallShift"]
     schedules: "RelatedManager['OnCallSchedule']"
 
     (
@@ -488,13 +489,14 @@ class CustomOnCallShift(models.Model):
         next_event_start = current_event_start
         # Calculate the minimum start date for the next event based on rotation frequency. We don't need to do this
         # for the first rotation, because in this case the min start date will be the same as the current event date.
+        DAYS_IN_A_WEEK = 7
+        DAYS_IN_A_MONTH = monthrange(current_event_start.year, current_event_start.month)[1]
         if get_next_date:
             if self.frequency == CustomOnCallShift.FREQUENCY_HOURLY:
                 next_event_start = current_event_start + datetime.timedelta(hours=ONE_HOUR)
             elif self.frequency == CustomOnCallShift.FREQUENCY_DAILY:
                 next_event_start = current_event_start + datetime.timedelta(days=ONE_DAY)
             elif self.frequency == CustomOnCallShift.FREQUENCY_WEEKLY:
-                DAYS_IN_A_WEEK = 7
                 # count days before the next week starts
                 days_for_next_event = DAYS_IN_A_WEEK - current_event_start.weekday() + self.week_start
                 if days_for_next_event > DAYS_IN_A_WEEK:
@@ -504,7 +506,6 @@ class CustomOnCallShift(models.Model):
                     days=days_for_next_event + DAYS_IN_A_WEEK * (interval - 1)
                 )
             elif self.frequency == CustomOnCallShift.FREQUENCY_MONTHLY:
-                DAYS_IN_A_MONTH = monthrange(current_event_start.year, current_event_start.month)[1]
                 # count days before the next month starts
                 days_for_next_event = DAYS_IN_A_MONTH - current_event_start.day + ONE_DAY
                 # count next event start date with respect to event interval
@@ -533,10 +534,12 @@ class CustomOnCallShift(models.Model):
 
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules
-        repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
-            current_event, next_event_start.replace(microsecond=0)
-        )
-        for event in repetitions.__iter__():
+        repeated_event = recurring_ical_events.RepeatedEvent(current_event)
+        max_date_range = next_event_start + datetime.timedelta(days=DAYS_IN_A_MONTH)
+        if end_date:
+            max_date_range = max(end_date, max_date_range)
+        repetitions = repeated_event.within_days(next_event_start.replace(microsecond=0), max_date_range)
+        for event in repetitions:
             if end_date:  # end_date exists for long events with frequency weekly and monthly
                 if end_date >= event.start >= next_event_start:
                     if (
@@ -572,10 +575,9 @@ class CustomOnCallShift(models.Model):
 
         last_event = None
         # repetitions generate the next event shift according with the recurrence rules
-        repetitions = UnfoldableCalendar(initial_event).RepeatedEvent(
-            initial_event, initial_event_start.replace(microsecond=0)
-        )
-        for event in repetitions.__iter__():
+        repeated_event = recurring_ical_events.RepeatedEvent(initial_event)
+        repetitions = repeated_event.within_days(initial_event_start, date)
+        for event in repetitions:
             if event.start > date:
                 break
             last_event = event
@@ -623,7 +625,8 @@ class CustomOnCallShift(models.Model):
         return pytz.timezone(time_zone).localize(start_naive, is_dst=None)
 
     def get_rolling_users(self):
-        User = apps.get_model("user_management", "User")
+        from apps.user_management.models import User
+
         all_users_pks = set()
         users_queue = []
         if self.rolling_users is not None:
@@ -690,6 +693,7 @@ class CustomOnCallShift(models.Model):
         schedule = self.schedule.get_real_instance()
         schedule.refresh_ical_file()
         refresh_ical_final_schedule.apply_async((schedule.pk,))
+        check_gaps_and_empty_shifts_in_schedule.apply_async((schedule.pk,))
 
     def start_drop_ical_and_check_schedule_tasks(self, schedule):
         drop_cached_ical_task.apply_async((schedule.pk,))

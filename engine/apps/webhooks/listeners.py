@@ -1,7 +1,5 @@
 import logging
 
-from django.apps import apps
-
 from .tasks import alert_group_created, alert_group_status_change
 
 logger = logging.getLogger(__name__)
@@ -13,8 +11,13 @@ def on_alert_group_created(**kwargs):
 
 
 def on_action_triggered(**kwargs):
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    from apps.alerts.models import AlertGroupLogRecord
+
     log_record = kwargs["log_record"]
     if not isinstance(log_record, AlertGroupLogRecord):
-        log_record = AlertGroupLogRecord.objects.get(pk=log_record)
+        try:
+            log_record = AlertGroupLogRecord.objects.get(pk=log_record)
+        except AlertGroupLogRecord.DoesNotExist as e:
+            logger.warning(f"Webhook action triggered: log record {log_record} never created or has been deleted")
+            raise e
     alert_group_status_change.apply_async((log_record.type, log_record.alert_group_id, log_record.author_id))

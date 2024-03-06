@@ -9,7 +9,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     alert_group_id = OrganizationFilteredPrimaryKeyRelatedField(
-        queryset=AlertGroup.unarchived_objects,
+        queryset=AlertGroup.objects,
         source="alert_group",
         filter_field="channel__organization",
     )
@@ -34,7 +34,8 @@ class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     SELECT_RELATED = ["alert_group", "resolution_note_slack_message", "author"]
 
     def create(self, validated_data):
-        validated_data["author"] = self.context["request"].user
+        if self.context["request"].user.pk:
+            validated_data["author"] = self.context["request"].user
         validated_data["source"] = ResolutionNote.Source.WEB
         return super().create(validated_data)
 

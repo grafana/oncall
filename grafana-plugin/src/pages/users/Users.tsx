@@ -4,94 +4,96 @@ import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Avatar from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { Avatar } from 'components/Avatar/Avatar';
+import { GTable } from 'components/GTable/GTable';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import UsersFilters from 'components/UsersFilters/UsersFilters';
-import UserSettings from 'containers/UserSettings/UserSettings';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { UsersFilters } from 'components/UsersFilters/UsersFilters';
+import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { User as UserType } from 'models/user/user.types';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
-import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
+import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
+const DEBOUNCE_MS = 1000;
 
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-const ITEMS_PER_PAGE = 100;
 const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
-  page: number;
   isWrongTeam: boolean;
-  userPkToEdit?: UserType['pk'] | 'new';
+  userPkToEdit?: ApiSchemas['User']['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
   };
-  initialUsersLoaded: boolean;
 }
 
 @observer
 class Users extends React.Component<UsersProps, UsersState> {
-  state: UsersState = {
-    page: 1,
-    isWrongTeam: false,
-    userPkToEdit: undefined,
-    usersFilters: {
-      searchTerm: '',
-    },
+  constructor(props: UsersProps) {
+    super(props);
 
-    errorData: initErrorDataState(),
-    initialUsersLoaded: false,
-  };
-
-  async componentDidMount() {
     const {
       query: { p },
-    } = this.props;
-    this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
+      store: { filtersStore },
+    } = props;
 
+    this.state = {
+      isWrongTeam: false,
+      userPkToEdit: undefined,
+      usersFilters: {
+        searchTerm: '',
+      },
+
+      errorData: initErrorDataState(),
+    };
+
+    // Users component doesn't rely on RemoteFilters
+    // therefore we need to initialize the page in the constructor instead
+    filtersStore.currentTablePageNum[PAGE.Users] = p ? Number(p) : 1;
+  }
+
+  async componentDidMount() {
     this.parseParams();
   }
 
-  updateUsers = async () => {
+  updateUsers = debounce(async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
-    const { usersFilters, page } = this.state;
-    const { userStore } = store;
+    const { usersFilters } = this.state;
+    const { userStore, filtersStore } = store;
+    const page = filtersStore.currentTablePageNum[PAGE.Users];
 
     if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
       return;
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.updateItems(usersFilters, page);
+    await userStore.fetchItems(usersFilters, page, invalidateFn);
 
-    this.setState({ initialUsersLoaded: true });
-  };
+    this.forceUpdate();
+  }, DEBOUNCE_MS);
 
   componentDidUpdate(prevProps: UsersProps) {
-    if (!this.state.initialUsersLoaded) {
-      this.updateUsers();
-    }
-
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseParams();
     }
@@ -108,9 +110,10 @@ class Users extends React.Component<UsersProps, UsersState> {
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
-        (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
-      );
+      await (id === 'me'
+        ? store.userStore.loadCurrentUser()
+        : store.userStore.fetchItemById({ userPk: String(id), skipErrorHandling: true })
+      ).catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
 
@@ -121,16 +124,274 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page, errorData, initialUsersLoaded } = this.state;
+    const { userPkToEdit, errorData } = this.state;
     const {
-      store,
       match: {
         params: { id },
       },
     } = this.props;
+
+    const isAuthorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
+
+    return (
+      <PageErrorHandlingWrapper
+        errorData={errorData}
+        objectName="user"
+        pageName="users"
+        itemNotFoundMessage={`User with id=${id} is not found. Please select user from the list.`}
+      >
+        {() => (
+          <div className={cx('root')}>
+            <div className={cx('users-header')}>
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <div>
+                  <LegacyNavHeading>
+                    <Text.Title level={3}>Users</Text.Title>
+                  </LegacyNavHeading>
+                  {isAuthorizedToViewUsers && (
+                    <Text type="secondary">
+                      All Grafana users listed below to set notification preferences. To manage permissions or add new
+                      users, please visit{' '}
+                      <a href="/admin/users" target="_blank">
+                        Grafana user management
+                      </a>
+                    </Text>
+                  )}
+                </div>
+              </div>
+              <PluginLink query={{ page: 'users', id: 'me' }}>
+                <Button variant="primary" icon="user" data-testid="users-view-my-profile">
+                  View my profile
+                </Button>
+              </PluginLink>
+            </div>
+
+            {this.renderContentIfAuthorized(isAuthorizedToViewUsers)}
+
+            {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+          </div>
+        )}
+      </PageErrorHandlingWrapper>
+    );
+  }
+
+  renderContentIfAuthorized(authorizedToViewUsers: boolean) {
+    const {
+      store: { userStore, filtersStore },
+    } = this.props;
+
+    const { usersFilters, userPkToEdit } = this.state;
+
+    const page = filtersStore.currentTablePageNum[PAGE.Users];
+
+    const { count, results, page_size } = UserHelper.getSearchResult(userStore);
+    const columns = this.getTableColumns();
+
+    const handleClear = () =>
+      this.setState({ usersFilters: { searchTerm: '' } }, () => {
+        this.updateUsers();
+      });
+
+    return (
+      <>
+        {authorizedToViewUsers ? (
+          <>
+            <div className={cx('user-filters-container')} data-testid="users-filters">
+              <UsersFilters
+                className={cx('users-filters')}
+                value={usersFilters}
+                isLoading={results === undefined}
+                onChange={this.handleUsersFiltersChange}
+              />
+              <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
+                Clear filters
+              </Button>
+            </div>
+
+            <GTable
+              data-testid="users-table"
+              emptyText={results ? 'No users found' : 'Loading...'}
+              rowKey="pk"
+              data={results}
+              columns={columns}
+              rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
+              pagination={{
+                page,
+                total: results ? Math.ceil((count || 0) / page_size) : 0,
+                onChange: this.handleChangePage,
+              }}
+            />
+          </>
+        ) : (
+          <Alert
+            title={
+              (
+                <div data-testid="users-missing-permissions">
+                  <Text type="primary">
+                    {generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW_USERS)} to be able to view OnCall
+                    users. <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
+                  </Text>
+                </div>
+              ) as any
+            }
+            data-testid="view-users-missing-permission-message"
+            severity="info"
+          />
+        )}
+      </>
+    );
+  }
+
+  renderTitle = (user: ApiSchemas['User']) => {
+    const {
+      store: { userStore },
+    } = this.props;
+    const isCurrent = userStore.currentUserPk === user.pk;
+
+    return (
+      <HorizontalGroup>
+        <Avatar className={cx('user-avatar')} size="large" src={user.avatar} />
+        <div
+          className={cx({
+            'current-user': isCurrent,
+            'other-user': !isCurrent,
+          })}
+        >
+          <div data-testid="users-username">{user.username}</div>
+          <Text type="secondary" data-testid="users-email">
+            {user.email}
+          </Text>
+          <br />
+          <Text type="secondary" data-testid="users-phone-number">
+            {user.verified_phone_number}
+          </Text>
+        </div>
+      </HorizontalGroup>
+    );
+  };
+
+  renderNotificationsChain = (user: ApiSchemas['User']) => {
+    return user.notification_chain_verbal.default;
+  };
+
+  renderImportantNotificationsChain = (user: ApiSchemas['User']) => {
+    return user.notification_chain_verbal.important;
+  };
+
+  renderContacts = (user: ApiSchemas['User']) => {
+    const { store } = this.props;
+    return (
+      <div className={cx('contacts')}>
+        <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
+        {store.hasFeature(AppFeature.Telegram) && (
+          <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+        )}
+      </div>
+    );
+  };
+
+  renderButtons = (user: ApiSchemas['User']) => {
+    const { store } = this.props;
     const { userStore } = store;
 
-    const columns = [
+    const isCurrent = userStore.currentUserPk === user.pk;
+    const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
+
+    return (
+      <VerticalGroup justify="center">
+        <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
+          <WithPermissionControlTooltip userAction={action}>
+            <Button
+              className={cx({
+                'edit-my-profile-button': isCurrent,
+                'edit-other-profile-button': !isCurrent,
+              })}
+              fill="text"
+            >
+              Edit
+            </Button>
+          </WithPermissionControlTooltip>
+        </PluginLink>
+      </VerticalGroup>
+    );
+  };
+
+  renderStatus = (user: ApiSchemas['User']) => {
+    const {
+      store,
+      store: { organizationStore, telegramChannelStore },
+    } = this.props;
+
+    if (user.hidden_fields === true) {
+      return null;
+    }
+
+    let warnings = [];
+
+    // Show warnining if no notifications are set
+    if (!this.renderNotificationsChain(user)) {
+      warnings.push('No Default Notifications');
+    }
+
+    if (!this.renderImportantNotificationsChain(user)) {
+      warnings.push('No Important Notifications');
+    }
+
+    let phone_verified = user.verified_phone_number !== null;
+    if (user.cloud_connection_status !== null) {
+      phone_verified = false;
+      switch (user.cloud_connection_status) {
+        case 0:
+          break; // Cloud is not connected, no need to show warning to the user
+        case 1:
+          warnings.push('User not matched with cloud');
+          break;
+        case 2:
+          warnings.push('Phone number is not verified in Grafana Cloud OnCall');
+          break;
+        case 3:
+          phone_verified = true; // Phone is verified in Grafana Cloud OnCall, no need to show warning to the user
+          break;
+      }
+    } else if (!phone_verified) {
+      warnings.push('Phone not verified');
+    }
+
+    if (organizationStore.currentOrganization.slack_team_identity && !user.slack_user_identity) {
+      warnings.push('Slack profile is not connected');
+    }
+
+    let telegramChannelsExist = telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
+
+    if (store.hasFeature(AppFeature.Telegram) && telegramChannelsExist && !user.telegram_configuration) {
+      warnings.push('Telegram profile is not connected');
+    }
+
+    return (
+      warnings.length > 0 && (
+        <HorizontalGroup>
+          <TooltipBadge
+            borderType="warning"
+            icon="exclamation-triangle"
+            text={warnings.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {warnings.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        </HorizontalGroup>
+      )
+    );
+  };
+
+  getTableColumns(): Array<{ width: string; key: string; title?: string; render }> {
+    return [
       {
         width: '25%',
         key: 'username',
@@ -141,7 +402,7 @@ class Users extends React.Component<UsersProps, UsersState> {
         width: '20%',
         title: 'Status',
         key: 'note',
-        render: this.renderNote,
+        render: this.renderStatus,
       },
       {
         width: '20%',
@@ -161,235 +422,23 @@ class Users extends React.Component<UsersProps, UsersState> {
         render: this.renderButtons,
       },
     ];
-
-    const handleClear = () =>
-      this.setState({ usersFilters: { searchTerm: '' } }, () => {
-        this.debouncedUpdateUsers();
-      });
-
-    const { count, results } = userStore.getSearchResult();
-
-    const authorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
-
-    return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="user"
-        pageName="users"
-        itemNotFoundMessage={`User with id=${id} is not found. Please select user from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <div className={cx('root', 'TEST-users-page')}>
-                <div className={cx('users-header')}>
-                  <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                    <div>
-                      <LegacyNavHeading>
-                        <Text.Title level={3}>Users</Text.Title>
-                      </LegacyNavHeading>
-                      {authorizedToViewUsers && (
-                        <Text type="secondary">
-                          All Grafana users listed below to set notification preferences. To manage permissions or add
-                          new users, please visit{' '}
-                          <a href="/org/users" target="_blank">
-                            Grafana user management
-                          </a>
-                        </Text>
-                      )}
-                    </div>
-                  </div>
-                  <PluginLink query={{ page: 'users', id: 'me' }}>
-                    <Button variant="primary" icon="user">
-                      View my profile
-                    </Button>
-                  </PluginLink>
-                </div>
-                {authorizedToViewUsers ? (
-                  <>
-                    <div className={cx('user-filters-container')}>
-                      <UsersFilters
-                        className={cx('users-filters')}
-                        value={usersFilters}
-                        onChange={this.handleUsersFiltersChange}
-                      />
-                      <Button
-                        variant="secondary"
-                        icon="times"
-                        onClick={handleClear}
-                        className={cx('searchIntegrationClear')}
-                      >
-                        Clear filters
-                      </Button>
-                    </div>
-
-                    <GTable
-                      data-testid="users-table"
-                      emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
-                      rowKey="pk"
-                      data={results}
-                      columns={columns}
-                      rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
-                      pagination={{
-                        page,
-                        total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                        onChange: this.handleChangePage,
-                      }}
-                    />
-                  </>
-                ) : (
-                  <Alert
-                    /* @ts-ignore */
-                    title={
-                      <>
-                        {generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW_USERS)} to be able to view OnCall
-                        users. <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your
-                        profile
-                      </>
-                    }
-                    data-testid="view-users-missing-permission-message"
-                    severity="info"
-                  />
-                )}
-              </div>
-              {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
-            </div>
-          </>
-        )}
-      </PageErrorHandlingWrapper>
-    );
   }
 
   handleChangePage = (page: number) => {
-    this.setState({ page }, this.updateUsers);
+    const { filtersStore } = this.props.store;
+
+    filtersStore.currentTablePageNum[PAGE.Users] = page;
+
+    this.updateUsers();
   };
 
-  renderTitle = (user: UserType) => {
-    return (
-      <HorizontalGroup>
-        <Avatar className={cx('user-avatar')} size="large" src={user.avatar} />
-        <div>
-          <div>{user.username}</div>
-          <Text type="secondary">{user.email}</Text>
-          <br />
-          <Text type="secondary">{user.verified_phone_number}</Text>
-        </div>
-      </HorizontalGroup>
-    );
-  };
+  handleUsersFiltersChange = (usersFilters: any, invalidateFn: () => boolean) => {
+    const { filtersStore } = this.props.store;
 
-  renderNotificationsChain = (user: UserType) => {
-    return user.notification_chain_verbal.default;
-  };
+    filtersStore.currentTablePageNum[PAGE.Users] = 1;
 
-  renderImportantNotificationsChain = (user: UserType) => {
-    return user.notification_chain_verbal.important;
-  };
-
-  renderContacts = (user: UserType) => {
-    const { store } = this.props;
-    return (
-      <div className={cx('contacts')}>
-        <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
-        {store.hasFeature(AppFeature.Telegram) && (
-          <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
-        )}
-      </div>
-    );
-  };
-
-  renderButtons = (user: UserType) => {
-    const { store } = this.props;
-    const { userStore } = store;
-
-    const isCurrent = userStore.currentUserPk === user.pk;
-    const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
-
-    return (
-      <VerticalGroup justify="center">
-        <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
-          <WithPermissionControlTooltip userAction={action}>
-            <Button
-              className={cx({
-                'TEST-edit-my-own-settings-button': isCurrent,
-              })}
-              fill="text"
-            >
-              Edit
-            </Button>
-          </WithPermissionControlTooltip>
-        </PluginLink>
-      </VerticalGroup>
-    );
-  };
-
-  renderNote = (user: UserType) => {
-    const { store } = this.props;
-    if (user.hidden_fields === true) {
-      return null;
-    }
-    let phone_verified = user.verified_phone_number !== null;
-    let phone_not_verified_message = 'Phone not verified';
-
-    if (user.cloud_connection_status !== null) {
-      phone_verified = false;
-      switch (user.cloud_connection_status) {
-        case 0:
-          phone_not_verified_message = 'Cloud is not synced';
-          break;
-        case 1:
-          phone_not_verified_message = 'User not matched with cloud';
-          break;
-        case 2:
-          phone_not_verified_message = 'Phone number is not verified in Grafana Cloud';
-          break;
-        case 3:
-          phone_verified = true;
-          break;
-      }
-    }
-
-    if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
-      let texts = [];
-      if (!phone_verified) {
-        texts.push(phone_not_verified_message);
-      }
-      if (!user.slack_user_identity) {
-        texts.push('Slack not verified');
-      }
-      if (store.hasFeature(AppFeature.Telegram) && !user.telegram_configuration) {
-        texts.push('Telegram not verified');
-      }
-
-      return (
-        <HorizontalGroup>
-          <TooltipBadge
-            borderType="warning"
-            icon="exclamation-triangle"
-            text={texts.length}
-            tooltipTitle="Warnings"
-            tooltipContent={
-              <VerticalGroup spacing="none">
-                {texts.map((warning, index) => (
-                  <Text type="primary" key={index}>
-                    {warning}
-                  </Text>
-                ))}
-              </VerticalGroup>
-            }
-          />
-        </HorizontalGroup>
-      );
-    }
-
-    return 'All contacts verified';
-  };
-
-  debouncedUpdateUsers = debounce(this.updateUsers, 500);
-
-  handleUsersFiltersChange = (usersFilters: any) => {
-    this.setState({ usersFilters, page: 1 }, () => {
-      this.debouncedUpdateUsers();
+    this.setState({ usersFilters }, () => {
+      this.updateUsers(invalidateFn);
     });
   };
 
@@ -399,10 +448,6 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     history.push(`${PLUGIN_ROOT}/users`);
   };
-
-  handleUserUpdate = () => {
-    this.updateUsers();
-  };
 }
 
-export default withRouter(withMobXProviderContext(Users));
+export const UsersPage = withRouter(withMobXProviderContext(Users));

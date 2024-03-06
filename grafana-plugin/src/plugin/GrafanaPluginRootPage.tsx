@@ -1,66 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
+import { LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import isBetween from 'dayjs/plugin/isBetween';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isoWeek from 'dayjs/plugin/isoWeek';
-import localeData from 'dayjs/plugin/localeData';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
-import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
-import Header from 'navbar/Header/Header';
-import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+import { Header } from 'navbar/Header/Header';
+import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
-import Unauthorized from 'components/Unauthorized';
-import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import { getMatchedPage, getRoutesForPage, pages } from 'pages';
-import NoMatch from 'pages/NoMatch';
-import EscalationChains from 'pages/escalation-chains/EscalationChains';
-import Incident from 'pages/incident/Incident';
-import Incidents from 'pages/incidents/Incidents';
-import Integration from 'pages/integration/Integration';
-import Integrations from 'pages/integrations/Integrations';
-import Maintenance from 'pages/maintenance/Maintenance';
-import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
-import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
-import Schedule from 'pages/schedule/Schedule';
-import Schedules from 'pages/schedules/Schedules';
-import SettingsPage from 'pages/settings/SettingsPage';
-import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
-import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Unauthorized } from 'components/Unauthorized/Unauthorized';
+import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
+import { NoMatch } from 'pages/NoMatch';
+import { EscalationChainsPage } from 'pages/escalation-chains/EscalationChains';
+import { IncidentPage } from 'pages/incident/Incident';
+import { IncidentsPage } from 'pages/incidents/Incidents';
+import { Insights } from 'pages/insights/Insights';
+import { IntegrationPage } from 'pages/integration/Integration';
+import { IntegrationsPage } from 'pages/integrations/Integrations';
+import { OutgoingWebhooksPage } from 'pages/outgoing_webhooks/OutgoingWebhooks';
+import { getMatchedPage, getRoutesForPage, pages } from 'pages/pages';
+import { SchedulePage } from 'pages/schedule/Schedule';
+import { SchedulesPage } from 'pages/schedules/Schedules';
+import { SettingsPage } from 'pages/settings/SettingsPage';
+import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
+import { CloudPage } from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Users from 'pages/users/Users';
-import { rootStore } from 'state';
-import { AppFeature } from 'state/features';
+import { UsersPage } from 'pages/users/Users';
+import { PluginSetup } from 'plugin/PluginSetup/PluginSetup';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed } from 'utils/authorization';
-import loadJs from 'utils/loadJs';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(weekday);
-dayjs.extend(localeData);
-dayjs.extend(isSameOrBefore);
-dayjs.extend(isSameOrAfter);
-dayjs.extend(isoWeek);
-dayjs.extend(isBetween);
-dayjs.extend(customParseFormat);
-
-import 'style/vars.css';
-import 'style/global.css';
-import 'style/utils.css';
-import 'style/responsive.css';
+import { isUserActionAllowed } from 'utils/authorization/authorization';
+import { DEFAULT_PAGE } from 'utils/consts';
+import 'assets/style/vars.css';
+import 'assets/style/global.css';
+import 'assets/style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
-import PluginSetup from './PluginSetup';
 
-import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -71,12 +49,18 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const [didFinishLoading, setDidFinishLoading] = useState(false);
+  const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle } = useStore();
 
-  const store = useStore();
+  const location = useLocation();
 
   useEffect(() => {
-    updateBasicData();
+    loadBasicData();
+    // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
+    const timeout = setTimeout(() => {
+      loadMasterData();
+    }, 1000);
+
+    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -99,126 +83,116 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  useEffect(() => {
-    loadJs(`https://www.google.com/recaptcha/api.js?render=${rootStore.recaptchaSiteKey}`);
-  }, []);
-
-  const updateBasicData = async () => {
-    await store.updateBasicData();
-    await store.alertGroupStore.fetchIRMPlan();
-    setDidFinishLoading(true);
-  };
-
-  if (!didFinishLoading) {
-    return null;
-  }
-
-  const location = useLocation();
-
   const page = getMatchedPage(location.pathname);
-
   const pagePermissionAction = pages[page]?.action;
   const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
-
   const query = getQueryParams();
 
+  const getPageNav = () => {
+    return (pages[page] || pages[DEFAULT_PAGE]).getPageNav(pageTitle);
+  };
+
+  if (!userHasAccess) {
+    return <Unauthorized requiredUserAction={pagePermissionAction} />;
+  }
+
   return (
-    <DefaultPageLayout {...props} page={page}>
+    <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
       {!isTopNavbar() && (
         <>
           <Header />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}
-
       <div
         className={classnames('u-position-relative', 'u-flex-grow-1', {
           'u-overflow-x-auto': !isTopNavbar(),
           'page-body': !isTopNavbar(),
         })}
       >
-        {userHasAccess ? (
-          <Switch>
-            <Route path={getRoutesForPage('alert-groups')} exact>
-              <Incidents query={query} />
-            </Route>
-            <Route path={getRoutesForPage('alert-group')} exact>
-              <Incident query={query} />
-            </Route>
-            <Route path={getRoutesForPage('users')} exact>
-              <Users query={query} />
-            </Route>
-            <Route path={getRoutesForPage('integrations')} exact>
-              <Integrations query={query} />
-            </Route>
-            <Route path={getRoutesForPage('integration')} exact>
-              <Integration query={query} />
-            </Route>
-            <Route path={getRoutesForPage('escalations')} exact>
-              <EscalationChains query={query} />
-            </Route>
-            <Route path={getRoutesForPage('schedules')} exact>
-              <Schedules query={query} />
-            </Route>
-            <Route path={getRoutesForPage('schedule')} exact>
-              <Schedule query={query} />
-            </Route>
-            <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-              {rootStore.hasFeature(AppFeature.Webhooks2) ? (
-                <OutgoingWebhooks2 query={query} />
-              ) : (
-                <OutgoingWebhooks query={query} />
-              )}
-            </Route>
-            <Route path={getRoutesForPage('maintenance')} exact>
-              <Maintenance />
-            </Route>
-            <Route path={getRoutesForPage('settings')} exact>
-              <SettingsPage />
-            </Route>
-            <Route path={getRoutesForPage('chat-ops')} exact>
-              <ChatOps query={query} />
-            </Route>
-            <Route path={getRoutesForPage('live-settings')} exact>
-              <LiveSettings />
-            </Route>
-            <Route path={getRoutesForPage('cloud')} exact>
-              <CloudPage />
-            </Route>
+        <RenderConditionally
+          shouldRender={userHasAccess}
+          backupChildren={<Unauthorized requiredUserAction={pagePermissionAction} />}
+        >
+          <RenderConditionally
+            shouldRender={isBasicDataLoaded}
+            backupChildren={<LoadingPlaceholder text="Loading..." />}
+          >
+            <Switch>
+              <Route path={getRoutesForPage('alert-groups')} exact>
+                <IncidentsPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('alert-group')} exact>
+                <IncidentPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('users')} exact>
+                <UsersPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('integrations')} exact>
+                <IntegrationsPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('integration')} exact>
+                <IntegrationPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('escalations')} exact>
+                <EscalationChainsPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('schedules')} exact>
+                <SchedulesPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('schedule')} exact>
+                <SchedulePage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('outgoing_webhooks')} exact>
+                <OutgoingWebhooksPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('settings')} exact>
+                <SettingsPage />
+              </Route>
+              <Route path={getRoutesForPage('chat-ops')} exact>
+                <ChatOpsPage query={query} />
+              </Route>
+              <Route path={getRoutesForPage('live-settings')} exact>
+                <LiveSettings />
+              </Route>
+              <Route path={getRoutesForPage('cloud')} exact>
+                <CloudPage />
+              </Route>
+              <Route path={getRoutesForPage('insights')} exact>
+                <Insights />
+              </Route>
 
-            {/* Backwards compatibility redirect routes */}
-            <Route
-              path={getRoutesForPage('incident')}
-              exact
-              render={({ location }) => (
-                <Redirect
-                  to={{
-                    ...location,
-                    pathname: location.pathname.replace(/incident/, 'alert-group'),
-                  }}
-                ></Redirect>
-              )}
-            ></Route>
-            <Route
-              path={getRoutesForPage('incidents')}
-              exact
-              render={({ location }) => (
-                <Redirect
-                  to={{
-                    ...location,
-                    pathname: location.pathname.replace(/incidents/, 'alert-groups'),
-                  }}
-                ></Redirect>
-              )}
-            ></Route>
-
-            <Route path="*">
-              <NoMatch />
-            </Route>
-          </Switch>
-        ) : (
-          <Unauthorized requiredUserAction={pagePermissionAction} />
-        )}
+              {/* Backwards compatibility redirect routes */}
+              <Route
+                path={getRoutesForPage('incident')}
+                exact
+                render={({ location }) => (
+                  <Redirect
+                    to={{
+                      ...location,
+                      pathname: location.pathname.replace(/incident/, 'alert-group'),
+                    }}
+                  ></Redirect>
+                )}
+              />
+              <Route
+                path={getRoutesForPage('incidents')}
+                exact
+                render={({ location }) => (
+                  <Redirect
+                    to={{
+                      ...location,
+                      pathname: location.pathname.replace(/incidents/, 'alert-groups'),
+                    }}
+                  ></Redirect>
+                )}
+              />
+              <Route path="*">
+                <NoMatch />
+              </Route>
+            </Switch>
+          </RenderConditionally>
+        </RenderConditionally>
       </div>
     </DefaultPageLayout>
   );

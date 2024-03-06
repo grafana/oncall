@@ -4,10 +4,10 @@ import * as runtime from '@grafana/runtime';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { RootBaseStore } from 'state/rootBaseStore';
+import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { useStore as useStoreOriginal } from 'state/useStore';
 
-import PluginSetup, { PluginSetupProps } from '.';
+import { PluginSetup, PluginSetupProps } from './PluginSetup';
 
 jest.mock('state/useStore');
 
@@ -70,20 +70,17 @@ describe('PluginSetup', () => {
 
   test('app is loading', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = true;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 
   test('there is an error message', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = 'ohhhh noo';
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 
   test('there is an error message - retry setup', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = 'ohhhh noo';
 
     const mockedSetupPlugin = await createComponentAndMakeAssertions(rootBaseStore);
@@ -95,7 +92,6 @@ describe('PluginSetup', () => {
 
   test('currently undergoing maintenance', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.currentlyUndergoingMaintenance = true;
     rootBaseStore.initializationError = 'there is some sort of maintenance';
     await createComponentAndMakeAssertions(rootBaseStore);
@@ -103,7 +99,6 @@ describe('PluginSetup', () => {
 
   test('app successfully initialized', async () => {
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = null;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
@@ -112,7 +107,6 @@ describe('PluginSetup', () => {
     runtime.config.featureToggles.topnav = isTopNavBar;
 
     const rootBaseStore = new RootBaseStore();
-    rootBaseStore.appLoading = true;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 });

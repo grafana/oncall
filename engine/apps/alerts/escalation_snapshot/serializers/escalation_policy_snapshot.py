@@ -62,6 +62,7 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
     num_alerts_in_window = serializers.IntegerField(allow_null=True, default=None)
     num_minutes_in_window = serializers.IntegerField(allow_null=True, default=None)
     pause_escalation = serializers.BooleanField(default=False)
+    last_notified_user = PrimaryKeyRelatedFieldWithNoneValue(allow_null=True, queryset=User.objects)
 
     class Meta:
         model = EscalationPolicy
@@ -79,6 +80,7 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",
+            "notify_to_team_members",
             "escalation_counter",
             "passed_last_time",
             "pause_escalation",

@@ -1,0 +1,41 @@
+suite: test ui dev container
+templates:
+  - ui/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: doesn't create deployment if ui.enabled is false
+    set:
+      ui:
+        enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: creates deployment if ui.enabled is true
+    set:
+      ui:
+        enabled: true
+    asserts:
+      - matchSnapshot: {}
+  - it: doesn't add env vars if none are supplied
+    set:
+      ui:
+        enabled: true
+    asserts:
+      - isEmpty:
+          path: spec.template.spec.containers[0].env
+  - it: adds env vars if they are supplied
+    set:
+      ui:
+        enabled: true
+        env:
+          FOO: bar
+          ABC: 123
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: ABC
+              value: "123"
+            - name: FOO
+              value: bar

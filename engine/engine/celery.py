@@ -3,23 +3,17 @@ import os
 import time
 
 import celery
+from celery import Celery
 from celery.app.log import TaskFormatter
 from celery.utils.debug import memdump, sample_mem
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.celery import CeleryInstrumentor
-from opentelemetry.instrumentation.pymysql import PyMySQLInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
-from celery import Celery  # noqa: E402
 
 app = Celery("proj")
 
@@ -57,18 +51,21 @@ def on_after_setup_logger(logger, **kwargs):
 def on_worker_ready(*args, **kwargs):
     from apps.telegram.tasks import register_telegram_webhook
 
-    register_telegram_webhook.delay()
+    if not settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED:
+        register_telegram_webhook.delay()
 
 
-if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
-
-    @celery.signals.worker_process_init.connect(weak=False)
-    def init_celery_tracing(*args, **kwargs):
-        trace.set_tracer_provider(TracerProvider())
-        span_processor = BatchSpanProcessor(OTLPSpanExporter())
-        trace.get_tracer_provider().add_span_processor(span_processor)
-        PyMySQLInstrumentor().instrument()
-        CeleryInstrumentor().instrument()
+# Temporary disable celery auto instrumentation.
+# I'm working on propagating trace_id to logs and trying to keep setup as easy as possible
+# if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT and False:
+#
+#     @celery.signals.worker_process_init.connect(weak=False)
+#     def init_celery_tracing(*args, **kwargs):
+#         trace.set_tracer_provider(TracerProvider())
+#         span_processor = BatchSpanProcessor(OTLPSpanExporter())
+#         trace.get_tracer_provider().add_span_processor(span_processor)
+#         PyMySQLInstrumentor().instrument()
+#         CeleryInstrumentor().instrument()
 
 
 if settings.DEBUG_CELERY_TASKS_PROFILING:

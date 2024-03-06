@@ -52,7 +52,7 @@ def test_create_escalation_policy(escalation_policy_internal_api_setup, make_use
 
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["order"] == max_order + 1
+    assert EscalationPolicy.objects.get(public_primary_key=response.data["id"]).order == max_order + 1
 
 
 @pytest.mark.django_db
@@ -76,9 +76,9 @@ def test_create_escalation_policy_webhook(
 
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["order"] == max_order + 1
     assert response.data["custom_webhook"] == webhook.public_primary_key
     escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+    assert escalation_policy.order == max_order + 1
     assert escalation_policy.custom_webhook == webhook
 
 
@@ -102,11 +102,48 @@ def test_update_notify_multiple_users_step(escalation_policy_internal_api_setup,
 
 
 @pytest.mark.django_db
+def test_manage_escalation_policy_notify_team(escalation_policy_internal_api_setup, make_team, make_user_auth_headers):
+    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:escalation_policy-list")
+
+    team = make_team(organization=user.organization)
+    data = {
+        "step": EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+        "escalation_chain": escalation_chain.public_primary_key,
+        "notify_to_team_members": team.public_primary_key,
+    }
+
+    max_order = EscalationPolicy.objects.filter(escalation_chain=escalation_chain).aggregate(maxorder=Max("order"))[
+        "maxorder"
+    ]
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["notify_to_team_members"] == team.public_primary_key
+    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+    assert escalation_policy.order == max_order + 1
+    assert escalation_policy.notify_to_team_members == team
+
+    # update team in policy
+    url = reverse("api-internal:escalation_policy-detail", kwargs={"pk": escalation_policy.public_primary_key})
+    another_team = make_team(organization=user.organization)
+    data = {
+        "step": EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+        "notify_to_team_members": another_team.public_primary_key,
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["step"] == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS
+    assert response.json()["notify_to_team_members"] == another_team.public_primary_key
+
+
+@pytest.mark.django_db
 def test_move_to_position(escalation_policy_internal_api_setup, make_user_auth_headers):
     token, _, escalation_policy, user, _ = escalation_policy_internal_api_setup
     client = APIClient()
 
-    position_to_move = 1
+    position_to_move = 0
     url = reverse(
         "api-internal:escalation_policy-move-to-position", kwargs={"pk": escalation_policy.public_primary_key}
     )
@@ -119,12 +156,29 @@ def test_move_to_position(escalation_policy_internal_api_setup, make_user_auth_h
 
 
 @pytest.mark.django_db
+def test_move_to_position_invalid_index(escalation_policy_internal_api_setup, make_user_auth_headers):
+    token, _, escalation_policy, user, _ = escalation_policy_internal_api_setup
+    client = APIClient()
+
+    position_to_move = 1
+    url = reverse(
+        "api-internal:escalation_policy-move-to-position", kwargs={"pk": escalation_policy.public_primary_key}
+    )
+    response = client.put(
+        f"{url}?position={position_to_move}", content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    escalation_policy.refresh_from_db()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_create_permissions(
@@ -162,6 +216,7 @@ def test_escalation_policy_create_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_update_permissions(
@@ -203,6 +258,7 @@ def test_escalation_policy_update_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_list_permissions(
@@ -240,6 +296,7 @@ def test_escalation_policy_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_retrieve_permissions(
@@ -277,6 +334,7 @@ def test_escalation_policy_retrieve_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_delete_permissions(
@@ -314,6 +372,7 @@ def test_escalation_policy_delete_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_escalation_options_permissions(
@@ -351,6 +410,7 @@ def test_escalation_policy_escalation_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_delay_options_permissions(
@@ -389,6 +449,7 @@ def test_escalation_policy_delay_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_move_to_position_permissions(
@@ -688,6 +749,7 @@ def test_escalation_policy_update_drop_non_step_type_related_data(
         "notify_schedule",
         "notify_to_users_queue",
         "notify_to_group",
+        "notify_to_team_members",
         "from_time",
         "to_time",
         "custom_webhook",
@@ -733,7 +795,6 @@ def test_escalation_policy_switch_importance(
     data_for_update = {
         "id": escalation_policy.public_primary_key,
         "step": escalation_policy.step,
-        "order": escalation_policy.order,
         "escalation_chain": escalation_chain.public_primary_key,
         "notify_to_users_queue": [],
         "from_time": None,
@@ -744,6 +805,7 @@ def test_escalation_policy_switch_importance(
         "custom_webhook": None,
         "notify_schedule": None,
         "notify_to_group": None,
+        "notify_to_team_members": None,
         "important": True,
         "wait_delay": None,
     }
@@ -788,7 +850,6 @@ def test_escalation_policy_filter_by_user(
     expected_payload = [
         {
             "id": escalation_policy_with_one_user.public_primary_key,
-            "order": 0,
             "step": 13,
             "wait_delay": None,
             "escalation_chain": escalation_chain.public_primary_key,
@@ -801,11 +862,11 @@ def test_escalation_policy_filter_by_user(
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
+            "notify_to_team_members": None,
             "important": False,
         },
         {
             "id": escalation_policy_with_two_users.public_primary_key,
-            "order": 1,
             "step": 13,
             "wait_delay": None,
             "escalation_chain": escalation_chain.public_primary_key,
@@ -818,6 +879,7 @@ def test_escalation_policy_filter_by_user(
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
+            "notify_to_team_members": None,
             "important": False,
         },
     ]
@@ -828,6 +890,9 @@ def test_escalation_policy_filter_by_user(
 
     assert response.status_code == status.HTTP_200_OK
 
+    result = response.json()
+    assert set(result[1]["notify_to_users_queue"]) == {user.public_primary_key, second_user.public_primary_key}
+    expected_payload[1]["notify_to_users_queue"] = result[1]["notify_to_users_queue"]
     assert response.json() == expected_payload
 
 
@@ -867,7 +932,6 @@ def test_escalation_policy_filter_by_slack_channel(
     expected_payload = [
         {
             "id": escalation_policy_from_alert_receive_channel_with_slack_channel.public_primary_key,
-            "order": 0,
             "step": 0,
             "wait_delay": None,
             "escalation_chain": escalation_chain.public_primary_key,
@@ -880,6 +944,7 @@ def test_escalation_policy_filter_by_slack_channel(
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
+            "notify_to_team_members": None,
             "important": False,
         },
     ]
@@ -893,3 +958,20 @@ def test_escalation_policy_filter_by_slack_channel(
     assert response.status_code == status.HTTP_200_OK
 
     assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_escalation_policy_escalation_options_webhooks(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:escalation_policy-escalation-options")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    returned_options = [option["value"] for option in response.json()]
+
+    assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK in returned_options

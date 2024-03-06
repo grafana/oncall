@@ -1,85 +1,70 @@
+import typing
+
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup
+from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentTeamDefault
 
 
+class SerializerContext(typing.TypedDict):
+    organization: Organization
+
+
 class UserReferenceSerializer(serializers.Serializer):
+    context: SerializerContext
+
     id = serializers.CharField()
     important = serializers.BooleanField()
     instance = serializers.HiddenField(default=None)  # set in UserReferenceSerializer.validate
 
     def validate(self, attrs):
+        id = attrs["id"]
         organization = self.context["organization"]
 
         try:
-            attrs["instance"] = organization.users.get(public_primary_key=attrs["id"])
+            attrs["instance"] = organization.users.get(public_primary_key=id)
         except ObjectDoesNotExist:
-            raise serializers.ValidationError("User {} does not exist".format(attrs["id"]))
-
-        return attrs
-
-
-class ScheduleReferenceSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    important = serializers.BooleanField()
-    instance = serializers.HiddenField(default=None)  # set in ScheduleReferenceSerializer.validate
-
-    def validate(self, attrs):
-        organization = self.context["organization"]
-
-        try:
-            attrs["instance"] = organization.oncall_schedules.get(public_primary_key=attrs["id"])
-        except ObjectDoesNotExist:
-            raise serializers.ValidationError("Schedule {} does not exist".format(attrs["id"]))
+            raise serializers.ValidationError(f"User {id} does not exist")
 
         return attrs
 
 
 class DirectPagingSerializer(serializers.Serializer):
-    users = UserReferenceSerializer(many=True, required=False, default=list)
-    schedules = ScheduleReferenceSerializer(many=True, required=False, default=list)
+    context: SerializerContext
 
-    escalation_chain_id = serializers.CharField(required=False, default=None)
-    escalation_chain = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
+    users = UserReferenceSerializer(many=True, required=False, default=list)
+    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
 
     alert_group_id = serializers.CharField(required=False, default=None)
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
 
     title = serializers.CharField(required=False, default=None)
-    message = serializers.CharField(required=False, default=None)
-
-    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    message = serializers.CharField(required=False, default=None, allow_null=True)
+    source_url = serializers.URLField(required=False, default=None, allow_null=True)
+    grafana_incident_id = serializers.CharField(required=False, default=None, allow_null=True)
 
     def validate(self, attrs):
         organization = self.context["organization"]
-
-        escalation_chain_id = attrs["escalation_chain_id"]
-
         alert_group_id = attrs["alert_group_id"]
         title = attrs["title"]
         message = attrs["message"]
+        source_url = attrs["source_url"]
+        grafana_incident_id = attrs["grafana_incident_id"]
 
-        if alert_group_id and (title or message):
-            raise serializers.ValidationError("alert_group_id and (title, message) are mutually exclusive")
-
-        if alert_group_id and escalation_chain_id:
-            raise serializers.ValidationError("escalation_chain_id is not supported for existing alert groups")
+        if alert_group_id and (title or message or source_url or grafana_incident_id):
+            raise serializers.ValidationError(
+                "alert_group_id and (title, message, source_url, grafana_incident_id) are mutually exclusive"
+            )
 
         if alert_group_id:
             try:
-                attrs["alert_group"] = AlertGroup.unarchived_objects.get(
+                attrs["alert_group"] = AlertGroup.objects.get(
                     public_primary_key=alert_group_id, channel__organization=organization
                 )
             except ObjectDoesNotExist:
                 raise serializers.ValidationError("Alert group {} does not exist".format(alert_group_id))
-
-        if escalation_chain_id:
-            try:
-                attrs["escalation_chain"] = organization.escalation_chains.get(public_primary_key=escalation_chain_id)
-            except ObjectDoesNotExist:
-                raise serializers.ValidationError("Escalation chain {} does not exist".format(escalation_chain_id))
 
         return attrs

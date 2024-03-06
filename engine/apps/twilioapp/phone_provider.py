@@ -2,7 +2,6 @@ import logging
 import urllib.parse
 from string import digits
 
-from django.apps import apps
 from django.db.models import F, Q
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from twilio.base.exceptions import TwilioRestException
@@ -18,7 +17,14 @@ from apps.phone_notifications.exceptions import (
 )
 from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.twilioapp.gather import get_gather_message, get_gather_url
-from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS
+from apps.twilioapp.models import (
+    TwilioCallStatuses,
+    TwilioPhoneCall,
+    TwilioPhoneCallSender,
+    TwilioSMS,
+    TwilioSmsSender,
+    TwilioVerificationSender,
+)
 from apps.twilioapp.status_callback import get_call_status_callback_url, get_sms_status_callback_url
 
 logger = logging.getLogger(__name__)
@@ -39,7 +45,7 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
-                logger.info(f"TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
+                logger.info("TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
                 try_without_callback = True
             else:
                 logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
@@ -69,7 +75,7 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
-                logger.info(f"TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
+                logger.info("TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
                 try_without_callback = True
             else:
                 logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")
@@ -260,11 +266,10 @@ class TwilioPhoneProvider(PhoneProvider):
     def _default_twilio_number(self):
         return live_settings.TWILIO_NUMBER
 
-    def _twilio_sender(self, sender_type, to):
+    def _twilio_sender(self, sender_model, to):
         _, _, country_code = self._parse_number(to)
-        TwilioSender = apps.get_model("twilioapp", sender_type)
         sender = (
-            TwilioSender.objects.filter(Q(country_code=country_code) | Q(country_code__isnull=True))
+            sender_model.objects.filter(Q(country_code=country_code) | Q(country_code__isnull=True))
             .order_by(F("country_code").desc(nulls_last=True))
             .first()
         )
@@ -275,15 +280,15 @@ class TwilioPhoneProvider(PhoneProvider):
         return self._default_twilio_api_client, None
 
     def _sms_sender(self, to):
-        client, sender = self._twilio_sender("TwilioSmsSender", to)
+        client, sender = self._twilio_sender(TwilioSmsSender, to)
         return client, sender.sender if sender else self._default_twilio_number
 
     def _phone_sender(self, to):
-        client, sender = self._twilio_sender("TwilioPhoneCallSender", to)
+        client, sender = self._twilio_sender(TwilioPhoneCallSender, to)
         return client, sender.number if sender else self._default_twilio_number
 
     def _verify_sender(self, to):
-        client, sender = self._twilio_sender("TwilioVerificationSender", to)
+        client, sender = self._twilio_sender(TwilioVerificationSender, to)
         return client, sender.verify_service_sid if sender else live_settings.TWILIO_VERIFY_SERVICE_SID
 
     def _get_calling_code(self, iso):

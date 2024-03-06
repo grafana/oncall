@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import string
 import typing
@@ -6,11 +7,15 @@ import typing
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.exceptions import DeviceNotSet
-from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification, logger
+from apps.mobile_app.types import FCMMessageData, MessageType, Platform
+from apps.mobile_app.utils import add_stack_slug_to_message_title, construct_fcm_message, send_push_notification
 from apps.user_management.models import User
 
 if typing.TYPE_CHECKING:
     from apps.mobile_app.models import FCMDevice
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def send_test_push(user, critical=False):
@@ -21,11 +26,11 @@ def send_test_push(user, critical=False):
         logger.info(f"send_test_push: fcm_device not found user_id={user.id}")
         raise DeviceNotSet
     message = _get_test_escalation_fcm_message(user, device_to_notify, critical)
-    _send_push_notification(device_to_notify, message)
+    send_push_notification(device_to_notify, message)
 
 
 def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", critical: bool) -> Message:
-    # TODO: this method is copied from _get_alert_group_escalation_fcm_message
+    # TODO: this method is copied from apps.mobile_app.tasks.new_alert_group._get_fcm_message
     # to have same notification/sound/overrideDND logic. Ideally this logic should be abstracted, not repeated.
     from apps.mobile_app.models import MobileAppUserSettings
 
@@ -38,27 +43,23 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    apns_sound_name = (
-        mobile_app_user_settings.important_notification_sound_name
-        if critical
-        else mobile_app_user_settings.default_notification_sound_name
-    ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
+    message_type = MessageType.IMPORTANT if critical else MessageType.DEFAULT
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
-        "title": get_test_push_title(critical),
+        "title": add_stack_slug_to_message_title(get_test_push_title(critical), user.organization),
+        "orgName": user.organization.stack_slug,
         # Pass user settings, so the Android app can use them to play the correct sound and volume
-        "default_notification_sound_name": (
-            mobile_app_user_settings.default_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.DEFAULT, Platform.ANDROID
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
         "default_notification_volume_override": json.dumps(
             mobile_app_user_settings.default_notification_volume_override
         ),
-        "important_notification_sound_name": (
-            mobile_app_user_settings.important_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.IMPORTANT, Platform.ANDROID
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
@@ -84,9 +85,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
         ),
     )
 
-    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
-
-    return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
+    return construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
 
 def get_test_push_title(critical: bool) -> str:

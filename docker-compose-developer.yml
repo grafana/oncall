@@ -3,12 +3,15 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
-x-user: &oncall-user "appuser"
+x-user: &oncall-user "root"
 
 x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
   labels: *oncall-labels
+  cache_from:
+    - grafana/oncall:latest
+    - grafana/oncall:dev
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
@@ -53,13 +56,9 @@ services:
       labels: *oncall-labels
     environment:
       ONCALL_API_URL: http://host.docker.internal:8080
-      MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules
-      # https://stackoverflow.com/a/60456034
-      # see the explaination above that uses the $ENTERPRISE_ENGINE env var
-      - ${ENTERPRISE_FRONTEND:-/dev/null}:${ENTERPRISE_FRONTEND_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
     profiles:
       - oncall_ui
 
@@ -81,6 +80,23 @@ services:
         condition: service_completed_successfully
     profiles:
       - engine
+
+  oncall_telegram_polling:
+    container_name: oncall_telegram_polling
+    labels: *oncall-labels
+    build: *oncall-build-args
+    restart: always
+    user: *oncall-user
+    command: sh -c "python manage.py start_telegram_polling"
+    env_file: *oncall-env-files
+    environment: *oncall-env-vars
+    volumes: *oncall-volumes
+    extra_hosts: *oncall-extra-hosts
+    depends_on:
+      oncall_db_migration:
+        condition: service_completed_successfully
+    profiles:
+      - telegram_polling
 
   # used to invoke one-off commands, primarily from the Makefile
   # oncall_engine couldn't (easily) be used due to it's depends_on property
@@ -144,12 +160,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
       mysql:
         condition: service_healthy
+        required: false
       rabbitmq:
         condition: service_healthy
+        required: false
       redis:
         condition: service_healthy
+        required: false
     profiles:
       - engine
 
@@ -208,7 +228,9 @@ services:
     container_name: mysql
     labels: *oncall-labels
     image: mysql:8.0.32
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1024
+    command: >-
+      --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci --max_connections=1024
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: empty
@@ -234,7 +256,9 @@ services:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
     image: mysql:8.0.32
-    command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
+    command: >-
+      bash -c "mysql -h mysql -uroot -pempty
+      -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
         condition: service_healthy
@@ -272,7 +296,10 @@ services:
     container_name: postgres_to_create_grafana_db
     labels: *oncall-labels
     image: postgres:14.4
-    command: bash -c "PGPASSWORD=empty psql -U postgres -h postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'grafana'\" | grep -q 1 || PGPASSWORD=empty psql -U postgres -h postgres -c \"CREATE DATABASE grafana\""
+    command: >-
+      bash -c "PGPASSWORD=empty psql -U postgres
+      -h postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'grafana'\" | grep -q 1 || PGPASSWORD=empty psql
+      -U postgres -h postgres -c \"CREATE DATABASE grafana\""
     depends_on:
       postgres:
         condition: service_healthy
@@ -319,10 +346,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
       mysql:
         condition: service_healthy
+        required: false
     profiles:
       - grafana
+
 volumes:
   redisdata_dev:
     labels: *oncall-labels

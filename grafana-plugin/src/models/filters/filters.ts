@@ -1,8 +1,11 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { LabelKeyValue } from 'models/label/label.types';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
+import { LocationHelper } from 'utils/LocationHelper';
+import { PAGE } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 
 import { getApiPathByPage } from './filters.helpers';
@@ -17,15 +20,28 @@ export class FiltersStore extends BaseStore {
   @observable.shallow
   public values: { [page: string]: FiltersValues } = {};
 
+  @observable.shallow
+  public currentTablePageNum: { [page: string]: number } = {};
+
   private _globalValues: FiltersValues = {};
+
+  @observable
+  needToParseFilters = false;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
+
+    makeObservable(this);
 
     const savedFilters = getItem(LOCAL_STORAGE_FILTERS_KEY);
     if (savedFilters) {
       this._globalValues = { ...savedFilters };
     }
+  }
+
+  @action.bound
+  setNeedToParseFilters(value: boolean) {
+    this.needToParseFilters = value;
   }
 
   set globalValues(value: any) {
@@ -38,7 +54,7 @@ export class FiltersStore extends BaseStore {
     return this._globalValues;
   }
 
-  @action
+  @action.bound
   public async updateOptionsForPage(page: string) {
     const result = await makeRequest(`/${getApiPathByPage(page)}/filters/`, {});
 
@@ -47,19 +63,43 @@ export class FiltersStore extends BaseStore {
       result.unshift({ name: 'search', type: 'search' });
     }
 
-    this.options = {
-      ...this.options,
-      [page]: result,
-    };
+    runInAction(() => {
+      this.options = {
+        ...this.options,
+        [page]: result,
+      };
+    });
 
     return result;
   }
 
-  @action
+  @action.bound
   updateValuesForPage(page: string, value: FiltersValues) {
     this.values = {
       ...this.values,
       [page]: value,
     };
   }
+
+  @action.bound
+  setCurrentTablePageNum(page: PAGE, currentTablePageNum: number) {
+    this.currentTablePageNum[page] = currentTablePageNum;
+  }
+
+  @action.bound
+  applyLabelFilter = (label: LabelKeyValue, page: PAGE) => {
+    const currentLabelFilterValues = this.values[page]?.label || [];
+    const labelToAddString = `${label.key.id}:${label.value.id}`;
+    const newLabelFilter = [...currentLabelFilterValues, labelToAddString];
+
+    if (currentLabelFilterValues?.some((label) => label === labelToAddString)) {
+      return;
+    }
+
+    this.updateValuesForPage(page, {
+      label: newLabelFilter,
+    });
+    LocationHelper.update({ label: newLabelFilter }, 'partial');
+    this.setNeedToParseFilters(true);
+  };
 }

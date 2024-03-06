@@ -12,14 +12,6 @@
   width: 100%;
 }
 
-.root:first-child {
-  padding-top: 26px;
-}
-
-.root:last-child {
-  padding-bottom: 26px;
-}
-
 .root:hover {
   background: var(--secondary-background);
 }
@@ -64,6 +56,7 @@
 .empty {
   height: 28px;
   cursor: pointer;
+  text-align: center;
 
   /*  background: #5f505633;
     border: 1px dashed #5c474d;

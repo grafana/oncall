@@ -2,11 +2,11 @@ const rulesDirPlugin = require('eslint-plugin-rulesdir');
 rulesDirPlugin.RULES_DIR = 'tools/eslint-rules';
 
 module.exports = {
-  extends: ['@grafana/eslint-config'],
-  plugins: ['rulesdir', 'import'],
+  extends: ['./.config/.eslintrc'],
+  plugins: ['rulesdir', 'import', 'unused-imports'],
   settings: {
     'import/internal-regex':
-      '^assets|^components|^containers|^icons|^img|^models|^network|^pages|^services|^state|^utils|^plugin',
+      '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
   rules: {
     eqeqeq: 'warn',
@@ -36,7 +36,10 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
-    'no-unused-vars': [
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': ['warn'],
+    'unused-imports/no-unused-vars': [
       'warn',
       {
         vars: 'all',
@@ -48,6 +51,8 @@ module.exports = {
     ],
     'no-duplicate-imports': 'error',
     'no-restricted-imports': 'warn',
+    // https://eslint.org/docs/latest/rules/no-redeclare#handled_by_typescript
+    'no-redeclare': 0,
     'react/display-name': 'warn',
     /**
      * It appears as though the react/prop-types rule has a bug in it
@@ -55,6 +60,7 @@ module.exports = {
      * https://github.com/jsx-eslint/eslint-plugin-react/issues/3325
      */
     'react/prop-types': 'off',
+    'react/no-unused-prop-types': 'off',
     'react/jsx-key': 'warn',
     'react/jsx-no-target-blank': 'warn',
     'react/no-unescaped-entities': 'off',

@@ -1,0 +1,226 @@
+/* -----
+ * Flex
+ */
+
+.u-flex {
+  display: flex !important;
+  flex-direction: row;
+}
+
+.u-align-items-center {
+  align-items: center;
+}
+
+.u-flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.u-flex-space-between {
+  justify-content: space-between;
+}
+
+.u-flex-grow-1 {
+  flex-grow: 1;
+}
+
+.u-flex-gap-xs {
+  gap: 4px;
+}
+
+/* -----
+ * Margins/Paddings
+ */
+
+.u-margin-right-xs {
+  margin-right: 4px;
+}
+
+.u-margin-bottom-none {
+  margin-bottom: 0;
+}
+
+.u-margin-bottom-md {
+  margin-bottom: 12px;
+}
+
+.u-margin-top-xs {
+  margin-top: 4px;
+}
+
+.u-padding-top-md {
+  padding-top: 12px;
+}
+
+.u-padding-top-none {
+  padding-top: 0;
+}
+
+.u-padding-left-lg {
+  padding-left: 24px;
+}
+
+.u-padding-vertical-xs {
+  padding: 4px 0;
+}
+
+.u-pull-right {
+  margin-left: auto;
+}
+
+.u-pull-left {
+  margin-right: auto;
+}
+
+/* -----
+ * Display
+ */
+
+.u-width-100 {
+  width: 100%;
+}
+
+.u-height-100 {
+  height: 100%;
+}
+
+.u-width-height-100 {
+  width: 100%;
+  height: 100%;
+}
+
+.u-display-block {
+  display: block;
+}
+
+/* -----
+ * Other
+ */
+
+.back-arrow {
+  padding-top: 8px;
+}
+
+.link {
+  text-decoration: none !important;
+}
+
+.u-position-relative {
+  position: relative;
+}
+
+.u-break-word {
+  word-break: break-word;
+}
+
+.u-opacity,
+.u-disabled {
+  opacity: var(--opacity);
+}
+
+.u-disabled {
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.u-cursor-default {
+  cursor: default;
+}
+
+.thin-line-break {
+  width: 100%;
+  border-top: 1px solid var(--always-gray);
+  margin-top: 8px;
+  opacity: 15%;
+}
+
+.buttons {
+  padding-bottom: 24px;
+}
+
+/* -----
+ * Icons
+ */
+
+.icon-exclamation {
+  color: var(--error-text-color);
+}
+
+.loadingPlaceholder {
+  margin-bottom: 0;
+  margin-right: 4px;
+}
+
+/* -----
+ * Overflow
+ */
+
+.u-overflow-x-auto {
+  overflow-x: auto;
+}
+
+.overflow-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  white-space: initial;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.overflow-child--line-1 {
+  -webkit-line-clamp: 1;
+}
+
+.break-word {
+  word-break: break-all;
+}
+
+.line-clamp-3 {
+  -webkit-line-clamp: 3;
+}
+
+/* -----
+ * CSSTransitionGroup fading
+ */
+
+.fade-enter {
+  max-height: 0;
+  opacity: 0;
+}
+
+.fade-enter.fade-enter-active {
+  max-height: 50px;
+  opacity: 1;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+.fade-leave {
+  opacity: 1;
+  max-height: 50px;
+}
+
+.fade-leave.fade-leave-active {
+  max-height: 0;
+  opacity: 0;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+  max-height: 50px;
+}
+
+.fade-exit.fade-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transition: opacity 300ms ease-in, max-height 300ms ease-in;
+}
+
+/* -----
+ * Widths
+ */
+
+.u-max-width-1000 {
+  max-width: 1000px;
+}

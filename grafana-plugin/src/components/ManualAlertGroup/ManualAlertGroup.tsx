@@ -1,245 +1,82 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import {
-  Alert,
-  Button,
-  Drawer,
-  Field,
-  HorizontalGroup,
-  Icon,
-  IconButton,
-  IconName,
-  Label,
-  LoadingPlaceholder,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
-import { prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
-import TeamName from 'containers/TeamName/TeamName';
+import { GForm } from 'components/GForm/GForm';
+import { AddResponders } from 'containers/AddResponders/AddResponders';
+import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
-import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import IntegrationHelper from 'pages/integration/Integration.helper';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils';
+import { openWarningNotification } from 'utils/utils';
 
-import { manualAlertFormConfig } from './ManualAlertGroup.config';
-
-import styles from './ManualAlertGroup.module.css';
+import { manualAlertFormConfig, ManualAlertGroupFormData } from './ManualAlertGroup.config';
 
 interface ManualAlertGroupProps {
   onHide: () => void;
-  onCreate: (id: AlertType['pk']) => void;
+  onCreate: (id: ApiSchemas['AlertGroup']['pk']) => void;
   alertReceiveChannelStore: AlertReceiveChannelStore;
 }
 
-const cx = cn.bind(styles);
+const data: ManualAlertGroupFormData = {
+  message: '',
+};
 
-const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
-  const store = useStore();
-  const [userResponders, setUserResponders] = useState([]);
-  const [scheduleResponders, setScheduleResponders] = useState([]);
-  const { onHide, onCreate, alertReceiveChannelStore } = props;
+export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate, onHide }) => {
+  const { directPagingStore } = useStore();
+  const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
-  const [selectedTeamId, setSelectedTeam] = useState<GrafanaTeam['id']>();
-  const [selectedTeamDirectPaging, setSelectedTeamDirectPaging] = useState<AlertReceiveChannel>();
-  const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
+  const [formIsValid, setFormIsValid] = useState<boolean>(false);
 
-  const [chatOpsAvailableChannels, setChatopsAvailableChannels] = useState<any>();
+  const onHideDrawer = useCallback(() => {
+    directPagingStore.resetSelectedUsers();
+    directPagingStore.resetSelectedTeam();
+    onHide();
+  }, [onHide]);
 
-  const data = {};
+  const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== null || selectedUserResponders.length > 0;
+  const formIsSubmittable = hasSelectedEitherATeamOrAUser && formIsValid;
 
-  const handleFormSubmit = async (data) => {
-    if (selectedTeamId === undefined) {
-      openWarningNotification('Select team first');
-      return;
-    }
-    store.directPagingStore
-      .createManualAlertRule(prepareForUpdate(userResponders, scheduleResponders, { team: selectedTeamId, ...data }))
-      .then(({ alert_group_id: id }: { alert_group_id: AlertType['pk'] }) => {
-        onCreate(id);
-      })
-      .finally(() => {
-        onHide();
-      });
-  };
+  // TODO: add a loading state while we're waiting to hear back from the API when submitting
+  // const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
 
-  const onUpdateSelectedTeam = async (selectedTeamId: GrafanaTeam['id']) => {
-    setdirectPagingLoading(true);
-    setSelectedTeamDirectPaging(null);
-    setSelectedTeam(selectedTeamId);
-    await alertReceiveChannelStore.updateItems({ team: selectedTeamId, integration: 'direct_paging' });
-    const directPagingAlertReceiveChannel =
-      alertReceiveChannelStore.getSearchResult() && alertReceiveChannelStore.getSearchResult()[0];
-    if (directPagingAlertReceiveChannel) {
-      setSelectedTeamDirectPaging(directPagingAlertReceiveChannel);
-      await alertReceiveChannelStore.updateChannelFilters(directPagingAlertReceiveChannel.id);
-      await store.slackChannelStore.updateItems();
+  const handleFormSubmit = useCallback(
+    async (data: ManualAlertGroupFormData) => {
+      const transformedData = prepareForUpdate(selectedUserResponders, selectedTeamResponder, data);
 
-      // The code below is used to get the unique available chotops channels for all routes in integraion
-      // This is the workaround for IntegrationHelper.getChatOpsChannels, it should be moved to the helper
-      const filterIds = alertReceiveChannelStore.channelFilterIds[directPagingAlertReceiveChannel.id];
-      let availableChannels = [];
-      let channelKeys = new Set();
-      filterIds.map((channelFilterId) => {
-        IntegrationHelper.getChatOpsChannels(alertReceiveChannelStore.channelFilters[channelFilterId], store)
-          .filter((channel) => channel)
-          .map((channel) => {
-            if (!channelKeys.has(channel.name + channel.icon)) {
-              availableChannels.push(channel);
-              channelKeys.add(channel.name + channel.icon);
-            }
-          });
-      });
-      setChatopsAvailableChannels(Array.from(availableChannels));
-    }
-    setdirectPagingLoading(false);
-  };
+      const resp = await directPagingStore.createManualAlertRule(transformedData);
 
-  const onUpdateEscalationVariants = useCallback(
-    (value) => {
-      setUserResponders(value.userResponders);
-      setScheduleResponders(value.scheduleResponders);
+      if (!resp) {
+        openWarningNotification('There was an issue creating the alert group, please try again');
+        return;
+      }
+
+      directPagingStore.resetSelectedUsers();
+      directPagingStore.resetSelectedTeam();
+
+      onCreate(resp.alert_group_id);
+      onHide();
     },
-    [userResponders, scheduleResponders]
-  );
-
-  const DirectPagingIntegrationVariants = ({ selectedTeamId, selectedTeamDirectPaging, chatOpsAvailableChannels }) => {
-    const escalationChainsExist = selectedTeamDirectPaging?.connected_escalations_chains_count === 0;
-
-    return (
-      <VerticalGroup>
-        {selectedTeamId &&
-          (directPagingLoading ? (
-            <LoadingPlaceholder text="Loading..." />
-          ) : selectedTeamDirectPaging ? (
-            <VerticalGroup>
-              <Label>Team will be notified according to the integration settings:</Label>
-              <ul className={cx('responders-list')}>
-                <li>
-                  <HorizontalGroup justify="space-between">
-                    <HorizontalGroup>
-                      {escalationChainsExist && (
-                        <Tooltip content="Integration doesn't have connected escalation policies">
-                          <Icon name="exclamation-triangle" style={{ color: 'var(--warning-text-color)' }} />
-                        </Tooltip>
-                      )}
-                      <Text>{selectedTeamDirectPaging.verbal_name}</Text>
-                    </HorizontalGroup>
-                    <HorizontalGroup>
-                      <Text type="secondary">Team:</Text>
-                      <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />
-                    </HorizontalGroup>
-                    <HorizontalGroup>
-                      {chatOpsAvailableChannels && (
-                        <>
-                          {chatOpsAvailableChannels.map(
-                            (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
-                              <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
-                                {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
-                                <Text type="primary">{chatOpsChannel.name || ''}</Text>
-                              </div>
-                            )
-                          )}
-                          {chatOpsAvailableChannels && (
-                            <Tooltip content="Alert group will be posted to these chatops channels according to integration configuration">
-                              <Icon name="info-circle" />
-                            </Tooltip>
-                          )}
-                        </>
-                      )}
-                    </HorizontalGroup>
-                    <HorizontalGroup>
-                      <PluginLink target="_blank" query={{ page: 'integrations', id: selectedTeamDirectPaging.id }}>
-                        <IconButton
-                          tooltip="Open integration in new tab"
-                          style={{ color: 'var(--always-gray)' }}
-                          name="external-link-alt"
-                        />
-                      </PluginLink>
-                    </HorizontalGroup>
-                  </HorizontalGroup>
-                </li>
-              </ul>
-
-              {(escalationChainsExist || !chatOpsAvailableChannels) && (
-                <Alert severity="warning" title="Possible notification miss">
-                  <VerticalGroup>
-                    {escalationChainsExist && (
-                      <Text>
-                        Integration doesn't have connected escalation policies. Consider adding responders manually by
-                        user or by email
-                      </Text>
-                    )}
-                    {!chatOpsAvailableChannels && (
-                      <Text>Integration doesn't have connected ChatOps channels in messengers.</Text>
-                    )}
-                  </VerticalGroup>
-                </Alert>
-              )}
-            </VerticalGroup>
-          ) : (
-            <Alert severity="warning" title={"This team doesn't have the the Direct Paging integration yet"}>
-              <HorizontalGroup>
-                <Text>
-                  Empty integration for this team will be created automatically. Consider selecting responders by
-                  schedule or user below
-                </Text>
-              </HorizontalGroup>
-            </Alert>
-          ))}
-      </VerticalGroup>
-    );
-  };
-
-  const submitButtonDisabled = !(
-    selectedTeamId &&
-    (selectedTeamDirectPaging || userResponders.length || scheduleResponders.length)
+    [prepareForUpdate, selectedUserResponders, selectedTeamResponder]
   );
 
   return (
-    <Drawer
-      scrollableContent
-      title="Create manual alert group (Direct Paging)"
-      onClose={onHide}
-      closeOnMaskClick={false}
-      width="70%"
-    >
+    <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
-        <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
-        <Field label="Select team you want to notify">
-          <GrafanaTeamSelect withoutModal onSelect={onUpdateSelectedTeam} />
-        </Field>
-        <DirectPagingIntegrationVariants
-          selectedTeamId={selectedTeamId}
-          selectedTeamDirectPaging={selectedTeamDirectPaging}
-          chatOpsAvailableChannels={chatOpsAvailableChannels}
-        />
-        <EscalationVariants
-          value={{ userResponders, scheduleResponders }}
-          onUpdateEscalationVariants={onUpdateEscalationVariants}
-          variant={'secondary'}
-          withLabels={true}
-        />
-        <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={onHide}>
-            Cancel
-          </Button>
-          <Button type="submit" form={manualAlertFormConfig.name} disabled={submitButtonDisabled}>
-            Create
-          </Button>
-        </HorizontalGroup>
+        <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} onChange={setFormIsValid} />
+        <AddResponders mode="create" />
+        <div className="buttons">
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={onHideDrawer}>
+              Cancel
+            </Button>
+            <Button type="submit" form={manualAlertFormConfig.name} disabled={!formIsSubmittable}>
+              Create
+            </Button>
+          </HorizontalGroup>
+        </div>
       </VerticalGroup>
     </Drawer>
   );
-};
-
-export default ManualAlertGroup;
+});

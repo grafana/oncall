@@ -5,6 +5,7 @@ from django.db import models
 logger = logging.getLogger(__name__)
 
 
+# deprecated
 class GrafanaAlertingContactPoint(models.Model):
     GRAFANA_CONTACT_POINT = "grafana"
     ALERTING_DATASOURCE = "alertmanager"

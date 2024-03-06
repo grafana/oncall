@@ -1,32 +1,51 @@
 # Developer quickstart
 
-- [Running the project](#running-the-project)
-  - [`COMPOSE_PROFILES`](#compose_profiles)
-  - [`GRAFANA_IMAGE`](#grafana_image)
-  - [Configuring Grafana](#configuring-grafana)
-  - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
-  - [Django Silk Profiling](#django-silk-profiling)
-  - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI Integration Tests](#ui-integration-tests)
-- [Useful `make` commands](#useful-make-commands)
-- [Setting environment variables](#setting-environment-variables)
-- [Slack application setup](#slack-application-setup)
-- [Update drone build](#update-drone-build)
-- [Troubleshooting](#troubleshooting)
-  - [ld: library not found for -lssl](#ld-library-not-found-for--lssl)
-  - [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
-  - [django.db.utils.OperationalError: (1366, "Incorrect string value")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
-  - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
-  - [Encountered error while trying to install package - grpcio](#encountered-error-while-trying-to-install-package---grpcio)
-  - [distutils.errors.CompileError: command '/usr/bin/clang' failed with exit code 1](#distutilserrorscompileerror-command-usrbinclang-failed-with-exit-code-1)
-  - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
-- [IDE Specific Instructions](#ide-specific-instructions)
-  - [PyCharm](#pycharm)
-- [How to write database migrations](#how-to-write-database-migrations)
-
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
-## Running the project
+## Quick Start using Kubernetes and Tilt (beta)
+
+> If you are experiencing issues, please check "Running the project with docker-compose".
+
+### Install dependencies
+
+- [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
+- [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
+- [Kind](https://kind.sigs.k8s.io)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+
+### Launch the environment
+
+1. Create local k8s cluster:
+
+   ```bash
+   make cluster/up
+   ```
+
+2. Deploy the project:
+
+   ```bash
+   tilt up
+   ```
+
+   You can set local environment variables using `dev/helm-local.dev.yml` file, e.g.:
+
+   ```yaml
+   env:
+     - name: FEATURE_LABELS_ENABLED_FOR_ALL
+       value: "True"
+   ```
+
+3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
+
+4. Modify source code, backend and frontend will be hot reloaded
+
+5. Clean up the project by deleting the local k8s cluster:
+
+   ```bash
+   make cluster/down
+   ```
+
+## Running the project with docker-compose
 
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles)
 environment variable.
@@ -35,7 +54,7 @@ environment variable.
    **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose
    v2. For instructions on how to enable this (if you haven't already done so),
    see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose
-   version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
+   version 2.20.2 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
@@ -75,6 +94,7 @@ The possible profiles values are:
 - `rabbitmq`
 - `postgres`
 - `mysql`
+- `telegram_polling`
 
 The default is `engine,oncall_ui,redis,grafana`. This runs:
 
@@ -169,13 +189,11 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Create a Python 3.11 virtual environment using a method of your choosing (ex.
-   [venv](https://docs.python.org/3.11/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
-   Make sure the virtualenv is "activated".
+1. Make sure you have Python 3.11 installed.
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
    [here](https://www.postgresql.org/download/) for installation instructions.
-3. `make backend-bootstrap` - installs all backend dependencies
+3. `make backend-bootstrap` - will create the virtual env and install all backend dependencies
 4. Modify your `.env.dev` by copying the contents of one of `.env.mysql.dev`, `.env.postgres.dev`,
    or `.env.sqlite.dev` into `.env.dev` (you should exclude the `GF_` prefixed environment variables).
 
@@ -189,19 +207,53 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
-## UI Integration Tests
+### Adding or updating Python dependencies
+
+We are using [pip-tools](https://github.com/jazzband/pip-tools) to manage our dependencies. It helps
+making builds deterministic, controlling deps (and indirect deps) upgrades (and versions consistency)
+avoiding unexpected (and potentially breaking) changes.
+
+We keep our direct deps in `requirements.in` from which we generate (through `pip-compile`) the
+`requirements.txt` (where all deps are pinned). We also constrain dev (and enterprise) deps based
+on our base requirements. Check [how to update deps](https://github.com/jazzband/pip-tools?tab=readme-ov-file#updating-requirements).
+
+`pip install -r requirements.txt` will keep working (the difference is that this should never
+bring additional dependencies or different versions not listed there), and when starting an env
+from scratch, it would be the same as running `pip-sync`. `pip-sync` on the other hand will also
+ensure to clean up any deps not listed in the requirements, keeping the env exactly as described
+in `requirements.txt`.
+
+## UI E2E Tests
 
 We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
 are run on pull request CI builds. New features should ideally include a new/modified integration test.
 
 To run these tests locally simply do the following:
 
+1. Install Playwright dependencies with `npx playwright install`
+2. [Launch the environment](#launch-the-environment)
+3. Then you interact with tests in 2 different ways:
+   1. Using `Tilt` - open _E2eTests_ section where you will find 4 buttons:
+      1. Restart headless run (you can configure browsers, reporter and failure allowance there)
+      2. Open watch mode
+      3. Show last HTML report
+      4. Stop (stops any pending e2e test process)
+   2. Using `make`:
+      1. `make test:e2e` to start headless run
+      2. `make test:e2e:watch` to open watch mode
+      3. `make test:e2e:show:report` to open last HTML report
+
+## Helm unit tests
+
+To run the `helm` unit tests you will need the following dependencies installed:
+
+- `helm` - [installation instructions](https://helm.sh/docs/intro/install/)
+- `helm-unittest` plugin - [installation instructions](https://github.com/helm-unittest/helm-unittest#install)
+
+Then you can simply run
+
 ```bash
-npx playwright install  # install playwright dependencies
-cp ./grafana-plugin/integration-tests/.env.example ./grafana-plugin/integration-tests/.env
-# you may need to tweak the values in ./grafana-plugin/.env according to your local setup
-cd grafana-plugin
-yarn test:integration
+make test-helm
 ```
 
 ## Useful `make` commands
@@ -427,3 +479,144 @@ backwards compatible
 
 See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
 for the common mistakes and best practices
+
+### Removing a nullable field from a model
+
+> This only works for nullable fields (fields with `null=True` in the field definition).
+>
+> DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT CAN BREAK THINGS!
+
+1. Remove all usages of the field you want to remove. Make sure the field is not used anywhere, including filtering,
+   querying, or explicit field referencing from views, models, forms, serializers, etc.
+2. Remove the field from the model definition.
+3. Generate migrations using the following management command:
+
+   ```python
+   python manage.py remove_field <APP_LABEL> <MODEL_NAME> <FIELD_NAME>
+   ```
+
+   Example: `python manage.py remove_field alerts AlertReceiveChannel restricted_at`
+
+   This command will generate two migrations that **MUST BE DEPLOYED IN TWO SEPARATE RELEASES**:
+
+   - Migration #1 will remove the field from Django's state, but not from the database. Release #1 must include
+     migration #1, and must not include migration #2.
+   - Migration #2 will remove the field from the database. Stash this migration for use in a future release.
+
+4. Make release #1 (removal of the field + migration #1). Once released and deployed, Django will not be
+   aware of this field anymore, but the field will be still present in the database. This allows for a gradual migration,
+   where the field is no longer used in new code, but still exists in the database for backward compatibility with old code.
+5. In any subsequent release, include migration #2 (the one that removes the field from the database).
+6. After releasing and deploying migration #2, the field will be removed both from the database and Django state,
+   without backward compatibility issues or downtime 🎉
+
+## Autogenerating TS types based on OpenAPI schema
+
+| :warning: WARNING                                                                           |
+| :------------------------------------------------------------------------------------------ |
+| Transition to this approach is [in progress](https://github.com/grafana/oncall/issues/3338) |
+
+### Overview
+
+In order to automate types creation and prevent API usage pitfalls, OnCall project is using the following approach:
+
+1. OnCall Engine (backend) exposes OpenAPI schema
+2. OnCall Grafana Plugin (frontend) autogenerates TS type definitions based on it
+3. OnCall Grafana Plugin (frontend) uses autogenerated types as a single source of truth for
+   any backend-related interactions (url paths, request bodies, params, response payloads)
+
+### Instruction
+
+1. Whenever API contract changes, run `yarn generate-types` from `grafana-plugin` directory
+2. Then you can start consuming types and you can use fully typed http client:
+
+   ```ts
+   import { ApiSchemas } from "network/oncall-api/api.types";
+   import { onCallApi } from "network/oncall-api/http-client";
+
+   const {
+     data: { results },
+   } = await onCallApi().GET("/alertgroups/");
+   const alertGroups: Array<ApiSchemas["AlertGroup"]> = results;
+   ```
+
+3. [Optional] If there is any property that is not yet exposed in OpenAPI schema and you already want to use it,
+   you can append missing properties to particular schemas by editing
+   `grafana-plugin/src/network/oncall-api/types-generator/custom-schemas.ts` file:
+
+   ```ts
+   export type CustomApiSchemas = {
+     Alert: {
+       propertyMissingInOpenAPI: string;
+     };
+     AlertGroup: {
+       anotherPropertyMissingInOpenAPI: number[];
+     };
+   };
+   ```
+
+   Then add their names to `CUSTOMIZED_SCHEMAS` array in `grafana-plugin/src/network/oncall-api/types-generator/generate-types.ts`:
+
+   ```ts
+   const CUSTOMIZED_SCHEMAS = ["Alert", "AlertGroup"];
+   ```
+
+   The outcome is that autogenerated schemas will be modified as follows:
+
+   ```ts
+   import type { CustomApiSchemas } from './types-generator/custom-schemas';
+
+   export interface components {
+       schemas: {
+           Alert: CustomApiSchemas['Alert'] & {
+               readonly id: string;
+               ...
+           };
+           AlertGroup: CustomApiSchemas['AlertGroup'] & {
+               readonly pk: string;
+               ...
+           },
+           ...
+       }
+   }
+   ```
+
+## System components
+
+```mermaid
+flowchart TD
+    client[Monitoring System]
+    third_party["Slack, Twilio, 
+           3rd party services.."]
+    server[Server]
+    celery[Celery Worker]
+    db[(SQL Database)]
+    redis[("Cache
+            (Redis)")]
+    broker[("AMPQ Broker
+             (Redis or RabbitMQ)")]
+    
+    subgraph OnCall Backend
+    server <--> redis
+    server <--> db
+    server -->|"Schedule tasks 
+                with ETA"| broker
+    broker -->|"Fetch tasks"| celery
+    celery --> db
+
+    end
+    subgraph Grafana Stack
+    plugin["OnCall Frontend 
+            Plugin"]
+    proxy[Plugin Proxy]
+    api[Grafana API]
+    plugin --> proxy --> server
+    api --> server
+    end
+
+    client -->|Alerts| server
+    third_party -->|"Statuses, 
+               events"| server
+    celery -->|"Notifications, 
+                Outgoing Webhooks"| third_party
+```

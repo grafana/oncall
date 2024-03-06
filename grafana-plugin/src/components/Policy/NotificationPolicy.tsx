@@ -5,20 +5,19 @@ import { Button, IconButton, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { SortableElement } from 'react-sortable-hoc';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Timeline from 'components/Timeline/Timeline';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Channel } from 'models/channel';
-import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
-import { NotifyBy } from 'models/notify_by';
-import { User } from 'models/user/user.types';
-import { WaitDelay } from 'models/wait_delay';
-import { RootStore } from 'state';
+import { Channel } from 'models/channel/channel';
+import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
-import { UserAction } from 'utils/authorization';
+import { RootStore } from 'state/rootStore';
+import { SelectOption } from 'state/types';
+import { UserAction } from 'utils/authorization/authorization';
 
-import DragHandle from './DragHandle';
-import PolicyNote from './PolicyNote';
+import { DragHandle } from './DragHandle';
+import { PolicyNote } from './PolicyNote';
 
 import styles from './NotificationPolicy.module.css';
 
@@ -29,13 +28,13 @@ export interface NotificationPolicyProps {
   slackTeamIdentity?: {
     general_log_channel_pk: Channel['id'];
   };
-  slackUserIdentity?: User['slack_user_identity'];
+  slackUserIdentity?: ApiSchemas['User']['slack_user_identity'];
   onChange: (id: NotificationPolicyType['id'], value: NotificationPolicyType) => void;
   onDelete: (id: string) => void;
   notificationChoices: any[];
   channels?: any[];
-  waitDelays?: WaitDelay[];
-  notifyByOptions?: NotifyBy[];
+  waitDelays?: SelectOption[];
+  notifyByOptions?: SelectOption[];
   telegramVerified: boolean;
   phoneStatus: number;
   isMobileAppConnected: boolean;
@@ -44,34 +43,40 @@ export interface NotificationPolicyProps {
   number: number;
   userAction: UserAction;
   store: RootStore;
+  isDisabled: boolean;
 }
 
 export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
   render() {
-    const { data, notificationChoices, number, color, userAction } = this.props;
+    const { data, notificationChoices, number, color, userAction, isDisabled } = this.props;
     const { id, step } = data;
 
     return (
-      <Timeline.Item className={cx('root')} number={number} backgroundColor={color}>
+      <Timeline.Item className={cx('root')} number={number} backgroundHexNumber={color}>
         <div className={cx('step')}>
-          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
-            <DragHandle />
-          </WithPermissionControlTooltip>
-          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
+          {!isDisabled && (
+            <WithPermissionControlTooltip userAction={userAction}>
+              <DragHandle />
+            </WithPermissionControlTooltip>
+          )}
+          <WithPermissionControlTooltip userAction={userAction}>
             <Select
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
               value={step}
               options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
+              disabled={isDisabled}
             />
           </WithPermissionControlTooltip>
-          {this._renderControls()}
+          {this._renderControls(isDisabled)}
           <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
+              aria-label="Remove"
               className={cx('control')}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}
               variant="secondary"
+              disabled={isDisabled}
             />
           </WithPermissionControlTooltip>
           {this._renderNote()}
@@ -80,16 +85,16 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     );
   }
 
-  _renderControls() {
+  _renderControls(disabled: boolean) {
     const { data } = this.props;
     const { step } = data;
 
     switch (step) {
       case 0:
-        return <>{this._renderWaitDelays()}</>;
+        return <>{this._renderWaitDelays(disabled)}</>;
 
       case 1:
-        return <>{this._renderNotifyBy()}</>;
+        return <>{this._renderNotifyBy(disabled)}</>;
 
       default:
         return null;
@@ -165,20 +170,21 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     );
   }
 
-  private _renderWaitDelays() {
+  private _renderWaitDelays(disabled: boolean) {
     const { data, waitDelays = [], userAction } = this.props;
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction}>
         <Select
           key="wait-delay"
           placeholder="Wait Delay"
           className={cx('select', 'control')}
           // @ts-ignore
           value={wait_delay}
+          disabled={disabled}
           onChange={this._getOnChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: WaitDelay) => ({
+          options={waitDelays.map((waitDelay: SelectOption) => ({
             label: waitDelay.display_name,
             value: waitDelay.value,
           }))}
@@ -187,20 +193,21 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     );
   }
 
-  private _renderNotifyBy() {
+  private _renderNotifyBy(disabled: boolean) {
     const { data, notifyByOptions = [], userAction } = this.props;
     const { notify_by } = data;
 
     return (
-      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction}>
         <Select
           key="notify_by"
           placeholder="Notify by"
           className={cx('select', 'control')}
           // @ts-ignore
           value={notify_by}
+          disabled={disabled}
           onChange={this._getOnChangeHandler('notify_by')}
-          options={notifyByOptions.map((notifyByOption: NotifyBy) => ({
+          options={notifyByOptions.map((notifyByOption: SelectOption) => ({
             label: notifyByOption.display_name,
             value: notifyByOption.value,
           }))}

@@ -1,10 +1,9 @@
 import logging
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.utils import timezone
 
-from apps.oss_installation import constants as oss_constants
+from apps.oss_installation.constants import CloudSyncStatus
 from apps.schedules.ical_utils import list_users_to_notify_from_ical_for_period
 
 logger = logging.getLogger(__name__)
@@ -14,10 +13,9 @@ def active_oss_users_count():
     """
     active_oss_users_count returns count of active users of oss installation.
     """
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-    EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
+    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.schedules.models import OnCallSchedule
 
     # Take logs for previous 24 hours
     start = timezone.now() - timezone.timedelta(hours=24)
@@ -72,15 +70,15 @@ def active_oss_users_count():
 def cloud_user_identity_status(connector, identity):
     link = None
     if connector is None:
-        status = oss_constants.CLOUD_NOT_SYNCED
+        status = CloudSyncStatus.NOT_SYNCED
     elif identity is None:
-        status = oss_constants.CLOUD_SYNCED_USER_NOT_FOUND
+        status = CloudSyncStatus.SYNCED_USER_NOT_FOUND
         link = connector.cloud_url
     else:
         if identity.phone_number_verified:
-            status = oss_constants.CLOUD_SYNCED_PHONE_VERIFIED
+            status = CloudSyncStatus.SYNCED_PHONE_VERIFIED
         else:
-            status = oss_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
+            status = CloudSyncStatus.SYNCED_PHONE_NOT_VERIFIED
 
         link = urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={identity.cloud_id}")
     return status, link

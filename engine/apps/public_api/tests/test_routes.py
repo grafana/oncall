@@ -86,6 +86,9 @@ def test_get_routes_list(
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
         ],
+        "current_page_number": 1,
+        "page_size": 25,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -123,6 +126,9 @@ def test_get_routes_filter_by_integration_id(
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
         ],
+        "current_page_number": 1,
+        "page_size": 25,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -274,6 +280,52 @@ def test_delete_route(
     assert response.status_code == status.HTTP_204_NO_CONTENT
     with pytest.raises(ChannelFilter.DoesNotExist):
         new_channel_filter.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_create_route_slack_error(
+    route_public_api_setup,
+):
+    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+
+    client = APIClient()
+
+    url = reverse("api-public:routes-list")
+    data_for_create = {
+        "integration_id": alert_receive_channel.public_primary_key,
+        "routing_regex": "testreg",
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "slack": {"channel_id": "TEST_SLACK_ID"},
+    }
+    response = client.post(url, format="json", HTTP_AUTHORIZATION=token, data=data_for_create)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
+def test_update_route_slack_error(
+    route_public_api_setup,
+    make_channel_filter,
+):
+    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    new_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        is_default=False,
+        filtering_term="testreg",
+    )
+
+    client = APIClient()
+
+    url = reverse("api-public:routes-detail", kwargs={"pk": new_channel_filter.public_primary_key})
+    data_to_update = {
+        "slack": {"channel_id": "TEST_SLACK_ID"},
+    }
+
+    response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
 
 
 @pytest.mark.django_db
@@ -438,7 +490,7 @@ def test_update_route_with_manual_ordering(
 
     url = reverse("api-public:routes-detail", kwargs={"pk": channel_filter.public_primary_key})
 
-    # Test negative value. Note, that for "manual_order"=False, -1 is valud option (It will move route to the bottom)
+    # Test negative value. Note, that for "manual_order"=False, -1 is valid option (It will move route to the bottom)
     data_to_update = {"position": -1, "manual_order": True}
 
     response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
@@ -449,3 +501,36 @@ def test_update_route_with_manual_ordering(
 
     response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_routes_long_filtering_term(
+    route_public_api_setup,
+    make_channel_filter,
+):
+    organization, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    client = APIClient()
+    long_filtering_term = "a" * (ChannelFilter.FILTERING_TERM_MAX_LENGTH + 1)
+
+    url = reverse("api-public:routes-list")
+    data_for_creation = {
+        "integration_id": alert_receive_channel.public_primary_key,
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_regex": long_filtering_term,
+    }
+
+    response = client.post(url, data=data_for_creation, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Expression is too long" in response.json()["non_field_errors"][0]
+
+    channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False)
+    url = reverse("api-public:routes-detail", kwargs={"pk": channel_filter.public_primary_key})
+    data_for_update = {
+        "routing_regex": long_filtering_term,
+    }
+
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Expression is too long" in response.json()["non_field_errors"][0]

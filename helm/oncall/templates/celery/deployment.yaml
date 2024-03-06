@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oncall.celery.fullname" . }}
+  labels:
+    {{- include "oncall.celery.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.celery.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "oncall.celery.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        random-annotation: {{ randAlphaNum 10 | lower }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "oncall.celery.selectorLabels" . | nindent 8 }}
+        {{- if .Values.celery.podLabels }}
+        {{- toYaml .Values.celery.podLabels | nindent 8}}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "oncall.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "oncall.initContainer" . | indent 8 }}
+      {{- with .Values.celery.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "oncall.engine.image" . }}
+          {{- if .Values.oncall.devMode }}
+          command: ["python", "manage.py", "start_celery"]
+          {{- else }}
+          command: ["./celery_with_exporter.sh"]
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- include "snippet.celery.env" . | nindent 12 }}
+            {{- include "snippet.oncall.engine.env" . | nindent 12 }}
+          {{- if .Values.celery.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command: [
+                "bash",
+                "-c",
+                "celery -A engine inspect ping -d celery@$HOSTNAME"
+              ]
+            initialDelaySeconds: {{ .Values.celery.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.celery.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.celery.livenessProbe.timeoutSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.celery.resources | nindent 12 }}
+          {{- with .Values.celery.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+      {{- with .Values.celery.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
+      {{- end }}

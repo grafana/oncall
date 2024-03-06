@@ -3,8 +3,8 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
+from apps.slack.client import SlackClient
 from apps.slack.scenarios.distribute_alerts import AlertShootingStep
-from apps.slack.slack_client import SlackClientWithErrorHandling
 
 
 @pytest.fixture()
@@ -20,7 +20,7 @@ def mock_slack_api_call(monkeypatch):
             "team": {"name": "TEST_SLACK_TEAM_NAME"},
         }
 
-    monkeypatch.setattr(SlackClientWithErrorHandling, "api_call", _mock_api_call)
+    monkeypatch.setattr(SlackClient, "api_call", _mock_api_call)
 
 
 @pytest.fixture()

@@ -3,16 +3,16 @@ import React from 'react';
 import { Field, Input, Switch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 
-import Text from 'components/Text/Text';
-import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
+import { Text } from 'components/Text/Text';
+import { ApiTokenSettings } from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import TeamsSettings from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
+import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './MainSettings.module.css';
 
@@ -25,7 +25,7 @@ interface SettingsPageState {
 }
 
 @observer
-class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState> {
+class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
   state: SettingsPageState = {
     apiUrl: '',
   };
@@ -37,8 +37,8 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   }
 
   render() {
-    const { store } = this.props;
-    const { teamStore } = store;
+    const { organizationStore } = this.props.store;
+    const { currentOrganization } = organizationStore;
     const { apiUrl } = this.state;
 
     return (
@@ -54,15 +54,15 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             Resolution Note
           </Text.Title>
           <Field
-            loading={!teamStore.currentTeam}
+            loading={!currentOrganization}
             label="Require a resolution note when resolving Alert Groups"
             description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
           >
             <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
               <Switch
-                value={teamStore.currentTeam?.is_resolution_note_required}
+                value={currentOrganization?.is_resolution_note_required}
                 onChange={(event) => {
-                  teamStore.saveCurrentTeam({
+                  organizationStore.saveCurrentOrganization({
                     is_resolution_note_required: event.currentTarget.checked,
                   });
                 }}
@@ -92,4 +92,4 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   }
 }
 
-export default withMobXProviderContext(SettingsPage);
+export const MainSettings = withMobXProviderContext(Settings);

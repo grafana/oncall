@@ -44,7 +44,11 @@ class SlackTeamSettingsAPIView(views.APIView):
 
 class AcknowledgeReminderOptionsAPIView(views.APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.CHATOPS_READ],
+    }
 
     def get(self, request):
         choices = []
@@ -57,7 +61,11 @@ class AcknowledgeReminderOptionsAPIView(views.APIView):
 
 class UnAcknowledgeTimeoutOptionsAPIView(views.APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.CHATOPS_READ],
+    }
 
     def get(self, request):
         choices = []

@@ -1,0 +1,33 @@
+suite: test migrate resources
+templates:
+  - engine/job-migrate.yaml
+release:
+  name: oncall
+tests:
+  - it: not specifying migrate.resources should not set resources
+    set:
+      migrate.resources: {}
+    asserts:
+      - contains:
+          path: spec.template.spec.resources
+          content: {}
+
+  - it: specifying migrate.resources should set resources
+    set:
+      migrate.resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+    asserts:
+      - contains:
+          path: spec.template.spec.resources
+          content:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi

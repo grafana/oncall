@@ -1,9 +1,11 @@
 import functools
 import html
+import json
 import os
 import random
 import re
 import time
+from contextlib import contextmanager
 from functools import reduce
 
 import factory
@@ -11,6 +13,7 @@ import markdown2
 from bs4 import BeautifulSoup
 from celery.utils.log import get_task_logger
 from celery.utils.time import get_exponential_backoff_interval
+from django.core.cache import cache
 from django.utils.html import urlize
 
 logger = get_task_logger(__name__)
@@ -72,6 +75,30 @@ class OkToRetry:
         )
 
 
+LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+
+
+# Context manager for tasks that are intended to run once at a time
+# (ie. no parallel instances of the same task running)
+# based on https://docs.celeryq.dev/en/stable/tutorials/task-cookbook.html#ensuring-a-task-is-only-executed-one-at-a-time
+@contextmanager
+def task_lock(lock_id, oid):
+    timeout_at = time.monotonic() + LOCK_EXPIRE - 3
+    # cache.add returns False if the key already exists
+    status = cache.add(lock_id, oid, LOCK_EXPIRE)
+    try:
+        yield status
+    finally:
+        # cache delete may be slow, but we have to use it to take
+        # advantage of using add() for atomic locking
+        if time.monotonic() < timeout_at and status:
+            # don't release the lock if we exceeded the timeout
+            # to lessen the chance of releasing an expired lock
+            # owned by someone else
+            # also don't release the lock if we didn't acquire it
+            cache.delete(lock_id)
+
+
 # lru cache version with addition of timeout.
 # Timeout added to not to occupy memory with too old values
 def timed_lru_cache(timeout: int, maxsize: int = 128, typed: bool = False):
@@ -110,6 +137,14 @@ def getenv_integer(variable_name: str, default: int) -> int:
         return int(value)
     except ValueError:
         return default
+
+
+def getenv_list(variable_name: str, default: list) -> list:
+    value = os.environ.get(variable_name)
+    if value is None:
+        return default
+
+    return json.loads(value)
 
 
 def batch_queryset(qs, batch_size=1000):
@@ -204,7 +239,7 @@ def clean_markup(text):
 
 
 def escape_html(text):
-    return html.escape(text)
+    return html.escape(text, quote=False)
 
 
 def urlize_with_respect_to_a(html):
@@ -214,7 +249,7 @@ def urlize_with_respect_to_a(html):
     soup = BeautifulSoup(html, features="html.parser")
     textNodes = soup.find_all(string=True)
     for textNode in textNodes:
-        if textNode.parent and getattr(textNode.parent, "name") == "a":
+        if textNode.parent and getattr(textNode.parent, "name", None) == "a":
             continue
         urlizedText = urlize(textNode)
         textNode.replaceWith(BeautifulSoup(urlizedText, features="html.parser"))

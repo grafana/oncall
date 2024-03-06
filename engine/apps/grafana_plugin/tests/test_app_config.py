@@ -2,7 +2,7 @@ import sys
 from unittest.mock import patch
 
 import pytest
-from django.apps import apps
+from django.apps import apps  # noqa: I251
 from django.conf import settings
 from django.test import override_settings
 

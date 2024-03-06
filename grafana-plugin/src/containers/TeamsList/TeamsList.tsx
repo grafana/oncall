@@ -3,18 +3,17 @@ import React, { useCallback, useState } from 'react';
 import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonList, Tooltip, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
-import Text from 'components/Text/Text';
+import { Avatar } from 'components/Avatar/Avatar';
+import { GTable } from 'components/GTable/GTable';
+import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-const TeamsList = observer(() => {
+export const TeamsList = observer(() => {
   const store = useStore();
   const [teamIdToShowModal, setTeamIdToShowModal] = useState<GrafanaTeam['id']>();
-  const { userStore } = store;
 
   const isTeamDefault = (record: GrafanaTeam) => {
     return (
@@ -53,15 +52,9 @@ const TeamsList = observer(() => {
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
       <HorizontalGroup justify="flex-end">
-        <Tooltip content="Default team will be selected when creating new resources">
-          <Button
-            onClick={async () => {
-              await userStore.updateCurrentUser({ current_team: record.id });
-              store.grafanaTeamStore.updateItems();
-            }}
-            disabled={isTeamDefault(record)}
-            fill="text"
-          >
+        {/* Keep  "Make default" here for backwards compatibility, can be removed in November 2023 */}
+        <Tooltip content="This button is moved to your User Profile">
+          <Button onClick={() => {}} disabled={true} fill="text">
             Make default
           </Button>
         </Tooltip>
@@ -141,7 +134,7 @@ interface TeamModalProps {
   onHide: () => void;
 }
 
-const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
+export const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
   const store = useStore();
   const { grafanaTeamStore } = store;
   const team = grafanaTeamStore.items[teamId];
@@ -177,7 +170,7 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
                   { label: 'Team members and admins', value: '0' },
                 ]}
                 value={shareResourceToAll}
-                onChange={setShareResourceToAll}
+                onChange={setShareResourceToAll as (res: string) => void}
               />
             </div>
           </Field>
@@ -195,5 +188,3 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
     </Modal>
   );
 };
-
-export default TeamsList;

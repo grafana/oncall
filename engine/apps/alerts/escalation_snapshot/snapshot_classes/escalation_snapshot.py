@@ -3,7 +3,6 @@ import logging
 import typing
 
 from celery.utils.log import get_task_logger
-from django.utils import timezone
 
 from apps.alerts.escalation_snapshot.serializers import EscalationSnapshotSerializer
 from apps.alerts.models.alert_group_log_record import AlertGroupLogRecord
@@ -88,22 +87,7 @@ class EscalationSnapshot:
         """
         if self.last_active_escalation_policy_order is None:
             return []
-        elif self.last_active_escalation_policy_order == 0:
-            return [self.escalation_policies_snapshots[0]]
-        return self.escalation_policies_snapshots[: self.last_active_escalation_policy_order]
-
-    def next_step_eta_is_valid(self) -> typing.Optional[bool]:
-        """
-        `next_step_eta` should never be less than the current time (with a 5 minute buffer provided)
-        as this field should be updated as the escalation policy is executed over time. If it is, this means that
-        an escalation policy step has been missed, or is substantially delayed
-
-        if `next_step_eta` is `None` then `None` is returned, otherwise a boolean is returned
-        representing the result of the time comparision
-        """
-        if self.next_step_eta is None:
-            return None
-        return self.next_step_eta > (timezone.now() - datetime.timedelta(minutes=5))
+        return self.escalation_policies_snapshots[: self.last_active_escalation_policy_order + 1]
 
     def save_to_alert_group(self) -> None:
         self.alert_group.raw_escalation_snapshot = self.convert_to_dict()
@@ -147,7 +131,8 @@ class EscalationSnapshot:
             self.stop_escalation = execution_result.stop_escalation  # result of STEP_FINAL_RESOLVE
             self.pause_escalation = execution_result.pause_escalation  # result of STEP_NOTIFY_IF_NUM_ALERTS_IN_WINDOW
 
-            last_active_escalation_policy_order = escalation_policy_snapshot.order
+            # use the index of last escalation policy snapshot, since orders are not guaranteed to be sequential
+            last_active_escalation_policy_order = self.escalation_policies_snapshots.index(escalation_policy_snapshot)
 
             if execution_result.start_from_beginning:  # result of STEP_REPEAT_ESCALATION_N_TIMES
                 last_active_escalation_policy_order = None

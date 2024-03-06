@@ -1,0 +1,33 @@
+suite: test topologySpreadConstraints for deployments
+templates:
+  - celery/deployment.yaml
+  - engine/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: topologySpreadConstraints=[] -> should exclude topologySpreadConstraints
+    asserts:
+      - notExists:
+          path: spec.template.spec.topologySpreadConstraints
+
+  - it: topologySpreadConstraints -> should use custom topologySpreadConstraints
+    set:
+      engine:
+        topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: engine
+            maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+      celery:
+        topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: engine
+            maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+    asserts:
+      - matchSnapshot:
+          path: spec.template.spec.topologySpreadConstraints

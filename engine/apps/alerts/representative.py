@@ -1,8 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 
-from django.apps import apps
-
 logger = logging.getLogger(__name__)
 
 
@@ -15,7 +13,8 @@ class AlertGroupAbstractRepresentative(ABC):
 
     @staticmethod
     def get_handlers_map():
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         return AlertGroupLogRecord.ACTIONS_TO_HANDLERS_MAP
 
     @classmethod

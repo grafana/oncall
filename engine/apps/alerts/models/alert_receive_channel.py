@@ -5,11 +5,10 @@ from urllib.parse import urljoin
 
 import emoji
 from celery import uuid as celery_uuid
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import BigIntegerField, Case, F, Q, When
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -19,13 +18,14 @@ from emoji import emojize
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
+from apps.alerts.tasks import disable_maintenance, disconnect_integration_from_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.metrics_exporter.helpers import (
-    metrics_add_integration_to_cache,
+    metrics_add_integrations_to_cache,
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
@@ -41,9 +41,39 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import ChannelFilter, GrafanaAlertingContactPoint
+    from apps.alerts.models import AlertGroup, ChannelFilter
+    from apps.labels.models import AlertReceiveChannelAssociatedLabel
+    from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
+
+
+class MessagingBackendTemplatesItem:
+    title: str | None
+    message: str | None
+    image_url: str | None
+
+
+MessagingBackendTemplates = dict[str, MessagingBackendTemplatesItem]
+
+
+class AlertmanagerV2LegacyTemplates(typing.TypedDict):
+    web_title_template: str | None
+    web_message_template: str | None
+    web_image_url_template: str | None
+    sms_title_template: str | None
+    phone_call_title_template: str | None
+    source_link_template: str | None
+    grouping_id_template: str | None
+    resolve_condition_template: str | None
+    acknowledge_condition_template: str | None
+    slack_title_template: str | None
+    slack_message_template: str | None
+    slack_image_url_template: str | None
+    telegram_title_template: str | None
+    telegram_message_template: str | None
+    telegram_image_url_template: str | None
+    messaging_backends_templates: MessagingBackendTemplates | None
 
 
 def generate_public_primary_key_for_alert_receive_channel():
@@ -92,6 +122,59 @@ class AlertReceiveChannelQueryset(models.QuerySet):
 
 
 class AlertReceiveChannelManager(models.Manager):
+    @staticmethod
+    def create_missing_direct_paging_integrations(organization: "Organization") -> None:
+        from apps.alerts.models import ChannelFilter
+
+        # fetch teams without direct paging integration
+        teams_missing_direct_paging = list(
+            organization.teams.exclude(
+                pk__in=organization.alert_receive_channels.filter(
+                    team__isnull=False, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+                ).values_list("team_id", flat=True)
+            )
+        )
+        if not teams_missing_direct_paging:
+            return
+
+        # create missing integrations
+        AlertReceiveChannel.objects.bulk_create(
+            [
+                AlertReceiveChannel(
+                    organization=organization,
+                    team=team,
+                    integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                    verbal_name=f"Direct paging ({team.name} team)",
+                )
+                for team in teams_missing_direct_paging
+            ],
+            batch_size=5000,
+            ignore_conflicts=True,  # ignore if direct paging integration already exists for team
+        )
+
+        # fetch integrations for teams (some of them are created above, but some may already exist previously)
+        alert_receive_channels = organization.alert_receive_channels.filter(
+            team__in=teams_missing_direct_paging, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        )
+
+        # create default routes
+        ChannelFilter.objects.bulk_create(
+            [
+                ChannelFilter(
+                    alert_receive_channel=alert_receive_channel,
+                    filtering_term=None,
+                    is_default=True,
+                    order=0,
+                )
+                for alert_receive_channel in alert_receive_channels
+            ],
+            batch_size=5000,
+            ignore_conflicts=True,  # ignore if default route already exists for integration
+        )
+
+        # add integrations to metrics cache
+        metrics_add_integrations_to_cache(list(alert_receive_channels), organization)
+
     def get_queryset(self):
         return AlertReceiveChannelQueryset(self.model, using=self._db).filter(
             ~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE), Q(deleted_at=None)
@@ -114,8 +197,11 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     Channel generated by user to receive Alerts to.
     """
 
+    alert_groups: "RelatedManager['AlertGroup']"
     channel_filters: "RelatedManager['ChannelFilter']"
-    contact_points: "RelatedManager['GrafanaAlertingContactPoint']"
+    organization: "Organization"
+    team: typing.Optional["Team"]
+    labels: "RelatedManager['AlertReceiveChannelAssociatedLabel']"
 
     objects = AlertReceiveChannelManager()
     objects_with_maintenance = AlertReceiveChannelManagerWithMaintenance()
@@ -161,7 +247,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     verbal_name = models.CharField(max_length=150, null=True, default=None)
     description_short = models.CharField(max_length=250, null=True, default=None)
 
-    is_finished_alerting_setup = models.BooleanField(default=False)
+    is_finished_alerting_setup = models.BooleanField(default=False)  # deprecated
 
     # *_*_template fields are legacy way of storing templates
     # messaging_backends_templates for new integrations' templates
@@ -194,19 +280,43 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     # additional messaging backends templates
     # e.g. {'<BACKEND-ID>': {'title': 'title template', 'message': 'message template', 'image_url': 'url template'}}
-    messaging_backends_templates = models.JSONField(null=True, default=None)
+    messaging_backends_templates: MessagingBackendTemplates | None = models.JSONField(null=True, default=None)
+
+    alertmanager_v2_migrated_at = models.DateTimeField(null=True, default=None)
+    """
+    Timestamp of when Alertmanager V2 migration was run for this integration using the 'alertmanager_v2_migrate'
+    Django management command.
+    """
+
+    alertmanager_v2_backup_templates: AlertmanagerV2LegacyTemplates | None = models.JSONField(null=True, default=None)
+    """Backing up templates before the Alertmanager V2 migration, so that they can be restored if needed."""
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    # TODO: remove this field after AlertGroup.is_restricted change has been released
-    restricted_at = models.DateTimeField(null=True, default=None)
+    AlertGroupCustomLabelsDB = list[tuple[str, str | None, str | None]] | None
+    alert_group_labels_custom: AlertGroupCustomLabelsDB = models.JSONField(null=True, default=None)
+    """
+    Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
+    For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
+    For templated labels, the format is: [<LABEL_KEY_ID>, None, <JINJA2_TEMPLATE>]
+    """
+
+    alert_group_labels_template: str | None = models.TextField(null=True, default=None)
+    """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
 
     class Meta:
         constraints = [
+            # This constraint ensures that there's at most one active direct paging integration per team
+            # This should work with SQLite, PostgreSQL and MySQL >= 8.0.13.
+            # From the docs: Functional indexes are ignored with MySQL < 8.0.13 and MariaDB as neither supports them.
+            # https://docs.djangoproject.com/en/4.2/ref/models/constraints/#expressions
             models.UniqueConstraint(
-                fields=["organization", "verbal_name", "deleted_at"],
-                name="unique integration name",
+                F("organization"),
+                Case(When(team=None, then=0), default=F("team"), output_field=BigIntegerField()),
+                Case(When(deleted_at__isnull=True, then=True), default=None),
+                Case(When(integration="direct_paging", then=True), default=None),
+                name="unique_direct_paging_integration_per_team",
             )
         ]
 
@@ -232,8 +342,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @classmethod
     def create(cls, **kwargs):
+        organization = kwargs["organization"]
         with transaction.atomic():
-            other_channels = cls.objects_with_deleted.select_for_update().filter(organization=kwargs["organization"])
+            other_channels = cls.objects_with_deleted.select_for_update().filter(organization=organization)
             channel = cls(**kwargs)
             smile_code = number_to_smiles_translator(other_channels.count())
             verbal_name = (
@@ -251,6 +362,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def hard_delete(self):
         super(AlertReceiveChannel, self).delete()
 
+    class DuplicateDirectPagingError(Exception):
+        """Only one Direct Paging integration is allowed per team."""
+
+        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
+
+    def save(self, *args, **kwargs):
+        # Don't allow multiple Direct Paging integrations per team
+        if (
+            self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and not self.deleted_at
+            and AlertReceiveChannel.objects.filter(
+                organization=self.organization, team=self.team, integration=self.integration
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise self.DuplicateDirectPagingError
+
+        return super().save(*args, **kwargs)
+
     def change_team(self, team_id, user):
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
@@ -267,6 +398,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     @cached_property
     def grafana_alerting_sync_manager(self):
         return GrafanaAlertingSyncManager(self)
+
+    @property
+    def is_alerting_integration(self):
+        return self.integration in {
+            AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+        }
 
     @cached_property
     def team_name(self):
@@ -306,11 +444,12 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def alerts_count(self):
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
+
         return Alert.objects.filter(group__channel=self).count()
 
     @property
-    def is_able_to_autoresolve(self):
+    def is_able_to_autoresolve(self) -> bool:
         return self.config.is_able_to_autoresolve
 
     @property
@@ -318,8 +457,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return self.config.is_demo_alert_enabled
 
     @property
-    def description(self):
-        if self.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+    def description(self) -> str | None:
+        # TODO: AMV2: Remove this check after legacy integrations are migrated.
+        if self.integration == AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING:
             contact_points = self.contact_points.all()
             rendered_description = jinja_template_env.from_string(self.config.description).render(
                 is_finished_alerting_setup=self.is_finished_alerting_setup,
@@ -336,7 +476,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 ],
             )
         else:
-            rendered_description = None
+            rendered_description = self.config.description
         return rendered_description
 
     @classmethod
@@ -393,7 +533,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return urljoin(self.organization.web_link, f"integrations/{self.public_primary_key}")
 
     @property
-    def integration_url(self):
+    def integration_url(self) -> str | None:
         if self.integration in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
             AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
@@ -401,7 +541,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
             return None
-        return create_engine_url(f"integrations/v1/{self.config.slug}/{self.token}/")
+        slug = remove_legacy_prefix(self.config.slug)
+        return create_engine_url(f"integrations/v1/{slug}/{self.token}/")
 
     @property
     def inbound_email(self):
@@ -491,44 +632,40 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     # Heartbeat
     @property
-    def is_available_for_integration_heartbeat(self):
+    def is_available_for_integration_heartbeat(self) -> bool:
         return self.heartbeat_module is not None
 
     @property
     def heartbeat_restored_title(self):
-        return getattr(self.heartbeat_module, "heartbeat_restored_title")
+        return self.heartbeat_module.heartbeat_restored_title
 
     @property
     def heartbeat_restored_message(self):
-        return getattr(self.heartbeat_module, "heartbeat_restored_message")
+        return self.heartbeat_module.heartbeat_restored_message
 
     @property
     def heartbeat_restored_payload(self):
-        return getattr(self.heartbeat_module, "heartbeat_restored_payload")
+        return self.heartbeat_module.heartbeat_restored_payload
 
     @property
     def heartbeat_expired_title(self):
-        return getattr(self.heartbeat_module, "heartbeat_expired_title")
+        return self.heartbeat_module.heartbeat_expired_title
 
     @property
     def heartbeat_expired_message(self):
-        return getattr(self.heartbeat_module, "heartbeat_expired_message")
+        return self.heartbeat_module.heartbeat_expired_message
 
     @property
     def heartbeat_expired_payload(self):
-        return getattr(self.heartbeat_module, "heartbeat_expired_payload")
-
-    @property
-    def heartbeat_instruction_template(self):
-        return getattr(self.heartbeat_module, "heartbeat_instruction_template")
+        return self.heartbeat_module.heartbeat_expired_payload
 
     @property
     def heartbeat_module(self):
-        return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
+        return getattr(heartbeat, self.integration, None)
 
     # Demo alerts
-    def send_demo_alert(self, force_route_id=None, payload=None):
-        logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+    def send_demo_alert(self, payload: typing.Optional[typing.Dict] = None) -> None:
+        logger.info(f"send_demo_alert integration={self.pk}")
 
         if not self.is_demo_alert_enabled:
             raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
@@ -536,17 +673,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         if payload is None:
             payload = self.config.example_payload
 
-        if self.has_alertmanager_payload_structure:
+        # hack to keep demo alert working for integration with legacy alertmanager behaviour.
+        if self.integration in {
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
+            AlertReceiveChannel.INTEGRATION_GRAFANA,
+        }:
             alerts = payload.get("alerts", None)
             if not isinstance(alerts, list) or not len(alerts):
                 raise UnableToSendDemoAlert(
                     "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                 )
             for alert in alerts:
-                create_alertmanager_alerts.delay(
-                    alert_receive_channel_pk=self.pk, alert=alert, is_demo=True, force_route_id=force_route_id
-                )
+                create_alertmanager_alerts.delay(alert_receive_channel_pk=self.pk, alert=alert, is_demo=True)
         else:
+            timestamp = timezone.now().isoformat()
             create_alert.delay(
                 title="Demo alert",
                 message="Demo alert",
@@ -556,16 +697,12 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 integration_unique_data=None,
                 raw_request_data=payload,
                 is_demo=True,
-                force_route_id=force_route_id,
+                received_at=timestamp,
             )
 
     @property
-    def has_alertmanager_payload_structure(self):
-        return self.integration in (
-            AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-            AlertReceiveChannel.INTEGRATION_GRAFANA,
-            AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
-        )
+    def based_on_alertmanager(self):
+        return getattr(self.config, "based_on_alertmanager", False)
 
     # Insight logs
     @property
@@ -619,8 +756,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 def listen_for_alertreceivechannel_model_save(
     sender: AlertReceiveChannel, instance: AlertReceiveChannel, created: bool, *args, **kwargs
 ) -> None:
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-    IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
+    from apps.alerts.models import ChannelFilter
+    from apps.heartbeat.models import IntegrationHeartBeat
 
     if created:
         write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)
@@ -633,20 +770,12 @@ def listen_for_alertreceivechannel_model_save(
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
-        metrics_add_integration_to_cache(instance)
+        metrics_add_integrations_to_cache([instance], instance.organization)
 
     elif instance.deleted_at:
+        if instance.is_alerting_integration:
+            disconnect_integration_from_alerting_contact_points.apply_async((instance.pk,), countdown=5)
+
         metrics_remove_deleted_integration_from_cache(instance)
     else:
         metrics_update_integration_cache(instance)
-
-    if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
-        if created:
-            instance.grafana_alerting_sync_manager.create_contact_points()
-        # do not trigger sync contact points if field "is_finished_alerting_setup" was updated
-        elif (
-            kwargs is None
-            or not kwargs.get("update_fields")
-            or "is_finished_alerting_setup" not in kwargs["update_fields"]
-        ):
-            sync_grafana_alerting_contact_points.apply_async((instance.pk,), countdown=5)

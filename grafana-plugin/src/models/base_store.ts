@@ -1,11 +1,11 @@
 import { sentenceCase } from 'change-case';
 import { action } from 'mobx';
 
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
-import { openWarningNotification } from 'utils';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
+import { openWarningNotification } from 'utils/utils';
 
-export default class BaseStore {
+export class BaseStore {
   protected rootStore: RootStore;
   protected path = '';
 
@@ -20,19 +20,29 @@ export default class BaseStore {
 
     if (error.response.status >= 400 && error.response.status < 500) {
       const payload = error.response.data;
+
       const text =
         typeof payload === 'string'
           ? payload
           : Object.keys(payload)
-              .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
+              .map((key) => {
+                const candidate = `${sentenceCase(key)}: ${payload[key]}`;
+                if (candidate.includes('object Object')) {
+                  return undefined;
+                }
+                return candidate;
+              })
               .join('\n');
-      openWarningNotification(text);
+
+      if (text?.length) {
+        openWarningNotification(text);
+      }
     }
 
     throw error;
   }
 
-  @action
+  @action.bound
   async getAll(query = '') {
     return await makeRequest(`${this.path}`, {
       params: { search: query },
@@ -40,7 +50,7 @@ export default class BaseStore {
     }).catch(this.onApiError);
   }
 
-  @action
+  @action.bound
   async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
     return await makeRequest(`${this.path}${id}`, {
       method: 'GET',
@@ -48,35 +58,39 @@ export default class BaseStore {
     }).catch((error) => this.onApiError(error, skipErrorHandling));
   }
 
-  @action
-  async create(data: any) {
-    return await makeRequest(this.path, {
+  @action.bound
+  async create<RT = any>(data: any, skipErrorHandling = false): Promise<RT | void> {
+    return await makeRequest<RT>(this.path, {
       method: 'POST',
       data,
-    }).catch(this.onApiError);
+    }).catch((error) => {
+      this.onApiError(error, skipErrorHandling);
+    });
   }
 
-  @action
-  async update(id: any, data: any, params: any = null) {
-    const result = await makeRequest(`${this.path}${id}/`, {
+  @action.bound
+  async update<RT = any>(id: any, data: any, params: any = null, skipErrorHandling = false): Promise<RT | void> {
+    const result = await makeRequest<RT>(`${this.path}${id}/`, {
       method: 'PUT',
       data,
       params: params,
-    }).catch(this.onApiError);
+    }).catch((error) => {
+      this.onApiError(error, skipErrorHandling);
+    });
 
     // Update env_status field for current team
-    await this.rootStore.teamStore.loadCurrentTeam();
+    await this.rootStore.organizationStore.loadCurrentOrganization();
     return result;
   }
 
-  @action
+  @action.bound
   async delete(id: any) {
     const result = await makeRequest(`${this.path}${id}/`, {
       method: 'DELETE',
     }).catch(this.onApiError);
 
     // Update env_status field for current team
-    await this.rootStore.teamStore.loadCurrentTeam();
+    await this.rootStore.organizationStore.loadCurrentOrganization();
     return result;
   }
 }

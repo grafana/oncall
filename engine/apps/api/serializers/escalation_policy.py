@@ -6,7 +6,7 @@ from rest_framework import serializers
 from apps.alerts.models import EscalationChain, EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
-from apps.user_management.models import User
+from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,
@@ -18,6 +18,7 @@ WAIT_DELAY = "wait_delay"
 NOTIFY_SCHEDULE = "notify_schedule"
 NOTIFY_TO_USERS_QUEUE = "notify_to_users_queue"
 NOTIFY_GROUP = "notify_to_group"
+NOTIFY_TEAM_MEMBERS = "notify_to_team_members"
 FROM_TIME = "from_time"
 TO_TIME = "to_time"
 NUM_ALERTS_IN_WINDOW = "num_alerts_in_window"
@@ -30,6 +31,7 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_USERS_QUEUE: [NOTIFY_TO_USERS_QUEUE],
     EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS: [NOTIFY_TO_USERS_QUEUE],
     EscalationPolicy.STEP_NOTIFY_GROUP: [NOTIFY_GROUP],
+    EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS: [NOTIFY_TEAM_MEMBERS],
     EscalationPolicy.STEP_NOTIFY_IF_TIME: [FROM_TIME, TO_TIME],
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: [CUSTOM_WEBHOOK_TRIGGER],
@@ -60,6 +62,11 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         required=False,
         allow_null=True,
     )
+    notify_to_team_members = OrganizationFilteredPrimaryKeyRelatedField(
+        queryset=Team.objects,
+        required=False,
+        allow_null=True,
+    )
     notify_to_group = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=SlackUserGroup.objects,
         required=False,
@@ -77,7 +84,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         model = EscalationPolicy
         fields = [
             "id",
-            "order",
             "step",
             "wait_delay",
             "escalation_chain",
@@ -90,14 +96,15 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",
+            "notify_to_team_members",
             "important",
         ]
-        read_only_fields = ["order"]
 
     SELECT_RELATED = [
         "escalation_chain",
         "notify_schedule",
         "notify_to_group",
+        "notify_to_team_members",
         "custom_webhook",
     ]
     PREFETCH_RELATED = ["notify_to_users_queue"]
@@ -107,6 +114,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             WAIT_DELAY,
             NOTIFY_SCHEDULE,
             NOTIFY_TO_USERS_QUEUE,
+            NOTIFY_TEAM_MEMBERS,
             NOTIFY_GROUP,
             FROM_TIME,
             TO_TIME,
@@ -188,7 +196,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
 
 class EscalationPolicyCreateSerializer(EscalationPolicySerializer):
     class Meta(EscalationPolicySerializer.Meta):
-        read_only_fields = ["order"]
         extra_kwargs = {"escalation_chain": {"required": True, "allow_null": False}}
 
     def create(self, validated_data):
@@ -201,7 +208,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
     escalation_chain = serializers.CharField(read_only=True, source="escalation_chain.public_primary_key")
 
     class Meta(EscalationPolicySerializer.Meta):
-        read_only_fields = ["order", "escalation_chain"]
+        read_only_fields = ["escalation_chain"]
 
     def update(self, instance, validated_data):
         step = validated_data.get("step", instance.step)
@@ -216,6 +223,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             NOTIFY_SCHEDULE,
             NOTIFY_TO_USERS_QUEUE,
             NOTIFY_GROUP,
+            NOTIFY_TEAM_MEMBERS,
             FROM_TIME,
             TO_TIME,
             NUM_ALERTS_IN_WINDOW,

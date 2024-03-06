@@ -1,61 +1,79 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
+
+type TeamItems = { [id: string]: GrafanaTeam };
 
 export class GrafanaTeamStore extends BaseStore {
   @observable
-  searchResult: { [key: string]: Array<GrafanaTeam['id']> } = {};
+  searchResult: Array<GrafanaTeam['id']> = [];
 
   @observable.shallow
-  items: { [id: string]: GrafanaTeam } = {};
+  items: TeamItems = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/teams/';
   }
 
-  @action
+  @action.bound
   async updateTeam(id: GrafanaTeam['id'], data: Partial<GrafanaTeam>) {
     const result = await this.update(id, data);
 
-    this.items = {
-      ...this.items,
-      [id]: result,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: result,
+      };
+    });
   }
 
-  @action
-  async updateItems(query = '') {
-    const result = await makeRequest(`${this.path}`, {
-      params: { search: query },
+  @action.bound
+  async updateItems(query = '', includeNoTeam = true, onlyIncludeNotifiableTeams = false, short = true) {
+    const result = await makeRequest<GrafanaTeam[]>(`${this.path}`, {
+      params: {
+        search: query,
+        short: short ? 'true' : 'false',
+        include_no_team: includeNoTeam ? 'true' : 'false',
+        only_include_notifiable_teams: onlyIncludeNotifiableTeams ? 'true' : 'false',
+      },
     });
 
-    this.items = {
-      ...this.items,
-      ...result.reduce(
-        (acc: { [key: number]: GrafanaTeam }, item: GrafanaTeam) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...result.reduce<TeamItems>(
+          (acc, item) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = {
-      ...this.searchResult,
-      [query]: result.map((item: GrafanaTeam) => item.id),
-    };
+      this.searchResult = result.map((item: GrafanaTeam) => item.id);
+    });
   }
 
-  getSearchResult(query = '') {
-    if (!this.searchResult[query]) {
-      return undefined;
-    }
+  @action.bound
+  async fetchItemById(id: string) {
+    const team = await this.getById(id);
 
-    return this.searchResult[query].map((teamId: GrafanaTeam['id']) => this.items[teamId]);
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: team,
+      };
+    });
   }
+
+  getSearchResult = () => {
+    return this.searchResult.map((teamId: GrafanaTeam['id']) => this.items[teamId]);
+  };
 }

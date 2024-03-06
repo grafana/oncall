@@ -1,4 +1,0 @@
-image:
-  repository: oncall/engine
-  tag: latest
-  pullPolicy: IfNotPresent

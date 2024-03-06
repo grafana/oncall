@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from django.apps import apps
-
 
 class UserAbstractRepresentative(ABC):
     HANDLER_PREFIX = "on_"
@@ -12,5 +10,6 @@ class UserAbstractRepresentative(ABC):
 
     @staticmethod
     def get_handlers_map():
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         return UserNotificationPolicyLogRecord.TYPE_TO_HANDLERS_MAP

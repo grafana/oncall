@@ -38,7 +38,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         return
 
     try:
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     except AlertGroup.DoesNotExist:
         logger.warning(f"Alert group {alert_group_pk} does not exist")
         return
@@ -60,7 +60,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
         )
-        logger.error(f"Error while sending email: empty EMAIL_HOST env variable")
+        logger.error("Error while sending email: empty EMAIL_HOST env variable")
         return
 
     emails_left = user.organization.emails_left(user)
@@ -95,6 +95,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         username=live_settings.EMAIL_HOST_USER,
         password=live_settings.EMAIL_HOST_PASSWORD,
         use_tls=live_settings.EMAIL_USE_TLS,
+        use_ssl=live_settings.EMAIL_USE_SSL,
         fail_silently=False,
         timeout=5,
     )
@@ -121,3 +122,13 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         )
         logger.error(f"Error while sending email: {e}")
         return
+
+    # record success log
+    UserNotificationPolicyLogRecord.objects.create(
+        author=user,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        notification_policy=notification_policy,
+        alert_group=alert_group,
+        notification_step=notification_policy.step,
+        notification_channel=notification_policy.notify_by,
+    )

@@ -6,6 +6,7 @@ from rest_framework import fields, serializers
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
@@ -52,23 +53,23 @@ TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD = {
 TEMPLATES_WITH_SEPARATE_DB_FIELD = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM] + PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS
 
 PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
-for backend_id, backend in get_messaging_backends():
+for _, backend in get_messaging_backends():
     if backend.customizable_templates:
         PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES.append(backend.slug)
 
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        return AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[value]
+        return remove_legacy_prefix(value)
 
     def to_internal_value(self, data):
-        try:
-            integration_type = [
-                key for key, value in AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP.items() if value == data
-            ][0]
-        except IndexError:
+        if data not in AlertReceiveChannel.INTEGRATION_TYPES:
             raise BadRequest(detail="Invalid integration type")
-        return integration_type
+        if has_legacy_prefix(data):
+            raise BadRequest("This integration type is deprecated")
+        if data == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
+        return data
 
 
 class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, MaintainableObjectSerializerMixin):
@@ -117,19 +118,20 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
-        # hack to block alertmanager_v2 integration, will be removed
-        if integration == "alertmanager_v2":
-            raise BadRequest
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+            # TODO: probably only needs to check if unified alerting is on
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
         with transaction.atomic():
-            instance = AlertReceiveChannel.create(
-                **validated_data,
-                author=self.context["request"].user,
-                organization=organization,
-            )
+            try:
+                instance = AlertReceiveChannel.create(
+                    **validated_data,
+                    author=self.context["request"].user,
+                    organization=organization,
+                )
+            except AlertReceiveChannel.DuplicateDirectPagingError:
+                raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
             if default_route_data:
                 serializer = DefaultChannelFilterSerializer(
                     instance.default_channel_filter, default_route_data, context=self.context
@@ -138,19 +140,33 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 serializer.save()
         return instance
 
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
     def validate(self, attrs):
         organization = self.context["request"].auth.organization
         verbal_name = attrs.get("verbal_name", None)
+        team = attrs.get("team", None)
         if verbal_name is None:
             return attrs
         try:
-            obj = AlertReceiveChannel.objects.get(organization=organization, verbal_name=verbal_name)
+            obj = AlertReceiveChannel.objects.get(
+                organization=organization,
+                team=team,
+                verbal_name=verbal_name,
+            )
         except AlertReceiveChannel.DoesNotExist:
             return attrs
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise BadRequest(detail="An integration with this name already exists for this team")
+
         if self.instance and obj.id == self.instance.id:
             return attrs
         else:
-            raise BadRequest(detail="Integration with this name already exists")
+            raise BadRequest(detail="An integration with this name already exists for this team")
 
     def validate_templates(self, templates):
         if not isinstance(templates, dict):

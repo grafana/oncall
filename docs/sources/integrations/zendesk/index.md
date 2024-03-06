@@ -10,11 +10,16 @@ keywords:
   - on-call
   - webhooks
   - Zendesk
+labels:
+  products:
+    - cloud
 title: Zendesk
 weight: 500
 ---
 
 # Zendesk integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Zendesk integration for Grafana OnCall handles ticket events sent from Zendesk webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
@@ -32,9 +37,8 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 
 Create a new "Trigger or automation" webhook connection in Zendesk to send events to Grafana OnCall using the integration URL above.
 
-Refer to [Zendesk documentation]
-(<https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems>
-) for more information on how to create and manage webhooks.
+Refer to [Zendesk documentation](<https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems>)
+for more information on how to create and manage webhooks.
 
 After setting up a webhook in Zendesk, create a new trigger with the following condition:
 `Meet ANY of the following conditions: "Ticket Is Created", "Ticket status Changed"`
@@ -68,7 +72,7 @@ To customize this behaviour, consider modifying alert templates in integration s
 
 ## Configuring Grafana OnCall to send data to Zendesk
 
-Grafana OnCall can automatically create and resolve tickets in Zendesk via [outgoing webhooks]({{< relref "_index.md" >}}).
+Grafana OnCall can automatically create and resolve tickets in Zendesk via [outgoing webhooks][outgoing-webhooks].
 This guide provides example webhook configurations for common use cases, as well as information on how to set up a user in Zendesk to be used by Grafana OnCall.
 
 ### Prerequisites
@@ -159,11 +163,14 @@ Use the following JSON template as webhook data:
 The examples above describe how to create outgoing webhooks in Grafana OnCall that will allow to automatically create and resolve tickets in Zendesk.
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
-Refer to [outgoing webhooks documentation]({{< relref "_index.md" >}}) for more information on available template variables and webhook configuration.
+Refer to [outgoing webhooks documentation][outgoing-webhooks] for more information on available template variables and webhook configuration.
 
 For more information on Zendesk API, refer to [Zendesk API documentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/).
 
 {{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
+
+[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
+[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
 {{% /docs/reference %}}

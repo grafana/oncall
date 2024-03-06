@@ -134,21 +134,13 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
     def final_shifts(self, request, pk):
         schedule = self.get_object()
 
-        if not isinstance(schedule, OnCallScheduleWeb):
-            return Response(
-                "OnCall shifts exports are currently only available for web calendars",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         serializer = FinalShiftQueryParamsSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
-        days_between_start_and_end = (end_date - start_date).days
 
-        final_schedule_events: ScheduleEvents = schedule.final_events("UTC", start_date, days_between_start_and_end)
-
+        final_schedule_events: ScheduleEvents = schedule.final_events(start_date, end_date)
         logger.info(
             f"Exporting oncall shifts for schedule {pk} between dates {start_date} and {end_date}. {len(final_schedule_events)} shift events were found."
         )
@@ -158,8 +150,9 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 "user_pk": user["pk"],
                 "user_email": user["email"],
                 "user_username": user["display_name"],
-                "shift_start": event["start"],
-                "shift_end": event["end"],
+                # truncate shift start/end exceeding the requested period
+                "shift_start": event["start"] if event["start"] >= start_date else start_date,
+                "shift_end": event["end"] if event["end"] <= end_date else end_date,
             }
             for event in final_schedule_events
             for user in event["users"]
@@ -175,5 +168,8 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 "next": None,
                 "previous": None,
                 "results": data,
+                "current_page_number": 1,
+                "page_size": 50,
+                "total_pages": 1,
             }
         )

@@ -9,9 +9,9 @@ from django.db import IntegrityError, models
 from django.db.models import Q
 
 from apps.base.messaging import get_messaging_backends
-from apps.base.models.ordered_model import OrderedModel
 from apps.user_management.models import User
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -71,17 +71,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         if user.notification_policies.filter(important=False).exists():
             return
 
-        model = self.model
-        policies_to_create = (
-            model(
-                user=user,
-                step=model.Step.NOTIFY,
-                notify_by=NotificationChannelOptions.DEFAULT_NOTIFICATION_CHANNEL,
-                order=0,
-            ),
-            model(user=user, step=model.Step.WAIT, wait_delay=datetime.timedelta(minutes=15), order=1),
-            model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
-        )
+        policies_to_create = user.default_notification_policies_defaults
 
         try:
             super().bulk_create(policies_to_create)
@@ -92,16 +82,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         if user.notification_policies.filter(important=True).exists():
             return
 
-        model = self.model
-        policies_to_create = (
-            model(
-                user=user,
-                step=model.Step.NOTIFY,
-                notify_by=model.NotificationChannel.PHONE_CALL,
-                important=True,
-                order=0,
-            ),
-        )
+        policies_to_create = user.important_notification_policies_defaults
 
         try:
             super().bulk_create(policies_to_create)

@@ -4,9 +4,12 @@ from jinja2.exceptions import SecurityError
 from jinja2.sandbox import SandboxedEnvironment
 
 from .filters import (
+    b64decode,
     datetimeformat,
+    datetimeformat_as_timezone,
     iso8601_to_time,
     json_dumps,
+    parse_json,
     regex_match,
     regex_replace,
     regex_search,
@@ -21,6 +24,7 @@ def raise_security_exception(name):
 jinja_template_env = SandboxedEnvironment(loader=BaseLoader())
 
 jinja_template_env.filters["datetimeformat"] = datetimeformat
+jinja_template_env.filters["datetimeformat_as_timezone"] = datetimeformat_as_timezone
 jinja_template_env.filters["iso8601_to_time"] = iso8601_to_time
 jinja_template_env.filters["tojson_pretty"] = to_pretty_json
 jinja_template_env.globals["time"] = timezone.now
@@ -29,3 +33,5 @@ jinja_template_env.filters["regex_replace"] = regex_replace
 jinja_template_env.filters["regex_match"] = regex_match
 jinja_template_env.filters["regex_search"] = regex_search
 jinja_template_env.filters["json_dumps"] = json_dumps
+jinja_template_env.filters["b64decode"] = b64decode
+jinja_template_env.filters["parse_json"] = parse_json

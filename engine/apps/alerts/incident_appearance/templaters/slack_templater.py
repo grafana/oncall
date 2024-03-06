@@ -1,5 +1,3 @@
-from django.apps import apps
-
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
 
 
@@ -30,7 +28,8 @@ class AlertSlackTemplater(AlertTemplater):
         payload = self.alert.raw_request_data
         # First check if payload look like payload from manual incident integration and was not modified before.
         if "view" in payload and "private_metadata" in payload.get("view", {}) and "oncall" not in payload:
-            AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+            from apps.alerts.models import AlertReceiveChannel
+
             # If so - check it with db query.
             if self.alert.group.channel.integration == AlertReceiveChannel.INTEGRATION_MANUAL:
                 metadata = payload.get("view", {}).get("private_metadata", {})
@@ -46,23 +45,6 @@ class AlertSlackTemplater(AlertTemplater):
                     payload["oncall"]["author_username"] = metadata.get("author_username", "Unknown")
                     payload["oncall"]["title"] = "Message from @" + payload["oncall"]["author_username"]
                     payload["oncall"]["message"] = message_text
-                else:
-                    # If alert was made via slash command
-                    message_text = (
-                        payload.get("view", {})
-                        .get("state", {})
-                        .get("values", {})
-                        .get("MESSAGE_INPUT", {})
-                        .get("FinishCreateIncidentViewStep", {})
-                        .get("value", "unknown")
-                    )
-                    payload["oncall"]["permalink"] = None
-                    payload["oncall"]["title"] = self.alert.title
-                    payload["oncall"]["message"] = message_text
-                    created_by = self.alert.integration_unique_data.get("created_by", None)
-                    username = payload.get("user", {}).get("name", None)
-                    author_username = created_by or username or "unknown"
-                    payload["oncall"]["author_username"] = author_username
 
                 self.alert.raw_request_data = payload
                 self.alert.save(update_fields=["raw_request_data"])

@@ -18,7 +18,7 @@ class AlertWebTemplater(AlertTemplater):
             message = escape_html(self._slack_format_for_web(templated_alert.message))
             link_matches = re.findall(url_re, message)
             for idx, link in enumerate(link_matches):
-                substitution = f"amixrsubstitutedlink{idx}"
+                substitution = f"oncallsubstitutedlink{idx}"
                 link_substitution[substitution] = link
                 message = message.replace(link, substitution)
             message = convert_md_to_html(message)

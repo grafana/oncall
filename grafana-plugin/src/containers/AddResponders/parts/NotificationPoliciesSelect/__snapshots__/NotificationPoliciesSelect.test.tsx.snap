@@ -1,0 +1,104 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationPoliciesSelect disabled state 1`] = `
+<div>
+  <div
+    class="css-e49k3t-input-wrapper select css-8k5qe3-SelectContainer"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-3-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class="css-1i88p6p"
+    >
+      <div
+        class="css-1q0c0d5-grafana-select-value-container"
+      >
+        <div
+          class="css-sr1xkh-singleValue css-upz218-SingleValue"
+        >
+          Default
+        </div>
+        <input
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-readonly="true"
+          class="css-mohuvp-dummyInput-DummyInput"
+          disabled=""
+          id="react-select-3-input"
+          inputmode="none"
+          role="combobox"
+          tabindex="0"
+          value=""
+        />
+      </div>
+      <div
+        class="css-zyjsuv-input-suffix"
+      >
+        <div
+          class="css-1j2891d-Icon"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`NotificationPoliciesSelect it renders properly 1`] = `
+<div>
+  <div
+    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
+  >
+    <span
+      class="css-1f43avz-a11yText-A11yText"
+      id="react-select-2-live-region"
+    />
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="css-1f43avz-a11yText-A11yText"
+    />
+    <div
+      class="css-1i88p6p"
+    >
+      <div
+        class="css-1q0c0d5-grafana-select-value-container"
+      >
+        <div
+          class="css-8nwx1l-singleValue css-upz218-SingleValue"
+        >
+          Default
+        </div>
+        <input
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-readonly="true"
+          class="css-mohuvp-dummyInput-DummyInput"
+          id="react-select-2-input"
+          inputmode="none"
+          role="combobox"
+          tabindex="0"
+          value=""
+        />
+      </div>
+      <div
+        class="css-zyjsuv-input-suffix"
+      >
+        <div
+          class="css-1j2891d-Icon"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

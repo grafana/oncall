@@ -69,10 +69,6 @@
   padding-left: 24px;
 }
 
-.column:first-child {
-  border-right: 1px solid rgba(204, 204, 220, 0.25);
-}
-
 .incidents-content > div:not(:last-child) {
   border-bottom: 1px solid rgba(204, 204, 220, 0.25);
   padding-bottom: 16px;
@@ -94,6 +90,16 @@
 .not-found {
   margin: 50px auto;
   text-align: center;
+}
+
+.alert-group-stub {
+  margin: 24px auto;
+  width: 520px;
+  text-align: center;
+}
+
+.alert-group-stub-divider {
+  width: 520px;
 }
 
 .timeline-icon-background {
@@ -195,4 +201,8 @@
       display: inline-flex;
     }
   }
+}
+
+.user-badge {
+  vertical-align: middle;
 }

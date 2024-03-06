@@ -1,6 +1,6 @@
 suite: test image and imagePullPolicy for deployments
 templates:
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - engine/deployment.yaml
   - engine/job-migrate.yaml
 release:
@@ -9,7 +9,7 @@ tests:
   - it: affinity={} -> should set afffinity null
     asserts:
       - notExists:
-            path: spec.template.spec.affinity
+          path: spec.template.spec.affinity
 
   - it: affinity -> should use custom affinity
     set:

@@ -1,4 +1,5 @@
 import json
+from dataclasses import asdict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters import rest_framework as filters
@@ -10,14 +11,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
+from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.labels.utils import is_labels_feature_enabled
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 NEW_WEBHOOK_PK = "new"
@@ -36,7 +42,7 @@ class WebhooksFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters
     team = TeamModelMultipleChoiceFilter()
 
 
-class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
+class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -51,6 +57,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
     }
 
     model = Webhook
@@ -60,12 +67,52 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     search_fields = ["public_primary_key", "name"]
     filterset_class = WebhooksFilter
 
+    def perform_create(self, serializer):
+        serializer.save()
+        write_resource_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
+
+    def perform_update(self, serializer):
+        prev_state = serializer.instance.insight_logs_serialized
+        serializer.save()
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
+
+    def perform_destroy(self, instance):
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
+        instance.delete()
+
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = Webhook.objects.filter(
             organization=self.request.auth.organization,
-        ).prefetch_related("responses")
+            is_from_connected_integration=False,
+        )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+
+        # filter by labels
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
+            queryset = queryset.filter(
+                labels__key_id=key,
+                labels__value_id=value,
+            )
+        # distinct to remove duplicates after webhooks X labels join
+        queryset = queryset.distinct()
+        # schedule update of labels cache
+        ids = [d.id for d in queryset]
+        schedule_update_label_cache(self.model.__name__, self.request.auth.organization, ids)
+
         return queryset
 
     def get_object(self):
@@ -103,6 +150,15 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
                 "global": True,
             },
         ]
+
+        if is_labels_feature_enabled(self.request.auth.organization):
+            filter_options.append(
+                {
+                    "name": "label",
+                    "display_name": "Label",
+                    "type": "labels",
+                }
+            )
 
         if filter_name is not None:
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
@@ -154,3 +210,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
         response = {"preview": result}
         return Response(response, status=status.HTTP_200_OK)
+
+    @action(methods=["get"], detail=False)
+    def preset_options(self, request):
+        result = [asdict(preset) for preset in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES]
+        return Response(result)

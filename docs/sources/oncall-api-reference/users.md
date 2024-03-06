@@ -8,7 +8,6 @@ weight: 1500
 
 This endpoint retrieves the user object.
 
-````shell
 ```shell
 curl "{{API_URL}}/api/v1/users/current/" \
   --request GET \
@@ -29,7 +28,9 @@ The above command returns JSON structured in the following way:
     }
   ],
   "username": "alex",
-  "role": "admin"
+  "role": "admin",
+  "timezone": "UTC",
+  "teams": []
 }
 ```
 
@@ -46,6 +47,8 @@ Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 | `slack`    | Yes/org | List of user IDs from connected Slack. User linking key is e-mail. |
 | `username` | Yes/org | User username                                                      |
 | `role`     |   No    | One of: `user`, `observer`, `admin`.                               |
+| `timezone` |   No    | timezone of the user one of [time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                               |
+| `teams`    |   No    | List of team IDs the user belongs to                               |
 
 # List Users
 
@@ -74,9 +77,14 @@ The above command returns JSON structured in the following way:
         }
       ],
       "username": "alex",
-      "role": "admin"
+      "role": "admin",
+      "timezone": "UTC",
+      "teams": ["TAAM1K1NNEHAG"]
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 100,
+  "total_pages": 1
 }
 ```
 

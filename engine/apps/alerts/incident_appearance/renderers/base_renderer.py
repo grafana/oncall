@@ -1,10 +1,14 @@
+import typing
 from abc import ABC, abstractmethod
 
 from django.utils.functional import cached_property
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import Alert, AlertGroup
+
 
 class AlertBaseRenderer(ABC):
-    def __init__(self, alert):
+    def __init__(self, alert: "Alert"):
         self.alert = alert
 
     @cached_property
@@ -18,7 +22,7 @@ class AlertBaseRenderer(ABC):
 
 
 class AlertGroupBaseRenderer(ABC):
-    def __init__(self, alert_group, alert=None):
+    def __init__(self, alert_group: "AlertGroup", alert: typing.Optional["Alert"] = None):
         if alert is None:
             alert = alert_group.alerts.first()
 

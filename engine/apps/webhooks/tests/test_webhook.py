@@ -1,9 +1,9 @@
 from unittest.mock import call, patch
 
 import pytest
+from django.conf import settings
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.models import Webhook
 from apps.webhooks.utils import InvalidWebhookData, InvalidWebhookHeaders, InvalidWebhookTrigger, InvalidWebhookUrl
 
@@ -101,7 +101,7 @@ def test_build_request_kwargs_custom_data(make_organization, make_custom_webhook
     webhook = make_custom_webhook(organization=organization, data="{{foo}}", forward_all=False)
     request_kwargs = webhook.build_request_kwargs({"foo": "bar", "something": "else"})
 
-    assert request_kwargs == {"headers": {}, "data": "bar"}
+    assert request_kwargs == {"headers": {}, "data": "bar".encode("utf-8")}
 
 
 @pytest.mark.django_db
@@ -116,7 +116,7 @@ def test_build_request_kwargs_is_legacy_custom_data(make_organization, make_cust
     event_data = {"alert_group_id": "bar", "alert_payload": {"message": "the-message"}}
     request_kwargs = webhook.build_request_kwargs(event_data)
 
-    assert request_kwargs == {"headers": {}, "data": "the-message"}
+    assert request_kwargs == {"headers": {}, "data": "the-message".encode("utf-8")}
 
 
 @pytest.mark.django_db
@@ -226,16 +226,16 @@ def test_make_request(make_organization, make_custom_webhook):
     organization = make_organization()
 
     with patch("apps.webhooks.models.webhook.requests") as mock_requests:
-        for method in ("GET", "POST", "PUT", "DELETE", "OPTIONS"):
+        for method in ("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"):
             webhook = make_custom_webhook(organization=organization, http_method=method)
             webhook.make_request("url", {"foo": "bar"})
             expected_call = getattr(mock_requests, method.lower())
             assert expected_call.called
-            assert expected_call.call_args == call("url", timeout=OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
+            assert expected_call.call_args == call("url", timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
 
     # invalid
-    with pytest.raises(Exception):
-        webhook = make_custom_webhook(organization=organization, http_method="NOT")
+    webhook = make_custom_webhook(organization=organization, http_method="NOT")
+    with pytest.raises(ValueError):
         webhook.make_request("url", {"foo": "bar"})
 
 
@@ -273,3 +273,50 @@ def test_escaping_payload_with_single_quote_in_string(make_organization, make_cu
     }
     request_kwargs = webhook.build_request_kwargs(payload)
     assert request_kwargs == {"headers": {}, "json": {"data": "{'text': \"Hi, it's alert\"}"}}
+
+
+@pytest.mark.parametrize(
+    "data,expected_kwargs",
+    [
+        (
+            '{"data" : "{{ alert_payload.text }}"}',
+            {"json": {"data": "東京"}},
+        ),
+        (
+            "😊",
+            {"data": "😊".encode("utf-8")},
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_escaping_unicode_in_string(make_organization, make_custom_webhook, data, expected_kwargs):
+    organization = make_organization()
+    webhook = make_custom_webhook(
+        organization=organization,
+        data=data,
+        forward_all=False,
+    )
+
+    payload = {
+        "alert_payload": {
+            "text": "東京",
+        }
+    }
+    request_kwargs = webhook.build_request_kwargs(payload)
+    assert request_kwargs == {"headers": {}, **expected_kwargs}
+
+
+@pytest.mark.django_db
+def test_webhook_not_deleted_with_team(make_organization, make_team, make_custom_webhook):
+    organization = make_organization()
+    team = make_team(organization=organization)
+    webhook = make_custom_webhook(
+        organization=organization,
+        team=team,
+    )
+    assert webhook.team == team
+    webhook_pk = webhook.pk
+    team.delete()
+
+    webhook = Webhook.objects.get(pk=webhook_pk)
+    assert webhook.team is None

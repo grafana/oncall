@@ -4,7 +4,7 @@ import { OrgRole } from '@grafana/data';
 import { contextSrv } from 'grafana/app/core/core';
 import renderer from 'react-test-renderer';
 
-import Unauthorized from 'components/Unauthorized';
+import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 
 jest.mock('grafana/app/core/core', () => ({
   contextSrv: {
@@ -14,7 +14,7 @@ jest.mock('grafana/app/core/core', () => ({
 
 describe('Unauthorized', () => {
   test.each([true, false])('renders properly - access control enabled: %s', (accessControlEnabled) => {
-    contextSrv.accessControlEnabled = () => accessControlEnabled;
+    contextSrv.licensedAccessControlEnabled = () => accessControlEnabled;
     const tree = renderer
       .create(
         <Unauthorized
@@ -31,7 +31,7 @@ describe('Unauthorized', () => {
   test.each([OrgRole.Admin, OrgRole.Editor, OrgRole.Viewer])(
     'renders properly the grammar for different roles - %s',
     (role) => {
-      contextSrv.accessControlEnabled = () => false;
+      contextSrv.licensedAccessControlEnabled = () => false;
       const tree = renderer
         .create(
           <Unauthorized

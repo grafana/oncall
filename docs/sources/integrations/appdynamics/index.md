@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - AppDynamics
+labels:
+  products:
+    - cloud
 title: AppDynamics
 weight: 500
 ---
 
 # AppDynamics integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The AppDynamics integration for Grafana OnCall handles health rule violation events sent from AppDynamics actions.
 The integration provides grouping and auto-resolve logic via customizable alert templates.
@@ -108,9 +113,9 @@ Complete configuration by setting routes, templates, maintenances, etc. Read mor
 [this section][complete-the-integration-configuration]
 
 {{% docs/reference %}}
-[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
+[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#complete-the-integration-configuration"
 [complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
 
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
 {{% /docs/reference %}}

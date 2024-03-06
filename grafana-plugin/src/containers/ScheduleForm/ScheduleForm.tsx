@@ -4,13 +4,14 @@ import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GForm from 'components/GForm/GForm';
+import { GForm } from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
+import { openWarningNotification } from 'utils/utils';
 
-import { apiForm, calendarForm, iCalForm } from './ScheduleForm.config';
+import { getApiForm, getCalendarForm, getICalForm } from './ScheduleForm.config';
 import { prepareForEdit } from './ScheduleForm.helpers';
 
 import styles from './ScheduleForm.module.css';
@@ -20,44 +21,48 @@ const cx = cn.bind(styles);
 interface ScheduleFormProps {
   id: Schedule['id'] | 'new';
   onHide: () => void;
-  onUpdate: () => void;
-  onCreate?: (data: Schedule) => void;
+  onSubmit: (data: Schedule) => void;
   type?: ScheduleType;
 }
 
-const scheduleTypeToForm = {
-  [ScheduleType.Calendar]: calendarForm,
-  [ScheduleType.Ical]: iCalForm,
-  [ScheduleType.API]: apiForm,
-};
-
-const ScheduleForm = observer((props: ScheduleFormProps) => {
-  const { id, type, onUpdate, onCreate, onHide } = props;
+export const ScheduleForm = observer((props: ScheduleFormProps) => {
+  const { id, type, onSubmit, onHide } = props;
+  const isNew = id === 'new';
 
   const store = useStore();
 
   const { scheduleStore, userStore } = store;
 
+  const scheduleTypeToForm = {
+    [ScheduleType.Calendar]: getCalendarForm(store),
+    [ScheduleType.Ical]: getICalForm(store),
+    [ScheduleType.API]: getApiForm(store),
+  };
+
   const data = useMemo(() => {
-    return id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
+    return isNew ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
   }, [id]);
 
   const handleSubmit = useCallback(
-    (formData: Partial<Schedule>) => {
-      (id === 'new'
-        ? scheduleStore.create({ ...formData, type: data.type })
-        : scheduleStore.update(id, { ...formData, type: data.type })
-      ).then((data) => {
-        onHide();
+    async (formData: Partial<Schedule>): Promise<void> => {
+      const apiData = { ...formData, type: data.type };
 
-        onUpdate();
+      let schedule: Schedule | void;
+      if (isNew) {
+        schedule = await scheduleStore.create<Schedule>(apiData);
+      } else {
+        schedule = await scheduleStore.update<Schedule>(id, apiData);
+      }
 
-        if (id === 'new') {
-          onCreate(data);
-        }
-      });
+      if (!schedule) {
+        openWarningNotification(`There was an issue ${isNew ? 'creating' : 'updating'} the schedule. Please try again`);
+        return;
+      }
+
+      onSubmit(schedule);
+      onHide();
     },
-    [id]
+    [id, isNew]
   );
 
   const formConfig = scheduleTypeToForm[data.type];
@@ -69,23 +74,23 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
       onClose={onHide}
       closeOnMaskClick={false}
     >
-      <div className={cx('content')}>
+      <div className={cx('content')} data-testid="schedule-form">
         <VerticalGroup>
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
-          <HorizontalGroup justify="flex-end">
-            <Button variant="secondary" onClick={onHide}>
-              Cancel
-            </Button>
-            <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-              <Button form={formConfig.name} type="submit">
-                {id === 'new' ? 'Create' : 'Update'} Schedule
+          <div className="buttons">
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={onHide}>
+                Cancel
               </Button>
-            </WithPermissionControlTooltip>
-          </HorizontalGroup>
+              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                <Button form={formConfig.name} type="submit">
+                  {id === 'new' ? 'Create' : 'Update'} Schedule
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
+          </div>
         </VerticalGroup>
       </div>
     </Drawer>
   );
 });
-
-export default ScheduleForm;

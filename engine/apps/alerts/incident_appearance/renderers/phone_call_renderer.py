@@ -12,7 +12,7 @@ class AlertPhoneCallRenderer(AlertBaseRenderer):
 
 class AlertGroupPhoneCallRenderer(AlertGroupBaseRenderer):
     TEMPLATE = (
-        "You are invited to check an incident from Grafana OnCall. "
+        "You are invited to check an Alert Group from Grafana OnCall. "
         "Alert via {integration_name} with title {title} triggered {alert_count} times"
     )
 

@@ -1,11 +1,48 @@
 import dayjs from 'dayjs';
 
-import { RootStore } from 'state';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { RootStore } from 'state/rootStore';
 
-import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents } from './schedule.types';
+import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {
   return moment.format('YYYY-MM-DD');
+};
+
+const createGap = (start, end) => {
+  return {
+    start,
+    end,
+    is_gap: true,
+    users: [],
+    all_day: false,
+    shift: null,
+    missing_users: [],
+    is_empty: true,
+    calendar_type: ScheduleType.API,
+    priority_level: null,
+    source: 'web',
+    is_override: false,
+  };
+};
+
+export const createShiftSwapEventFromShiftSwap = (shiftSwap: Partial<ShiftSwap>) => {
+  return {
+    shiftSwapId: shiftSwap.id,
+    start: shiftSwap.swap_start,
+    end: shiftSwap.swap_end,
+    is_gap: false,
+    users: [],
+    all_day: false,
+    shift: null,
+    missing_users: [],
+    is_empty: true,
+    is_shift_swap: true,
+    calendar_type: ScheduleType.API,
+    priority_level: null,
+    source: 'web',
+    is_override: false,
+  };
 };
 
 export const fillGaps = (events: Event[]) => {
@@ -18,19 +55,7 @@ export const fillGaps = (events: Event[]) => {
 
     if (nextEvent) {
       if (nextEvent.start !== event.end) {
-        newEvents.push({
-          start: event.end,
-          end: nextEvent.start,
-          is_gap: true,
-          users: [],
-          all_day: false,
-          shift: null,
-          missing_users: [],
-          is_empty: true,
-          calendar_type: ScheduleType.API,
-          priority_level: null,
-          source: 'web',
-        });
+        newEvents.push(createGap(event.end, nextEvent.start));
       }
     }
   }
@@ -38,7 +63,7 @@ export const fillGaps = (events: Event[]) => {
   return newEvents;
 };
 
-export const splitToShiftsAndFillGaps = (events: Event[]) => {
+export const splitToShifts = (events: Event[]) => {
   const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
 
   for (const [_i, event] of events.entries()) {
@@ -52,11 +77,26 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
     }
   }
 
-  shifts.forEach((shift) => {
-    shift.events = fillGaps(shift.events);
-  });
-
   return shifts;
+};
+
+export const fillGapsInShifts = (shifts: ShiftEvents[]) => {
+  return shifts.map((shift) => ({
+    ...shift,
+    events: fillGaps(shift.events),
+  }));
+};
+
+export const enrichEventsWithScheduleData = (events: Event[], schedule: Partial<Schedule>) => {
+  return events.map((event) => ({ ...event, schedule }));
+};
+
+export const getPersonalShiftsFromStore = (
+  store: RootStore,
+  userPk: ApiSchemas['User']['pk'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.personalEvents[userPk]?.[getFromString(startMoment)] as any;
 };
 
 export const getShiftsFromStore = (
@@ -69,25 +109,184 @@ export const getShiftsFromStore = (
     : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
 };
 
+export const unFlattenShiftEvents = (shifts: ShiftEvents[]) => {
+  for (let i = 0; i < shifts.length; i++) {
+    const shift = shifts[i];
+
+    for (let j = 0; j < shift.events.length - 1; j++) {
+      for (let k = j + 1; k < shift.events.length; k++) {
+        const event1 = shift.events[j];
+        const event2 = shift.events[k];
+
+        const event1Start = dayjs(event1.start);
+        const event1End = dayjs(event1.end);
+
+        const event2Start = dayjs(event2.start);
+        const event2End = dayjs(event2.end);
+
+        if (
+          (event1Start.isBefore(event2Start) && event1End.isAfter(event2Start)) ||
+          (event1End.isAfter(event2End) && event1Start.isBefore(event2End))
+        ) {
+          const firstEvent = event1Start.isBefore(event2Start) ? event1 : event2;
+          const secondEvent = firstEvent === event1 ? event2 : event1;
+
+          const oldShift = { ...shift, events: shift.events.filter((event) => event !== secondEvent) };
+
+          const newShift = { ...shift, events: [secondEvent] };
+
+          shifts[i] = oldShift;
+          shifts.push(newShift);
+
+          return unFlattenShiftEvents(shifts);
+        }
+      }
+    }
+  }
+
+  return shifts;
+};
+
+export const flattenShiftEvents = (shifts: ShiftEvents[]) => {
+  if (!shifts) {
+    return undefined;
+  }
+
+  function splitToPairs(shifts: ShiftEvents[]) {
+    const pairs = [];
+    for (let i = 0; i < shifts.length - 1; i++) {
+      for (let j = i + 1; j < shifts.length; j++) {
+        pairs.push([
+          { ...shifts[i], events: [...shifts[i].events] },
+          { ...shifts[j], events: [...shifts[j].events] },
+        ]);
+      }
+    }
+
+    return pairs;
+  }
+
+  let pairs = splitToPairs(shifts);
+
+  while (pairs.length > 0) {
+    const currentPair = pairs.shift();
+
+    const merged = mergePair(currentPair);
+
+    if (merged !== currentPair) {
+      // means pair was fully merged
+
+      shifts = shifts.filter((shift) => !currentPair.some((pairShift) => pairShift.shiftId === shift.shiftId));
+      shifts.unshift(merged[0]);
+      pairs = splitToPairs(shifts);
+    }
+  }
+
+  function mergePair(pair: ShiftEvents[]): ShiftEvents[] {
+    const recipient = { ...pair[0], events: [...pair[0].events] };
+    const donor = pair[1];
+
+    const donorEvents = donor.events.filter((event) => !event.is_gap);
+
+    for (let i = 0; i < donorEvents.length; i++) {
+      const donorEvent = donorEvents[i];
+
+      const eventStartMoment = dayjs(donorEvent.start);
+      const eventEndMoment = dayjs(donorEvent.end);
+
+      const suitablerRecepientGapIndex = recipient.events.findIndex((event) => {
+        if (!event.is_gap) {
+          return false;
+        }
+
+        const gap = event;
+
+        const gapStartMoment = dayjs(gap.start);
+        const gapEndMoment = dayjs(gap.end);
+
+        return gapStartMoment.isSameOrBefore(eventStartMoment) && gapEndMoment.isSameOrAfter(eventEndMoment);
+      });
+
+      if (suitablerRecepientGapIndex > -1) {
+        const suitablerRecepientGap = recipient.events[suitablerRecepientGapIndex];
+
+        const itemsToAdd = [];
+        const leftGap = createGap(suitablerRecepientGap.start, donorEvent.start);
+        if (leftGap.start !== leftGap.end) {
+          itemsToAdd.push(leftGap);
+        }
+        itemsToAdd.push(donorEvent);
+
+        const rightGap = createGap(donorEvent.end, suitablerRecepientGap.end);
+        if (rightGap.start !== rightGap.end) {
+          itemsToAdd.push(rightGap);
+        }
+
+        recipient.events = [
+          ...recipient.events.slice(0, suitablerRecepientGapIndex),
+          ...itemsToAdd,
+          ...recipient.events.slice(suitablerRecepientGapIndex + 1),
+        ];
+      } else {
+        const firstRecepientEvent = recipient.events[0];
+        const firstRecepientEventStartMoment = dayjs(firstRecepientEvent.start);
+
+        const lastRecepientEvent = recipient.events[recipient.events.length - 1];
+        const lastRecepientEventEndMoment = dayjs(lastRecepientEvent.end);
+
+        if (eventEndMoment.isSameOrBefore(firstRecepientEventStartMoment)) {
+          const itemsToAdd = [donorEvent];
+          if (donorEvent.end !== firstRecepientEvent.start) {
+            itemsToAdd.push(createGap(donorEvent.end, firstRecepientEvent.start));
+          }
+          recipient.events = [...itemsToAdd, ...recipient.events];
+        } else if (eventStartMoment.isSameOrAfter(lastRecepientEventEndMoment)) {
+          const itemsToAdd = [donorEvent];
+          if (lastRecepientEvent.end !== donorEvent.start) {
+            itemsToAdd.unshift(createGap(lastRecepientEvent.end, donorEvent.start));
+          }
+          recipient.events = [...recipient.events, ...itemsToAdd];
+        } else {
+          // the pair can't be fully merged
+
+          return pair;
+        }
+      }
+    }
+
+    return [recipient];
+  }
+
+  return shifts;
+};
+
 export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'], startMoment: dayjs.Dayjs): Layer[] => {
   return store.scheduleStore.rotationPreview
     ? store.scheduleStore.rotationPreview[getFromString(startMoment)]
     : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 };
 
+export const getShiftSwapsFromStore = (
+  store: RootStore,
+  scheduleId: Schedule['id'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.shiftSwapsPreview
+    ? store.scheduleStore.shiftSwapsPreview[getFromString(startMoment)]
+    : store.scheduleStore.scheduleAndDateToShiftSwaps[scheduleId]?.[getFromString(startMoment)];
+};
+
 export const getOverridesFromStore = (
   store: RootStore,
   scheduleId: Schedule['id'],
   startMoment: dayjs.Dayjs
-): Layer[] | ShiftEvents[] => {
+): ShiftEvents[] => {
   return store.scheduleStore.overridePreview
     ? store.scheduleStore.overridePreview[getFromString(startMoment)]
-    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Layer[]);
+    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as ShiftEvents[]);
 };
 
-export const splitToLayers = (
-  shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }>
-) => {
+export const splitToLayers = (shifts: ShiftEvents[]) => {
   return shifts
     .reduce((memo, shift) => {
       let layer = memo.find((level) => level.priority === shift.priority);
@@ -204,7 +403,28 @@ const L3_COLORS = ['#377277', '#638282', '#364E4E', '#423220'];
 
 const OVERRIDE_COLORS = ['#C69B06', '#C2C837'];
 
+export const SHIFT_SWAP_COLOR = '#C69B06';
+
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
+
+const scheduleToColor = {};
+
+export const getColorForSchedule = (scheduleId: Schedule['id']) => {
+  if (scheduleToColor[scheduleId]) {
+    return scheduleToColor[scheduleId];
+  }
+
+  const colors = [...L1_COLORS, ...L2_COLORS, ...L3_COLORS];
+
+  const index = Object.keys(scheduleToColor).length;
+  const normalizedIndex = index % colors.length;
+
+  const color = colors[normalizedIndex];
+
+  scheduleToColor[scheduleId] = color;
+
+  return color;
+};
 
 export const getColor = (layerIndex: number, rotationIndex: number) => {
   const normalizedLayerIndex = layerIndex % COLORS.length;
@@ -218,7 +438,7 @@ export const getOverrideColor = (rotationIndex: number) => {
   return OVERRIDE_COLORS[normalizedRotationIndex];
 };
 
-export const getShiftName = (shift: Shift) => {
+export const getShiftName = (shift: Partial<Shift>) => {
   if (!shift) {
     return '';
   }
@@ -231,5 +451,5 @@ export const getShiftName = (shift: Shift) => {
     return 'Override';
   }
 
-  return `[L${shift.priority_level}] Rotation`;
+  return 'Rotation';
 };

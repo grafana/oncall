@@ -4,7 +4,7 @@ import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup } from
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './Text.module.scss';
 
@@ -14,7 +14,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   type?: TextType;
   strong?: boolean;
   underline?: boolean;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'xs' | 'small' | 'medium' | 'large';
   keyboard?: boolean;
   className?: string;
   wrap?: boolean;
@@ -26,6 +26,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   editModalTitle?: string;
   maxWidth?: string;
   clickable?: boolean;
+  customTag?: 'h6' | 'span';
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -36,7 +37,7 @@ const PLACEHOLDER = '**********';
 
 const cx = cn.bind(styles);
 
-const Text: TextInterface = (props) => {
+export const Text: TextInterface = (props) => {
   const {
     type,
     size = 'medium',
@@ -56,6 +57,7 @@ const Text: TextInterface = (props) => {
     style,
     maxWidth,
     clickable,
+    customTag,
     ...rest
   } = props;
 
@@ -81,8 +83,10 @@ const Text: TextInterface = (props) => {
     setValue(e.target.value);
   }, []);
 
+  const CustomTag = (customTag || `span`) as unknown as React.ComponentType<any>;
+
   return (
-    <span
+    <CustomTag
       onClick={onClick}
       className={cx(
         'root',
@@ -152,7 +156,7 @@ const Text: TextInterface = (props) => {
           </VerticalGroup>
         </Modal>
       )}
-    </span>
+    </CustomTag>
   );
 };
 
@@ -173,5 +177,3 @@ const Title: FC<TitleProps> = (props) => {
 };
 
 Text.Title = Title;
-
-export default Text;

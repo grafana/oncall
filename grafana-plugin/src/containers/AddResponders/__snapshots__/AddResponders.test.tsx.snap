@@ -1,0 +1,710 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddResponders should properly display the add responders button when hideAddResponderButton is false 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-1mhys9y-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-8b29hm-button"
+              type="button"
+            >
+              <div
+                class="css-1j2891d-Icon"
+              />
+              <span
+                class="css-1riaxdn"
+              >
+                Invite
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should properly display the add responders button when hideAddResponderButton is true 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-1mhys9y-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should render properly in create mode 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-1mhys9y-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-8b29hm-button"
+              type="button"
+            >
+              <div
+                class="css-1j2891d-Icon"
+              />
+              <span
+                class="css-1riaxdn"
+              >
+                Invite
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should render properly in update mode 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-1mhys9y-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-8b29hm-button"
+              type="button"
+            >
+              <div
+                class="css-1j2891d-Icon"
+              />
+              <span
+                class="css-1riaxdn"
+              >
+                Add
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddResponders should render selected team and users properly 1`] = `
+<div>
+  <div
+    class="body"
+  >
+    <div
+      class="root root_bordered"
+    >
+      <div
+        class="css-1mhys9y-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <h4
+            class="title"
+          >
+            <span
+              class="root text text--primary text--medium"
+            >
+              Participants
+            </span>
+          </h4>
+        </div>
+        <div
+          class="css-18qv8yz-layoutChildrenWrapper"
+        >
+          <div>
+            <button
+              class="css-8b29hm-button"
+              type="button"
+            >
+              <div
+                class="css-1j2891d-Icon"
+              />
+              <span
+                class="css-1riaxdn"
+              >
+                Invite
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <ul
+        class="responders-list"
+      >
+        <li>
+          <div
+            class="css-1mhys9y-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test team
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <button
+                aria-label="Remove responder"
+                class="css-17584xm"
+                data-testid="team-responder-delete-icon"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="css-1j2891d-Icon"
+                />
+              </button>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-1mhys9y-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background timeline-icon-background--green"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com/user9995.png"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test user3
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="css-e49k3t-input-wrapper select css-8k5qe3-SelectContainer"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                    />
+                    <div
+                      class="css-1i88p6p"
+                    >
+                      <div
+                        class="css-1q0c0d5-grafana-select-value-container"
+                      >
+                        <div
+                          class=" css-1n8tjau-placeholder"
+                          id="react-select-2-placeholder"
+                        >
+                          Select...
+                        </div>
+                        <input
+                          aria-autocomplete="list"
+                          aria-describedby="react-select-2-placeholder"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-readonly="true"
+                          class="css-mohuvp-dummyInput-DummyInput"
+                          disabled=""
+                          id="react-select-2-input"
+                          inputmode="none"
+                          role="combobox"
+                          tabindex="0"
+                          value=""
+                        />
+                      </div>
+                      <div
+                        class="css-zyjsuv-input-suffix"
+                      >
+                        <div
+                          class="css-1j2891d-Icon"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <button
+                    aria-label="Remove responder"
+                    class="css-17584xm"
+                    data-testid="user-responder-delete-icon"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="css-1j2891d-Icon"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-1mhys9y-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background timeline-icon-background--green"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com/user123.png"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test user
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-3-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                    />
+                    <div
+                      class="css-1i88p6p"
+                    >
+                      <div
+                        class="css-1q0c0d5-grafana-select-value-container"
+                      >
+                        <div
+                          class=" css-1n8tjau-placeholder"
+                          id="react-select-3-placeholder"
+                        >
+                          Select...
+                        </div>
+                        <input
+                          aria-autocomplete="list"
+                          aria-describedby="react-select-3-placeholder"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-readonly="true"
+                          class="css-mohuvp-dummyInput-DummyInput"
+                          id="react-select-3-input"
+                          inputmode="none"
+                          role="combobox"
+                          tabindex="0"
+                          value=""
+                        />
+                      </div>
+                      <div
+                        class="css-zyjsuv-input-suffix"
+                      >
+                        <div
+                          class="css-1j2891d-Icon"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <button
+                    aria-label="Remove responder"
+                    class="css-17584xm"
+                    data-testid="user-responder-delete-icon"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="css-1j2891d-Icon"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-1mhys9y-horizontal-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="timeline-icon-background timeline-icon-background--green"
+                  >
+                    <img
+                      class="root avatarSize-medium"
+                      data-testid="test__avatar"
+                      src="https://example.com/user456.png"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <span
+                    class="root text text--undefined text--medium responder-name"
+                  >
+                    my test user2
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-18qv8yz-layoutChildrenWrapper"
+            >
+              <div
+                class="css-ffyaiw-horizontal-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <div
+                    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-4-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                    />
+                    <div
+                      class="css-1i88p6p"
+                    >
+                      <div
+                        class="css-1q0c0d5-grafana-select-value-container"
+                      >
+                        <div
+                          class=" css-1n8tjau-placeholder"
+                          id="react-select-4-placeholder"
+                        >
+                          Select...
+                        </div>
+                        <input
+                          aria-autocomplete="list"
+                          aria-describedby="react-select-4-placeholder"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-readonly="true"
+                          class="css-mohuvp-dummyInput-DummyInput"
+                          id="react-select-4-input"
+                          inputmode="none"
+                          role="combobox"
+                          tabindex="0"
+                          value=""
+                        />
+                      </div>
+                      <div
+                        class="css-zyjsuv-input-suffix"
+                      >
+                        <div
+                          class="css-1j2891d-Icon"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="css-18qv8yz-layoutChildrenWrapper"
+                >
+                  <button
+                    aria-label="Remove responder"
+                    class="css-17584xm"
+                    data-testid="user-responder-delete-icon"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <div
+                      class="css-1j2891d-Icon"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <div
+          aria-label="[object Object]"
+          class="css-10yjoiw"
+          data-testid="data-testid Alert info"
+          role="status"
+        >
+          <div
+            class="css-1td7znu"
+          >
+            <div
+              class="css-ufgc62"
+            >
+              <div
+                class="css-tluiue"
+              >
+                <div
+                  class="css-1j2891d-Icon"
+                />
+              </div>
+            </div>
+            <div
+              class="css-1gmwkrf"
+            >
+              <span
+                class="css-9om60p"
+              >
+                <span
+                  class="root text text--primary text--medium"
+                >
+                  <a
+                    class="learn-more-link"
+                    href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <span
+                      class="root text text--link text--medium"
+                    >
+                      <div
+                        class="css-ffyaiw-horizontal-group"
+                        style="width: 100%; height: 100%;"
+                      >
+                        <div
+                          class="css-12kn7ff-layoutChildrenWrapper"
+                        >
+                          Learn more
+                        </div>
+                        <div
+                          class="css-12kn7ff-layoutChildrenWrapper"
+                        >
+                          <div
+                            class="css-1j2891d-Icon"
+                          />
+                        </div>
+                      </div>
+                    </span>
+                  </a>
+                   about Default vs Important user personal notification settings
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </ul>
+    </div>
+    <div>
+      AddRespondersPopup
+    </div>
+  </div>
+</div>
+`;

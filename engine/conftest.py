@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import sys
@@ -9,8 +10,8 @@ import pytest
 from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
+from django.utils import timezone
 from pytest_factoryboy import register
-from rest_framework.test import APIClient
 from telegram import Bot
 
 from apps.alerts.models import (
@@ -19,7 +20,6 @@ from apps.alerts.models import (
     AlertReceiveChannel,
     MaintainableObject,
     ResolutionNote,
-    listen_for_alert_model_save,
     listen_for_alertgrouplogrecord,
     listen_for_alertreceivechannel_model_save,
 )
@@ -44,7 +44,7 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, PluginAuthToken
+from apps.auth_token.models import ApiAuthToken, PluginAuthToken, SlackAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -56,17 +56,27 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.labels.tests.factories import (
+    AlertGroupAssociatedLabelFactory,
+    AlertReceiveChannelAssociatedLabelFactory,
+    LabelKeyFactory,
+    LabelValueFactory,
+    WebhookAssociatedLabelFactory,
+)
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
+from apps.schedules.ical_utils import memoized_users_in_ical
+from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
     OnCallScheduleFactory,
     OnCallScheduleICalFactory,
+    ShiftSwapRequestFactory,
 )
-from apps.slack.slack_client import SlackClientWithErrorHandling
+from apps.slack.client import SlackClient
 from apps.slack.tests.factories import (
     SlackChannelFactory,
     SlackMessageFactory,
@@ -83,7 +93,9 @@ from apps.telegram.tests.factories import (
 )
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
+from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID, TestWebhookPreset
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -96,6 +108,7 @@ register(EscalationPolicyFactory)
 register(OnCallScheduleICalFactory)
 register(OnCallScheduleCalendarFactory)
 register(CustomOnCallShiftFactory)
+register(ShiftSwapRequestFactory)
 register(AlertFactory)
 register(AlertGroupFactory)
 register(AlertGroupLogRecordFactory)
@@ -122,13 +135,33 @@ register(EmailMessageFactory)
 register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
 
+register(LabelKeyFactory)
+register(LabelValueFactory)
+register(AlertReceiveChannelAssociatedLabelFactory)
+
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
+
+
+@pytest.fixture(autouse=True)
+def isolated_cache(settings):
+    """
+    https://github.com/pytest-dev/pytest-django/issues/527#issuecomment-1115887487
+    """
+    cache_version = uuid.uuid4().hex
+
+    for name in settings.CACHES.keys():
+        settings.CACHES[name]["VERSION"] = cache_version
+
+    from django.test.signals import clear_cache_handlers
+
+    clear_cache_handlers(setting="CACHES")
 
 
 @pytest.fixture(autouse=True)
 def mock_slack_api_call(monkeypatch):
     def mock_api_call(*args, **kwargs):
         return {
+            "ts": timezone.now().isoformat(),
             "status": 200,
             "usergroups": [],
             "channel": {"id": "TEST_CHANNEL_ID"},
@@ -140,13 +173,13 @@ def mock_slack_api_call(monkeypatch):
             "team": {"name": "TEST_TEAM"},
         }
 
-    monkeypatch.setattr(SlackClientWithErrorHandling, "api_call", mock_api_call)
+    monkeypatch.setattr(SlackClient, "api_call", mock_api_call)
 
 
 @pytest.fixture(autouse=True)
 def mock_telegram_bot_username(monkeypatch):
     def mock_username(*args, **kwargs):
-        return "amixr_bot"
+        return "oncall_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
 
@@ -167,10 +200,32 @@ def mock_apply_async(monkeypatch):
     monkeypatch.setattr(Task, "apply_async", mock_apply_async)
 
 
+@pytest.fixture(autouse=True)
+def clear_ical_users_cache():
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def mock_is_labels_feature_enabled(settings):
+    settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
+
+
+@pytest.fixture
+def mock_is_labels_feature_enabled_for_org(settings):
+    def _mock_is_labels_feature_enabled_for_org(org_id):
+        settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
+        settings.FEATURE_LABELS_ENABLED_PER_ORG = [org_id]
+
+    return _mock_is_labels_feature_enabled_for_org
+
+
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        return OrganizationFactory(**kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED)
+        return OrganizationFactory(
+            **kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED, is_grafana_labels_enabled=True
+        )
 
     return _make_organization
 
@@ -208,6 +263,14 @@ def make_mobile_app_auth_token_for_user():
         return MobileAppAuthToken.create_auth_token(user, organization)
 
     return _make_mobile_app_auth_token_for_user
+
+
+@pytest.fixture
+def make_slack_token_for_user():
+    def _make_slack_token_for_user(user):
+        return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
+
+    return _make_slack_token_for_user
 
 
 @pytest.fixture
@@ -265,6 +328,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
         plugin_json: PluginJSON = json.load(fp)
 
     role_mapping: RoleMapping = {
+        LegacyAccessControlRole.NONE: [],
         LegacyAccessControlRole.VIEWER: [],
         LegacyAccessControlRole.EDITOR: [],
         LegacyAccessControlRole.ADMIN: [],
@@ -382,8 +446,8 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(alert_group, **kwargs):
-        organization = alert_group.channel.organization
+    def _make_slack_message(alert_group=None, organization=None, **kwargs):
+        organization = organization or alert_group.channel.organization
         slack_message = SlackMessageFactory(
             alert_group=alert_group,
             organization=organization,
@@ -393,19 +457,6 @@ def make_slack_message():
         return slack_message
 
     return _make_slack_message
-
-
-@pytest.fixture
-def client_with_user():
-    def _client_with_user(user):
-        """The client with logged in user"""
-
-        client = APIClient()
-        client.force_login(user)
-
-        return client
-
-    return _client_with_user
 
 
 @pytest.fixture
@@ -600,9 +651,7 @@ def make_resolution_note_slack_message():
 @pytest.fixture
 def make_alert():
     def _make_alert(alert_group, raw_request_data, **kwargs):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = AlertFactory(group=alert_group, raw_request_data=raw_request_data, **kwargs)
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert
@@ -620,7 +669,6 @@ def make_alert_with_custom_create_method():
         raw_request_data,
         **kwargs,
     ):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = Alert.create(
             title,
             message,
@@ -631,7 +679,6 @@ def make_alert_with_custom_create_method():
             raw_request_data,
             **kwargs,
         )
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert_with_custom_create_method
@@ -827,13 +874,19 @@ def reload_urls(settings):
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    def _reload_urls():
+    def _reload_urls(app_url_file_to_reload: str = None):
         clear_url_caches()
+
+        # this can be useful when testing conditionally registered URLs
+        # for example when a django app's urls.py file has conditional logic that is being
+        # overriden/tested, you will need to reload that urls.py file before relaoding the ROOT_URLCONF file
+        if app_url_file_to_reload is not None:
+            reload(import_module(app_url_file_to_reload))
+
         urlconf = settings.ROOT_URLCONF
         if urlconf in sys.modules:
             reload(sys.modules[urlconf])
-        else:
-            import_module(urlconf)
+        import_module(urlconf)
 
     return _reload_urls
 
@@ -872,3 +925,108 @@ def make_organization_and_user_with_token(make_organization_and_user, make_publi
         return organization, user, token
 
     return _make_organization_and_user_with_token
+
+
+@pytest.fixture
+def make_shift_swap_request():
+    def _make_shift_swap_request(schedule, beneficiary, **kwargs):
+        return ShiftSwapRequestFactory(schedule=schedule, beneficiary=beneficiary, **kwargs)
+
+    return _make_shift_swap_request
+
+
+@pytest.fixture
+def shift_swap_request_setup(
+    make_schedule, make_organization_and_user, make_user_for_organization, make_shift_swap_request
+):
+    def _shift_swap_request_setup(**kwargs):
+        organization, beneficiary = make_organization_and_user()
+        benefactor = make_user_for_organization(organization)
+
+        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+        tomorrow = timezone.now() + datetime.timedelta(days=1)
+        two_days_from_now = tomorrow + datetime.timedelta(days=1)
+
+        ssr = make_shift_swap_request(schedule, beneficiary, swap_start=tomorrow, swap_end=two_days_from_now, **kwargs)
+
+        return ssr, beneficiary, benefactor
+
+    return _shift_swap_request_setup
+
+
+@pytest.fixture()
+def webhook_preset_api_setup():
+    WebhookPresetOptions.WEBHOOK_PRESETS = {TEST_WEBHOOK_PRESET_ID: TestWebhookPreset()}
+    WebhookPresetOptions.WEBHOOK_PRESET_CHOICES = [
+        preset.metadata for preset in WebhookPresetOptions.WEBHOOK_PRESETS.values()
+    ]
+
+
+@pytest.fixture
+def make_label_key():
+    def _make_label_key(organization, key_id=None, key_name=None, **kwargs):
+        if key_id is not None:
+            kwargs["id"] = key_id
+
+        if key_name is not None:
+            kwargs["name"] = key_name
+
+        return LabelKeyFactory(organization=organization, **kwargs)
+
+    return _make_label_key
+
+
+@pytest.fixture
+def make_label_value():
+    def _make_label_value(key, value_id=None, value_name=None, **kwargs):
+        if value_id is not None:
+            kwargs["id"] = value_id
+
+        if value_name is not None:
+            kwargs["name"] = value_name
+
+        return LabelValueFactory(key=key, **kwargs)
+
+    return _make_label_value
+
+
+@pytest.fixture
+def make_label_key_and_value(make_label_key, make_label_value):
+    def _make_label_key_and_value(organization, key_id=None, key_name=None, value_id=None, value_name=None):
+        key = make_label_key(organization=organization, key_id=key_id, key_name=key_name)
+        value = make_label_value(key=key, value_id=value_id, value_name=value_name)
+        return key, value
+
+    return _make_label_key_and_value
+
+
+@pytest.fixture
+def make_integration_label_association(make_label_key_and_value):
+    def _make_integration_label_association(
+        organization, alert_receive_channel, key_id=None, key_name=None, value_id=None, value_name=None, **kwargs
+    ):
+        key, value = make_label_key_and_value(
+            organization, key_id=key_id, key_name=key_name, value_id=value_id, value_name=value_name
+        )
+        return AlertReceiveChannelAssociatedLabelFactory(
+            alert_receive_channel=alert_receive_channel, organization=organization, key=key, value=value, **kwargs
+        )
+
+    return _make_integration_label_association
+
+
+@pytest.fixture
+def make_alert_group_label_association():
+    def _make_alert_group_label_association(organization, alert_group, **kwargs):
+        return AlertGroupAssociatedLabelFactory(alert_group=alert_group, organization=organization, **kwargs)
+
+    return _make_alert_group_label_association
+
+
+@pytest.fixture
+def make_webhook_label_association(make_label_key_and_value):
+    def _make_integration_label_association(organization, webhook, **kwargs):
+        key, value = make_label_key_and_value(organization)
+        return WebhookAssociatedLabelFactory(webhook=webhook, organization=organization, key=key, value=value, **kwargs)
+
+    return _make_integration_label_association

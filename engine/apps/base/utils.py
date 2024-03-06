@@ -1,9 +1,10 @@
 import json
 import re
+import typing
 from urllib.parse import urlparse
 
 import phonenumbers
-from django.apps import apps
+from django.conf import settings
 from phonenumbers import NumberParseException
 from telegram import Bot
 from twilio.base.exceptions import TwilioException
@@ -14,17 +15,19 @@ from common.api_helpers.utils import create_engine_url
 
 class LiveSettingProxy:
     def __dir__(self):
-        LiveSetting = apps.get_model("base", "LiveSetting")
+        from apps.base.models import LiveSetting
+
         return LiveSetting.AVAILABLE_NAMES
 
     def __getattr__(self, item):
-        LiveSetting = apps.get_model("base", "LiveSetting")
+        from apps.base.models import LiveSetting
 
         value = LiveSetting.get_setting(item)
         return value
 
     def __setattr__(self, key, value):
-        LiveSetting = apps.get_model("base", "LiveSetting")
+        from apps.base.models import LiveSetting
+
         LiveSetting.objects.update_or_create(name=key, defaults={"value": value})
 
 
@@ -37,6 +40,8 @@ class LiveSettingValidator:
         "TWILIO_API_KEY_SID",
         "TWILIO_API_KEY_SECRET",
     )
+
+    EMAIL_SSL_TLS_ERROR_MSG = "Cannot set Email (SMTP) to use SSL and TLS at the same time"
 
     def __init__(self, live_setting):
         self.live_setting = live_setting
@@ -136,6 +141,9 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_telegram_webhook_host(cls, telegram_webhook_host):
+        if settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED:
+            return
+
         try:
             # avoid circular import
             from apps.telegram.client import TelegramClient
@@ -151,6 +159,14 @@ class LiveSettingValidator:
 
         _, err = CloudConnector.sync_with_cloud(grafana_oncall_token)
         return err
+
+    @classmethod
+    def _check_email_use_tls(cls, email_use_tls: bool) -> typing.Optional[str]:
+        return cls.EMAIL_SSL_TLS_ERROR_MSG if live_settings.EMAIL_USE_SSL is True and email_use_tls is True else None
+
+    @classmethod
+    def _check_email_use_ssl(cls, email_use_ssl: bool) -> typing.Optional[str]:
+        return cls.EMAIL_SSL_TLS_ERROR_MSG if live_settings.EMAIL_USE_TLS is True and email_use_ssl is True else None
 
     @staticmethod
     def _is_email_valid(email):

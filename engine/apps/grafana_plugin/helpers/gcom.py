@@ -1,7 +1,6 @@
 import logging
 from typing import Optional, Tuple
 
-from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
@@ -45,12 +44,14 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
         raise InvalidToken
 
     if not organization:
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         allow_signup = DynamicSetting.objects.get_or_create(
             name="allow_plugin_organization_signup", defaults={"boolean_value": True}
         )[0].boolean_value
         if allow_signup:
-            organization = Organization.objects.create(
+            # Get org from db or create a new one
+            organization, _ = Organization.objects.get_or_create(
                 stack_id=str(instance_info["id"]),
                 stack_slug=instance_info["slug"],
                 grafana_url=instance_info["url"],
@@ -60,7 +61,7 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
                 region_slug=instance_info["regionSlug"],
                 cluster_slug=instance_info["clusterSlug"],
                 gcom_token=token_string,
-                gcom_token_org_last_time_synced=timezone.now(),
+                defaults={"gcom_token_org_last_time_synced": timezone.now()},
             )
     else:
         organization.stack_slug = instance_info["slug"]
@@ -100,12 +101,13 @@ def get_instance_ids(query: str) -> Tuple[Optional[set], bool]:
         return None, False
 
     client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-    instances, status = client.get_instances(query)
+    instance_pages = client.get_instances(query, GcomAPIClient.PAGE_SIZE)
 
-    if not instances:
+    if not instance_pages:
         return None, True
 
-    ids = set(i["id"] for i in instances["items"])
+    ids = set(i["id"] for page in instance_pages for i in page["items"])
+
     return ids, True
 
 

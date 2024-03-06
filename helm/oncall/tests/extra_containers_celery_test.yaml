@@ -1,0 +1,25 @@
+suite: test extra containers for celery pod
+templates:
+  - celery/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: celery.extraContainers="" -> should not create additional containers
+    set:
+      celery.extraContainers: ""
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 1
+
+  - it: celery.extraContainers -> should add sidecar containers
+    set:
+      celery.extraContainers: |
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: cloud-sql-proxy
+            image: gcr.io/cloud-sql-connectors/cloud-sql-proxy

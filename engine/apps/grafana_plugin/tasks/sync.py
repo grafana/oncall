@@ -4,6 +4,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import timezone
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.grafana_plugin.helpers import GcomAPIClient
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids, get_stack_regions
@@ -19,6 +20,7 @@ logger.setLevel(logging.DEBUG)
 # to make sure that orgs are synced every 30 minutes, SYNC_PERIOD should be a little lower
 SYNC_PERIOD = timezone.timedelta(minutes=25)
 INACTIVE_PERIOD = timezone.timedelta(minutes=55)
+CLEANUP_PERIOD = timezone.timedelta(hours=12)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
@@ -46,11 +48,20 @@ def start_sync_organizations():
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
 def sync_organization_async(organization_pk):
+    """
+    This task is called periodically to sync an organization with Grafana.
+    It runs syncronization without force_sync flag.
+    """
     run_organization_sync(organization_pk, False)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
 def plugin_sync_organization_async(organization_pk):
+    """
+    This task is called each time when the plugin is loaded.
+    It runs syncronization with force_sync flag.
+    Which means it will sync even if the organization was synced recently.
+    """
     run_organization_sync(organization_pk, True)
 
 
@@ -130,3 +141,36 @@ def sync_team_members_for_organization_async(organization_pk):
 
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
     sync_team_members(grafana_api_client, organization)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
+    try:
+        organization = Organization.objects_with_deleted.get(pk=organization_pk)
+    except Organization.DoesNotExist:
+        logger.info(f"Organization {organization_pk} was not found")
+        return
+
+    integrations_qs = AlertReceiveChannel.objects_with_deleted.filter(
+        organization=organization, deleted_at__isnull=False, alert_groups=None
+    ).distinct()
+    logger.info(
+        f"Found count={len(integrations_qs)} integrations in org={organization.public_primary_key} that are both empty and deleted"
+    )
+
+    for integration in integrations_qs:
+        logger.info(
+            f"Deleting integration ppk={integration.public_primary_key} in organization={organization.stack_slug} dry_run={dry_run}"
+        )
+        if not dry_run:
+            integration.hard_delete()
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def start_cleanup_organizations():
+    organization_pks = Organization.objects.all().values_list("pk", flat=True)
+    logger.debug(f"Found {len(organization_pks)} organizations")
+    max_countdown = CLEANUP_PERIOD.seconds
+    for idx, organization_pk in enumerate(organization_pks):
+        countdown = idx % max_countdown  # Spread orgs evenly
+        cleanup_organization_async.apply_async((organization_pk,), countdown=countdown)

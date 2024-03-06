@@ -7,7 +7,7 @@ from random import randrange
 from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
-from common.utils import getenv_boolean, getenv_integer
+from common.utils import getenv_boolean, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -58,14 +58,19 @@ BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
 # Feature toggles
 FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", default=True)
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
+FEATURE_TELEGRAM_LONG_POLLING_ENABLED = getenv_boolean("FEATURE_TELEGRAM_LONG_POLLING_ENABLED", default=False)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
-FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
+FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=True)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
+# Enable labels feature fo all organizations. This flag overrides FEATURE_LABELS_ENABLED_FOR_GRAFANA_ORGS
+FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
+# Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
+FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -86,12 +91,14 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+OUTGOING_WEBHOOK_TIMEOUT = getenv_integer("OUTGOING_WEBHOOK_TIMEOUT", default=4)
 WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -115,11 +122,21 @@ DATABASE_DEFAULTS = {
     },
 }
 
+DATABASE_TYPES = DatabaseTypes
 DATABASE_NAME = os.getenv("DATABASE_NAME") or os.getenv("MYSQL_DB_NAME")
 DATABASE_USER = os.getenv("DATABASE_USER") or os.getenv("MYSQL_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD")
 DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
+
+DATABASE_OPTIONS = os.getenv("DATABASE_OPTIONS")
+if DATABASE_OPTIONS:
+    try:
+        DATABASE_OPTIONS = dict([tuple(i.split("=")) for i in str(DATABASE_OPTIONS).split(" ")])
+    except Exception:
+        raise Exception("Bad database options. Check DATABASE_OPTIONS variable")
+else:
+    DATABASE_OPTIONS = {}
 
 DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
 assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
@@ -140,7 +157,8 @@ DATABASE_CONFIGS: DatabaseConfig = {
         "PASSWORD": DATABASE_PASSWORD,
         "HOST": DATABASE_HOST,
         "PORT": DATABASE_PORT,
-        "OPTIONS": {
+        "OPTIONS": DATABASE_OPTIONS
+        | {
             "charset": "utf8mb4",
             "connect_timeout": 1,
         },
@@ -152,6 +170,7 @@ DATABASE_CONFIGS: DatabaseConfig = {
         "PASSWORD": DATABASE_PASSWORD,
         "HOST": DATABASE_HOST,
         "PORT": DATABASE_PORT,
+        "OPTIONS": DATABASE_OPTIONS,
     },
 }
 
@@ -170,24 +189,47 @@ REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+REDIS_DATABASE = os.getenv("REDIS_DATABASE", 1)
 REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
 
 REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:
-    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DATABASE}"
+
+USE_REDIS_CLUSTER = getenv_boolean("USE_REDIS_CLUSTER", default=False)
+REDIS_USE_SSL = os.getenv("REDIS_USE_SSL")
+REDIS_SSL_CONFIG = {}
+
+if REDIS_USE_SSL:
+    import ssl
+
+    REDIS_SSL_CA_CERTS = os.getenv("REDIS_SSL_CA_CERTS")
+    if REDIS_SSL_CA_CERTS:
+        REDIS_SSL_CONFIG["ssl_ca_certs"] = REDIS_SSL_CA_CERTS
+
+    REDIS_SSL_CERTFILE = os.getenv("REDIS_SSL_CERTFILE")
+    if REDIS_SSL_CERTFILE:
+        REDIS_SSL_CONFIG["ssl_certfile"] = REDIS_SSL_CERTFILE
+
+    REDIS_SSL_KEYFILE = os.getenv("REDIS_SSL_KEYFILE")
+    if REDIS_SSL_KEYFILE:
+        REDIS_SSL_CONFIG["ssl_keyfile"] = REDIS_SSL_KEYFILE
+
+    REDIS_SSL_CERT_REQS = os.getenv("REDIS_SSL_CERT_REQS")  # CERT_NONE, CERT_OPTIONAL, or CERT_REQUIRED
+    if REDIS_SSL_CERT_REQS:
+        REDIS_SSL_CONFIG["ssl_cert_reqs"] = getattr(ssl, str(REDIS_SSL_CERT_REQS).upper())
 
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            REDIS_URI,
-        ],
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URI,
         "OPTIONS": {
-            "DB": 1,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "DB": REDIS_DATABASE,
+            "PARSER_CLASS": "redis.connection._HiredisParser",
             "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
+            "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
+            | {
                 "max_connections": 50,
                 "timeout": 20,
             },
@@ -208,7 +250,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "ordered_model",
     "mirage",
     "engine",
     "apps.user_management",
@@ -229,6 +270,7 @@ INSTALLED_APPS = [
     "apps.grafana_plugin",
     "apps.webhooks",
     "apps.metrics_exporter",
+    "apps.labels",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -237,16 +279,48 @@ INSTALLED_APPS = [
     "fcm_django",
     "django_dbconn_retry",
     "apps.phone_notifications",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
-        "engine.parsers.JSONParser",
-        "engine.parsers.FormParser",
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
 }
+
+
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Grafana OnCall Private API",
+    "DESCRIPTION": "Internal API docs. This is not meant to be used by end users. API endpoints will be kept added/removed/changed without notice.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
+    "PREPROCESSING_HOOKS": [
+        "engine.included_path.custom_preprocessing_hook"  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    ],
+    "SERVE_URLCONF": ("apps.api.urls"),
+    "SWAGGER_UI_SETTINGS": {
+        "supportedSubmitMethods": [],  # Disable "Try it out" button for all endpoints
+    },
+}
+# Use custom scheme if env var exists
+SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")
+if SWAGGER_UI_SETTINGS_URL:
+    SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = SWAGGER_UI_SETTINGS_URL
+
+SPECTACULAR_INCLUDED_PATHS = [
+    "/features",
+    "/alertgroups",
+    "/alert_receive_channels",
+    "/users",
+    "/labels",
+]
 
 MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
@@ -270,14 +344,25 @@ MIDDLEWARE = [
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
+if OTEL_TRACING_ENABLED:
+    MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
+
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
 
+
+log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+
+if OTEL_TRACING_ENABLED:
+    log_fmt = (
+        "source=engine:app trace_id=%(otelTraceID)s span_id=%("
+        "otelSpanID)s trace_sampled=%(otelTraceSampled)s google_trace_id=%(request_id)s logger=%(name)s %(message)s"
+    )
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
-        "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
+        "standard": {"format": log_fmt},
         "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
@@ -305,7 +390,7 @@ LOGGING = {
     },
 }
 
-ROOT_URLCONF = "engine.urls"
+ROOT_URLCONF = os.environ.get("ROOT_URLCONF", "engine.urls")
 
 TEMPLATES = [
     {
@@ -388,6 +473,8 @@ if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = RABBITMQ_URI
 elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
+    if REDIS_USE_SSL:
+        CELERY_BROKER_USE_SSL = REDIS_SSL_CONFIG
 else:
     raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
 
@@ -413,12 +500,9 @@ ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
     "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
 )
 
+CELERY_BEAT_SCHEDULE_FILENAME = os.getenv("CELERY_BEAT_SCHEDULE_FILENAME", "celerybeat-schedule")
+
 CELERY_BEAT_SCHEDULE = {
-    "restore_heartbeat_tasks": {
-        "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
-        "schedule": 10 * 60,
-        "args": (),
-    },
     "start_refresh_ical_final_schedules": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
         "schedule": crontab(minute=15, hour=0),
@@ -426,7 +510,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "start_refresh_ical_files": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files",
-        "schedule": 10 * 60,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "start_notify_about_gaps_in_schedule": {
@@ -434,19 +518,9 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=1, hour=12, day_of_week="monday"),
         "args": (),
     },
-    "start_check_gaps_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_gaps_in_schedule.start_check_gaps_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
-        "args": (),
-    },
     "start_notify_about_empty_shifts_in_schedule": {
         "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule",
         "schedule": crontab(minute=0, hour=12, day_of_week="monday"),
-        "args": (),
-    },
-    "start_check_empty_shifts_in_schedule": {
-        "task": "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_check_empty_shifts_in_schedule",
-        "schedule": crontab(minute=0, hour=0),
         "args": (),
     },
     "populate_slack_usergroups": {
@@ -469,6 +543,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute="*/30"),
         "args": (),
     },
+    "start_cleanup_organizations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_organizations",
+        "schedule": crontab(hour="4, 16", minute=35),
+        "args": (),
+    },
     "start_cleanup_deleted_organizations": {
         "task": "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations",
         "schedule": crontab(hour="*", minute=15),
@@ -476,16 +555,29 @@ CELERY_BEAT_SCHEDULE = {
     },
     "process_failed_to_invoke_celery_tasks": {
         "task": "apps.base.tasks.process_failed_to_invoke_celery_tasks",
-        "schedule": 60 * 10,
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
         "args": (),
     },
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
-        "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
-        "schedule": 10 * 60,
+        "task": "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_all_schedules",
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
+    },
+    "notify_shift_swap_requests": {
+        "task": "apps.mobile_app.tasks.new_shift_swap_request.notify_shift_swap_requests",
+        "schedule": crontab(minute="*/{}".format(getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10))),
+    },
+    "send_shift_swap_request_slack_followups": {
+        "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
     },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
-        "schedule": 60 * 30,
+        "schedule": crontab(minute="*/30"),  # every 30 minutes
+        "args": (),
+    },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
         "args": (),
     },
 }
@@ -497,7 +589,16 @@ if ESCALATION_AUDITOR_ENABLED:
         #
         # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
         # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "schedule": crontab(
+            minute="*/{}".format(
+                getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", default=13)
+            )
+        ),
+        "args": (),
+    }
+    CELERY_BEAT_SCHEDULE["check_personal_notifications"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task",
+        "schedule": crontab(minute="*/15"),  # every 15 minutes
         "args": (),
     }
 
@@ -506,6 +607,10 @@ INTERNAL_IPS = ["127.0.0.1"]
 SELF_IP = os.environ.get("SELF_IP")
 
 SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False) and not IS_IN_MAINTENANCE_MODE
+
+# django admin panel is required to auth with django silk. Otherwise if silk isn't enabled, we don't need it.
+ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
+ADMIN_ENABLED = SILK_PROFILER_ENABLED
 
 if SILK_PROFILER_ENABLED:
     SILK_PATH = os.environ.get("SILK_PATH", "silk/")
@@ -528,11 +633,6 @@ if SILK_PROFILER_ENABLED:
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
 
-# get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
-ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
-
-ADMIN_SITE_HEADER = "OnCall Admin Panel"
-
 # Social auth settings
 SOCIAL_AUTH_USER_MODEL = "user_management.User"
 SOCIAL_AUTH_STRATEGY = "apps.social_auth.live_setting_django_strategy.LiveSettingDjangoStrategy"
@@ -549,8 +649,6 @@ SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
 SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
-
-SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
 # Controls if slack integration can be installed/uninstalled.
@@ -632,6 +730,10 @@ FCM_DJANGO_SETTINGS = {
     "USER_MODEL": "user_management.User",
 }
 
+MOBILE_APP_GATEWAY_ENABLED = getenv_boolean("MOBILE_APP_GATEWAY_ENABLED", default=False)
+GRAFANA_CLOUD_AUTH_API_URL = os.environ.get("GRAFANA_CLOUD_AUTH_API_URL", None)
+GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN", None)
+
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
     "STACK_SLUG": "self_hosted_stack",
@@ -645,7 +747,6 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 JINJA_TEMPLATE_MAX_LENGTH = 50000
 JINJA_RESULT_TITLE_MAX_LENGTH = 500
 JINJA_RESULT_MAX_LENGTH = 50000
@@ -660,11 +761,13 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
 EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = getenv_boolean("EMAIL_USE_SSL", False)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
+EMAIL_BACKEND_INTERNAL_ID = 8
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
-    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
+    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", EMAIL_BACKEND_INTERNAL_ID)]
 
 # Inbound email settings
 INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
@@ -672,10 +775,11 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
+    "config_integrations.legacy_alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
+    "config_integrations.legacy_grafana_alerting",
     "config_integrations.formatted_webhook",
     "config_integrations.webhook",
     "config_integrations.kapacitor",
@@ -687,6 +791,11 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
+]
+
+INSTALLED_WEBHOOK_PRESETS = [
+    "apps.webhooks.presets.simple.SimpleWebhookPreset",
+    "apps.webhooks.presets.advanced.AdvancedWebhookPreset",
 ]
 
 if IS_OPEN_SOURCE:
@@ -729,6 +838,7 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 
 # map of phone provider alias to importpath.
 # Used in get_phone_provider function to dynamically load current provider.
+DEFAULT_PHONE_PROVIDER = "twilio"
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
@@ -737,7 +847,7 @@ PHONE_PROVIDERS = {
 if IS_OPEN_SOURCE:
     PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
 
-PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
 
 ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
 ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
@@ -748,3 +858,8 @@ ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign
 ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
+ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
+
+DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
+
+ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)

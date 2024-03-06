@@ -1,7 +1,6 @@
 import re
 
 import emoji
-from django.apps import apps
 from slackviewer.formatter import SlackFormatter as SlackFormatterBase
 
 
@@ -13,9 +12,6 @@ class SlackFormatter(SlackFormatterBase):
         self.channel_mention_format = "#{}"
         self.user_mention_format = "@{}"
         self.hyperlink_mention_format = '<a href="{url}">{title}</a>'
-
-    def find_user(self, message):
-        raise NotImplementedError()
 
     def format(self, message):
         """
@@ -39,6 +35,18 @@ class SlackFormatter(SlackFormatterBase):
         # Introduce unicode emoji
         message = emoji.emojize(message, language="alias")
 
+        return message
+
+    def slack_to_accepted_emoji(self, message):
+        """Overridden original method to fix regex that replaces dashes in links"""
+        message = re.sub(
+            r":([a-zA-Z0-9<>/:])([^ <>/:]+):",  # overridden regex
+            lambda x: ":{}{}:".format(x.group(1), x.group(2).replace("-", "_")),
+            message,
+        )
+
+        # https://github.com/Ranks/emojione/issues/114
+        message = message.replace(":simple_smile:", ":slightly_smiling_face:")
         return message
 
     def _sub_hyperlink(self, matchobj):
@@ -84,7 +92,7 @@ class SlackFormatter(SlackFormatterBase):
         return annotation
 
     def _sub_annotated_mention_slack_user(self, ref_id):
-        SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+        from apps.slack.models import SlackUserIdentity
 
         slack_user_identity = SlackUserIdentity.objects.filter(
             slack_team_identity=self.__ORGANIZATION.slack_team_identity, slack_id=ref_id

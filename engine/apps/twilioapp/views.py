@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import BasePermission
@@ -25,7 +24,8 @@ class AllowOnlyTwilio(BasePermission):
         if not request_account_sid:
             return False
 
-        TwilioAccount = apps.get_model("twilioapp", "TwilioAccount")
+        from apps.twilioapp.models import TwilioAccount
+
         account = TwilioAccount.objects.filter(account_sid=request_account_sid).first()
         if account:
             return self.validate_request(request, account.account_sid, account.auth_token)

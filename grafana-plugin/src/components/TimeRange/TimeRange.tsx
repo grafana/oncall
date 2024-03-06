@@ -17,8 +17,8 @@ interface TimeRangeProps {
 }
 
 function getMoments(from: string, to: string) {
-  let fromMoment;
-  let toMoment;
+  let fromMoment: moment.Moment;
+  let toMoment: moment.Moment;
 
   if (!from || !to) {
     fromMoment = moment().startOf('hour');
@@ -29,28 +29,26 @@ function getMoments(from: string, to: string) {
     }
   } else {
     const [fh, fm] = from.split(':').map(Number);
-    fromMoment = moment().utc().hour(fh).minute(fm).second(0).local();
+    fromMoment = moment().hour(fh).minute(fm).second(0).local();
 
     const [th, tm] = to.split(':').map(Number);
-    toMoment = moment().utc().hour(th).minute(tm).second(0).local();
+    toMoment = moment().hour(th).minute(tm).second(0).local();
   }
 
   return [fromMoment, toMoment];
 }
 
 function getRangeStrings(from: moment.Moment, to: moment.Moment) {
-  const fromString = from.clone().utc().format('HH:mm:00');
-  const toString = to.clone().utc().format('HH:mm:00');
+  const fromString = from.clone().format('HH:mm:00');
+  const toString = to.clone().format('HH:mm:00');
 
   return [fromString, toString];
 }
 
-const TimeRange = (props: TimeRangeProps) => {
+export const TimeRange = (props: TimeRangeProps) => {
   const { className, from: f, to: t, onChange, disabled } = props;
 
-  // @ts-ignore
   const [from, setFrom] = useState<moment.Moment>(getMoments(f, t)[0]);
-  // @ts-ignore
   const [to, setTo] = useState<moment.Moment>(getMoments(f, t)[1]);
 
   useEffect(() => {
@@ -61,6 +59,9 @@ const TimeRange = (props: TimeRangeProps) => {
 
   const handleChangeFrom = useCallback(
     (value: moment.Moment) => {
+      if (!value.isValid()) {
+        return;
+      }
       setFrom(value);
 
       if (value.isSame(to, 'minute')) {
@@ -76,6 +77,9 @@ const TimeRange = (props: TimeRangeProps) => {
 
   const handleChangeTo = useCallback(
     (value: moment.Moment) => {
+      if (!value.isValid()) {
+        return;
+      }
       setTo(value);
 
       if (value.isSame(from, 'minute')) {
@@ -94,15 +98,17 @@ const TimeRange = (props: TimeRangeProps) => {
   return (
     <div className={cx('root', className)}>
       <HorizontalGroup wrap>
-        {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
-        <TimeOfDayPicker disabled={disabled} value={from} minuteStep={5} onChange={handleChangeFrom} />
+        <div data-testid="time-range-from">
+          {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
+          <TimeOfDayPicker disabled={disabled} value={from} minuteStep={5} onChange={handleChangeFrom} />
+        </div>
         to
-        {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
-        <TimeOfDayPicker disabled={disabled} value={to} minuteStep={5} onChange={handleChangeTo} />
+        <div data-testid="time-range-to">
+          {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
+          <TimeOfDayPicker disabled={disabled} value={to} minuteStep={5} onChange={handleChangeTo} />
+        </div>
         {showNextDayTip && 'next day'}
       </HorizontalGroup>
     </div>
   );
 };
-
-export default TimeRange;

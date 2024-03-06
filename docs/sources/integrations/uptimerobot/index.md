@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - uptimerobot
+labels:
+  products:
+    - cloud
 title: UptimeRobot
 weight: 500
 ---
 
 # UptimeRobot integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The UptimeRobot integration for Grafana OnCall handles ticket events sent from UptimeRobot webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
@@ -34,19 +39,19 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 1. Alert Contact Type: Webhook
 1. Friendly Name: Grafana OnCall
 1. URL to Notify: **OnCall Integration URL**
-POST Value (JSON Format):
+   POST Value (JSON Format):
 
-```yaml
-    {
-            "monitorURL": "monitorURL",
-            "monitorFriendlyName": "monitorFriendlyName",
-            "alertType": "alertType",
-            "alertTypeFriendlyName": "alertTypeFriendlyName",
-            "alertDetails": "alertDetails",
-            "alertDuration": "alertDuration",
-            "sslExpiryDate": "sslExpiryDate",
-            "sslExpiryDaysLeft": "sslExpiryDaysLeft"
-    }
+```json
+{
+  "monitorURL": "monitorURL",
+  "monitorFriendlyName": "monitorFriendlyName",
+  "alertType": "alertType",
+  "alertTypeFriendlyName": "alertTypeFriendlyName",
+  "alertDetails": "alertDetails",
+  "alertDuration": "alertDuration",
+  "sslExpiryDate": "sslExpiryDate",
+  "sslExpiryDaysLeft": "sslExpiryDaysLeft"
+}
 ```
 
 1. Flag Send as JSON
@@ -55,12 +60,12 @@ POST Value (JSON Format):
 
 1. Click Add New Monitor
 1. Monitor Type HTTP(s)
-1. Friendly Name Test Amixr
-1. Set URL to <http://devnull.amixr.io> or any other non-existent domain
-1. Click Checkbox next to Amixr Alert Contact (created in the previous step)
+1. Friendly Name Test OnCall
+1. Set URL to <http://devnull.oncall.io> or any other non-existent domain
+1. Click Checkbox next to OnCall Alert Contact (created in the previous step)
 1. Click Create Monitor
 
 {{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
 {{% /docs/reference %}}

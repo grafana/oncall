@@ -1,3 +1,4 @@
+import copy
 import datetime
 import itertools
 import re
@@ -7,7 +8,6 @@ from enum import Enum
 
 import icalendar
 import pytz
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -27,18 +27,18 @@ from apps.schedules.constants import (
     ICAL_DATETIME_STAMP,
     ICAL_DATETIME_START,
     ICAL_LAST_MODIFIED,
-    ICAL_LOCATION,
+    ICAL_PRIORITY,
     ICAL_STATUS,
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
 )
 from apps.schedules.ical_utils import (
+    EmptyShifts,
     create_base_icalendar,
     fetch_ical_file_or_get_error,
     get_oncall_users_for_multiple_schedules,
     list_of_empty_shifts_in_schedule,
-    list_of_gaps_in_schedule,
     list_of_oncall_shifts_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
@@ -51,10 +51,13 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ScheduleExportAuthToken
+    from apps.schedules.models import ShiftSwapRequest
+    from apps.slack.models import SlackUserGroup
+    from apps.user_management.models import Organization, Team
 
 
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
-RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
+RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?([^\s]+)")
 
 
 # Utility classes for schedule quality report
@@ -91,6 +94,15 @@ class ScheduleEventUser(typing.TypedDict):
     avatar_full: str
 
 
+class SwapRequest(typing.TypedDict):
+    pk: str
+    user: typing.Optional[ScheduleEventUser]
+
+
+class MaybeSwappedScheduleEventUser(ScheduleEventUser):
+    swap_request: typing.Optional[SwapRequest]
+
+
 class ScheduleEventShift(typing.TypedDict):
     pk: str
 
@@ -99,7 +111,7 @@ class ScheduleEvent(typing.TypedDict):
     all_day: bool
     start: datetime.datetime
     end: datetime.datetime
-    users: typing.List[ScheduleEventUser]
+    users: typing.List[MaybeSwappedScheduleEventUser]
     missing_users: typing.List[str]
     priority_level: typing.Optional[int]
     source: typing.Optional[str]
@@ -140,7 +152,7 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
-        return get_oncall_users_for_multiple_schedules(self, events_datetime)
+        return get_oncall_users_for_multiple_schedules(self.all(), events_datetime)
 
     def related_to_user(self, user):
         username_regex = RE_ICAL_SEARCH_USERNAME.format(user.username)
@@ -154,7 +166,13 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
 
 
 class OnCallSchedule(PolymorphicModel):
-    objects = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
+    custom_shifts: "RelatedManager['CustomOnCallShift']"
+    organization: "Organization"
+    shift_swap_requests: "RelatedManager['ShiftSwapRequest']"
+    slack_user_group: typing.Optional["SlackUserGroup"]
+    team: typing.Optional["Team"]
+
+    objects: models.Manager["OnCallSchedule"] = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
 
     # type of calendars in schedule
     TYPE_ICAL_PRIMARY, TYPE_ICAL_OVERRIDES, TYPE_CALENDAR = range(
@@ -230,16 +248,28 @@ class OnCallSchedule(PolymorphicModel):
     has_empty_shifts = models.BooleanField(default=False)
     empty_shifts_report_sent_at = models.DateField(null=True, default=None)
 
+    @property
+    def web_page_link(self) -> str:
+        return f"{self.organization.web_link}schedules"
+
+    @property
+    def web_detail_page_link(self) -> str:
+        return f"{self.web_page_link}/{self.public_primary_key}"
+
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""
-        calendar_primary: typing.Optional[icalendar.Calendar] = None
-        calendar_overrides: typing.Optional[icalendar.Calendar] = None
         # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
         # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
         if self._ical_file_primary:
             calendar_primary: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_primary)
+        else:
+            calendar_primary = None
+
         if self._ical_file_overrides:
-            calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
+            calendar_overrides: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_overrides)
+        else:
+            calendar_overrides = None
+
         return calendar_primary, calendar_overrides
 
     def get_prev_and_current_ical_files(self):
@@ -249,21 +279,34 @@ class OnCallSchedule(PolymorphicModel):
             (self.prev_ical_file_overrides, self.cached_ical_file_overrides),
         ]
 
-    def check_gaps_for_next_week(self):
-        today = timezone.now().date()
-        gaps = list_of_gaps_in_schedule(self, today, today + datetime.timedelta(days=7))
-        has_gaps = len(gaps) != 0
-        self.has_gaps = has_gaps
-        self.save(update_fields=["has_gaps"])
-        return has_gaps
+    def check_gaps_and_empty_shifts_for_next_week(self) -> None:
+        datetime_start = timezone.now()
+        datetime_end = datetime_start + datetime.timedelta(days=7)
 
-    def check_empty_shifts_for_next_week(self):
+        # get empty shifts from all events and gaps from final events
+        events = self.filter_events(
+            datetime_start,
+            datetime_end,
+            with_empty=True,
+            with_gap=True,
+            all_day_datetime=True,
+        )
+        has_empty_shifts = len([event for event in events if event["is_empty"]]) != 0
+        final_events = self._resolve_schedule(events, datetime_start, datetime_end)
+        has_gaps = len([final_event for final_event in final_events if final_event["is_gap"]]) != 0
+        if has_gaps != self.has_gaps or has_empty_shifts != self.has_empty_shifts:
+            self.has_gaps = has_gaps
+            self.has_empty_shifts = has_empty_shifts
+            self.save(update_fields=["has_gaps", "has_empty_shifts"])
+
+    def get_gaps_for_next_week(self) -> ScheduleEvents:
+        today = timezone.now()
+        events = self.final_events(today, today + datetime.timedelta(days=7))
+        return [event for event in events if event["is_gap"]]
+
+    def get_empty_shifts_for_next_week(self) -> EmptyShifts:
         today = timezone.now().date()
-        empty_shifts = list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=7))
-        has_empty_shifts = len(empty_shifts) != 0
-        self.has_empty_shifts = has_empty_shifts
-        self.save(update_fields=["has_empty_shifts"])
-        return has_empty_shifts
+        return list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=7))
 
     def drop_cached_ical(self):
         self._drop_primary_ical_file()
@@ -308,29 +351,40 @@ class OnCallSchedule(PolymorphicModel):
 
     def filter_events(
         self,
-        user_timezone,
-        starting_date,
-        days,
-        with_empty=False,
-        with_gap=False,
-        filter_by=None,
-        all_day_datetime=False,
-        from_cached_final=False,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        with_empty: bool = False,
+        with_gap: bool = False,
+        filter_by: str | None = None,
+        all_day_datetime: bool = False,
+        ignore_untaken_swaps: bool = False,
+        from_cached_final: bool = False,
+        include_shift_info: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
-        shifts = (
-            list_of_oncall_shifts_from_ical(
-                self,
-                starting_date,
-                user_timezone,
-                with_empty,
-                with_gap,
-                days=days,
-                filter_by=filter_by,
-                from_cached_final=from_cached_final,
+        try:
+            shifts = (
+                list_of_oncall_shifts_from_ical(
+                    self,
+                    datetime_start,
+                    datetime_end,
+                    with_empty,
+                    with_gap,
+                    filter_by=filter_by,
+                    from_cached_final=from_cached_final,
+                )
+                or []
             )
-            or []
-        )
+        except ValueError:
+            # raised when filtering events on a non-saved/deleted schedule
+            return []
+        shifts_data = {}
+        if include_shift_info:
+            pks = set(shift["shift_pk"] for shift in shifts)
+            shifts_from_db = CustomOnCallShift.objects.filter(
+                organization=self.organization, public_primary_key__in=pks
+            )
+            shifts_data = {s.public_primary_key: {"name": s.name, "type": s.type} for s in shifts_from_db}
         events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
@@ -339,7 +393,9 @@ class OnCallSchedule(PolymorphicModel):
             end = shift["end"] - datetime.timedelta(days=1) if all_day else shift["end"]
             if all_day and all_day_datetime:
                 start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
-                end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC)
+                end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC).replace(
+                    microsecond=0
+                )
             is_gap = shift.get("is_gap", False)
             shift_json: ScheduleEvent = {
                 "all_day": all_day,
@@ -365,31 +421,73 @@ class OnCallSchedule(PolymorphicModel):
                     "pk": shift["shift_pk"],
                 },
             }
+            if include_shift_info and not is_gap:
+                no_data = {
+                    "name": None,
+                    "type": CustomOnCallShift.TYPE_OVERRIDE
+                    if shift["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES
+                    else None,
+                }
+                shift_data = shifts_data.get(shift["shift_pk"], no_data)
+                shift_json["shift"].update(shift_data)
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
-        return self._merge_events(events)
+        events = self._merge_events(events)
 
-    def final_events(self, user_tz, starting_date, days):
-        """Return schedule final events, after resolving shifts and overrides."""
-        events = self.filter_events(
-            user_tz, starting_date, days=days, with_empty=True, with_gap=True, all_day_datetime=True
+        # annotate events with swap request details swapping users as needed
+        events = self._apply_swap_requests(
+            events, datetime_start, datetime_end, ignore_untaken_swaps=ignore_untaken_swaps
         )
-        events = self._resolve_schedule(events)
+
         return events
 
+    def final_events(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        with_empty: bool = True,
+        with_gap: bool = True,
+        ignore_untaken_swaps: bool = False,
+        include_shift_info: bool = False,
+    ) -> ScheduleEvents:
+        """Return schedule final events, after resolving shifts and overrides."""
+        events = self.filter_events(
+            datetime_start,
+            datetime_end,
+            with_empty=with_empty,
+            with_gap=with_gap,
+            all_day_datetime=True,
+            ignore_untaken_swaps=ignore_untaken_swaps,
+            include_shift_info=include_shift_info,
+        )
+        events = self._resolve_schedule(events, datetime_start, datetime_end)
+        return events
+
+    def filter_swap_requests(
+        self, datetime_start: datetime.datetime, datetime_end: datetime.time
+    ) -> "RelatedManager['ShiftSwapRequest']":
+        swap_requests = self.shift_swap_requests.filter(  # starting before but ongoing
+            swap_start__lt=datetime_start, swap_end__gte=datetime_start
+        ).union(
+            self.shift_swap_requests.filter(  # starting after but before end
+                swap_start__gte=datetime_start, swap_start__lte=datetime_end
+            )
+        )
+        swap_requests = swap_requests.order_by("created_at")
+        return swap_requests
+
     def refresh_ical_final_schedule(self):
-        tz = "UTC"
         now = timezone.now()
         # window to consider: from now, -15 days + 6 months
         delta = EXPORT_WINDOW_DAYS_BEFORE
-        starting_datetime = now - datetime.timedelta(days=delta)
-        starting_date = starting_datetime.date()
         days = EXPORT_WINDOW_DAYS_AFTER + delta
+        datetime_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=delta)
+        datetime_end = datetime_start + datetime.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
 
         # setup calendar with final schedule shift events
         calendar = create_base_icalendar(self.name)
-        events = self.final_events(tz, starting_date, days)
+        events = self.final_events(datetime_start, datetime_end, ignore_untaken_swaps=True)
         updated_ids = set()
         for e in events:
             for u in e["users"]:
@@ -399,7 +497,9 @@ class OnCallSchedule(PolymorphicModel):
                 event.add(ICAL_DATETIME_END, e["end"])
                 event.add(ICAL_DATETIME_STAMP, now)
                 event.add(ICAL_LAST_MODIFIED, now)
-                event.add(ICAL_LOCATION, self.CALENDAR_TYPE_VERBAL.get(e["calendar_type"], ""))
+                # set priority based on primary/overrides
+                # 0: undefined priority, 1: high priority
+                event.add(ICAL_PRIORITY, e["calendar_type"])
                 event_uid = "{}-{}-{}".format(e["shift"]["pk"], e["start"].strftime("%Y%m%d%H%S"), u["pk"])
                 event[ICAL_UID] = event_uid
                 calendar.add_component(event)
@@ -418,12 +518,12 @@ class OnCallSchedule(PolymorphicModel):
                         dtend_datetime = datetime.datetime.combine(
                             dtend.dt, datetime.datetime.min.time(), tzinfo=pytz.UTC
                         )
-                    if dtend_datetime and dtend_datetime < starting_datetime:
+                    if dtend_datetime and dtend_datetime < datetime_start:
                         # event ended before window start
                         continue
                     is_cancelled = component.get(ICAL_STATUS)
                     last_modified = component.get(ICAL_LAST_MODIFIED)
-                    if is_cancelled and last_modified and last_modified.dt < starting_datetime:
+                    if is_cancelled and last_modified and last_modified.dt < datetime_start:
                         # drop already ended events older than the window we consider
                         continue
                     elif is_cancelled and not last_modified:
@@ -441,32 +541,34 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_final_schedule = ical_data
         self.save(update_fields=["cached_ical_final_schedule"])
 
-    def upcoming_shift_for_user(self, user, days=7):
-        user_tz = user.timezone or "UTC"
+    def shifts_for_user(
+        self, user: User, datetime_start: datetime.datetime, days: int = 7
+    ) -> typing.Tuple[ScheduleEvents, ScheduleEvents, ScheduleEvents]:
         now = timezone.now()
-        # consider an extra day before to include events from UTC yesterday
-        starting_date = now.date() - datetime.timedelta(days=1)
-        current_shift = upcoming_shift = None
+        datetime_end = datetime_start + datetime.timedelta(days=days)
+        passed_shifts: ScheduleEvents = []
+        current_shifts: ScheduleEvents = []
+        upcoming_shifts: ScheduleEvents = []
 
         if self.cached_ical_final_schedule is None:
             # no final schedule info available
-            return None, None
+            return passed_shifts, current_shifts, upcoming_shifts
 
-        events = self.filter_events(user_tz, starting_date, days=days, all_day_datetime=True, from_cached_final=True)
-        for e in events:
-            if e["end"] < now:
-                # shift is finished, ignore
-                continue
-            users = {u["pk"] for u in e["users"]}
+        events = self.filter_events(
+            datetime_start, datetime_end, all_day_datetime=True, from_cached_final=True, include_shift_info=True
+        )
+        events.sort(key=lambda e: e["start"])
+        for event in events:
+            users = {u["pk"] for u in event["users"]}
             if user.public_primary_key in users:
-                if e["start"] < now and e["end"] > now:
-                    # shift is in progress
-                    current_shift = e
-                    continue
-                upcoming_shift = e
-                break
+                if event["end"] <= now:
+                    passed_shifts.append(event)
+                elif event["start"] <= now < event["end"]:
+                    current_shifts.append(event)
+                else:
+                    upcoming_shifts.append(event)
 
-        return current_shift, upcoming_shift
+        return passed_shifts, current_shifts, upcoming_shifts
 
     def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """
@@ -476,13 +578,13 @@ class OnCallSchedule(PolymorphicModel):
         """
         # get events to consider for calculation
         if date is None:
-            today = datetime.datetime.now(tz=timezone.utc)
+            today = timezone.now()
             date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
         if days is None:
             days = 52 * 7  # consider next 52 weeks (~1 year)
+        datetime_end = date + datetime.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
 
-        events = self.final_events(user_tz="UTC", starting_date=date, days=days)
-
+        events = self.final_events(date, datetime_end)
         # an event is “good” if it's not a gap and not empty
         good_events: ScheduleEvents = [event for event in events if not event["is_gap"] and not event["is_empty"]]
         if not good_events:
@@ -592,8 +694,103 @@ class OnCallSchedule(PolymorphicModel):
             "overloaded_users": overloaded_users,
         }
 
-    def _resolve_schedule(self, events: ScheduleEvents) -> ScheduleEvents:
-        """Calculate final schedule shifts considering rotations and overrides."""
+    def _apply_swap_requests(
+        self,
+        events: ScheduleEvents,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        ignore_untaken_swaps: bool = False,
+    ) -> ScheduleEvents:
+        """Apply swap requests details to schedule events."""
+        # get swaps requests affecting this schedule / time range
+        swaps = self.filter_swap_requests(datetime_start, datetime_end)
+
+        def _insert_event(index: int, event: ScheduleEvent) -> int:
+            # add event, if any, to events list in the specified index
+            # return incremented index if the event was added
+            if event is None:
+                return index
+            events.insert(index, event)
+            return index + 1
+
+        # apply swaps sequentially
+        for swap in swaps:
+            if swap.is_past_due or (ignore_untaken_swaps and not swap.is_taken):
+                # ignore expired requests, or untaken if specified
+                continue
+            i = 0
+            while i < len(events):
+                event = events.pop(i)
+
+                if event["start"] >= swap.swap_end or event["end"] <= swap.swap_start:
+                    # event outside the swap period, keep as it is and continue
+                    i = _insert_event(i, event)
+                    continue
+
+                users = set(u["pk"] for u in event["users"])
+                if swap.beneficiary.public_primary_key in users:
+                    # swap request affects current event
+
+                    split_before = None
+                    if event["start"] < swap.swap_start:
+                        # partially included start -> split
+                        split_before = copy.deepcopy(event)
+                        split_before["end"] = swap.swap_start
+                        # update event to swap
+                        event["start"] = swap.swap_start
+
+                    split_after = None
+                    if event["end"] > swap.swap_end:
+                        # partially included end -> split
+                        split_after = copy.deepcopy(event)
+                        split_after["start"] = swap.swap_end
+                        # update event to swap
+                        event["end"] = swap.swap_end
+
+                    # identify user to swap
+                    user_to_swap = None
+                    for u in event["users"]:
+                        if u["pk"] == swap.beneficiary.public_primary_key:
+                            user_to_swap = u
+                            break
+
+                    # apply swap changes to event user
+                    swap_details = {"pk": swap.public_primary_key}
+                    if swap.benefactor:
+                        # swap is taken, update user in shift
+                        user_to_swap["pk"] = swap.benefactor.public_primary_key
+                        user_to_swap["display_name"] = swap.benefactor.username
+                        user_to_swap["email"] = swap.benefactor.email
+                        user_to_swap["avatar_full"] = swap.benefactor.avatar_full_url
+                        # add beneficiary user to details
+                        swap_details["user"] = {
+                            "display_name": swap.beneficiary.username,
+                            "email": swap.beneficiary.email,
+                            "pk": swap.beneficiary.public_primary_key,
+                            "avatar_full": swap.beneficiary.avatar_full_url,
+                        }
+                    user_to_swap["swap_request"] = swap_details
+
+                    # update events list
+                    # keep first split event in its original index
+                    i = _insert_event(i, split_before)
+                    # insert updated swap-related event
+                    i = _insert_event(i, event)
+                    # keep second split event after swap
+                    i = _insert_event(i, split_after)
+                else:
+                    # event for different user(s), keep as it is and continue
+                    i = _insert_event(i, event)
+
+        return events
+
+    def _resolve_schedule(
+        self, events: ScheduleEvents, datetime_start: datetime.datetime, datetime_end: datetime.datetime
+    ) -> ScheduleEvents:
+        """Calculate final schedule shifts considering rotations and overrides.
+
+        Exclude events that after split/update are out of the requested (datetime_start, datetime_end) range.
+        """
         if not events:
             return []
 
@@ -654,6 +851,10 @@ class OnCallSchedule(PolymorphicModel):
                 # exclude events without active users
                 continue
 
+            if ev["start"] >= datetime_end or ev["end"] <= datetime_start:
+                # avoid including split events which now are outside the requested time range
+                continue
+
             # api/terraform shifts could be missing a priority; assume None means 0
             priority = ev["priority_level"] or 0
             if priority != current_priority or current_type != ev["calendar_type"]:
@@ -668,7 +869,9 @@ class OnCallSchedule(PolymorphicModel):
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
-                resolved.append(ev)
+                # only if still starts before datetime_end
+                if ev["start"] < datetime_end:
+                    resolved.append(ev)
 
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
                 # event starts and ends outside an already scheduled interval, add to resolved
@@ -679,16 +882,20 @@ class OnCallSchedule(PolymorphicModel):
                 # 1. add a split event copy to schedule the time before the already scheduled interval
                 to_add = ev.copy()
                 to_add["end"] = intervals[current_interval_idx][0]
-                resolved.append(to_add)
+                if to_add["end"] >= datetime_start:
+                    # only include if updated event ends inside the requested time range
+                    resolved.append(to_add)
                 # 2. check if there is still time to be scheduled after the current scheduled interval ends
                 if ev["end"] > intervals[current_interval_idx][1]:
                     # event ends after current interval, update event start timestamp to match the interval end
                     # and process the updated event as any other event
                     ev["start"] = intervals[current_interval_idx][1]
-                    # reorder pending events after updating current event start date
-                    # (ie. insert the event where it should be to keep the order criteria)
-                    # TODO: switch to bisect insert on python 3.10 (or consider heapq)
-                    insort_event(pending, ev)
+                    if ev["start"] < datetime_end:
+                        # only include event if it is still inside the requested time range
+                        # reorder pending events after updating current event start date
+                        # (ie. insert the event where it should be to keep the order criteria)
+                        # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                        insort_event(pending, ev)
                 # done, go to next event
 
             elif ev["start"] >= intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][1]:
@@ -758,7 +965,7 @@ class OnCallSchedule(PolymorphicModel):
             ical += f"{end_line}\r\n"
         return ical
 
-    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
+    def preview_shift(self, custom_shift, datetime_start, datetime_end, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
         if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
             qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
@@ -791,11 +998,12 @@ class OnCallSchedule(PolymorphicModel):
         setattr(self, ical_attr, ical_file)
 
         # filter events using a temporal overriden calendar including the not-yet-saved shift
-        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        events = self.filter_events(datetime_start, datetime_end, with_empty=True, with_gap=True)
+
         # return preview events for affected shifts
         updated_shift_pks = {s.public_primary_key for s in extra_shifts}
         shift_events = [e.copy() for e in events if e["shift"]["pk"] in updated_shift_pks]
-        final_events = self._resolve_schedule(events)
+        final_events = self._resolve_schedule(events, datetime_start, datetime_end)
 
         _invalidate_cache(self, ical_property)
         setattr(self, ical_attr, original_value)
@@ -819,7 +1027,8 @@ class OnCallSchedule(PolymorphicModel):
             result["team"] = "General"
         if self.organization.slack_team_identity:
             if self.channel:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
+                from apps.slack.models import SlackChannel
+
                 sti = self.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.channel).first()
                 if slack_channel:
@@ -899,6 +1108,16 @@ class OnCallScheduleICal(OnCallSchedule):
                 self.ical_url_overrides,
             )
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
+
+    def related_users(self):
+        """Return users referenced in the schedule."""
+        # combine users based on usernames and users via email (allowed in iCal based schedules)
+        usernames = []
+        if self.cached_ical_file_primary:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_primary)
+        if self.cached_ical_file_overrides:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
+        return self.organization.users.filter(Q(username__in=usernames) | Q(email__in=usernames))
 
     # Insight logs
     @property
@@ -993,11 +1212,11 @@ class OnCallScheduleCalendar(OnCallSchedule):
             ical += f"{end_line}\r\n"
         return ical
 
-    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
+    def preview_shift(self, custom_shift, datetime_start, datetime_end, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
         if custom_shift.type != CustomOnCallShift.TYPE_OVERRIDE:
             raise ValueError("Invalid shift type")
-        return super().preview_shift(custom_shift, user_tz, starting_date, days, updated_shift_pk=updated_shift_pk)
+        return super().preview_shift(custom_shift, datetime_start, datetime_end, updated_shift_pk=updated_shift_pk)
 
     @property
     def insight_logs_type_verbal(self):

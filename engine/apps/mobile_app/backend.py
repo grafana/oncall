@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 
 from apps.base.messaging import BaseMessagingBackend
-from apps.mobile_app.tasks import notify_user_async
+from apps.mobile_app.tasks.new_alert_group import notify_user_about_new_alert_group
 
 
 class MobileAppBackend(BaseMessagingBackend):
@@ -11,7 +11,10 @@ class MobileAppBackend(BaseMessagingBackend):
     label = "Mobile push"
     short_label = "Mobile push"
     available_for_use = True
-    template_fields = ["title"]
+
+    templater = "apps.mobile_app.alert_rendering.AlertMobileAppTemplater"
+    template_fields = ("title", "message")
+    skip_default_template_fields = True
 
     def generate_user_verification_code(self, user):
         from apps.mobile_app.models import MobileAppVerificationToken
@@ -44,19 +47,12 @@ class MobileAppBackend(BaseMessagingBackend):
         return {"connected": MobileAppAuthToken.objects.filter(user=user).exists()}
 
     def notify_user(self, user, alert_group, notification_policy, critical=False):
-        notify_user_async.delay(
+        notify_user_about_new_alert_group.delay(
             user_pk=user.pk,
             alert_group_pk=alert_group.pk,
             notification_policy_pk=notification_policy.pk,
             critical=critical,
         )
-
-    @property
-    def customizable_templates(self):
-        """
-        Disable customization if templates for mobile app
-        """
-        return False
 
 
 class MobileAppCriticalBackend(MobileAppBackend):

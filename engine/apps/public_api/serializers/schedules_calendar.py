@@ -5,9 +5,8 @@ from apps.schedules.tasks import (
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
-from common.api_helpers.custom_fields import UsersFilteredByOrganizationField
+from common.api_helpers.custom_fields import TimeZoneField, UsersFilteredByOrganizationField
 from common.api_helpers.exceptions import BadRequest
-from common.timezones import TimeZoneField
 
 
 class ScheduleCalendarSerializer(ScheduleBaseSerializer):
@@ -29,23 +28,15 @@ class ScheduleCalendarSerializer(ScheduleBaseSerializer):
             "on_call_now",
             "shifts",
             "ical_url_overrides",
+            "enable_web_overrides",
         ]
         extra_kwargs = {
             "ical_url_overrides": {"required": False, "allow_null": True},
+            "enable_web_overrides": {"required": False, "allow_null": True},
         }
 
     def validate_shifts(self, shifts):
-        # Get team_id from instance, if it exists, otherwise get it from initial data.
-        if self.instance and self.instance.team:
-            team_id = self.instance.team.public_primary_key
-        else:
-            # Terraform sends empty string instead of None. In this case change team_id value to None.
-            team_id = self.initial_data.get("team_id") or None
-
         for shift in shifts:
-            shift_team_id = shift.team.public_primary_key if shift.team else None
-            if shift_team_id != team_id:
-                raise BadRequest(detail="Shifts must be assigned to the same team as the schedule")
             if shift.type == CustomOnCallShift.TYPE_OVERRIDE:
                 raise BadRequest(detail="Shifts of type override are not supported in this schedule")
 
@@ -72,10 +63,12 @@ class ScheduleCalendarUpdateSerializer(ScheduleCalendarSerializer):
             "on_call_now",
             "shifts",
             "ical_url_overrides",
+            "enable_web_overrides",
         ]
         extra_kwargs = {
             "name": {"required": False},
             "ical_url_overrides": {"required": False, "allow_null": True},
+            "enable_web_overrides": {"required": False, "allow_null": True},
         }
 
     def update(self, instance, validated_data):

@@ -1,23 +1,36 @@
+import datetime
 import logging
+import typing
 
 from django.core.cache import cache
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord
-from apps.user_management.models import User
+from apps.alerts.models import AlertGroup
+from apps.alerts.models.alert_group import PagedUser
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
 from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
-from .user import FastUserSerializer
+from .user import FastUserSerializer, UserShortSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+class RenderForWeb(typing.TypedDict):
+    title: str
+    message: str
+    image_url: str | None
+    source_link: str | None
+
+
+class EmptyRenderForWeb(typing.TypedDict):
+    pass
 
 
 class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
@@ -55,6 +68,19 @@ class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
         return field
 
 
+class AlertGroupLabelSerializer(serializers.Serializer):
+    class KeySerializer(serializers.Serializer):
+        id = serializers.CharField(source="key_name")
+        name = serializers.CharField(source="key_name")
+
+    class ValueSerializer(serializers.Serializer):
+        id = serializers.CharField(source="value_name")
+        name = serializers.CharField(source="value_name")
+
+    key = KeySerializer(source="*")
+    value = ValueSerializer(source="*")
+
+
 class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
@@ -63,8 +89,9 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
     class Meta:
         model = AlertGroup
         fields = ["pk", "render_for_web", "alert_receive_channel", "inside_organization_number"]
+        read_only_fields = ["pk", "render_for_web", "alert_receive_channel", "inside_organization_number"]
 
-    def get_render_for_web(self, obj):
+    def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
         last_alert = obj.alerts.last()
         if last_alert is None:
             return {}
@@ -76,7 +103,9 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
         )
 
 
-class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
+class AlertGroupListSerializer(
+    EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer[AlertGroup]
+):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
     status = serializers.ReadOnlyField()
@@ -90,11 +119,13 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
-    render_for_classic_markdown = serializers.SerializerMethodField()
+
+    labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
     PREFETCH_RELATED = [
         "dependent_alert_groups",
         "log_records__author",
+        "labels",
     ]
 
     SELECT_RELATED = [
@@ -130,16 +161,16 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "silenced_until",
             "related_users",
             "render_for_web",
-            "render_for_classic_markdown",
             "dependent_alert_groups",
             "root_alert_group",
             "status",
             "declare_incident_link",
             "team",
-            "is_restricted",
+            "grafana_incident_id",
+            "labels",
         ]
 
-    def get_render_for_web(self, obj):
+    def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
         if not obj.last_alert:
             return {}
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
@@ -149,39 +180,32 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             AlertGroupWebRenderer,
         )
 
-    def get_render_for_classic_markdown(self, obj):
-        if not obj.last_alert:
-            return {}
-        return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
-            obj,
-            obj.last_alert,
-            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_CLASSIC_MARKDOWN_FIELD_NAME,
-            AlertGroupClassicMarkdownRenderer,
-        )
+    @extend_schema_field(UserShortSerializer(many=True))
+    def get_related_users(self, obj: "AlertGroup"):
+        from apps.user_management.models import User
 
-    def get_related_users(self, obj):
-        users_ids = set()
-        users = []
+        users_ids: typing.Set[str] = set()
+        users: typing.List[User] = []
 
         # add resolved and acknowledged by_user explicitly because logs are already prefetched
         # when def acknowledge/resolve are called in view.
         if obj.resolved_by_user:
             users_ids.add(obj.resolved_by_user.public_primary_key)
-            users.append(obj.resolved_by_user.short())
+            users.append(obj.resolved_by_user)
 
         if obj.acknowledged_by_user and obj.acknowledged_by_user.public_primary_key not in users_ids:
             users_ids.add(obj.acknowledged_by_user.public_primary_key)
-            users.append(obj.acknowledged_by_user.short())
+            users.append(obj.acknowledged_by_user)
 
         if obj.silenced_by_user and obj.silenced_by_user.public_primary_key not in users_ids:
             users_ids.add(obj.silenced_by_user.public_primary_key)
-            users.append(obj.silenced_by_user.short())
+            users.append(obj.silenced_by_user)
 
         for log_record in obj.log_records.all():
             if log_record.author is not None and log_record.author.public_primary_key not in users_ids:
-                users.append(log_record.author.short())
+                users.append(log_record.author)
                 users_ids.add(log_record.author.public_primary_key)
-        return users
+        return UserShortSerializer(users, many=True).data
 
 
 class AlertGroupSerializer(AlertGroupListSerializer):
@@ -199,7 +223,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "paged_users",
         ]
 
-    def get_last_alert_at(self, obj):
+    def get_last_alert_at(self, obj: "AlertGroup") -> datetime.datetime:
         last_alert = obj.alerts.last()
 
         if not last_alert:
@@ -207,7 +231,8 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
         return last_alert.created_at
 
-    def get_limited_alerts(self, obj):
+    @extend_schema_field(AlertSerializer(many=True))
+    def get_limited_alerts(self, obj: "AlertGroup"):
         """
         Overriding default alerts because there are alert_groups with thousands of them.
         It's just too slow, we need to cut here.
@@ -215,18 +240,5 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
-    def get_paged_users(self, obj):
-        users_ids = set()
-        for log_record in obj.log_records.filter(
-            type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
-        ):
-            # filter paging events, track still active escalations
-            info = log_record.get_step_specific_info()
-            user_id = info.get("user") if info else None
-            if user_id is not None:
-                users_ids.add(
-                    user_id
-                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.discard(user_id)
-
-        users = [u.short() for u in User.objects.filter(public_primary_key__in=users_ids)]
-        return users
+    def get_paged_users(self, obj: "AlertGroup") -> typing.List[PagedUser]:
+        return obj.get_paged_users()

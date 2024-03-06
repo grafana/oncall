@@ -1,24 +1,38 @@
 import React from 'react';
 
-import { Field, Form, Input, InputControl, Select, Switch, TextArea } from '@grafana/ui';
+import { Field, Form, FormFieldErrors, Input, InputControl, Label, Select, Switch, TextArea } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
+import { isEmpty } from 'lodash-es';
 
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import GSelect from 'containers/GSelect/GSelect';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
+import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 
 import styles from './GForm.module.scss';
 
 const cx = cn.bind(styles);
 
+export interface CustomFieldSectionRendererProps {
+  control: any;
+  formItem: FormItem;
+  errors: any;
+  register: any;
+  setValue: (fieldName: string, fieldValue: any) => void;
+  getValues: <T = unknown>(fieldName: string | string[]) => T;
+}
+
 interface GFormProps {
   form: { name: string; fields: FormItem[] };
   data: any;
   onSubmit: (data: any) => void;
+  onChange?: (formIsValid: boolean) => void;
+
+  customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps>;
   onFieldRender?: (
     formItem: FormItem,
     disabled: boolean,
@@ -36,20 +50,24 @@ function renderFormControl(
   formItem: FormItem,
   register: any,
   control: any,
-  disabled,
+  disabled: boolean,
   onChangeFn: (field, value) => void
 ) {
   switch (formItem.type) {
     case FormItemType.Input:
-      console.log({ ...register(formItem.name, formItem.validation) });
       return (
-        <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+        <Input
+          {...register(formItem.name, formItem.validation)}
+          placeholder={formItem.placeholder}
+          onChange={(value) => onChangeFn(undefined, value)}
+        />
       );
 
     case FormItemType.Password:
       return (
         <Input
           {...register(formItem.name, formItem.validation)}
+          placeholder={formItem.placeholder}
           type="password"
           onChange={(value) => onChangeFn(undefined, value)}
         />
@@ -59,6 +77,7 @@ function renderFormControl(
       return (
         <TextArea
           rows={formItem.extra?.rows || 4}
+          placeholder={formItem.placeholder}
           {...register(formItem.name, formItem.validation)}
           onChange={(value) => onChangeFn(undefined, value)}
         />
@@ -81,7 +100,14 @@ function renderFormControl(
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value.value)} />;
+            return (
+              <Select
+                {...field}
+                {...formItem.extra}
+                {...register(formItem.name, formItem.validation)}
+                onChange={(value) => onChangeFn(field, value.value)}
+              />
+            );
           }}
           control={control}
           name={formItem.name}
@@ -153,9 +179,9 @@ function renderFormControl(
   }
 }
 
-class GForm extends React.Component<GFormProps, {}> {
+export class GForm extends React.Component<GFormProps, {}> {
   render() {
-    const { form, data, onFieldRender } = this.props;
+    const { form, data, onFieldRender, customFieldSectionRenderer: CustomFieldSectionRenderer } = this.props;
 
     const openFields = form.fields.filter((field) => !field.collapsed);
     const collapsedfields = form.fields.filter((field) => field.collapsed);
@@ -164,20 +190,52 @@ class GForm extends React.Component<GFormProps, {}> {
       <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
         {({ register, errors, control, getValues, setValue }) => {
           const renderField = (formItem: FormItem, formIndex: number) => {
-            if (formItem.isVisible && !formItem.isVisible(getValues())) {
-              setValue(formItem.name, undefined); // clear input value on hide
-              return null;
+            if (this.isFormItemHidden(formItem, getValues())) {
+              return null; // don't render the field
             }
+
+            if (formItem.type === FormItemType.PlainLabel) {
+              return (
+                <Label className={cx('label')}>
+                  <Text type="primary">{formItem.label}</Text>
+                </Label>
+              );
+            }
+
             const disabled = formItem.disabled
               ? true
               : formItem.getDisabled
               ? formItem.getDisabled(getValues())
               : false;
 
-            const formControl = renderFormControl(formItem, register, control, disabled, (field, value) => {
-              field?.onChange(value);
-              this.forceUpdate();
-            });
+            const formControl = renderFormControl(
+              formItem,
+              register,
+              control,
+              disabled,
+              this.onChange.bind(this, errors)
+            );
+
+            if (CustomFieldSectionRenderer && formItem.type === FormItemType.Other && formItem.render) {
+              return (
+                <CustomFieldSectionRenderer
+                  control={control}
+                  formItem={formItem}
+                  setValue={(fName: string, fValue: any) => {
+                    setValue(fName, fValue);
+                    this.forceUpdate();
+                  }}
+                  errors={errors}
+                  register={register}
+                  getValues={getValues}
+                />
+              );
+            }
+
+            // skip input render when there's no Custom Renderer
+            if (formItem.type === FormItemType.Other) {
+              return undefined;
+            }
 
             return (
               <Field
@@ -188,11 +246,13 @@ class GForm extends React.Component<GFormProps, {}> {
                 error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {onFieldRender
-                  ? onFieldRender(formItem, disabled, formControl, getValues(), (value) =>
-                      setValue(formItem.name, value)
-                    )
-                  : formControl}
+                <div className="u-margin-top-xs">
+                  {onFieldRender
+                    ? onFieldRender(formItem, disabled, formControl, getValues(), (value) =>
+                        setValue(formItem.name, value)
+                      )
+                    : formControl}
+                </div>
               </Field>
             );
           };
@@ -212,13 +272,28 @@ class GForm extends React.Component<GFormProps, {}> {
     );
   }
 
+  onChange = (errors: FormFieldErrors, field: any, value: string) => {
+    this.props.onChange?.(isEmpty(errors));
+
+    field?.onChange(value);
+    this.forceUpdate();
+  };
+
+  isFormItemHidden(formItem: FormItem, data) {
+    return formItem?.isHidden?.(data);
+  }
+
   handleSubmit = (data) => {
     const { form, onSubmit } = this.props;
 
     const normalizedData = Object.keys(data).reduce((acc, key) => {
       const formItem = form.fields.find((formItem) => formItem.name === key);
 
-      const value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+      let value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+
+      if (this.isFormItemHidden(formItem, data)) {
+        value = undefined;
+      }
 
       return {
         ...acc,
@@ -229,5 +304,3 @@ class GForm extends React.Component<GFormProps, {}> {
     onSubmit(normalizedData);
   };
 }
-
-export default GForm;

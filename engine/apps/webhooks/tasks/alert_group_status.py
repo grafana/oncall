@@ -30,7 +30,7 @@ ACTION_TO_TRIGGER_TYPE = {
 )
 def alert_group_created(self, alert_group_id):
     try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+        alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
         return
 
@@ -50,7 +50,7 @@ def alert_group_created(self, alert_group_id):
 )
 def alert_group_status_change(self, action_type, alert_group_id, user_id):
     try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+        alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
         return
 
@@ -59,7 +59,9 @@ def alert_group_status_change(self, action_type, alert_group_id, user_id):
         return
 
     organization_id = alert_group.channel.organization_id
-    webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id)
+    webhooks = Webhook.objects.filter(
+        trigger_type=trigger_type, organization_id=organization_id
+    ) | Webhook.objects.filter(trigger_type=Webhook.TRIGGER_STATUS_CHANGE, organization_id=organization_id)
 
     # check if there are any webhooks before going on
     if not webhooks:

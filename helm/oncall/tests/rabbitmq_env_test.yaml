@@ -2,7 +2,7 @@ suite: test Rabbitmq configs for deployments
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - secrets.yaml
 release:
   name: oncall
@@ -11,7 +11,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: true
@@ -64,7 +64,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: true
@@ -116,20 +116,20 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
-      asserts:
-        - failedTemplate:
-            errorMessage: externalRabbitmq.password is required if not rabbitmq.enabled and not externalRabbitmq.existingSecret
-          template: secrets.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRabbitmq.user is required if not rabbitmq.enabled
+        template: engine/job-migrate.yaml
 
   - it: rabbitmq.enabled=false -> should use internal custom values
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
@@ -182,7 +182,7 @@ tests:
       - containsDocument:
           kind: Secret
           apiVersion: v1
-          name: oncall-rabbitmq-external
+          metadata.name: oncall-rabbitmq-external
         template: secrets.yaml
       - equal:
           path: data.rabbitmq-password
@@ -195,7 +195,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
@@ -257,7 +257,7 @@ tests:
     templates:
       - engine/deployment.yaml
       - engine/job-migrate.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       broker.type: rabbitmq
       rabbitmq.enabled: false
@@ -268,3 +268,29 @@ tests:
       - failedTemplate:
           errorMessage: externalRabbitmq.host is required if not rabbitmq.enabled
         template: engine/job-migrate.yaml
+
+  - it: |
+      rabbitmq.enabled=false and migrate.useHook=>true -> should add "helm.sh/hook" annotations
+      to secret with rabbitmq credentials
+    templates:
+      - secrets.yaml
+    set:
+      migrate.useHook: true
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      externalRabbitmq:
+        host: rabbitmq-host
+        user: user
+        password: password
+    asserts:
+      - containsDocument:
+          kind: Secret
+          apiVersion: v1
+          name: oncall-rabbitmq-external
+        documentIndex: 1
+      - isSubset:
+          path: metadata.annotations
+          content:
+            "helm.sh/hook": pre-install,pre-upgrade
+            "helm.sh/hook-weight": "-5"
+        documentIndex: 1

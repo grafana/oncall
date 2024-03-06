@@ -1,8 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
   "name": "Grafana OnCall",
   "id": "grafana-oncall-app",
+  "preload": true,
   "info": {
     "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others.",
     "author": {
@@ -11,8 +12,8 @@
     },
     "keywords": ["oncall", "irm", "incident", "response"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "assets/img/logo.svg",
+      "large": "assets/img/logo.svg"
     },
     "links": [
       {
@@ -24,7 +25,7 @@
         "url": "https://github.com/grafana/oncall/blob/main/LICENSE"
       }
     ],
-    "screenshots": [{ "name": "Escalation chain", "path": "img/screenshot.png" }],
+    "screenshots": [{ "name": "Escalation chain", "path": "assets/img/screenshot.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
@@ -57,7 +58,7 @@
     {
       "type": "page",
       "name": "Integrations",
-      "path": "/a/grafana-oncall-app/integrations",
+      "path": "/a/grafana-oncall-app/integrations?tab=monitoring-systems",
       "role": "Viewer",
       "action": "grafana-oncall-app.integrations:read",
       "addToNav": true
@@ -88,10 +89,10 @@
     },
     {
       "type": "page",
-      "name": "Maintenance",
-      "path": "/a/grafana-oncall-app/maintenance",
+      "name": "Insights",
+      "path": "/a/grafana-oncall-app/insights",
       "role": "Viewer",
-      "action": "grafana-oncall-app.maintenance:read",
+      "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
     },
     {
@@ -105,7 +106,7 @@
     {
       "type": "dashboard",
       "path": "dashboards/oncall_metrics_dashboard.json",
-      "name": "OnCall Metrics"
+      "name": "OnCall Insights"
     }
   ],
   "routes": [
@@ -116,7 +117,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
         },
         {
           "name": "Authorization",
@@ -142,7 +143,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -157,7 +158,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -172,7 +173,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -187,7 +188,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
         },
         {
           "name": "Authorization",
@@ -206,6 +207,7 @@
 
           { "action": "grafana-oncall-app.alert-groups:read" },
           { "action": "grafana-oncall-app.alert-groups:write" },
+          { "action": "grafana-oncall-app.alert-groups:direct-paging" },
 
           { "action": "grafana-oncall-app.integrations:read" },
           { "action": "grafana-oncall-app.integrations:write" },
@@ -256,6 +258,7 @@
 
           { "action": "grafana-oncall-app.alert-groups:read" },
           { "action": "grafana-oncall-app.alert-groups:write" },
+          { "action": "grafana-oncall-app.alert-groups:direct-paging" },
 
           { "action": "grafana-oncall-app.integrations:read" },
           { "action": "grafana-oncall-app.integrations:test" },
@@ -323,12 +326,13 @@
     {
       "role": {
         "name": "OnCaller",
-        "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups and Schedules",
+        "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups, Schedules and own settings",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
 
           { "action": "grafana-oncall-app.alert-groups:read" },
           { "action": "grafana-oncall-app.alert-groups:write" },
+          { "action": "grafana-oncall-app.alert-groups:direct-paging" },
 
           { "action": "grafana-oncall-app.integrations:read" },
           { "action": "grafana-oncall-app.escalation-chains:read" },
@@ -339,8 +343,10 @@
           { "action": "grafana-oncall-app.chatops:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.notifications:read" },
           { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" },
           { "action": "grafana-oncall-app.other-settings:read" }
         ]
       },
@@ -360,11 +366,22 @@
     {
       "role": {
         "name": "Alert Groups Editor",
-        "description": "Read/write access to OnCall Alert Groups",
+        "description": "Read access to OnCall Alert Groups + ability to act on Alert Groups (ie. ack, resolve, etc)",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.alert-groups:read" },
           { "action": "grafana-oncall-app.alert-groups:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Alert Groups Direct Paging",
+        "description": "Grants the ability to be able to manually create new Alert Groups (aka Direct Paging)",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.alert-groups:direct-paging" }
         ]
       },
       "grants": []

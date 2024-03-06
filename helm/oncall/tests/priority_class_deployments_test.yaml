@@ -1,0 +1,21 @@
+suite: test priorityClassName for deployments
+templates:
+  - celery/deployment.yaml
+  - engine/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: priorityClassName="" -> should exclude priorityClassName
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
+
+  - it: priorityClassName -> should use the custom priorityClassName
+    set:
+      engine:
+        priorityClassName: very-important
+      celery:
+        priorityClassName: kinda-important
+    asserts:
+      - exists:
+          path: spec.template.spec.priorityClassName

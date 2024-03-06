@@ -1,0 +1,14 @@
+.labels-list {
+  margin: 0;
+  list-style-type: none;
+
+  > li {
+    margin: 10px 0;
+  }
+}
+
+.buttons {
+  width: 100%;
+  margin-top: 30px;
+  margin-bottom: 24px;
+}

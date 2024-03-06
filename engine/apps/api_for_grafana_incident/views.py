@@ -14,6 +14,6 @@ class RetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
 class AlertGroupsView(RetrieveViewSet):
     authentication_classes = (GrafanaIncidentStaticKeyAuth,)
-    queryset = AlertGroup.unarchived_objects.all()
+    queryset = AlertGroup.objects.all()
     serializer_class = AlertGroupSerializer
     lookup_field = "public_primary_key"

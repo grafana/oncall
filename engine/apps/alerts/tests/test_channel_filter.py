@@ -1,8 +1,6 @@
-from unittest import mock
-
 import pytest
 
-from apps.alerts.models import AlertReceiveChannel, ChannelFilter
+from apps.alerts.models import ChannelFilter
 
 
 @pytest.mark.django_db
@@ -24,13 +22,6 @@ def test_channel_filter_select_filter(make_organization, make_alert_receive_chan
     raw_request_data = {"title": title}
     satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
-
-    # demo alert for custom route
-    raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
-    )
-    assert satisfied_filter == channel_filter
 
 
 @pytest.mark.django_db
@@ -56,13 +47,6 @@ def test_channel_filter_select_filter_regex(make_organization, make_alert_receiv
     satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
 
-    # demo alert for custom route
-    raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
-    )
-    assert satisfied_filter == channel_filter
-
 
 @pytest.mark.django_db
 def test_channel_filter_select_filter_jinja2(make_organization, make_alert_receive_channel, make_channel_filter):
@@ -87,54 +71,33 @@ def test_channel_filter_select_filter_jinja2(make_organization, make_alert_recei
     satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
 
-    # demo alert for custom route
-    raw_request_data = {"title": "i'm not matching this route"}
-    satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
-    )
-    assert satisfied_filter == channel_filter
 
-
-@mock.patch("apps.integrations.tasks.create_alert.apply_async", return_value=None)
-@pytest.mark.django_db
-def test_send_demo_alert(
-    mocked_create_alert,
-    make_organization,
-    make_alert_receive_channel,
-    make_channel_filter,
-):
-    organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_WEBHOOK
-    )
-    filtering_term = "test alert"
-    channel_filter = make_channel_filter(alert_receive_channel, filtering_term=filtering_term, is_default=False)
-
-    channel_filter.send_demo_alert()
-    assert mocked_create_alert.called
-    assert mocked_create_alert.call_args.args[1]["is_demo"]
-    assert mocked_create_alert.call_args.args[1]["force_route_id"] == channel_filter.id
-
-
-@mock.patch("apps.integrations.tasks.create_alertmanager_alerts.apply_async", return_value=None)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "integration",
+    "filtering_term,labels,should_match",
     [
-        AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-        AlertReceiveChannel.INTEGRATION_GRAFANA,
-        AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        ('{{ "foo" in labels.keys() }}', {"foo": "bar"}, True),
+        ('{{ "bar" in labels.values() }}', {"foo": "bar"}, True),
+        ('{{ "bar" in labels.values() or payload["value"] == 5 }}', {"foo": "baz"}, True),
+        ('{{ labels.foo == "bar"}}', {"foo": "bar"}, True),
+        ('{{ labels.foo == "bar" and labels.bar == "baz" }}', {"foo": "bar", "bar": "baz"}, True),
+        ('{{ labels.foo == "bar" or labels.bar == "baz" }}', {"hello": "bar", "bar": "baz"}, True),
+        ('{{ "baz" in labels.values() }}', {"foo": "bar"}, False),
     ],
 )
-def test_send_demo_alert_alertmanager_payload_shape(
-    mocked_create_alert, make_organization, make_alert_receive_channel, make_channel_filter, integration
+def test_channel_filter_select_filter_labels(
+    make_organization, make_alert_receive_channel, make_channel_filter, filtering_term, labels, should_match
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
-    filtering_term = "test alert"
-    channel_filter = make_channel_filter(alert_receive_channel, filtering_term=filtering_term, is_default=False)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)  # default channel filter
+    custom_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        filtering_term=filtering_term,
+        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_JINJA2,
+        is_default=False,
+    )
 
-    channel_filter.send_demo_alert()
-    assert mocked_create_alert.called
-    assert mocked_create_alert.call_args.args[1]["is_demo"]
-    assert mocked_create_alert.call_args.args[1]["force_route_id"] == channel_filter.pk
+    assert ChannelFilter.select_filter(alert_receive_channel, {"title": "Test Title", "value": 5}, labels) == (
+        custom_channel_filter if should_match else default_channel_filter
+    )

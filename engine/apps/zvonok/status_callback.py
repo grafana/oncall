@@ -1,8 +1,6 @@
 import logging
 from typing import Optional
 
-from django.apps import apps
-
 from apps.alerts.constants import ActionSource
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
@@ -12,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def update_zvonok_call_status(call_id: str, call_status: str, user_choice: Optional[str] = None):
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
 
     status_code = ZvonokCallStatuses.DETERMINANT.get(call_status)
     if status_code is None:

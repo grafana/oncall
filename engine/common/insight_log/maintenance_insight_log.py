@@ -28,7 +28,7 @@ def write_maintenance_insight_log(instance, user, event: MaintenanceEvent):
             if team:
                 log_line += f" team={json.dumps(team.name)} team_id={team.public_primary_key}"
             else:
-                log_line += f' team="General"'
+                log_line += ' team="General"'
             if user:
                 username = json.dumps(user.username)
                 user_id = user.public_primary_key

@@ -49,7 +49,7 @@ def test_alert_group_created_for_team(
 
 @pytest.mark.django_db
 def test_alert_group_created_does_not_exist(make_organization, make_custom_webhook):
-    assert AlertGroup.all_objects.filter(pk=53).first() is None
+    assert AlertGroup.objects.filter(pk=53).first() is None
     organization = make_organization()
     # make sure there is a webhook setup
     make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
@@ -98,7 +98,7 @@ def test_alert_group_status_change(
 
 @pytest.mark.django_db
 def test_alert_group_status_change_does_not_exist(make_organization, make_custom_webhook):
-    assert AlertGroup.all_objects.filter(pk=53).first() is None
+    assert AlertGroup.objects.filter(pk=53).first() is None
     organization = make_organization()
     # make sure there is a webhook setup
     make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE)

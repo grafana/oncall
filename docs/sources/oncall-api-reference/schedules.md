@@ -42,11 +42,12 @@ The above command returns JSON structured in the following way:
 | Parameter            | Unique |     Required     | Description                                                                                                                                                                                                                                         |
 | -------------------- | :----: | :--------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`               |  Yes   |       Yes        | Schedule name.                                                                                                                                                                                                                                      |
-| `type`               |   No   |       Yes        | Schedule type. May be `ical` (used for iCalendar integration) or `calendar` (used for manually created on-call shifts).                                                                                                                             |
+| `type`               |   No   |       Yes        | Schedule type. May be `ical` (used for iCalendar integration),  `calendar` (used for manually created on-call shifts) or `web` (for web UI managed schedules).                                                                                                                             |
 | `team_id`            |   No   |        No        | ID of the team.                                                                                                                                                                                                                                     |
-| `time_zone`          |   No   |     Optional     | Schedule time zone. Is used for manually added on-call shifts in Schedules with type `calendar`. Default time zone is `UTC`. For more information about time zones, see [time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). |
+| `time_zone`          |   No   |       Yes     | Schedule time zone. It is used for manually added on-call shifts in Schedules with type `calendar`. Default time zone is `UTC`. For more information about time zones, see [time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). Not used for schedules with type `ical`. |
 | `ical_url_primary`   |   No   | If type = `ical` | URL of external iCal calendar for schedule with type `ical`.                                                                                                                                                                                        |
 | `ical_url_overrides` |   No   |     Optional     | URL of external iCal calendar for schedule with any type. Events from this calendar override events from primary calendar or from on-call shifts.                                                                                                   |
+| `enable_web_overrides` |   No   |     Optional     | Whether to enable web overrides or not. Setting specific for API/Terraform based schedules (`calendar` type).                                                                                                   |
 | `slack`              |   No   |     Optional     | Dictionary with Slack-specific settings for a schedule. Includes `channel_id` and `user_group_id` fields, that take a channel ID and a user group ID from Slack.                                                                                    |
 | `shifts`             |   No   |     Optional     | List of shifts. Used for manually added on-call shifts in Schedules with type `calendar`.                                                                                                                                                           |
 
@@ -129,7 +130,10 @@ The above command returns JSON structured in the following way:
         "user_group_id": "MEOW_SLACK_ID"
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 
@@ -294,7 +298,10 @@ The above command returns JSON structured in the following way:
       "shift_start": "2023-01-27T09:00:00Z",
       "shift_end": "2023-01-27T17:00:00Z"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 
@@ -306,8 +313,10 @@ Some notes on the `start_date` and `end_date` query parameters:
 - `end_date` must be greater than or equal to `start_date`
 - `end_date` cannot be more than 365 days in the future from `start_date`
 
-Lastly, this endpoint is currently only active for web schedules. It will return HTTP 400 for schedules
-defined via Terraform or iCal.
+>**Note**: you can update schedules affecting past events, which will then
+change the output you get from this endpoint. To get consistent information about past shifts
+you must be sure to avoid updating rotations in-place but apply the changes as new rotations
+with the right starting dates.
 
 ## Example script to transform data to .csv for all of your schedules
 

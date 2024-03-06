@@ -1,17 +1,29 @@
-from django.apps import apps
+import enum
+
 from django.conf import settings
+from drf_spectacular.plumbing import resolve_type_hint
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.labels.utils import is_labels_feature_enabled
 
-FEATURE_SLACK = "slack"
-FEATURE_TELEGRAM = "telegram"
-FEATURE_LIVE_SETTINGS = "live_settings"
-FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
-FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
-FEATURE_WEB_SCHEDULES = "web_schedules"
+
+class Feature(enum.StrEnum):
+    MSTEAMS = "msteams"
+    SLACK = "slack"
+    TELEGRAM = "telegram"
+    LIVE_SETTINGS = "live_settings"
+    GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
+    GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
+    # GRAFANA_ALERTING_V2 enables advanced OnCall <-> Alerting integration.
+    # On Alerting side it enables integration dropdown in OnCall contact point.
+    # On OnCall side it do nothing, just indicating if OnCall API is ready to that integration.
+    GRAFANA_ALERTING_V2 = "grafana_alerting_v2"
+    LABELS = "labels"
 
 
 class FeaturesAPIView(APIView):
@@ -22,40 +34,34 @@ class FeaturesAPIView(APIView):
 
     authentication_classes = (PluginAuthentication,)
 
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(list[Feature])})
     def get(self, request):
-        return Response(self._get_enabled_features(request))
+        data = self._get_enabled_features(request)
+        return Response(data)
 
     def _get_enabled_features(self, request):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
         enabled_features = []
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-            enabled_features.append(FEATURE_SLACK)
+            enabled_features.append(Feature.SLACK)
 
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-            enabled_features.append(FEATURE_TELEGRAM)
+            enabled_features.append(Feature.TELEGRAM)
 
         if settings.IS_OPEN_SOURCE:
             # Features below should be enabled only in OSS
-            enabled_features.append(FEATURE_GRAFANA_CLOUD_CONNECTION)
+            enabled_features.append(Feature.GRAFANA_CLOUD_CONNECTION)
             if settings.FEATURE_LIVE_SETTINGS_ENABLED:
-                enabled_features.append(FEATURE_LIVE_SETTINGS)
+                enabled_features.append(Feature.LIVE_SETTINGS)
             if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
-                enabled_features.append(FEATURE_GRAFANA_CLOUD_NOTIFICATIONS)
-
-        if settings.FEATURE_WEB_SCHEDULES_ENABLED:
-            enabled_features.append(FEATURE_WEB_SCHEDULES)
+                enabled_features.append(Feature.GRAFANA_CLOUD_NOTIFICATIONS)
         else:
-            # allow enabling web schedules per org, independently of global status flag
-            enabled_web_schedules_orgs = DynamicSetting.objects.get_or_create(
-                name="enabled_web_schedules_orgs",
-                defaults={
-                    "json_value": {
-                        "org_ids": [],
-                    }
-                },
-            )[0]
-            if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
-                enabled_features.append(FEATURE_WEB_SCHEDULES)
+            enabled_features.append(Feature.MSTEAMS)
+
+        if settings.FEATURE_GRAFANA_ALERTING_V2_ENABLED:
+            enabled_features.append(Feature.GRAFANA_ALERTING_V2)
+
+        if is_labels_feature_enabled(self.request.auth.organization):
+            enabled_features.append(Feature.LABELS)
 
         return enabled_features

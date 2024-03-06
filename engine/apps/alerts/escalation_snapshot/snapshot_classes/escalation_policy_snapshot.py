@@ -39,6 +39,7 @@ class EscalationPolicySnapshot:
         "custom_webhook",
         "notify_schedule",
         "notify_to_group",
+        "notify_to_team_members",
         "escalation_counter",
         "passed_last_time",
         "pause_escalation",
@@ -69,6 +70,7 @@ class EscalationPolicySnapshot:
         escalation_counter,
         passed_last_time,
         pause_escalation,
+        notify_to_team_members=None,
     ):
         self.id = id
         self.order = order
@@ -83,6 +85,7 @@ class EscalationPolicySnapshot:
         self.custom_webhook = custom_webhook
         self.notify_schedule = notify_schedule
         self.notify_to_group = notify_to_group
+        self.notify_to_team_members = notify_to_team_members
         self.escalation_counter = escalation_counter  # used for STEP_REPEAT_ESCALATION_N_TIMES
         self.passed_last_time = passed_last_time  # used for building escalation plan
         self.pause_escalation = pause_escalation  # used for STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
@@ -120,6 +123,8 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_FINAL_RESOLVE: self._escalation_step_resolve,
             EscalationPolicy.STEP_NOTIFY_GROUP: self._escalation_step_notify_user_group,
             EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT: self._escalation_step_notify_user_group,
+            EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS: self._escalation_step_notify_team_members,
+            EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT: self._escalation_step_notify_team_members,
             EscalationPolicy.STEP_NOTIFY_SCHEDULE: self._escalation_step_notify_on_call_schedule,
             EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT: self._escalation_step_notify_on_call_schedule,
             EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: self._escalation_step_trigger_custom_webhook,
@@ -270,7 +275,7 @@ class EscalationPolicySnapshot:
                 escalation_policy_step=self.step,
             )
         else:
-            notify_to_users_list = list_users_to_notify_from_ical(on_call_schedule, include_viewers=True)
+            notify_to_users_list = list_users_to_notify_from_ical(on_call_schedule)
             if notify_to_users_list is None:
                 log_record = AlertGroupLogRecord(
                     type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
@@ -353,6 +358,55 @@ class EscalationPolicySnapshot:
             tasks.append(notify_group)
         self._execute_tasks(tasks)
 
+    def _escalation_step_notify_team_members(self, alert_group: "AlertGroup", reason: str) -> None:
+        tasks = []
+
+        if self.notify_to_team_members is None:
+            log_record = AlertGroupLogRecord(
+                type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
+                alert_group=alert_group,
+                reason=reason,
+                escalation_policy=self.escalation_policy,
+                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED,
+                escalation_policy_step=self.step,
+            )
+            log_record.save()
+        else:
+            log_record = AlertGroupLogRecord(
+                type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+                alert_group=alert_group,
+                reason=reason,
+                escalation_policy=self.escalation_policy,
+                escalation_policy_step=self.step,
+                step_specific_info={"team": self.notify_to_team_members.name},
+            )
+            log_record.save()
+            self.notify_to_users_queue = self.notify_to_team_members.users.all()
+            reason = "user belongs to team {}".format(self.notify_to_team_members.name)
+            for notify_to_user in self.notify_to_users_queue:
+                notify_task = notify_user_task.signature(
+                    (
+                        notify_to_user.pk,
+                        alert_group.pk,
+                    ),
+                    {
+                        "reason": reason,
+                        "important": self.step == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
+                    },
+                    immutable=True,
+                )
+                tasks.append(notify_task)
+                AlertGroupLogRecord.objects.create(
+                    type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+                    author=notify_to_user,
+                    alert_group=alert_group,
+                    reason=reason,
+                    escalation_policy=self.escalation_policy,
+                    escalation_policy_step=self.step,
+                )
+
+        self._execute_tasks(tasks)
+
     def _escalation_step_notify_if_time(self, alert_group: "AlertGroup", _reason: str) -> StepExecutionResultData:
         eta = None
 
@@ -406,11 +460,11 @@ class EscalationPolicySnapshot:
 
         last_alert = alert_group.alerts.last()
 
-        time_delta = datetime.timedelta(minutes=self.escalation_policy.num_minutes_in_window)
+        time_delta = datetime.timedelta(minutes=self.num_minutes_in_window)
         num_alerts_in_window = alert_group.alerts.filter(created_at__gte=last_alert.created_at - time_delta).count()
 
         # pause escalation if there are not enough alerts in time window
-        if num_alerts_in_window <= self.escalation_policy.num_alerts_in_window:
+        if num_alerts_in_window <= self.num_alerts_in_window:
             self.pause_escalation = True
             return self._get_result_tuple(pause_escalation=True)
         return None
@@ -490,6 +544,7 @@ class EscalationPolicySnapshot:
     def _get_result_tuple(
         self, eta=None, stop_escalation=False, start_from_beginning=False, pause_escalation=False
     ) -> StepExecutionResultData:
-        # use default delay for eta, if eta was not counted by step
-        eta = eta or timezone.now() + datetime.timedelta(seconds=NEXT_ESCALATION_DELAY)
+        # use default delay for eta, if eta was not counted by step and escalation was not paused
+        if not pause_escalation:
+            eta = eta or timezone.now() + datetime.timedelta(seconds=NEXT_ESCALATION_DELAY)
         return self.StepExecutionResultData(eta, stop_escalation, start_from_beginning, pause_escalation)

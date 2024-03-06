@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,
@@ -63,6 +63,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         }
 
     SELECT_RELATED = ["schedule", "updated_shift"]
+    PREFETCH_RELATED = ["schedules"]
 
     def get_shift_end(self, obj):
         return obj.start + obj.duration
@@ -70,6 +71,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
+        if ret["schedule"] is None:
+            # for terraform based schedules, related schedule comes from M2M field
+            # TODO: migrate terraform schedules to use FK instead
+            related_schedules = instance.schedules.all()
+            ret["schedule"] = related_schedules[0].public_primary_key if related_schedules else None
         return ret
 
     def to_internal_value(self, data):
@@ -86,6 +92,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 if day not in CustomOnCallShift.WEB_WEEKDAY_MAP:
                     raise serializers.ValidationError(["Invalid day value."])
         return by_day
+
+    def _validate_type(self, schedule, event_type):
+        if schedule and not isinstance(schedule, OnCallScheduleWeb) and event_type != CustomOnCallShift.TYPE_OVERRIDE:
+            # if this is not related to a web schedule, only allow override web events
+            raise serializers.ValidationError({"type": ["Invalid event type"]})
 
     def validate_week_start(self, week_start):
         if week_start is None:
@@ -158,6 +169,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "priority_level",
             "rotation_start",
         ]
+        self._validate_type(validated_data.get("schedule"), event_type)
         if event_type == CustomOnCallShift.TYPE_OVERRIDE:
             for field in fields_to_update_for_overrides:
                 value = None
@@ -216,6 +228,9 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
         read_only_fields = ["schedule", "type"]
 
     def update(self, instance, validated_data):
+        if not instance.schedule:
+            # only web-based schedule events can be updated using UI
+            raise serializers.ValidationError(["This event cannot be updated"])
         validated_data = self._correct_validated_data(instance.type, validated_data)
         change_only_name = True
         create_or_update_last_shift = False

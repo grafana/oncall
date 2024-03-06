@@ -1,0 +1,107 @@
+suite: test extraVolumeMounts and extraVolumes for deployments
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment.yaml
+  - telegram-polling/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: extraVolumeMounts and extraVolumes are used -> should be present in manifest
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment.yaml
+      - telegram-polling/deployment.yaml
+    set:
+      engine:
+        extraVolumeMounts:
+          - mountPath: /mnt/postgres-tls-client
+            name: postgres-tls-client
+        extraVolumes:
+          - name: postgres-tls-client
+            secret:
+              secretName: postgres-tls-client
+      migrate:
+        extraVolumeMounts:
+          - mountPath: /mnt/redis-tls-client
+            name: redis-tls-client
+        extraVolumes:
+          - name: redis-tls-client
+            secret:
+              secretName: redis-tls-client
+      celery:
+        extraVolumeMounts:
+          - mountPath: /etc/app/settings
+            name: my-custom-setting
+            subPath: my-custom-setting.py
+        extraVolumes:
+          - name: my-custom-setting
+            configMap:
+              name: my-custom-setting
+      telegramPolling:
+        enabled: true
+        extraVolumeMounts:
+          - mountPath: /etc/app/settings
+            name: my-custom-setting
+            subPath: my-custom-setting.py
+        extraVolumes:
+          - name: my-custom-setting
+            configMap:
+              name: my-custom-setting
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /mnt/postgres-tls-client
+            name: postgres-tls-client
+        template: engine/deployment.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: postgres-tls-client
+            secret:
+              secretName: postgres-tls-client
+        template: engine/deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /mnt/redis-tls-client
+            name: redis-tls-client
+        template: engine/job-migrate.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: redis-tls-client
+            secret:
+              secretName: redis-tls-client
+        template: engine/job-migrate.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/app/settings
+            name: my-custom-setting
+            subPath: my-custom-setting.py
+        template: celery/deployment.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: my-custom-setting
+            configMap:
+              name: my-custom-setting
+        template: celery/deployment.yaml
+
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/app/settings
+            name: my-custom-setting
+            subPath: my-custom-setting.py
+        template: telegram-polling/deployment.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: my-custom-setting
+            configMap:
+              name: my-custom-setting
+        template: telegram-polling/deployment.yaml

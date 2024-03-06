@@ -10,7 +10,9 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint disable rule:line-length
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -18,8 +20,8 @@ steps:
   - name: Sign and Package Plugin
     image: node:18.16.0-buster
     environment:
-      GRAFANA_API_KEY:
-        from_secret: gcom_plugin_publisher_api_key
+      GRAFANA_ACCESS_POLICY_TOKEN:
+        from_secret: cloud_access_policy_token
     depends_on:
       - Build Plugin
     commands:
@@ -28,30 +30,17 @@ steps:
       - cd grafana-plugin
       - yarn sign
       - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
-      - yarn ci-build:finish
-      - yarn ci-package
-      - cd ci/dist
+      - mv dist grafana-oncall-app
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
-
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
+      # yamllint enable rule:line-length
 
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
     settings:
       acl: allUsers:READER
-      source: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
+      source: grafana-plugin/grafana-oncall-app-${DRONE_TAG}.zip
       target: grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip
       token:
         from_secret: gcs_oncall_publisher_key
@@ -62,23 +51,23 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
+      - pip install $(grep "pre-commit==" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
-      - apt-get update && apt-get install -y netcat
+      - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
       - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
@@ -93,7 +82,9 @@ steps:
       - chmod +x ./tools/image-tag.sh
       - echo $(./tools/image-tag.sh)
       - echo $(./tools/image-tag.sh) > .tags
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint enable rule:line-length
       - cat engine/settings/base.py | grep VERSION | head -1
     when:
       ref:
@@ -103,7 +94,8 @@ steps:
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker
     environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
       # https://github.com/docker/cli/issues/1134#issuecomment-406449342
       DOCKER_BUILDKIT: 1
     settings:
@@ -113,6 +105,10 @@ steps:
       target: prod
       config:
         from_secret: gcr_admin
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -121,7 +117,8 @@ steps:
   - name: Build and Push Engine Docker Image Backend to Dockerhub
     image: plugins/docker
     environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
       # https://github.com/docker/cli/issues/1134#issuecomment-406449342
       DOCKER_BUILDKIT: 1
     settings:
@@ -133,6 +130,10 @@ steps:
         from_secret: docker_password
       username:
         from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - Lint Backend
       - Unit Test Backend
@@ -179,7 +180,9 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint disable rule:line-length
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -187,8 +190,8 @@ steps:
   - name: sign and package plugin
     image: node:18.16.0-buster
     environment:
-      GRAFANA_API_KEY:
-        from_secret: gcom_plugin_publisher_api_key
+      GRAFANA_ACCESS_POLICY_TOKEN:
+        from_secret: cloud_access_policy_token
     depends_on:
       - build plugin
     commands:
@@ -197,11 +200,11 @@ steps:
       - cd grafana-plugin
       - yarn sign
       - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
-      - yarn ci-build:finish
-      - yarn ci-package
-      - cd ci/dist
+      - mv dist grafana-oncall-app
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
+      # yamllint enable rule:line-length
 
   - name: publish plugin to grafana.com (release)
     image: curlimages/curl:7.73.0
@@ -209,7 +212,9 @@ steps:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
     commands:
-      - 'curl -f -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins'
+      # yamllint disable rule:line-length
+      - 'curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins'
+      # yamllint enable rule:line-length
     depends_on:
       - sign and package plugin
 
@@ -231,7 +236,9 @@ steps:
     image: alpine
     commands:
       - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint disable rule:line-length
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG#v}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint enable rule:line-length
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
@@ -241,6 +248,11 @@ steps:
     # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
     # Docker daemon is not able to start.
     privileged: true
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: latest,${DRONE_TAG}
@@ -252,8 +264,37 @@ steps:
         from_secret: docker_password
       username:
         from_secret: docker_username
+      build_args:
+        - BUILDKIT_INLINE_CACHE=1
+      cache_from:
+        - grafana/oncall:latest
     depends_on:
       - set engine version
+
+  - name: merge helm release oss pr
+    image: alpine
+    environment:
+      GITHUB_API_KEY:
+        from_secret: github_api_token
+    # Allow this step to fail as it's not critical to the build process and we don't want to block
+    # the build promotion. If this step fails we can always merge the PR manually
+    failure: ignore
+    commands:
+      # yamllint disable rule:line-length
+      - apk add --no-cache curl jq
+      # Step 1. Fetch PRs from GitHub's API that're open and have a particular head ref indicative of a helm release PR
+      # API docs - https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
+      # NOTE: ${DRONE_TAG:1} will slice off the "v" prefix from the tag
+      - 'curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls?head=grafana:helm-release/$${DRONE_TAG:1}&state=open" > prs.json'
+      - cat prs.json
+      # Step 2. Extract the PR number from the first PR in the list to be able to pass that to the next API call
+      - cat prs.json | jq -r ".[0].number" > pr_number.txt
+      - cat pr_number.txt
+      # Step 3. Merge the PR (https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#merge-a-pull-request)
+      - 'cat pr_number.txt | xargs -r -I{pull_number} curl -L -X PUT -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $${GITHUB_API_KEY}" -H "X-GitHub-Api-Version: 2022-11-28" "https://api.github.com/repos/grafana/oncall/pulls/{pull_number}/merge"'
+      # yamllint enable rule:line-length
+    depends_on:
+      - build and push docker image
 
 trigger:
   event:
@@ -278,14 +319,6 @@ name: gcr_admin
 get:
   path: infra/data/ci/gcr-admin
   name: .dockerconfigjson
-
----
-# Secret for GitHub
-get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
 
 ---
 # Slack webhook
@@ -318,6 +351,7 @@ get:
   path: infra/data/ci/docker_hub
 kind: secret
 name: docker_username
+
 ---
 get:
   name: password
@@ -332,8 +366,25 @@ get:
   path: infra/data/ci/drone
 kind: secret
 name: drone_token
+
+---
+# GitHub API token (only scoped to grafana/oncall + PR access)
+get:
+  name: github-api-token
+  path: ci/data/repo/grafana/oncall/drone
+kind: secret
+name: github_api_token
+
+---
+# Secret for signing plugin
+get:
+  name: cloud_access_policy_token
+  path: ci/data/repo/grafana/oncall/sign_plugin
+kind: secret
+name: cloud_access_policy_token
+
 ---
 kind: signature
-hmac: be10373849d65e1f90bce64c7468d5cf5bac546285226ff8931a8b953163a752
+hmac: d541ed21fc2472272c6772e246aaf1a2606db112b4e72a44bc4530831e9ca4d3
 
 ...

@@ -1,6 +1,12 @@
 import factory
 
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
+from apps.schedules.models import (
+    CustomOnCallShift,
+    OnCallScheduleCalendar,
+    OnCallScheduleICal,
+    OnCallScheduleWeb,
+    ShiftSwapRequest,
+)
 from common.utils import UniqueFaker
 
 
@@ -35,3 +41,8 @@ class CustomOnCallShiftFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = CustomOnCallShift
+
+
+class ShiftSwapRequestFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ShiftSwapRequest

@@ -4,15 +4,15 @@ import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { sanitize } from 'dompurify';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
 import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import LocationHelper from 'utils/LocationHelper';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { LocationHelper } from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { useForceUpdate, useQueryParams } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 
@@ -26,7 +26,7 @@ enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
 }
 
-export default function Alerts() {
+export const Alerts = function () {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
 
@@ -53,45 +53,42 @@ export default function Alerts() {
   }, []);
 
   const store = useStore();
-
-  const { userStore, teamStore } = store;
-
-  const { currentTeam } = teamStore;
-  const { currentUser } = userStore;
+  const {
+    userStore: { currentUser },
+    organizationStore: { currentOrganization },
+  } = store;
 
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
+  const isDefaultNotificationsSet = currentUser?.notification_chain_verbal.default;
+  const isImportantNotificationsSet = currentUser?.notification_chain_verbal.important;
+
   if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
     return null;
   }
-
   return (
     <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
       {showSlackInstallAlert && (
         <Alert
           className={cx('alert')}
           onRemove={handleCloseInstallSlackAlert}
-          severity="warning"
-          title="Slack integration warning"
+          severity="error"
+          title="Slack integration error"
         >
-          {getSlackMessage(
-            showSlackInstallAlert,
-            store.teamStore.currentTeam,
-            store.hasFeature(AppFeature.LiveSettings)
-          )}
+          {getSlackMessage(showSlackInstallAlert, currentOrganization, store.hasFeature(AppFeature.LiveSettings))}
         </Alert>
       )}
       {showBannerTeam() && (
         <Alert
           className={cx('alert')}
           severity="success"
-          title={currentTeam.banner.title}
-          onRemove={getRemoveAlertHandler(currentTeam?.banner.title)}
+          title={currentOrganization.banner.title}
+          onRemove={getRemoveAlertHandler(currentOrganization?.banner.title)}
         >
           <div
             dangerouslySetInnerHTML={{
-              __html: sanitize(currentTeam?.banner.body),
+              __html: sanitize(currentOrganization?.banner.body),
             }}
           />
         </Alert>
@@ -125,23 +122,18 @@ export default function Alerts() {
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
           className={cx('alert')}
           severity="warning"
-          title="Notification Warning"
+          title="Notification Warning! Possible notification miss."
         >
           {
             <>
-              {!isChatOpsConnected && (
-                <>
-                  No messenger connected. Possible notification miss. Connect messenger(s) in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink> to receive all
-                  notifications.
-                </>
-              )}
-              {!isPhoneVerified && (
-                <>
-                  Your phone number is not verified. You can change your configuration in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
-                </>
-              )}
+              {!isDefaultNotificationsSet && <>Default notification chain is not set. </>}
+              {!isImportantNotificationsSet && <>Important notification chain is not set. </>}
+              {!isChatOpsConnected && <>No messenger connected for ChatOps. </>}
+              {!isPhoneVerified && <>Your phone number is not verified. </>}
+              <>
+                You can change your configuration in{' '}
+                <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
+              </>
             </>
           }
         </Alert>
@@ -150,12 +142,12 @@ export default function Alerts() {
   );
 
   function showBannerTeam(): boolean {
-    return currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title);
+    return currentOrganization?.banner.title != null && !getItem(currentOrganization?.banner.title);
   }
 
   function showMismatchWarning(): boolean {
     return (
-      store.isOpenSource() &&
+      store.isOpenSource &&
       store.backendVersion &&
       plugin?.version &&
       store.backendVersion !== plugin?.version &&
@@ -165,11 +157,11 @@ export default function Alerts() {
 
   function showChannelWarnings(): boolean {
     return Boolean(
-      currentTeam &&
+      currentOrganization &&
         currentUser &&
         isUserActionAllowed(UserActions.UserSettingsWrite) &&
         (!isPhoneVerified || !isChatOpsConnected) &&
         !getItem(AlertID.CONNECTIVITY_WARNING)
     );
   }
-}
+};

@@ -24,25 +24,6 @@
   margin-top: 12px;
 }
 
-/* 
-.separator::before {
-  display: block;
-  content: '';
-  flex-grow: 1;
-  border-bottom: var(--border-medium);
-  height: 0;
-  margin-right: 5px;
-}
-
-.separator::after {
-  display: block;
-  content: '';
-  flex-grow: 1;
-  border-bottom: var(--border-medium);
-  height: 0;
-  margin-left: 5px;
-} */
-
 .groups {
   width: 100%;
   padding: 0;
@@ -51,8 +32,6 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-height: calc(100vh - 600px);
-  overflow: scroll;
 }
 
 .user {

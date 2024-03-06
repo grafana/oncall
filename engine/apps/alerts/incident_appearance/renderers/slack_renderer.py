@@ -1,16 +1,21 @@
 import json
+import typing
 
-from django.apps import apps
 from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
 from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.scenarios.scenario_step import ScenarioStep
+from apps.slack.types import Block
 from common.utils import is_string_with_visible_characters, str_or_backup
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import Alert, AlertGroup
 
 
 class AlertSlackRenderer(AlertBaseRenderer):
-    def __init__(self, alert):
+    def __init__(self, alert: "Alert"):
         super().__init__(alert)
         self.channel = alert.group.channel
 
@@ -18,9 +23,8 @@ class AlertSlackRenderer(AlertBaseRenderer):
     def templater_class(self):
         return AlertSlackTemplater
 
-    def render_alert_blocks(self):
-        BLOCK_SECTION_TEXT_MAX_SIZE = 2800
-        blocks = []
+    def render_alert_blocks(self) -> Block.AnyBlocks:
+        blocks: Block.AnyBlocks = []
 
         title = Truncator(str_or_backup(self.templated_alert.title, "Alert"))
         blocks.append(
@@ -63,7 +67,7 @@ class AlertSlackRenderer(AlertBaseRenderer):
 
 
 class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
-    def __init__(self, alert_group):
+    def __init__(self, alert_group: "AlertGroup"):
         super().__init__(alert_group)
 
         # render the last alert content as Slack message, so Slack message is updated when a new alert comes
@@ -73,8 +77,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def alert_renderer_class(self):
         return AlertSlackRenderer
 
-    def render_alert_group_blocks(self):
-        blocks = self.alert_renderer.render_alert_blocks()
+    def render_alert_group_blocks(self) -> Block.AnyBlocks:
+        blocks: Block.AnyBlocks = self.alert_renderer.render_alert_blocks()
         alerts_count = self.alert_group.alerts.count()
         if alerts_count > 1:
             text = (
@@ -167,7 +171,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return attachment
 
     def _get_buttons_blocks(self):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         buttons = []
         if not self.alert_group.is_maintenance_incident:
             if not self.alert_group.resolved:
@@ -213,12 +218,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     },
                 )
 
-                if self.alert_group.invitations.filter(is_active=True).count() < 5:
-                    action_id = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid()
-                    text = "Invite..."
-                    invitation_element = self._get_select_user_element(action_id, text=text)
-                    buttons.append(invitation_element)
-
                 if not self.alert_group.silenced:
                     silence_options = [
                         {
@@ -244,6 +243,15 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                             "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
                         },
                     )
+
+                buttons.append(
+                    {
+                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
+                        "type": "button",
+                        "value": self._alert_group_action_value(),
+                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
+                    },
+                )
 
                 attach_button = {
                     "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
@@ -291,11 +299,11 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 resolution_notes_button["text"]["text"] = "Add Resolution notes"
             buttons.append(resolution_notes_button)
 
-            # Declare Incident button
+            # Declare incident button
             if self.alert_group.channel.organization.is_grafana_incident_enabled:
                 incident_button = {
                     "type": "button",
-                    "text": {"type": "plain_text", "text": ":fire: Declare Incident", "emoji": True},
+                    "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
                     "value": "declare_incident",
                     "url": self.alert_group.declare_incident_link,
                     "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
@@ -316,7 +324,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return blocks
 
     def _get_invitation_attachment(self):
-        Invitation = apps.get_model("alerts", "Invitation")
+        from apps.alerts.models import Invitation
+
         invitations = Invitation.objects.filter(is_active=True, alert_group=self.alert_group).all()
         if len(invitations) == 0:
             return []
@@ -428,6 +437,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         data = {
             "organization_id": self.alert_group.channel.organization_id,
             "alert_group_pk": self.alert_group.pk,
+            # eventually replace using alert_group_pk with alert_group_public_pk in slack payload
+            "alert_group_ppk": self.alert_group.public_primary_key,
             **kwargs,
         }
         return json.dumps(data)  # Slack block elements allow to pass value as string only (max 2000 chars)

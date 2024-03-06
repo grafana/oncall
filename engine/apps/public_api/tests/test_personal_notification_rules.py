@@ -98,6 +98,9 @@ def test_get_personal_notification_rules_list(personal_notification_rule_public_
                 "important": True,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -126,6 +129,9 @@ def test_get_personal_notification_rules_list_important(personal_notification_ru
                 "important": True,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -169,6 +175,9 @@ def test_get_personal_notification_rules_list_non_important(personal_notificatio
                 "important": False,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

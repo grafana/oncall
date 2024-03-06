@@ -5,67 +5,66 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import CheatSheet from 'components/CheatSheet/CheatSheet';
+import { CheatSheet } from 'components/CheatSheet/CheatSheet';
 import {
   groupingTemplateCheatSheet,
   slackMessageTemplateCheatSheet,
   genericTemplateCheatSheet,
+  alertGroupDynamicLabelCheatSheet,
+  alertGroupMultiLabelExtractionCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import Text from 'components/Text/Text';
-import TemplateResult from 'containers/TemplateResult/TemplateResult';
-import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
+import { Text } from 'components/Text/Text';
+import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
+import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertTemplatesDTO } from 'models/alert_templates';
-import { Alert } from 'models/alertgroup/alertgroup.types';
+import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { TemplateOptions } from 'pages/integration/Integration.config';
-import { waitForElement } from 'utils/DOM';
-import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
+import { useStore } from 'state/useStore';
+import { LocationHelper } from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './IntegrationTemplate.module.scss';
 
 const cx = cn.bind(styles);
 
 interface IntegrationTemplateProps {
-  id: AlertReceiveChannel['id'];
+  id: ApiSchemas['AlertReceiveChannel']['id'];
   channelFilterId?: ChannelFilter['id'];
   template: TemplateForEdit;
   templateBody: string;
   templates: AlertTemplatesDTO[];
   onHide: () => void;
   onUpdateTemplates: (values: any) => void;
-  onUpdateRoute: (values: any, channelFilterId?: ChannelFilter['id']) => void;
+  onUpdateRoute?: (values: any, channelFilterId?: ChannelFilter['id']) => void;
 }
 
-const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
+export const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOpsPermalink, setChatOpsPermalink] = useState(undefined);
-  const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
+  const [alertGroupPayload, setAlertGroupPayload] = useState<{ [key: string]: unknown }>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
-  const [editorHeight, setEditorHeight] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
-  useEffect(() => {
-    const locationParams: any = { template: template.name };
-    if (template.isRoute) {
-      locationParams.routeId = channelFilterId;
-    }
-    LocationHelper.update(locationParams, 'partial');
-  }, []);
+  const store = useStore();
 
   useEffect(() => {
-    waitForElement('#content-container-id').then(() => {
-      const mainDiv = document.getElementById('content-container-id');
-      const height = mainDiv?.getBoundingClientRect().height - 59;
-      setEditorHeight(`${height}px`);
-    });
+    const templateForEdit = getTemplatesForEdit(store.features);
+
+    if (templateForEdit[template.name]) {
+      const locationParams: any = { template: template.name };
+      if (template.isRoute) {
+        locationParams.routeId = channelFilterId;
+      }
+      LocationHelper.update(locationParams, 'partial');
+    }
   }, []);
 
   const onShowCheatSheet = useCallback(() => {
@@ -101,7 +100,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     }
   };
 
-  const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
+  const onSelectAlertGroup = useCallback((alertGroup: ApiSchemas['AlertGroup']) => {
     if (template.additionalData?.chatOpsName) {
       setChatOpsPermalink({
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],
@@ -131,26 +130,32 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const getCheatSheet = (templateKey: string) => {
     switch (templateKey) {
-      case TemplateOptions.Grouping.key:
-      case TemplateOptions.Resolve.key:
+      case IntegrationTemplateOptions.Grouping.key:
+      case IntegrationTemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case TemplateOptions.WebTitle.key:
-      case TemplateOptions.WebMessage.key:
-      case TemplateOptions.WebImage.key:
+      case IntegrationTemplateOptions.WebTitle.key:
+      case IntegrationTemplateOptions.WebMessage.key:
+      case IntegrationTemplateOptions.WebImage.key:
         return genericTemplateCheatSheet;
-      case TemplateOptions.Autoacknowledge.key:
-      case TemplateOptions.SourceLink.key:
-      case TemplateOptions.Phone.key:
-      case TemplateOptions.SMS.key:
-      case TemplateOptions.SlackTitle.key:
-      case TemplateOptions.SlackMessage.key:
-      case TemplateOptions.SlackImage.key:
-      case TemplateOptions.TelegramTitle.key:
-      case TemplateOptions.TelegramMessage.key:
-      case TemplateOptions.TelegramImage.key:
-      case TemplateOptions.EmailTitle.key:
-      case TemplateOptions.EmailMessage.key:
+      case IntegrationTemplateOptions.Autoacknowledge.key:
+      case IntegrationTemplateOptions.SourceLink.key:
+      case IntegrationTemplateOptions.Phone.key:
+      case IntegrationTemplateOptions.SMS.key:
+      case IntegrationTemplateOptions.SlackTitle.key:
+      case IntegrationTemplateOptions.SlackMessage.key:
+      case IntegrationTemplateOptions.SlackImage.key:
+      case IntegrationTemplateOptions.TelegramTitle.key:
+      case IntegrationTemplateOptions.TelegramMessage.key:
+      case IntegrationTemplateOptions.TelegramImage.key:
+      case IntegrationTemplateOptions.EmailTitle.key:
+      case IntegrationTemplateOptions.EmailMessage.key:
+      case IntegrationTemplateOptions.MobileAppTitle.key:
+      case IntegrationTemplateOptions.MobileAppMessage.key:
         return slackMessageTemplateCheatSheet;
+      case LabelTemplateOptions.AlertGroupDynamicLabel.key:
+        return alertGroupDynamicLabelCheatSheet;
+      case LabelTemplateOptions.AlertGroupMultiLabel.key:
+        return alertGroupMultiLabelExtractionCheatSheet;
       default:
         return genericTemplateCheatSheet;
     }
@@ -185,7 +190,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       width={'95%'}
     >
       <div className={cx('container-wrapper')}>
-        <div className={cx('container')} id={'content-container-id'}>
+        <div className={cx('container')}>
           <TemplatesAlertGroupsList
             templatePage={TEMPLATE_PAGE.Integrations}
             alertReceiveChannelId={id}
@@ -238,7 +243,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
               value={changedTemplateBody}
               data={templates}
               showLineNumbers={true}
-              height={editorHeight}
+              height="100%"
               onChange={getChangeHandler()}
             />
           </div>
@@ -247,5 +252,3 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     );
   }
 });
-
-export default IntegrationTemplate;

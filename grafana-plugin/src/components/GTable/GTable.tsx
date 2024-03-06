@@ -1,16 +1,16 @@
-import React, { FC, useCallback, useMemo, ChangeEvent } from 'react';
+import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
 import { Pagination, Checkbox, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
+import { DefaultRecordType } from 'rc-table/lib/interface';
 
 import styles from './GTable.module.css';
 
 const cx = cn.bind(styles);
 
-export interface Props<RecordType = unknown> extends TableProps<RecordType> {
-  loading?: boolean;
+export interface GTableProps<RecordType = unknown> extends TableProps<RecordType> {
   pagination?: {
     page: number;
     total: number;
@@ -31,13 +31,12 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   showHeader?: boolean;
 }
 
-const GTable: FC<Props> = (props) => {
+export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: GTableProps<RT>): ReactElement => {
   const {
     columns: columnsProp,
     data,
     className,
     pagination,
-    loading,
     rowSelection,
     rowKey,
     expandable,
@@ -114,7 +113,7 @@ const GTable: FC<Props> = (props) => {
 
     if (rowSelection) {
       columns.unshift({
-        width: '25px',
+        width: '40px',
         key: 'check',
         title: (
           <Checkbox
@@ -139,7 +138,7 @@ const GTable: FC<Props> = (props) => {
 
   return (
     <div className={cx('root')} data-testid="test__gTable">
-      <Table
+      <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
         className={cx('filter-table', className)}
@@ -156,5 +155,3 @@ const GTable: FC<Props> = (props) => {
     </div>
   );
 };
-
-export default GTable;

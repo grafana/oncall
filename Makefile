@@ -1,6 +1,6 @@
 help:
 	@sed \
-		-e '/^[a-zA-Z0-9_\-]*:.*##/!d' \
+		-e '/^[a-zA-Z0-9_\-\/\-]*:.*##/!d' \
 		-e 's/:.*##\s*/:/' \
 		-e 's/^\(.\+\):\(.*\)/$(shell tput setaf 6)\1$(shell tput sgr0):\2/' \
 		$(MAKEFILE_LIST) | column -c2 -t -s :
@@ -18,15 +18,28 @@ REDIS_PROFILE = redis
 RABBITMQ_PROFILE = rabbitmq
 PROMETHEUS_PROFILE = prometheus
 GRAFANA_PROFILE = grafana
+TELEGRAM_POLLING_PROFILE = telegram_polling
 
 DEV_ENV_DIR = ./dev
 DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev
 DEV_ENV_EXAMPLE_FILE = $(DEV_ENV_FILE).example
 
+DEV_HELM_FILE = $(DEV_ENV_DIR)/helm-local.yml
+DEV_HELM_USER_SPECIFIC_FILE = $(DEV_ENV_DIR)/helm-local.dev.yml
+
 ENGINE_DIR = ./engine
+VENV_DIR = ./venv
+REQUIREMENTS_DEV_IN = $(ENGINE_DIR)/requirements-dev.in
+REQUIREMENTS_DEV_TXT = $(ENGINE_DIR)/requirements-dev.txt
+REQUIREMENTS_IN = $(ENGINE_DIR)/requirements.in
 REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
 REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
+
+# make sure that DEV_HELM_USER_SPECIFIC_FILE and SQLITE_DB_FILE always exists
+# (NOTE: touch will only create the file if it doesn't already exist)
+$(shell touch $(DEV_HELM_USER_SPECIFIC_FILE))
+$(shell touch $(SQLITE_DB_FILE))
 
 # -n flag only copies DEV_ENV_EXAMPLE_FILE-> DEV_ENV_FILE if it doesn't already exist
 $(shell cp -n $(DEV_ENV_EXAMPLE_FILE) $(DEV_ENV_FILE))
@@ -55,13 +68,35 @@ else
 	BROKER_TYPE=$(REDIS_PROFILE)
 endif
 
+# TODO: remove this when docker-compose local setup is removed
+# https://stackoverflow.com/a/649462
+define _DEPRECATION_MESSAGE
+⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
+NOTE: docker-compose based make commands will be deprecated on (or around) October 1, 2023, in favour of
+tilt/k8s based commands. Please familirize yourself with the tilt/k8s commands.
+
+See https://github.com/grafana/oncall/tree/dev/dev for instructions on how to use tilt helm/k8s commands.
+⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
+
+
+endef
+export _DEPRECATION_MESSAGE
+define echo_deprecation_message
+	@echo "$$_DEPRECATION_MESSAGE"
+endef
+
 # SQLITE_DB_FiLE is set to properly mount the sqlite db file
 DOCKER_COMPOSE_ENV_VARS := COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE)
+
+# It's better to output pip log on the fly while building because it takes a lot of time
+DOCKER_COMPOSE_ENV_VARS += BUILDKIT_PROGRESS=plain
+
 ifeq ($(DB),$(SQLITE_PROFILE))
 	DOCKER_COMPOSE_ENV_VARS += SQLITE_DB_FILE=$(SQLITE_DB_FILE)
 endif
 
 define run_docker_compose_command
+	$(call echo_deprecation_message)
 	$(DOCKER_COMPOSE_ENV_VARS) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
 endef
 
@@ -73,14 +108,32 @@ define run_ui_docker_command
 	$(call run_docker_compose_command,run --rm oncall_ui sh -c '$(1)')
 endef
 
-# touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
-start:  ## start all of the docker containers
-ifeq ($(DB),$(SQLITE_PROFILE))
-	@if [ ! -f $(SQLITE_DB_FILE) ]; then \
-		touch $(SQLITE_DB_FILE); \
-	fi
-endif
+# always use settings.ci-test django settings file when running the tests
+# if we use settings.dev it's very possible that some fail just based on the settings alone
+define run_backend_tests
+	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
+endef
 
+.PHONY: local/up
+local/up: cluster/up  ## (beta) deploy all containers locally via tilt (k8s cluster will be created if it doesn't exist)
+	tilt up
+
+.PHONY: local/down
+local/down:  ## (beta) remove all containers deployed via tilt
+	tilt down
+
+.PHONY: local/clean
+local/clean: cluster/down ## (beta) clean up k8s local dev environment
+
+.PHONY: cluster/up
+cluster/up:  ## (beta) create a local development k8s cluster
+	ctlptl apply -f dev/kind-config.yaml
+
+.PHONY: cluster/down
+cluster/down: ## (beta) delete local development k8s cluster
+	ctlptl delete -f dev/kind-config.yaml
+
+start:  ## start all of the docker containers
 	$(call run_docker_compose_command,up --remove-orphans -d)
 
 init:  ## build the frontend plugin code then run make start
@@ -102,6 +155,7 @@ build:  ## rebuild images (e.g. when changing requirements.txt)
 
 cleanup: stop  ## this will remove all of the images, containers, volumes, and networks
                ## associated with your local OnCall developer setup
+	$(call echo_deprecation_message)
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
 install-pre-commit:
@@ -121,9 +175,14 @@ install-precommit-hook: install-pre-commit
 	pre-commit install
 
 test:  ## run backend tests
-# always use settings.ci-test django settings file when running the tests
-# if we use settings.dev it's very possible that some fail just based on the settings alone
-	$(call run_engine_docker_command,pytest --ds=settings.ci-test)
+	$(call run_backend_tests)
+
+test-dev:  ## very similar to `test` command, but allows you to pass arbitray args to pytest
+           ## for example, `make test-dev ARGS="--last-failed --pdb"
+	$(call run_backend_tests,$(ARGS))
+
+test-helm:  ## run helm unit tests
+	helm unittest ./helm/oncall $(ARGS)
 
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)
@@ -141,6 +200,15 @@ engine-manage:  ## run Django's `manage.py` script, inside of a docker container
                 ## e.g. `make engine-manage CMD="makemigrations"`
                 ## https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 	$(call run_engine_docker_command,python manage.py $(CMD))
+
+test-e2e:  ## run the e2e tests in headless mode
+	yarn --cwd grafana-plugin test:e2e
+
+test-e2e-watch:  ## start e2e tests in watch mode
+	yarn --cwd grafana-plugin test:e2e:watch
+
+test-e2e-show-report:  ## open last e2e test report
+	yarn --cwd grafana-plugin playwright show-report
 
 ui-test:  ## run the UI tests
 	$(call run_ui_docker_command,yarn test)
@@ -173,19 +241,28 @@ backend-debug-disable: _backend-debug-disable stop start
 define backend_command
 	export `grep -v '^#' $(DEV_ENV_FILE) | xargs -0` && \
 	export BROKER_TYPE=$(BROKER_TYPE) && \
+	. ./venv/bin/activate && \
 	cd engine && \
 	$(1)
 endef
 
 backend-bootstrap:
-	pip install -U pip wheel
-	pip install -r $(REQUIREMENTS_TXT)
+	python3.11 -m venv $(VENV_DIR)
+	$(VENV_DIR)/bin/pip install -U pip wheel pip-tools
+	$(VENV_DIR)/bin/pip-sync $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
 	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
-		pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+		$(VENV_DIR)/bin/pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
 	fi
 
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
+
+backend-compile-deps:
+	pip-compile --strip-extras $(REQUIREMENTS_IN)
+	pip-compile --strip-extras $(REQUIREMENTS_DEV_IN)
+
+backend-upgrade-deps:
+	pip-compile --strip-extras --upgrade $(REQUIREMENTS_IN)
 
 run-backend-server:
 	$(call backend_command,python manage.py runserver 0.0.0.0:8080)

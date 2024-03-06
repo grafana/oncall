@@ -1,0 +1,30 @@
+creates deployment if ui.enabled is true:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app.kubernetes.io/component: oncall-ui
+      name: oncall-ui
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: oncall-ui
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/component: oncall-ui
+        spec:
+          containers:
+            - env: null
+              image: oncall/ui:dev
+              imagePullPolicy: IfNotPresent
+              name: oncall-ui
+              volumeMounts:
+                - mountPath: /etc/app
+                  name: hot-reloaded-plugin
+          volumes:
+            - hostPath:
+                path: /oncall-plugin
+              name: hot-reloaded-plugin

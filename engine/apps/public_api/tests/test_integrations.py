@@ -74,6 +74,9 @@ def test_get_list_integrations(
                 "maintenance_end_at": None,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
     url = reverse("api-public:integrations-list")
     response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -99,6 +102,73 @@ def test_create_integration(
     url = reverse("api-public:integrations-list")
     response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_integration_name_uniqueness(
+    make_organization_and_user_with_token,
+    make_team,
+):
+    organization, _, token = make_organization_and_user_with_token()
+
+    client = APIClient()
+    data = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    integration_pk = response.data["id"]
+
+    # cannot create another one with the same name
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # but name can be reused in a different team
+    another_team = make_team(organization)
+    data["team_id"] = another_team.public_primary_key
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # update works
+    url = reverse("api-public:integrations-detail", args=[integration_pk])
+    data["team_id"] = None
+    data["description"] = "some description"
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # but updating team will fail if name exists
+    data["team_id"] = another_team.public_primary_key
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_integration_name_duplicated(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    # this could happen in case a team is removed and integrations are set to have "no team"
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    # duplicated name integration
+    make_alert_receive_channel(organization, verbal_name=integration.verbal_name)
+
+    client = APIClient()
+
+    # updating team will require changing the name or the team
+    data = {"name": integration.verbal_name}
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # but updating team will fail if name exists
+    data["name"] = "a new name"
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -772,3 +842,202 @@ def test_get_list_integrations_link_and_inbound_email(
         else:
             assert integration_link == f"https://test.com/integrations/v1/{integration_type}/test123/"
             assert integration_inbound_email is None
+
+
+@pytest.mark.django_db
+def test_create_integration_default_route(
+    make_organization_and_user_with_token,
+    make_escalation_chain,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_create = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+        "default_route": {"escalation_chain_id": escalation_chain.public_primary_key},
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["default_route"]["escalation_chain_id"] == escalation_chain.public_primary_key
+
+
+@pytest.mark.django_db
+def test_update_integration_default_route(
+    make_organization_and_user_with_token, make_escalation_chain, make_alert_receive_channel, make_channel_filter
+):
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    make_channel_filter(integration, is_default=True)
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_update = {
+        "default_route": {"escalation_chain_id": escalation_chain.public_primary_key},
+    }
+
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["default_route"]["escalation_chain_id"] == escalation_chain.public_primary_key
+
+
+@pytest.mark.django_db
+def test_create_integration_default_route_with_slack_field(
+    make_organization_and_user_with_token,
+    make_escalation_chain,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_create = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+        "default_route": {
+            "escalation_chain_id": escalation_chain.public_primary_key,
+            "slack": {"channel_id": "TEST_SLACK_ID"},
+        },
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
+def test_update_integration_default_route_with_slack_field(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter
+):
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    make_channel_filter(integration, is_default=True)
+
+    client = APIClient()
+    data_for_update = {
+        "default_route": {"slack": {"channel_id": "TEST_SLACK_ID"}},
+    }
+
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "Slack isn't connected to this workspace"
+
+
+@pytest.mark.django_db
+def test_cant_create_integrations_direct_paging(
+    make_organization_and_user_with_token, make_team, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, _, token = make_organization_and_user_with_token()
+
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data={"type": "direct_paging"}, format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_integrations_direct_paging(
+    make_organization_and_user_with_token, make_team, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, _, token = make_organization_and_user_with_token()
+    team = make_team(organization)
+
+    integration = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
+    )
+    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+
+    # Move direct paging integration from "No team" to team
+    response = client.put(url, data={"team_id": team.public_primary_key}, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
+
+
+@pytest.mark.django_db
+def test_cant_delete_direct_paging_integration(make_organization_and_user_with_token, make_alert_receive_channel):
+    organization, user, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.delete(url, HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_get_integration_type_legacy(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    )
+    legacy_am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER
+    )
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[am.public_primary_key])
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["type"] == "alertmanager"
+
+    url = reverse("api-public:integrations-detail", args=[legacy_am.public_primary_key])
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["type"] == "alertmanager"
+
+
+@pytest.mark.django_db
+def test_create_integration_type_legacy(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data={"type": "alertmanager"}, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["type"] == "alertmanager"
+
+    response = client.post(url, data={"type": "legacy_alertmanager"}, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_integration_type_legacy(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    )
+    legacy_am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER
+    )
+
+    data_for_update = {"type": "alertmanager", "description_short": "Updated description"}
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[am.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["type"] == "alertmanager"
+    assert response.data["description_short"] == "Updated description"
+
+    url = reverse("api-public:integrations-detail", args=[legacy_am.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["description_short"] == "Updated description"
+    assert response.data["type"] == "alertmanager"

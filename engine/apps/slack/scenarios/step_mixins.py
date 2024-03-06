@@ -4,7 +4,7 @@ import logging
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import user_is_authorized
 from apps.slack.models import SlackMessage, SlackTeamIdentity
-from apps.user_management.models import User
+from apps.slack.types import EventPayload
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +14,7 @@ class AlertGroupActionsMixin:
     Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
     """
 
-    user: User | None
-
-    REQUIRED_PERMISSIONS = []
-
-    def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: dict) -> AlertGroup:
+    def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: EventPayload) -> AlertGroup:
         """
         Get AlertGroup instance on Slack message button click or select menu change.
         """
@@ -28,6 +24,7 @@ class AlertGroupActionsMixin:
             or self._get_alert_group_from_message(payload)  # Try to use alert_group_pk from ANY button in message
             or self._get_alert_group_from_slack_message_in_db(slack_team_identity, payload)  # Fetch message from DB
         )
+        assert alert_group is not None, "AlertGroup not found"
 
         # Repair alert group if Slack message is orphaned
         if alert_group.slack_message is None:
@@ -37,7 +34,7 @@ class AlertGroupActionsMixin:
 
     def is_authorized(self, alert_group: AlertGroup) -> bool:
         """
-        Check that user has required permissions to perform an action.
+        Customize ScenarioStep.is_authorized method to check for alert group permissions.
         """
 
         return (
@@ -46,15 +43,8 @@ class AlertGroupActionsMixin:
             and user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
         )
 
-    def open_unauthorized_warning(self, payload: dict) -> None:
-        self.open_warning_window(
-            payload,
-            warning_text="You do not have permission to perform this action. Ask an admin to upgrade your permissions.",
-            title="Permission denied",
-        )
-
     def _repair_alert_group(
-        self, slack_team_identity: SlackTeamIdentity, alert_group: AlertGroup, payload: dict
+        self, slack_team_identity: SlackTeamIdentity, alert_group: AlertGroup, payload: EventPayload
     ) -> None:
         """
         There's a possibility that OnCall failed to create a SlackMessage instance for an AlertGroup, but the message
@@ -67,7 +57,7 @@ class AlertGroupActionsMixin:
         except KeyError:
             message_id = payload["original_message"]["ts"]
 
-        slack_message = SlackMessage.objects.create(
+        SlackMessage.objects.create(
             slack_id=message_id,
             organization=alert_group.channel.organization,
             _slack_team_identity=slack_team_identity,
@@ -75,10 +65,7 @@ class AlertGroupActionsMixin:
             alert_group=alert_group,
         )
 
-        alert_group.slack_message = slack_message
-        alert_group.save(update_fields=["slack_message"])
-
-    def _get_alert_group_from_action(self, payload: dict) -> AlertGroup | None:
+    def _get_alert_group_from_action(self, payload: EventPayload) -> AlertGroup | None:
         """
         Get AlertGroup instance from action data in payload. Action data is data encoded into buttons and select
         menus in apps.alerts.incident_appearance.renderers.slack_renderer.AlertGroupSlackRenderer._get_buttons_blocks.
@@ -99,14 +86,29 @@ class AlertGroupActionsMixin:
         except (TypeError, json.JSONDecodeError):
             return None
 
+        # New slack messages from OnCall contain alert group primary key
+        try:
+            alert_group_ppk = value["alert_group_ppk"]
+            return AlertGroup.objects.get(public_primary_key=alert_group_ppk)
+        except (KeyError, TypeError):
+            pass
+
         try:
             alert_group_pk = value["alert_group_pk"]
+            organization_pk = value["organization_id"]
         except (KeyError, TypeError):
             return None
 
-        return AlertGroup.all_objects.get(pk=alert_group_pk)
+        try:
+            # check organization as well for cases when the organization was migrated from "us" cluster to "eu" and
+            # slack message has an outdated payload with incorrect alert group id
+            alert_group = AlertGroup.objects.get(pk=alert_group_pk, channel__organization_id=organization_pk)
+        except AlertGroup.DoesNotExist:
+            return None
 
-    def _get_alert_group_from_message(self, payload: dict) -> AlertGroup | None:
+        return alert_group
+
+    def _get_alert_group_from_message(self, payload: EventPayload) -> AlertGroup | None:
         """
         Get AlertGroup instance from message data in payload. It's similar to _get_alert_group_from_action,
         but it tries to get alert_group_pk from ANY button in the message, not just the one that was clicked.
@@ -129,17 +131,32 @@ class AlertGroupActionsMixin:
             except (TypeError, json.JSONDecodeError):
                 continue
 
+            # New slack messages from OnCall contain alert group primary key
+            try:
+                alert_group_ppk = value["alert_group_ppk"]
+                return AlertGroup.objects.get(public_primary_key=alert_group_ppk)
+            except (KeyError, TypeError):
+                pass
+
             try:
                 alert_group_pk = value["alert_group_pk"]
+                organization_pk = value["organization_id"]
             except (KeyError, TypeError):
                 continue
 
-            return AlertGroup.all_objects.get(pk=alert_group_pk)
+            try:
+                # check the organization as well for cases organization was migrated from "us" cluster to "eu" and
+                # the slack message has an outdated payload with incorrect alert group id
+                alert_group = AlertGroup.objects.get(pk=alert_group_pk, channel__organization_id=organization_pk)
+            except AlertGroup.DoesNotExist:
+                return None
+
+            return alert_group
         return None
 
     def _get_alert_group_from_slack_message_in_db(
-        self, slack_team_identity: SlackTeamIdentity, payload: dict
-    ) -> AlertGroup:
+        self, slack_team_identity: SlackTeamIdentity, payload: EventPayload
+    ) -> AlertGroup | None:
         """
         Get AlertGroup instance from SlackMessage instance.
         Old messages may not have alert_group_pk encoded into buttons, so we need to query SlackMessage to figure out
@@ -159,4 +176,4 @@ class AlertGroupActionsMixin:
             _slack_team_identity=slack_team_identity,
             channel_id=channel_id,
         )
-        return slack_message.get_alert_group()
+        return slack_message.alert_group

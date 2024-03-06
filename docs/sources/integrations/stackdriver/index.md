@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - stackdriver
+labels:
+  products:
+    - cloud
 title: Stackdriver
 weight: 500
 ---
 
 # Stackdriver integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The Stackdriver integration for Grafana OnCall handles ticket events sent from Stackdriver webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
@@ -34,6 +39,6 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 2. Create and alert in Stackdriver by navigating to Alerting -> Policies -> Add Policy -> Choose Notification Channel using the channel set up in step 1
 
 {{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
 {{% /docs/reference %}}

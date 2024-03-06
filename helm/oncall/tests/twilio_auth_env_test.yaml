@@ -1,0 +1,48 @@
+suite: test Twilio auth envs for deployments
+release:
+  name: oncall
+templates:
+  - engine/deployment.yaml
+tests:
+  - it: snippet.oncall.twilio.env -> should succeed if only apiKeySid and apiKeySecret are set
+    set:
+      oncall.twilio.existingSecret: unittest-secret
+      oncall.twilio.accountSid: "acc-sid"
+      oncall.twilio.phoneNumberKey: "phone-key"
+      oncall.twilio.verifySidKey: "verify-sid-key"
+      oncall.twilio.apiKeySidKey: "api-sid-key"
+      oncall.twilio.apiKeySecretKey: "api-secret-key"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TWILIO_API_KEY_SID
+            valueFrom:
+              secretKeyRef:
+                key: api-sid-key
+                name: unittest-secret
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TWILIO_API_KEY_SECRET
+            valueFrom:
+              secretKeyRef:
+                key: api-secret-key
+                name: unittest-secret
+
+  - it: snippet.oncall.twilio.env -> should succeed if only authToken is set
+    set:
+      oncall.twilio.existingSecret: unittest-secret
+      oncall.twilio.accountSid: "acc-sid"
+      oncall.twilio.verifySidKey: "verify-sid-key"
+      oncall.twilio.phoneNumberKey: "phone-key"
+      oncall.twilio.authTokenKey: "auth-token-key"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TWILIO_AUTH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                key: auth-token-key
+                name: unittest-secret

@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - prtg
+labels:
+  products:
+    - cloud
 title: PRTG
 weight: 500
 ---
 
 # PRTG integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The PRTG integration for Grafana OnCall handles ticket events sent from PRTG webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
@@ -60,20 +65,20 @@ Param(
 
 # PRTG Server
 $PRTGServer = "localhost:8080"
-$PRTGUsername = "amixr"
+$PRTGUsername = "oncall"
 $PRTGPasshash  = *****
 
 #Directory for logging
 $LogDirectory = "C:\temp\prtg-notifications-msteam.log"
 
 #Acknowledgement Message for alerts ack'd via Teams
-$ackmessage = "Problem has been acknowledged via Amixr."
+$ackmessage = "Problem has been acknowledged via OnCall."
 
 # the acknowledgement URL
 $ackURL = [string]::Format("{0}/api/acknowledgealarm.htm?id={1}&ackmsg={2}&username={3}&passhash={4}",
 $PRTGServer,$sensorID,$ackmessage,$PRTGUsername,$PRTGPasshash);
 
-# Autoresolve an alert in Amixr
+# Autoresolve an alert in OnCall
 if($status -eq "Up")
 { $state = "ok" }
 ElseIf($status -match "now: Up")
@@ -113,6 +118,6 @@ Catch
 ```
 
 {{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
 {{% /docs/reference %}}

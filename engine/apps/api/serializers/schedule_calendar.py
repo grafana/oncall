@@ -4,9 +4,8 @@ from apps.api.serializers.schedule_base import ScheduleBaseSerializer
 from apps.schedules.models import OnCallScheduleCalendar
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
 from apps.slack.models import SlackChannel, SlackUserGroup
-from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField, TimeZoneField
 from common.api_helpers.utils import validate_ical_url
-from common.timezones import TimeZoneField
 
 
 class ScheduleCalendarSerializer(ScheduleBaseSerializer):
@@ -58,8 +57,7 @@ class ScheduleCalendarCreateSerializer(ScheduleCalendarSerializer):
             or old_enable_web_overrides != updated_enable_web_overrides
         ):
             updated_schedule.drop_cached_ical()
-            updated_schedule.check_empty_shifts_for_next_week()
-            updated_schedule.check_gaps_for_next_week()
+            updated_schedule.check_gaps_and_empty_shifts_for_next_week()
             schedule_notify_about_empty_shifts_in_schedule.apply_async((instance.pk,))
             schedule_notify_about_gaps_in_schedule.apply_async((instance.pk,))
         return updated_schedule

@@ -1,9 +1,10 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { RootStore } from 'state/rootStore';
+import { WithGlobalNotification } from 'utils/decorators';
 
 import { Heartbeat } from './heartbeat.types';
 
@@ -17,39 +18,79 @@ export class HeartbeatStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/heartbeats/';
   }
 
-  @action
+  @action.bound
   async updateTimeoutOptions() {
-    this.timeoutOptions = await makeRequest(`${this.path}timeout_options/`, {});
+    const result = await makeRequest(`${this.path}timeout_options/`, {});
+
+    runInAction(() => {
+      this.timeoutOptions = result;
+    });
   }
 
-  @action
+  @action.bound
   async saveHeartbeat(id: Heartbeat['id'], data: Partial<Heartbeat>) {
-    const response: Heartbeat = await super.update(id, data);
+    const response = await super.update<Heartbeat>(id, data);
 
-    this.items = {
-      ...this.items,
-      [response.id]: response,
-    };
+    if (!response) {
+      return;
+    }
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.id]: response,
+      };
+    });
   }
 
-  @action
-  async createHeartbeat(alertReceiveChannelId: AlertReceiveChannel['id'], data: Partial<Heartbeat>) {
-    const response: Heartbeat = await super.create({
+  @action.bound
+  async createHeartbeat(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], data: Partial<Heartbeat>) {
+    const response = await super.create<Heartbeat>({
       alert_receive_channel: alertReceiveChannelId,
       ...data,
     });
 
-    this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat = {
-      ...this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat,
-      [alertReceiveChannelId]: response.id,
-    };
+    if (!response) {
+      return;
+    }
 
-    this.items = {
-      ...this.items,
-      [response.id]: response,
-    };
+    runInAction(() => {
+      this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat = {
+        ...this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat,
+        [alertReceiveChannelId]: response.id,
+      };
+
+      this.items = {
+        ...this.items,
+        [response.id]: response,
+      };
+    });
+  }
+
+  @WithGlobalNotification({ success: 'Heartbeat has been reset' })
+  @action.bound
+  async resetHeartbeatAndRefetchIntegration(
+    heartbeatId: Heartbeat['id'],
+    integrationId: ApiSchemas['AlertReceiveChannel']['id']
+  ) {
+    const response = await makeRequest(`${this.path}${heartbeatId}/reset`, { method: 'POST' });
+
+    if (!response) {
+      return;
+    }
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.id]: response,
+      };
+    });
+
+    await this.rootStore.alertReceiveChannelStore.fetchItemById(integrationId);
   }
 }

@@ -1,10 +1,9 @@
+import typing
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.template.loader import render_to_string
+from django.db.models import Q
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -14,51 +13,242 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix
+from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.labels.types import LabelKey
+from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
-from common.api_helpers.utils import CurrentTeamDefault
-from common.jinja_templater import apply_jinja_template, jinja_template_env
-from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
+from common.jinja_templater import jinja_template_env
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
+from .labels import LabelsSerializerMixin
 
 
-def valid_jinja_template_for_serializer_method_field(template):
-    for _, val in template.items():
-        try:
-            apply_jinja_template(val, payload={})
-        except JinjaTemplateWarning:
-            # Suppress warnings, template may be valid with payload
-            pass
+# AlertGroupCustomLabelValue represents custom alert group label value for API requests
+# It handles two types of label's value:
+# 1. Just Label Value from a label repo for a static label
+# 2. Templated Label value which is actually a jinja template for a dynamic label.
+class AlertGroupCustomLabelValueAPI(typing.TypedDict):
+    id: str | None  # None for templated labels, label value ID for plain labels
+    name: str  # Jinja template for templated labels, label value name for plain labels
+    prescribed: bool  # Indicates of selected label value is prescribed. Not applicable for templated values.
 
 
-class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+# AlertGroupCustomLabel represents Alert group custom label for API requests
+# Key is just a LabelKey from label repo, while value could be value from repo or a jinja template.
+class AlertGroupCustomLabelAPI(typing.TypedDict):
+    key: LabelKey
+    value: AlertGroupCustomLabelValueAPI
+
+
+AlertGroupCustomLabelsAPI = list[AlertGroupCustomLabelAPI]
+
+
+class IntegrationAlertGroupLabels(typing.TypedDict):
+    inheritable: dict[str, bool]
+    custom: AlertGroupCustomLabelsAPI
+    template: str | None
+
+
+class CustomLabelSerializer(serializers.Serializer):
+    """This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID."""
+
+    class CustomLabelKeySerializer(serializers.Serializer):
+        id = serializers.CharField()
+        name = serializers.CharField()
+        prescribed = serializers.BooleanField(default=False)
+
+    class CustomLabelValueSerializer(serializers.Serializer):
+        # ID is null for templated labels. For such labels, the "name" value is a Jinja2 template.
+        id = serializers.CharField(allow_null=True)
+        name = serializers.CharField()
+        prescribed = serializers.BooleanField(default=False)
+
+    key = CustomLabelKeySerializer()
+    value = CustomLabelValueSerializer()
+
+
+class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
+    """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
+
+    inheritable = serializers.DictField(child=serializers.BooleanField())
+    custom = CustomLabelSerializer(many=True)
+    template = serializers.CharField(allow_null=True)
+
+    @staticmethod
+    def pop_alert_group_labels(validated_data: dict) -> IntegrationAlertGroupLabels | None:
+        """Get alert group labels from validated data."""
+
+        # the "alert_group_labels" field is optional, so either all 3 fields are present or none
+        if "inheritable" not in validated_data:
+            return None
+
+        return {
+            "inheritable": validated_data.pop("inheritable"),
+            "custom": validated_data.pop("custom"),
+            "template": validated_data.pop("template"),
+        }
+
+    @classmethod
+    def update(
+        cls, instance: AlertReceiveChannel, alert_group_labels: IntegrationAlertGroupLabels | None
+    ) -> AlertReceiveChannel:
+        if alert_group_labels is None:
+            return instance
+
+        # update inheritable labels
+        inheritable_key_ids = [
+            key_id for key_id, inheritable in alert_group_labels["inheritable"].items() if inheritable
+        ]
+        instance.labels.filter(key_id__in=inheritable_key_ids).update(inheritable=True)
+        instance.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
+
+        # update DB cache for custom labels
+        cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
+        # update custom labels
+        instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
+
+        # update template
+        instance.alert_group_labels_template = alert_group_labels["template"]
+
+        instance.save(update_fields=["alert_group_labels_custom", "alert_group_labels_template"])
+        return instance
+
+    @staticmethod
+    def _create_custom_labels(organization: Organization, labels: AlertGroupCustomLabelsAPI) -> None:
+        """Create LabelKeyCache and LabelValueCache objects for custom labels."""
+
+        label_keys = [
+            LabelKeyCache(
+                id=label["key"]["id"],
+                name=label["key"]["name"],
+                prescribed=label["key"]["prescribed"],
+                organization=organization,
+            )
+            for label in labels
+        ]
+
+        label_values = [
+            LabelValueCache(
+                id=label["value"]["id"],
+                name=label["value"]["name"],
+                prescribed=label["value"]["prescribed"],
+                key_id=label["key"]["id"],
+            )
+            for label in labels
+            if label["value"]["id"]  # don't create LabelValueCache objects for templated labels
+        ]
+
+        LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
+        LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
+
+    @classmethod
+    def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
+        """
+        The API representation of alert group labels is very different from the underlying model.
+
+        "inheritable" is based on AlertReceiveChannelAssociatedLabel.inheritable, a property of another model.
+        "custom" is based on AlertReceiveChannel.alert_group_labels_custom, a JSONField with a different schema.
+        "template" is based on AlertReceiveChannel.alert_group_labels_template, this one is straightforward.
+        """
+
+        return {
+            "inheritable": {label.key_id: label.inheritable for label in instance.labels.all()},
+            "custom": cls._custom_labels_to_representation(instance.alert_group_labels_custom),
+            "template": instance.alert_group_labels_template,
+        }
+
+    @staticmethod
+    def _custom_labels_to_internal_value(
+        custom_labels: AlertGroupCustomLabelsAPI,
+    ) -> AlertReceiveChannel.AlertGroupCustomLabelsDB:
+        """Convert custom labels from API representation to the schema used by the JSONField on the model."""
+
+        return [
+            [label["key"]["id"], label["value"]["id"], None if label["value"]["id"] else label["value"]["name"]]
+            for label in custom_labels
+        ]
+
+    @staticmethod
+    def _custom_labels_to_representation(
+        custom_labels: AlertReceiveChannel.AlertGroupCustomLabelsDB,
+    ) -> AlertGroupCustomLabelsAPI:
+        """
+        Inverse of the _custom_labels_to_internal_value method above.
+        Fetches label names from DB cache, so the API response schema is consistent with other label endpoints.
+        """
+
+        from apps.labels.models import LabelKeyCache, LabelValueCache
+
+        if custom_labels is None:
+            return []
+
+        # build index of keys id to name and prescribed flag
+        label_key_index = {
+            k.id: {"name": k.name, "prescribed": k.prescribed}
+            for k in LabelKeyCache.objects.filter(id__in=[label[0] for label in custom_labels]).only(
+                "id", "name", "prescribed"
+            )
+        }
+
+        # build index of values id to name and prescribed flag
+        label_value_index = {
+            v.id: {"name": v.name, "prescribed": v.prescribed}
+            for v in LabelValueCache.objects.filter(id__in=[label[1] for label in custom_labels if label[1]]).only(
+                "id", "name", "prescribed"
+            )
+        }
+
+        return [
+            {
+                "key": {
+                    "id": key_id,
+                    "name": label_key_index[key_id]["name"],
+                    "prescribed": label_key_index[key_id]["prescribed"],
+                },
+                "value": {
+                    "id": value_id if value_id else None,
+                    "name": label_value_index[value_id]["name"] if value_id else typing.cast(str, template),
+                    "prescribed": label_value_index[value_id]["prescribed"] if value_id else False,
+                },
+            }
+            for key_id, value_id, template in custom_labels
+            if key_id in label_key_index and (value_id in label_value_index or not value_id)
+        ]
+
+
+class AlertReceiveChannelSerializer(
+    EagerLoadingMixin, LabelsSerializerMixin, serializers.ModelSerializer[AlertReceiveChannel]
+):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_url = serializers.ReadOnlyField()
     alert_count = serializers.SerializerMethodField()
     alert_groups_count = serializers.SerializerMethodField()
     author = serializers.CharField(read_only=True, source="author.public_primary_key")
     organization = serializers.CharField(read_only=True, source="organization.public_primary_key")
-    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
     is_able_to_autoresolve = serializers.ReadOnlyField()
     default_channel_filter = serializers.SerializerMethodField()
     instructions = serializers.SerializerMethodField()
     demo_alert_enabled = serializers.BooleanField(source="is_demo_alert_enabled", read_only=True)
-    is_based_on_alertmanager = serializers.BooleanField(source="has_alertmanager_payload_structure", read_only=True)
+    is_based_on_alertmanager = serializers.BooleanField(source="based_on_alertmanager", read_only=True)
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
-    heartbeat = serializers.SerializerMethodField()
+    heartbeat = IntegrationHeartBeatSerializer(read_only=True, allow_null=True, source="integration_heartbeat")
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
     demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
-    inbound_email = serializers.CharField(required=False)
+    inbound_email = serializers.CharField(required=False, read_only=True)
+    is_legacy = serializers.SerializerMethodField()
+    alert_group_labels = IntegrationAlertGroupLabelsSerializer(source="*", required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
     # which leads to incorrect heartbeat-alert_receive_channel binding in result
-    PREFETCH_RELATED = ["channel_filters", "integration_heartbeat"]
+    PREFETCH_RELATED = ["channel_filters", "integration_heartbeat", "labels", "labels__key", "labels__value"]
     SELECT_RELATED = ["organization", "author"]
 
     class Meta:
@@ -92,6 +282,10 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "is_legacy",
+            "labels",
+            "alert_group_labels",
+            "alertmanager_v2_migrated_at",
         ]
         read_only_fields = [
             "created_at",
@@ -107,12 +301,37 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "is_legacy",
+            "alertmanager_v2_migrated_at",
         ]
         extra_kwargs = {"integration": {"required": True}}
+
+    def validate(self, data):
+        validated_data = super().validate(data)
+        organization = self.context["request"].auth.organization
+        verbal_name = validated_data.get("verbal_name")
+        team = validated_data.get("team")
+        try:
+            obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
+        except AlertReceiveChannel.DoesNotExist:
+            pass
+        except AlertReceiveChannel.MultipleObjectsReturned:
+            raise serializers.ValidationError(
+                {"verbal_name": "An integration with this name already exists for this team"}
+            )
+        else:
+            if self.instance is None or obj.id != self.instance.id:
+                raise serializers.ValidationError(
+                    {"verbal_name": "An integration with this name already exists for this team"}
+                )
+
+        return validated_data
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        if has_legacy_prefix(integration):
+            raise BadRequest(detail="This integration is deprecated")
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
@@ -121,64 +340,79 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             if _integration.slug == integration:
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
-        instance = AlertReceiveChannel.create(
-            **validated_data,
-            organization=organization,
-            author=self.context["request"].user,
-            allow_source_based_resolving=is_able_to_autoresolve,
-        )
+        # pop associated labels and alert group labels, so they are not passed to AlertReceiveChannel.create
+        labels = validated_data.pop("labels", None)
+        alert_group_labels = IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
+
+        try:
+            instance = AlertReceiveChannel.create(
+                **validated_data,
+                organization=organization,
+                author=self.context["request"].user,
+                allow_source_based_resolving=is_able_to_autoresolve,
+            )
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
+        # Create label associations first, then update alert group labels
+        self.update_labels_association_if_needed(labels, instance, organization)
+        instance = IntegrationAlertGroupLabelsSerializer.update(instance, alert_group_labels)
 
         return instance
 
-    def get_instructions(self, obj):
-        if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
-            return ""
+    def update(self, instance, validated_data):
+        # update associated labels
+        labels = validated_data.pop("labels", None)
+        self.update_labels_association_if_needed(labels, instance, self.context["request"].auth.organization)
 
-        rendered_instruction_for_web = render_to_string(
-            AlertReceiveChannel.INTEGRATIONS_TO_INSTRUCTIONS_WEB[obj.integration], {"alert_receive_channel": obj}
+        # update alert group labels
+        instance = IntegrationAlertGroupLabelsSerializer.update(
+            instance, IntegrationAlertGroupLabelsSerializer.pop_alert_group_labels(validated_data)
         )
 
-        return rendered_instruction_for_web
+        try:
+            return super().update(instance, validated_data)
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
+    def get_instructions(self, obj: "AlertReceiveChannel") -> str:
+        # Deprecated, kept for api-backward compatibility
+        return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
-    def get_default_channel_filter(self, obj):
+    def get_default_channel_filter(self, obj: "AlertReceiveChannel") -> str | None:
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+        return None
 
-    def validate_verbal_name(self, verbal_name):
-        organization = self.context["request"].auth.organization
-        if verbal_name is None or (self.instance and verbal_name == self.instance.verbal_name):
-            return verbal_name
-        try:
-            obj = AlertReceiveChannel.objects.get(organization=organization, verbal_name=verbal_name)
-        except AlertReceiveChannel.DoesNotExist:
-            return verbal_name
-        if self.instance and obj.id == self.instance.id:
-            return verbal_name
-        else:
-            raise serializers.ValidationError(detail="Integration with this name already exists")
+    @staticmethod
+    def validate_integration(integration):
+        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+            raise BadRequest(detail="invalid integration")
 
-    def get_heartbeat(self, obj):
-        try:
-            heartbeat = obj.integration_heartbeat
-        except ObjectDoesNotExist:
-            return None
-        return IntegrationHeartBeatSerializer(heartbeat).data
+        if integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+            raise BadRequest(detail="Direct paging integrations can't be created")
 
-    def get_allow_delete(self, obj):
-        return True
+        return integration
 
-    def get_alert_count(self, obj):
+    def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
+        # don't allow deleting direct paging integrations
+        return obj.integration != AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+
+    def get_alert_count(self, obj: "AlertReceiveChannel") -> int:
         return 0
 
-    def get_alert_groups_count(self, obj):
+    def get_alert_groups_count(self, obj: "AlertReceiveChannel") -> int:
         return 0
 
-    def get_routes_count(self, obj) -> int:
+    def get_routes_count(self, obj: "AlertReceiveChannel") -> int:
         return obj.channel_filters.count()
 
-    def get_connected_escalations_chains_count(self, obj) -> int:
+    def get_is_legacy(self, obj: "AlertReceiveChannel") -> bool:
+        return has_legacy_prefix(obj.integration)
+
+    def get_connected_escalations_chains_count(self, obj: "AlertReceiveChannel") -> int:
         return (
             ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
             .values("escalation_chain")
@@ -192,7 +426,7 @@ class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
         read_only_fields = [*AlertReceiveChannelSerializer.Meta.read_only_fields, "integration"]
 
 
-class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
+class FastAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertReceiveChannel]):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration = serializers.CharField(read_only=True)
     deleted = serializers.SerializerMethodField()
@@ -201,27 +435,30 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         model = AlertReceiveChannel
         fields = ["id", "integration", "verbal_name", "deleted"]
 
-    def get_deleted(self, obj):
+    def get_deleted(self, obj: "AlertReceiveChannel") -> bool:
         return obj.deleted_at is not None
 
 
-class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
-    value = serializers.SerializerMethodField()
+class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer[AlertReceiveChannel]):
+    # don't use get_value as the method name, otherwise this will override the get_value method on
+    # serializers.ModelSerializer, which may cause unexpected behavior (+ this violates the "Lisov substition
+    # principle" which mypy complains about)
+    value = serializers.SerializerMethodField(method_name="_get_value")
     display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = AlertReceiveChannel
-        fields = ["value", "display_name"]
+        fields = ["value", "display_name", "integration_url"]
 
-    def get_value(self, obj):
+    def _get_value(self, obj: "AlertReceiveChannel") -> str:
         return obj.public_primary_key
 
-    def get_display_name(self, obj):
+    def get_display_name(self, obj: "AlertReceiveChannel") -> str:
         display_name = obj.verbal_name or AlertReceiveChannel.INTEGRATION_CHOICES[obj.integration][1]
         return display_name
 
 
-class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer[AlertReceiveChannel]):
     id = serializers.CharField(read_only=True, source="public_primary_key")
 
     payload_example = SerializerMethodField()
@@ -237,8 +474,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         ]
         extra_kwargs = {"integration": {"required": True}}
 
-    def get_payload_example(self, obj):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+    def get_payload_example(self, obj: "AlertReceiveChannel"):
+        from apps.alerts.models import AlertGroup
+
         if "alert_group_id" in self.context["request"].query_params:
             alert_group_id = self.context["request"].query_params.get("alert_group_id")
             try:
@@ -253,8 +491,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             except AttributeError:
                 return None
 
-    def get_is_based_on_alertmanager(self, obj):
-        return obj.has_alertmanager_payload_structure
+    def get_is_based_on_alertmanager(self, obj: "AlertReceiveChannel"):
+        return obj.based_on_alertmanager
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):
@@ -329,7 +567,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 set_value(ret, [field_name], value)
         return errors
 
-    def to_representation(self, obj):
+    def to_representation(self, obj: "AlertReceiveChannel"):
         ret = super().to_representation(obj)
 
         core_templates = self._get_core_templates(obj)
@@ -341,7 +579,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         return ret
 
-    def _get_messaging_backend_templates(self, obj):
+    def _get_messaging_backend_templates(self, obj: "AlertReceiveChannel"):
         """Return additional messaging backend templates if any."""
         templates = {}
         for backend_id, backend in get_messaging_backends():
@@ -352,7 +590,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 is_default = False
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if not value:
+                if not value and not backend.skip_default_template_fields:
                     value = obj.get_default_template_attribute(backend_id, field)
                     is_default = True
                 field_name = f"{backend.slug}_{field}_template"
@@ -360,7 +598,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 templates[f"{field_name}_is_default"] = is_default
         return templates
 
-    def _get_core_templates(self, obj):
+    def _get_core_templates(self, obj: "AlertReceiveChannel"):
         core_templates = {}
 
         for template_name in self.core_templates_names:
@@ -373,10 +611,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         return core_templates
 
     @property
-    def core_templates_names(self):
+    def core_templates_names(self) -> typing.List[str]:
         """
-        core_templates_names returns names of templates introduced before messaging backends system with respect to
-        enabled integrations.
+        returns names of templates introduced before messaging backends system with respect to enabled integrations.
         """
         core_templates = [
             "web_title_template",
@@ -390,21 +627,16 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "acknowledge_condition_template",
         ]
 
-        slack_integration_required_templates = [
-            "slack_title_template",
-            "slack_message_template",
-            "slack_image_url_template",
-        ]
-        telegram_integration_required_templates = [
-            "telegram_title_template",
-            "telegram_message_template",
-            "telegram_image_url_template",
-        ]
-
-        apppend = []
-
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-            core_templates += slack_integration_required_templates
+            core_templates += [
+                "slack_title_template",
+                "slack_message_template",
+                "slack_image_url_template",
+            ]
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-            core_templates += telegram_integration_required_templates
-        return apppend + core_templates
+            core_templates += [
+                "telegram_title_template",
+                "telegram_message_template",
+                "telegram_image_url_template",
+            ]
+        return core_templates

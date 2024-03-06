@@ -38,6 +38,9 @@ def test_get_teams_list(team_public_api_setup):
                 "avatar_url": team.avatar_url,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

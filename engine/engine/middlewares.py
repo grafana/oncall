@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
@@ -64,7 +63,8 @@ class BanAlertConsumptionBasedOnSettingsMiddleware(MiddlewareMixin):
 
     def is_banned(self, path):
         try:
-            DynamicSetting = apps.get_model("base", "DynamicSetting")
+            from apps.base.models import DynamicSetting
+
             banned_paths = DynamicSetting.objects.get_or_create(
                 name="ban_hammer_list",
                 defaults={
@@ -89,3 +89,21 @@ class BanAlertConsumptionBasedOnSettingsMiddleware(MiddlewareMixin):
                 pass
             logging.warning(f"{request.path} has been banned")
             raise PermissionDenied()
+
+
+class LogRequestHeadersMiddleware:
+    """
+    Middleware to log the request headers.
+    Introduced to debug tracing issues.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Log request headers
+        logger.info("Request Headers: %s", request.headers)
+
+        response = self.get_response(request)
+
+        return response

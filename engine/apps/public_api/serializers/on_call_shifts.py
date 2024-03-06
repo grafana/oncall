@@ -5,14 +5,15 @@ from rest_framework import fields, serializers
 from apps.schedules.models import CustomOnCallShift
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
+    OrganizationFilteredPrimaryKeyRelatedField,
     RollingUsersField,
     TeamPrimaryKeyRelatedField,
+    TimeZoneField,
     UsersFilteredByOrganizationField,
 )
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
-from common.timezones import TimeZoneField
 
 
 class CustomOnCallShiftTypeField(fields.CharField):
@@ -70,6 +71,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
+    schedule = OrganizationFilteredPrimaryKeyRelatedField(read_only=True)
     type = CustomOnCallShiftTypeField()
     time_zone = TimeZoneField(required=False, allow_null=True)
     users = UsersFilteredByOrganizationField(queryset=User.objects, required=False)
@@ -92,6 +94,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             "id",
             "organization",
             "team_id",
+            "schedule",
             "name",
             "type",
             "time_zone",
@@ -116,16 +119,17 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             "source": {"required": False, "write_only": True},
         }
 
-    PREFETCH_RELATED = ["users"]
+    SELECT_RELATED = ["schedule"]
+    PREFETCH_RELATED = ["schedules", "users"]
 
     def create(self, validated_data):
+        validated_data = self._correct_validated_data(validated_data["type"], validated_data)
         self._validate_frequency_and_week_start(
             validated_data["type"],
             validated_data.get("frequency"),
-            validated_data.get("interval", 1),  # if field is missing, the default value will be used
+            validated_data.get("interval"),
             validated_data.get("week_start"),
         )
-        validated_data = self._correct_validated_data(validated_data["type"], validated_data)
         self._validate_start_rotation_from_user_index(
             validated_data["type"],
             validated_data.get("start_rotation_from_user_index"),
@@ -244,11 +248,23 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
+        if result["schedule"] is None:
+            related_schedules = instance.schedules.all()
+            result["schedule"] = related_schedules[0].public_primary_key if related_schedules else None
         result["duration"] = int(instance.duration.total_seconds())
         result["start"] = instance.start.strftime("%Y-%m-%dT%H:%M:%S")
         result["rotation_start"] = instance.rotation_start.strftime("%Y-%m-%dT%H:%M:%S")
         if instance.until is not None:
             result["until"] = instance.until.strftime("%Y-%m-%dT%H:%M:%S")
+
+        # Populate "users" field using "rolling_users" field for web overrides
+        # To support the behavior of the web UI, which creates overrides populating the rolling_users field
+        if (
+            result["type"] == CustomOnCallShift.PUBLIC_TYPE_CHOICES_MAP[CustomOnCallShift.TYPE_OVERRIDE]
+            and instance.source == CustomOnCallShift.SOURCE_WEB
+            and result["rolling_users"] is not None
+        ):
+            result["users"] = list({u for r in result["rolling_users"] for u in r})
         result = self._get_fields_to_represent(instance, result)
         return result
 
@@ -330,7 +346,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                 validated_data[field] = None
         if validated_data.get("start") is not None:
             validated_data["start"] = validated_data["start"].replace(tzinfo=None)
-        if validated_data.get("frequency") and validated_data.get("interval") is None:
+        if validated_data.get("frequency") is not None and "interval" not in validated_data:
             # if there is frequency but no interval is given, default to 1
             validated_data["interval"] = 1
 
@@ -358,6 +374,7 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
 
     def update(self, instance, validated_data):
         event_type = validated_data.get("type", instance.type)
+        validated_data = self._correct_validated_data(event_type, validated_data)
         frequency = validated_data.get("frequency", instance.frequency)
         start_rotation_from_user_index = validated_data.get(
             "start_rotation_from_user_index", instance.start_rotation_from_user_index
@@ -373,8 +390,10 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
 
         if start_rotation_from_user_index != instance.start_rotation_from_user_index:
             self._validate_start_rotation_from_user_index(event_type, start_rotation_from_user_index)
-        validated_data = self._correct_validated_data(event_type, validated_data)
         result = super().update(instance, validated_data)
         for schedule in instance.schedules.all():
             instance.start_drop_ical_and_check_schedule_tasks(schedule)
+        if instance.schedule:
+            # web-schedule shifts use FK instead
+            instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
         return result

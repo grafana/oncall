@@ -18,7 +18,7 @@ from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
-class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
+class LiveSettingViewSet(PublicPrimaryKeyMixin[LiveSetting], viewsets.ModelViewSet):
     serializer_class = LiveSettingSerializer
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)

@@ -3,7 +3,7 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, Select } from '@grafana/ui';
 
-import Text from 'components/Text/Text';
+import { Text } from 'components/Text/Text';
 
 interface CursorPaginationProps {
   current: string;
@@ -15,7 +15,7 @@ interface CursorPaginationProps {
   next: string;
 }
 
-const CursorPagination: FC<CursorPaginationProps> = (props) => {
+export const CursorPagination: FC<CursorPaginationProps> = (props) => {
   const { current, onChange, prev, next, itemsPerPage, itemsPerPageOptions, onChangeItemsPerPage } = props;
 
   const [disabled, setDisabled] = useState<boolean>(false);
@@ -24,7 +24,7 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
     setDisabled(false);
   }, [prev, next]);
 
-  const onChangeItemsPerPageCallback = useCallback((option) => {
+  const onChangeItemsPerPageCallback = useCallback((option: SelectableValue) => {
     setDisabled(true);
     onChangeItemsPerPage(option.value);
   }, []);
@@ -70,5 +70,3 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
     </HorizontalGroup>
   );
 };
-
-export default CursorPagination;

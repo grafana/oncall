@@ -2,20 +2,24 @@ import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 
 import { RotationFormLiveParams } from 'models/schedule/schedule.types';
+import { useStore } from 'state/useStore';
 
 import styles from './Rotation.module.css';
 
 const cx = cn.bind(styles);
 
 interface RotationProps extends RotationFormLiveParams {
-  startMoment: dayjs.Dayjs;
   days?: number;
 }
 
-const RotationTutorial: FC<RotationProps> = (props) => {
-  const { startMoment, days = 7, shiftStart, shiftEnd, rotationStart, focusElementName } = props;
+export const RotationTutorial: FC<RotationProps> = observer((props) => {
+  const {
+    timezoneStore: { calendarStartDate },
+  } = useStore();
+  const { days = 7, shiftStart, shiftEnd, rotationStart, focusElementName } = props;
 
   const duration = shiftEnd.diff(shiftStart, 'seconds');
 
@@ -48,11 +52,11 @@ const RotationTutorial: FC<RotationProps> = (props) => {
     }
 
     const firstEvent = events[0];
-    const firstShiftOffset = dayjs(firstEvent.start).diff(startMoment, 'seconds');
+    const firstShiftOffset = dayjs(firstEvent.start).diff(calendarStartDate, 'seconds');
     const base = 60 * 60 * 24 * days;
 
     return firstShiftOffset / base;
-  }, [events, startMoment]);
+  }, [events, calendarStartDate]);
 
   return (
     <div className={cx('slots', 'slots--tutorial')} style={{ transform: `translate(${x * 100}%, 0)` }}>
@@ -73,7 +77,7 @@ const RotationTutorial: FC<RotationProps> = (props) => {
       })}
     </div>
   );
-};
+});
 
 const TutorialSlot = (props: { style: React.CSSProperties; active: boolean }) => {
   const { style, active } = props;
@@ -111,5 +115,3 @@ const Pointer = (props: { className: string; style: React.CSSProperties }) => {
     </svg>
   );
 };
-
-export default RotationTutorial;

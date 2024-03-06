@@ -1,85 +1,96 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
+import { RootStore } from 'state/rootStore';
+import { generateAssignToTeamInputDescription } from 'utils/consts';
 
-const commonFields: FormItem[] = [
-  {
-    name: 'slack_channel_id',
-    label: 'Slack channel',
-    type: FormItemType.GSelect,
-    extra: {
-      modelName: 'slackChannelStore',
-      displayField: 'display_name',
-      showSearch: true,
-      allowClear: true,
-      nullItemName: PRIVATE_CHANNEL_NAME,
-    },
-    description:
-      'Calendar parsing errors and notifications about the new on-call shift will be published in this channel.',
-  },
-  {
-    name: 'user_group',
-    label: 'Slack user group',
-    type: FormItemType.GSelect,
-    extra: {
-      modelName: 'userGroupStore',
-      displayField: 'handle',
-      showSearch: true,
-      allowClear: true,
-    },
-    description:
-      'Group members will be automatically updated with current on-call. In case you want to ping on-call with @group_name.',
-  },
-  {
-    name: 'notify_oncall_shift_freq',
-    label: 'Notification frequency',
-    type: FormItemType.RemoteSelect,
-    normalize: (value) => value,
-    extra: {
-      href: '/schedules/notify_oncall_shift_freq_options/',
-      displayField: 'display_name',
-      openMenuOnFocus: false,
-    },
-    description: 'Specify the frequency that shift notifications are sent to scheduled team members.',
-  },
-  {
-    name: 'notify_empty_oncall',
-    label: 'Action for slot when no one is on-call',
-    type: FormItemType.RemoteSelect,
-    normalize: (value) => value,
-    extra: {
-      href: '/schedules/notify_empty_oncall_options/',
-      displayField: 'display_name',
-      openMenuOnFocus: false,
-    },
-    description: 'Specify how to notify team members when there is no one scheduled for an on-call shift.',
-  },
-  {
-    name: 'mention_oncall_start',
-    label: 'Current shift notification settings',
-    type: FormItemType.RemoteSelect,
-    normalize: (value) => value,
-    extra: {
-      href: '/schedules/mention_options/',
-      displayField: 'display_name',
-      openMenuOnFocus: false,
-    },
-    description: 'Specify how to notify a team member when their on-call shift begins ',
-  },
-  {
-    name: 'mention_oncall_next',
-    label: 'Next shift notification settings',
-    type: FormItemType.RemoteSelect,
-    normalize: (value) => value,
-    extra: {
-      href: '/schedules/mention_options/',
-      displayField: 'display_name',
-      openMenuOnFocus: false,
-    },
-    description: 'Specify how to notify a team member when their shift is the next one scheduled',
-  },
-].map((field) => ({ ...field, collapsed: true }));
+const assignToTeamDescription = generateAssignToTeamInputDescription('Schedules');
 
-export const iCalForm: { name: string; fields: FormItem[] } = {
+const getCommonFields = ({ slackChannelStore, userGroupStore }: RootStore): FormItem[] =>
+  [
+    {
+      name: 'slack_channel_id',
+      label: 'Slack channel',
+      type: FormItemType.GSelect,
+      extra: {
+        items: slackChannelStore.items,
+        fetchItemsFn: slackChannelStore.updateItems,
+        fetchItemFn: slackChannelStore.updateItem,
+        getSearchResult: slackChannelStore.getSearchResult,
+        displayField: 'display_name',
+        showSearch: true,
+        allowClear: true,
+        nullItemName: PRIVATE_CHANNEL_NAME,
+      },
+      description:
+        'Calendar parsing errors and notifications about the new on-call shift will be published in this channel.',
+    },
+    {
+      name: 'user_group',
+      label: 'Slack user group',
+      type: FormItemType.GSelect,
+      extra: {
+        items: userGroupStore.items,
+        fetchItemsFn: userGroupStore.updateItems,
+        // TODO: fetchItemFn
+        getSearchResult: userGroupStore.getSearchResult,
+        displayField: 'handle',
+        showSearch: true,
+        allowClear: true,
+      },
+      description:
+        'Group members will be automatically updated with current on-call. In case you want to ping on-call with @group_name.',
+    },
+    {
+      name: 'notify_oncall_shift_freq',
+      label: 'Notification frequency',
+      type: FormItemType.RemoteSelect,
+      normalize: (value) => value,
+      extra: {
+        href: '/schedules/notify_oncall_shift_freq_options/',
+        displayField: 'display_name',
+        openMenuOnFocus: false,
+      },
+      description: 'Specify the frequency that shift notifications are sent to scheduled team members.',
+    },
+    {
+      name: 'notify_empty_oncall',
+      label: 'Action for slot when no one is on-call',
+      type: FormItemType.RemoteSelect,
+      normalize: (value) => value,
+      extra: {
+        href: '/schedules/notify_empty_oncall_options/',
+        displayField: 'display_name',
+        openMenuOnFocus: false,
+      },
+      description: 'Specify how to notify team members when there is no one scheduled for an on-call shift.',
+    },
+    {
+      name: 'mention_oncall_start',
+      label: 'Current shift notification settings',
+      type: FormItemType.RemoteSelect,
+      normalize: (value) => value,
+      extra: {
+        href: '/schedules/mention_options/',
+        displayField: 'display_name',
+        openMenuOnFocus: false,
+      },
+      description: 'Specify how to notify a team member when their on-call shift begins ',
+    },
+    {
+      name: 'mention_oncall_next',
+      label: 'Next shift notification settings',
+      type: FormItemType.RemoteSelect,
+      normalize: (value) => value,
+      extra: {
+        href: '/schedules/mention_options/',
+        displayField: 'display_name',
+        openMenuOnFocus: false,
+      },
+      description: 'Specify how to notify a team member when their shift is the next one scheduled',
+    },
+  ].map((field) => ({ ...field, collapsed: true }));
+
+export const getICalForm = (rootStore: RootStore) => ({
   name: 'Schedule',
   fields: [
     {
@@ -90,11 +101,13 @@ export const iCalForm: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: assignToTeamDescription,
       type: FormItemType.GSelect,
       extra: {
-        modelName: 'grafanaTeamStore',
+        items: rootStore.grafanaTeamStore.items,
+        fetchItemsFn: rootStore.grafanaTeamStore.updateItems,
+        fetchItemFn: rootStore.grafanaTeamStore.fetchItemById,
+        getSearchResult: rootStore.grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',
         showSearch: true,
@@ -115,11 +128,11 @@ export const iCalForm: { name: string; fields: FormItem[] } = {
       extra: { rows: 2 },
     },
 
-    ...commonFields,
+    ...getCommonFields(rootStore),
   ],
-};
+});
 
-export const calendarForm: { name: string; fields: FormItem[] } = {
+export const getCalendarForm = (rootStore: RootStore) => ({
   name: 'Schedule',
   fields: [
     {
@@ -130,11 +143,13 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: assignToTeamDescription,
       type: FormItemType.GSelect,
       extra: {
-        modelName: 'grafanaTeamStore',
+        items: rootStore.grafanaTeamStore.items,
+        fetchItemsFn: rootStore.grafanaTeamStore.updateItems,
+        fetchItemFn: rootStore.grafanaTeamStore.fetchItemById,
+        getSearchResult: rootStore.grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',
         showSearch: true,
@@ -156,11 +171,11 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
       extra: { rows: 2 },
     },
 
-    ...commonFields,
+    ...getCommonFields(rootStore),
   ],
-};
+});
 
-export const apiForm: { name: string; fields: FormItem[] } = {
+export const getApiForm = (rootStore: RootStore) => ({
   name: 'Schedule',
   fields: [
     {
@@ -171,17 +186,19 @@ export const apiForm: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: assignToTeamDescription,
       type: FormItemType.GSelect,
       extra: {
-        modelName: 'grafanaTeamStore',
+        items: rootStore.grafanaTeamStore.items,
+        fetchItemsFn: rootStore.grafanaTeamStore.updateItems,
+        fetchItemFn: rootStore.grafanaTeamStore.fetchItemById,
+        getSearchResult: rootStore.grafanaTeamStore.getSearchResult,
         displayField: 'name',
         valueField: 'id',
         showSearch: true,
         allowClear: true,
       },
     },
-    ...commonFields,
+    ...getCommonFields(rootStore),
   ],
-};
+});

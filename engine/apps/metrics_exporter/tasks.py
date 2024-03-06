@@ -1,6 +1,5 @@
 import typing
 
-from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count, Q
@@ -25,8 +24,9 @@ from apps.metrics_exporter.helpers import (
     get_organization_ids_from_db,
     get_response_time_period,
     is_allowed_to_start_metrics_calculation,
+    metrics_update_user_cache,
 )
-from apps.user_management.models import User
+from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
@@ -78,9 +78,8 @@ def calculate_and_cache_metrics(organization_id, force=False):
     """
     Calculate integrations metrics for organization.
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.alerts.models import AlertGroup, AlertReceiveChannel
+    from apps.user_management.models import Organization
 
     ONE_HOUR = 3600
     TWO_HOURS = 7200
@@ -165,8 +164,8 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     """
     Calculate metric "user_was_notified_of_alert_groups" for organization.
     """
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.user_management.models import Organization, User
 
     TWO_HOURS = 7200
 
@@ -188,7 +187,6 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     metric_user_was_notified: typing.Dict[int, UserWasNotifiedOfAlertGroupsMetricsDict] = {}
 
     for user in users:
-
         counter = (
             user.personal_log_records.filter(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED)
             .values("alert_group")
@@ -212,3 +210,34 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     recalculate_timeout = get_metrics_recalculation_timeout()
     metrics_cache_timeout = recalculate_timeout + TWO_HOURS
     cache.set(metric_user_was_notified_key, metric_user_was_notified, timeout=metrics_cache_timeout)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
+)
+def update_metrics_for_alert_group(alert_group_id, organization_id, previous_state, new_state):
+    from apps.alerts.models import AlertGroup
+
+    alert_group = AlertGroup.objects.get(pk=alert_group_id)
+    updated_response_time = alert_group.response_time
+    if previous_state != AlertGroupState.FIRING or alert_group.restarted_at:
+        # only consider response time from the first action
+        updated_response_time = None
+    MetricsCacheManager.metrics_update_cache_for_alert_group(
+        integration_id=alert_group.channel_id,
+        organization_id=organization_id,
+        old_state=previous_state,
+        new_state=new_state,
+        response_time=updated_response_time,
+        started_at=alert_group.started_at,
+    )
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
+)
+def update_metrics_for_user(user_id):
+    from apps.user_management.models import User
+
+    user = User.objects.get(id=user_id)
+    metrics_update_user_cache(user)

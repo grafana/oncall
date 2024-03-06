@@ -14,24 +14,25 @@ body:
   - type: markdown
     attributes:
       value: |
-        **HINT:** Have you tried [searching](https://github.com/grafana/oncall/issues) for similar issues? Duplicate issues are common.
+        **HINT:** Have you tried [searching](https://github.com/grafana/oncall/issues) for similar issues?
+        Duplicate issues are common.
 
-        **Are you reporting a security vulnerability?** [Submit it here instead](https://github.com/grafana/oncall/security/policy).
+        **Are you reporting a security vulnerability?**
+        [Submit it here instead](https://github.com/grafana/oncall/security/policy).
   - type: textarea
     id: bug-describe
     attributes:
       label: What went wrong?
       description: |
-        #
-        Describe your bug. What happened? What did you expect to happen?
+        # Describe your bug. What happened? What did you expect to happen?
 
         **Pro Tip**: Record your screen and add it here as a gif.
       value: |
         **What happened**:
-          -
+        -
 
         **What did you expect to happen**:
-          -
+        -
     validations:
       required: true
   - type: textarea
@@ -53,7 +54,9 @@ body:
     id: oncall-version
     attributes:
       label: Grafana OnCall Version
-      description: What Grafana OnCall version are you using? If this is related to the Grafana OnCall mobile app, please mention which app version, and OS (plus version), you are running.
+      description: >
+        What Grafana OnCall version are you using? If this is related to the Grafana OnCall mobile app,
+        please mention which app version, and OS (plus version), you are running.
       placeholder: "ex: v1.1.12, r170-v1.2.43, or v1.0.6 - build 1038 iOS 16.6"
     validations:
       required: true
@@ -95,7 +98,9 @@ body:
     id: user-browser
     attributes:
       label: User's Browser?
-      description: Is the bug occuring in the Grafana OnCall web plugin? If so, what browsers are you seeing the problem on? You may choose more than one.
+      description: >
+        Is the bug occuring in the Grafana OnCall web plugin? If so,
+        what browsers are you seeing the problem on? You may choose more than one.
       placeholder: "ex. Google Chrome Version 112.0.5615.137 (Official Build) (arm64)..."
     validations:
       required: false

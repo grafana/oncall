@@ -1,12 +1,14 @@
+import datetime
 import json
 import logging
+import re
 import typing
 from urllib.parse import urljoin
 
-from django.apps import apps
+import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -19,15 +21,23 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
+from apps.user_management.constants import AlertGroupTableColumn
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import EscalationPolicy
+    from apps.alerts.models import AlertGroup, EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
+    from apps.base.models import UserNotificationPolicy
+    from apps.slack.models import SlackUserIdentity
+    from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
+
+
+class PermissionsQuery(typing.TypedDict):
+    permissions__contains: typing.Dict
 
 
 class PermissionsRegexQuery(typing.TypedDict):
@@ -62,7 +72,7 @@ def default_working_hours():
     return working_hours
 
 
-class UserManager(models.Manager):
+class UserManager(models.Manager["User"]):
     @staticmethod
     def sync_for_team(team, api_members: list[dict]):
         user_ids = tuple(member["userId"] for member in api_members)
@@ -71,6 +81,8 @@ class UserManager(models.Manager):
 
     @staticmethod
     def sync_for_organization(organization, api_users: list[dict]):
+        from apps.base.models import UserNotificationPolicy
+
         grafana_users = {user["userId"]: user for user in api_users}
         existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
 
@@ -82,14 +94,29 @@ class UserManager(models.Manager):
                 email=user["email"],
                 name=user["name"],
                 username=user["login"],
-                role=LegacyAccessControlRole[user["role"].upper()],
+                role=getattr(LegacyAccessControlRole, user["role"].upper(), LegacyAccessControlRole.NONE),
                 avatar_url=user["avatarUrl"],
                 permissions=user["permissions"],
             )
             for user in grafana_users.values()
             if user["userId"] not in existing_user_ids
         )
-        organization.users.bulk_create(users_to_create, batch_size=5000)
+
+        with transaction.atomic():
+            organization.users.bulk_create(users_to_create, batch_size=5000)
+            # Retrieve primary keys for the newly created users
+            #
+            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+            # On other databases, it will not be set.
+            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+            created_users = organization.users.exclude(user_id__in=existing_user_ids)
+
+            policies_to_create = ()
+            for user in created_users:
+                policies_to_create = policies_to_create + user.default_notification_policies_defaults
+                policies_to_create = policies_to_create + user.important_notification_policies_defaults
+            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()
@@ -99,7 +126,7 @@ class UserManager(models.Manager):
         users_to_update = []
         for user in organization.users.filter(user_id__in=existing_user_ids):
             grafana_user = grafana_users[user.user_id]
-            g_user_role = LegacyAccessControlRole[grafana_user["role"].upper()]
+            g_user_role = getattr(LegacyAccessControlRole, grafana_user["role"].upper(), LegacyAccessControlRole.NONE)
 
             if (
                 user.email != grafana_user["email"]
@@ -143,11 +170,20 @@ class UserQuerySet(models.QuerySet):
 
 
 class User(models.Model):
+    acknowledged_alert_groups: "RelatedManager['AlertGroup']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
+    notification_policies: "RelatedManager['UserNotificationPolicy']"
+    organization: "Organization"
+    resolved_alert_groups: "RelatedManager['AlertGroup']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    silenced_alert_groups: "RelatedManager['AlertGroup']"
+    slack_user_identity: typing.Optional["SlackUserIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+    wiped_alert_groups: "RelatedManager['AlertGroup']"
 
     objects = UserManager.from_queryset(UserQuerySet)()
 
@@ -157,6 +193,10 @@ class User(models.Model):
         # Including is_active to unique_together and setting is_active to None allows to
         # have multiple deleted users with the same user_id, but user_id is unique among active users
         unique_together = ("user_id", "organization", "is_active")
+        indexes = [
+            models.Index(fields=["is_active", "organization", "username"]),
+            models.Index(fields=["is_active", "organization", "email"]),
+        ]
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -167,7 +207,9 @@ class User(models.Model):
 
     user_id = models.PositiveIntegerField()
     organization = models.ForeignKey(to="user_management.Organization", on_delete=models.CASCADE, related_name="users")
-    current_team = models.ForeignKey(to="user_management.Team", null=True, default=None, on_delete=models.SET_NULL)
+    current_team = models.ForeignKey(
+        to="user_management.Team", null=True, default=None, on_delete=models.SET_NULL, related_name="current_team_users"
+    )
 
     email = models.EmailField()
     name = models.CharField(max_length=300)
@@ -179,7 +221,9 @@ class User(models.Model):
     _timezone = models.CharField(max_length=50, null=True, default=None)
     working_hours = models.JSONField(null=True, default=default_working_hours)
 
-    notification = models.ManyToManyField("alerts.AlertGroup", through="alerts.UserHasNotification")
+    notification = models.ManyToManyField(
+        "alerts.AlertGroup", through="alerts.UserHasNotification", related_name="users"
+    )
 
     unverified_phone_number = models.CharField(max_length=20, null=True, default=None)
     _verified_phone_number = models.CharField(max_length=20, null=True, default=None)
@@ -192,6 +236,8 @@ class User(models.Model):
     # is_active = None is used to be able to have multiple deleted users with the same user_id
     is_active = models.BooleanField(null=True, default=True)
     permissions = models.JSONField(null=False, default=list)
+
+    alert_group_table_selected_columns: list[AlertGroupTableColumn] | None = models.JSONField(default=None, null=True)
 
     def __str__(self):
         return f"{self.pk}: {self.username}"
@@ -211,7 +257,7 @@ class User(models.Model):
         return urljoin(self.organization.grafana_url, self.avatar_url)
 
     @property
-    def verified_phone_number(self):
+    def verified_phone_number(self) -> str | None:
         """
         Use property to highlight that _verified_phone_number should not be modified directly
         """
@@ -227,6 +273,7 @@ class User(models.Model):
         self.save(update_fields=["unverified_phone_number", "_verified_phone_number"])
 
     # TODO: move to telegram app
+    @property
     def is_telegram_connected(self):
         return hasattr(self, "telegram_connection")
 
@@ -240,7 +287,7 @@ class User(models.Model):
     def is_notification_allowed(self):
         return user_is_authorized(self, [RBACPermission.Permissions.NOTIFICATIONS_READ])
 
-    def get_username_with_slack_verbal(self, mention=False):
+    def get_username_with_slack_verbal(self, mention=False) -> str:
         slack_verbal = None
 
         if self.slack_user_identity:
@@ -269,6 +316,42 @@ class User(models.Model):
     def timezone(self, value):
         self._timezone = value
 
+    def is_in_working_hours(self, dt: datetime.datetime, tz: typing.Optional[str] = None) -> bool:
+        assert dt.tzinfo == datetime.timezone.utc, "dt must be in UTC"
+
+        # Default to user's timezone
+        if not tz:
+            tz = self.timezone
+
+        # If user has no timezone set, any time is considered non-working hours
+        if not tz:
+            return False
+
+        # Convert to user's timezone and get day name (e.g. monday)
+        dt = dt.astimezone(pytz.timezone(tz))
+        day_name = dt.date().strftime("%A").lower()
+
+        # If no working hours for the day, return False
+        if day_name not in self.working_hours or not self.working_hours[day_name]:
+            return False
+
+        # Extract start and end time for the day from working hours
+        day_start_time_str = self.working_hours[day_name][0]["start"]
+        day_start_time = datetime.time.fromisoformat(day_start_time_str)
+
+        day_end_time_str = self.working_hours[day_name][0]["end"]
+        day_end_time = datetime.time.fromisoformat(day_end_time_str)
+
+        # Calculate day start and end datetime
+        day_start = dt.replace(
+            hour=day_start_time.hour, minute=day_start_time.minute, second=day_start_time.second, microsecond=0
+        )
+        day_end = dt.replace(
+            hour=day_end_time.hour, minute=day_end_time.minute, second=day_end_time.second, microsecond=0
+        )
+
+        return day_start <= dt <= day_end
+
     def short(self):
         return {
             "username": self.username,
@@ -288,7 +371,8 @@ class User(models.Model):
 
     @property
     def insight_logs_serialized(self):
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy
+
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
         notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
         notification_policies_verbal = demojize(notification_policies_verbal)
@@ -312,7 +396,7 @@ class User(models.Model):
     @staticmethod
     def build_permissions_query(
         permission: LegacyAccessControlCompatiblePermission, organization
-    ) -> typing.Union[PermissionsRegexQuery, RoleInQuery]:
+    ) -> typing.Union[PermissionsQuery, PermissionsRegexQuery, RoleInQuery]:
         """
         This method returns a django query filter that is compatible with RBAC
         as well as legacy "basic" role based authorization. If a permission is provided we simply do
@@ -324,8 +408,55 @@ class User(models.Model):
         """
         if organization.is_rbac_permissions_enabled:
             # https://stackoverflow.com/a/50251879
-            return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))
+            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
+                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
+                return PermissionsRegexQuery(permissions__regex=re.escape(permission.value))
+            required_permission = {"action": permission.value}
+            return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
+
+    def get_or_create_notification_policies(self, important=False):
+        if not self.notification_policies.filter(important=important).exists():
+            if important:
+                self.notification_policies.create_important_policies_for_user(self)
+            else:
+                self.notification_policies.create_default_policies_for_user(self)
+        notification_policies = self.notification_policies.filter(important=important)
+        return notification_policies
+
+    @property
+    def default_notification_policies_defaults(self):
+        from apps.base.models import UserNotificationPolicy
+
+        print(self)
+
+        return (
+            UserNotificationPolicy(
+                user=self,
+                step=UserNotificationPolicy.Step.NOTIFY,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                order=0,
+            ),
+        )
+
+    @property
+    def important_notification_policies_defaults(self):
+        from apps.base.models import UserNotificationPolicy
+
+        return (
+            UserNotificationPolicy(
+                user=self,
+                step=UserNotificationPolicy.Step.NOTIFY,
+                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                important=True,
+                order=0,
+            ),
+        )
+
+    def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
+        if self.alert_group_table_selected_columns != columns:
+            self.alert_group_table_selected_columns = columns
+            self.save(update_fields=["alert_group_table_selected_columns"])
 
 
 # TODO: check whether this signal can be moved to save method of the model

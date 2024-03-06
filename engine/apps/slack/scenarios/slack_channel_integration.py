@@ -1,15 +1,24 @@
 import logging
-
-from django.apps import apps
+import typing
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.scenarios.resolution_note import RESOLUTION_NOTE_EXCEPTIONS
+from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: Any new message in channel.
         Dangerous because it's often triggered by internal client's company systems.
@@ -18,20 +27,22 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 
         # If it is a message from thread - save it for resolution note
         if ("thread_ts" in payload["event"] and "subtype" not in payload["event"]) or (
-            payload["event"].get("subtype") == scenario_step.EVENT_SUBTYPE_MESSAGE_CHANGED
+            payload["event"].get("subtype") == MessageEventSubtype.MESSAGE_CHANGED
             and "subtype" not in payload["event"]["message"]
             and "thread_ts" in payload["event"]["message"]
         ):
             self.save_thread_message_for_resolution_note(slack_user_identity, payload)
         elif (
-            payload["event"].get("subtype") == scenario_step.EVENT_SUBTYPE_MESSAGE_DELETED
+            payload["event"].get("subtype") == MessageEventSubtype.MESSAGE_DELETED
             and "thread_ts" in payload["event"]["previous_message"]
         ):
             self.delete_thread_message_from_resolution_note(slack_user_identity, payload)
 
-    def save_thread_message_for_resolution_note(self, slack_user_identity, payload):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+    def save_thread_message_for_resolution_note(
+        self, slack_user_identity: "SlackUserIdentity", payload: EventPayload
+    ) -> None:
+        from apps.alerts.models import ResolutionNoteSlackMessage
+        from apps.slack.models import SlackMessage
 
         if slack_user_identity is None:
             logger.warning(
@@ -61,60 +72,49 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         except SlackMessage.DoesNotExist:
             return
 
-        alert_group = slack_message.get_alert_group()
+        if not slack_message.alert_group:
+            # SlackMessage instances without alert_group set (e.g., SSR Slack messages)
+            return
 
-        result = self._slack_client.api_call(
-            "chat.getPermalink",
-            channel=channel,
-            message_ts=message_ts,
-        )
+        try:
+            result = self._slack_client.chat_getPermalink(channel=channel, message_ts=message_ts)
+        except RESOLUTION_NOTE_EXCEPTIONS:
+            return
+
         permalink = None
         if result["permalink"] is not None:
             permalink = result["permalink"]
 
-        try:
-            slack_thread_message = ResolutionNoteSlackMessage.objects.get(
-                ts=message_ts,
-                thread_ts=thread_ts,
-                alert_group=alert_group,
+        if len(text) > 2900:
+            self._slack_client.chat_postEphemeral(
+                channel=channel,
+                user=slack_user_identity.slack_id,
+                text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
+                "Max length - 2900 symbols.".format(permalink, len(text)),
             )
-            if len(text) > 2900:
-                if slack_thread_message.added_to_resolution_note:
-                    return self._slack_client.api_call(
-                        "chat.postEphemeral",
-                        channel=channel,
-                        user=slack_user_identity.slack_id,
-                        text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
-                        "Max length - 2900 symbols.".format(permalink, len(text)),
-                    )
-                else:
-                    return
+            return
+
+        slack_thread_message, created = ResolutionNoteSlackMessage.objects.get_or_create(
+            ts=message_ts,
+            thread_ts=thread_ts,
+            alert_group=slack_message.alert_group,
+            defaults={
+                "user": self.user,
+                "added_by_user": self.user,
+                "text": text,
+                "slack_channel_id": channel,
+                "permalink": permalink,
+            },
+        )
+
+        if not created:
             slack_thread_message.text = text
             slack_thread_message.save()
 
-        except ResolutionNoteSlackMessage.DoesNotExist:
-            if len(text) > 2900:
-                return self._slack_client.api_call(
-                    "chat.postEphemeral",
-                    channel=channel,
-                    user=slack_user_identity.slack_id,
-                    text=":warning: The <{}|message> will not be displayed in Resolution Note: "
-                    "the message is too long ({}). Max length - 2900 symbols.".format(permalink, len(text)),
-                )
-            slack_thread_message = ResolutionNoteSlackMessage(
-                alert_group=alert_group,
-                user=self.user,
-                added_by_user=self.user,
-                text=text,
-                slack_channel_id=channel,
-                thread_ts=thread_ts,
-                ts=message_ts,
-                permalink=permalink,
-            )
-            slack_thread_message.save()
-
-    def delete_thread_message_from_resolution_note(self, slack_user_identity, payload):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+    def delete_thread_message_from_resolution_note(
+        self, slack_user_identity: "SlackUserIdentity", payload: EventPayload
+    ) -> None:
+        from apps.alerts.models import ResolutionNoteSlackMessage
 
         if slack_user_identity is None:
             logger.warning(
@@ -140,11 +140,14 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-STEPS_ROUTING = [
-    {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_MESSAGE,
-        "message_channel_type": scenario_step.EVENT_TYPE_MESSAGE_CHANNEL,
-        "step": SlackChannelMessageEventStep,
-    }
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
+    typing.cast(
+        ScenarioRoute.EventCallbackChannelMessageScenarioRoute,
+        {
+            "payload_type": PayloadType.EVENT_CALLBACK,
+            "event_type": EventType.MESSAGE,
+            "message_channel_type": EventType.MESSAGE_CHANNEL,
+            "step": SlackChannelMessageEventStep,
+        },
+    ),
 ]

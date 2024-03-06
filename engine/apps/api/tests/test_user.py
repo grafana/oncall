@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
+from apps.api.serializers.user import UserHiddenFieldsSerializer
+from apps.api.views.user import UPCOMING_SHIFTS_DEFAULT_DAYS
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -21,6 +23,79 @@ from apps.user_management.models.user import default_working_hours
 def clear_cache():
     # Ratelimit keys are stored in cache, clean to prevent ratelimits
     cache.clear()
+
+
+@pytest.mark.django_db
+def test_current_user(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:api-user")
+
+    expected_response = {
+        "pk": user.public_primary_key,
+        "organization": {"pk": organization.public_primary_key, "name": organization.org_title},
+        "current_team": None,
+        "email": user.email,
+        "hide_phone_number": False,
+        "username": user.username,
+        "name": user.name,
+        "role": user.role,
+        "rbac_permissions": user.permissions,
+        "timezone": None,
+        "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
+        "unverified_phone_number": None,
+        "verified_phone_number": None,
+        "telegram_configuration": None,
+        "messaging_backends": {
+            "TESTONLY": {
+                "user": user.username,
+            }
+        },
+        "cloud_connection_status": 0,
+        "notification_chain_verbal": {"default": "", "important": ""},
+        "slack_user_identity": None,
+        "avatar": user.avatar_url,
+        "avatar_full": user.avatar_full_url,
+    }
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+    # current user is on-call
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_response["is_currently_oncall"] = True
+    assert response.json() == expected_response
+
+    data_to_update = {"hide_phone_number": True}
+
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response | data_to_update
 
 
 @pytest.mark.django_db
@@ -82,6 +157,7 @@ def test_update_user_cant_change_email_and_username(
         "role": admin.role,
         "timezone": None,
         "working_hours": default_working_hours(),
+        "is_currently_oncall": False,
         "unverified_phone_number": phone_number,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -110,7 +186,7 @@ def test_list_users(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization)
+    admin = make_user_for_organization(organization, _verified_phone_number="1234567890")
     editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
     _, token = make_token_for_organization(organization)
 
@@ -134,7 +210,7 @@ def test_list_users(
                 "timezone": None,
                 "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
-                "verified_phone_number": None,
+                "verified_phone_number": admin.verified_phone_number,
                 "telegram_configuration": None,
                 "messaging_backends": {
                     "TESTONLY": {
@@ -173,11 +249,24 @@ def test_list_users(
                 "cloud_connection_status": None,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
+    # as admin
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
-
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+    # as editor
+    response = client.get(url, format="json", **make_user_auth_headers(editor, token))
+    assert response.status_code == status.HTTP_200_OK
+    admin_user_data = expected_payload["results"][0]
+    for f_name in admin_user_data:
+        if f_name not in UserHiddenFieldsSerializer.fields_available_for_all_users:
+            admin_user_data[f_name] = "******"
+    admin_user_data["hidden_fields"] = True
     assert response.json() == expected_payload
 
 
@@ -212,6 +301,76 @@ def test_list_users_filtered_by_granted_permission(
     assert user1.public_primary_key in returned_user_pks
     assert user2.public_primary_key in returned_user_pks
     assert user3.public_primary_key not in returned_user_pks
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_public_primary_key(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    admin_user = make_user_for_organization(organization)
+    user1 = make_user_for_organization(organization)
+    make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(
+        f"{url}?search={user1.public_primary_key}", format="json", **make_user_auth_headers(admin_user, token)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_user_pks = [u["pk"] for u in response.json()["results"]]
+    assert returned_user_pks == [user1.public_primary_key]
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_team(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    user3 = make_user_for_organization(organization)
+
+    team1 = make_team(organization)
+    team2 = make_team(organization)
+    team3 = make_team(organization)
+
+    user1.teams.add(team1)
+    user1.teams.add(team2)
+    user2.teams.add(team2)
+
+    _, token = make_token_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    def _get_user_pks(teams):
+        response = client.get(
+            url,
+            data={"team": [team.public_primary_key if team else "null" for team in teams]},  # these are query params
+            **make_user_auth_headers(user1, token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        return [u["pk"] for u in response.json()["results"]]
+
+    assert _get_user_pks([team1]) == [user1.public_primary_key]
+    assert _get_user_pks([team1, team2]) == [user1.public_primary_key, user2.public_primary_key]
+    assert _get_user_pks([team3]) == []
+    assert _get_user_pks([team1, None]) == [user1.public_primary_key, user3.public_primary_key]
+    assert _get_user_pks([None]) == [user3.public_primary_key]
+
+    # check non-existent team returns bad request
+    response = client.get(f"{url}?team=non-existing", **make_user_auth_headers(user1, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -279,6 +438,7 @@ def test_notification_chain_verbal(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_self_permissions(
@@ -308,6 +468,7 @@ def test_user_update_self_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_other_permissions(
@@ -335,7 +496,8 @@ def test_user_update_other_permissions(
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_list_permissions(
@@ -366,6 +528,7 @@ def test_user_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_self_permissions(
@@ -394,8 +557,9 @@ def test_user_detail_self_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_other_permissions(
@@ -413,6 +577,13 @@ def test_user_detail_other_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
+    # hidden information for editor/viewer
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    if role in (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER):
+        user_details = response.json()
+        for f_name in user_details:
+            if f_name not in available_fields:
+                assert user_details[f_name] == "******"
 
 
 @pytest.mark.django_db
@@ -422,6 +593,7 @@ def test_user_detail_other_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_verification_code(
@@ -452,6 +624,7 @@ def test_user_get_own_verification_code(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_other_verification_code(
@@ -524,6 +697,7 @@ def test_verification_code_provider_exception(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_own_phone(
@@ -547,6 +721,32 @@ def test_user_verify_own_phone(
     assert response.status_code == expected_status
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_400_BAD_REQUEST),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_user_get_own_telegram_verification_code_with_telegram_connected(
+    make_organization_and_user_with_plugin_token,
+    make_telegram_user_connector,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, tester, token = make_organization_and_user_with_plugin_token(role)
+
+    client = APIClient()
+    make_telegram_user_connector(tester)
+    url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": tester.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
+    assert response.status_code == expected_status
+
+
 """
 Tests below are outdated
 """
@@ -559,6 +759,7 @@ Tests below are outdated
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_another_phone(
@@ -587,6 +788,7 @@ def test_user_verify_another_phone(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_telegram_verification_code(
@@ -611,6 +813,7 @@ def test_user_get_own_telegram_verification_code(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_another_telegram_verification_code(
@@ -922,7 +1125,13 @@ def test_user_can_detail_users(
     url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
 
     response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
+    # hidden information though
+    user_details = response.json()
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    for f_name in user_details:
+        if f_name not in available_fields:
+            assert user_details[f_name] == "******"
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
@@ -1207,28 +1416,14 @@ def test_viewer_cant_update_himself(make_organization_and_user_with_plugin_token
 
 
 @pytest.mark.django_db
-def test_viewer_cant_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+def test_viewer_can_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
     _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-list")
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
-def test_viewer_cant_detail_users(
-    make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
-):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
-
-    client = APIClient()
-    url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
@@ -1532,31 +1727,6 @@ def test_invalid_working_hours(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@pytest.mark.django_db
-def test_check_availability(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-
-    client = APIClient()
-    url = reverse("api-internal:user-check-availability", kwargs={"pk": user.public_primary_key})
-
-    response = client.get(url, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-@pytest.mark.django_db
-def test_check_availability_other_user(make_organization_and_user_with_plugin_token, make_user, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    user_to_check = make_user(organization=user.organization, role=LegacyAccessControlRole.ADMIN)
-
-    client = APIClient()
-    url = reverse("api-internal:user-check-availability", kwargs={"pk": user_to_check.public_primary_key})
-
-    response = client.get(url, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_200_OK
-
-
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @patch(
@@ -1748,6 +1918,9 @@ def test_upcoming_shifts_oncall(
     assert returned_data["current_shift"]["start"] == on_call_shift.start
     next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
     assert returned_data["next_shift"]["start"] == next_shift_start
+    assert len(returned_data["upcoming_shifts"]) == UPCOMING_SHIFTS_DEFAULT_DAYS
+    for i, shift in enumerate(returned_data["upcoming_shifts"], start=1):
+        assert shift["start"] == on_call_shift.start + timezone.timedelta(days=i)
 
     # empty response for other user
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": other_user.public_primary_key})
@@ -1801,6 +1974,7 @@ def test_upcoming_shifts_override(
     assert returned_data["is_oncall"] is False
     assert returned_data["current_shift"] is None
     assert returned_data["next_shift"]["start"] == override.start
+    assert returned_data["upcoming_shifts"] == [returned_data["next_shift"]]
 
 
 @pytest.mark.django_db
@@ -1848,7 +2022,8 @@ def test_upcoming_shifts_multiple_schedules(
     client = APIClient()
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    num_days = 2
+    response = client.get(url + f"?days={num_days}", format="json", **make_user_auth_headers(admin, token))
 
     assert response.status_code == status.HTTP_200_OK
     returned_data = response.data
@@ -1859,7 +2034,122 @@ def test_upcoming_shifts_multiple_schedules(
             assert returned_data[i]["is_oncall"]
             assert returned_data[i]["current_shift"]["start"] == expected_start
             assert returned_data[i]["next_shift"]["start"] == expected_start + timezone.timedelta(days=1)
+            assert len(returned_data[i]["upcoming_shifts"]) == 2
+            for delta, shift in enumerate(returned_data[i]["upcoming_shifts"], start=1):
+                assert shift["start"] == expected_start + timezone.timedelta(days=delta)
         else:
             assert returned_data[i]["is_oncall"] is False
             assert returned_data[i]["current_shift"] is None
             assert returned_data[i]["next_shift"]["start"] == expected_start
+            assert len(returned_data[i]["upcoming_shifts"]) == num_days - i + 1
+            for delta, shift in enumerate(returned_data[i]["upcoming_shifts"], start=0):
+                assert shift["start"] == expected_start + timezone.timedelta(days=delta)
+
+
+@pytest.mark.django_db
+def test_users_is_currently_oncall_attribute_works_properly(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+    url = f"{reverse('api-internal:user-list')}?is_currently_oncall=all"
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    oncall_statuses = {
+        user1.public_primary_key: True,
+        user2.public_primary_key: False,
+    }
+
+    for user in response.json():
+        assert user["teams"] == []
+        assert user["is_currently_oncall"] == oncall_statuses[user["pk"]]
+
+    # getting specific user details include currently on-call info
+    url = reverse("api-internal:user-detail", kwargs={"pk": user1.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.json()["is_currently_oncall"]
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_is_currently_oncall(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    user1 = make_user_for_organization(organization)
+    user2 = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    on_call_shift = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        start=today,
+        rotation_start=today,
+        duration=timezone.timedelta(seconds=24 * 60 * 60),
+        priority_level=1,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        schedule=schedule,
+    )
+    on_call_shift.add_rolling_users([[user1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(f"{url}?is_currently_oncall=true", format="json", **make_user_auth_headers(user1, token))
+
+    response = response.json()["results"]
+    assert len(response) == 1
+    assert response[0]["pk"] == user1.public_primary_key
+
+    response = client.get(f"{url}?is_currently_oncall=false", format="json", **make_user_auth_headers(user1, token))
+
+    response = response.json()["results"]
+    user = response[0]
+
+    assert len(response) == 1
+    assert user["pk"] == user2.public_primary_key
+    assert user["teams"] == []

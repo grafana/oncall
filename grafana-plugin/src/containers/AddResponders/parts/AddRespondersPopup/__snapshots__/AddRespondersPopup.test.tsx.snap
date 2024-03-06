@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddRespondersPopup it shows a loading message initially 1`] = `
+<div>
+  <div
+    class="add-responders-dropdown"
+    data-testid="add-responders-popup"
+  >
+    <div
+      class="css-qfli5h-input-wrapper responders-filters"
+      data-testid="input-wrapper"
+    >
+      <div
+        class="css-10lnb82-input-inputWrapper"
+      >
+        <input
+          class="css-8tk2dk-input-input"
+          data-testid="add-responders-search-input"
+          placeholder="Search"
+          style="padding-right: 12px;"
+          value=""
+        />
+        <div
+          class="css-7099m8-input-suffix"
+        >
+          <div
+            class="css-1j2891d-Icon"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="radio-buttons css-1nxrz2e"
+      role="radiogroup"
+    >
+      <div
+        class="css-1hvl7lx"
+      >
+        <input
+          checked=""
+          class="css-1f9hgw3"
+          id="option-teams-radiogroup-1"
+          name="radiogroup-1"
+          type="radio"
+        />
+        <label
+          class="css-10bka4u"
+          for="option-teams-radiogroup-1"
+        >
+          Teams
+           
+        </label>
+      </div>
+      <div
+        class="css-1hvl7lx"
+      >
+        <input
+          class="css-1f9hgw3"
+          id="option-users-radiogroup-1"
+          name="radiogroup-1"
+          type="radio"
+        />
+        <label
+          class="css-10bka4u"
+          for="option-users-radiogroup-1"
+        >
+          Users
+           
+        </label>
+      </div>
+    </div>
+    <div
+      class="css-1yjvs5a loading-placeholder"
+    >
+      Loading...
+       
+      <div
+        class="css-1tqtz24"
+        data-testid="Spinner"
+      >
+        <i
+          aria-label="loading spinner"
+          class="fa fa-spinner fa-spin fa-spin"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

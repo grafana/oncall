@@ -1,15 +1,16 @@
 {
-  "extends": "@grafana/toolkit/src/config/tsconfig.plugin.json",
-  "include": ["src", "frontend_enterprise/src", "integration-tests", "playwright.config.ts"],
+  "extends": "./.config/tsconfig.json",
+  "include": ["src", "e2e-tests", "playwright.config.ts"],
   "types": ["node", "@emotion/core"],
   "compilerOptions": {
-    "rootDirs": ["src", "frontend_enterprise/src"],
-    "baseUrl": "src",
+    "rootDir": "",
     "typeRoots": ["./node_modules/@types"],
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "strict": false,
     "resolveJsonModule": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "useDefineForClassFields": true
   }
 }

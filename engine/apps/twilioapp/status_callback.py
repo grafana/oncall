@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.urls import reverse
 
 from apps.alerts.signals import user_notification_action_triggered_signal
@@ -21,7 +20,7 @@ def update_twilio_call_status(call_sid, call_status):
     Returns:
 
     """
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
 
     if call_sid and call_status:
         logger.info(f"twilioapp.update_twilio_call_status: processing sid={call_sid} status={call_status}")
@@ -85,7 +84,8 @@ def update_twilio_call_status(call_sid, call_status):
 
 
 def get_error_code_by_twilio_status(status):
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
+
     TWILIO_ERRORS_TO_ERROR_CODES_MAP = {
         TwilioCallStatuses.BUSY: UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALL_LINE_BUSY,
         TwilioCallStatuses.FAILED: UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALL_FAILED,
@@ -106,7 +106,7 @@ def update_twilio_sms_status(message_sid, message_status):
     Returns:
 
     """
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
 
     if message_sid and message_status:
         logger.info(f"twilioapp.update_twilio_message_status: processing sid={message_sid} status={message_status}")
@@ -163,7 +163,8 @@ def update_twilio_sms_status(message_sid, message_status):
 
 
 def get_sms_error_code_by_twilio_status(status):
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
+
     TWILIO_ERRORS_TO_ERROR_CODES_MAP = {
         TwilioSMSstatuses.UNDELIVERED: UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_DELIVERY_FAILED,
         TwilioSMSstatuses.FAILED: UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_DELIVERY_FAILED,

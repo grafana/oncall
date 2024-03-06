@@ -9,11 +9,16 @@ keywords:
   - Notifications
   - on-call
   - newrelic
+labels:
+  products:
+    - cloud
 title: New Relic
 weight: 500
 ---
 
 # New Relic integration for Grafana OnCall
+
+> This integration is not available in OSS version
 
 The New Relic integration for Grafana OnCall handles ticket events sent from New Relic webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
@@ -36,6 +41,6 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 5. Check "Payload type" is JSON.
 
 {{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
 {{% /docs/reference %}}

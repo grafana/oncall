@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from django.utils import timezone
@@ -246,11 +246,8 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
-    assert notify_schedule_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
-    assert list(escalation_policy_snapshot.notify_to_users_queue) == list(
-        list_users_to_notify_from_ical(schedule, include_viewers=True)
-    )
-    assert list(escalation_policy_snapshot.notify_to_users_queue) == [viewer]
+    assert notify_schedule_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED).exists()
+    assert list(escalation_policy_snapshot.notify_to_users_queue) == []
     assert mocked_execute_tasks.called
 
 
@@ -371,15 +368,15 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     )
 
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_if_3_alerts_per_1_minute)
-    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    expected_eta = None  # eta is None if escalation was paused
     result = escalation_policy_snapshot.execute(alert_group, reason)
     expected_result = EscalationPolicySnapshot.StepExecutionResultData(
-        eta=result.eta,
+        eta=expected_eta,
         stop_escalation=False,
         pause_escalation=True,
         start_from_beginning=False,
     )
-    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert result.eta == expected_eta
     assert result == expected_result
     assert notify_if_3_alerts_per_1_minute.log_records.filter(
         type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED
@@ -409,6 +406,46 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
     assert not mocked_execute_tasks.called
+
+
+@pytest.mark.django_db
+def test_escalation_step_notify_if_num_alerts_in_window_deleted_escalation_policy(
+    escalation_step_test_setup, make_escalation_policy, make_alert
+):
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    notify_if_2_alerts_per_1_minute = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+        num_alerts_in_window=2,
+        num_minutes_in_window=1,
+    )
+
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_if_2_alerts_per_1_minute)
+    notify_if_2_alerts_per_1_minute.delete()
+
+    with pytest.raises(EscalationPolicy.DoesNotExist):
+        notify_if_2_alerts_per_1_minute.refresh_from_db()
+
+    assert not alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+    ).exists()
+
+    result = escalation_policy_snapshot.execute(alert_group, reason)
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=None,
+        stop_escalation=False,
+        pause_escalation=True,
+        start_from_beginning=False,
+    )
+    assert result == expected_result
+    assert alert_group.log_records.filter(
+        type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
+    ).exists()
 
 
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
@@ -574,3 +611,55 @@ def test_escalation_step_with_deleted_user(
 
     deserialized_escalation_snapshot = EscalationPolicySnapshotSerializer().to_internal_value(raw_snapshot)
     assert deserialized_escalation_snapshot["notify_to_users_queue"] == [user]
+
+
+@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "step",
+    (EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS, EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT),
+)
+def test_notify_team_members(
+    mocked_execute_tasks, escalation_step_test_setup, make_user, make_team, make_escalation_policy, step
+):
+    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    user_1 = make_user(organization=organization)
+    user_2 = make_user(organization=organization)
+    team_1 = make_team(organization=organization)
+    team_1.users.add(user_1)
+    team_1.users.add(user_2)
+
+    notify_team_members_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=step,
+        notify_to_team_members=team_1,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_team_members_step)
+    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    with patch(
+        "apps.alerts.escalation_snapshot.snapshot_classes.escalation_policy_snapshot.notify_user_task"
+    ) as mock_execute:
+        result = escalation_policy_snapshot.execute(alert_group, reason)
+
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=result.eta,
+        stop_escalation=False,
+        pause_escalation=False,
+        start_from_beginning=False,
+    )
+    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert result == expected_result
+    assert notify_team_members_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
+    assert list(escalation_policy_snapshot.notify_to_users_queue) == list(team_1.users.all())
+    assert mocked_execute_tasks.called
+    expected_kwargs = {
+        "reason": f"user belongs to team {team_1.name}",
+        "important": step == EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
+    }
+    assert mock_execute.signature.call_args_list[0] == call(
+        (user_1.pk, alert_group.pk), expected_kwargs, immutable=True
+    )
+    assert mock_execute.signature.call_args_list[1] == call(
+        (user_2.pk, alert_group.pk), expected_kwargs, immutable=True
+    )
+    assert mock_execute.signature.call_count == 2

@@ -3,22 +3,28 @@ import typing
 import uuid
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Count, JSONField, Q
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
+from apps.user_management.constants import AlertGroupTableColumn
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
+from common.oncall_gateway import (
+    register_oncall_tenant_wrapper,
+    unlink_slack_team_wrapper,
+    unregister_oncall_tenant_wrapper,
+)
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.alerts.models import AlertReceiveChannel
     from apps.auth_token.models import (
         ApiAuthToken,
         PluginAuthToken,
@@ -26,8 +32,10 @@ if typing.TYPE_CHECKING:
         UserScheduleExportAuthToken,
     )
     from apps.mobile_app.models import MobileAppAuthToken
-    from apps.schedules.models import OnCallSchedule
-    from apps.user_management.models import User
+    from apps.schedules.models import CustomOnCallShift, OnCallSchedule
+    from apps.slack.models import SlackTeamIdentity
+    from apps.telegram.models import TelegramToOrganizationConnector
+    from apps.user_management.models import Region, Team, User
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +65,7 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            create_oncall_connector(str(instance.uuid), settings.ONCALL_BACKEND_REGION)
+            register_oncall_tenant_wrapper(str(instance.uuid), settings.ONCALL_BACKEND_REGION)
         return instance
 
     def delete(self):
@@ -77,15 +85,21 @@ class OrganizationManager(models.Manager):
 # this will remove the maintenance related columns that're no longer used on the organization object
 # class Organization(models.Model):
 class Organization(MaintainableObject):
+    alert_receive_channels: "RelatedManager['AlertReceiveChannel']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
+    migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
     plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    slack_team_identity: typing.Optional["SlackTeamIdentity"]
+    teams: "RelatedManager['Team']"
+    telegram_channel: "RelatedManager['TelegramToOrganizationConnector']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 
-    objects = OrganizationManager()
+    objects: models.Manager["Organization"] = OrganizationManager()
     objects_with_deleted = models.Manager()
 
     def __init__(self, *args, **kwargs):
@@ -94,9 +108,9 @@ class Organization(MaintainableObject):
 
     def delete(self):
         if settings.FEATURE_MULTIREGION_ENABLED:
-            delete_oncall_connector(str(self.uuid))
+            unregister_oncall_tenant_wrapper(str(self.uuid), settings.ONCALL_BACKEND_REGION)
             if self.slack_team_identity:
-                delete_slack_connector(str(self.uuid))
+                unlink_slack_team_wrapper(str(self.uuid), self.slack_team_identity.slack_id)
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
 
@@ -183,7 +197,7 @@ class Organization(MaintainableObject):
         ACKNOWLEDGE_REMIND_10H,
     ) = range(5)
     ACKNOWLEDGE_REMIND_CHOICES = (
-        (ACKNOWLEDGE_REMIND_NEVER, "Never remind about ack-ed incidents"),
+        (ACKNOWLEDGE_REMIND_NEVER, "Never remind"),
         (ACKNOWLEDGE_REMIND_1H, "Remind every 1 hour"),
         (ACKNOWLEDGE_REMIND_3H, "Remind every 3 hours"),
         (ACKNOWLEDGE_REMIND_5H, "Remind every 5 hours"),
@@ -238,12 +252,17 @@ class Organization(MaintainableObject):
 
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
+    is_grafana_labels_enabled = models.BooleanField(default=False, null=True)
+
+    alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
+    grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
 
     class Meta:
         unique_together = ("stack_id", "org_id")
 
     def provision_plugin(self) -> ProvisionedPlugin:
-        PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
+        from apps.auth_token.models import PluginAuthToken
+
         _, token = PluginAuthToken.create_auth_token(organization=self)
         return {
             "stackId": self.stack_id,
@@ -253,8 +272,9 @@ class Organization(MaintainableObject):
         }
 
     def revoke_plugin(self):
-        token_model = apps.get_model("auth_token", "PluginAuthToken")
-        token_model.objects.filter(organization=self).delete()
+        from apps.auth_token.models import PluginAuthToken
+
+        PluginAuthToken.objects.filter(organization=self).delete()
 
     """
     Following methods:
@@ -272,6 +292,11 @@ class Organization(MaintainableObject):
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
 
+    def update_alert_group_table_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
+        if columns != self.alert_group_table_columns:
+            self.alert_group_table_columns = columns
+            self.save(update_fields=["alert_group_table_columns"])
+
     def set_general_log_channel(self, channel_id, channel_name, user):
         if self.general_log_channel_id != channel_id:
             old_general_log_channel_id = self.slack_team_identity.cached_channels.filter(
@@ -288,6 +313,37 @@ class Organization(MaintainableObject):
                 new_channel=channel_name,
             )
 
+    def get_notifiable_direct_paging_integrations(self) -> "RelatedManager['AlertReceiveChannel']":
+        """
+        in layman's terms, this filters down an organization's integrations to ones which meet the following criterias:
+           - the integration is a direct paging integration
+
+           AND at-least one of the following conditions are true for the integration:
+           - have more than one channel filter associated with it
+           - OR the organization has either Slack or Telegram configured (as the direct paging integration
+           would automatically be configured to be notified via these channel(s))
+           - OR the default channel filter associated with the integration has an escalation chain associated with it
+           - OR the default channel filter associated with the integration is contactable via a custom
+           messaging backend
+        """
+        from apps.alerts.models import AlertReceiveChannel
+
+        return (
+            self.alert_receive_channels.annotate(
+                num_channel_filters=Count("channel_filters"),
+                # used to determine if the organization has telegram configured
+                num_org_telegram_channels=Count("organization__telegram_channel"),
+            )
+            .filter(
+                Q(num_channel_filters__gt=1)
+                | (Q(organization__slack_team_identity__isnull=False) | Q(num_org_telegram_channels__gt=0))
+                | Q(channel_filters__is_default=True, channel_filters__escalation_chain__isnull=False)
+                | Q(channel_filters__is_default=True, channel_filters__notification_backends__isnull=False),
+                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+            )
+            .distinct()
+        )
+
     @property
     def web_link(self):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
@@ -297,6 +353,7 @@ class Organization(MaintainableObject):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
         return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
+    @classmethod
     def __str__(self):
         return f"{self.pk}: {self.org_title}"
 

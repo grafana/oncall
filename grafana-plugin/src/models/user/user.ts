@@ -1,132 +1,58 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable } from 'mobx';
+import { action, computed, runInAction, makeAutoObservable } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { NotificationPolicyType } from 'models/notification_policy';
-import { makeRequest } from 'network';
-import { Mixpanel } from 'services/mixpanel';
-import { RootStore } from 'state';
+import { ActionKey } from 'models/loader/action-keys';
+import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
+import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { onCallApi } from 'network/oncall-api/http-client';
 import { move } from 'state/helpers';
-import { throttlingError } from 'utils';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { RootStore } from 'state/rootStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { AutoLoadingState } from 'utils/decorators';
 
-import { getTimezone, prepareForUpdate } from './user.helpers';
-import { User } from './user.types';
+import { UserHelper } from './user.helpers';
 
-export class UserStore extends BaseStore {
-  @observable.shallow
-  searchResult: { count?: number; results?: Array<User['pk']> } = {};
+export type PaginatedUsersResponse<UT = ApiSchemas['User']> = {
+  count: number;
+  page_size: number;
+  results: UT[];
+};
 
-  @observable.shallow
-  items: { [pk: string]: User } = {};
-
-  itemsCurrentlyUpdating = {};
-
-  @observable
+export class UserStore {
+  rootStore: RootStore;
+  searchResult: { count?: number; results?: Array<ApiSchemas['User']['pk']>; page_size?: number } = {};
+  items: { [pk: string]: ApiSchemas['User'] } = {};
   notificationPolicies: any = {};
-
-  @observable
   notificationChoices: any = [];
-
-  @observable
   notifyByOptions: any = [];
-
-  @observable
-  isTestCallInProgress = false;
-
-  @observable
-  currentUserPk?: User['pk'];
+  currentUserPk?: ApiSchemas['User']['pk'];
 
   constructor(rootStore: RootStore) {
-    super(rootStore);
-
-    this.path = '/users/';
+    makeAutoObservable(this, undefined, { autoBind: true });
+    this.rootStore = rootStore;
   }
 
-  @computed
-  get currentUser() {
-    if (!this.currentUserPk) {
-      return undefined;
-    }
-    return this.items[this.currentUserPk as User['pk']];
-  }
+  async fetchItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+    const response = await UserHelper.search(f, page);
 
-  @action
-  async loadCurrentUser() {
-    const response = await makeRequest('/user/', {});
-
-    const timezone = await this.refreshTimezone(response.pk);
-
-    this.items = {
-      ...this.items,
-      [response.pk]: { ...response, timezone },
-    };
-
-    this.currentUserPk = response.pk;
-  }
-
-  @action
-  async refreshTimezone(id: User['pk']) {
-    const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
-    const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
-    if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
-      this.update(id, { timezone });
-    }
-
-    this.rootStore.currentTimezone = timezone;
-
-    return timezone;
-  }
-
-  @action
-  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
-    const user = await this.getById(userPk, skipErrorHandling);
-
-    this.items = {
-      ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
-    };
-
-    return user;
-  }
-
-  @action
-  async updateItem(userPk: User['pk']) {
-    if (this.itemsCurrentlyUpdating[userPk]) {
+    if (invalidateFn && invalidateFn()) {
       return;
     }
 
-    this.itemsCurrentlyUpdating[userPk] = true;
+    const { count, results, page_size } = response;
 
-    const user = await this.getById(userPk);
-
-    this.items = {
-      ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
-    };
-
-    delete this.itemsCurrentlyUpdating[userPk];
-  }
-
-  @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1) {
-    return new Promise<void>(async (resolve) => {
-      const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-      const { searchTerm: search } = filters;
-      const { count, results } = await makeRequest(this.path, {
-        params: { search, page },
-      });
-
+    runInAction(() => {
       this.items = {
         ...this.items,
         ...results.reduce(
-          (acc: { [key: number]: User }, item: User) => ({
+          (acc: { [key: number]: ApiSchemas['User'] }, item: ApiSchemas['User']) => ({
             ...acc,
             [item.pk]: {
               ...item,
-              timezone: getTimezone(item),
+              timezone: UserHelper.getTimezone(item),
             },
           }),
           {}
@@ -135,190 +61,172 @@ export class UserStore extends BaseStore {
 
       this.searchResult = {
         count,
-        results: results.map((item: User) => item.pk),
+        page_size,
+        results: results.map((item: ApiSchemas['User']) => item.pk),
       };
+    });
 
-      resolve();
+    return response;
+  }
+
+  @AutoLoadingState(ActionKey.FETCH_USERS)
+  @action.bound
+  async fetchItemById({
+    userPk,
+    skipErrorHandling = false,
+    skipIfAlreadyPending = false,
+  }: {
+    userPk: ApiSchemas['User']['pk'];
+    skipErrorHandling?: boolean;
+    skipIfAlreadyPending?: boolean;
+  }) {
+    const isAlreadyFetching = this.rootStore.loaderStore.isLoading(ActionKey.FETCH_USERS);
+
+    if (skipIfAlreadyPending && isAlreadyFetching) {
+      return this.items[userPk];
+    }
+
+    const { data } = await onCallApi({ skipErrorHandling }).GET('/users/{id}/', { params: { path: { id: userPk } } });
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [data.pk]: { ...data, timezone: UserHelper.getTimezone(data) },
+      };
+    });
+
+    return data;
+  }
+
+  async loadCurrentUser() {
+    const response = await makeRequest('/user/', {});
+    const timezone = await this.refreshTimezone(response.pk);
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [response.pk]: { ...response, timezone },
+      };
+      this.currentUserPk = response.pk;
     });
   }
 
-  getSearchResult() {
-    return {
-      count: this.searchResult.count,
-      results: this.searchResult.results && this.searchResult.results.map((userPk: User['pk']) => this.items?.[userPk]),
-    };
+  async refreshTimezone(id: ApiSchemas['User']['pk']) {
+    const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
+    const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
+
+    if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
+      await onCallApi().PUT('/users/{id}/', {
+        params: { path: { id } },
+        body: { timezone } as ApiSchemas['User'],
+      });
+    }
+
+    this.rootStore.timezoneStore.setSelectedTimezoneOffsetBasedOnTz(timezone);
+
+    return timezone;
   }
 
-  sendTelegramConfirmationCode = async (userPk: User['pk']) => {
-    return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
+  async unlinkSlack(userPk: ApiSchemas['User']['pk']) {
+    await onCallApi().POST('/users/{id}/unlink_slack/', undefined);
+    await this.fetchItemById({ userPk });
+  }
 
-  @action
-  unlinkSlack = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_slack/`, {
-      method: 'POST',
-    });
+  async unlinkTelegram(userPk: ApiSchemas['User']['pk']) {
+    await onCallApi().POST('/users/{id}/unlink_telegram/', undefined);
+    await this.fetchItemById({ userPk });
+  }
 
-    const user = await this.getById(userPk);
-
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
-  };
-
-  @action
-  unlinkTelegram = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_telegram/`, {
-      method: 'POST',
-    });
-
-    const user = await this.getById(userPk);
-
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
-  };
-
-  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
-    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
-      method: 'GET',
-    });
-
-  @action
-  unlinkBackend = async (userPk: User['pk'], backend: string) => {
-    await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
-      method: 'POST',
-    });
-
+  async unlinkBackend(userPk: ApiSchemas['User']['pk'], backend: string) {
+    await onCallApi().POST('/users/{id}/unlink_backend/', { params: { path: { id: userPk }, query: { backend } } });
     this.loadCurrentUser();
-  };
-
-  @action
-  async createUser(data: any) {
-    const user = await this.create(data);
-
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
-
-    return user;
   }
 
-  @action
-  async updateUser(data: Partial<User>) {
-    const user = await makeRequest(`/users/${data.pk}/`, {
-      method: 'PUT',
-      data: {
-        ...prepareForUpdate(this.items[data.pk as User['pk']]),
-        ...data,
-      },
-    });
+  async updateUser(data: Partial<ApiSchemas['User']>) {
+    const user = (
+      await onCallApi().PUT('/users/{id}/', {
+        params: { path: { id: data.pk } },
+        body: {
+          ...UserHelper.prepareForUpdate(this.items[data.pk]),
+          ...data,
+        } as ApiSchemas['User'],
+      })
+    ).data;
 
     if (data.pk === this.currentUserPk) {
       this.rootStore.userStore.loadCurrentUser();
     }
 
-    this.items = {
-      ...this.items,
-      [data.pk as User['pk']]: user,
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [data.pk]: user,
+      };
+    });
   }
 
-  @action
-  async updateCurrentUser(data: Partial<User>) {
+  async updateCurrentUser(data: Partial<ApiSchemas['User']>) {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
       data: {
-        ...prepareForUpdate(this.items[this.currentUserPk as User['pk']]),
+        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk]),
         ...data,
       },
     });
 
-    this.items = {
-      ...this.items,
-      [this.currentUserPk as User['pk']]: user,
-    };
-  }
-
-  @action
-  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_code/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action
-  async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_call/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action
-  async verifyPhone(userPk: User['pk'], token: string) {
-    return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
-      method: 'PUT',
-    }).catch(throttlingError);
-  }
-
-  @action
-  async forgetPhone(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/forget_number/`, {
-      method: 'PUT',
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [this.currentUserPk]: user,
+      };
     });
   }
 
-  @action
-  async updateNotificationPolicies(id: User['pk']) {
+  async updateNotificationPolicies(id: ApiSchemas['User']['pk']) {
     const importantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: true },
     });
-
     const nonImportantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: false },
     });
 
-    this.notificationPolicies = {
-      ...this.notificationPolicies,
-      [id]: [...nonImportantEPs, ...importantEPs],
-    };
+    runInAction(() => {
+      this.notificationPolicies = {
+        ...this.notificationPolicies,
+        [id]: [...nonImportantEPs, ...importantEPs],
+      };
+    });
   }
 
-  @action
-  async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
-    Mixpanel.track('Move NotificationPolicy', null);
+  async moveNotificationPolicyToPosition(
+    userPk: ApiSchemas['User']['pk'],
+    oldIndex: number,
+    newIndex: number,
+    offset: number
+  ) {
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
-
     this.notificationPolicies[userPk] = move(this.notificationPolicies[userPk], oldIndex + offset, newIndex + offset);
-
     await makeRequest(`/notification_policies/${notificationPolicy.id}/move_to_position/?position=${newIndex}`, {
       method: 'PUT',
     });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action
-  async addNotificationPolicy(userPk: User['pk'], important: NotificationPolicyType['important']) {
+  async addNotificationPolicy(userPk: ApiSchemas['User']['pk'], important: NotificationPolicyType['important']) {
     await makeRequest(`/notification_policies/`, {
       method: 'POST',
       data: { user: userPk, important },
     });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action
-  async updateNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id'], value: NotificationPolicyType) {
+  async updateNotificationPolicy(
+    userPk: ApiSchemas['User']['pk'],
+    id: NotificationPolicyType['id'],
+    value: NotificationPolicyType
+  ) {
     this.notificationPolicies = {
       ...this.notificationPolicies,
       [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
@@ -331,98 +239,57 @@ export class UserStore extends BaseStore {
       data: value,
     });
 
-    this.notificationPolicies = {
-      ...this.notificationPolicies,
-      [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
-        id === policy.id ? { ...policy, ...notificationPolicy } : policy
-      ),
-    };
+    runInAction(() => {
+      this.notificationPolicies = {
+        ...this.notificationPolicies,
+        [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
+          id === policy.id ? { ...policy, ...notificationPolicy } : policy
+        ),
+      };
+    });
 
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action
-  async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
-    Mixpanel.track('Delete NotificationPolicy', null);
-
+  async deleteNotificationPolicy(userPk: ApiSchemas['User']['pk'], id: NotificationPolicyType['id']) {
     await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action
   async updateNotificationPolicyOptions() {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-
-    this.notificationChoices = get(response, 'actions.POST', []);
-  }
-
-  @action
-  async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
-    return await makeRequest(`/users/${userId}/send_test_push`, {
-      method: 'POST',
-      params: {
-        critical: isCritical,
-      },
+    runInAction(() => {
+      this.notificationChoices = get(response, 'actions.POST', []);
     });
   }
 
-  @action
+  @action.bound
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
 
-    this.notifyByOptions = response;
-  }
-
-  async makeTestCall(userPk: User['pk']) {
-    this.isTestCallInProgress = true;
-
-    return await makeRequest(`/users/${userPk}/make_test_call/`, {
-      method: 'POST',
-    })
-      .catch(this.onApiError)
-      .finally(() => {
-        this.isTestCallInProgress = false;
-      });
-  }
-
-  async sendTestSms(userPk: User['pk']) {
-    this.isTestCallInProgress = true;
-
-    return await makeRequest(`/users/${userPk}/send_test_sms/`, {
-      method: 'POST',
-    })
-      .catch(this.onApiError)
-      .finally(() => {
-        this.isTestCallInProgress = false;
-      });
-  }
-
-  async getiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'GET',
+    runInAction(() => {
+      this.notifyByOptions = response;
     });
   }
 
-  async createiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'POST',
-    });
+  @AutoLoadingState(ActionKey.TEST_CALL_OR_SMS)
+  async makeTestCall(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().POST('/users/{id}/make_test_call/', { params: { path: { id: userPk } } })).data;
   }
 
-  async deleteiCalLink(userPk: User['pk']) {
-    await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'DELETE',
-    });
+  @AutoLoadingState(ActionKey.TEST_CALL_OR_SMS)
+  async sendTestSms(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().POST('/users/{id}/send_test_sms/', { params: { path: { id: userPk } } })).data;
   }
 
-  async checkUserAvailability(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/check_availability/`, {
-      method: 'GET',
-    });
+  @computed
+  get currentUser() {
+    if (!this.currentUserPk) {
+      return undefined;
+    }
+    return this.items[this.currentUserPk];
   }
 }

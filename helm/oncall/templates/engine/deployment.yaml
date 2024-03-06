@@ -20,6 +20,9 @@ spec:
       {{- end }}
       labels:
         {{- include "oncall.engine.selectorLabels" . | nindent 8 }}
+        {{- if .Values.engine.podLabels }}
+        {{- toYaml .Values.engine.podLabels | nindent 8}}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -29,38 +32,22 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
-        {{- if eq .Values.database.type "mysql" }}
-        {{- include "oncall.mariadb.wait-for-db" . | indent 8 }}
-        {{- end }}
-        {{- if eq .Values.database.type "postgresql" }}
-        {{- include "oncall.postgresql.wait-for-db" . | indent 8 }}
-        {{- end }}
+        {{- include "oncall.initContainer" . | indent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "oncall.engine.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.oncall.devMode }}
+          command: ["sh", "-c", "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"]
+          {{- end }}
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
           env:
-            {{- include "snippet.oncall.env" . | nindent 12 }}
-            {{- include "snippet.oncall.slack.env" . | nindent 12 }}
-            {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
-            {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
-            {{- include "snippet.oncall.twilio.env" . | nindent 12 }}
-            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
-            {{- if eq .Values.database.type "mysql" }}
-            {{- include "snippet.mysql.env" . | nindent 12 }}
-            {{- end }}
-            {{- if eq .Values.database.type "postgresql" }}
-            {{- include "snippet.postgresql.env" . | nindent 12 }}
-            {{- end }}
-            {{- include "snippet.rabbitmq.env" . | nindent 12 }}
-            {{- include "snippet.redis.env" . | nindent 12 }}
-            {{- include "oncall.extraEnvs" . | nindent 12 }}
+            {{- include "snippet.oncall.engine.env" . | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /health/
@@ -81,6 +68,12 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
+          {{- with .Values.engine.extraVolumeMounts }}
+          volumeMounts: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+      {{- with .Values.engine.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
       {{- with .Values.engine.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -92,4 +85,14 @@ spec:
       {{- with .Values.engine.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.engine.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.engine.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.engine.extraVolumes }}
+      volumes: {{- . | toYaml | nindent 8 }}
       {{- end }}

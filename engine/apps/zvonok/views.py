@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import status
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
@@ -21,8 +20,9 @@ class AllowOnlyZvonok(BasePermission):
 
         if campaign_id != live_settings.ZVONOK_CAMPAIGN_ID:
             return False
-        ZvonokCall = apps.get_model("zvonok", "ZvonokPhoneCall")
-        call = ZvonokCall.objects.filter(call_id=call_id, campaign_id=campaign_id).first()
+        from apps.zvonok.models import ZvonokPhoneCall
+
+        call = ZvonokPhoneCall.objects.filter(call_id=call_id, campaign_id=campaign_id).first()
         if call:
             return self.validate_request(request)
         return False

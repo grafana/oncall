@@ -1,15 +1,17 @@
 import time
+from functools import partial
 
-from django.apps import apps
+from celery.exceptions import Retry
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from kombu.utils.uuid import uuid as celery_uuid
+from telegram.error import RetryAfter
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.metrics_exporter.helpers import metrics_update_user_cache
+from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -29,14 +31,12 @@ def notify_user_task(
     important=False,
     notify_anyway=False,
 ):
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    User = apps.get_model("user_management", "User")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    UserHasNotification = apps.get_model("alerts", "UserHasNotification")
+    from apps.alerts.models import AlertGroup, UserHasNotification
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.user_management.models import User
 
     try:
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     except AlertGroup.DoesNotExist:
         return f"notify_user_task: alert_group {alert_group_pk} doesn't exist"
 
@@ -58,7 +58,7 @@ def notify_user_task(
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                reason=f"notification is not allowed for user",
+                reason="notification is not allowed for user",
                 alert_group=alert_group,
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
@@ -72,7 +72,7 @@ def notify_user_task(
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
 
         if previous_notification_policy_pk is None:
-            notification_policy = UserNotificationPolicy.objects.filter(user=user, important=important).first()
+            notification_policy = user.get_or_create_notification_policies(important=important).first()
             if notification_policy is None:
                 task_logger.info(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
@@ -127,21 +127,15 @@ def notify_user_task(
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
                 or alert_group.resolved
-                or alert_group.is_archived
                 or alert_group.wiped_at
                 or alert_group.root_alert_group
             ):
-                return "Acknowledged, resolved, archived, attached or wiped."
+                return "Acknowledged, resolved, attached or wiped."
 
             if alert_group.silenced and not notify_anyway:
                 task_logger.info(
                     f"notify_user_task: skip notification user {user.pk} because alert_group {alert_group.pk} is silenced"
                 )
-                return
-
-            active_invitations_count = alert_group.invitations.filter(invitee=user, is_active=True).count()
-            if (notify_even_acknowledged or notify_anyway) and active_invitations_count == 0:
-                task_logger.info(f"notify_user_task: skip notification user {user.pk} invitation exceeded")
                 return
 
             if notification_policy.step == UserNotificationPolicy.Step.WAIT:
@@ -169,7 +163,7 @@ def notify_user_task(
                         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                         notification_policy=notification_policy,
                         alert_group=alert_group,
-                        reason=reason,
+                        reason="Alert group slack notifications are disabled",
                         slack_prevent_posting=prevent_posting_to_thread,
                         notification_step=notification_policy.step,
                         notification_channel=notification_policy.notify_by,
@@ -196,15 +190,23 @@ def notify_user_task(
                     alert_group_id=alert_group_pk,
                 ).exists()
             ):
-                metrics_update_user_cache(user)
+                update_metrics_for_user.apply_async((user.id,))
 
             log_record.save()
             if notify_user_task.request.retries == 0:
-                transaction.on_commit(lambda: send_user_notification_signal.apply_async((log_record.pk,)))
+                transaction.on_commit(partial(send_user_notification_signal.apply_async, (log_record.pk,)))
 
         if not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
-                transaction.on_commit(lambda: perform_notification.apply_async((log_record.pk,)))
+
+                def _create_perform_notification_task(log_record_pk, alert_group_pk):
+                    task = perform_notification.apply_async((log_record_pk,))
+                    task_logger.info(
+                        f"Created perform_notification task {task} log_record={log_record_pk} "
+                        f"alert_group={alert_group_pk}"
+                    )
+
+                transaction.on_commit(partial(_create_perform_notification_task, log_record.pk, alert_group_pk))
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
@@ -215,7 +217,8 @@ def notify_user_task(
             user_has_notification.save(update_fields=["active_notification_policy_id"])
 
             transaction.on_commit(
-                lambda: notify_user_task.apply_async(
+                partial(
+                    notify_user_task.apply_async,
                     (user.pk, alert_group.pk, notification_policy.pk, reason),
                     {
                         "notify_even_acknowledged": notify_even_acknowledged,
@@ -233,13 +236,27 @@ def notify_user_task(
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    dont_autoretry_for=(Retry,),
+    max_retries=1 if settings.DEBUG else None,
 )
 def perform_notification(log_record_pk):
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.telegram.models import TelegramToUserConnector
+
+    task_logger.info(f"perform_notification: log_record {log_record_pk}")
+
+    try:
+        log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
+    except UserNotificationPolicyLogRecord.DoesNotExist:
+        task_logger.warning(
+            f"perform_notification: log_record {log_record_pk} doesn't exist. Skipping remainder of task. "
+            "The alert group associated with this log record may have been deleted."
+        )
+        return
+
+    task_logger.info(f"perform_notification: found record for {log_record_pk}")
 
     user = log_record.author
     alert_group = log_record.alert_group
@@ -262,7 +279,7 @@ def perform_notification(log_record_pk):
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            reason=f"notification is not allowed for user",
+            reason="notification is not allowed for user",
             alert_group=alert_group,
             notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
@@ -277,30 +294,44 @@ def perform_notification(log_record_pk):
         phone_backend.notify_by_call(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
-        TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        try:
+            TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        except RetryAfter as e:
+            countdown = getattr(e, "retry_after", 3)
+            raise perform_notification.retry((log_record_pk,), countdown=countdown, exc=e)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack
         # Code below is not consistent.
         # We check various slack reasons to skip escalation in this task, in send_slack_notification,
         # before and after posting of slack message.
-        if alert_group.reason_to_skip_escalation == alert_group.RATE_LIMITED:
+        if alert_group.skip_escalation_in_slack:
+            notification_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK
+            if alert_group.reason_to_skip_escalation == alert_group.RATE_LIMITED:
+                notification_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT
+            elif alert_group.reason_to_skip_escalation == alert_group.CHANNEL_ARCHIVED:
+                notification_error_code = (
+                    UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_CHANNEL_IS_ARCHIVED
+                )
+            elif alert_group.reason_to_skip_escalation == alert_group.ACCOUNT_INACTIVE:
+                notification_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR
             task_logger.debug(
-                f"send_slack_notification for alert_group {alert_group.pk} failed because of slack ratelimit."
+                f"send_slack_notification for alert_group {alert_group.pk} failed because escalation in slack is "
+                f"skipped, reason: '{alert_group.get_reason_to_skip_escalation_display()}'"
             )
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                 notification_policy=notification_policy,
-                reason="Slack ratelimit",
+                reason=f"Skipped escalation in Slack, reason: '{alert_group.get_reason_to_skip_escalation_display()}'",
                 alert_group=alert_group,
                 notification_step=notification_policy.step,
                 notification_channel=notification_channel,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT,
+                notification_error_code=notification_error_code,
             ).save()
             return
 
-        if alert_group.notify_in_slack_enabled is True and not log_record.slack_prevent_posting:
+        if alert_group.notify_in_slack_enabled is True:
             # we cannot notify users in Slack if their team does not have Slack integration
             if alert_group.channel.organization.slack_team_identity is None:
                 task_logger.debug(
@@ -319,10 +350,25 @@ def perform_notification(log_record_pk):
                 ).save()
                 return
 
+            if log_record.slack_prevent_posting:
+                task_logger.debug(
+                    f"send_slack_notification for alert_group {alert_group.pk} failed because slack posting is disabled."
+                )
+                UserNotificationPolicyLogRecord(
+                    author=user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    notification_policy=notification_policy,
+                    reason="Prevented from posting in Slack",
+                    alert_group=alert_group,
+                    notification_step=notification_policy.step,
+                    notification_channel=notification_channel,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
+                ).save()
+                return
+
             retry_timeout_hours = 1
-            slack_message = alert_group.get_slack_message()
-            if slack_message is not None:
-                slack_message.send_slack_notification(user, alert_group, notification_policy)
+            if alert_group.slack_message:
+                alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
             # check how much time has passed since log record was created
             # to prevent eternal loop of restarting perform_notification task
@@ -356,7 +402,7 @@ def perform_notification(log_record_pk):
             backend = None
 
         if backend is None:
-            task_logger.debug(f"notify_user failed because messaging backend is not available")
+            task_logger.debug("notify_user failed because messaging backend is not available")
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -377,7 +423,8 @@ def perform_notification(log_record_pk):
 def send_user_notification_signal(log_record_pk):
     start_time = time.time()
 
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
+
     task_logger.debug(f"LOG RECORD PK: {log_record_pk}")
     task_logger.debug(f"LOG RECORD LAST: {UserNotificationPolicyLogRecord.objects.last()}")
 

@@ -595,11 +595,24 @@ export const allTimezones = [
   'Zulu',
 ];
 
-export const getTzOffsetString = (moment: dayjs.Dayjs) => {
-  const userOffset = moment.utcOffset();
+export const getTzOffsetString = (date: dayjs.Dayjs) => {
+  const userOffset = date.utcOffset();
   const userOffsetHours = userOffset / 60;
-  const userOffsetHoursStr =
-    userOffsetHours > 0 ? `+${userOffsetHours} GMT` : userOffset < 0 ? `${userOffsetHours} GMT` : `GMT`;
 
-  return userOffsetHoursStr;
+  if (userOffsetHours === 0) {
+    return 'GMT';
+  }
+  return userOffsetHours > 0 ? `GMT+${userOffsetHours}` : `GMT${userOffsetHours}`;
 };
+
+export const getGMTTimezoneLabelBasedOnOffset = (offset: number) => {
+  const userOffsetHours = offset / 60;
+  if (userOffsetHours === 0) {
+    return 'GMT';
+  }
+  return `GMT${userOffsetHours >= 0 ? '+' : ''}${userOffsetHours}`;
+};
+
+export const getCurrentlyLoggedInUserDate = () => dayjs();
+export const getOffsetOfCurrentUser = () => dayjs().utcOffset();
+export const getCurrentDateInTimezone = (timezone: string) => dayjs().tz(timezone);

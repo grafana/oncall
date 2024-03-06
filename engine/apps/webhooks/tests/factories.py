@@ -7,7 +7,7 @@ from common.utils import UniqueFaker
 
 class CustomWebhookFactory(factory.DjangoModelFactory):
     url = factory.Faker("url")
-    name = UniqueFaker("word")
+    name = UniqueFaker("sentence", nb_words=3)
 
     class Meta:
         model = Webhook

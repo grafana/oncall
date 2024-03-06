@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField
+from django.db.utils import IntegrityError
 
 from apps.base.utils import LiveSettingValidator
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -38,6 +39,7 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_USER",
         "EMAIL_HOST_PASSWORD",
         "EMAIL_USE_TLS",
+        "EMAIL_USE_SSL",
         "EMAIL_FROM_ADDRESS",
         "INBOUND_EMAIL_ESP",
         "INBOUND_EMAIL_DOMAIN",
@@ -69,6 +71,7 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_STATUS",
         "ZVONOK_POSTBACK_USER_CHOICE",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK",
+        "ZVONOK_VERIFICATION_TEMPLATE",
     )
 
     DESCRIPTIONS = {
@@ -77,6 +80,7 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_USER": "SMTP server user",
         "EMAIL_HOST_PASSWORD": "SMTP server password",
         "EMAIL_USE_TLS": "SMTP enable/disable TLS",
+        "EMAIL_USE_SSL": "SMTP enable/disable SSL. Should be used mutually exclusively with EMAIL_USE_TLS.",
         "EMAIL_FROM_ADDRESS": "Email address used to send emails. If not specified, EMAIL_HOST_USER will be used.",
         "INBOUND_EMAIL_DOMAIN": "Inbound email domain",
         "INBOUND_EMAIL_ESP": (
@@ -166,6 +170,7 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_STATUS": "'Postback' status (ct_status) query parameter name to validate a postback request.",
         "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional).",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional).",
+        "ZVONOK_VERIFICATION_TEMPLATE": "The message template used for phone number verification (optional).",
     }
 
     SECRET_SETTING_NAMES = (
@@ -223,7 +228,13 @@ class LiveSetting(models.Model):
             return
 
         for setting_name in setting_names_to_populate:
-            cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            try:
+                cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            except IntegrityError:
+                # prevent the rare case where concurrent requests try inserting the same live setting and lead to:
+                # django.db.utils.IntegrityError: duplicate key value violates unique constraint "base_livesetting_name_key"
+                # this infers that a setting with this name already exists, and we can safely skip this
+                continue
 
         cls.validate_settings()
 

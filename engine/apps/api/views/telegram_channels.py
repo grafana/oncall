@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -7,12 +6,13 @@ from rest_framework.response import Response
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.telegram import TelegramToOrganizationConnectorSerializer
 from apps.auth_token.auth import PluginAuthentication
+from apps.telegram.models import TelegramToOrganizationConnector
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
 
 class TelegramChannelViewSet(
-    PublicPrimaryKeyMixin,
+    PublicPrimaryKeyMixin[TelegramToOrganizationConnector],
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
@@ -32,7 +32,6 @@ class TelegramChannelViewSet(
     serializer_class = TelegramToOrganizationConnectorSerializer
 
     def get_queryset(self):
-        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
         return TelegramToOrganizationConnector.objects.filter(organization=self.request.user.organization)
 
     @action(detail=True, methods=["post"])

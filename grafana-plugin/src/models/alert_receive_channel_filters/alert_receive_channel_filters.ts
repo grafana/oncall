@@ -1,8 +1,8 @@
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 
 export class AlertReceiveChannelFiltersStore extends BaseStore {
@@ -15,34 +15,38 @@ export class AlertReceiveChannelFiltersStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
+    makeObservable(this);
+
     this.path = '/alert_receive_channels/';
   }
 
-  getSearchResult() {
+  getSearchResult = () => {
     if (!this.searchResult) {
       return undefined;
     }
 
     return this.searchResult.map((value: SelectOption['value']) => this.items?.[value]);
-  }
+  };
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const results = await makeRequest(`${this.path}`, {
       params: { search: query, filters: true },
     });
 
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: string]: SelectOption }, item: SelectOption) => ({
-          ...acc,
-          [item.value]: item,
-        }),
-        {}
-      ),
-    };
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: string]: SelectOption }, item: SelectOption) => ({
+            ...acc,
+            [item.value]: item,
+          }),
+          {}
+        ),
+      };
 
-    this.searchResult = results.map((item: SelectOption) => item.value);
+      this.searchResult = results.map((item: SelectOption) => item.value);
+    });
   }
 }

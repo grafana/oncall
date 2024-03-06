@@ -1,13 +1,15 @@
 suite: test security context for deployments
 templates:
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
   - engine/deployment.yaml
   - engine/job-migrate.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 tests:
   - it: podSecurityContext={} -> spec.template.spec.securityContext is empty (default)
     set:
+      telegramPolling.enabled: true
     asserts:
       - isNullOrEmpty:
           path: spec.template.spec.securityContext
@@ -16,6 +18,7 @@ tests:
 
   - it: podSecurityContext.runAsNonRoot=true -> should fill securityContext
     set:
+      telegramPolling.enabled: true
       podSecurityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -28,6 +31,7 @@ tests:
 
   - it: securityContext.runAsNonRoot=true -> should fill securityContext for container
     set:
+      telegramPolling.enabled: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

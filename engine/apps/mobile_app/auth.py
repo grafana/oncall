@@ -1,10 +1,10 @@
 from typing import Optional, Tuple
 
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 
 from apps.auth_token.exceptions import InvalidToken
-from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 
 from .models import MobileAppAuthToken, MobileAppVerificationToken
@@ -43,9 +43,16 @@ class MobileAppAuthTokenAuthentication(BaseAuthentication):
         except InvalidToken:
             return None, None
 
-        if auth_token.organization.is_moved:
-            raise OrganizationMovedException(auth_token.organization)
-        if auth_token.organization.deleted_at:
-            raise OrganizationDeletedException(auth_token.organization)
-
         return auth_token.user, auth_token
+
+
+class MobileAppAuthTokenAuthenticationSchema(OpenApiAuthenticationExtension):
+    target_class = MobileAppAuthTokenAuthentication
+    name = "MobileAppAuthTokenAuthentication"
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+        }

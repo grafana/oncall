@@ -5,3 +5,4 @@ from .on_call_schedule import (  # noqa: F401
     OnCallScheduleICal,
     OnCallScheduleWeb,
 )
+from .shift_swap_request import ShiftSwapRequest  # noqa: F401

@@ -1,8 +1,10 @@
 import json
+import logging
 import typing
 from json import JSONDecodeError
 
 import requests
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -11,7 +13,6 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,
@@ -30,6 +31,10 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import EscalationPolicy
 
 WEBHOOK_FIELD_PLACEHOLDER = "****************"
+PUBLIC_WEBHOOK_HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+
+logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def generate_public_primary_key_for_webhook():
@@ -74,7 +79,8 @@ class Webhook(models.Model):
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
         TRIGGER_UNACKNOWLEDGE,
-    ) = range(8)
+        TRIGGER_STATUS_CHANGE,
+    ) = range(9)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -86,7 +92,32 @@ class Webhook(models.Model):
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
+        (TRIGGER_STATUS_CHANGE, "Status change"),
     )
+
+    ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
+    STATUS_CHANGE_TRIGGERS = {
+        TRIGGER_ACKNOWLEDGE,
+        TRIGGER_RESOLVE,
+        TRIGGER_SILENCE,
+        TRIGGER_UNSILENCE,
+        TRIGGER_UNRESOLVE,
+        TRIGGER_UNACKNOWLEDGE,
+    }
+
+    PUBLIC_TRIGGER_TYPES_MAP = {
+        TRIGGER_ESCALATION_STEP: "escalation",
+        TRIGGER_ALERT_GROUP_CREATED: "alert group created",
+        TRIGGER_ACKNOWLEDGE: "acknowledge",
+        TRIGGER_RESOLVE: "resolve",
+        TRIGGER_SILENCE: "silence",
+        TRIGGER_UNSILENCE: "unsilence",
+        TRIGGER_UNRESOLVE: "unresolve",
+        TRIGGER_UNACKNOWLEDGE: "unacknowledge",
+        TRIGGER_STATUS_CHANGE: "status change",
+    }
+
+    PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -100,7 +131,7 @@ class Webhook(models.Model):
     )
 
     team = models.ForeignKey(
-        "user_management.Team", null=True, on_delete=models.CASCADE, related_name="webhooks", default=None
+        "user_management.Team", null=True, on_delete=models.SET_NULL, related_name="webhooks", default=None
     )
 
     user = models.ForeignKey(
@@ -112,17 +143,22 @@ class Webhook(models.Model):
     name = models.CharField(max_length=100, null=True, default=None)
     username = models.CharField(max_length=100, null=True, default=None)
     password = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
-    authorization_header = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
+    authorization_header = mirage_fields.EncryptedCharField(max_length=2000, null=True, default=None)
     trigger_template = models.TextField(null=True, default=None)
     headers = models.TextField(null=True, default=None)
     url = models.TextField(null=True, default=None)
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
-    http_method = models.CharField(max_length=32, default="POST")
-    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
+    http_method = models.CharField(max_length=32, default="POST", null=True)
+    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
+    # NOTE: integration_filter is deprecated (to be removed), use filtered_integrations instead
     integration_filter = models.JSONField(default=None, null=True, blank=True)
+    filtered_integrations = models.ManyToManyField("alerts.AlertReceiveChannel", related_name="webhooks")
     is_legacy = models.BooleanField(null=True, default=False)
+    preset = models.CharField(max_length=100, null=True, blank=True, default=None)
+
+    is_from_connected_integration = models.BooleanField(null=True, default=False)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -164,7 +200,7 @@ class Webhook(models.Model):
         if self.authorization_header:
             request_kwargs["headers"]["Authorization"] = self.authorization_header
 
-        if self.http_method in ["POST", "PUT"]:
+        if self.http_method in ["POST", "PUT", "PATCH"]:
             if self.forward_all:
                 request_kwargs["json"] = event_data
                 if self.is_legacy:
@@ -184,7 +220,8 @@ class Webhook(models.Model):
                     try:
                         request_kwargs["json"] = json.loads(rendered_data)
                     except (JSONDecodeError, TypeError):
-                        request_kwargs["data"] = rendered_data
+                        # utf-8 encoding addresses https://github.com/grafana/oncall/issues/3831
+                        request_kwargs["data"] = rendered_data.encode("utf-8")
                 except (JinjaTemplateError, JinjaTemplateWarning) as e:
                     if raise_data_errors:
                         raise InvalidWebhookData(e.fallback_message)
@@ -208,9 +245,9 @@ class Webhook(models.Model):
         return url
 
     def check_integration_filter(self, alert_group):
-        if not self.integration_filter:
+        if self.filtered_integrations.count() == 0:
             return True
-        return alert_group.channel.public_primary_key in self.integration_filter
+        return self.filtered_integrations.filter(id=alert_group.channel.id).exists()
 
     def check_trigger(self, event_data):
         if not self.trigger_template:
@@ -224,17 +261,19 @@ class Webhook(models.Model):
 
     def make_request(self, url, request_kwargs):
         if self.http_method == "GET":
-            r = requests.get(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.get(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "POST":
-            r = requests.post(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.post(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PUT":
-            r = requests.put(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.put(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "DELETE":
-            r = requests.delete(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.delete(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "OPTIONS":
-            r = requests.options(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.options(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+        elif self.http_method == "PATCH":
+            r = requests.patch(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         else:
-            raise Exception(f"Unsupported http method: {self.http_method}")
+            raise ValueError(f"Unsupported http method: {self.http_method}")
         return r
 
     # Insight logs

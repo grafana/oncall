@@ -1,6 +1,6 @@
 name: "Publish Technical Documentation (release)"
 
-on:
+"on":
   push:
     branches:
       - "release-*"
@@ -15,13 +15,16 @@ jobs:
     steps:
       - name: "Check out code"
         uses: "actions/checkout@v3"
-      - name:
-          "Build website"
-          # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
-          # that no refs to external content can be used as these refs will not resolve in the
-          # docs-base image.
-        run: |
-          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+      - name: "Build website"
+        # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
+        # that no refs to external content can be used as these refs will not resolve in the
+        # docs-base image.
+        run: >
+          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest
+          -e HUGO_REFLINKSERRORLEVEL=ERROR
+          --rm grafana/docs-base:latest /bin/bash
+          -c 'echo -e "---\\nredirectURL: /hugo/content/docs/oncall/latest/\\ntype: redirect\\nversioned: true\\n---\\n"
+          > /hugo/content/docs/oncall/_index.md; make hugo'
 
   sync:
     runs-on: "ubuntu-latest"
@@ -62,7 +65,10 @@ jobs:
         # It must be regenerated in the grafanabot GitHub account and requires a Grafana organization
         # GitHub administrator to update the organization secret.
         # The IT helpdesk can update the organization secret.
-        run: "git clone --single-branch --no-tags --depth 1 -b master https://grafanabot:${{ secrets.WEBSITE_SYNC_TOKEN }}@github.com/grafana/website-sync ./.github/actions/website-sync"
+        run: |
+          git clone --single-branch --no-tags --depth 1 \
+          -b master https://grafanabot:${{ secrets.WEBSITE_SYNC_TOKEN }}@github.com/grafana/website-sync \
+          ./.github/actions/website-sync
 
       - name: "Publish to website repository (release)"
         if: "steps.has-matching-release-tag.outputs.bool == 'true'"

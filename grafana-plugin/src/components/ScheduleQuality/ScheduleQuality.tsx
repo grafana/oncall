@@ -1,14 +1,15 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect } from 'react';
 
 import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
-import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginLink } from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
+import { Tag } from 'components/Tag/Tag';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
 import styles from './ScheduleQuality.module.scss';
@@ -17,29 +18,29 @@ const cx = cn.bind(styles);
 
 interface ScheduleQualityProps {
   schedule: Schedule;
-  lastUpdated: number;
 }
 
-const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) => {
-  const { scheduleStore } = useStore();
-  const [qualityResponse, setQualityResponse] = useState<ScheduleScoreQualityResponse>(undefined);
+export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
+  const {
+    scheduleStore: { getScoreQuality, relatedEscalationChains, quality },
+  } = useStore();
 
   useEffect(() => {
     if (schedule.id) {
-      fetchScoreQuality();
+      getScoreQuality(schedule.id);
     }
-  }, [schedule.id, lastUpdated]);
+  }, [schedule.id]);
 
-  if (!qualityResponse) {
+  if (!quality) {
     return null;
   }
 
-  const relatedEscalationChains = scheduleStore.relatedEscalationChains[schedule.id];
+  const relatedScheduleEscalationChains = relatedEscalationChains[schedule.id];
 
   return (
     <>
       <div className={cx('root')} data-testid="schedule-quality">
-        {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
+        {relatedScheduleEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
           <TooltipBadge
             borderType="success"
             icon="link"
@@ -48,7 +49,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
             tooltipTitle="Used in escalations"
             tooltipContent={
               <VerticalGroup spacing="sm">
-                {relatedEscalationChains.map((escalationChain) => (
+                {relatedScheduleEscalationChains.map((escalationChain) => (
                   <div key={escalationChain.pk}>
                     <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className="link">
                       <Text type="link">{escalationChain.name}</Text>
@@ -82,13 +83,11 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
         <Tooltip
           placement="bottom-start"
           interactive
-          content={
-            <ScheduleQualityDetails quality={qualityResponse} getScheduleQualityString={getScheduleQualityString} />
-          }
+          content={<ScheduleQualityDetails quality={quality} getScheduleQualityString={getScheduleQualityString} />}
         >
           <div className={cx('u-cursor-default')}>
             <Tag className={cx('tag', getTagClass())}>
-              Quality: <strong>{getScheduleQualityString(qualityResponse.total_score)}</strong>
+              Quality: <strong>{getScheduleQualityString(quality.total_score)}</strong>
             </Tag>
           </div>
         </Tooltip>
@@ -112,22 +111,13 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
     return ScheduleScoreQualityResult.Great;
   }
 
-  async function fetchScoreQuality() {
-    await Promise.all([
-      scheduleStore.getScoreQuality(schedule.id).then((qualityResponse) => setQualityResponse(qualityResponse)),
-      scheduleStore.updateRelatedEscalationChains(schedule.id),
-    ]);
-  }
-
   function getTagClass() {
-    if (qualityResponse?.total_score < 20) {
+    if (quality?.total_score < 20) {
       return 'tag--danger';
     }
-    if (qualityResponse?.total_score < 60) {
+    if (quality?.total_score < 60) {
       return 'tag--warning';
     }
     return 'tag--primary';
   }
-};
-
-export default ScheduleQuality;
+});

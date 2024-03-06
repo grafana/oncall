@@ -182,12 +182,36 @@ def test_update_integration_heartbeat(
 
 
 @pytest.mark.django_db
+def test_reset_integration_heartbeat(
+    integration_heartbeat_internal_api_setup,
+    make_user_auth_headers,
+):
+    user, token, alert_receive_channel, integration_heartbeat = integration_heartbeat_internal_api_setup
+    last_updated = timezone.now()
+    integration_heartbeat.last_heartbeat_time = last_updated
+    integration_heartbeat.save()
+    heartbeat_before_reset = IntegrationHeartBeat.objects.get(
+        public_primary_key=integration_heartbeat.public_primary_key
+    )
+    assert heartbeat_before_reset.last_heartbeat_time == last_updated
+
+    client = APIClient()
+    url = reverse("api-internal:integration_heartbeat-reset", kwargs={"pk": integration_heartbeat.public_primary_key})
+
+    response = client.post(url, **make_user_auth_headers(user, token))
+    reset_instance = IntegrationHeartBeat.objects.get(public_primary_key=integration_heartbeat.public_primary_key)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert reset_instance.last_heartbeat_time is None
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_create_permissions(
@@ -218,6 +242,7 @@ def test_integration_heartbeat_create_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_update_permissions(
@@ -257,6 +282,7 @@ def test_integration_heartbeat_update_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_list_permissions(
@@ -292,6 +318,7 @@ def test_integration_heartbeat_list_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_timeout_options_permissions(
@@ -323,6 +350,7 @@ def test_integration_heartbeat_timeout_options_permissions(
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_retrieve_permissions(

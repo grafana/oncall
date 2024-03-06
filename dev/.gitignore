@@ -11,6 +11,9 @@
 !README.md
 !scripts/
 !scripts/*
+!helm-local.yml
+!kind.yml
+!kind-config.yaml
 
 # only source control grafana/provisioning/datasources/automatic.yml
 # any other files under ./grafana will be ignored
@@ -18,3 +21,6 @@
 !grafana/provisioning/
 !grafana/provisioning/datasources/
 !grafana/provisioning/datasources/automatic.yml
+!grafana/provisioning/plugins/
+!grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml
+

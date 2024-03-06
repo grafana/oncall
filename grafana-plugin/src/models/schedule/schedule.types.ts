@@ -2,8 +2,8 @@ import dayjs from 'dayjs';
 
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
-import { User } from 'models/user/user.types';
 import { UserGroup } from 'models/user_group/user_group.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export enum ScheduleType {
   'Calendar',
@@ -29,7 +29,7 @@ export interface Schedule {
   user_group: UserGroup;
   send_empty_shifts_report: boolean;
   team: GrafanaTeam['id'];
-  on_call_now: User[];
+  on_call_now: Array<ApiSchemas['User']>;
   notify_oncall_shift_freq: number;
   mention_oncall_next: boolean;
   mention_oncall_start: boolean;
@@ -44,7 +44,7 @@ export interface ScheduleEvent {
   priority_level: string;
   source: string;
   start: string;
-  users: User[];
+  users: Array<ApiSchemas['User']>;
   is_empty: boolean;
   is_gap: boolean;
   missing_users: string[];
@@ -57,13 +57,13 @@ export interface CreateScheduleExportTokenResponse {
 }
 
 export interface Shift {
-  by_day: string[];
+  by_day?: string[] | null;
   week_start: string;
   frequency: number | null;
   id: string;
   interval: number;
   priority_level: number;
-  rolling_users: Array<Array<User['pk']>>;
+  rolling_users: Array<Array<ApiSchemas['User']['pk']>>;
   rotation_start: string;
   schedule: Schedule['id'];
   shift_end: string;
@@ -81,19 +81,31 @@ export interface Rotation {
 
 export type RotationType = 'final' | 'rotation' | 'override';
 
+export interface SwapRequest {
+  pk: ShiftSwap['id'];
+  user: Partial<ApiSchemas['User']> & { display_name: string };
+}
+
 export interface Event {
   all_day: boolean;
   calendar_type: ScheduleType;
   end: string;
   is_empty: boolean;
   is_gap: boolean;
-  missing_users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  missing_users: Array<{ display_name: ApiSchemas['User']['username']; pk: ApiSchemas['User']['pk'] }>;
   priority_level: number;
-  shift: { pk: Shift['id'] | null };
+  shift: Pick<Shift, 'name' | 'type'> & { pk: string };
   source: string;
   start: string;
-  users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  users: Array<{
+    display_name: ApiSchemas['User']['username'];
+    pk: ApiSchemas['User']['pk'];
+    swap_request?: SwapRequest;
+  }>;
   is_override: boolean;
+
+  schedule?: Partial<Schedule>; // populated by frontend for personal schedule to display schedule name instead of user name
+  shiftSwapId?: ShiftSwap['id']; // if event is acually shift swap request (filled out by frontend)
 }
 
 export interface Events {
@@ -111,6 +123,7 @@ export interface Layer {
 export interface ShiftEvents {
   shiftId: string;
   events: Event[];
+  priority?: number;
   isPreview?: boolean;
 }
 
@@ -118,6 +131,19 @@ export interface ScheduleScoreQualityResponse {
   total_score: number;
   comments: Array<{ type: 'warning' | 'info'; text: string }>;
   overloaded_users: Array<{ id: string; username: string; score: number }>;
+}
+
+export interface ShiftSwap {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  schedule: Schedule['id'];
+  swap_start: string;
+  swap_end: string;
+  beneficiary: Partial<ApiSchemas['User']>;
+  status: 'open' | 'taken' | 'past_due';
+  benefactor: Partial<ApiSchemas['User']>;
+  description: string;
 }
 
 export enum ScheduleScoreQualityResult {

@@ -1,3 +1,4 @@
+import datetime
 from unittest.mock import PropertyMock, patch
 
 import pytest
@@ -77,7 +78,8 @@ def test_build_raw_escalation_snapshot_escalation_chain_does_not_exist_escalatio
     channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
 
-    assert alert_group.build_raw_escalation_snapshot() == EMPTY_RAW_ESCALATION_SNAPSHOT
+    # Check that setting pause_escalation to True doesn't make the snapshot empty
+    assert alert_group.build_raw_escalation_snapshot() != EMPTY_RAW_ESCALATION_SNAPSHOT
 
 
 @pytest.mark.django_db
@@ -498,6 +500,66 @@ def test_deserialize_escalation_snapshot(
 
 
 @pytest.mark.django_db
+def test_deserialize_escalation_snapshot_missing_notify_to_team_members(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_alert_group,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.FIFTEEN_MINUTES,
+    )
+
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    del alert_group.raw_escalation_snapshot["escalation_policies_snapshots"][0]["notify_to_team_members"]
+
+    deserialized_escalation_snapshot = alert_group._deserialize_escalation_snapshot(alert_group.raw_escalation_snapshot)
+    assert deserialized_escalation_snapshot.escalation_policies_snapshots[0].notify_to_team_members is None
+
+
+@patch("apps.alerts.models.alert_group.AlertGroup.slack_channel_id", new_callable=PropertyMock)
+@pytest.mark.django_db
+def test_deserialize_escalation_snapshot_notify_to_team_members(
+    mock_alert_group_slack_channel_id,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_alert_group,
+    make_team,
+):
+    mock_alert_group_slack_channel_id.return_value = MOCK_SLACK_CHANNEL_ID
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    team = make_team(organization)
+    make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS,
+        notify_to_team_members=team,
+    )
+
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["escalation_policies_snapshots"][0]["notify_to_team_members"]
+
+    deserialized_escalation_snapshot = alert_group._deserialize_escalation_snapshot(alert_group.raw_escalation_snapshot)
+    assert deserialized_escalation_snapshot.escalation_policies_snapshots[0].notify_to_team_members.id == team.id
+
+
+@pytest.mark.django_db
 def test_escalation_chain_exists(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -656,3 +718,50 @@ def test_next_step_eta(
 
     mock_dateutil_parser.assert_called_once_with(mocked_raw_date)
     mock_dateutil_parser.return_value.replace.assert_called_once_with(tzinfo=pytz.UTC)
+
+
+@pytest.mark.django_db
+def test_update_next_step_eta(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    raw_next_step_eta = "2023-08-28T09:27:26.627047Z"
+    updated_raw_next_step_eta = "2023-08-28T11:27:26.627047Z"
+    increase_by_timedelta = datetime.timedelta(minutes=120)
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.raw_escalation_snapshot["next_step_eta"] = raw_next_step_eta
+
+    assert alert_group.raw_escalation_snapshot is not None
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == raw_next_step_eta
+
+    alert_group.update_next_step_eta(increase_by_timedelta)
+    alert_group.save()
+    alert_group.refresh_from_db()
+
+    assert alert_group.raw_escalation_snapshot["next_step_eta"] == updated_raw_next_step_eta
+
+
+@pytest.mark.django_db
+def test_update_next_step_eta_none(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    increase_by_timedelta = datetime.timedelta(minutes=120)
+
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+
+    assert alert_group.raw_escalation_snapshot is not None
+    assert alert_group.raw_escalation_snapshot.get("next_step_eta") is None
+
+    updated_snapshot = alert_group.update_next_step_eta(increase_by_timedelta)
+    assert updated_snapshot == alert_group.build_raw_escalation_snapshot()
+    assert updated_snapshot.get("next_step_eta") is None

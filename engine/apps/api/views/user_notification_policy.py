@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.http import Http404
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import IsOwnerOrHasRBACPermissions, RBACPermission
 from apps.api.serializers.user_notification_policy import (
@@ -19,12 +17,12 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
-from common.api_helpers.serializers import get_move_to_position_param
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.ordered_model.viewset import OrderedModelViewSet
 
 
-class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
+class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -69,18 +67,14 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
         except ValueError:
             raise BadRequest(detail="Invalid user param")
         if user_id is None or user_id == self.request.user.public_primary_key:
-            queryset = self.model.objects.filter(user=self.request.user, important=important)
+            target_user = self.request.user
         else:
             try:
                 target_user = User.objects.get(public_primary_key=user_id)
             except User.DoesNotExist:
                 raise BadRequest(detail="User does not exist")
-
-            queryset = self.model.objects.filter(user=target_user, important=important)
-
-        queryset = self.serializer_class.setup_eager_loading(queryset)
-
-        return queryset.order_by("order")
+        queryset = target_user.get_or_create_notification_policies(important=important)
+        return self.serializer_class.setup_eager_loading(queryset)
 
     def get_object(self):
         # we need overriden get object, because original one call get_queryset first and raise 404 trying to access
@@ -137,18 +131,6 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
             prev_state=prev_state,
             new_state=new_state,
         )
-
-    @action(detail=True, methods=["put"])
-    def move_to_position(self, request, pk):
-        instance = self.get_object()
-        position = get_move_to_position_param(request)
-
-        try:
-            instance.to_index(position)
-        except IndexError:
-            raise BadRequest(detail="Invalid position")
-
-        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def delay_options(self, request):

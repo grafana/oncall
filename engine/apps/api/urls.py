@@ -4,6 +4,7 @@ from common.api_helpers.optional_slash_router import OptionalSlashRouter, option
 
 from .views import UserNotificationPolicyView, auth
 from .views.alert_group import AlertGroupView
+from .views.alert_group_table_settings import AlertGroupTableColumnsViewSet
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
@@ -12,6 +13,7 @@ from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
 from .views.integration_heartbeat import IntegrationHeartBeatView
+from .views.labels import AlertGroupLabelsViewSet, LabelsViewSet
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
@@ -26,6 +28,7 @@ from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView
 from .views.route_regex_debugger import RouteRegexDebuggerView
 from .views.schedule import ScheduleView
+from .views.shift_swap import ShiftSwapViewSet
 from .views.slack_channel import SlackChannelView
 from .views.slack_team_settings import (
     AcknowledgeReminderOptionsAPIView,
@@ -62,11 +65,14 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
+router.register(r"shift_swaps", ShiftSwapViewSet, basename="shift_swap")
 
 urlpatterns = [
     path("", include(router.urls)),
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
+    optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
+    # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
         "current_team/get_telegram_verification_code",
@@ -105,4 +111,50 @@ urlpatterns += [
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
 ]
 
-urlpatterns += router.urls
+urlpatterns += [
+    re_path(r"^labels/keys/?$", LabelsViewSet.as_view({"get": "get_keys"}), name="get_keys"),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/?$",
+        LabelsViewSet.as_view({"get": "get_key", "put": "rename_key"}),
+        name="get_update_key",
+    ),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/?$", LabelsViewSet.as_view({"post": "add_value"}), name="add_value"
+    ),
+    re_path(
+        r"^labels/id/(?P<key_id>[\w\-]+)/values/(?P<value_id>[\w\-]+)/?$",
+        LabelsViewSet.as_view({"put": "rename_value", "get": "get_value"}),
+        name="get_update_value",
+    ),
+    re_path(r"^labels/?$", LabelsViewSet.as_view({"post": "create_label"}), name="create_label"),
+]
+
+# Alert group labels
+urlpatterns += [
+    re_path(
+        r"^alertgroups/labels/keys/?$",
+        AlertGroupLabelsViewSet.as_view({"get": "get_keys"}),
+        name="alert_group_labels-get_keys",
+    ),
+    re_path(
+        r"^alertgroups/labels/id/(?P<key_id>.+/?$)",
+        AlertGroupLabelsViewSet.as_view({"get": "get_key"}),
+        name="alert_group_labels-get_key",
+    ),
+]
+
+# Alert group table settings
+urlpatterns += [
+    re_path(
+        r"^alertgroup_table_settings/?$",
+        AlertGroupTableColumnsViewSet.as_view(
+            {"get": "get_columns", "put": "update_user_columns", "post": "update_organization_columns"}
+        ),
+        name="alert_group_table-columns_settings",
+    ),
+    re_path(
+        r"^alertgroup_table_settings/reset?$",
+        AlertGroupTableColumnsViewSet.as_view({"post": "reset_user_columns"}),
+        name="alert_group_table-reset_columns_settings",
+    ),
+]

@@ -34,6 +34,8 @@ def test_get_user(
         "username": user.username,
         "role": "admin",
         "is_phone_number_verified": False,
+        "timezone": user.timezone,
+        "teams": [],
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -50,10 +52,13 @@ def test_get_user(
 @pytest.mark.django_db
 def test_get_users_list(
     user_public_api_setup,
+    make_team,
     make_user_for_organization,
 ):
     organization, user_1, token, slack_team_identity, slack_user_identity = user_public_api_setup
+    team = make_team(organization)
     user_2 = make_user_for_organization(organization)
+    user_2.teams.add(team)
 
     client = APIClient()
 
@@ -72,6 +77,8 @@ def test_get_users_list(
                 "username": user_1.username,
                 "role": "admin",
                 "is_phone_number_verified": False,
+                "timezone": user_1.timezone,
+                "teams": [],
             },
             {
                 "id": user_2.public_primary_key,
@@ -80,8 +87,13 @@ def test_get_users_list(
                 "username": user_2.username,
                 "role": "admin",
                 "is_phone_number_verified": False,
+                "timezone": user_2.timezone,
+                "teams": [team.public_primary_key],
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -121,6 +133,9 @@ def test_get_users_list_short(
                 "is_phone_number_verified": False,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -170,6 +185,9 @@ def test_get_users_list_all_role_users(user_public_api_setup, make_user_for_orga
             }
             for user, role in expected_users
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

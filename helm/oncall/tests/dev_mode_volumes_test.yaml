@@ -1,0 +1,18 @@
+suite: dev mode
+templates:
+  - celery/deployment.yaml
+  - engine/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: doesn't add a volume and volume mount when oncall.devMode is disabled
+    set:
+      oncall:
+        devMode: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+      - notExists:
+          path: spec.template.spec.initContainers[0].volumeMounts
+      - notExists:
+          path: spec.template.spec.volumes

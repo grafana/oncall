@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -6,8 +6,13 @@ from apps.telegram.renderers.keyboard import Action
 from apps.telegram.updates.update_handlers.button_press import ButtonPressHandler
 
 
+@patch(
+    "apps.telegram.updates.update_handlers.button_press.ButtonPressHandler._get_alert_group_from_message",
+    return_value=None,
+)
 @pytest.mark.django_db
 def test_get_action_context(
+    mocked_get_alert_group_from_message,
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
@@ -49,9 +54,17 @@ def test_get_action_context(
         Action.SILENCE: [silence_data_with_action_name, silence_data_with_action_code],
         Action.UNSILENCE: [unsilence_data_with_action_name, unsilence_data_with_action_code],
     }
-    action_context = handler._get_action_context(ack_data_with_action_name)
 
     for action, data_strings in ACTION_TO_DATA_STR.items():
         for data_str in data_strings:
             action_context = handler._get_action_context(data_str)
             assert action_context.action.value == action.value
+
+    # not existing alert group
+    data_strings = [
+        f"1234:acknowledge:oncall-uuid{organization.uuid}",
+        f"1234:5:oncall-uuid{organization.uuid}",
+    ]
+    for data_str in data_strings:
+        action_context = handler._get_action_context(data_str)
+        assert action_context is None

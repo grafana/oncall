@@ -1,50 +1,67 @@
 import React from 'react';
 
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import GTable from 'components/GTable/GTable';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { GTable } from 'components/GTable/GTable';
+import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
+import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
+import { WebhookName } from 'components/Webhooks/WebhookName';
+import { OutgoingWebhookForm } from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { ActionDTO } from 'models/action';
 import { FiltersValues } from 'models/filters/filters.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
-import styles from './OutgoingWebhooks.module.css';
+import styles from './OutgoingWebhooks.module.scss';
+import { WebhookFormActionType } from './OutgoingWebhooks.types';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooksProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface OutgoingWebhooksProps
+  extends WithStoreProps,
+    PageProps,
+    RouteComponentProps<{ id: string; action: string }> {}
 
 interface OutgoingWebhooksState extends PageBaseState {
-  outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
+  outgoingWebhookAction?: WebhookFormActionType;
+  outgoingWebhookId?: ApiSchemas['Webhook']['id'];
+  confirmationModal: ConfirmModalProps;
 }
 
 @observer
 class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
   state: OutgoingWebhooksState = {
     errorData: initErrorDataState(),
+    confirmationModal: undefined,
   };
 
+  componentDidMount() {
+    this.props.store.outgoingWebhookStore.updateOutgoingWebhookPresetsOptions();
+  }
+
   componentDidUpdate(prevProps: OutgoingWebhooksProps) {
-    if (prevProps.match.params.id !== this.props.match.params.id) {
+    if (prevProps.match.params.id !== this.props.match.params.id && !this.state.outgoingWebhookAction) {
       this.parseQueryParams();
     }
   }
@@ -52,64 +69,104 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   parseQueryParams = async () => {
     this.setState((_prevState) => ({
       errorData: initErrorDataState(),
-      outgoingWebhookIdToEdit: undefined,
+      outgoingWebhookId: undefined,
     })); // reset state on query parse
 
     const {
       store,
       match: {
-        params: { id },
+        params: { id, action },
       },
     } = this.props;
 
-    if (!id) {
-      return;
+    if (action) {
+      this.setState({ outgoingWebhookId: id, outgoingWebhookAction: convertWebhookUrlToAction(action) });
     }
 
-    let outgoingWebhook: OutgoingWebhook | void = undefined;
     const isNewWebhook = id === 'new';
-
-    if (!isNewWebhook) {
-      outgoingWebhook = await store.outgoingWebhookStore
+    if (isNewWebhook) {
+      this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.NEW });
+    } else if (id) {
+      await store.outgoingWebhookStore
         .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-    }
-
-    if (outgoingWebhook || isNewWebhook) {
-      this.setState({ outgoingWebhookIdToEdit: id });
+        .catch((error) =>
+          this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhookAction: undefined })
+        );
     }
   };
 
   update = () => {
-    const { store } = this.props;
-
-    return store.outgoingWebhookStore.updateItems();
+    const {
+      store: { outgoingWebhookStore },
+    } = this.props;
+    return outgoingWebhookStore.updateItems();
   };
 
   render() {
-    const { store, query } = this.props;
-    const { outgoingWebhookIdToEdit, errorData } = this.state;
+    const {
+      store: { outgoingWebhookStore, filtersStore, grafanaTeamStore, hasFeature },
+      history,
+      match: {
+        params: { id },
+      },
+    } = this.props;
+    const { outgoingWebhookId, outgoingWebhookAction, errorData, confirmationModal } = this.state;
 
-    const webhooks = store.outgoingWebhookStore.getSearchResult();
+    const webhooks = outgoingWebhookStore.getSearchResult();
 
     const columns = [
       {
-        width: '35%',
+        width: '25%',
         title: 'Name',
         dataIndex: 'name',
+        render: (name: string, webhook: ApiSchemas['Webhook']) => (
+          <WebhookName
+            name={name}
+            isEnabled={webhook.is_webhook_enabled}
+            displayAsLink
+            onNameClick={() => this.onEditClick(webhook.id)}
+          />
+        ),
+      },
+      {
+        width: '10%',
+        title: 'Trigger type',
+        dataIndex: 'trigger_type_name',
       },
       {
         width: '35%',
-        title: 'Url',
-        dataIndex: 'webhook',
+        title: 'URL',
+        dataIndex: 'url',
+        render: this.renderUrl,
       },
+      {
+        width: '10%',
+        title: 'Last event',
+        render: (webhook: ApiSchemas['Webhook']) => (
+          <WebhookLastEventTimestamp webhook={webhook} openDrawer={() => this.onLastRunClick(webhook.id)} />
+        ),
+      },
+      ...(hasFeature(AppFeature.Labels)
+        ? [
+            {
+              width: '10%',
+              title: 'Labels',
+              render: ({ labels }: ApiSchemas['Webhook']) => (
+                <LabelsTooltipBadge
+                  labels={labels}
+                  onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Webhooks)}
+                />
+              ),
+            },
+          ]
+        : []),
       {
         width: '15%',
         title: 'Team',
-        render: (item: OutgoingWebhook) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: ApiSchemas['Webhook']) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
-        width: '15%',
+        width: '20%',
         key: 'action',
         render: this.renderActionButtons,
       },
@@ -120,30 +177,43 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         errorData={errorData}
         objectName="outgoing webhook"
         pageName="outgoing_webhooks"
-        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+        itemNotFoundMessage={`Outgoing webhook with id=${id} was not found. Please select outgoing webhook from the list.`}
       >
         {() => (
           <>
-            <div className={cx('root')}>
+            {confirmationModal && (
+              <ConfirmModal
+                {...(confirmationModal as ConfirmModalProps)}
+                onDismiss={() =>
+                  this.setState({
+                    confirmationModal: undefined,
+                  })
+                }
+              />
+            )}
+            <div className={cx('newWebhookButton')}>
+              <PluginLink
+                query={{ page: 'outgoing_webhooks', id: 'new' }}
+                disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
+              >
+                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                  <Button variant="primary" icon="plus">
+                    New Outgoing Webhook
+                  </Button>
+                </WithPermissionControlTooltip>
+              </PluginLink>
+            </div>
+
+            <div className={cx('root')} data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
                   <div className={cx('header')}>
-                    <LegacyNavHeading>
-                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    </LegacyNavHeading>
-                    <div className="u-pull-right">
-                      <PluginLink
-                        query={{ page: 'outgoing_webhooks', id: 'new' }}
-                        disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
-                      >
-                        <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                          <Button variant="primary" icon="plus">
-                            New outgoing webhook
-                          </Button>
-                        </WithPermissionControlTooltip>
-                      </PluginLink>
+                    <div className="header__title">
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      </LegacyNavHeading>
                     </div>
                   </div>
                 )}
@@ -152,11 +222,19 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 data={webhooks}
               />
             </div>
-            {outgoingWebhookIdToEdit && (
+
+            {outgoingWebhookId && outgoingWebhookAction && (
               <OutgoingWebhookForm
-                id={outgoingWebhookIdToEdit}
+                id={outgoingWebhookId}
+                action={outgoingWebhookAction}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
+                onDelete={() => {
+                  this.onDeleteClick(outgoingWebhookId).then(() => {
+                    this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
+                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
+                  });
+                }}
               />
             )}
           </>
@@ -171,7 +249,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       <div className={cx('filters')}>
         <RemoteFilters
           query={query}
-          page="outgoing_webhooks"
+          page={PAGE.Webhooks}
           grafanaTeamStore={store.grafanaTeamStore}
           onChange={this.handleFiltersChange}
         />
@@ -179,7 +257,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  handleFiltersChange = (filters: FiltersValues, isOnMount) => {
+  handleFiltersChange = (filters: FiltersValues, isOnMount: boolean) => {
     const { store } = this.props;
 
     const { outgoingWebhookStore } = store;
@@ -191,54 +269,165 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     });
   };
 
-  renderTeam(record: OutgoingWebhook, teams: any) {
-    return <TeamName team={teams[record.team]} />;
+  renderTeam(record: ApiSchemas['Webhook'], teams: any) {
+    return <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />;
   }
 
-  renderActionButtons = (record: ActionDTO) => {
+  renderActionButtons = (record: ApiSchemas['Webhook']) => {
     return (
-      <HorizontalGroup justify="flex-end">
-        <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button onClick={this.getEditClickHandler(record.id)} fill="text">
-            Edit
-          </Button>
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <WithConfirm>
-            <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
-              Delete
-            </Button>
-          </WithConfirm>
-        </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      <HamburgerContextMenu
+        items={[
+          {
+            onClick: () => this.onLastRunClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksRead,
+            label: <Text type="primary">View Last Event</Text>,
+          },
+          {
+            onClick: () => this.onEditClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Edit settings</Text>,
+          },
+          {
+            onClick: () =>
+              this.setState({
+                confirmationModal: {
+                  isOpen: true,
+                  confirmText: 'Confirm',
+                  dismissText: 'Cancel',
+                  onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
+                  title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
+                } as ConfirmModalProps,
+              }),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
+          },
+          {
+            onClick: () => this.onCopyClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Make a copy</Text>,
+          },
+          {
+            label: (
+              <CopyToClipboard key="uid" text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
+                <div>
+                  <HorizontalGroup type="primary" spacing="xs">
+                    <Icon name="clipboard-alt" />
+                    <Text type="primary">UID: {record.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+            ),
+          },
+          'divider',
+          {
+            onClick: () =>
+              this.setState({
+                confirmationModal: {
+                  isOpen: true,
+                  confirmText: 'Confirm',
+                  dismissText: 'Cancel',
+                  onConfirm: () => this.onDeleteClick(record.id),
+                  body: 'The action cannot be undone.',
+                  title: `Are you sure you want to delete webhook?`,
+                } as Partial<ConfirmModalProps> as ConfirmModalProps,
+              }),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: (
+              <HorizontalGroup spacing="xs">
+                <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                <Text type="danger">Delete Webhook</Text>
+              </HorizontalGroup>
+            ),
+          },
+        ]}
+      />
     );
   };
 
-  getDeleteClickHandler = (id: OutgoingWebhook['id']) => {
+  renderUrl(url: string) {
+    return (
+      <TextEllipsisTooltip content={url} placement="top">
+        <Text className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>{url}</Text>
+      </TextEllipsisTooltip>
+    );
+  }
+
+  onDeleteClick = (id: ApiSchemas['Webhook']['id']): Promise<void> => {
     const { store } = this.props;
-    return () => {
-      store.alertReceiveChannelStore.deleteCustomButton(id).then(this.update);
-    };
+    return store.outgoingWebhookStore
+      .delete(id)
+      .then(this.update)
+      .then(() => openNotification('Webhook has been removed'))
+      .catch(() => openNotification('Webook could not been removed'))
+      .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
-  getEditClickHandler = (id: OutgoingWebhook['id']) => {
+  onEditClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
-    return () => {
-      this.setState({ outgoingWebhookIdToEdit: id });
+    this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.EDIT_SETTINGS }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`)
+    );
+  };
 
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/${id}`);
+  onCopyClick = (id: ApiSchemas['Webhook']['id']) => {
+    const { history } = this.props;
+
+    this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.COPY }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/copy/${id}`)
+    );
+  };
+
+  onDisableWebhook = (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
+    const {
+      store: { outgoingWebhookStore },
+    } = this.props;
+
+    const data = {
+      ...{ ...outgoingWebhookStore.items[id], is_webhook_enabled: isEnabled },
+      is_legacy: false,
     };
+
+    // don't pass trigger_type to backend as it's not editable
+    delete data.trigger_type;
+
+    outgoingWebhookStore
+      .update(id, data)
+      .then(() => this.update())
+      .then(() => openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`))
+      .catch(() => openErrorNotification('Webhook could not been updated'))
+      .finally(() => this.setState({ confirmationModal: undefined }));
+  };
+
+  onLastRunClick = (id: ApiSchemas['Webhook']['id']) => {
+    const { history } = this.props;
+
+    this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.VIEW_LAST_RUN }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`)
+    );
   };
 
   handleOutgoingWebhookFormHide = () => {
     const { history } = this.props;
-    this.setState({ outgoingWebhookIdToEdit: undefined });
+
+    this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
 
     history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
 }
 
+function convertWebhookUrlToAction(urlAction: string) {
+  if (urlAction === 'new') {
+    return WebhookFormActionType.NEW;
+  } else if (urlAction === 'copy') {
+    return WebhookFormActionType.COPY;
+  } else if (urlAction === 'edit') {
+    return WebhookFormActionType.EDIT_SETTINGS;
+  } else {
+    return WebhookFormActionType.VIEW_LAST_RUN;
+  }
+}
+
 export { OutgoingWebhooks };
 
-export default withRouter(withMobXProviderContext(OutgoingWebhooks));
+export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(OutgoingWebhooks));

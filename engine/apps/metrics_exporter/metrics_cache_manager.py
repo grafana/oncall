@@ -1,3 +1,5 @@
+import typing
+
 from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.helpers import (
     get_response_time_period,
@@ -7,16 +9,23 @@ from apps.metrics_exporter.helpers import (
 
 
 class MetricsCacheManager:
+    class _TeamsDiff(typing.TypedDict):
+        team_name: str | None
+        deleted: bool
+
+    TeamsDiffMap = typing.Dict[int, _TeamsDiff]
+
     @staticmethod
-    def get_default_teams_diff_dict():
-        default_dict = {
+    def get_default_teams_diff_dict() -> _TeamsDiff:
+        return {
             "team_name": None,
             "deleted": False,
         }
-        return default_dict
 
     @staticmethod
-    def update_team_diff(teams_diff, team_id, new_name=None, deleted=False):
+    def update_team_diff(
+        teams_diff: TeamsDiffMap, team_id: int, new_name: str | None = None, deleted: bool = False
+    ) -> TeamsDiffMap:
         teams_diff.setdefault(team_id, MetricsCacheManager.get_default_teams_diff_dict())
         teams_diff[team_id]["team_name"] = new_name
         teams_diff[team_id]["deleted"] = deleted
@@ -34,10 +43,10 @@ class MetricsCacheManager:
     def update_integration_states_diff(metrics_dict, integration_id, previous_state=None, new_state=None):
         metrics_dict.setdefault(integration_id, MetricsCacheManager.get_default_states_diff_dict())
         if previous_state:
-            state_value = previous_state.value
+            state_value = previous_state
             metrics_dict[integration_id]["previous_states"][state_value] += 1
         if new_state:
-            state_value = new_state.value
+            state_value = new_state
             metrics_dict[integration_id]["new_states"][state_value] += 1
         return metrics_dict
 

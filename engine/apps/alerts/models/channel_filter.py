@@ -1,16 +1,26 @@
 import json
 import logging
 import re
+import typing
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from ordered_model.models import OrderedModel
 
-from common.jinja_templater import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from common.jinja_templater import apply_jinja_template_to_alert_payload_and_labels
+from common.jinja_templater.apply_jinja_template import (
+    JinjaTemplateError,
+    JinjaTemplateWarning,
+    templated_value_is_truthy,
+)
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+    from apps.labels.types import AlertLabels
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +44,9 @@ class ChannelFilter(OrderedModel):
     Actually it's a Router based on terms now. Not a Filter.
     """
 
-    order_with_respect_to = ("alert_receive_channel", "is_default")
+    alert_groups: "RelatedManager['AlertGroup']"
+
+    order_with_respect_to = ["alert_receive_channel_id", "is_default"]
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -69,7 +81,9 @@ class ChannelFilter(OrderedModel):
     notification_backends = models.JSONField(null=True, default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    filtering_term = models.CharField(max_length=1024, null=True, default=None)
+
+    FILTERING_TERM_MAX_LENGTH = 1024
+    filtering_term = models.CharField(max_length=FILTERING_TERM_MAX_LENGTH, null=True, default=None)
 
     FILTERING_TERM_TYPE_REGEX = 0
     FILTERING_TERM_TYPE_JINJA2 = 1
@@ -82,63 +96,52 @@ class ChannelFilter(OrderedModel):
     is_default = models.BooleanField(default=False)
 
     class Meta:
-        ordering = (
-            "alert_receive_channel",
-            "is_default",
-            "order",
-        )
+        ordering = ["alert_receive_channel_id", "is_default", "order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["alert_receive_channel_id", "is_default", "order"], name="unique_channel_filter_order"
+            )
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.filtering_term or 'default'}"
 
     @classmethod
-    def select_filter(cls, alert_receive_channel, raw_request_data, force_route_id=None):
-        # Try to find force route first if force_route_id is given
-        # Force route was used to send demo alerts to specific route.
-        # It is deprecated and may be used by older versions of the plugins
-        if force_route_id is not None:
-            logger.info(
-                f"start select_filter with force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
-            )
-            try:
-                satisfied_filter = cls.objects.get(
-                    alert_receive_channel=alert_receive_channel.pk,
-                    pk=force_route_id,
-                )
-                logger.info(
-                    f"success select_filter with force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
-                )
-                return satisfied_filter
-            except cls.DoesNotExist:
-                # If force route was not found fallback to default routing.
-                logger.info(
-                    f"select_filter unable to find force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
-                )
-                pass
+    def select_filter(
+        cls,
+        alert_receive_channel: "AlertReceiveChannel",
+        raw_request_data: "Alert.RawRequestData",
+        alert_labels: typing.Optional[typing.Dict[str, str]] = None,
+    ) -> typing.Optional["ChannelFilter"]:
+        channel_filters = cls.objects.filter(alert_receive_channel=alert_receive_channel)
+        for channel_filter in channel_filters:
+            if channel_filter.is_satisfying(raw_request_data, alert_labels):
+                return channel_filter
+        return None
 
-        filters = cls.objects.filter(alert_receive_channel=alert_receive_channel)
+    def is_satisfying(
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["AlertLabels"] = None
+    ) -> bool:
+        return self.is_default or self.check_filter(raw_request_data, alert_labels)
 
-        satisfied_filter = None
-        for _filter in filters:
-            if satisfied_filter is None and _filter.is_satisfying(raw_request_data):
-                satisfied_filter = _filter
-
-        return satisfied_filter
-
-    def is_satisfying(self, raw_request_data):
-        return self.is_default or self.check_filter(raw_request_data)
-
-    def check_filter(self, value):
+    def check_filter(
+        self, raw_request_data: "Alert.RawRequestData", alert_labels: typing.Optional["AlertLabels"] = None
+    ) -> bool:
         if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             try:
-                is_matching = apply_jinja_template(self.filtering_term, payload=value)
-                return is_matching.strip().lower() in ["1", "true", "ok"]
+                return templated_value_is_truthy(
+                    apply_jinja_template_to_alert_payload_and_labels(
+                        self.filtering_term,
+                        raw_request_data,
+                        alert_labels,
+                    )
+                )
             except (JinjaTemplateError, JinjaTemplateWarning):
                 logger.error(f"channel_filter={self.id} failed to parse jinja2={self.filtering_term}")
                 return False
         if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             try:
-                return re.search(self.filtering_term, json.dumps(value))
+                return re.search(self.filtering_term, json.dumps(raw_request_data))
             except re.error:
                 logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
                 return False
@@ -165,11 +168,6 @@ class ChannelFilter(OrderedModel):
             return str(self.filtering_term).replace("`", "")
         raise Exception("Unknown filtering term")
 
-    def send_demo_alert(self):
-        """Deprecated. May be used in the older versions of the plugin"""
-        integration = self.alert_receive_channel
-        integration.send_demo_alert(force_route_id=self.pk)
-
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
@@ -190,7 +188,8 @@ class ChannelFilter(OrderedModel):
         }
         if self.slack_channel_id:
             if self.slack_channel_id:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
+                from apps.slack.models import SlackChannel
+
                 sti = self.alert_receive_channel.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(
                     slack_team_identity=sti, slack_id=self.slack_channel_id
