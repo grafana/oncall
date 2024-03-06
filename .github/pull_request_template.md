@@ -2,6 +2,12 @@
 
 ## Which issue(s) this PR fixes
 
+Closes [issue link here]
+
+*Note*: if you have more than one GitHub issue that this PR closes, be sure to preface
+each issue link with a [closing keyword](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests#linking-a-pull-request-to-an-issue).
+This ensures that the issue(s) are auto-closed once the PR has been merged.
+
 ## Checklist
 
 - [ ] Unit, integration, and e2e (if applicable) tests updated
