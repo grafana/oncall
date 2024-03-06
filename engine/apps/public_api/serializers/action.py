@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from apps.public_api.serializers.webhooks import WebhookCreateSerializer, WebhookTriggerTypeField
 from apps.webhooks.models import Webhook
