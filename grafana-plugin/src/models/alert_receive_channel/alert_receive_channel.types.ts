@@ -14,3 +14,8 @@ export interface ContactPoint {
   contactPoint: string;
   notificationConnected: boolean;
 }
+
+export interface ServiceNowStatus {
+  id: number;
+  name: string;
+}

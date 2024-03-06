@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
-import { Drawer, Field, HorizontalGroup, Input, VerticalGroup, Icon, useStyles2, Button } from '@grafana/ui';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import {
+  Drawer,
+  Field,
+  HorizontalGroup,
+  Input,
+  VerticalGroup,
+  Icon,
+  useStyles2,
+  Button,
+  LoadingPlaceholder,
+  Select,
+} from '@grafana/ui';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Text } from 'components/Text/Text';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { useStore } from 'state/useStore';
+import { observer } from 'mobx-react';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -17,10 +31,11 @@ enum FormFieldKeys {
   AuthPassword = 'auth_password',
 }
 
-enum ServiceNowStatus {
-  New = 1,
-  InProgress = 2,
-  Resolved = 3,
+enum OnCallAGStatus {
+  Resolved,
+  Silenced,
+  Acknowledged,
+  // TODO add remaining
 }
 
 interface FormFields {
@@ -29,7 +44,7 @@ interface FormFields {
   [FormFieldKeys.AuthPassword]: string;
 }
 
-export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps> = ({ onHide }) => {
+export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps> = observer(({ onHide }) => {
   const {
     control,
     handleSubmit,
@@ -37,6 +52,15 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   } = useForm<FormFields>({ mode: 'onChange' });
 
   const styles = useStyles2(getStyles);
+  const { alertReceiveChannelStore } = useStore();
+  const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
+  const [authTestResult, setAuthTestResult] = useState(undefined);
+
+  useEffect(() => {
+    (async () => {
+      await alertReceiveChannelStore.fetchServiceNowListOfStatus();
+    })();
+  }, []);
 
   return (
     <>
@@ -91,9 +115,23 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
               )}
             />
 
-            <Button className={''} variant="secondary" onClick={onAuthTest}>
-              Test
-            </Button>
+            <HorizontalGroup>
+              <Button className={''} variant="secondary" onClick={onAuthTest}>
+                Test
+              </Button>
+              <div>
+                <RenderConditionally shouldRender={isAuthTestRunning}>
+                  <LoadingPlaceholder text="Loading" className={styles.loader} />
+                </RenderConditionally>
+
+                <RenderConditionally shouldRender={!isAuthTestRunning && authTestResult !== undefined}>
+                  <HorizontalGroup align="center" justify="center">
+                    <Text type="primary">{authTestResult ? 'Connection OK' : 'Connection failed'}</Text>
+                    <Icon name={authTestResult ? 'check-circle' : 'x'} />
+                  </HorizontalGroup>
+                </RenderConditionally>
+              </div>
+            </HorizontalGroup>
           </div>
 
           <div className={styles.border}>
@@ -115,22 +153,60 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                 <tbody>
                   <tr>
                     <td>Firing</td>
-                    <td>TBA</td>
+
+                    <td>
+                      <Select
+                        menuShouldPortal
+                        className="select control"
+                        disabled={false}
+                        value={undefined}
+                        options={getAvailableStatusOptions()}
+                        onChange={onStatusSelectChange}
+                      />
+                    </td>
                   </tr>
 
                   <tr>
                     <td>Acknowledged</td>
-                    <td>TBA</td>
+
+                    <td>
+                      <Select
+                        menuShouldPortal
+                        className="select control"
+                        disabled={false}
+                        value={undefined}
+                        options={getAvailableStatusOptions()}
+                        onChange={onStatusSelectChange}
+                      />
+                    </td>
                   </tr>
 
                   <tr>
                     <td>Resolved</td>
-                    <td>TBA</td>
+                    <td>
+                      <Select
+                        menuShouldPortal
+                        className="select control"
+                        disabled={false}
+                        value={undefined}
+                        options={getAvailableStatusOptions()}
+                        onChange={onStatusSelectChange}
+                      />
+                    </td>
                   </tr>
 
                   <tr>
                     <td>Silenced</td>
-                    <td>TBA</td>
+                    <td>
+                      <Select
+                        menuShouldPortal
+                        className="select control"
+                        disabled={false}
+                        value={undefined}
+                        options={getAvailableStatusOptions()}
+                        onChange={onStatusSelectChange}
+                      />
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -177,7 +253,24 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     </>
   );
 
-  function onAuthTest() {}
+  function getAvailableStatusOptions() {
+    return (alertReceiveChannelStore.serviceNowStatusList || []).map((status) => ({
+      value: status.id,
+      label: status.name,
+    }));
+  }
+
+  function onStatusSelectChange(option: SelectableValue) {}
+
+  function onAuthTest() {
+    return new Promise(() => {
+      setIsAuthTestRunning(true);
+      setTimeout(() => {
+        setIsAuthTestRunning(false);
+        setAuthTestResult(true);
+      }, 500);
+    });
+  }
 
   function validateURL() {
     return true;
@@ -186,7 +279,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   function onFormSubmit(formData: FormFields): Promise<void> {
     return undefined;
   }
-};
+});
 
 const getStyles = (theme: GrafanaTheme2) => {
   return {
@@ -195,6 +288,10 @@ const getStyles = (theme: GrafanaTheme2) => {
       margin-bottom: 24px;
       border: 1px solid ${theme.colors.border.weak};
       border-radius: ${theme.shape.radius.default};
+    `,
+
+    loader: css`
+      margin-bottom: 0;
     `,
   };
 };
