@@ -1,4 +1,3 @@
-import { User } from 'models/user/user.types';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
@@ -61,7 +60,7 @@ export class AlertGroupHelper {
     return await makeRequest(`/alerts/${pk}`, {});
   }
 
-  static async unpageUser(id: ApiSchemas['AlertGroup']['pk'], userId: User['pk']) {
+  static async unpageUser(id: ApiSchemas['AlertGroup']['pk'], userId: ApiSchemas['User']['pk']) {
     return (
       await onCallApi().POST('/alertgroups/{id}/unpage_user/', { params: { path: { id } }, body: { user_id: userId } })
     ).data;

@@ -1,5 +1,5 @@
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export interface ScheduleFiltersType {
-  users: Array<User['pk']>;
+  users: Array<ApiSchemas['User']['pk']>;
 }
