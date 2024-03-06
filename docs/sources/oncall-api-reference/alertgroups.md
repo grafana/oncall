@@ -36,7 +36,8 @@ The above command returns JSON structured in the following way:
       "permalinks": {
         "slack": "https://ghostbusters.slack.com/archives/C1H9RESGA/p135854651500008",
         "telegram": "https://t.me/c/5354/1234?thread=1234"
-      }
+      },
+      "silenced_at": "2020-05-19T13:37:01.429805Z",
     }
   ],
   "current_page_number": 1,
