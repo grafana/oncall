@@ -1165,10 +1165,10 @@
     "@opentelemetry/otlp-transformer" "^0.41.2"
     murmurhash-js "^1.0.0"
 
-"@grafana/faro-core@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-core/-/faro-core-1.4.0.tgz#d0433fcc64c406f1a17958f7ccd9e992ef2766e8"
-  integrity sha512-YXFk3KP8spP4lmFmjtXt1mEhWA0tSa8xAe3YHAwD2v21EOeOaqWt9qAs1ZQ4L8QrHUXgtIKNDnzAydc9vFZT+Q==
+"@grafana/faro-core@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-core/-/faro-core-1.4.2.tgz#01f731dbb06494692ba3926db5a744ae8a7fe6e7"
+  integrity sha512-gbEXApUNvgUSTuYtvO+8ZlMKyZCF/lSHT5jWhjPVIgPzbPXx0OJn6TEPCq7wrENHnYhh3LXpkSca6WtcqcxouA==
   dependencies:
     "@opentelemetry/api" "^1.7.0"
     "@opentelemetry/otlp-transformer" "^0.48.0"
@@ -1191,21 +1191,21 @@
     ua-parser-js "^1.0.32"
     web-vitals "^3.1.1"
 
-"@grafana/faro-web-sdk@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-web-sdk/-/faro-web-sdk-1.4.0.tgz#bf266d2bf82b32f41f94be6267fcbf1f6ce1a88d"
-  integrity sha512-LybshByhcz70Rx8qJpaCP7lOK0UHSpklosnswkI2zDAlfTggCTpx/WtYU0kjRd4piLJO6joRFDiLVA4lzw/37Q==
+"@grafana/faro-web-sdk@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-web-sdk/-/faro-web-sdk-1.4.2.tgz#28b046354a1d4b1304295158a7b6623c76b77194"
+  integrity sha512-ust45YLEcIDMw0mpe7A1f/tKY33MiH8x2A9rGm9BLNqKeCHFVl2tU3oFs4vuFgV1iBadCHJWczOTkenLzc/RQg==
   dependencies:
-    "@grafana/faro-core" "^1.4.0"
+    "@grafana/faro-core" "^1.4.2"
     ua-parser-js "^1.0.32"
     web-vitals "^3.1.1"
 
-"@grafana/faro-web-tracing@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-web-tracing/-/faro-web-tracing-1.4.0.tgz#b15b6a49e19638b327b3ee38dc3cd175ae21d4cc"
-  integrity sha512-k0J/vqhBpn+OCrqvpQo1K4nFaIl+WmJfwVAeRZmo1vljOiJHVRcQY6Lj74Q4UsBRl6vr3NAkbgRz2kU7yEG6hQ==
+"@grafana/faro-web-tracing@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-web-tracing/-/faro-web-tracing-1.4.2.tgz#b3106ad26918c408add2487b47cd3dc89e6282b4"
+  integrity sha512-FoqNc/i+yhrzZA6tq5Cvsa1RaRF24vHblEs0xyO0UUL0AQUXp3GpqU/+3mHeLu3/+VVdSr87v3y5gVIoCLduYQ==
   dependencies:
-    "@grafana/faro-web-sdk" "^1.4.0"
+    "@grafana/faro-web-sdk" "^1.4.2"
     "@opentelemetry/api" "^1.7.0"
     "@opentelemetry/context-zone" "^1.18.1"
     "@opentelemetry/core" "^1.18.1"
@@ -2113,20 +2113,15 @@
   dependencies:
     "@opentelemetry/api" "^1.0.0"
 
-"@opentelemetry/api@^1.0.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.3.0.tgz#27c6f776ac3c1c616651e506a89f438a0ed6a055"
-  integrity sha512-YveTnGNsFFixTKJz09Oi4zYkiLT5af3WpZDu4aIUM7xX+2bHAkOJayFTVQd6zB8kkWPpbua4Ha6Ql00grdLlJQ==
+"@opentelemetry/api@^1.0.0", "@opentelemetry/api@^1.7.0":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.8.0.tgz#5aa7abb48f23f693068ed2999ae627d2f7d902ec"
+  integrity sha512-I/s6F7yKUDdtMsoBWXJe8Qz40Tui5vsuKCWJEWVL+5q9sSWRzzx6v2KeNsOBEwd94j0eWkpWCH4yB6rZg9Mf0w==
 
 "@opentelemetry/api@^1.4.1":
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.4.1.tgz#ff22eb2e5d476fbc2450a196e40dd243cc20c28f"
   integrity sha512-O2yRJce1GOc6PAy3QxFM4NzFiWzvScDC1/5ihYBL6BUEVdq0XMWN01sppE+H6bBXbaFYipjwFLEWLg5PaSOThA==
-
-"@opentelemetry/api@^1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.7.0.tgz#b139c81999c23e3c8d3c0a7234480e945920fc40"
-  integrity sha512-AdY5wvN0P2vXBi3b29hxZgSFvdhdxPB9+f0B6s//P9Q8nibRWeA3cHm8UmLpio9ABigkVHJ5NMPk+Mz8VCCyrw==
 
 "@opentelemetry/context-zone-peer-dep@1.21.0":
   version "1.21.0"
@@ -13900,9 +13895,9 @@ typescript@^5.3.2:
   integrity sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==
 
 ua-parser-js@^1.0.32:
-  version "1.0.33"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.33.tgz#f21f01233e90e7ed0f059ceab46eb190ff17f8f4"
-  integrity sha512-RqshF7TPTE0XLYAqmjlu5cLLuGdKrNu9O1KLA/qp39QtbZwuzwv1dT46DZSopoUMsYgXpB3Cv8a03FI8b74oFQ==
+  version "1.0.37"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.37.tgz#b5dc7b163a5c1f0c510b08446aed4da92c46373f"
+  integrity sha512-bhTyI94tZofjo+Dn8SN6Zv8nBDvyXTymAdM3LDI/0IboIUwTu1rEhW7v2TfiVsoYWgkQ4kOVqnI8APUFbIQIFQ==
 
 uglify-js@^3.1.4:
   version "3.17.4"
@@ -14252,9 +14247,9 @@ wcwidth@^1.0.1:
     defaults "^1.0.3"
 
 web-vitals@^3.1.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/web-vitals/-/web-vitals-3.3.1.tgz#f80e4fd01784476c023c8b2c4219075bbe96f64d"
-  integrity sha512-LTfY5GjcY3ngFzNsYFSYL+AmVmlWrzPTUxSMDis2rZbf+SzT7HH3NH4Y/l45XOlrAIunOBeURN9qtBHkRskAiA==
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/web-vitals/-/web-vitals-3.5.2.tgz#5bb58461bbc173c3f00c2ddff8bfe6e680999ca9"
+  integrity sha512-c0rhqNcHXRkY/ogGDJQxZ9Im9D19hDihbzSQJrsioex+KnFgmMzBiy57Z1EjkhX/+OjyBpclDCzz2ITtjokFmg==
 
 web-worker@^1.2.0:
   version "1.2.0"
