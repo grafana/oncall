@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';

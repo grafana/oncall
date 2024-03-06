@@ -1,6 +1,5 @@
 import { keyBy } from 'lodash-es';
 import { makeAutoObservable, runInAction } from 'mobx';
-
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';

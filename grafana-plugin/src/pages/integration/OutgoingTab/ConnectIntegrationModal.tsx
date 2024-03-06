@@ -15,6 +15,7 @@ import { useCommonStyles, useIsLoading } from 'utils/hooks';
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
 import { useCurrentIntegration } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
+import { useCurrentIntegration } from './OutgoingTab.hooks';
 
 const DEBOUNCE_MS = 500;
 
@@ -107,7 +108,11 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
           <Button variant="secondary" onClick={onDismiss}>
             Close
           </Button>
-          <Button variant="primary" onClick={onConnect} disabled={!selectedIntegrations?.length}>
+          <Button
+            variant="primary"
+            onClick={() => onConnect(selectedIntegrations)}
+            disabled={!selectedIntegrations?.length}
+          >
             Connect
           </Button>
         </HorizontalGroup>
