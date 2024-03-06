@@ -1167,7 +1167,7 @@ export interface components {
       /** Format: date-time */
       readonly created_at: string;
     };
-    AlertGroup: {
+    AlertGroup: CustomApiSchemas['AlertGroup'] & {
       readonly pk: string;
       readonly alerts_count: number;
       inside_organization_number?: number;
@@ -1914,7 +1914,7 @@ export interface components {
      * @enum {integer}
      */
     TimeoutSecondsEnum: 60 | 120 | 180 | 300 | 600 | 900 | 1800 | 3600 | 43200 | 86400;
-    User: {
+    User: CustomApiSchemas['User'] & {
       readonly pk: string;
       readonly organization: components['schemas']['FastOrganization'];
       current_team?: string | null;

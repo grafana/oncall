@@ -19,6 +19,7 @@ import styles from 'assets/style/utils.css';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -172,7 +173,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
     }
 
     async function fetchLabelValues(result: SearchResult, index: number) {
-      const labelResponse = await store.alertGroupStore.loadValuesForLabelKey(result.id);
+      const labelResponse = await AlertGroupHelper.loadValuesForLabelKey(result.id);
 
       setSearchResults((items) =>
         items.map((it, idx) => (idx === index ? { ...it, values: labelResponse.values } : it))

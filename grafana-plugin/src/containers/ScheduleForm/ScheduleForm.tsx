@@ -33,14 +33,11 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
 
   const { scheduleStore, userStore } = store;
 
-  const scheduleTypeToForm = useMemo(
-    () => ({
-      [ScheduleType.Calendar]: getCalendarForm(store),
-      [ScheduleType.Ical]: getICalForm(store),
-      [ScheduleType.API]: getApiForm(store),
-    }),
-    []
-  );
+  const scheduleTypeToForm = {
+    [ScheduleType.Calendar]: getCalendarForm(store),
+    [ScheduleType.Ical]: getICalForm(store),
+    [ScheduleType.API]: getApiForm(store),
+  };
 
   const data = useMemo(() => {
     return isNew ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);

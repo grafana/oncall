@@ -23,7 +23,7 @@ import {
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Schedule } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { UserHelper } from 'models/user/user.helpers';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
@@ -168,7 +168,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
     return (
       <WithPermissionControlTooltip key="users-multiple" userAction={UserActions.EscalationChainsWrite}>
-        <GSelect<User>
+        <GSelect<ApiSchemas['User']>
           isMulti
           showSearch
           allowClear
@@ -182,9 +182,9 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
           width={'auto'}
           items={userStore.items}
-          fetchItemsFn={userStore.updateItems}
-          fetchItemFn={userStore.updateItem}
-          getSearchResult={userStore.getSearchResult}
+          fetchItemsFn={userStore.fetchItems}
+          fetchItemFn={async (id) => await userStore.fetchItemById({ userPk: id, skipIfAlreadyPending: true })}
+          getSearchResult={() => UserHelper.getSearchResult(userStore)}
         />
       </WithPermissionControlTooltip>
     );

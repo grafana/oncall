@@ -15,16 +15,18 @@ name: e2e tests
         required: true
         type: boolean
     secrets:
+      # NOTE: these are only required for the "expensive" e2e tests, which are only run via
+      # a daily GitHub Actions cron job (see .github/workflows/daily-e2e-tests.yml)
       TWILIO_ACCOUNT_SID:
-        required: true
+        required: false
       TWILIO_AUTH_TOKEN:
-        required: true
+        required: false
       TWILIO_PHONE_NUMBER:
-        required: true
+        required: false
       TWILIO_VERIFY_SID:
-        required: true
+        required: false
       MAILSLURP_API_KEY:
-        required: true
+        required: false
 
 jobs:
   end-to-end-tests:

@@ -47,7 +47,7 @@ import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
   getSelectedDays,
@@ -209,11 +209,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day: getUTCByDay(
-        store.scheduleStore.byDayOptions,
-        selectedDays,
-        store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-      ),
+      by_day: getUTCByDay({
+        dayOptions: store.scheduleStore.byDayOptions,
+        by_day: selectedDays,
+        moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+      }),
       week_start: getUTCWeekStart(
         store.scheduleStore.byDayOptions,
         store.timezoneStore.getDateInSelectedTimezone(shiftStart)
@@ -385,11 +385,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
       setSelectedDays(
-        getSelectedDays(
-          store.scheduleStore.byDayOptions,
-          shift.by_day,
-          store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-        )
+        getSelectedDays({
+          dayOptions: store.scheduleStore.byDayOptions,
+          by_day: shift.by_day,
+          moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+        })
       );
 
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
@@ -413,11 +413,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     if (shift) {
       setSelectedDays(
-        getSelectedDays(
-          store.scheduleStore.byDayOptions,
-          shift.by_day,
-          store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-        )
+        getSelectedDays({
+          dayOptions: store.scheduleStore.byDayOptions,
+          by_day: shift.by_day,
+          moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+        })
       );
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
@@ -661,7 +661,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   value={userGroups}
                   onChange={setUserGroups}
                   isMultipleGroups={true}
-                  renderUser={(pk: User['pk']) => (
+                  renderUser={(pk: ApiSchemas['User']['pk']) => (
                     <UserItem
                       pk={pk}
                       shiftColor={shiftColor}
@@ -716,10 +716,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
+    const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
     // top navbar display has 2 scrollbar-view elements (navbar & content)
-    const baseReferenceEl = document.querySelectorAll<HTMLElement>('.scrollbar-view')[1];
-
-    const baseReferenceElRect = baseReferenceEl.getBoundingClientRect();
+    const baseReferenceElRect = (
+      scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
+    ).getBoundingClientRect();
 
     const { right, bottom } = baseReferenceElRect;
 
