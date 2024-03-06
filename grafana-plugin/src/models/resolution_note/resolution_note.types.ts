@@ -1,5 +1,4 @@
-import { Alert } from 'models/alertgroup/alertgroup.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface ResolutionNoteSource {
   id: number; // TODO check if string
@@ -8,10 +7,10 @@ interface ResolutionNoteSource {
 
 export interface ResolutionNote {
   id: string;
-  alert_group: Alert['pk'];
+  alert_group: ApiSchemas['AlertGroup']['pk'];
   created_at: string;
   source: ResolutionNoteSource;
-  author: Partial<User>;
+  author: Partial<ApiSchemas['User']>;
   text: string;
 }
 

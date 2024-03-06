@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/connectors/Connectors.module.css';
@@ -14,7 +14,7 @@ import styles from 'containers/UserSettings/parts/connectors/Connectors.module.c
 const cx = cn.bind(styles);
 
 interface MSTeamsConnectorProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
@@ -41,7 +41,7 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
       {storeUser.messaging_backends.MSTEAMS ? (
         <InlineField label="MS Teams" labelWidth={12}>
           <HorizontalGroup spacing="xs">
-            <Input disabled={true} value={storeUser.messaging_backends.MSTEAMS?.name || '—'} />
+            <Input disabled={true} value={(storeUser.messaging_backends.MSTEAMS?.name as string) || '—'} />
             <WithConfirm title="Are you sure to disconnect your Microsoft Teams account?" confirmText="Disconnect">
               <Button
                 disabled={!isCurrentUser}
