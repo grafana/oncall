@@ -1,4 +1,5 @@
 FROM python:3.11.4-alpine3.18 AS base
+ARG TARGETPLATFORM
 
 # Create a group and user to run an app
 ENV APP_USER=appuser
@@ -6,17 +7,25 @@ RUN addgroup --system --gid 2000 ${APP_USER} && \
     adduser --system --uid 1000 --ingroup ${APP_USER} ${APP_USER}
 
 RUN apk add bash \
-            python3-dev \
-            build-base \
-            linux-headers \
-            pcre-dev \
-            mariadb-connector-c-dev \
-            libffi-dev \
-            git \
-            postgresql-dev
+    python3-dev \
+    build-base \
+    linux-headers \
+    pcre-dev \
+    mariadb-connector-c-dev \
+    libffi-dev \
+    git \
+    postgresql-dev
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
+COPY ./grpcio-1.57.0-cp311-cp311-linux_aarch64.whl ./
+
+# grpcio is not available for arm64 on pypi, so we need to install it from a local wheel
+# this can be removed once https://github.com/grpc/grpc/issues/34998 is resolved
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+    pip install grpcio-1.57.0-cp311-cp311-linux_aarch64.whl  \
+    && rm grpcio-1.57.0-cp311-cp311-linux_aarch64.whl; \
+    fi
 
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527

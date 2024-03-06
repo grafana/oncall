@@ -23,6 +23,7 @@ import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSe
 import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
@@ -76,7 +77,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   async componentDidMount() {
     const { store } = this.props;
 
-    store.userStore.updateItems();
+    store.userStore.fetchItems();
 
     store.scheduleStore.updateFrequencyOptions();
     store.scheduleStore.updateDaysOptions();
@@ -117,7 +118,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const { scheduleStore } = store;
 
-    const users = store.userStore.getSearchResult().results;
+    const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
 
     const disabledRotationForm =

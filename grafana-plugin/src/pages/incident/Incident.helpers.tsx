@@ -10,7 +10,6 @@ import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
-import { User } from 'models/user/user.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
@@ -70,7 +69,7 @@ export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = 
     return <Text type="secondary">No users involved</Text>;
   }
 
-  function renderUser(user: Partial<User>) {
+  function renderUser(user: Partial<ApiSchemas['User']>) {
     let badge = undefined;
     if (incident.resolved_by_user && user.pk === incident.resolved_by_user.pk) {
       badge = <IconButton tooltipPlacement="top" tooltip="Resolved" name="check-circle" style={{ color: '#52c41a' }} />;
