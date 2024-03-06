@@ -1,5 +1,5 @@
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
-export const getTitle = (user: User) => {
+export const getTitle = (user: ApiSchemas['User']) => {
   return user ? user.username.split(' ')[0] : null;
 };

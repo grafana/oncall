@@ -6,14 +6,14 @@ import { observer } from 'mobx-react';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
-  userPk?: User['pk'];
+  userPk?: ApiSchemas['User']['pk'];
 }
 
 const _CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {

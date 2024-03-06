@@ -19,4 +19,8 @@ export type CustomApiSchemas = {
     loading?: boolean;
     created_at?: string;
   };
+  User: {
+    hidden_fields?: boolean;
+    display_name?: string;
+  };
 };
