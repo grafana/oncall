@@ -33,7 +33,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
   useEffect(() => {
-    UserHelper.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
+    UserHelper.fetchTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
       setVerificationCode(res.telegram_code);
       setBotLink(res.bot_link);
     });

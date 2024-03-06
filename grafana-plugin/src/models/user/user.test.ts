@@ -12,7 +12,7 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-describe('UserStore.sendBackendConfirmationCode', () => {
+describe('UserStore.fetchBackendConfirmationCode', () => {
   const userPk = '5';
   const backend = 'dfkjfdjkfdkjfdaaa';
   const mockedQrCode = 'dfkjfdkjfdkjfdjk';
@@ -20,7 +20,7 @@ describe('UserStore.sendBackendConfirmationCode', () => {
   test('it makes the proper API call and returns the response', async () => {
     makeRequest.mockResolvedValueOnce(mockedQrCode);
 
-    expect(await UserHelper.sendBackendConfirmationCode(userPk, backend)).toEqual(mockedQrCode);
+    expect(await UserHelper.fetchBackendConfirmationCode(userPk, backend)).toEqual(mockedQrCode);
 
     expect(makeRequest).toHaveBeenCalledTimes(1);
     expect(makeRequest).toHaveBeenCalledWith(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {

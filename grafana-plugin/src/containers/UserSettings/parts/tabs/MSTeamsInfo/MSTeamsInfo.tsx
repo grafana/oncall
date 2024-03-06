@@ -19,7 +19,7 @@ export const MSTeamsInfo = observer(() => {
   const [onCallisAdded, setOnCallisAdded] = useState(false);
 
   useEffect(() => {
-    UserHelper.sendBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
+    UserHelper.fetchBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
     msteamsChannelStore.updateItems().then(() => {
       const connectedChannels = msteamsChannelStore.getSearchResult();
       if (connectedChannels?.length) {

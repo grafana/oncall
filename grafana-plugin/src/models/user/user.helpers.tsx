@@ -48,12 +48,12 @@ export class UserHelper {
     };
   }
 
-  static async sendTelegramConfirmationCode(userPk: ApiSchemas['User']['pk']) {
+  static async fetchTelegramConfirmationCode(userPk: ApiSchemas['User']['pk']) {
     return (await onCallApi().GET('/users/{id}/get_telegram_verification_code/', { params: { path: { id: userPk } } }))
       .data;
   }
 
-  static async sendBackendConfirmationCode(userPk: ApiSchemas['User']['pk'], backend: string) {
+  static async fetchBackendConfirmationCode(userPk: ApiSchemas['User']['pk'], backend: string) {
     return (
       await onCallApi().GET('/users/{id}/get_backend_verification_code/', {
         params: { path: { id: userPk }, query: { backend } },

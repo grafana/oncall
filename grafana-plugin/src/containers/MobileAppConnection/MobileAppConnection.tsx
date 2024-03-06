@@ -90,7 +90,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
 
       try {
         // backend verification code that we receive is a JSON object that has been "stringified"
-        const qrCodeContent = await UserHelper.sendBackendConfirmationCode(userPk, BACKEND);
+        const qrCodeContent = await UserHelper.fetchBackendConfirmationCode(userPk, BACKEND);
         setQRCodeValue(qrCodeContent);
       } catch (e) {
         setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');

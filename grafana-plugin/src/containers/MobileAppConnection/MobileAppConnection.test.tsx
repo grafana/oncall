@@ -80,21 +80,21 @@ describe('MobileAppConnection', () => {
 
   test('it shows a loading message if it is currently fetching the QR code', async () => {
     mockRootStore({
-      sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+      fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
     });
 
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
   test('it shows an error message if there was an error fetching the QR code', async () => {
     mockRootStore({
-      sendBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
+      fetchBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
     });
 
     const component = render(<MobileAppConnection userPk={USER_PK} />);
@@ -103,29 +103,29 @@ describe('MobileAppConnection', () => {
     await waitFor(() => {
       expect(component.container).toMatchSnapshot();
 
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
   test("it shows a QR code if the app isn't already connected", async () => {
     mockRootStore({
-      sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+      fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
     });
 
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
   test('if we disconnect the app, it disconnects and fetches a new QR code', async () => {
     mockRootStore(
       {
-        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockResolvedValueOnce('asdfadsfafds'),
       },
       true
@@ -142,8 +142,8 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
@@ -153,7 +153,7 @@ describe('MobileAppConnection', () => {
   test('it shows a loading message if it is currently disconnecting', async () => {
     mockRootStore(
       {
-        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 500))),
       },
       true
@@ -173,8 +173,8 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
@@ -184,7 +184,7 @@ describe('MobileAppConnection', () => {
   test('it shows an error message if there was an error disconnecting the mobile app', async () => {
     mockRootStore(
       {
-        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
       },
       true
@@ -203,7 +203,7 @@ describe('MobileAppConnection', () => {
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
-      expect(UserHelper.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
+      expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(0);
 
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledTimes(1);
       expect(rootStore.userStore.unlinkBackend).toHaveBeenCalledWith(USER_PK, BACKEND);
@@ -213,7 +213,7 @@ describe('MobileAppConnection', () => {
   test('it polls loadUser on first render if not connected', async () => {
     mockRootStore(
       {
-        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
+        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
       },
       false
@@ -232,7 +232,7 @@ describe('MobileAppConnection', () => {
   test('it polls loadUser after disconnect', async () => {
     mockRootStore(
       {
-        sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dff'),
+        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dff'),
         unlinkBackend: jest.fn().mockRejectedValueOnce('asdff'),
       },
       true
