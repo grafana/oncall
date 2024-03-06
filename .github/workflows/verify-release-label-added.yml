@@ -1,0 +1,34 @@
+name: Verify Release Label Added
+
+"on":
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+    branches:
+      - dev
+  # tldr; without this here we cannot have the "Verify Release Label Added" job as a required status check to
+  # pass before merging
+  #
+  # It allows this to run for jobs in the merge_queue such that we can have the "Verify Release Label Added" job
+  # as a required status check to pass before merging. However, it seems like this action doesn't run properly
+  # on jobs triggerd by the merge_group event
+  # (see here for example https://github.com/grafana/oncall/actions/runs/8176552748/job/22356224259#step:3:9)
+  # so we'll check the event type and skip if that is the case
+  merge_group:
+
+jobs:
+  verify-release-label-added:
+    # see comment above
+    if: github.event_name == 'pull_request'
+    name: Verify Release Label Added
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          prefix_mode: true
+          one_of: "release:"
+          repo_token: ${{ secrets.GITHUB_TOKEN }}

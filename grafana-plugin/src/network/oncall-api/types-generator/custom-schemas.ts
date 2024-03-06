@@ -1,3 +1,5 @@
+import { AlertAction } from 'models/alertgroup/alertgroup.types';
+
 // Custom properties not exposed by OpenAPI schema should be defined here
 export type CustomApiSchemas = {
   Webhook: {
@@ -11,5 +13,14 @@ export type CustomApiSchemas = {
       content: string;
       event_data: string;
     };
+  };
+  AlertGroup: {
+    undoAction: AlertAction;
+    loading?: boolean;
+    created_at?: string;
+  };
+  User: {
+    hidden_fields?: boolean;
+    display_name?: string;
   };
 };

@@ -12,7 +12,7 @@ import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, getVar, waitForElement } from 'utils/DOM';
@@ -255,7 +255,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
               value={userGroups}
               onChange={setUserGroups}
               isMultipleGroups={false}
-              renderUser={(pk: User['pk']) => (
+              renderUser={(pk: ApiSchemas['User']['pk']) => (
                 <UserItem pk={pk} shiftColor={shiftColor} shiftStart={params.shift_start} shiftEnd={params.shift_end} />
               )}
               showError={Boolean(errors.rolling_users)}

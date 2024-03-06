@@ -218,10 +218,12 @@ export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     );
     content =
       licenseType === GRAFANA_LICENSE_OSS ? (
-        <HorizontalGroup>
-          {pluginLink}
-          <RemoveConfigButton />
-        </HorizontalGroup>
+        <div>
+          <HorizontalGroup>
+            {pluginLink}
+            <RemoveConfigButton />
+          </HorizontalGroup>
+        </div>
       ) : (
         <VerticalGroup>
           <Label>This is a cloud managed configuration.</Label>

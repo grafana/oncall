@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 
 import { getColor, getOverrideColor } from 'models/schedule/schedule.helpers';
 import { Layer, Shift } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export const findColor = (shiftId: Shift['id'], layers: Layer[], overrides?) => {
   let color = undefined;
@@ -41,7 +41,7 @@ export const findColor = (shiftId: Shift['id'], layers: Layer[], overrides?) => 
   return color;
 };
 
-export const findClosestUserEvent = (startMoment: dayjs.Dayjs, userPk: User['pk'], layers: Layer[]) => {
+export const findClosestUserEvent = (startMoment: dayjs.Dayjs, userPk: ApiSchemas['User']['pk'], layers: Layer[]) => {
   let minDiff;
   let closestEvent;
 

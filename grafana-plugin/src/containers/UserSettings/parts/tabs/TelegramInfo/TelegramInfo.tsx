@@ -10,6 +10,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { TelegramColorIcon } from 'icons/Icons';
+import { UserHelper } from 'models/user/user.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -32,7 +33,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
   useEffect(() => {
-    userStore.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
+    UserHelper.fetchTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
       setVerificationCode(res.telegram_code);
       setBotLink(res.bot_link);
     });

@@ -62,7 +62,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
       store: { userStore },
     } = this.props;
 
-    userStore.updateItems();
+    userStore.fetchItems();
   }
 
   render() {

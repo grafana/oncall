@@ -1,4 +1,4 @@
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 export interface NotificationPolicyType {
   id: string;
@@ -6,7 +6,7 @@ export interface NotificationPolicyType {
   notify_by: number | null;
   wait_delay: string | null;
   important: boolean;
-  user: User['pk'];
+  user: ApiSchemas['User']['pk'];
 }
 
 export function prepareNotificationPolicy(value: NotificationPolicyType): NotificationPolicyType {

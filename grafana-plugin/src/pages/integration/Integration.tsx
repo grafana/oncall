@@ -44,7 +44,7 @@ import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContaine
 import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
@@ -863,7 +863,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isIntegrationSettingsOpen && (
-        <IntegrationForm
+        <IntegrationFormContainer
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onSubmit={async () => {

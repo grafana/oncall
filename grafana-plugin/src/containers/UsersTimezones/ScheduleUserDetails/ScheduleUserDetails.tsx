@@ -14,7 +14,7 @@ import {
   getCurrentlyLoggedInUserDate,
   getTzOffsetString,
 } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
@@ -23,7 +23,7 @@ import styles from './ScheduleUserDetails.module.css';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
-  user: User;
+  user: ApiSchemas['User'];
   isOncall: boolean;
   scheduleId: string;
 }

@@ -34,7 +34,7 @@ import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
@@ -289,7 +289,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         </div>
 
         {alertReceiveChannelId && (
-          <IntegrationForm
+          <IntegrationFormContainer
             onHide={() => {
               this.setState({ alertReceiveChannelId: undefined });
             }}

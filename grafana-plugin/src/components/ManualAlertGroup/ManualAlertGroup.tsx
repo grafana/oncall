@@ -7,7 +7,7 @@ import { GForm } from 'components/GForm/GForm';
 import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
-import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
 
@@ -15,7 +15,7 @@ import { manualAlertFormConfig, ManualAlertGroupFormData } from './ManualAlertGr
 
 interface ManualAlertGroupProps {
   onHide: () => void;
-  onCreate: (id: AlertType['pk']) => void;
+  onCreate: (id: ApiSchemas['AlertGroup']['pk']) => void;
   alertReceiveChannelStore: AlertReceiveChannelStore;
 }
 

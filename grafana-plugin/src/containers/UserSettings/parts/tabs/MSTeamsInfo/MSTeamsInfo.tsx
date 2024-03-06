@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
+import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo.module.css';
@@ -18,7 +19,7 @@ export const MSTeamsInfo = observer(() => {
   const [onCallisAdded, setOnCallisAdded] = useState(false);
 
   useEffect(() => {
-    userStore.sendBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
+    UserHelper.fetchBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
     msteamsChannelStore.updateItems().then(() => {
       const connectedChannels = msteamsChannelStore.getSearchResult();
       if (connectedChannels?.length) {

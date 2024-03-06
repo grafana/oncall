@@ -112,9 +112,10 @@ info on updating Grafana plugins.
 
 ## Join community
 
-[<img width="200px" src="docs/img/community_call.png">](https://github.com/grafana/oncall/discussions/categories/community-calls)
-[<img width="200px" src="docs/img/GH_discussions.png">](https://github.com/grafana/oncall/discussions)
 [<img width="200px" src="docs/img/slack.png">](https://slack.grafana.com/)
+[<img width="200px" src="docs/img/GH_discussions.png">](https://community.grafana.com/)
+
+Have a question, comment or feedback? Don't be afraid to [open an issue](https://github.com/grafana/oncall/issues/new/choose)!
 
 ## Stargazers over time
 

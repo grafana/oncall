@@ -158,3 +158,28 @@ def test_get_instance_ids_pagination(settings, query, expected_pages, expected_i
         assert item_count == expected_items
         if item_count > 0:
             assert type(next(iter(instance_ids))) is str
+
+
+@pytest.mark.parametrize(
+    "status, is_deleted",
+    [
+        ("deleted", True),
+        ("active", False),
+        ("deleting", False),
+        ("paused", False),
+        ("archived", False),
+        ("archiving", False),
+        ("restoring", False),
+        ("migrating", False),
+        ("migrated", False),
+        ("suspending", False),
+        ("suspended", False),
+        ("pending", False),
+        ("starting", False),
+        ("unknown", False),
+    ],
+)
+def test_cleanup_organization_deleted(status, is_deleted):
+    client = GcomAPIClient("someToken")
+    with patch.object(GcomAPIClient, "api_get", return_value=({"items": [{"status": status}]}, None)):
+        assert client.is_stack_deleted("someStack") == is_deleted

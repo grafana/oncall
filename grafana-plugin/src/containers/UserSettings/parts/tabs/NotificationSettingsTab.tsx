@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 
 import { PersonalNotificationSettings } from 'containers/PersonalNotificationSettings/PersonalNotificationSettings';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
-export const NotificationSettingsTab = (props: { id: User['pk'] }) => {
+export const NotificationSettingsTab = (props: { id: ApiSchemas['User']['pk'] }) => {
   const { id } = props;
 
   const store = useStore();

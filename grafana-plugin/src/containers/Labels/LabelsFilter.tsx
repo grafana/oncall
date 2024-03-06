@@ -4,6 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import { observer } from 'mobx-react';
 
 import { LabelsFilterComponent } from 'components/LabelsFilter/LabelsFilter';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { useStore } from 'state/useStore';
 
 interface LabelsFilterProps {
@@ -18,12 +19,12 @@ export const LabelsFilter = observer((props: LabelsFilterProps) => {
   const { filterType, className, autoFocus, value: propsValue, onChange } = props;
   const [value, setValue] = useState([]);
   const [keys, setKeys] = useState([]);
-  const { alertGroupStore, labelsStore } = useStore();
+  const { labelsStore } = useStore();
 
-  const loadKeys = filterType === 'alert_group_labels' ? alertGroupStore.loadLabelsKeys : labelsStore.loadKeys;
+  const loadKeys = filterType === 'alert_group_labels' ? AlertGroupHelper.loadLabelsKeys : labelsStore.loadKeys;
 
   const loadValuesForKey =
-    filterType === 'alert_group_labels' ? alertGroupStore.loadValuesForLabelKey : labelsStore.loadValuesForKey;
+    filterType === 'alert_group_labels' ? AlertGroupHelper.loadValuesForLabelKey : labelsStore.loadValuesForKey;
 
   useEffect(() => {
     loadKeys().then(setKeys);

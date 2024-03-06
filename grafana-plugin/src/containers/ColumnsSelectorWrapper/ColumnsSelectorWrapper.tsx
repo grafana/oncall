@@ -7,6 +7,7 @@ import { Text } from 'components/Text/Text';
 import { ColumnsSelector, convertColumnsToTableSettings } from 'containers/ColumnsSelector/ColumnsSelector';
 import { getColumnsSelectorWrapperStyles } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper.styles';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertGroupColumn } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -37,7 +38,7 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
   useEffect(() => {
     isColumnAddModalOpen &&
       (async function () {
-        const keys = await store.alertGroupStore.loadLabelsKeys();
+        const keys = await AlertGroupHelper.loadLabelsKeys();
         setLabelKeys(keys);
       })();
   }, [isColumnAddModalOpen]);

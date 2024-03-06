@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -13,7 +13,7 @@ import styles from 'containers/RotationForm/RotationForm.module.css';
 const cx = cn.bind(styles);
 
 interface UserItemProps {
-  pk: User['pk'];
+  pk: ApiSchemas['User']['pk'];
   shiftColor: string;
   shiftStart: string;
   shiftEnd: string;
@@ -26,7 +26,7 @@ export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps
 
   useEffect(() => {
     if (!userStore.items[pk]) {
-      userStore.updateItem(pk);
+      userStore.fetchItemById({ userPk: pk, skipIfAlreadyPending: true });
     }
   }, []);
 

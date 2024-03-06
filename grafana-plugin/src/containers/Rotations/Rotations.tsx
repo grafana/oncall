@@ -15,7 +15,7 @@ import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -37,7 +37,7 @@ interface RotationsProps extends WithStoreProps {
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
-  onShiftSwapRequest: (beneficiary: User['pk'], swap_start: string, swap_end: string) => void;
+  onShiftSwapRequest: (beneficiary: ApiSchemas['User']['pk'], swap_start: string, swap_end: string) => void;
   disabled: boolean;
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;

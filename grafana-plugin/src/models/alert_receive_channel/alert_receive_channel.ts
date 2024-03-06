@@ -2,7 +2,6 @@ import { omit } from 'lodash-es';
 import { runInAction, makeAutoObservable } from 'mobx';
 
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { ActionKey } from 'models/loader/action-keys';
@@ -18,7 +17,6 @@ import { OmitReadonlyMembers } from 'utils/types';
 import { AlertReceiveChannelCounters, ContactPoint } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore {
-  path = '/alert_receive_channels/';
   rootStore: RootBaseStore;
   searchResult: Array<ApiSchemas['AlertReceiveChannel']['id']>;
   paginatedSearchResult: {
@@ -337,7 +335,10 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async fetchTemplates(alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'], alertGroupId?: Alert['pk']) {
+  async fetchTemplates(
+    alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'],
+    alertGroupId?: ApiSchemas['AlertGroup']['pk']
+  ) {
     const response = await makeRequest(`/alert_receive_channel_templates/${alertReceiveChannelId}/`, {
       params: { alert_group_id: alertGroupId },
       withCredentials: true,

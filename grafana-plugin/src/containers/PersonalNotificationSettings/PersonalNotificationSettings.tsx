@@ -11,7 +11,7 @@ import { Text } from 'components/Text/Text';
 import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
-import { User as UserType } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -24,7 +24,7 @@ import styles from './PersonalNotificationSettings.module.css';
 const cx = cn.bind(styles);
 
 interface PersonalNotificationSettingsProps {
-  userPk: UserType['pk'];
+  userPk: ApiSchemas['User']['pk'];
   isImportant: boolean;
 }
 

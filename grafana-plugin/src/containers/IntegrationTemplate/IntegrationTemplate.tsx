@@ -21,7 +21,6 @@ import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
@@ -101,7 +100,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
     }
   };
 
-  const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
+  const onSelectAlertGroup = useCallback((alertGroup: ApiSchemas['AlertGroup']) => {
     if (template.additionalData?.chatOpsName) {
       setChatOpsPermalink({
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],

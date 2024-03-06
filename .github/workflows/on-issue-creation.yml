@@ -6,15 +6,6 @@ name: On issue creation
       - opened
 
 jobs:
-  add-to-project:
-    name: Add OSS issues to team's kanban board
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/add-to-project@v0.4.1
-        with:
-          project-url: https://github.com/orgs/grafana/projects/119
-          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-
   add-latest-version-comment-to-feature-request-issues:
     name: Add latest version comment to feature request issues
     runs-on: ubuntu-latest
@@ -82,5 +73,5 @@ jobs:
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App') && 'part:mobile' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Schedules') && 'part:schedules' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform') && 'part:API/Terraform' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'no info or need to discuss' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'more info needed' || '' }}
           # yamllint enable rule:line-length

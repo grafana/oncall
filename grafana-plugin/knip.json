@@ -1,0 +1,4 @@
+{
+  "entry": ["src/PluginPage.tsx", "src/module.ts"],
+  "project": ["**/*.{js,ts,jsx,tsx}"]
+}

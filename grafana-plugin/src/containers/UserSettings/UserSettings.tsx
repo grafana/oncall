@@ -7,7 +7,7 @@ import { useMediaQuery } from 'react-responsive';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsParts';
-import { User as UserType } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { BREAKPOINT_TABS } from 'utils/consts';
@@ -20,8 +20,8 @@ const cx = cn.bind(styles);
 
 interface UserFormProps {
   onHide: () => void;
-  id: UserType['pk'] | 'new';
-  onCreate?: (data: UserType) => void;
+  id: ApiSchemas['User']['pk'] | 'new';
+  onCreate?: (data: ApiSchemas['User']) => void;
   onUpdate?: () => void;
   tab?: UserSettingsTab;
 }

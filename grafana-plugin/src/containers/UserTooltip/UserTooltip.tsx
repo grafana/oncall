@@ -3,12 +3,12 @@ import React from 'react';
 import { Tooltip } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import { getUserNotificationsSummary } from 'models/user/user.helpers';
-import { User } from 'models/user/user.types';
+import { UserHelper } from 'models/user/user.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 interface UserTooltipProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
 }
 
 export const UserTooltip = observer((props: UserTooltipProps) => {
@@ -21,7 +21,7 @@ export const UserTooltip = observer((props: UserTooltipProps) => {
   const user = userStore.items[id];
 
   return (
-    <Tooltip content={getUserNotificationsSummary(user)}>
+    <Tooltip content={UserHelper.getUserNotificationsSummary(user)}>
       <span>{user?.username}</span>
     </Tooltip>
   );

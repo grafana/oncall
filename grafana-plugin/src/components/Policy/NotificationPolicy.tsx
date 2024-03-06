@@ -10,7 +10,7 @@ import { Timeline } from 'components/Timeline/Timeline';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy/notification_policy';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
@@ -28,7 +28,7 @@ export interface NotificationPolicyProps {
   slackTeamIdentity?: {
     general_log_channel_pk: Channel['id'];
   };
-  slackUserIdentity?: User['slack_user_identity'];
+  slackUserIdentity?: ApiSchemas['User']['slack_user_identity'];
   onChange: (id: NotificationPolicyType['id'], value: NotificationPolicyType) => void;
   onDelete: (id: string) => void;
   notificationChoices: any[];

@@ -354,6 +354,24 @@ def test_webhook_integration_filter(webhook_internal_api_setup, make_alert_recei
     assert list(webhook.filtered_integrations.all()) == []
     assert response.json()["integration_filter"] == []
 
+    # clear filter also works if set to None
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {
+        "name": "github_button_updated",
+        "url": "https://github.com/",
+        "trigger_type": Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        "http_method": "POST",
+        "team": None,
+        "integration_filter": None,
+    }
+    response = client.put(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    webhook.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert list(webhook.filtered_integrations.all()) == []
+    assert response.json()["integration_filter"] == []
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(

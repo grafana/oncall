@@ -89,3 +89,21 @@ class BanAlertConsumptionBasedOnSettingsMiddleware(MiddlewareMixin):
                 pass
             logging.warning(f"{request.path} has been banned")
             raise PermissionDenied()
+
+
+class LogRequestHeadersMiddleware:
+    """
+    Middleware to log the request headers.
+    Introduced to debug tracing issues.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Log request headers
+        logger.info("Request Headers: %s", request.headers)
+
+        response = self.get_response(request)
+
+        return response
