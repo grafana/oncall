@@ -10,9 +10,10 @@ name: Verify Release Label Added
       - unlabeled
     branches:
       - dev
+  merge_group:
 
 jobs:
-  verfiy-release-label-added:
+  verify-release-label-added:
     name: Verify Release Label Added
     runs-on: ubuntu-latest
     steps:
