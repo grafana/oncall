@@ -158,6 +158,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_on_call_from_schedule",
             "group_to_notify",
             "important",
+            "action_to_trigger",
             "notify_if_time_from",
             "notify_if_time_to",
             "num_alerts_in_window",

@@ -322,7 +322,7 @@ def test_create_escalation_policy_using_webhooks(
 
     data_for_create = {
         "escalation_chain_id": escalation_chain.public_primary_key,
-        "type": "trigger_action",
+        "type": "trigger_webhook",
         "position": 0,
         "action_to_trigger": webhook.public_primary_key,
     }
