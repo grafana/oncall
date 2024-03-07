@@ -36,15 +36,6 @@ class EscalationPolicyTypeField(fields.CharField):
         return step_type
 
 
-class WebhookTransitionField(OrganizationFilteredPrimaryKeyRelatedField):
-    def get_attribute(self, instance):
-        value = super().get_attribute(instance)
-        if value is None:
-            # fallback to the custom button old value
-            value = instance.custom_button_trigger
-        return value
-
-
 class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
@@ -76,7 +67,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         source="notify_to_group",
         filter_field="slack_team_identity__organizations",
     )
-    action_to_trigger = WebhookTransitionField(
+    action_to_trigger = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=Webhook.objects,
         required=False,
         source="custom_webhook",
