@@ -48,7 +48,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
     organizationStore.currentOrganization.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} data-testid="schedule-user-details">
       <VerticalGroup spacing="xs">
         <ScheduleBorderedAvatar
           colors={colorSchemeList}
