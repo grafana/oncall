@@ -13,12 +13,14 @@ import { useStore } from 'state/useStore';
 import { useCommonStyles, useIsLoading } from 'utils/hooks';
 
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
+import { useCurrentIntegration } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
 
 const DEBOUNCE_MS = 500;
 
 export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () => void }) => {
-  const { alertReceiveChannelStore } = useStore();
+  const { alertReceiveChannelStore, alertReceiveChannelConnectedChannelsStore } = useStore();
+  const currentIntegration = useCurrentIntegration();
   const isLoading = useIsLoading(ActionKey.FETCH_INTEGRATIONS);
   const commonStyles = useCommonStyles();
   const [selectedIntegrations, setSelectedIntegrations] = useState<Array<ApiSchemas['AlertReceiveChannel']>>([]);
@@ -34,7 +36,9 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
 
   const fetchItems = async (search?: string) => {
     await alertReceiveChannelStore.fetchPaginatedItems({
-      filters: { search },
+      filters: {
+        search,
+      },
       perpage: 10,
       page,
     });
@@ -48,7 +52,13 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
     }
   };
 
-  const onConnect = () => {};
+  const onConnect = async (integrationsToConnect: typeof selectedIntegrations) => {
+    await alertReceiveChannelConnectedChannelsStore.connectChannels(
+      currentIntegration.id,
+      integrationsToConnect.map(({ id }) => ({ id, backsync: false }))
+    );
+    onDismiss();
+  };
 
   const debouncedSearch = debounce(fetchItems, DEBOUNCE_MS);
 
@@ -78,7 +88,6 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
       <ConnectedIntegrationsTable
         selectable
         onChange={onChange}
-        allowBacksync
         tableProps={{
           data: results,
           pagination: {

@@ -1,16 +1,28 @@
 import React, { useState } from 'react';
 
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 
+import { Button } from 'components/Button/Button';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
+import { Text } from 'components/Text/Text';
+import { useStore } from 'state/useStore';
 
 import { ConnectIntegrationModal } from './ConnectIntegrationModal';
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
+import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 
 export const OtherIntegrations = observer(() => {
+  const {
+    alertReceiveChannelConnectedChannelsStore: { fetchItems, itemsAsList, toggleBacksync },
+  } = useStore();
+  const sourceIntegrationId = useIntegrationIdFromUrl();
   const [isConnectModalOpened, setIsConnectModalOpened] = useState(false);
+
+  useEffect(() => {
+    fetchItems(sourceIntegrationId);
+  }, [sourceIntegrationId]);
 
   return (
     <>
@@ -24,7 +36,33 @@ export const OtherIntegrations = observer(() => {
             </Button>
           </HorizontalGroup>
         }
-        content={<ConnectedIntegrationsTable allowDelete allowBacksync tableProps={{ data: [] }} />}
+        content={
+          itemsAsList?.length ? (
+            <ConnectedIntegrationsTable
+              allowDelete
+              tableProps={{
+                data: itemsAsList.map(({ alert_receive_channel }) => alert_receive_channel),
+              }}
+              defaultBacksyncedIds={itemsAsList
+                .filter(({ backsync }) => backsync)
+                .map(({ alert_receive_channel: { id } }) => id)}
+              onBacksyncChange={(connectedChannelId: string, backsync: boolean) =>
+                toggleBacksync({
+                  sourceIntegrationId,
+                  connectedChannelId,
+                  backsync,
+                })
+              }
+            />
+          ) : (
+            <HorizontalGroup align="center">
+              <Text type="secondary">There are no connected integrations.</Text>
+              <Button variant="primary" showAsLink onClick={() => setIsConnectModalOpened(true)}>
+                Connect them
+              </Button>
+            </HorizontalGroup>
+          )
+        }
       />
     </>
   );

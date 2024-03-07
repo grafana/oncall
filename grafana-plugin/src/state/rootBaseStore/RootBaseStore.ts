@@ -4,6 +4,7 @@ import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { AlertReceiveChannelConnectedChannelsStore } from 'models/alert_receive_channel_connected_channels/alert_receive_channel_connected_channels';
 import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_filters/alert_receive_channel_filters';
 import { AlertReceiveChannelWebhooksStore } from 'models/alert_receive_channel_webhooks/alert_receive_channel_webhooks';
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
@@ -132,17 +133,14 @@ export class RootBaseStore {
       () => this.organizationStore.loadCurrentOrganization(),
       () => this.grafanaTeamStore.updateItems(),
       () => updateFeatures(),
+      () => this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
     ]);
     this.setIsBasicDataLoaded(true);
   };
 
   @action
   loadMasterData = async () => {
-    Promise.all([
-      this.userStore.updateNotificationPolicyOptions(),
-      this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
-    ]);
+    Promise.all([this.userStore.updateNotificationPolicyOptions(), this.userStore.updateNotifyByOptions()]);
   };
 
   @action
