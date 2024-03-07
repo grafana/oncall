@@ -12,7 +12,7 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.labels.models import LabelKeyCache, LabelValueCache
 
 
-class SettingsSerializer(serializers.Serializer):
+class AdditionalSettingsTestSerializer(serializers.Serializer):
     instance_url = serializers.CharField(required=True)
 
     def validate(self, data):
@@ -1756,7 +1756,7 @@ def test_create_additional_settings_integration(
 
     # set up additional settings for an integration
     integration = AlertReceiveChannel._config[0]
-    integration.additional_settings = "apps.api.tests.test_alert_receive_channel"
+    integration.additional_settings_serializer = AdditionalSettingsTestSerializer
 
     url = reverse("api-internal:alert_receive_channel-list")
     # create without additional_settings
@@ -1804,7 +1804,7 @@ def test_update_additional_settings_integration(
 
     # set up additional settings for an integration
     integration = AlertReceiveChannel._config[0]
-    integration.additional_settings = "apps.api.tests.test_alert_receive_channel"
+    integration.additional_settings_serializer = AdditionalSettingsTestSerializer
 
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=integration.slug, additional_settings=settings

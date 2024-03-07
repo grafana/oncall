@@ -4,7 +4,6 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
-from django.utils.module_loading import import_string
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -29,18 +28,9 @@ from .labels import LabelsSerializerMixin
 
 def _additional_settings_serializer_from_type(integration_type: str) -> serializers.Serializer:
     """Return serializer class for given integration_type additional settings."""
-    ADDITIONAL_SETTINGS_CLASS_NAME = "SettingsSerializer"
-    config = None
-    for integration in AlertReceiveChannel._config:
-        if integration.slug == integration_type:
-            config = integration
-            break
     cls = None
-    if config:
-        import_path = getattr(config, "additional_settings", None)
-        if import_path:
-            import_path += ".{}".format(ADDITIONAL_SETTINGS_CLASS_NAME)
-            cls = import_string(import_path)
+    config = AlertReceiveChannel.get_config_from_type(integration_type)
+    cls = getattr(config, "additional_settings_serializer", None) if config else None
     return cls
 
 
