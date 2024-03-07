@@ -1,7 +1,7 @@
 import typing
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, prefetch_related_objects
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.plumbing import resolve_type_hint
@@ -690,12 +690,6 @@ class AlertReceiveChannelView(
     @action(detail=True, methods=["get"], url_path="connected_alert_receive_channels")
     def connected_alert_receive_channels_get(self, request, pk):
         instance = self.get_object()
-        # TODO: check, comment
-        prefetch_related_objects(
-            [instance],
-            "source_alert_receive_channels__source_alert_receive_channel",
-            "connected_alert_receive_channels__connected_alert_receive_channel",
-        )
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -724,12 +718,6 @@ class AlertReceiveChannelView(
             batch_size=5000,
         )
 
-        # TODO: check, comment
-        prefetch_related_objects(
-            [instance],
-            "source_alert_receive_channels__source_alert_receive_channel",
-            "connected_alert_receive_channels__connected_alert_receive_channel",
-        )
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
