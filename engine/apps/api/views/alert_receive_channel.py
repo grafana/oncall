@@ -708,7 +708,7 @@ class AlertReceiveChannelView(
         serializer.is_valid(raise_exception=True)
         backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
 
-        # TODO: comment
+        # bulk create connections
         AlertReceiveChannelConnection.objects.bulk_create(
             [
                 AlertReceiveChannelConnection(
@@ -717,7 +717,7 @@ class AlertReceiveChannelView(
                     backsync=backsync_map[alert_receive_channel.public_primary_key],
                 )
                 for alert_receive_channel in instance.organization.alert_receive_channels.filter(
-                    public_primary_key__in=backsync_map.keys()
+                    public_primary_key__in=[connection["id"] for connection in serializer.validated_data]
                 )
             ],
             ignore_conflicts=True,
