@@ -1,4 +1,3 @@
-import { dataFrameFromJSON } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';

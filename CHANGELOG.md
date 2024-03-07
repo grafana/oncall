@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 *NOTE*: for all future release notes, please see the [Releases page](https://github.com/grafana/oncall/releases).
 
+## Unreleased
+
+## Fixed
+
+- Fix user details tooltip not showing on schedules ([#4033](https://github.com/grafana/oncall/pull/4033))
+
 ## v1.3.109 (2024-03-04)
 
 ### Fixed
