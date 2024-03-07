@@ -42,6 +42,12 @@ For Open Source Grafana OnCall Slack installation guidance, refer to [Slack setu
 1. Provide your Slack workspace URL and sign with your Slack credentials.
 1. Click **Allow** to give Grafana OnCall permission to access your Slack workspace.
 
+### Configure timeout for acknowledged alerts
+
+You can configure reminders for acknowledged alerts in the Additional settings section of the Chat Ops tab.
+This section allows you to enable reminders to be sent through Slack at set intervals. You can also choose to have an
+alert group revert to unacknowledged after a designated period of time if the reminder is not confirmed.
+
 ## Why does OnCall Slack App require so many permissions?
 
 OnCall has an advanced Slack App with dozens of features making it even possible for users to be on-call and work with

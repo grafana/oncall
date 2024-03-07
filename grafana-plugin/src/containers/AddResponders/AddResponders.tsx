@@ -9,8 +9,7 @@ import { observer } from 'mobx-react';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getTimezone } from 'models/user/user.helpers';
-import { UserCurrentlyOnCall } from 'models/user/user.types';
+import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -62,7 +61,7 @@ export const AddResponders = observer(
     const currentMoment = useMemo(() => dayjs(), []);
     const isCreateMode = mode === 'create';
 
-    const [currentlyConsideredUser, setCurrentlyConsideredUser] = useState<UserCurrentlyOnCall>(null);
+    const [currentlyConsideredUser, setCurrentlyConsideredUser] = useState<ApiSchemas['UserIsCurrentlyOnCall']>(null);
     const [currentlyConsideredUserNotificationPolicy, setCurrentlyConsideredUserNotificationPolicy] =
       useState<NotificationPolicyValue>(NotificationPolicyValue.Default);
 
@@ -141,7 +140,7 @@ export const AddResponders = observer(
                       disableNotificationPolicySelect
                       handleDelete={generateRemovePreviouslyPagedUserCallback(user.pk)}
                       important={user.important}
-                      data={user as unknown as UserCurrentlyOnCall}
+                      data={user as unknown as ApiSchemas['UserIsCurrentlyOnCall']}
                     />
                   ))}
                   {selectedUserResponders.map((responder, index) => (
@@ -192,7 +191,8 @@ export const AddResponders = observer(
                 <div>
                   <Text>
                     <Text strong>{currentlyConsideredUser.name || currentlyConsideredUser.username}</Text> (local time{' '}
-                    {currentMoment.tz(getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be notified using
+                    {currentMoment.tz(UserHelper.getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be
+                    notified using
                   </Text>
                   <div className={cx('confirm-participant-invitation-modal-select')}>
                     <NotificationPoliciesSelect

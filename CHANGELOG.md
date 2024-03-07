@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+*NOTE*: for all future release notes, please see the [Releases page](https://github.com/grafana/oncall/releases).
+
 ## v1.3.109 (2024-03-04)
 
 ### Fixed
@@ -994,7 +996,7 @@ Minor bugfixes + dependency updates :)
 
 - Bring heartbeats back to UI by @maskin25 ([#2550](https://github.com/grafana/oncall/pull/2550))
 - Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
-  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  parsed, when they were space-delimited. This fix allows them to be *either* space or comma-delimited.
   by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
 
 ## v1.3.16 (2023-07-21)
@@ -1176,7 +1178,7 @@ Minor bugfixes + dependency updates :)
 - Change OnCall plugin to use service accounts and api tokens for communicating with backend, by @mderynck ([#2385](https://github.com/grafana/oncall/pull/2385))
 - RabbitMQ Docker image upgraded from 3.7.19 to 3.12.0 in `docker-compose-developer.yml` and
   `docker-compose-mysql-rabbitmq.yml`. **Note**: if you use one of these config files for your deployment
-  you _may_ need to follow the RabbitMQ "upgrade steps" listed [here](https://rabbitmq.com/upgrade.html#rabbitmq-version-upgradability)
+  you *may* need to follow the RabbitMQ "upgrade steps" listed [here](https://rabbitmq.com/upgrade.html#rabbitmq-version-upgradability)
   by @joeyorlando ([#2359](https://github.com/grafana/oncall/pull/2359))
 
 ### Fixed

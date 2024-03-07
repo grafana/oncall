@@ -12,7 +12,7 @@ import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import { getTitle } from './ScheduleSlot.helpers';
@@ -122,13 +122,13 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
   useEffect(() => {
     if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary.pk]) {
-      store.userStore.updateItem(shiftSwap.beneficiary.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.beneficiary.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.beneficiary]);
 
   useEffect(() => {
     if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor.pk]) {
-      store.userStore.updateItem(shiftSwap.benefactor.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.benefactor.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.benefactor]);
 
@@ -310,7 +310,7 @@ const RegularEvent = (props: RegularEventProps) => {
 };
 
 interface ScheduleSlotDetailsProps {
-  user: User;
+  user: ApiSchemas['User'];
   isOncall?: boolean;
   event: Event;
   handleAddOverride?: (event: React.SyntheticEvent) => void;
