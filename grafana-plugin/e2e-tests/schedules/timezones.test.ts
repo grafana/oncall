@@ -6,7 +6,7 @@ import utc from 'dayjs/plugin/utc';
 import { test } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
-import { createOnCallSchedule } from '../utils/schedule';
+import { createOnCallScheduleWithRotation } from '../utils/schedule';
 
 dayjs.extend(utc);
 dayjs.extend(isoWeek);
@@ -23,7 +23,7 @@ test('dates in schedule are correct according to selected current timezone', asy
   await setTimezoneInProfile(page, 'Europe/Moscow');
 
   const onCallScheduleName = generateRandomValue();
-  await createOnCallSchedule(page, onCallScheduleName, userName);
+  await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
 
   // Current timezone is selected by default to currently logged in user timezone
   await expect(page.getByTestId('timezone-select')).toHaveText('GMT+3');
