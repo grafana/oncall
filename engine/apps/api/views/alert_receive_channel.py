@@ -711,7 +711,7 @@ class AlertReceiveChannelView(
                     backsync=backsync_map[alert_receive_channel.public_primary_key],
                 )
                 for alert_receive_channel in instance.organization.alert_receive_channels.filter(
-                    public_primary_key__in=[connection["id"] for connection in serializer.validated_data]
+                    public_primary_key__in=backsync_map.keys()
                 )
             ],
             ignore_conflicts=True,

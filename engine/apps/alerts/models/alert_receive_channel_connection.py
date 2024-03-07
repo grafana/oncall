@@ -16,4 +16,5 @@ class AlertReceiveChannelConnection(models.Model):
     backsync = models.BooleanField(default=False)
 
     class Meta:
+        ordering = ["source_alert_receive_channel", "connected_alert_receive_channel"]
         unique_together = ("source_alert_receive_channel", "connected_alert_receive_channel")
