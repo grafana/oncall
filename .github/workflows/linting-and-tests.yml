@@ -293,7 +293,7 @@ jobs:
         working-directory: tools/pagerduty-migrator
         run: |
           pip install uv
-          uv pip install --system requirements.txt
+          uv pip sync --system requirements.txt
           pytest -x
 
   mypy:
