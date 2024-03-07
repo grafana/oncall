@@ -116,6 +116,25 @@ Get the number of alert groups user with username "alex" was notified of in Graf
 grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total{slug="test_stack", username="alex"}
 ```
 
+### Metrics: Schedule
+
+This metric represents the on-call schedule for teams in Grafana OnCall.
+
+#### Labels:
+
+| Label Name    | Description                                           |
+|---------------|-------------------------------------------------------|
+| `schedule`    | Name of the on-call schedule.                         |
+| `team`        | Name of the team associated with the schedule.        |
+| `username`    | Username of the user currently on duty in the team.   |
+
+#### Query Example:
+
+Get users currently on duty for the on-call schedule "Schedule1" in team "team1":
+
+```promql
+oncall_schedule{schedule="Primary", team="SRE", username="Oleksandr"}
+
 ### Dashboard
 
 You can find the "OnCall Insights" dashboard in the list of your dashboards in the folder `General`, it has the tag

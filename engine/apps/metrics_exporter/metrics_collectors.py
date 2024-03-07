@@ -206,7 +206,7 @@ class ApplicationMetricsCollector:
     def _get_schedule(self, org_ids):
         # Initialize the metric object with the updated metric name
         metrics_schedule = GaugeMetricFamily(
-            METRICS_SCHEDULE, "Description of metric", labels=["schedule", "team", "user"]
+            METRICS_SCHEDULE, "Description of metric", labels=["schedule", "team", "username"]
         )
 
         # Iterate over organization IDs
