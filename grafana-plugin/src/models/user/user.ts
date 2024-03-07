@@ -29,7 +29,7 @@ export class UserStore {
   notificationChoices: any = [];
   notifyByOptions: any = [];
   currentUserPk?: ApiSchemas['User']['pk'];
-  itemsCurrentlyUpdating = {};
+  usersCurrentlyBeingFetched: { [pk: string]: boolean } = {};
 
   constructor(rootStore: RootStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -75,16 +75,17 @@ export class UserStore {
   async fetchItemById({
     userPk,
     skipErrorHandling = false,
+    skipIfAlreadyPending = false,
   }: {
     userPk: ApiSchemas['User']['pk'];
     skipErrorHandling?: boolean;
     skipIfAlreadyPending?: boolean;
   }) {
-    if (this.itemsCurrentlyUpdating[userPk]) {
+    if (skipIfAlreadyPending && this.usersCurrentlyBeingFetched[userPk]) {
       return this.items[userPk];
     }
 
-    this.itemsCurrentlyUpdating[userPk] = true;
+    this.usersCurrentlyBeingFetched[userPk] = true;
 
     const { data } = await onCallApi({ skipErrorHandling }).GET('/users/{id}/', { params: { path: { id: userPk } } });
 
@@ -93,9 +94,9 @@ export class UserStore {
         ...this.items,
         [data.pk]: { ...data, timezone: UserHelper.getTimezone(data) },
       };
+      delete this.usersCurrentlyBeingFetched[userPk];
     });
 
-    delete this.itemsCurrentlyUpdating[userPk];
     return data;
   }
 
