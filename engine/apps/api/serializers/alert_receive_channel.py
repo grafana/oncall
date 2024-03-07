@@ -317,20 +317,21 @@ class AlertReceiveChannelSerializer(
         extra_kwargs = {"integration": {"required": True}}
 
     def to_internal_value(self, data):
-        if self.instance and self.instance.additional_settings:
-            settings_serializer_cls = _additional_settings_serializer_from_type(self.instance.config.slug)
-            if settings_serializer_cls:
-                additional_settings_data = data.get("additional_settings")
-                settings_serializer = settings_serializer_cls(self.instance, data=additional_settings_data)
-                settings_serializer.is_valid()
-                if settings_serializer.errors:
-                    raise ValidationError({"additional_settings": settings_serializer.errors})
-                data["additional_settings"] = settings_serializer.to_internal_value(additional_settings_data)
+        settings_serializer_cls = (
+            _additional_settings_serializer_from_type(self.instance.config.slug) if self.instance else None
+        )
+        if settings_serializer_cls:
+            additional_settings_data = data.get("additional_settings")
+            settings_serializer = settings_serializer_cls(self.instance, data=additional_settings_data)
+            settings_serializer.is_valid()
+            if settings_serializer.errors:
+                raise ValidationError({"additional_settings": settings_serializer.errors})
+            data["additional_settings"] = settings_serializer.to_internal_value(additional_settings_data)
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        if instance.additional_settings and instance.additional_settings.get("password"):
+        if instance.additional_settings:
             settings_serializer_cls = _additional_settings_serializer_from_type(instance.config.slug)
             if settings_serializer_cls:
                 settings_serializer = settings_serializer_cls(instance)
