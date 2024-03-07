@@ -4,8 +4,8 @@ from apps.alerts.models import AlertReceiveChannel, AlertReceiveChannelConnectio
 from apps.api.serializers.alert_receive_channel import FastAlertReceiveChannelSerializer
 
 
-# TODO: check, comment
-class AlertReceiveChannelConnectedChannelsBaseSerializer(serializers.ModelSerializer):
+class AlertReceiveChannelSourceChannelSerializer(serializers.ModelSerializer):
+    alert_receive_channel = FastAlertReceiveChannelSerializer(source="source_alert_receive_channel", read_only=True)
     backsync = serializers.BooleanField()
 
     class Meta:
@@ -13,12 +13,13 @@ class AlertReceiveChannelConnectedChannelsBaseSerializer(serializers.ModelSerial
         fields = ["alert_receive_channel", "backsync"]
 
 
-class AlertReceiveChannelSourceChannelSerializer(AlertReceiveChannelConnectedChannelsBaseSerializer):
-    alert_receive_channel = FastAlertReceiveChannelSerializer(source="source_alert_receive_channel", read_only=True)
-
-
-class AlertReceiveChannelConnectedChannelSerializer(AlertReceiveChannelConnectedChannelsBaseSerializer):
+class AlertReceiveChannelConnectedChannelSerializer(serializers.ModelSerializer):
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="connected_alert_receive_channel", read_only=True)
+    backsync = serializers.BooleanField()
+
+    class Meta:
+        model = AlertReceiveChannelConnection
+        fields = ["alert_receive_channel", "backsync"]
 
 
 class AlertReceiveChannelConnectionSerializer(serializers.ModelSerializer):
@@ -33,6 +34,3 @@ class AlertReceiveChannelConnectionSerializer(serializers.ModelSerializer):
 class AlertReceiveChannelNewConnectionSerializer(serializers.Serializer):
     id = serializers.CharField()
     backsync = serializers.BooleanField()
-
-    class Meta:
-        fields = ["id", "backsync"]

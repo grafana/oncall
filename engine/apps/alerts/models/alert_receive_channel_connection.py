@@ -2,7 +2,11 @@ from django.db import models
 
 
 class AlertReceiveChannelConnection(models.Model):
-    # TODO: comment
+    """
+    This model represents a connection between two integrations (e.g. when an Alertmanager integration is connected to a
+    ServiceNow integration).
+    """
+
     source_alert_receive_channel = models.ForeignKey(
         "AlertReceiveChannel", on_delete=models.CASCADE, related_name="connected_alert_receive_channels"
     )
