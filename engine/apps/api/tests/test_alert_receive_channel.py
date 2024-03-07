@@ -58,6 +58,28 @@ def test_get_alert_receive_channel_by_integration_ne(
 
 
 @pytest.mark.django_db
+def test_get_alert_receive_channel_by_id_ne(
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, make_alert_receive_channel
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel_1 = make_alert_receive_channel(organization)
+    alert_receive_channel_2 = make_alert_receive_channel(organization)
+    alert_receive_channel_3 = make_alert_receive_channel(organization)
+
+    client = APIClient()
+    url = (
+        reverse("api-internal:alert_receive_channel-list")
+        + f"?id_ne={alert_receive_channel_1.public_primary_key}&id_ne={alert_receive_channel_2.public_primary_key}"
+    )
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["id"] == alert_receive_channel_3.public_primary_key
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "query_param,should_be_unpaginated",
     [
