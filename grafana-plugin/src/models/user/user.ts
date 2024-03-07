@@ -70,7 +70,6 @@ export class UserStore {
     return response;
   }
 
-  @AutoLoadingState(ActionKey.FETCH_USERS)
   @action.bound
   async fetchItemById({
     userPk,
