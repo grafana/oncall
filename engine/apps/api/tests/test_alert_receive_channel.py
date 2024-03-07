@@ -1850,3 +1850,185 @@ def test_alert_receive_channel_webhooks_delete(
     webhook.refresh_from_db()
     assert webhook.deleted_at is not None
     assert alert_receive_channel.webhooks.count() == 0
+
+
+@pytest.mark.django_db
+def test_connected_alert_receive_channels_get(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    source_alert_receive_channel = make_alert_receive_channel(organization)
+    connected_alert_receive_channel = make_alert_receive_channel(organization)
+    make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel)
+
+    # get integrations connected to source integration
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-get",
+        kwargs={"pk": source_alert_receive_channel.public_primary_key},
+    )
+    response = client.get(url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "source_alert_receive_channels": [],
+        "connected_alert_receive_channels": [
+            {
+                "alert_receive_channel": {
+                    "id": connected_alert_receive_channel.public_primary_key,
+                    "integration": connected_alert_receive_channel.integration,
+                    "verbal_name": connected_alert_receive_channel.verbal_name,
+                    "deleted": False,
+                },
+                "backsync": False,
+            },
+        ],
+    }
+
+    # get source integrations for particular integration
+    url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-get",
+        kwargs={"pk": connected_alert_receive_channel.public_primary_key},
+    )
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "source_alert_receive_channels": [
+            {
+                "alert_receive_channel": {
+                    "id": source_alert_receive_channel.public_primary_key,
+                    "integration": source_alert_receive_channel.integration,
+                    "verbal_name": source_alert_receive_channel.verbal_name,
+                    "deleted": False,
+                },
+                "backsync": False,
+            },
+        ],
+        "connected_alert_receive_channels": [],
+    }
+
+
+@pytest.mark.django_db
+def test_connected_alert_receive_channels_post(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    source_alert_receive_channel = make_alert_receive_channel(organization)
+    alert_receive_channel_to_connect_1 = make_alert_receive_channel(organization)
+    alert_receive_channel_to_connect_2 = make_alert_receive_channel(organization)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-get",
+        kwargs={"pk": source_alert_receive_channel.public_primary_key},
+    )
+    response = client.post(
+        url,
+        data=[
+            {"id": alert_receive_channel_to_connect_1.public_primary_key, "backsync": False},
+            {"id": alert_receive_channel_to_connect_2.public_primary_key, "backsync": True},
+        ],
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == {
+        "source_alert_receive_channels": [],
+        "connected_alert_receive_channels": [
+            {
+                "alert_receive_channel": {
+                    "id": alert_receive_channel_to_connect_1.public_primary_key,
+                    "integration": alert_receive_channel_to_connect_1.integration,
+                    "verbal_name": alert_receive_channel_to_connect_1.verbal_name,
+                    "deleted": False,
+                },
+                "backsync": False,
+            },
+            {
+                "alert_receive_channel": {
+                    "id": alert_receive_channel_to_connect_2.public_primary_key,
+                    "integration": alert_receive_channel_to_connect_2.integration,
+                    "verbal_name": alert_receive_channel_to_connect_2.verbal_name,
+                    "deleted": False,
+                },
+                "backsync": True,
+            },
+        ],
+    }
+    assert source_alert_receive_channel.connected_alert_receive_channels.count() == 2
+
+
+@pytest.mark.django_db
+def test_connected_alert_receive_channels_put(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    source_alert_receive_channel = make_alert_receive_channel(organization)
+    connected_alert_receive_channel = make_alert_receive_channel(organization)
+    connection = make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel)
+
+    # update backsync for connected integration
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-put",
+        kwargs={
+            "pk": source_alert_receive_channel.public_primary_key,
+            "connected_alert_receive_channel_id": connected_alert_receive_channel.public_primary_key,
+        },
+    )
+    response = client.put(url, data={"backsync": True}, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "alert_receive_channel": {
+            "id": connected_alert_receive_channel.public_primary_key,
+            "integration": connected_alert_receive_channel.integration,
+            "verbal_name": connected_alert_receive_channel.verbal_name,
+            "deleted": False,
+        },
+        "backsync": True,
+    }
+
+    connection.refresh_from_db()
+    assert connection.backsync is True
+
+
+@pytest.mark.django_db
+def test_connected_alert_receive_channels_delete(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    source_alert_receive_channel = make_alert_receive_channel(organization)
+    connected_alert_receive_channel_1 = make_alert_receive_channel(organization)
+    connected_alert_receive_channel_2 = make_alert_receive_channel(organization)
+
+    make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel_1)
+    make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel_2)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-put",
+        kwargs={
+            "pk": source_alert_receive_channel.public_primary_key,
+            "connected_alert_receive_channel_id": connected_alert_receive_channel_1.public_primary_key,
+        },
+    )
+    response = client.delete(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert source_alert_receive_channel.connected_alert_receive_channels.count() == 1
+    assert (
+        source_alert_receive_channel.connected_alert_receive_channels.first().connected_alert_receive_channel
+        == connected_alert_receive_channel_2
+    )
