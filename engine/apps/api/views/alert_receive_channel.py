@@ -68,6 +68,12 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         choices=AlertReceiveChannel.INTEGRATION_CHOICES, field_name="integration", exclude=True
     )
     team = TeamModelMultipleChoiceFilter()
+    id_ne = filters.ModelMultipleChoiceFilter(
+        queryset=lambda request: request.auth.organization.alert_receive_channels.all(),
+        field_name="public_primary_key",
+        to_field_name="public_primary_key",
+        exclude=True,
+    )
 
     class Meta:
         model = AlertReceiveChannel
