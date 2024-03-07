@@ -1,4 +1,3 @@
-import { User } from 'models/user/user.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
 interface ResolutionNoteSource {
@@ -11,7 +10,7 @@ export interface ResolutionNote {
   alert_group: ApiSchemas['AlertGroup']['pk'];
   created_at: string;
   source: ResolutionNoteSource;
-  author: Partial<User>;
+  author: Partial<ApiSchemas['User']>;
   text: string;
 }
 
