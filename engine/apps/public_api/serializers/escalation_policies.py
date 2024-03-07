@@ -189,7 +189,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             fields_to_remove.remove("persons_to_notify_next_each_time")
         elif step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
             fields_to_remove.remove("group_to_notify")
-        elif step in (EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK):
+        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
             fields_to_remove.remove("action_to_trigger")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             fields_to_remove.remove("notify_if_time_from")
