@@ -90,6 +90,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "type",
             "duration",
             "important",
+            "action_to_trigger",
             "persons_to_notify",
             "team_to_notify",
             "persons_to_notify_next_each_time",
