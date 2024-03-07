@@ -1,3 +1,4 @@
+import { dataFrameFromJSON } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
@@ -29,6 +30,7 @@ export class UserStore {
   notificationChoices: any = [];
   notifyByOptions: any = [];
   currentUserPk?: ApiSchemas['User']['pk'];
+  itemsCurrentlyUpdating = {};
 
   constructor(rootStore: RootStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -74,17 +76,16 @@ export class UserStore {
   async fetchItemById({
     userPk,
     skipErrorHandling = false,
-    skipIfAlreadyPending = false,
   }: {
     userPk: ApiSchemas['User']['pk'];
     skipErrorHandling?: boolean;
     skipIfAlreadyPending?: boolean;
   }) {
-    const isAlreadyFetching = this.rootStore.loaderStore.isLoading(ActionKey.FETCH_USERS);
-
-    if (skipIfAlreadyPending && isAlreadyFetching) {
+    if (this.itemsCurrentlyUpdating[userPk]) {
       return this.items[userPk];
     }
+
+    this.itemsCurrentlyUpdating[userPk] = true;
 
     const { data } = await onCallApi({ skipErrorHandling }).GET('/users/{id}/', { params: { path: { id: userPk } } });
 
@@ -95,6 +96,7 @@ export class UserStore {
       };
     });
 
+    delete this.itemsCurrentlyUpdating[userPk];
     return data;
   }
 
