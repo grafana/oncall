@@ -85,10 +85,10 @@ def escape_string(string: str):
 
 class EscapeDoubleQuotesDict(dict):
     """
-    Warning: Please, do not use this dict anywhere except CustomButton._escape_alert_payload.
-    This custom dict escapes double quotes to produce string which is safe to pass to json.loads()
-    It fixes case when CustomButton.build_post_kwargs failing on payloads which contains string with single quote.
-    In this case built-in dict's str method will surround value with double quotes.
+    Warning: Please, do not use this dict anywhere except `apps.webhooks.utils.escape_payload`.
+    This custom dict escapes double quotes to produce string which is safe to pass to `json.loads()`
+    It fixes issues originating from payloads which contains strings with single quote.
+    In this case, built-in `dict`'s `str` method will surround value with double quotes.
 
     For example:
 

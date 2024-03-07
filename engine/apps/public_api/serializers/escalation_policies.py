@@ -224,7 +224,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         step = validated_data.get("step")
         important = validated_data.pop("important", None)
 
-        if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and validated_data.get("custom_webhook"):
+        if step == EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON and validated_data.get("custom_webhook"):
             # migrate step to webhook
             step = validated_data["step"] = EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK
 

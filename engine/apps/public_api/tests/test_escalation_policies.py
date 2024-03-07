@@ -349,7 +349,7 @@ def test_retrieve_escalation_policy_using_button(
     escalation_chain, _, _ = escalation_policies_setup(organization, user)
 
     escalation_policy_action = escalation_chain.escalation_policies.create(
-        step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+        step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
         custom_button_trigger=action,
     )
 
@@ -377,7 +377,7 @@ def test_update_escalation_policy_using_button_disabled(
     escalation_chain, _, _ = escalation_policies_setup(organization, user)
 
     escalation_policy_action = escalation_chain.escalation_policies.create(
-        step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+        step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
         custom_button_trigger=action,
     )
 
@@ -402,7 +402,7 @@ def test_update_escalation_policy_using_button_to_webhook(
     escalation_chain, _, _ = escalation_policies_setup(organization, user)
 
     escalation_policy_action = escalation_chain.escalation_policies.create(
-        step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+        step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
         custom_button_trigger=action,
     )
 
