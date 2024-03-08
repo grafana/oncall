@@ -21,10 +21,10 @@ jest.mock('openapi-fetch', () => ({
 
 const fetchMock = jest.fn().mockResolvedValue(true);
 
+const HEADERS = new Headers();
+HEADERS.set('Content-Type', 'application/json');
 const REQUEST_CONFIG = {
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: HEADERS,
 };
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
