@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 *NOTE*: for all future release notes, please see the [Releases page](https://github.com/grafana/oncall/releases).
 
-### Unreleased
-
-## Changed
-
-- Show new indicator for which slack channel is default ([#4040](https://github.com/grafana/oncall/pull/4040))
-
 ## v1.3.109 (2024-03-04)
 
 ### Fixed
