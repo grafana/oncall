@@ -8,6 +8,20 @@ import 'plugin/dayjs';
 
 import { TextEncoder, TextDecoder } from 'util';
 
+jest.mock('@grafana/runtime', () => ({
+  __esModule: true,
+  config: {
+    featureToggles: {
+      topNav: false,
+    },
+  },
+  getBackendSrv: jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+  })),
+  getLocationSrv: jest.fn(),
+}));
+
 Object.assign(global, { TextDecoder, TextEncoder });
 
 // https://stackoverflow.com/a/66055672

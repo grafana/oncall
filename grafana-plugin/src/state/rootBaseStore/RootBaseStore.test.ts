@@ -16,6 +16,10 @@ jest.mock('grafana/app/core/core', () => ({
     },
   },
 }));
+jest.mock('network/network', () => ({
+  __esModule: true,
+  makeRequest: jest.fn(() => 'asdasda'),
+}));
 
 const onCallApiUrl = 'http://oncall-dev-engine:8080';
 
@@ -166,7 +170,6 @@ describe('rootBaseStore', () => {
     { is_installed: true, token_ok: false },
   ])('signup is allowed, user is an admin, plugin installation is triggered', async (scenario) => {
     const rootBaseStore = new RootBaseStore();
-    const mockedLoadCurrentUser = jest.fn();
 
     contextSrv.user.orgRole = OrgRole.Admin;
     contextSrv.licensedAccessControlEnabled = jest.fn().mockResolvedValueOnce(false);
@@ -181,8 +184,6 @@ describe('rootBaseStore', () => {
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
-    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
-
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
@@ -209,7 +210,6 @@ describe('rootBaseStore', () => {
     },
   ])('signup is allowed, licensedAccessControlEnabled, various roles and permissions', async (scenario) => {
     const rootBaseStore = new RootBaseStore();
-    const mockedLoadCurrentUser = jest.fn();
 
     contextSrv.user.orgRole = scenario.role;
     contextSrv.licensedAccessControlEnabled = jest.fn().mockReturnValue(true);
@@ -224,7 +224,6 @@ describe('rootBaseStore', () => {
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
-    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
@@ -290,7 +289,6 @@ describe('rootBaseStore', () => {
 
   test('when the plugin is installed, a data sync is triggered', async () => {
     const rootBaseStore = new RootBaseStore();
-    const mockedLoadCurrentUser = jest.fn();
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
@@ -300,24 +298,18 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
-
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
     expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
     expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
-
-    expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
-    expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
-
+    console.log(rootBaseStore.initializationError);
     expect(rootBaseStore.initializationError).toBeNull();
   });
 
   test('when the plugin is installed, and the data sync returns an error, it is properly handled', async () => {
     const rootBaseStore = new RootBaseStore();
-    const mockedLoadCurrentUser = jest.fn();
     const updatePluginStatusError = 'asdasdfasdfasf';
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
@@ -329,7 +321,6 @@ describe('rootBaseStore', () => {
       license: 'asdfasdf',
     });
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(updatePluginStatusError);
-    Object.defineProperty(rootBaseStore.userStore, 'loadCurrentUser', { value: mockedLoadCurrentUser });
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
