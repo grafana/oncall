@@ -21,7 +21,7 @@ const DEBOUNCE_MS = 500;
 export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () => void }) => {
   const { alertReceiveChannelStore, alertReceiveChannelConnectedChannelsStore } = useStore();
   const currentIntegration = useCurrentIntegration();
-  const isLoading = useIsLoading(ActionKey.FETCH_INTEGRATIONS);
+  const isLoading = useIsLoading(ActionKey.FETCH_INTEGRATIONS_AVAILABLE_FOR_CONNECTION);
   const commonStyles = useCommonStyles();
   const [selectedIntegrations, setSelectedIntegrations] = useState<Array<ApiSchemas['AlertReceiveChannel']>>([]);
   const [page, setPage] = useState(1);

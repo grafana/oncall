@@ -33,6 +33,7 @@ export class AlertReceiveChannelConnectedChannelsStore {
     });
   }
 
+  @AutoLoadingState(ActionKey.FETCH_INTEGRATIONS_AVAILABLE_FOR_CONNECTION)
   async fetchItemsAvailableForConnection({ search, page }: { search?: string; page: number }) {
     await this.rootStore.alertReceiveChannelStore.fetchPaginatedItems({
       filters: {
