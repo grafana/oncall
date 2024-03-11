@@ -18,7 +18,6 @@ import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { OutgoingWebhookDetailsDrawerTabs } from './OutgoingWebhookDetailsDrawerTabs';
 import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
-import { useCurrentIntegration } from './OutgoingTab.hooks';
 
 export const OutgoingTab = () => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();

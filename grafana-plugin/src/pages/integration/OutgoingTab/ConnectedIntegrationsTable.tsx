@@ -15,11 +15,6 @@ import { useConfirmModal } from 'utils/hooks';
 
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
-import Emoji from 'react-emoji-render';
-
-type Integration =
-  | ApiSchemas['AlertReceiveChannelConnectedChannel']['alert_receive_channel']
-  | ApiSchemas['AlertReceiveChannel'];
 
 type ConnectedIntegration =
   | ApiSchemas['AlertReceiveChannelConnectedChannel']['alert_receive_channel']

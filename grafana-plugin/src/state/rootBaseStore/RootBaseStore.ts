@@ -43,7 +43,6 @@ import {
   GRAFANA_LICENSE_OSS,
 } from 'utils/consts';
 import { FaroHelper } from 'utils/faro';
-import { AlertReceiveChannelConnectedChannelsStore } from 'models/alert_receive_channel_connected_channels/alert_receive_channel_connected_channels';
 
 // ------ Dashboard ------ //
 

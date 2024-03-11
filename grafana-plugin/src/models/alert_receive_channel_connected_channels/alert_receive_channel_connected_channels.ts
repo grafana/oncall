@@ -1,5 +1,6 @@
 import { keyBy } from 'lodash-es';
 import { makeAutoObservable, runInAction } from 'mobx';
+
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
@@ -21,7 +22,7 @@ export class AlertReceiveChannelConnectedChannelsStore {
 
   @AutoLoadingState(ActionKey.FETCH_INTEGRATION_CHANNELS)
   async fetchItems(integrationId: string) {
-    const { data } = await onCallApi().GET('/alert_receive_channels/{id}/connected_channels/', {
+    const { data } = await onCallApi().GET('/alert_receive_channels/{id}/connected_alert_receive_channels/', {
       params: { path: { id: integrationId } },
     });
     runInAction(() => {
@@ -35,9 +36,9 @@ export class AlertReceiveChannelConnectedChannelsStore {
   @AutoLoadingState(ActionKey.CONNECT_INTEGRATION_CHANNELS)
   async connectChannels(
     integrationId: ApiSchemas['AlertReceiveChannel']['id'],
-    channels: ApiSchemas['AlertReceiveChannelNewConnection']
+    channels: Array<ApiSchemas['AlertReceiveChannelNewConnection']>
   ) {
-    const { data } = await onCallApi().POST('/alert_receive_channels/{id}/connected_channels/', {
+    const { data } = await onCallApi().POST('/alert_receive_channels/{id}/connected_alert_receive_channels/', {
       params: { path: { id: integrationId } },
       body: channels,
     });
@@ -56,10 +57,12 @@ export class AlertReceiveChannelConnectedChannelsStore {
     sourceIntegrationId: string;
     connectedIntegrationId: string;
   }) {
-    // TODO: endpoint not working yet, channel id should be passed in path
-    await onCallApi().DELETE('/alert_receive_channels/{id}/connected_channels/', {
-      params: { path: { id: sourceIntegrationId } },
-    });
+    await onCallApi().DELETE(
+      '/alert_receive_channels/{id}/connected_alert_receive_channels/{connected_alert_receive_channel_id}/',
+      {
+        params: { path: { id: sourceIntegrationId, connected_alert_receive_channel_id: connectedIntegrationId } },
+      }
+    );
     runInAction(() => {
       delete this.items[connectedIntegrationId];
     });
@@ -74,10 +77,13 @@ export class AlertReceiveChannelConnectedChannelsStore {
     connectedChannelId: string;
     backsync: boolean;
   }) {
-    const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/connected_channels/{connected_channel_id}/', {
-      params: { path: { id: sourceIntegrationId, connected_channel_id: connectedChannelId } },
-      body: { backsync },
-    });
+    const { data } = await onCallApi().PUT(
+      '/alert_receive_channels/{id}/connected_alert_receive_channels/{connected_alert_receive_channel_id}/',
+      {
+        params: { path: { id: sourceIntegrationId, connected_alert_receive_channel_id: connectedChannelId } },
+        body: { backsync } as ApiSchemas['AlertReceiveChannelConnectedChannel'],
+      }
+    );
     runInAction(() => {
       this.items[data.alert_receive_channel.id] = data;
     });

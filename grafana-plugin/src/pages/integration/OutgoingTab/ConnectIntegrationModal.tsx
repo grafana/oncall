@@ -15,7 +15,6 @@ import { useCommonStyles, useIsLoading } from 'utils/hooks';
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
 import { useCurrentIntegration } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
-import { useCurrentIntegration } from './OutgoingTab.hooks';
 
 const DEBOUNCE_MS = 500;
 

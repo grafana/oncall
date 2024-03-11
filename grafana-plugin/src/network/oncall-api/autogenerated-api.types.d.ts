@@ -73,7 +73,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/alert_receive_channels/{id}/connected_channels/': {
+  '/alert_receive_channels/{id}/connected_alert_receive_channels/': {
     parameters: {
       query?: never;
       header?: never;
@@ -81,18 +81,17 @@ export interface paths {
       cookie?: never;
     };
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    get: operations['alert_receive_channels_connected_channels_retrieve'];
+    get: operations['alert_receive_channels_connected_alert_receive_channels_retrieve'];
     put?: never;
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    post: operations['alert_receive_channels_connected_channels_create'];
-    /** @description Internal API endpoints for alert receive channels (integrations). */
-    delete: operations['alert_receive_channels_connected_channels_destroy'];
+    post: operations['alert_receive_channels_connected_alert_receive_channels_create'];
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  '/alert_receive_channels/{id}/connected_channels/{connected_channel_id}/': {
+  '/alert_receive_channels/{id}/connected_alert_receive_channels/{connected_alert_receive_channel_id}/': {
     parameters: {
       query?: never;
       header?: never;
@@ -101,9 +100,10 @@ export interface paths {
     };
     get?: never;
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    put: operations['alert_receive_channels_connected_channels_update'];
+    put: operations['alert_receive_channels_connected_alert_receive_channels_update'];
     post?: never;
-    delete?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    delete: operations['alert_receive_channels_connected_alert_receive_channels_destroy'];
     options?: never;
     head?: never;
     patch?: never;
@@ -1500,7 +1500,7 @@ export interface components {
     AlertReceiveChannelNewConnection: {
       id: string;
       backsync: boolean;
-    }[];
+    };
     AlertReceiveChannelPolymorphic:
       | components['schemas']['AlertReceiveChannel']
       | components['schemas']['FilterAlertReceiveChannel'];
@@ -2098,6 +2098,7 @@ export interface operations {
   alert_receive_channels_list: {
     parameters: {
       query?: {
+        id_ne?: string[];
         /** @description * `alertmanager` - Alertmanager
          *     * `legacy_alertmanager` - (Legacy) AlertManager
          *     * `grafana` - Grafana
@@ -2431,7 +2432,7 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_connected_channels_retrieve: {
+  alert_receive_channels_connected_alert_receive_channels_retrieve: {
     parameters: {
       query?: never;
       header?: never;
@@ -2453,7 +2454,7 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_connected_channels_create: {
+  alert_receive_channels_connected_alert_receive_channels_create: {
     parameters: {
       query?: never;
       header?: never;
@@ -2465,9 +2466,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertReceiveChannelNewConnection'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelNewConnection'];
-        'multipart/form-data': components['schemas']['AlertReceiveChannelNewConnection'];
+        'application/json': components['schemas']['AlertReceiveChannelNewConnection'][];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelNewConnection'][];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelNewConnection'][];
       };
     };
     responses: {
@@ -2481,11 +2482,41 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_connected_channels_destroy: {
+  alert_receive_channels_connected_alert_receive_channels_update: {
     parameters: {
       query?: never;
       header?: never;
       path: {
+        connected_alert_receive_channel_id: string;
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelConnectedChannel'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelConnectedChannel'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelConnectedChannel'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelConnectedChannel'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_connected_alert_receive_channels_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connected_alert_receive_channel_id: string;
         /** @description A string identifying this alert receive channel. */
         id: string;
       };
@@ -2499,35 +2530,6 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
-      };
-    };
-  };
-  alert_receive_channels_connected_channels_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        connected_channel_id: string;
-        /** @description A string identifying this alert receive channel. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateChannel'];
-        'application/x-www-form-urlencoded': components['schemas']['UpdateChannel'];
-        'multipart/form-data': components['schemas']['UpdateChannel'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AlertReceiveChannelConnectedChannel'];
-        };
       };
     };
   };
