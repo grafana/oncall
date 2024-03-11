@@ -4,6 +4,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -58,6 +59,24 @@ class IntegrationAlertGroupLabels(typing.TypedDict):
     inheritable: dict[str, bool]
     custom: AlertGroupCustomLabelsAPI
     template: str | None
+
+
+AlertReceiveChannelAdditionalSettingsSerializers = (
+    i.additional_settings_serializer
+    for i in AlertReceiveChannel._config
+    if getattr(i, "additional_settings_serializer", None)
+)
+
+
+@extend_schema_field(
+    PolymorphicProxySerializer(
+        component_name="AdditionalSettingsField",
+        serializers=list(AlertReceiveChannelAdditionalSettingsSerializers),
+        resource_type_field_name=None,
+    )
+)
+class AdditionalSettingsField(serializers.DictField):
+    pass
 
 
 class CustomLabelSerializer(serializers.Serializer):
@@ -252,7 +271,7 @@ class AlertReceiveChannelSerializer(
     inbound_email = serializers.CharField(required=False, read_only=True)
     is_legacy = serializers.SerializerMethodField()
     alert_group_labels = IntegrationAlertGroupLabelsSerializer(source="*", required=False)
-    additional_settings = serializers.DictField(allow_null=True, allow_empty=False, required=False, default=None)
+    additional_settings = AdditionalSettingsField(allow_null=True, allow_empty=False, required=False, default=None)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
