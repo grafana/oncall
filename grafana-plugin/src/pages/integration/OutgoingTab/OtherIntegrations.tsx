@@ -40,6 +40,7 @@ export const OtherIntegrations = observer(() => {
           itemsAsList?.length ? (
             <ConnectedIntegrationsTable
               allowDelete
+              allowBacksync
               tableProps={{
                 data: itemsAsList.map(({ alert_receive_channel }) => alert_receive_channel),
               }}

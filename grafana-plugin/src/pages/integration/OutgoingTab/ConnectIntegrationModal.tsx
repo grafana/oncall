@@ -35,12 +35,9 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
   }, [page]);
 
   const fetchItems = async (search?: string) => {
-    await alertReceiveChannelStore.fetchPaginatedItems({
-      filters: {
-        search,
-      },
-      perpage: 10,
+    await alertReceiveChannelConnectedChannelsStore.fetchItemsAvailableForConnection({
       page,
+      search,
     });
   };
 

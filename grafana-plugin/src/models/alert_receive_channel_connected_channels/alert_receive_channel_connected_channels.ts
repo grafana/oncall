@@ -33,6 +33,17 @@ export class AlertReceiveChannelConnectedChannelsStore {
     });
   }
 
+  async fetchItemsAvailableForConnection({ search, page }: { search?: string; page: number }) {
+    await this.rootStore.alertReceiveChannelStore.fetchPaginatedItems({
+      filters: {
+        search,
+        id_ne: this.itemsAsList.map(({ alert_receive_channel: { id } }) => id),
+      },
+      perpage: 10,
+      page,
+    });
+  }
+
   @AutoLoadingState(ActionKey.CONNECT_INTEGRATION_CHANNELS)
   async connectChannels(
     integrationId: ApiSchemas['AlertReceiveChannel']['id'],
