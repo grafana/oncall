@@ -1,18 +1,15 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, InlineSwitch } from '@grafana/ui';
+import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import { PluginLink } from 'components/PluginLink/PluginLink';
-import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './Connectors.module.css';
 
@@ -77,7 +74,7 @@ export const SlackConnector = (props: SlackConnectorProps) => {
     </div>
   );
 
-  function getSearchResult(query: string = ''): SlackChannel[] {
+  function getSearchResult(query = ''): SlackChannel[] {
     const results = slackChannelStore.getSearchResult(query);
     const defaultChannelId = currentOrganization?.slack_channel?.id;
 
