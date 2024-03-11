@@ -60,9 +60,7 @@ describe('MobileAppConnection', () => {
     loadUserMock.mockClear();
     (rootStore as any).mockClear();
     mockRootStore();
-    Object.defineProperty(UserHelper, 'fetchBackendConfirmationCode', {
-      value: jest.fn().mockResolvedValueOnce('dfd'),
-    });
+    UserHelper.fetchBackendConfirmationCode = jest.fn().mockResolvedValueOnce('dfd');
   });
 
   test('it shows a loading message if it is currently fetching the QR code', async () => {
@@ -76,9 +74,7 @@ describe('MobileAppConnection', () => {
   });
 
   test('it shows an error message if there was an error fetching the QR code', async () => {
-    Object.defineProperty(UserHelper, 'fetchBackendConfirmationCode', {
-      value: jest.fn().mockRejectedValueOnce('dfd'),
-    });
+    UserHelper.fetchBackendConfirmationCode = jest.fn().mockResolvedValueOnce('dfd');
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 

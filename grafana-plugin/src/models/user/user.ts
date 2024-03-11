@@ -100,9 +100,7 @@ export class UserStore {
   }
 
   async loadCurrentUser() {
-    console.log(makeRequest);
     const response = await makeRequest('/user/', {});
-    console.log('RES', response);
     const timezone = await this.refreshTimezone(response.pk);
 
     runInAction(() => {
