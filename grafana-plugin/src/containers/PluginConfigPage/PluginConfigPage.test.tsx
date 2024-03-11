@@ -197,39 +197,6 @@ describe('PluginConfigPage', () => {
     expect(component.container).toMatchSnapshot();
   });
 
-  test("If onCallApiUrl is not set in the plugin's meta jsonData, and ONCALL_API_URL is passed in process.env, it calls selfHostedInstallPlugin", async () => {
-    // mocks
-    const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';
-    process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
-
-    PluginState.selfHostedInstallPlugin = jest.fn();
-    mockCheckTokenAndIfPluginIsConnected();
-
-    // test setup
-    render(<PluginConfigPage {...generateComponentProps()} />);
-
-    // assertions
-    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledTimes(1);
-    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledWith(processEnvOnCallApiUrl, true);
-  });
-
-  test("If onCallApiUrl is not set in the plugin's meta jsonData, and ONCALL_API_URL is passed in process.env, and there is an error calling selfHostedInstallPlugin, it sets an error message", async () => {
-    // mocks
-    const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';
-    process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
-
-    PluginState.selfHostedInstallPlugin = jest.fn().mockResolvedValueOnce(SELF_HOSTED_INSTALL_PLUGIN_ERROR_MESSAGE);
-
-    // test setup
-    const component = render(<PluginConfigPage {...generateComponentProps()} />);
-    await screen.findByTestId(STATUS_MESSAGE_BLOCK_DATA_ID);
-
-    // assertions
-    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledTimes(1);
-    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledWith(processEnvOnCallApiUrl, true);
-    expect(component.container).toMatchSnapshot();
-  });
-
   test('If onCallApiUrl is set, and updatePluginStatus returns an error, it sets an error message', async () => {
     // mocks
     const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';

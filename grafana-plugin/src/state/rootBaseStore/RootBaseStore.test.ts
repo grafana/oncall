@@ -18,7 +18,7 @@ jest.mock('grafana/app/core/core', () => ({
 }));
 jest.mock('network/network', () => ({
   __esModule: true,
-  makeRequest: jest.fn(() => 'asdasda'),
+  makeRequest: () => ({ pk: '1' }),
 }));
 
 const onCallApiUrl = 'http://oncall-dev-engine:8080';
@@ -304,7 +304,6 @@ describe('rootBaseStore', () => {
     // assertions
     expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
     expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
-    console.log(rootBaseStore.initializationError);
     expect(rootBaseStore.initializationError).toBeNull();
   });
 

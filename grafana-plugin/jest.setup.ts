@@ -14,6 +14,11 @@ jest.mock('@grafana/runtime', () => ({
     featureToggles: {
       topNav: false,
     },
+    bootData: {
+      user: {
+        timezone: 'UTC',
+      },
+    },
   },
   getBackendSrv: jest.fn().mockImplementation(() => ({
     get: jest.fn(),
