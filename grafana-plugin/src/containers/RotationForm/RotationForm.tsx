@@ -47,7 +47,7 @@ import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
   getSelectedDays,
@@ -661,7 +661,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   value={userGroups}
                   onChange={setUserGroups}
                   isMultipleGroups={true}
-                  renderUser={(pk: User['pk']) => (
+                  renderUser={(pk: ApiSchemas['User']['pk']) => (
                     <UserItem
                       pk={pk}
                       shiftColor={shiftColor}

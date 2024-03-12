@@ -1,66 +1,104 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
-import { action, computed, observable, makeObservable, runInAction } from 'mobx';
+import { action, computed, runInAction, makeAutoObservable } from 'mobx';
 
-import { BaseStore } from 'models/base_store';
+import { ActionKey } from 'models/loader/action-keys';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { onCallApi } from 'network/oncall-api/http-client';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { throttlingError } from 'utils/utils';
+import { AutoLoadingState } from 'utils/decorators';
 
-import { getTimezone, prepareForUpdate } from './user.helpers';
-import { User } from './user.types';
+import { UserHelper } from './user.helpers';
 
-export type PaginatedUsersResponse<UT = User> = {
+export type PaginatedUsersResponse<UT = ApiSchemas['User']> = {
   count: number;
   page_size: number;
   results: UT[];
 };
 
-export class UserStore extends BaseStore {
-  @observable.shallow
-  searchResult: { count?: number; results?: Array<User['pk']>; page_size?: number } = {};
-
-  @observable.shallow
-  items: { [pk: string]: User } = {};
-
-  itemsCurrentlyUpdating = {};
-
-  @observable
+export class UserStore {
+  rootStore: RootStore;
+  searchResult: { count?: number; results?: Array<ApiSchemas['User']['pk']>; page_size?: number } = {};
+  items: { [pk: string]: ApiSchemas['User'] } = {};
   notificationPolicies: any = {};
-
-  @observable
   notificationChoices: any = [];
-
-  @observable
   notifyByOptions: any = [];
-
-  @observable
-  isTestCallInProgress = false;
-
-  @observable
-  currentUserPk?: User['pk'];
+  currentUserPk?: ApiSchemas['User']['pk'];
+  usersCurrentlyBeingFetched: { [pk: string]: boolean } = {};
 
   constructor(rootStore: RootStore) {
-    super(rootStore);
-
-    makeObservable(this);
-
-    this.path = '/users/';
+    makeAutoObservable(this, undefined, { autoBind: true });
+    this.rootStore = rootStore;
   }
 
-  @computed
-  get currentUser() {
-    if (!this.currentUserPk) {
-      return undefined;
+  async fetchItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+    const response = await UserHelper.search(f, page);
+
+    if (invalidateFn && invalidateFn()) {
+      return;
     }
-    return this.items[this.currentUserPk as User['pk']];
+
+    const { count, results, page_size } = response;
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: ApiSchemas['User'] }, item: ApiSchemas['User']) => ({
+            ...acc,
+            [item.pk]: {
+              ...item,
+              timezone: UserHelper.getTimezone(item),
+            },
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        count,
+        page_size,
+        results: results.map((item: ApiSchemas['User']) => item.pk),
+      };
+    });
+
+    return response;
   }
 
   @action.bound
+  async fetchItemById({
+    userPk,
+    skipErrorHandling = false,
+    skipIfAlreadyPending = false,
+  }: {
+    userPk: ApiSchemas['User']['pk'];
+    skipErrorHandling?: boolean;
+    skipIfAlreadyPending?: boolean;
+  }) {
+    if (skipIfAlreadyPending && this.usersCurrentlyBeingFetched[userPk]) {
+      return this.items[userPk];
+    }
+
+    this.usersCurrentlyBeingFetched[userPk] = true;
+
+    const { data } = await onCallApi({ skipErrorHandling }).GET('/users/{id}/', { params: { path: { id: userPk } } });
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [data.pk]: { ...data, timezone: UserHelper.getTimezone(data) },
+      };
+      delete this.usersCurrentlyBeingFetched[userPk];
+    });
+
+    return data;
+  }
+
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
     const timezone = await this.refreshTimezone(response.pk);
@@ -74,12 +112,15 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
-  async refreshTimezone(id: User['pk']) {
+  async refreshTimezone(id: ApiSchemas['User']['pk']) {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
+
     if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
-      this.update(id, { timezone });
+      await onCallApi().PUT('/users/{id}/', {
+        params: { path: { id } },
+        body: { timezone } as ApiSchemas['User'],
+      });
     }
 
     this.rootStore.timezoneStore.setSelectedTimezoneOffsetBasedOnTz(timezone);
@@ -87,167 +128,31 @@ export class UserStore extends BaseStore {
     return timezone;
   }
 
-  @action.bound
-  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
-    const user = await this.getById(userPk, skipErrorHandling);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: { ...user, timezone: getTimezone(user) },
-      };
-    });
-
-    return user;
+  async unlinkSlack(userPk: ApiSchemas['User']['pk']) {
+    await onCallApi().POST('/users/{id}/unlink_slack/', undefined);
+    await this.fetchItemById({ userPk });
   }
 
-  @action.bound
-  async updateItem(userPk: User['pk']) {
-    if (this.itemsCurrentlyUpdating[userPk]) {
-      return;
-    }
-
-    this.itemsCurrentlyUpdating[userPk] = true;
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: { ...user, timezone: getTimezone(user) },
-      };
-    });
-
-    delete this.itemsCurrentlyUpdating[userPk];
+  async unlinkTelegram(userPk: ApiSchemas['User']['pk']) {
+    await onCallApi().POST('/users/{id}/unlink_telegram/', undefined);
+    await this.fetchItemById({ userPk });
   }
 
-  /**
-   * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
-   */
-  async search<RT = PaginatedUsersResponse<User>>(f: any = { searchTerm: '' }, page = 1): Promise<RT> {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, ...restFilters } = filters;
-    return makeRequest<RT>(this.path, {
-      params: { search, page, ...restFilters },
-    });
-  }
-
-  @action.bound
-  async updateItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
-    const response = await this.search(f, page);
-
-    if (invalidateFn && invalidateFn()) {
-      return;
-    }
-
-    const { count, results, page_size } = response;
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        ...results.reduce(
-          (acc: { [key: number]: User }, item: User) => ({
-            ...acc,
-            [item.pk]: {
-              ...item,
-              timezone: getTimezone(item),
-            },
-          }),
-          {}
-        ),
-      };
-
-      this.searchResult = {
-        count,
-        page_size,
-        results: results.map((item: User) => item.pk),
-      };
-    });
-
-    return response;
-  }
-
-  getSearchResult = () => {
-    return {
-      page_size: this.searchResult.page_size,
-      count: this.searchResult.count,
-      results: this.searchResult.results?.map((userPk: User['pk']) => this.items?.[userPk]),
-    };
-  };
-
-  sendTelegramConfirmationCode = async (userPk: User['pk']) => {
-    return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
-
-  @action.bound
-  unlinkSlack = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_slack/`, {
-      method: 'POST',
-    });
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: user,
-      };
-    });
-  };
-
-  @action.bound
-  unlinkTelegram = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_telegram/`, {
-      method: 'POST',
-    });
-
-    const user = await this.getById(userPk);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: user,
-      };
-    });
-  };
-
-  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
-    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
-      method: 'GET',
-    });
-
-  @action.bound
-  unlinkBackend = async (userPk: User['pk'], backend: string) => {
-    await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
-      method: 'POST',
-    });
-
+  async unlinkBackend(userPk: ApiSchemas['User']['pk'], backend: string) {
+    await onCallApi().POST('/users/{id}/unlink_backend/', { params: { path: { id: userPk }, query: { backend } } });
     this.loadCurrentUser();
-  };
-
-  @action.bound
-  async createUser(data: any) {
-    const user = await this.create(data);
-
-    runInAction(() => {
-      this.items = {
-        ...this.items,
-        [user.pk]: user,
-      };
-    });
-
-    return user;
   }
 
-  @action.bound
-  async updateUser(data: Partial<User>) {
-    const user = await makeRequest(`/users/${data.pk}/`, {
-      method: 'PUT',
-      data: {
-        ...prepareForUpdate(this.items[data.pk as User['pk']]),
-        ...data,
-      },
-    });
+  async updateUser(data: Partial<ApiSchemas['User']>) {
+    const user = (
+      await onCallApi().PUT('/users/{id}/', {
+        params: { path: { id: data.pk } },
+        body: {
+          ...UserHelper.prepareForUpdate(this.items[data.pk]),
+          ...data,
+        } as ApiSchemas['User'],
+      })
+    ).data;
 
     if (data.pk === this.currentUserPk) {
       this.rootStore.userStore.loadCurrentUser();
@@ -256,17 +161,16 @@ export class UserStore extends BaseStore {
     runInAction(() => {
       this.items = {
         ...this.items,
-        [data.pk as User['pk']]: user,
+        [data.pk]: user,
       };
     });
   }
 
-  @action.bound
-  async updateCurrentUser(data: Partial<User>) {
+  async updateCurrentUser(data: Partial<ApiSchemas['User']>) {
     const user = await makeRequest(`/user/`, {
       method: 'PUT',
       data: {
-        ...prepareForUpdate(this.items[this.currentUserPk as User['pk']]),
+        ...UserHelper.prepareForUpdate(this.items[this.currentUserPk]),
         ...data,
       },
     });
@@ -274,47 +178,15 @@ export class UserStore extends BaseStore {
     runInAction(() => {
       this.items = {
         ...this.items,
-        [this.currentUserPk as User['pk']]: user,
+        [this.currentUserPk]: user,
       };
     });
   }
 
-  @action.bound
-  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_code/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_call/`, {
-      method: 'GET',
-      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async verifyPhone(userPk: User['pk'], token: string) {
-    return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
-      method: 'PUT',
-    }).catch(throttlingError);
-  }
-
-  @action.bound
-  async forgetPhone(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/forget_number/`, {
-      method: 'PUT',
-    });
-  }
-
-  @action.bound
-  async updateNotificationPolicies(id: User['pk']) {
+  async updateNotificationPolicies(id: ApiSchemas['User']['pk']) {
     const importantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: true },
     });
-
     const nonImportantEPs = await makeRequest('/notification_policies/', {
       params: { user: id, important: false },
     });
@@ -327,35 +199,35 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
-  async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
+  async moveNotificationPolicyToPosition(
+    userPk: ApiSchemas['User']['pk'],
+    oldIndex: number,
+    newIndex: number,
+    offset: number
+  ) {
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
-
     this.notificationPolicies[userPk] = move(this.notificationPolicies[userPk], oldIndex + offset, newIndex + offset);
-
     await makeRequest(`/notification_policies/${notificationPolicy.id}/move_to_position/?position=${newIndex}`, {
       method: 'PUT',
     });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
-  async addNotificationPolicy(userPk: User['pk'], important: NotificationPolicyType['important']) {
+  async addNotificationPolicy(userPk: ApiSchemas['User']['pk'], important: NotificationPolicyType['important']) {
     await makeRequest(`/notification_policies/`, {
       method: 'POST',
       data: { user: userPk, important },
     });
-
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
-  async updateNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id'], value: NotificationPolicyType) {
+  async updateNotificationPolicy(
+    userPk: ApiSchemas['User']['pk'],
+    id: NotificationPolicyType['id'],
+    value: NotificationPolicyType
+  ) {
     this.notificationPolicies = {
       ...this.notificationPolicies,
       [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
@@ -377,36 +249,21 @@ export class UserStore extends BaseStore {
       };
     });
 
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
-  async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
-    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' }).catch(this.onApiError);
-
+  async deleteNotificationPolicy(userPk: ApiSchemas['User']['pk'], id: NotificationPolicyType['id']) {
+    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' });
     this.updateNotificationPolicies(userPk);
-
-    this.updateItem(userPk); // to update notification_chain_verbal
+    this.fetchItemById({ userPk }); // to update notification_chain_verbal
   }
 
-  @action.bound
   async updateNotificationPolicyOptions() {
     const response = await makeRequest('/notification_policies/', {
       method: 'OPTIONS',
     });
-
     runInAction(() => {
       this.notificationChoices = get(response, 'actions.POST', []);
-    });
-  }
-
-  @action.bound
-  async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
-    return await makeRequest(`/users/${userId}/send_test_push`, {
-      method: 'POST',
-      params: {
-        critical: isCritical,
-      },
     });
   }
 
@@ -419,48 +276,21 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action.bound
-  async makeTestCall(userPk: User['pk']) {
-    this.isTestCallInProgress = true;
-
-    return await makeRequest(`/users/${userPk}/make_test_call/`, {
-      method: 'POST',
-    })
-      .catch(this.onApiError)
-      .finally(() => {
-        runInAction(() => {
-          this.isTestCallInProgress = false;
-        });
-      });
+  @AutoLoadingState(ActionKey.TEST_CALL_OR_SMS)
+  async makeTestCall(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().POST('/users/{id}/make_test_call/', { params: { path: { id: userPk } } })).data;
   }
 
-  async sendTestSms(userPk: User['pk']) {
-    this.isTestCallInProgress = true;
-
-    return await makeRequest(`/users/${userPk}/send_test_sms/`, {
-      method: 'POST',
-    })
-      .catch(this.onApiError)
-      .finally(() => {
-        this.isTestCallInProgress = false;
-      });
+  @AutoLoadingState(ActionKey.TEST_CALL_OR_SMS)
+  async sendTestSms(userPk: ApiSchemas['User']['pk']) {
+    return (await onCallApi().POST('/users/{id}/send_test_sms/', { params: { path: { id: userPk } } })).data;
   }
 
-  async getiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'GET',
-    });
-  }
-
-  async createiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'POST',
-    });
-  }
-
-  async deleteiCalLink(userPk: User['pk']) {
-    await makeRequest(`/users/${userPk}/export_token/`, {
-      method: 'DELETE',
-    });
+  @computed
+  get currentUser() {
+    if (!this.currentUserPk) {
+      return undefined;
+    }
+    return this.items[this.currentUserPk];
   }
 }

@@ -6,7 +6,7 @@ import { createEscalationChain, EscalationStep } from '../utils/escalationChain'
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
-import { createOnCallSchedule } from '../utils/schedule';
+import { createOnCallScheduleWithRotation } from '../utils/schedule';
 
 /**
  * Insights is dependent on Scenes which were only added in Grafana 10.0.0
@@ -42,7 +42,7 @@ test.describe('Insights', () => {
     const escalationChainName = generateRandomValue();
     const integrationName = generateRandomValue();
     const onCallScheduleName = generateRandomValue();
-    await createOnCallSchedule(page, onCallScheduleName, userName);
+    await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
     await createEscalationChain(
       page,
       escalationChainName,

@@ -20,24 +20,20 @@ const showApiError = (errorResponse: Response) => {
 
 export const getCustomFetchFn =
   ({ withGlobalErrorHandler }: { withGlobalErrorHandler: boolean }) =>
-  async (url: string, reqConfig: Parameters<typeof fetch>[1] = {}): Promise<Response> => {
+  async (url: string, requestConfig: Parameters<typeof fetch>[1] & { headers?: Headers } = {}): Promise<Response> => {
     const { faro } = FaroHelper;
     const otel = faro?.api?.getOTEL();
-    const requestConfig = {
-      ...reqConfig,
-      headers: {
-        ...reqConfig.headers,
-        'Content-Type': 'application/json',
-        /**
-         * In short, this header will tell the Grafana plugin proxy, a Go service which use Go's HTTP Transport,
-         * to retry POST requests (and other non-idempotent requests). This doesn't necessarily make these requests
-         * idempotent, but it will make them retry-able from Go's (read: net/http) perspective.
-         *
-         * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
-         * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
-         */ 'X-Idempotency-Key': `${Date.now()}-${Math.random()}`,
-      },
-    };
+
+    /**
+     * In short, this header will tell the Grafana plugin proxy, a Go service which use Go's HTTP Transport,
+     * to retry POST requests (and other non-idempotent requests). This doesn't necessarily make these requests
+     * idempotent, but it will make them retry-able from Go's (read: net/http) perspective.
+     *
+     * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
+     * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
+     */
+    requestConfig.headers.set('X-Idempotency-Key', `${Date.now()}-${Math.random()}`);
+    requestConfig.headers.set('Content-Type', 'application/json');
 
     if (faro && otel) {
       const tracer = otel.trace.getTracer('default');

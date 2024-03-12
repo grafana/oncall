@@ -14,6 +14,8 @@ jest.mock('@grafana/faro-web-sdk', () => ({
       pushLog: jest.fn(),
     },
   }),
+  LogLevel: jest.requireActual('@grafana/faro-web-sdk').LogLevel,
+  InternalLoggerLevel: jest.requireActual('@grafana/faro-web-sdk').InternalLoggerLevel,
   getWebInstrumentations: () => [],
 }));
 
