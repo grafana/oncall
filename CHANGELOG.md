@@ -1,6 +1,7 @@
 # Changelog
 
-⚠️ This file (CHANGELOG.md) is deprecated, please see the [Releases page](https://github.com/grafana/oncall/releases) for releases after v1.3.109
+⚠️ This file (CHANGELOG.md) is deprecated, please see the [Releases page](https://github.com/grafana/oncall/releases) 
+for releases after v1.3.109
 
 All notable changes to this project will be documented in this file.
 
