@@ -133,9 +133,9 @@ jobs:
         shell: bash
         run: tilt ci
 
-      - name: Setup Pages
-        if: failure()
-        uses: actions/configure-pages@v2
+      # - name: Setup Pages
+      #   if: failure()
+      #   uses: actions/configure-pages@v2
 
       - name: Upload artifact
         if: failure()
@@ -143,12 +143,12 @@ jobs:
         with:
           path: ./grafana-plugin/playwright-report/
 
-      - name: Deploy to GitHub Pages
-        if: failure()
-        id: deployment
-        uses: actions/deploy-pages@v3
-        with:
-          preview: true
+      # - name: Deploy to GitHub Pages
+      #   if: failure()
+      #   id: deployment
+      #   uses: actions/deploy-pages@v3
+      #   with:
+      #     preview: true
 
       - name: Linked Github Page
         if: failure()
