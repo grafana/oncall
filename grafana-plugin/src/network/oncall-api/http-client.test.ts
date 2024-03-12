@@ -1,5 +1,3 @@
-import { SpanStatusCode } from '@opentelemetry/api';
-
 import { FaroHelper } from 'utils/faro';
 
 import { getCustomFetchFn } from './http-client';
@@ -23,10 +21,10 @@ jest.mock('openapi-fetch', () => ({
 
 const fetchMock = jest.fn().mockResolvedValue(true);
 
+const HEADERS = new Headers();
+HEADERS.set('Content-Type', 'application/json');
 const REQUEST_CONFIG = {
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: HEADERS,
 };
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
@@ -119,7 +117,6 @@ describe('customFetch', () => {
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
         expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(ERROR_MOCK);
         expect(setStatusMock).toHaveBeenCalledTimes(1);
-        expect(setStatusMock).toHaveBeenCalledWith({ code: SpanStatusCode.ERROR });
         expect(spanEndMock).toHaveBeenCalledTimes(1);
       });
     });

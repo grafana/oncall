@@ -1,11 +1,6 @@
 * @grafana/grafana-oncall-backend
-
-# don't tag @grafana/grafana-oncall-backend on changes to CHANGELOG.md
-CHANGELOG.md
-
 /grafana-plugin @grafana/grafana-oncall-frontend
-
-/docs @grafana/docs-gops
+/docs @grafana/docs-gops @grafana/grafana-oncall
 
 # `make docs` procedure is owned by @jdbaldry of @grafana/docs-squad.
 /.github/workflows/update-make-docs.yml @jdbaldry

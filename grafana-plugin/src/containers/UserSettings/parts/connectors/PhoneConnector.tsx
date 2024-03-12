@@ -7,7 +7,7 @@ import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
@@ -17,7 +17,7 @@ import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 const cx = cn.bind(styles);
 
 interface PhoneConnectorProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
@@ -35,7 +35,7 @@ export const PhoneConnector = (props: PhoneConnectorProps) => {
 
   const isCurrentUser = storeUser.pk === userStore.currentUserPk;
 
-  const cloudVersionPhone = (user: User) => {
+  const cloudVersionPhone = (user: ApiSchemas['User']) => {
     switch (user.cloud_connection_status) {
       case 0:
         return (

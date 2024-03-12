@@ -26,6 +26,14 @@ from .integration_heartbeat import IntegrationHeartBeatSerializer
 from .labels import LabelsSerializerMixin
 
 
+def _additional_settings_serializer_from_type(integration_type: str) -> serializers.Serializer:
+    """Return serializer class for given integration_type additional settings."""
+    cls = None
+    config = AlertReceiveChannel.get_config_from_type(integration_type)
+    cls = getattr(config, "additional_settings_serializer", None) if config else None
+    return cls
+
+
 # AlertGroupCustomLabelValue represents custom alert group label value for API requests
 # It handles two types of label's value:
 # 1. Just Label Value from a label repo for a static label
@@ -244,6 +252,7 @@ class AlertReceiveChannelSerializer(
     inbound_email = serializers.CharField(required=False, read_only=True)
     is_legacy = serializers.SerializerMethodField()
     alert_group_labels = IntegrationAlertGroupLabelsSerializer(source="*", required=False)
+    additional_settings = serializers.DictField(allow_null=True, allow_empty=False, required=False, default=None)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -286,6 +295,7 @@ class AlertReceiveChannelSerializer(
             "labels",
             "alert_group_labels",
             "alertmanager_v2_migrated_at",
+            "additional_settings",
         ]
         read_only_fields = [
             "created_at",
@@ -305,6 +315,28 @@ class AlertReceiveChannelSerializer(
             "alertmanager_v2_migrated_at",
         ]
         extra_kwargs = {"integration": {"required": True}}
+
+    def to_internal_value(self, data):
+        settings_serializer_cls = (
+            _additional_settings_serializer_from_type(self.instance.config.slug) if self.instance else None
+        )
+        if settings_serializer_cls:
+            additional_settings_data = data.get("additional_settings")
+            settings_serializer = settings_serializer_cls(self.instance, data=additional_settings_data)
+            settings_serializer.is_valid()
+            if settings_serializer.errors:
+                raise ValidationError({"additional_settings": settings_serializer.errors})
+            data["additional_settings"] = settings_serializer.to_internal_value(additional_settings_data)
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if instance.additional_settings:
+            settings_serializer_cls = _additional_settings_serializer_from_type(instance.config.slug)
+            if settings_serializer_cls:
+                settings_serializer = settings_serializer_cls(instance)
+                result["additional_settings"] = settings_serializer.to_representation(instance)
+        return result
 
     def validate(self, data):
         validated_data = super().validate(data)
@@ -395,6 +427,19 @@ class AlertReceiveChannelSerializer(
             raise BadRequest(detail="Direct paging integrations can't be created")
 
         return integration
+
+    def validate_additional_settings(self, data):
+        integration = self.instance.integration if self.instance else self.initial_data.get("integration")
+        settings_serializer_cls = _additional_settings_serializer_from_type(integration)
+        if settings_serializer_cls:
+            if not data:
+                raise ValidationError(["This field is required for this integration."])
+            serializer = settings_serializer_cls(data=data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+        elif data is not None:
+            raise ValidationError(["Invalid data"])
+        return data
 
     def get_allow_delete(self, obj: "AlertReceiveChannel") -> bool:
         # don't allow deleting direct paging integrations

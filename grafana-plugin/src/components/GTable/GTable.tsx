@@ -10,7 +10,7 @@ import styles from './GTable.module.css';
 
 const cx = cn.bind(styles);
 
-export interface Props<RecordType = unknown> extends TableProps<RecordType> {
+export interface GTableProps<RecordType = unknown> extends TableProps<RecordType> {
   pagination?: {
     page: number;
     total: number;
@@ -31,7 +31,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   showHeader?: boolean;
 }
 
-export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: Props<RT>): ReactElement => {
+export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: GTableProps<RT>): ReactElement => {
   const {
     columns: columnsProp,
     data,

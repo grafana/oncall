@@ -4,7 +4,7 @@ import { Button, HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
-import IntegrationTag from 'components/Integrations/IntegrationTag';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 
 import { ConnectIntegrationModal } from './ConnectIntegrationModal';
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
@@ -24,7 +24,7 @@ export const OtherIntegrations = observer(() => {
             </Button>
           </HorizontalGroup>
         }
-        content={<ConnectedIntegrationsTable allowDelete />}
+        content={<ConnectedIntegrationsTable allowDelete allowBacksync tableProps={{ data: [] }} />}
       />
     </>
   );

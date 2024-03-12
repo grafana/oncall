@@ -10,11 +10,9 @@ interface IntegrationLogoWithTitleProps {
   integration: IntegrationLogoProps['integration'];
 }
 
-const IntegrationLogoWithTitle: FC<IntegrationLogoWithTitleProps> = ({ integration }) => (
+export const IntegrationLogoWithTitle: FC<IntegrationLogoWithTitleProps> = ({ integration }) => (
   <HorizontalGroup spacing="xs">
     <IntegrationLogo scale={0.08} integration={integration} />
     <Text type="primary">{integration?.display_name}</Text>
   </HorizontalGroup>
 );
-
-export default IntegrationLogoWithTitle;

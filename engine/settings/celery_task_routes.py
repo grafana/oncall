@@ -123,6 +123,7 @@ CELERY_TASK_ROUTES = {
     "apps.mobile_app.tasks.going_oncall_notification.conditionally_send_going_oncall_push_notifications_for_all_schedules": {
         "queue": "critical"
     },
+    "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # GRAFANA
@@ -134,6 +135,8 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.check_escalation_finished.check_alert_group_personal_notifications_task": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.cleanup_empty_deleted_integrations": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.start_cleanup_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
@@ -176,7 +179,6 @@ CELERY_TASK_ROUTES = {
     # WEBHOOK
     "apps.alerts.tasks.custom_button_result.custom_button_result": {"queue": "webhook"},
     "apps.alerts.tasks.custom_webhook_result.custom_webhook_result": {"queue": "webhook"},
-    "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.execute_webhook": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.send_webhook_event": {"queue": "webhook"},
     "apps.webhooks.tasks.alert_group_status.alert_group_created": {"queue": "webhook"},

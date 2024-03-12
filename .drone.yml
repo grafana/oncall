@@ -40,7 +40,7 @@ steps:
     image: plugins/gcs
     settings:
       acl: allUsers:READER
-      source: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
+      source: grafana-plugin/grafana-oncall-app-${DRONE_TAG}.zip
       target: grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip
       token:
         from_secret: gcs_oncall_publisher_key
@@ -385,6 +385,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 198b7c7d2c94fc5698b22a722e7748181990207755cf1778b2290137e262518c
+hmac: d541ed21fc2472272c6772e246aaf1a2606db112b4e72a44bc4530831e9ca4d3
 
 ...

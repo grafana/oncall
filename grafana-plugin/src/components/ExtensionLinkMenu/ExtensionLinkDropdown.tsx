@@ -5,12 +5,12 @@ import { getPluginLinkExtensions } from '@grafana/runtime';
 import { Dropdown, ToolbarButton } from '@grafana/ui';
 import { OnCallPluginExtensionPoints } from 'types';
 
-import { Alert } from 'models/alertgroup/alertgroup.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 import { ExtensionLinkMenu } from './ExtensionLinkMenu';
 
 interface Props {
-  incident: Alert;
+  incident: ApiSchemas['AlertGroup'];
   extensionPointId: OnCallPluginExtensionPoints;
   declareIncidentLink?: string;
   grafanaIncidentId: string | null;
@@ -47,7 +47,7 @@ export function ExtensionLinkDropdown({
   );
 }
 
-function useExtensionPointContext(incident: Alert): PluginExtensionOnCallAlertGroupContext {
+function useExtensionPointContext(incident: ApiSchemas['AlertGroup']): PluginExtensionOnCallAlertGroupContext {
   return { alertGroup: incident };
 }
 
@@ -78,5 +78,5 @@ function useExtensionLinks<T extends object>(
 // Other plugins should be able to use this context type in the `configure`
 // or `onClick` handler of their extension.
 interface PluginExtensionOnCallAlertGroupContext {
-  alertGroup: Alert;
+  alertGroup: ApiSchemas['AlertGroup'];
 }

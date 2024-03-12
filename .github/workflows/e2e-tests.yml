@@ -15,16 +15,18 @@ name: e2e tests
         required: true
         type: boolean
     secrets:
+      # NOTE: these are only required for the "expensive" e2e tests, which are only run via
+      # a daily GitHub Actions cron job (see .github/workflows/daily-e2e-tests.yml)
       TWILIO_ACCOUNT_SID:
-        required: true
+        required: false
       TWILIO_AUTH_TOKEN:
-        required: true
+        required: false
       TWILIO_PHONE_NUMBER:
-        required: true
+        required: false
       TWILIO_VERIFY_SID:
-        required: true
+        required: false
       MAILSLURP_API_KEY:
-        required: true
+        required: false
 
 jobs:
   end-to-end-tests:
@@ -33,9 +35,23 @@ jobs:
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-8-cores
     name: "Grafana: ${{ inputs.grafana-image-tag }}"
+    environment:
+      name: github-pages
+    permissions:
+      id-token: write
+      pages: "write"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
+      # - uses: actions/setup-python@v4
+      #   with:
+      #     python-version: "3.11.4"
+      #     cache: "pip"
+      #     cache-dependency-path: |
+      #       engine/requirements.txt
+      #       engine/requirements-dev.txt
 
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
@@ -93,7 +109,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.cache/ms-playwright"
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
       # due to this bug (https://github.com/microsoft/playwright/issues/13188)
@@ -117,9 +133,25 @@ jobs:
         shell: bash
         run: tilt ci
 
-      - uses: actions/upload-artifact@v3
+      - name: Setup Pages
         if: failure()
+        uses: actions/configure-pages@v2
+
+      - name: Upload artifact
+        if: failure()
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: playwright-report
           path: ./grafana-plugin/playwright-report/
-          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: failure()
+        id: deployment
+        uses: actions/deploy-pages@v3
+        with:
+          preview: true
+
+      - name: Linked Github Page
+        if: failure()
+        run: |
+          echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" \
+          >> $GITHUB_STEP_SUMMARY

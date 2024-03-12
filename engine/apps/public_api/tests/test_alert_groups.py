@@ -29,6 +29,11 @@ def construct_expected_response_from_alert_groups(alert_groups):
             acknowledged_at = alert_group.acknowledged_at.isoformat()
             acknowledged_at = acknowledged_at[:-6] + "Z"
 
+        silenced_at = None
+        if alert_group.silenced_at:
+            silenced_at = alert_group.silenced_at.isoformat()
+            silenced_at = silenced_at[:-6] + "Z"
+
         def user_pk_or_none(alert_group, user_field):
             u = getattr(alert_group, user_field)
             if u is not None:
@@ -52,6 +57,7 @@ def construct_expected_response_from_alert_groups(alert_groups):
                     "telegram": None,
                     "web": alert_group.web_link,
                 },
+                "silenced_at": silenced_at,
             }
         )
     return {

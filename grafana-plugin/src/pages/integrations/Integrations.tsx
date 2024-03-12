@@ -34,7 +34,7 @@ import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import { IntegrationForm } from 'containers/IntegrationForm/IntegrationForm';
+import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
@@ -120,6 +120,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     if (prevProps.query[TAB_QUERY_PARAM_KEY] !== this.props.query[TAB_QUERY_PARAM_KEY]) {
       this.onTabChange(this.props.query[TAB_QUERY_PARAM_KEY] as TabType);
     }
+  }
+
+  componentWillUnmount() {
+    this.props.store.alertReceiveChannelStore.resetPaginatedResults();
   }
 
   parseQueryParams = async () => {
@@ -285,7 +289,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         </div>
 
         {alertReceiveChannelId && (
-          <IntegrationForm
+          <IntegrationFormContainer
             onHide={() => {
               this.setState({ alertReceiveChannelId: undefined });
             }}
@@ -353,7 +357,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
   renderDatasource(item: ApiSchemas['AlertReceiveChannel'], alertReceiveChannelStore: AlertReceiveChannelStore) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
-    const integration = AlertReceiveChannelHelper.getIntegration(alertReceiveChannelStore, alertReceiveChannel);
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      alertReceiveChannelStore,
+      alertReceiveChannel
+    );
     const isLegacyIntegration = (integration?.value as string)?.toLowerCase().startsWith('legacy_');
 
     if (isLegacyIntegration) {

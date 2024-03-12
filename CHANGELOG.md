@@ -5,17 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+*NOTE*: for all future release notes, please see the [Releases page](https://github.com/grafana/oncall/releases).
+
+## v1.3.109 (2024-03-04)
+
+### Fixed
+
+- Handle nullable shift.by_day on the frontend ([#9548](https://github.com/grafana/support-escalations/issues/9548))
+
+## v1.3.108 (2024-02-28)
+
+### Fixed
+
+- Fetch selected value of notify schedule in escalation policy, fixes ([#3966](https://github.com/grafana/oncall/issues/3966))
+  ([#3969](https://github.com/grafana/oncall/pull/3969))
+
+## v1.3.107 (2024-02-27)
+
+### Added
+
+- Add manually run task to cleanup unused integrations @mderynck ([#3941](https://github.com/grafana/oncall/pull/3941))
 
 ### Changed
 
 - Change plugin build to use new packages instead of deprecated grafana-toolkit @maskin25 ([#3837](https://github.com/grafana/oncall/pull/3837))
 - Remove explicit uWSGI and Django request size limits by @vadimkerr ([#3878](https://github.com/grafana/oncall/pull/3878))
 - Migrate webhooks integration_filter to use a m2m field instead ([#3946](https://github.com/grafana/oncall/pull/3946))
+- Updated Faro package version ([#3970](https://github.com/grafana/oncall/pull/3970))
+- Integration form migration to react-hook-form ([#3979](https://github.com/grafana/oncall/pull/3979))
 
 ### Fixed
 
 - Fix template preview by @vadimkerr ([#3937](https://github.com/grafana/oncall/pull/3937))
+- Fix an issue when dragging the rotation form ([#3986](https://github.com/grafana/oncall/pull/3986))
 
 ## v1.3.106 (2024-02-20)
 
@@ -974,7 +996,7 @@ Minor bugfixes + dependency updates :)
 
 - Bring heartbeats back to UI by @maskin25 ([#2550](https://github.com/grafana/oncall/pull/2550))
 - Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
-  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  parsed, when they were space-delimited. This fix allows them to be *either* space or comma-delimited.
   by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
 
 ## v1.3.16 (2023-07-21)
@@ -1156,7 +1178,7 @@ Minor bugfixes + dependency updates :)
 - Change OnCall plugin to use service accounts and api tokens for communicating with backend, by @mderynck ([#2385](https://github.com/grafana/oncall/pull/2385))
 - RabbitMQ Docker image upgraded from 3.7.19 to 3.12.0 in `docker-compose-developer.yml` and
   `docker-compose-mysql-rabbitmq.yml`. **Note**: if you use one of these config files for your deployment
-  you _may_ need to follow the RabbitMQ "upgrade steps" listed [here](https://rabbitmq.com/upgrade.html#rabbitmq-version-upgradability)
+  you *may* need to follow the RabbitMQ "upgrade steps" listed [here](https://rabbitmq.com/upgrade.html#rabbitmq-version-upgradability)
   by @joeyorlando ([#2359](https://github.com/grafana/oncall/pull/2359))
 
 ### Fixed

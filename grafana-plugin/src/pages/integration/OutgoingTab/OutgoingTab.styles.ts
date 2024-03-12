@@ -14,11 +14,14 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   }),
   form: css({
     height: '100%',
-    paddingBottom: '64px',
-    marginTop: '32px',
+    paddingTop: '32px',
   }),
   formFieldsWrapper: css({
     width: '100%',
+  }),
+  sourceCodeRoot: css({
+    minHeight: '200px',
+    height: 'calc(100vh - 550px)',
   }),
   infoIcon: css({
     marginLeft: '4px',
@@ -55,6 +58,9 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   backsyncColumn: css({
     display: 'flex',
     justifyContent: 'flex-end',
+    '& label': {
+      position: 'relative',
+    },
   }),
   triggerTemplateWrapper: css({
     position: 'relative',
@@ -72,6 +78,12 @@ export const getStyles = (theme: GrafanaTheme2) => ({
     marginBottom: '24px',
   }),
   tabsWrapper: css({
-    padding: '16px 16px 16px 8px',
+    padding: '16px 16px 0 8px',
+  }),
+  connectIntegrationModalContent: css({
+    paddingBottom: 0,
+  }),
+  connectIntegrationModalButtons: css({
+    marginTop: '50px',
   }),
 });

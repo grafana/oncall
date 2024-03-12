@@ -36,17 +36,16 @@ import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import {
-  Alert,
-  Alert as AlertType,
   AlertAction,
   IncidentStatus,
   AlertGroupColumn,
   AlertGroupColumnType,
 } from 'models/alertgroup/alertgroup.types';
-import { LabelKeyValue } from 'models/label/label.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -70,7 +69,7 @@ interface Pagination {
 interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
-  selectedIncidentIds: Array<Alert['pk']>;
+  selectedIncidentIds: Array<ApiSchemas['AlertGroup']['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: Record<string, any>;
   pagination: Pagination;
@@ -145,8 +144,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { store } = this.props;
     const { alertGroupStore } = store;
 
-    alertGroupStore.updateBulkActions();
-    alertGroupStore.updateSilenceOptions();
+    alertGroupStore.fetchBulkActions();
+    alertGroupStore.fetchSilenceOptions();
 
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();
@@ -187,7 +186,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onHide={() => {
               this.setState({ showAddAlertGroupForm: false });
             }}
-            onCreate={(id: Alert['pk']) => {
+            onCreate={(id: ApiSchemas['AlertGroup']['pk']) => {
               history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
             alertReceiveChannelStore={alertReceiveChannelStore}
@@ -199,13 +198,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
     const { values } = filtersState;
-
-    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
-
-    const { count: newIncidentsCount } = newIncidents;
-    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
-    const { count: resolvedIncidentsCount } = resolvedIncidents;
-    const { count: silencedIncidentsCount } = silencedIncidents;
+    const { stats } = store.alertGroupStore;
 
     const status = values.status || [];
 
@@ -215,7 +208,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="bell" size="xxl" />}
             description="Firing"
-            title={newIncidentsCount}
+            title={stats[IncidentStatus.Firing]}
             selected={status.includes(IncidentStatus.Firing)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Firing,
@@ -229,7 +222,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
-            title={acknowledgedIncidentsCount}
+            title={stats[IncidentStatus.Acknowledged]}
             selected={status.includes(IncidentStatus.Acknowledged)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Acknowledged,
@@ -243,7 +236,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="check" size="xxl" />}
             description="Resolved"
-            title={resolvedIncidentsCount}
+            title={stats[IncidentStatus.Resolved]}
             selected={status.includes(IncidentStatus.Resolved)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Resolved,
@@ -257,7 +250,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <CardButton
             icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
-            title={silencedIncidentsCount}
+            title={stats[IncidentStatus.Silenced]}
             selected={status.includes(IncidentStatus.Silenced)}
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Silenced,
@@ -349,13 +342,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     });
 
     if (!isOnMount) {
-      this.setPagination(1, alertGroupStore.alertsSearchResult['default'].page_size);
+      this.setPagination(1, alertGroupStore.alertsSearchResult.page_size);
     }
 
     await this.fetchIncidentData(filters);
 
     if (isOnMount) {
-      this.setPagination(start, start + alertGroupStore.alertsSearchResult['default'].page_size - 1);
+      this.setPagination(start, start + alertGroupStore.alertsSearchResult.page_size - 1);
     }
   };
 
@@ -380,7 +373,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { alertGroupStore } = this.props.store;
-    const pageSize = alertGroupStore.alertsSearchResult['default'].page_size;
+    const pageSize = alertGroupStore.alertsSearchResult.page_size;
 
     alertGroupStore.updateIncidentsCursor(cursor);
 
@@ -406,8 +399,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   handleChangeItemsPerPage = (value: number) => {
     const { store } = this.props;
 
-    store.alertGroupStore.alertsSearchResult['default'] = {
-      ...store.alertGroupStore.alertsSearchResult['default'],
+    store.alertGroupStore.alertsSearchResult = {
+      ...store.alertGroupStore.alertsSearchResult,
       page_size: value,
     };
 
@@ -432,12 +425,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       return null;
     }
 
-    const { results } = store.alertGroupStore.getAlertSearchResult('default');
+    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore);
 
     const hasSelected = selectedIncidentIds.length > 0;
     const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
     const hasInvalidatedAlert = Boolean(
-      (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
+      (results && results.some((alert: ApiSchemas['AlertGroup']) => alert.undoAction)) ||
+        Object.keys(affectedRows).length
     );
 
     return (
@@ -524,7 +518,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
     const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
 
-    const { results, prev, next } = alertGroupStore.getAlertSearchResult('default');
+    const { results, prev, next } = AlertGroupHelper.getAlertSearchResult(alertGroupStore);
     const isLoading =
       LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
@@ -571,7 +565,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <div className={cx('pagination')}>
             <CursorPagination
               current={`${pagination.start}-${pagination.end}`}
-              itemsPerPage={alertGroupStore.alertsSearchResult?.['default']?.page_size}
+              itemsPerPage={alertGroupStore.alertsSearchResult?.page_size}
               itemsPerPageOptions={PAGINATION_OPTIONS}
               prev={prev}
               next={next}
@@ -584,7 +578,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderId(record: AlertType) {
+  renderId(record: ApiSchemas['AlertGroup']) {
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
         <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
@@ -594,7 +588,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderTitle = (record: AlertType) => {
+  renderTitle = (record: ApiSchemas['AlertGroup']) => {
     const { store, query } = this.props;
     const { start } = this.state.pagination || {};
     const { incidentsCursor } = store.alertGroupStore;
@@ -608,7 +602,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                 page: 'alert-groups',
                 id: record.pk,
                 cursor: incidentsCursor,
-                perpage: store.alertGroupStore.alertsSearchResult?.['default']?.page_size,
+                perpage: store.alertGroupStore.alertsSearchResult?.page_size,
                 start,
                 ...query,
               }}
@@ -622,15 +616,15 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderAlertsCounter(record: AlertType) {
+  renderAlertsCounter(record: ApiSchemas['AlertGroup']) {
     return <Text type="secondary">{record.alerts_count}</Text>;
   }
 
-  renderSource = (record: AlertType) => {
+  renderSource = (record: ApiSchemas['AlertGroup']) => {
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    const integration = AlertReceiveChannelHelper.getIntegration(
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
       alertReceiveChannelStore,
       record.alert_receive_channel
     );
@@ -651,7 +645,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderStatus = (alert: AlertType) => {
+  renderStatus = (alert: ApiSchemas['AlertGroup']) => {
     return (
       <IncidentDropdown
         alert={alert}
@@ -665,7 +659,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderStartedAt = (alert: AlertType) => {
+  renderStartedAt = (alert: ApiSchemas['AlertGroup']) => {
     const m = moment(alert.started_at);
     const { isHorizontalScrolling } = this.state;
 
@@ -689,7 +683,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderLabels = (item: AlertType) => {
+  renderLabels = (item: ApiSchemas['AlertGroup']) => {
     if (!item.labels.length) {
       return null;
     }
@@ -710,7 +704,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   icon="filter"
                   tooltip="Apply filter"
                   variant="secondary"
-                  onClick={this.getApplyLabelFilterClickHandler(label)}
+                  onClick={this.getApplyLabelFilterClickHandler({
+                    // TODO: check with backend
+                    key: { ...label.key, prescribed: false },
+                    value: { ...label.value, prescribed: false },
+                  })}
                 />
               </HorizontalGroup>
             ))}
@@ -720,7 +718,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderTeam(record: AlertType, teams: any) {
+  renderTeam(record: ApiSchemas['AlertGroup'], teams: any) {
     return (
       <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
         <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
@@ -728,7 +726,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  getApplyLabelFilterClickHandler = (label: LabelKeyValue) => {
+  getApplyLabelFilterClickHandler = (label: ApiSchemas['LabelPair']) => {
     const {
       store: { filtersStore },
     } = this.props;
@@ -751,7 +749,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     };
   };
 
-  renderCustomColumn = (column: AlertGroupColumn, alert: AlertType) => {
+  renderCustomColumn = (column: AlertGroupColumn, alert: ApiSchemas['AlertGroup']) => {
     const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
 
     return (
@@ -767,13 +765,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { alertGroupStore } = this.props.store;
 
     return Boolean(
-      this.state.pagination?.start &&
-        this.state.pagination?.end &&
-        alertGroupStore.alertsSearchResult?.['default']?.page_size
+      this.state.pagination?.start && this.state.pagination?.end && alertGroupStore.alertsSearchResult?.page_size
     );
   }
 
-  handleSelectedIncidentIdsChange = (ids: Array<Alert['pk']>) => {
+  handleSelectedIncidentIdsChange = (ids: Array<ApiSchemas['AlertGroup']['pk']>) => {
     this.setState({ selectedIncidentIds: ids }, () => {
       ids.length > 0 ? this.clearPollingInterval() : this.setPollingInterval();
     });
@@ -824,7 +820,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       Team: {
         title: 'Team',
         key: 'team',
-        render: (item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items),
+        render: (item: ApiSchemas['AlertGroup']) => this.renderTeam(item, store.grafanaTeamStore.items),
         grow: 1,
       },
       Users: {
@@ -889,7 +885,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           width: columnWidth,
           title: capitalize(column.name),
           key: column.id,
-          render: (item: AlertType) => this.renderCustomColumn(column, item),
+          render: (item: ApiSchemas['AlertGroup']) => this.renderCustomColumn(column, item),
         };
       });
 
@@ -902,31 +898,29 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action);
     };
   };
 
-  getSilenceClickHandler = (alert: AlertType): ((value: number) => Promise<void>) => {
+  getSilenceClickHandler = (alert: ApiSchemas['AlertGroup']): ((value: number) => Promise<void>) => {
     const { store } = this.props;
 
     return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
-        delay: value,
-      });
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, value);
     };
   };
 
-  getUnsilenceClickHandler = (alert: AlertType): ((event: any) => Promise<void>) => {
+  getUnsilenceClickHandler = (alert: ApiSchemas['AlertGroup']): ((event: any) => Promise<void>) => {
     const { store } = this.props;
 
     return (event: React.SyntheticEvent) => {
       event.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence);
     };
   };
 
-  getBulkActionClickHandler = (action: string | number, event?: any) => {
+  getBulkActionClickHandler = (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
     const { selectedIncidentIds, affectedRows } = this.state;
     const { store } = this.props;
 
@@ -939,7 +933,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       {
         selectedIncidentIds: [],
         affectedRows: selectedIncidentIds.reduce(
-          (acc, incidentId: AlertType['pk']) => ({
+          (acc, incidentId: ApiSchemas['AlertGroup']['pk']) => ({
             ...acc,
             [incidentId]: true,
           }),
@@ -947,7 +941,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         ),
       },
       () => {
-        store.alertGroupStore.bulkAction({
+        AlertGroupHelper.bulkAction({
           action,
           alert_group_pks: selectedIncidentIds,
           delay,

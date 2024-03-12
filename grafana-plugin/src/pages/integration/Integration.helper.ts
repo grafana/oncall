@@ -71,10 +71,6 @@ export const IntegrationHelper = {
     return hasSlack || hasTelegram || isMSTeamsInstalled;
   },
 
-  fetchChatOps(store: RootStore): Promise<void> {
-    return store.msteamsChannelStore.updateMSTeamsChannels();
-  },
-
   getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
     const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);
@@ -125,5 +121,5 @@ export const IntegrationHelper = {
   },
 };
 
-export const getIsBidirectionalIntegration = ({ integration }: ApiSchemas['AlertReceiveChannel']) =>
+export const getIsBidirectionalIntegration = ({ integration }: Partial<ApiSchemas['AlertReceiveChannel']>) =>
   integration === ('servicenow' as ApiSchemas['AlertReceiveChannel']['integration']); // TODO: add service now in backend schema as valid value and remove casting

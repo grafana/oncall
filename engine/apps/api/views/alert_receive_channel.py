@@ -1,5 +1,6 @@
 import typing
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,13 +8,14 @@ from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, AlertReceiveChannelConnection
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
@@ -22,6 +24,12 @@ from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelUpdateSerializer,
     FilterAlertReceiveChannelSerializer,
 )
+from apps.api.serializers.alert_receive_channel_connection import (
+    AlertReceiveChannelConnectedChannelSerializer,
+    AlertReceiveChannelConnectionSerializer,
+    AlertReceiveChannelNewConnectionSerializer,
+)
+from apps.api.serializers.webhook import WebhookSerializer
 from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
@@ -60,6 +68,12 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         choices=AlertReceiveChannel.INTEGRATION_CHOICES, field_name="integration", exclude=True
     )
     team = TeamModelMultipleChoiceFilter()
+    id_ne = filters.ModelMultipleChoiceFilter(
+        queryset=lambda request: request.auth.organization.alert_receive_channels.all(),
+        field_name="public_primary_key",
+        to_field_name="public_primary_key",
+        exclude=True,
+    )
 
     class Meta:
         model = AlertReceiveChannel
@@ -148,6 +162,14 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_alert_receive_channels_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "connected_alert_receive_channels_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_alert_receive_channels_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_alert_receive_channels_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -622,3 +644,121 @@ class AlertReceiveChannelView(
         if not disconnected:
             raise BadRequest(detail=error)
         return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=WebhookSerializer(many=True))
+    @action(detail=True, methods=["get"], url_path="webhooks")
+    def webhooks_get(self, request, pk):
+        instance = self.get_object()
+        return Response(
+            WebhookSerializer(
+                instance.webhooks.filter(is_from_connected_integration=True),
+                many=True,
+                context={"request": request},
+            ).data
+        )
+
+    @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
+    @webhooks_get.mapping.post
+    # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
+    def webhooks_post(self, request, pk):
+        instance = self.get_object()
+        serializer = WebhookSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(filtered_integrations=[instance], is_from_connected_integration=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
+    @action(detail=True, methods=["put"], url_path=r"webhooks/(?P<webhook_id>\w+)")
+    def webhooks_put(self, request, pk, webhook_id):
+        instance = self.get_object()
+        try:
+            webhook = instance.webhooks.get(is_from_connected_integration=True, public_primary_key=webhook_id)
+        except ObjectDoesNotExist:
+            raise NotFound
+        serializer = WebhookSerializer(webhook, data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=None)
+    @webhooks_put.mapping.delete
+    # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
+    def webhooks_delete(self, request, pk, webhook_id):
+        instance = self.get_object()
+        try:
+            webhook = instance.webhooks.get(is_from_connected_integration=True, public_primary_key=webhook_id)
+        except ObjectDoesNotExist:
+            raise NotFound
+        webhook.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(request=None, responses=AlertReceiveChannelConnectionSerializer)
+    @action(detail=True, methods=["get"], url_path="connected_alert_receive_channels")
+    def connected_alert_receive_channels_get(self, request, pk):
+        instance = self.get_object()
+        return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=AlertReceiveChannelNewConnectionSerializer(many=True), responses=AlertReceiveChannelConnectionSerializer
+    )
+    @connected_alert_receive_channels_get.mapping.post
+    def connected_alert_receive_channels_post(self, request, pk):
+        instance = self.get_object()
+        serializer = AlertReceiveChannelNewConnectionSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
+
+        # bulk create connections
+        AlertReceiveChannelConnection.objects.bulk_create(
+            [
+                AlertReceiveChannelConnection(
+                    source_alert_receive_channel=instance,
+                    connected_alert_receive_channel=alert_receive_channel,
+                    backsync=backsync_map[alert_receive_channel.public_primary_key],
+                )
+                for alert_receive_channel in instance.organization.alert_receive_channels.filter(
+                    public_primary_key__in=backsync_map.keys()
+                )
+            ],
+            ignore_conflicts=True,
+            batch_size=5000,
+        )
+
+        return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        request=AlertReceiveChannelConnectedChannelSerializer,
+        responses=AlertReceiveChannelConnectedChannelSerializer,
+    )
+    @action(
+        detail=True,
+        methods=["put"],
+        url_path=r"connected_alert_receive_channels/(?P<connected_alert_receive_channel_id>\w+)",
+    )
+    def connected_alert_receive_channels_put(self, request, pk, connected_alert_receive_channel_id):
+        instance = self.get_object()
+        try:
+            connection = instance.connected_alert_receive_channels.get(
+                connected_alert_receive_channel_id__public_primary_key=connected_alert_receive_channel_id
+            )
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        serializer = AlertReceiveChannelConnectedChannelSerializer(connection, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=None)
+    @connected_alert_receive_channels_put.mapping.delete
+    def connected_alert_receive_channels_delete(self, request, pk, connected_alert_receive_channel_id):
+        instance = self.get_object()
+        try:
+            connection = instance.connected_alert_receive_channels.get(
+                connected_alert_receive_channel_id__public_primary_key=connected_alert_receive_channel_id
+            )
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        connection.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
