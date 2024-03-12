@@ -31,7 +31,7 @@ export default defineConfig({
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1_000, // 20 minutes
 
-  reporter: REPORTER,
+  // reporter: REPORTER,
 
   /* Maximum time one test can run for. */
   timeout: 60_000,
