@@ -3,6 +3,7 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 from django.urls import reverse
+from requests.exceptions import HTTPError
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
