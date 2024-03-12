@@ -330,7 +330,7 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
                 "link_to_upstream_details": None,
                 "alert_receive_channel_pk": alert_receive_channel.pk,
                 "integration_unique_data": None,
-                "raw_request_data": request.data,
+                "raw_request_data": request.data or "{}",
                 "received_at": timestamp,
             },
         )

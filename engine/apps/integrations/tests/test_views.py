@@ -86,6 +86,54 @@ def test_integration_universal_endpoint(
     )
 
 
+@patch("apps.integrations.views.create_alert")
+@pytest.mark.parametrize(
+    "integration_type",
+    [
+        arc_type
+        for arc_type in INTEGRATION_TYPES
+        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+    ],
+)
+@pytest.mark.django_db
+def test_integration_universal_endpoint_no_data(
+    mock_create_alert, make_organization_and_user, make_alert_receive_channel, integration_type
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    client = APIClient()
+    url = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": integration_type, "alert_channel_key": alert_receive_channel.token},
+    )
+
+    data = None
+    now = timezone.now()
+    with patch("django.utils.timezone.now") as mock_now:
+        mock_now.return_value = now
+        response = client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_create_alert.apply_async.assert_called_once_with(
+        [],
+        {
+            "title": None,
+            "message": None,
+            "image_url": None,
+            "link_to_upstream_details": None,
+            "alert_receive_channel_pk": alert_receive_channel.pk,
+            "integration_unique_data": None,
+            "raw_request_data": "{}",
+            "received_at": now.isoformat(),
+        },
+    )
+
+
 @patch("apps.integrations.views.create_alertmanager_alerts")
 @pytest.mark.django_db
 def test_integration_grafana_endpoint_wrong_endpoint(
