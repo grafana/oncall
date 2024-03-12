@@ -16,6 +16,7 @@ import {
   VerticalGroup,
   useStyles2,
 } from '@grafana/ui';
+import { omit } from 'lodash';
 import { observer } from 'mobx-react';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
@@ -38,7 +39,6 @@ import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'ut
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
-import { omit } from 'lodash';
 
 enum FormFieldKeys {
   Name = 'verbal_name',
