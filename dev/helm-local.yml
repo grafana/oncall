@@ -23,8 +23,7 @@ redis:
 rabbitmq:
   enabled: false
 oncall:
-  # TODO: check it
-  devMode: false
+  devMode: true
 engine:
   replicaCount: 1
 celery:
