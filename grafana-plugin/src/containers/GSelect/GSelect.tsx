@@ -40,6 +40,7 @@ interface GSelectProps<Item> {
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
+  parseDisplayName?: (label: string) => string;
   openMenuOnFocus?: boolean;
   width?: number | 'auto';
   icon?: string;
@@ -72,6 +73,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     fetchItemsFn,
     fetchItemFn,
     getSearchResult,
+    parseDisplayName,
   } = props;
 
   const onChangeCallback = useCallback(
@@ -123,9 +125,13 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
           description: getDescription && getDescription(propItems[id]),
         }));
     } else if (propItems[value as string]) {
+      const label = get(propItems[value as string], displayField)
+        ? get(propItems[value as string], displayField)
+        : 'hidden';
+
       return {
         value,
-        label: get(propItems[value as string], displayField) ? get(propItems[value as string], displayField) : 'hidden',
+        label: parseDisplayName ? parseDisplayName(label) : label,
         description: getDescription && getDescription(propItems[value as string]),
       };
     }
