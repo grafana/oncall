@@ -384,7 +384,18 @@ export const IntegrationForm = observer(
 
     async function onFormSubmit(formData): Promise<void> {
       const labels = labelsRef.current?.getValue();
-      const data = { ...formData, labels };
+
+      const additionalSettings: ApiSchemas['AlertReceiveChannel']['additional_settings'] = {
+        default_webhooks: formData.default_webhooks,
+        username: formData.auth_username,
+        password: formData.auth_password,
+        instance_url: formData.servicenow_url,
+        verbal_name: formData.verbal_name,
+        team: formData.team,
+        description_short: formData.description_short,
+      };
+
+      const data = { additionalSettings, labels };
       const isCreate = id === 'new';
 
       try {
