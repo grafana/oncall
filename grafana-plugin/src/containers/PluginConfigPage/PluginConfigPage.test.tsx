@@ -30,7 +30,6 @@ enum License {
   CLOUD = 'some-other-license',
 }
 
-const SELF_HOSTED_INSTALL_PLUGIN_ERROR_MESSAGE = 'ohhh nooo an error msg from self hosted install plugin';
 const CHECK_IF_PLUGIN_IS_CONNECTED_ERROR_MESSAGE = 'ohhh nooo a plugin connection error';
 const UPDATE_PLUGIN_STATUS_ERROR_MESSAGE = 'ohhh noooo a sync issue';
 const PLUGIN_CONFIGURATION_FORM_DATA_ID = 'plugin-configuration-form';
