@@ -1,60 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, and ONCALL_API_URL is passed in process.env, and there is an error calling selfHostedInstallPlugin, it sets an error message 1`] = `
-<div>
-  <legend
-    class="css-1w9pvsj"
-  >
-    Configure Grafana OnCall
-  </legend>
-  <p>
-    This page will help you configure the OnCall plugin 👋
-  </p>
-  <pre
-    data-testid="status-message-block"
-  >
-    <span
-      class="root text text--undefined text--medium"
-    >
-      ohhh nooo an error msg from self hosted install plugin
-    </span>
-  </pre>
-  <div
-    class="css-ffyaiw-horizontal-group"
-    style="width: 100%; height: 100%;"
-  >
-    <div
-      class="css-18qv8yz-layoutChildrenWrapper"
-    >
-      <button
-        class="css-td06pi-button"
-        type="button"
-      >
-        <span
-          class="css-1riaxdn"
-        >
-          Retry Sync
-        </span>
-      </button>
-    </div>
-    <div
-      class="css-18qv8yz-layoutChildrenWrapper"
-    >
-      <button
-        class="css-ttl745-button"
-        type="button"
-      >
-        <span
-          class="css-1riaxdn"
-        >
-          Remove current configuration
-        </span>
-      </button>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, updatePluginStatus is not called, and the configuration form is shown 1`] = `
 <div>
   <legend
@@ -229,38 +174,40 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
       Connected to OnCall (v1.2.3, OpenSource)
     </span>
   </pre>
-  <div
-    class="css-ffyaiw-horizontal-group"
-    style="width: 100%; height: 100%;"
-  >
+  <div>
     <div
-      class="css-18qv8yz-layoutChildrenWrapper"
+      class="css-ffyaiw-horizontal-group"
+      style="width: 100%; height: 100%;"
     >
-      <a
-        class="css-td06pi-button"
-        href="/a/grafana-oncall-app/"
-        tabindex="0"
+      <div
+        class="css-18qv8yz-layoutChildrenWrapper"
       >
-        <span
-          class="css-1riaxdn"
+        <a
+          class="css-td06pi-button"
+          href="/a/grafana-oncall-app/"
+          tabindex="0"
         >
-          Open Grafana OnCall
-        </span>
-      </a>
-    </div>
-    <div
-      class="css-18qv8yz-layoutChildrenWrapper"
-    >
-      <button
-        class="css-ttl745-button"
-        type="button"
+          <span
+            class="css-1riaxdn"
+          >
+            Open Grafana OnCall
+          </span>
+        </a>
+      </div>
+      <div
+        class="css-18qv8yz-layoutChildrenWrapper"
       >
-        <span
-          class="css-1riaxdn"
+        <button
+          class="css-ttl745-button"
+          type="button"
         >
-          Remove current configuration
-        </span>
-      </button>
+          <span
+            class="css-1riaxdn"
+          >
+            Remove current configuration
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -282,38 +229,40 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
       Connected to OnCall (v1.2.3, OpenSource)
     </span>
   </pre>
-  <div
-    class="css-ffyaiw-horizontal-group"
-    style="width: 100%; height: 100%;"
-  >
+  <div>
     <div
-      class="css-18qv8yz-layoutChildrenWrapper"
+      class="css-ffyaiw-horizontal-group"
+      style="width: 100%; height: 100%;"
     >
-      <a
-        class="css-td06pi-button"
-        href="/a/grafana-oncall-app/"
-        tabindex="0"
+      <div
+        class="css-18qv8yz-layoutChildrenWrapper"
       >
-        <span
-          class="css-1riaxdn"
+        <a
+          class="css-td06pi-button"
+          href="/a/grafana-oncall-app/"
+          tabindex="0"
         >
-          Open Grafana OnCall
-        </span>
-      </a>
-    </div>
-    <div
-      class="css-18qv8yz-layoutChildrenWrapper"
-    >
-      <button
-        class="css-ttl745-button"
-        type="button"
+          <span
+            class="css-1riaxdn"
+          >
+            Open Grafana OnCall
+          </span>
+        </a>
+      </div>
+      <div
+        class="css-18qv8yz-layoutChildrenWrapper"
       >
-        <span
-          class="css-1riaxdn"
+        <button
+          class="css-ttl745-button"
+          type="button"
         >
-          Remove current configuration
-        </span>
-      </button>
+          <span
+            class="css-1riaxdn"
+          >
+            Remove current configuration
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
