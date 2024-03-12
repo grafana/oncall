@@ -38,6 +38,7 @@ import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'ut
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
+import { omit } from 'lodash';
 
 enum FormFieldKeys {
   Name = 'verbal_name',
@@ -394,14 +395,29 @@ export const IntegrationForm = observer(
         team: formData.team,
         description_short: formData.description_short,
       };
+      const formFields = omit(formData, [
+        FormFieldKeys.DefaultWebhooks,
+        FormFieldKeys.AuthUsername,
+        FormFieldKeys.AuthPassword,
+        FormFieldKeys.ServiceNowUrl,
+        FormFieldKeys.Name,
+        FormFieldKeys.Team,
+        FormFieldKeys.Description,
+      ]);
 
-      const data = { additionalSettings, labels };
+      const data = {
+        labels,
+        additional_settings: additionalSettings,
+        ...formFields,
+      };
+
       const isCreate = id === 'new';
 
       try {
         if (isCreate) {
           await createNewIntegration();
         } else {
+          // @ts-ignore
           await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
         }
       } catch (error) {
