@@ -66,6 +66,8 @@ export const SlackConnector = (props: SlackConnectorProps) => {
             valueField="id"
             placeholder="Select Slack Channel"
             value={channelFilter.slack_channel?.id || currentOrganization?.slack_channel?.id}
+            // prevent showing it as General (Default) when already selected
+            parseDisplayName={(label) => label.replace(` (Default)`, '')}
             onChange={handleSlackChannelChange}
             nullItemName={PRIVATE_CHANNEL_NAME}
           />
@@ -82,7 +84,7 @@ export const SlackConnector = (props: SlackConnectorProps) => {
       // if there's any default channel id, put it first in the list
       const defaultChannel = results.find((res) => res.id === defaultChannelId);
       const newList = results.filter((channel) => channel.id !== defaultChannelId);
-      defaultChannel.display_name += ` (Default Channel)`;
+      defaultChannel.display_name += ` (Default)`;
       newList.unshift(defaultChannel);
       return newList;
     }
