@@ -63,7 +63,7 @@ jobs:
       - name: Install Kind
         uses: helm/kind-action@v1.3.0
         with:
-          config: ./.github/kind.yml
+          config: ./dev/kind.yml
           install_only: true
 
       - uses: actions/setup-node@v3
