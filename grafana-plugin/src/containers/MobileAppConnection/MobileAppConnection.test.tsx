@@ -74,7 +74,7 @@ describe('MobileAppConnection', () => {
   });
 
   test('it shows an error message if there was an error fetching the QR code', async () => {
-    UserHelper.fetchBackendConfirmationCode = jest.fn().mockResolvedValueOnce('dfd');
+    UserHelper.fetchBackendConfirmationCode = jest.fn().mockRejectedValueOnce('dfd');
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
