@@ -386,7 +386,6 @@ export const IntegrationForm = observer(
 
     async function onFormSubmit(formData: FormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
-
       const additionalSettings: ApiSchemas['AlertReceiveChannel']['additional_settings'] = {
         default_webhooks: formData.default_webhooks,
         username: formData.auth_username,
@@ -406,6 +405,10 @@ export const IntegrationForm = observer(
         additional_settings: additionalSettings,
         ...formFields,
       };
+
+      if (formData.integration !== 'servicenow') {
+        delete data.additional_settings;
+      }
 
       const isCreate = id === 'new';
 
