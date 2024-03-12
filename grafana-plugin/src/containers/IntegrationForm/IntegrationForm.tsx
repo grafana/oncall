@@ -42,7 +42,7 @@ import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
 interface FormFields {
   verbal_name: string;
-  description: string;
+  description_short: string;
   team: string;
   is_existing: boolean;
   alert_manager: string;
@@ -191,15 +191,15 @@ export const IntegrationForm = observer(
           />
 
           <Controller
-            name={'description'}
+            name={'description_short'}
             control={control}
             rules={{ required: 'Description is required' }}
             render={({ field }) => (
               <Field
                 key={'Description'}
                 label={'Integration Description'}
-                invalid={!!errors['description']}
-                error={errors['description']?.message}
+                invalid={!!errors['description_short']}
+                error={errors['description_short']?.message}
               >
                 <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
