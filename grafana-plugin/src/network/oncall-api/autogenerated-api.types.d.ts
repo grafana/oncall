@@ -1446,8 +1446,16 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: {
-        [key: string]: unknown;
-      } | null;
+        instance_url: string;
+        username: string;
+        password: string;
+        state_mapping?: {
+          firing: string;
+          acknowledged: string;
+          resolved: string;
+          silenced: string;
+        };
+      };
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
@@ -1557,8 +1565,16 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: {
-        [key: string]: unknown;
-      } | null;
+        instance_url: string;
+        username: string;
+        password: string;
+        state_mapping?: {
+          firing: string;
+          acknowledged: string;
+          resolved: string;
+          silenced: string;
+        };
+      };
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
@@ -1867,8 +1883,16 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at?: string | null;
       additional_settings?: {
-        [key: string]: unknown;
-      } | null;
+        instance_url: 'string';
+        username: 'string';
+        password: 'string';
+        state_mapping?: {
+          firing: null;
+          acknowledged: null;
+          resolved: null;
+          silenced: null;
+        };
+      };
     };
     PatchedUser: {
       readonly pk?: string;

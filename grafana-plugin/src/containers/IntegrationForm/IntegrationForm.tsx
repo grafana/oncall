@@ -100,6 +100,11 @@ export const IntegrationForm = observer(
           integration: selectedIntegration?.value as ApiSchemas['AlertReceiveChannel']['integration'],
           team: userStore.currentUser?.current_team,
           labels: [],
+          additional_settings: {
+            instance_url: undefined,
+            password: undefined,
+            username: undefined,
+          },
         }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
@@ -290,8 +295,8 @@ export const IntegrationForm = observer(
                 <Field
                   key={'InstanceURL'}
                   label={'Instance URL'}
-                  invalid={!!errors['additional_settings.instance_url']}
-                  error={errors['additional_settings.instance_url']?.message}
+                  invalid={!!errors['additional_settings']?.['instance_url']}
+                  error={errors['additional_settings']?.['instance_url']?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -306,8 +311,8 @@ export const IntegrationForm = observer(
                 <Field
                   key={'AuthUsername'}
                   label={'Username'}
-                  invalid={!!errors['additional_settings.username']}
-                  error={errors['FormFieldKeys.AuthUsername']?.message}
+                  invalid={!!errors['additional_settings']?.['username']}
+                  error={errors['additional_settings']?.['username']?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -322,8 +327,8 @@ export const IntegrationForm = observer(
                 <Field
                   key={'AuthPassword'}
                   label={'Password'}
-                  invalid={!!errors['additional_settings.password']}
-                  error={errors['additional_settings.password']?.message as string}
+                  invalid={!!errors['additional_settings']?.['password']}
+                  error={errors['additional_settings']?.['password']?.message as string}
                 >
                   <Input {...field} type="password" />
                 </Field>
