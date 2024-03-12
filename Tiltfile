@@ -55,7 +55,6 @@ docker_build_sub(
 local_resource(
     "build-ui",
     labels=["OnCallUI"],
-    cmd="cd grafana-plugin && yarn build:dev",
     env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080', 'IS_OPEN_SOURCE': 'true' },
     serve_cmd="cd grafana-plugin && yarn watch",
     allow_parallel=True,
