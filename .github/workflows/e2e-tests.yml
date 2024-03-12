@@ -94,6 +94,18 @@ jobs:
         working-directory: grafana-plugin
         run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
+      - name: Use cached plugin frontend build
+        id: cache-plugin-frontend
+        uses: actions/cache@v3
+        with:
+          path: grafana-plugin/dist
+          key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
+
+      - name: Build plugin frontend
+        if: steps.cache-plugin-frontend.outputs.cache-hit != 'true'
+        working-directory: grafana-plugin
+        run: yarn build:dev
+
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
 
