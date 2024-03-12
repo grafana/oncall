@@ -57,18 +57,18 @@ enum FormFieldKeys {
 }
 
 interface FormFields {
-  [FormFieldKeys.Name]: string;
-  [FormFieldKeys.Description]: string;
-  [FormFieldKeys.Team]: string;
-  [FormFieldKeys.IsExisting]: boolean;
-  [FormFieldKeys.AlertManager]: string;
-  [FormFieldKeys.ContactPoint]: string;
-  [FormFieldKeys.Alerting]: string;
-  [FormFieldKeys.ServiceNowUrl]: string;
-  [FormFieldKeys.AuthUsername]: string;
-  [FormFieldKeys.AuthPassword]: string;
-  [FormFieldKeys.Integration]: string;
-  [FormFieldKeys.DefaultWebhooks]: boolean;
+  verbal_name: string;
+  description_short: string;
+  team: string;
+  is_existing: boolean;
+  alert_manager: string;
+  contact_point: string;
+  alerting: string;
+  servicenow_url: string;
+  auth_username: string;
+  auth_password: string;
+  integration: string;
+  default_webhooks: boolean;
 }
 
 interface IntegrationFormProps {
@@ -127,6 +127,7 @@ export const IntegrationForm = observer(
           },
       mode: 'onChange',
     });
+
     const {
       control,
       handleSubmit,
@@ -383,7 +384,7 @@ export const IntegrationForm = observer(
 
     async function onWebhookTestClick(): Promise<void> {}
 
-    async function onFormSubmit(formData): Promise<void> {
+    async function onFormSubmit(formData: FormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
 
       const additionalSettings: ApiSchemas['AlertReceiveChannel']['additional_settings'] = {
@@ -391,17 +392,12 @@ export const IntegrationForm = observer(
         username: formData.auth_username,
         password: formData.auth_password,
         instance_url: formData.servicenow_url,
-        verbal_name: formData.verbal_name,
-        team: formData.team,
-        description_short: formData.description_short,
       };
       const formFields = omit(formData, [
         FormFieldKeys.DefaultWebhooks,
         FormFieldKeys.AuthUsername,
         FormFieldKeys.AuthPassword,
         FormFieldKeys.ServiceNowUrl,
-        FormFieldKeys.Name,
-        FormFieldKeys.Team,
         FormFieldKeys.Description,
       ]);
 
