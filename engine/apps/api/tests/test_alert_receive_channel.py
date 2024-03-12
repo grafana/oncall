@@ -3,6 +3,7 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 from django.urls import reverse
+from requests.exceptions import HTTPError
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
@@ -39,6 +40,17 @@ def alert_receive_channel_internal_api_setup(
     alert_receive_channel = make_alert_receive_channel(organization)
     make_escalation_chain(organization)
     return user, token, alert_receive_channel
+
+
+@pytest.fixture
+def setup_additional_settings_for_integration():
+    integration_config = AlertReceiveChannel._config[0]
+    previous_value = getattr(integration_config, "additional_settings_serializer", None)
+    integration_config.additional_settings_serializer = AdditionalSettingsTestSerializer
+    try:
+        yield integration_config
+    finally:
+        integration_config.additional_settings_serializer = previous_value
 
 
 @pytest.mark.django_db
@@ -1748,6 +1760,7 @@ def test_team_not_updated_if_not_in_data(
 
 @pytest.mark.django_db
 def test_create_additional_settings_integration(
+    setup_additional_settings_for_integration,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
@@ -1755,27 +1768,26 @@ def test_create_additional_settings_integration(
     client = APIClient()
 
     # set up additional settings for an integration
-    integration = AlertReceiveChannel._config[0]
-    integration.additional_settings_serializer = AdditionalSettingsTestSerializer
+    integration_config = setup_additional_settings_for_integration
 
     url = reverse("api-internal:alert_receive_channel-list")
     # create without additional_settings
     data = {
-        "integration": integration.slug,
+        "integration": integration_config.slug,
         "team": None,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     # create with empty additional_settings
-    data = {"integration": integration.slug, "team": None, "additional_settings": {}}
+    data = {"integration": integration_config.slug, "team": None, "additional_settings": {}}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "additional_settings" in response.json()
 
     # create with wrong additional_settings
     data = {
-        "integration": integration.slug,
+        "integration": integration_config.slug,
         "team": None,
         "additional_settings": {"test": "test"},
     }
@@ -1784,7 +1796,7 @@ def test_create_additional_settings_integration(
 
     # create with correct additional_settings
     data = {
-        "integration": integration.slug,
+        "integration": integration_config.slug,
         "team": None,
         "additional_settings": {"instance_url": "test"},
     }
@@ -1794,6 +1806,7 @@ def test_create_additional_settings_integration(
 
 @pytest.mark.django_db
 def test_update_additional_settings_integration(
+    setup_additional_settings_for_integration,
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_user_auth_headers,
@@ -1803,11 +1816,9 @@ def test_update_additional_settings_integration(
     settings = {"instance_url": "test"}
 
     # set up additional settings for an integration
-    integration = AlertReceiveChannel._config[0]
-    integration.additional_settings_serializer = AdditionalSettingsTestSerializer
-
+    integration_config = setup_additional_settings_for_integration
     alert_receive_channel = make_alert_receive_channel(
-        organization, integration=integration.slug, additional_settings=settings
+        organization, integration=integration_config.slug, additional_settings=settings
     )
 
     url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel.public_primary_key})
@@ -1881,19 +1892,20 @@ def test_update_other_integration_additional_settings(
 
 @pytest.mark.django_db
 def test_create_integration_default_webhooks(
+    setup_additional_settings_for_integration,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    integration = AlertReceiveChannel._config[0]
-    integration.additional_settings_serializer = AdditionalSettingsTestSerializer
-    integration.create_default_webhooks = Mock()
+    integration_config = setup_additional_settings_for_integration
+    integration_config.additional_settings_serializer = AdditionalSettingsTestSerializer
+    integration_config.create_default_webhooks = Mock()
 
     client = APIClient()
     response = client.post(
         path=reverse("api-internal:alert_receive_channel-list"),
         data={
-            "integration": integration.slug,
+            "integration": integration_config.slug,
             "team": None,
             "additional_settings": {"instance_url": "test"},
         },
@@ -1903,14 +1915,14 @@ def test_create_integration_default_webhooks(
 
     assert response.status_code == status.HTTP_201_CREATED
     alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
-    integration.create_default_webhooks.assert_called_once_with(alert_receive_channel)
-    integration.create_default_webhooks.reset_mock()
+    integration_config.create_default_webhooks.assert_called_once_with(alert_receive_channel)
+    integration_config.create_default_webhooks.reset_mock()
 
     # Create without default webhooks
     response = client.post(
         path=reverse("api-internal:alert_receive_channel-list"),
         data={
-            "integration": integration.slug,
+            "integration": integration_config.slug,
             "team": None,
             "additional_settings": {"instance_url": "test"},
             "create_default_webhooks": False,
@@ -1919,7 +1931,49 @@ def test_create_integration_default_webhooks(
         **make_user_auth_headers(user, token),
     )
     assert response.status_code == status.HTTP_201_CREATED
-    integration.create_default_webhooks.assert_not_called()
+    integration_config.create_default_webhooks.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_test_connection(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-test-connection")
+    integration_config = AlertReceiveChannel._config[0]
+    data = {
+        "integration": integration_config.slug,
+        "team": None,
+    }
+
+    # no test connection setup
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # test ok
+    def testing_ok(instance):
+        return True
+
+    with patch.object(integration_config, "test_connection", side_effect=testing_ok, create=True):
+        response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # test error
+    def testing_error(instance):
+        raise HTTPError("Error!")
+
+    with patch.object(integration_config, "test_connection", side_effect=testing_error, create=True):
+        response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Error!"}
+
+    # test with invalid data
+    data["team"] = "does-not-exist"
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"team": ["Object does not exist"]}
 
 
 def _webhook_data(webhook_id=ANY, webhook_name=ANY, webhook_url=ANY, alert_receive_channel_id=ANY):
