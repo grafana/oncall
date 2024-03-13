@@ -44,10 +44,16 @@ export class AlertReceiveChannelStore {
   }
 
   @WithGlobalNotification({ failure: 'There was an issue creating Integration. Please try again.' })
-  async create({ data, skipErrorHandling }: { data: ApiSchemas['AlertReceiveChannel']; skipErrorHandling?: boolean }) {
+  async create({
+    data,
+    skipErrorHandling,
+  }: {
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']>;
+    skipErrorHandling?: boolean;
+  }) {
     const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/', {
       params: {},
-      body: data,
+      body: data as ApiSchemas['AlertReceiveChannel'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
     return result.data;
@@ -60,12 +66,12 @@ export class AlertReceiveChannelStore {
     skipErrorHandling,
   }: {
     id: ApiSchemas['AlertReceiveChannelUpdate']['id'];
-    data: ApiSchemas['AlertReceiveChannelUpdate'];
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']>;
     skipErrorHandling?: boolean;
   }) {
     const result = await onCallApi({ skipErrorHandling }).PUT('/alert_receive_channels/{id}/', {
       params: { path: { id } },
-      body: data,
+      body: data as ApiSchemas['AlertReceiveChannelUpdate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
     return result.data;
