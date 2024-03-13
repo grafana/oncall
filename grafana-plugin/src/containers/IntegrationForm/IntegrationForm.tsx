@@ -114,7 +114,7 @@ export const IntegrationForm = observer(
       defaultValues: isNew
         ? {
             // these are the default values for creating an integration
-            integration: integration,
+            integration,
             additional_settings: {
               default_webhooks: true,
             },
@@ -182,8 +182,8 @@ export const IntegrationForm = observer(
               <Field
                 key={'Name'}
                 label={'Integration Name'}
-                invalid={!!errors['verbal_name']}
-                error={errors['verbal_name']?.message}
+                invalid={!!errors.verbal_name}
+                error={errors.verbal_name?.message}
               >
                 <Input {...field} placeholder={'Integration Name'} />
               </Field>
@@ -198,8 +198,8 @@ export const IntegrationForm = observer(
               <Field
                 key={'Description'}
                 label={'Integration Description'}
-                invalid={!!errors['description_short']}
-                error={errors['description_short']?.message}
+                invalid={!!errors.description_short}
+                error={errors.description_short?.message}
               >
                 <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
@@ -220,8 +220,8 @@ export const IntegrationForm = observer(
                     </Tooltip>
                   </Label>
                 }
-                invalid={!!errors['team']}
-                error={errors['team']?.message}
+                invalid={!!errors.team}
+                error={errors.team?.message}
               >
                 <GSelect<GrafanaTeam>
                   placeholder="Assign to team"
@@ -295,8 +295,8 @@ export const IntegrationForm = observer(
                 <Field
                   key={'InstanceURL'}
                   label={'Instance URL'}
-                  invalid={!!errors['additional_settings']?.['instance_url']}
-                  error={errors['additional_settings']?.['instance_url']?.message}
+                  invalid={!!errors.additional_settings?.instance_url}
+                  error={errors.additional_settings?.instance_url?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -311,8 +311,8 @@ export const IntegrationForm = observer(
                 <Field
                   key={'AuthUsername'}
                   label={'Username'}
-                  invalid={!!errors['additional_settings']?.['username']}
-                  error={errors['additional_settings']?.['username']?.message}
+                  invalid={!!errors.additional_settings?.username}
+                  error={errors.additional_settings?.username?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -327,8 +327,8 @@ export const IntegrationForm = observer(
                 <Field
                   key={'AuthPassword'}
                   label={'Password'}
-                  invalid={!!errors['additional_settings']?.['password']}
-                  error={errors['additional_settings']?.['password']?.message as string}
+                  invalid={!!errors.additional_settings?.password}
+                  error={errors.additional_settings?.password?.message}
                 >
                   <Input {...field} type="password" />
                 </Field>
@@ -400,7 +400,6 @@ export const IntegrationForm = observer(
         if (isCreate) {
           await createNewIntegration();
         } else {
-          // @ts-ignore
           await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
         }
       } catch (error) {
@@ -547,8 +546,8 @@ const GrafanaContactPoint = observer(
               render={({ field }) => (
                 <Field
                   key={'AlertManager'}
-                  invalid={!!errors['alert_manager']}
-                  error={errors['alert_manager']?.message}
+                  invalid={!!errors.alert_manager}
+                  error={errors.alert_manager?.message}
                 >
                   <Select
                     {...field}
@@ -568,8 +567,8 @@ const GrafanaContactPoint = observer(
               render={({ field }) => (
                 <Field
                   key={'contact_point'}
-                  invalid={!!errors['contact_point']}
-                  error={errors['contact_point']?.message}
+                  invalid={!!errors.contact_point}
+                  error={errors.contact_point?.message}
                 >
                   {isExistingContactPoint ? (
                     <Select
