@@ -20,6 +20,7 @@ from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
+    AlertReceiveChannelCreateSerializer,
     AlertReceiveChannelSerializer,
     AlertReceiveChannelUpdateSerializer,
     FilterAlertReceiveChannelSerializer,
@@ -39,6 +40,7 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
+    CreateSerializerMixin,
     FilterSerializerMixin,
     PreviewTemplateException,
     PreviewTemplateMixin,
@@ -113,6 +115,7 @@ class AlertReceiveChannelView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[AlertReceiveChannel],
     FilterSerializerMixin,
+    CreateSerializerMixin,
     UpdateSerializerMixin,
     ModelViewSet,
 ):
@@ -130,6 +133,7 @@ class AlertReceiveChannelView(
     queryset = AlertReceiveChannel.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertReceiveChannelSerializer
     filter_serializer_class = FilterAlertReceiveChannelSerializer
+    create_serializer_class = AlertReceiveChannelCreateSerializer
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
