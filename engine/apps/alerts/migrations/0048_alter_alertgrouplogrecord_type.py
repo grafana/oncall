@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0045_escalationpolicy_notify_to_team_members_and_more'),
+        ('alerts', '0047_alertreceivechannel_additional_settings'),
     ]
 
     operations = [
