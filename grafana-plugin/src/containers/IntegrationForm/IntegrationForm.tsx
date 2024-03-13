@@ -41,13 +41,12 @@ import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
 interface FormFields {
-  verbal_name: string;
-  description_short: string;
-  team: string;
-  is_existing: boolean;
-  alert_manager: string;
-  contact_point: string;
-  alerting: string;
+  verbal_name?: string;
+  description_short?: string;
+  team?: string;
+  is_existing?: boolean;
+  alert_manager?: string;
+  contact_point?: string;
   integration: ApiSchemas['AlertReceiveChannel']['integration'];
 
   additional_settings: {
@@ -544,11 +543,7 @@ const GrafanaContactPoint = observer(
               control={control}
               rules={{ required: 'Alert Manager is required' }}
               render={({ field }) => (
-                <Field
-                  key={'AlertManager'}
-                  invalid={!!errors.alert_manager}
-                  error={errors.alert_manager?.message}
-                >
+                <Field key={'AlertManager'} invalid={!!errors.alert_manager} error={errors.alert_manager?.message}>
                   <Select
                     {...field}
                     options={dataSources}
@@ -565,11 +560,7 @@ const GrafanaContactPoint = observer(
               control={control}
               rules={{ required: 'Contact Point is required', validate: contactPointValidator }}
               render={({ field }) => (
-                <Field
-                  key={'contact_point'}
-                  invalid={!!errors.contact_point}
-                  error={errors.contact_point?.message}
-                >
+                <Field key={'contact_point'} invalid={!!errors.contact_point} error={errors.contact_point?.message}>
                   {isExistingContactPoint ? (
                     <Select
                       {...field}
