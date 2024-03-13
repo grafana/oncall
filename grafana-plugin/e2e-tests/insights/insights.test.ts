@@ -21,7 +21,9 @@ test.skip(
 );
 
 test.describe('Insights', () => {
-  test.beforeEach(async ({ adminRolePage: { page, userName } }) => {
+  test.slow();
+
+  test.beforeAll(async ({ adminRolePage: { page, userName } }) => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';
 
@@ -51,7 +53,7 @@ test.describe('Insights', () => {
     );
     await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
     await resolveFiringAlert(page);
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(10000);
   });
 
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
