@@ -143,7 +143,6 @@ jobs:
 
       - name: Tilt CI
         uses: docker://mcr.microsoft.com/playwright:next-jammy
-        # shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
         with:
