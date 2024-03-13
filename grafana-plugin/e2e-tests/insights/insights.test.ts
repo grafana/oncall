@@ -21,7 +21,7 @@ test.skip(
 );
 
 test.describe('Insights', () => {
-  test.beforeAll(async ({ adminRolePage: { page, userName } }) => {
+  test.beforeEach(async ({ adminRolePage: { page, userName } }) => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';
 
