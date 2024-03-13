@@ -34,6 +34,9 @@ jobs:
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-16-cores
+    # TODO: try it instead of installing playwright system dependencies each time
+    container:
+      image: mcr.microsoft.com/playwright:next-jammy
     name: "Grafana: ${{ inputs.grafana-image-tag }}"
     environment:
       name: github-pages
@@ -132,10 +135,10 @@ jobs:
 
       # use the cached browsers, but we still need to install the necessary system dependencies
       # (system deps are installed in the cache-miss step above by the --with-deps flag)
-      - name: Install Playwright System Dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        working-directory: grafana-plugin
-        run: ./node_modules/.bin/playwright install-deps ${{ inputs.browsers }}
+      # - name: Install Playwright System Dependencies
+      #   if: steps.playwright-cache.outputs.cache-hit == 'true'
+      #   working-directory: grafana-plugin
+      #   run: ./node_modules/.bin/playwright install-deps ${{ inputs.browsers }}
 
       - name: Create cluster
         run: |
@@ -143,6 +146,8 @@ jobs:
 
       - name: Tilt CI
         shell: bash
+        # uses:
+        #
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
         run: tilt ci
