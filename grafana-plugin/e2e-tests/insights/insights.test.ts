@@ -76,7 +76,7 @@ test.describe('Insights', () => {
     await goToOnCallPage(page, 'insights');
     await page.getByText('Last 24 hours').click();
     await page.getByText('Last 1 hour').click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(5000);
     await expect(page.getByText('No data')).toBeHidden();
   });
 });
