@@ -9,6 +9,7 @@ type OnCallPage =
   | 'schedules'
   | 'outgoing_webhooks'
   | 'users'
+  | 'users/me'
   | 'insights';
 
 const _goToPage = async (page: Page, url = '') => page.goto(`${BASE_URL}${url}`);
