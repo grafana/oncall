@@ -30,10 +30,7 @@ export default defineConfig({
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1_000, // 20 minutes
 
-  reporter: [
-    ['html', { open: 'never' }],
-    ['json', { outputFile: 'results.json' }],
-  ],
+  reporter: [['html', { open: 'never' }]],
 
   /* Maximum time one test can run for. */
   timeout: 60_000,

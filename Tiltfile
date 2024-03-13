@@ -56,7 +56,6 @@ docker_build_sub(
 local_resource(
     "build-ui",
     labels=["OnCallUI"],
-    # env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080', 'IS_OPEN_SOURCE': 'true' },
     serve_cmd="cd grafana-plugin && yarn watch",
     allow_parallel=True,
 )
@@ -64,7 +63,6 @@ local_resource(
 local_resource(
     "e2e-tests",
     labels=["E2eTests"],
-    # env={ 'ONCALL_API_URL': 'http://oncall-dev-engine:8080', 'IS_OPEN_SOURCE': 'true' },
     cmd="cd grafana-plugin && yarn test:e2e",
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
@@ -110,7 +108,6 @@ cmd_button(
 )
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
-print(yaml)
 
 k8s_yaml(yaml)
 
