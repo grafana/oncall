@@ -143,7 +143,9 @@ jobs:
 
       - name: Tilt CI
         shell: bash
-        run: tilt ci
+        run: |
+          GRAFANA_IMAGE_TAG=${{ inputs.grafana-image-tag }}
+          tilt ci
 
       # - name: Setup Pages
       #   if: failure()

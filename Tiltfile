@@ -2,6 +2,7 @@ load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
+grafana_image_tag = os.getenv("GRAFANA_IMAGE_TAG", "latest")
 is_ci=config.tilt_subcommand == "ci"
 # HELM_PREFIX must be "oncall-dev" as it is hardcoded in dev/helm-local.yml
 HELM_PREFIX = "oncall-dev"
@@ -109,6 +110,7 @@ cmd_button(
 )
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
+print(yaml)
 
 k8s_yaml(yaml)
 
@@ -129,6 +131,7 @@ k8s_resource(
 # Use separate grafana helm chart
 if not running_under_parent_tiltfile:
     grafana(
+        grafana_version=grafana_image_tag,
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
