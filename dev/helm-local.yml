@@ -40,8 +40,6 @@ grafana:
       domain: localhost:3000
       root_url: "%(protocol)s://%(domain)s"
   replicas: 1
-  image:
-    tag: 10.0.2
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
