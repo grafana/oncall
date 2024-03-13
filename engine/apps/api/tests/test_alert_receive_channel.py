@@ -2213,3 +2213,56 @@ def test_connected_alert_receive_channels_delete(
         source_alert_receive_channel.connected_alert_receive_channels.first().connected_alert_receive_channel
         == connected_alert_receive_channel_2
     )
+
+
+@pytest.mark.django_db
+def test_delete_connection_on_channel_delete(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    source_alert_receive_channel = make_alert_receive_channel(organization)
+    connected_alert_receive_channel_1 = make_alert_receive_channel(organization)
+    connected_alert_receive_channel_2 = make_alert_receive_channel(organization)
+
+    make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel_1)
+    make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel_2)
+
+    client = APIClient()
+    source_integration_url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-get",
+        kwargs={
+            "pk": source_alert_receive_channel.public_primary_key,
+        },
+    )
+    connected_integration_url = reverse(
+        "api-internal:alert_receive_channel-connected-alert-receive-channels-get",
+        kwargs={
+            "pk": connected_alert_receive_channel_1.public_primary_key,
+        },
+    )
+    response = client.get(source_integration_url, **make_user_auth_headers(user, token))
+    assert len(response.json()["connected_alert_receive_channels"]) == 2
+    # delete connected integration
+    connected_alert_receive_channel_2.delete()
+
+    response = client.get(source_integration_url, **make_user_auth_headers(user, token))
+    assert len(response.json()["connected_alert_receive_channels"]) == 1
+    assert (
+        response.json()["connected_alert_receive_channels"][0]["alert_receive_channel"]["id"]
+        == connected_alert_receive_channel_1.public_primary_key
+    )
+    # delete source integration
+    response = client.get(connected_integration_url, **make_user_auth_headers(user, token))
+    assert len(response.json()["source_alert_receive_channels"]) == 1
+    assert (
+        response.json()["source_alert_receive_channels"][0]["alert_receive_channel"]["id"]
+        == source_alert_receive_channel.public_primary_key
+    )
+    source_alert_receive_channel.delete()
+
+    response = client.get(connected_integration_url, **make_user_auth_headers(user, token))
+    assert len(response.json()["source_alert_receive_channels"]) == 0

@@ -777,6 +777,9 @@ def listen_for_alertreceivechannel_model_save(
     elif instance.deleted_at:
         if instance.is_alerting_integration:
             disconnect_integration_from_alerting_contact_points.apply_async((instance.pk,), countdown=5)
+        # delete alert receive channel connections
+        instance.connected_alert_receive_channels.all().delete()
+        instance.source_alert_receive_channels.all().delete()
 
         metrics_remove_deleted_integration_from_cache(instance)
     else:
