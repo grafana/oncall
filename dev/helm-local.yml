@@ -35,64 +35,61 @@ externalGrafana:
 
 grafana:
   enabled: false
-
-# grafana:
-#   enabled: false
-#   grafana.ini:
-#     server:
-#       domain: localhost:3000
-#       root_url: "%(protocol)s://%(domain)s"
-#   replicas: 1
-#   image:
-#     tag: 10.0.2
-#   extraInitContainers:
-#     - name: create-db-if-not-exists
-#       image: mysql:8.0.32
-#       command:
-#         # yamllint disable rule:line-length
-#         [
-#           "bash",
-#           "-c",
-#           'while ! mysqladmin ping -h "$DATABASE_HOST" --silent; do echo ''awaiting mysql db to be available'' && sleep 1; done && mysql -h "$DATABASE_HOST" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -e ''CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;''',
-#         ]
-#       # yamllint enable rule:line-length
-#       env:
-#         - name: DATABASE_HOST
-#           value: oncall-dev-mariadb
-#         - name: DATABASE_USER
-#           value: root
-#         - name: DATABASE_PASSWORD
-#           value: oncallpassword
-#   env:
-#     GF_FEATURE_TOGGLES_ENABLE: topnav
-#     GF_SECURITY_ADMIN_PASSWORD: oncall
-#     GF_SECURITY_ADMIN_USER: oncall
-#     GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
-#     GF_DATABASE_TYPE: mysql
-#     GF_DATABASE_HOST: oncall-dev-mariadb:3306
-#     GF_DATABASE_USER: root
-#     GF_DATABASE_SSL_MODE: disable
-#     GF_DATABASE_PASSWORD: oncallpassword
-#   # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
-#   # OnCall plugin rather than the latest published version
-#   plugins: []
-#   # hostPaths are defined in dev/kind.yml
-#   extraVolumeMounts:
-#     - name: plugins
-#       mountPath: /var/lib/grafana/plugins/grafana-plugin
-#       hostPath: /oncall-plugin
-#       readOnly: true
-#     - name: configuration-file
-#       mountPath: /var/lib/grafana/grafana.ini
-#       hostPath: /dev-config/grafana/grafana.dev.ini
-#       readOnly: true
-#     - name: provisioning
-#       mountPath: /var/lib/grafana/provisioning
-#       hostPath: /dev-config/grafana/provisioning
-#       readOnly: true
-#   service:
-#     type: NodePort
-#     nodePort: 30002
+  grafana.ini:
+    server:
+      domain: localhost:3000
+      root_url: "%(protocol)s://%(domain)s"
+  replicas: 1
+  image:
+    tag: 10.0.2
+  extraInitContainers:
+    - name: create-db-if-not-exists
+      image: mysql:8.0.32
+      command:
+        # yamllint disable rule:line-length
+        [
+          "bash",
+          "-c",
+          'while ! mysqladmin ping -h "$DATABASE_HOST" --silent; do echo ''awaiting mysql db to be available'' && sleep 1; done && mysql -h "$DATABASE_HOST" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -e ''CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;''',
+        ]
+      # yamllint enable rule:line-length
+      env:
+        - name: DATABASE_HOST
+          value: oncall-dev-mariadb
+        - name: DATABASE_USER
+          value: root
+        - name: DATABASE_PASSWORD
+          value: oncallpassword
+  env:
+    GF_FEATURE_TOGGLES_ENABLE: topnav
+    GF_SECURITY_ADMIN_PASSWORD: oncall
+    GF_SECURITY_ADMIN_USER: oncall
+    GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+    GF_DATABASE_TYPE: mysql
+    GF_DATABASE_HOST: oncall-dev-mariadb:3306
+    GF_DATABASE_USER: root
+    GF_DATABASE_SSL_MODE: disable
+    GF_DATABASE_PASSWORD: oncallpassword
+  # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
+  # OnCall plugin rather than the latest published version
+  plugins: []
+  # hostPaths are defined in dev/kind.yml
+  extraVolumeMounts:
+    - name: plugins
+      mountPath: /var/lib/grafana/plugins/grafana-plugin
+      hostPath: /oncall-plugin
+      readOnly: true
+    - name: configuration-file
+      mountPath: /var/lib/grafana/grafana.ini
+      hostPath: /dev-config/grafana/grafana.dev.ini
+      readOnly: true
+    - name: provisioning
+      mountPath: /var/lib/grafana/provisioning
+      hostPath: /dev-config/grafana/provisioning
+      readOnly: true
+  service:
+    type: NodePort
+    nodePort: 30002
 
 database:
   type: mysql

@@ -9,7 +9,4 @@ export const GRAFANA_ADMIN_USERNAME = process.env.GRAFANA_ADMIN_USERNAME || 'onc
 export const GRAFANA_ADMIN_PASSWORD = process.env.GRAFANA_ADMIN_PASSWORD || 'oncall';
 
 export const IS_OPEN_SOURCE = (process.env.IS_OPEN_SOURCE || 'true').toLowerCase() === 'true';
-
-console.log({ IS_OPEN_SOURCE, BASE_URL, ONCALL_API_URL: process.env.ONCALL_API_URL });
-
 export const IS_CLOUD = !IS_OPEN_SOURCE;
