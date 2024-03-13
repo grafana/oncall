@@ -34,7 +34,6 @@ jobs:
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-16-cores
-    container: docker://mcr.microsoft.com/playwright:next-jammy
     name: "Grafana: ${{ inputs.grafana-image-tag }}"
     environment:
       name: github-pages
@@ -141,6 +140,9 @@ jobs:
       - name: Create cluster
         run: |
           make cluster/up
+
+      - name: Install Playwright deps
+        uses: docker://mcr.microsoft.com/playwright:next-jammy
 
       - name: Tilt CI
         shell: bash
