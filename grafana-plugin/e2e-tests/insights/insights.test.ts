@@ -70,13 +70,14 @@ test.describe('Insights', () => {
     );
     await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
     await resolveFiringAlert(page);
-    await page.waitForTimeout(10000);
+    // wait for Prometheus to scrape the data
+    await page.waitForTimeout(5000);
 
     // check that we have data in insights panels
     await goToOnCallPage(page, 'insights');
     await page.getByText('Last 24 hours').click();
     await page.getByText('Last 1 hour').click();
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(3000);
     await expect(page.getByText('No data')).toBeHidden();
   });
 });

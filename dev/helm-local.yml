@@ -128,6 +128,9 @@ service:
   nodePort: 30001
 prometheus:
   enabled: true
+  server:
+    global:
+      scrape_interval: 10s
   extraScrapeConfigs: |
     - job_name: 'oncall-exporter'
       metrics_path: /metrics/
