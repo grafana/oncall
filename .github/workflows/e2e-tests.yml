@@ -155,9 +155,9 @@ jobs:
         with:
           path: ./grafana-plugin/playwright-report/
 
-      - uses: daun/playwright-report-summary@v3
-        with:
-          report-file: ./grafana-plugin/results.json
+      # - uses: daun/playwright-report-summary@v3
+      #   with:
+      #     report-file: ./grafana-plugin/results.json
 
       # - name: Deploy to GitHub Pages
       #   if: failure()
