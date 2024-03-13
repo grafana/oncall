@@ -143,10 +143,11 @@ jobs:
 
       - name: Tilt CI
         uses: docker://mcr.microsoft.com/playwright:next-jammy
-        shell: bash
+        # shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
-        run: tilt ci
+        with:
+          args: tilt ci
 
       # - name: Setup Pages
       #   if: failure()
