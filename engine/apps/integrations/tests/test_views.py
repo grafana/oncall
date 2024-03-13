@@ -1,6 +1,7 @@
 from unittest.mock import call, patch
 
 import pytest
+from django import test
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import OperationalError
@@ -12,6 +13,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.integrations.mixins import AlertChannelDefiningMixin
+from apps.integrations.views import UniversalAPIView
 
 # https://github.com/pytest-dev/pytest-xdist/issues/432#issuecomment-528510433
 INTEGRATION_TYPES = sorted(AlertReceiveChannel.INTEGRATION_TYPES)
@@ -84,6 +86,44 @@ def test_integration_universal_endpoint(
             "received_at": now.isoformat(),
         },
     )
+
+
+@patch("apps.integrations.views.create_alert")
+@pytest.mark.parametrize(
+    "integration_type",
+    [
+        arc_type
+        for arc_type in INTEGRATION_TYPES
+        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
+    ],
+)
+@pytest.mark.django_db
+def test_integration_universal_endpoint_no_data(
+    mock_create_alert, make_organization_and_user, make_alert_receive_channel, integration_type
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization,
+        author=user,
+        integration=integration_type,
+    )
+
+    url = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": integration_type, "alert_channel_key": alert_receive_channel.token},
+    )
+    # django test client forces an empty data in the request, build from scratch instead
+    factory = test.RequestFactory()
+    req = factory.post(url)
+    # mimic middlewares setting up metadata
+    req.alert_receive_channel = alert_receive_channel
+    req.data = None
+    integration_view = UniversalAPIView()
+    integration_view.request = req
+    response = integration_view.post(req, integration_type=integration_type)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_create_alert.apply_async.assert_not_called()
 
 
 @patch("apps.integrations.views.create_alertmanager_alerts")
