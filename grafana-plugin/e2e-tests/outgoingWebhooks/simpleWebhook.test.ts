@@ -2,11 +2,11 @@ import express from 'express';
 import ngrok from 'ngrok';
 
 import { expect, test } from '../fixtures';
+import { EscalationStep, createEscalationChain } from '../utils/escalationChain';
 import { clickButton, generateRandomValue } from '../utils/forms';
+import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { goToOnCallPage } from '../utils/navigation';
 import { checkWebhookPresenceInTable } from '../utils/outgoingWebhooks';
-import { EscalationStep, createEscalationChain } from '../utils/escalationChain';
-import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 
 const createWebhook = async ({ page, webhookName, webhookUrl }) => {
   await goToOnCallPage(page, 'outgoing_webhooks');
