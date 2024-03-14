@@ -15,23 +15,20 @@ import {
   Select,
   SelectBaseProps,
 } from '@grafana/ui';
+import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { Text } from 'components/Text/Text';
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
-import { useStore } from 'state/useStore';
-import { observer } from 'mobx-react';
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
-import { toJS } from 'mobx';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
+import { useStore } from 'state/useStore';
+import { URL_REGEX } from 'utils/consts';
+import { OmitReadonlyMembers } from 'utils/types';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
-}
-
-enum FormFieldKeys {
-  ServiceNowUrl = 'servicenow_url',
-  AuthUsername = 'auth_username',
-  AuthPassword = 'auth_password',
 }
 
 enum OnCallAGStatus {
@@ -42,13 +39,30 @@ enum OnCallAGStatus {
 }
 
 interface FormFields {
-  [FormFieldKeys.ServiceNowUrl]: string;
-  [FormFieldKeys.AuthUsername]: string;
-  [FormFieldKeys.AuthPassword]: string;
+  additional_settings: {
+    instance_url: string;
+    username: string;
+    password: string;
+
+    state_mapping?: {
+      firing: string;
+      acknowledged: string;
+      resolved: string;
+      silenced: string;
+    }
+
+    /*
+    state_mapping?: {
+      firing: [number, string];
+      acknowledged: [number, string];
+      resolved: [number, string];
+      silenced: [number, string];
+    };
+    */
+  };
 }
 
 interface StatusMapping {
-  // TODO: Can this be changed to keyof usage?
   [OnCallAGStatus.Firing]?: string;
   [OnCallAGStatus.Resolved]?: string;
   [OnCallAGStatus.Silenced]?: string;
@@ -56,18 +70,26 @@ interface StatusMapping {
 }
 
 export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps> = observer(({ onHide }) => {
+  const styles = useStyles2(getStyles);
+  const { alertReceiveChannelStore } = useStore();
+
+  const integration = useCurrentIntegration();
+
+  const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
+  const [authTestResult, setAuthTestResult] = useState(undefined);
+  const [statusMapping, setStatusMapping] = useState<StatusMapping>({});
+
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm<FormFields>({ mode: 'onChange' });
-
-  const styles = useStyles2(getStyles);
-  const { alertReceiveChannelStore } = useStore();
-  const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
-  const [authTestResult, setAuthTestResult] = useState(undefined);
-
-  const [statusMapping, setStatusMapping] = useState<StatusMapping>({});
+  } = useForm<FormFields>({
+    defaultValues: {
+      additional_settings: { ...integration.additional_settings },
+    },
+    mode: 'onChange',
+  });
 
   const serviceNowAPIToken = 'http://url.com';
 
@@ -89,15 +111,15 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.border}>
             <Controller
-              name={FormFieldKeys.ServiceNowUrl}
+              name={'additional_settings.instance_url'}
               control={control}
               rules={{ required: 'Instance URL is required', validate: validateURL }}
               render={({ field }) => (
                 <Field
                   key={'InstanceURL'}
                   label={'Instance URL'}
-                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
-                  error={errors[FormFieldKeys.ServiceNowUrl]?.message}
+                  invalid={!!errors.additional_settings?.instance_url}
+                  error={errors.additional_settings?.instance_url?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -105,15 +127,15 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             />
 
             <Controller
-              name={FormFieldKeys.AuthUsername}
+              name={'additional_settings.username'}
               control={control}
               rules={{ required: 'Username is required' }}
               render={({ field }) => (
                 <Field
                   key={'AuthUsername'}
                   label={'Username'}
-                  invalid={!!errors[FormFieldKeys.AuthUsername]}
-                  error={errors[FormFieldKeys.AuthUsername]?.message}
+                  invalid={!!errors.additional_settings?.username}
+                  error={errors.additional_settings?.username?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -121,15 +143,15 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             />
 
             <Controller
-              name={FormFieldKeys.AuthPassword}
+              name={'additional_settings.password'}
               control={control}
               rules={{ required: 'Password is required' }}
               render={({ field }) => (
                 <Field
                   key={'AuthPassword'}
                   label={'Password'}
-                  invalid={!!errors[FormFieldKeys.AuthPassword]}
-                  error={errors[FormFieldKeys.AuthPassword]?.message as string}
+                  invalid={!!errors.additional_settings?.password}
+                  error={errors.additional_settings?.password?.message}
                 >
                   <Input {...field} type="password" />
                 </Field>
@@ -176,12 +198,23 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                     <td>Firing</td>
 
                     <td>
-                      <Select
-                        menuShouldPortal
-                        className="select control"
-                        options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
-                        onChange={(option: SelectableValue) => onStatusSelectChange(option, OnCallAGStatus.Firing)}
-                        {...selectCommonProps}
+                      <Controller
+                        name={'additional_settings.state_mapping.firing'}
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            key="state_mapping.firing"
+                            menuShouldPortal
+                            className="select control"
+                            options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
+                            onChange={(option: SelectableValue) => {
+                              onStatusSelectChange(option, OnCallAGStatus.Firing);
+                              setValue('additional_settings.state_mapping.firing', null);
+                            }}
+                            {...selectCommonProps}
+                          />
+                        )}
                       />
                     </td>
                   </tr>
@@ -190,15 +223,23 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                     <td>Acknowledged</td>
 
                     <td>
-                      <Select
-                        menuShouldPortal
-                        className="select control"
-                        disabled={false}
-                        options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
-                        onChange={(option: SelectableValue) =>
-                          onStatusSelectChange(option, OnCallAGStatus.Acknowledged)
-                        }
-                        {...selectCommonProps}
+                      <Controller
+                        name={'additional_settings.state_mapping.acknowledged'}
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            menuShouldPortal
+                            className="select control"
+                            disabled={false}
+                            options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
+                            onChange={(option: SelectableValue) => {
+                              onStatusSelectChange(option, OnCallAGStatus.Acknowledged);
+                              setValue('additional_settings.state_mapping.acknowledged', null);
+                            }}
+                            {...selectCommonProps}
+                          />
+                        )}
                       />
                     </td>
                   </tr>
@@ -206,13 +247,23 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                   <tr>
                     <td>Resolved</td>
                     <td>
-                      <Select
-                        menuShouldPortal
-                        className="select control"
-                        disabled={false}
-                        options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
-                        onChange={(option: SelectableValue) => onStatusSelectChange(option, OnCallAGStatus.Resolved)}
-                        {...selectCommonProps}
+                      <Controller
+                        name={'additional_settings.state_mapping.resolved'}
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            menuShouldPortal
+                            className="select control"
+                            disabled={false}
+                            options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
+                            onChange={(option: SelectableValue) => {
+                              onStatusSelectChange(option, OnCallAGStatus.Resolved);
+                              setValue('additional_settings.state_mapping.resolved', null);
+                            }}
+                            {...selectCommonProps}
+                          />
+                        )}
                       />
                     </td>
                   </tr>
@@ -220,13 +271,23 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                   <tr>
                     <td>Silenced</td>
                     <td>
-                      <Select
-                        menuShouldPortal
-                        className="select control"
-                        disabled={false}
-                        options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
-                        onChange={(option: SelectableValue) => onStatusSelectChange(option, OnCallAGStatus.Silenced)}
-                        {...selectCommonProps}
+                      <Controller
+                        name={'additional_settings.state_mapping.silenced'}
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            menuShouldPortal
+                            className="select control"
+                            disabled={false}
+                            options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
+                            onChange={(option: SelectableValue) => {
+                              onStatusSelectChange(option, OnCallAGStatus.Silenced);
+                              setValue('additional_settings.state_mapping.silenced', null);
+                            }}
+                            {...selectCommonProps}
+                          />
+                        )}
                       />
                     </td>
                   </tr>
@@ -332,11 +393,21 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     });
   }
 
-  function validateURL() {
-    return true;
+  function validateURL(urlFieldValue: string): string | boolean {
+    const regex = new RegExp(URL_REGEX, 'i');
+    return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
   }
 
   function onFormSubmit(formData: FormFields): Promise<void> {
+    console.log({ formData });
+
+    const integrationData: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
+      ...integration,
+      ...formData,
+    };
+
+    console.log({ integrationData });
+
     return undefined;
   }
 });

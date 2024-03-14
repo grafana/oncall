@@ -375,7 +375,6 @@ export const IntegrationForm = observer(
 
     function validateURL(urlFieldValue: string): string | boolean {
       const regex = new RegExp(URL_REGEX, 'i');
-
       return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
