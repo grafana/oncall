@@ -175,7 +175,7 @@ class AlertReceiveChannelView(
         "connected_alert_receive_channels_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "alert_receive_channel_token_get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "alert_receive_channel_token_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "alert_receive_channel_token_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
