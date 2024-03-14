@@ -133,20 +133,18 @@ jobs:
 
       - name: Tilt CI
         shell: bash
-        if: False
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
         run: tilt ci
 
       - name: Tilt CI - expensive E2E tests
-        # if: inputs.run-expensive-tests
+        if: inputs.run-expensive-tests
         shell: bash
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
-          # BASE_URL: http://localhost:30002/grafana
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         run: tilt ci
 
