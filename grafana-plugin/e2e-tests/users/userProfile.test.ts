@@ -9,7 +9,7 @@ test('User can create, copy and revoke ical link', async ({ adminRolePage: { pag
   await page.reload();
 
   await page.getByTestId('revoke-ical-link').click();
-  await page.getByLabel('Are you sure you want to revoke iCal link').getByRole('button', { name: 'Revoke' }).click();
+  await page.getByLabel('Are you sure you want to revoke iCal link').getByText('Revoke', { exact: true }).click();
   await page.reload();
 
   await expect(page.getByTestId('create-ical-link')).toBeVisible();
