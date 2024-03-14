@@ -198,10 +198,7 @@ export const IntegrationForm = observer(
             name={'description_short'}
             control={control}
             render={({ field }) => (
-              <Field
-                key={'Description'}
-                label={'Integration Description'}
-              >
+              <Field key={'Description'} label={'Integration Description'}>
                 <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
             )}
