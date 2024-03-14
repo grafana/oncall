@@ -1,8 +1,7 @@
 export const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 export const MAILSLURP_API_KEY = process.env.MAILSLURP_API_KEY;
 
-console.log('HERE', process.env.GRAFANA_VIEWER_USERNAME);
-console.log('HERE2', process.env.FAKE_VAR);
+console.log('HERE5', process.env.MAILSLURP_API_KEY);
 
 export const GRAFANA_VIEWER_USERNAME = process.env.GRAFANA_VIEWER_USERNAME || 'viewer';
 export const GRAFANA_VIEWER_PASSWORD = process.env.GRAFANA_VIEWER_PASSWORD || 'viewer';

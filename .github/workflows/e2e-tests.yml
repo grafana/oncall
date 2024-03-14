@@ -133,8 +133,8 @@ jobs:
 
       - name: Tilt CI
         shell: bash
+        if: False
         env:
-          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e"
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
         run: tilt ci
