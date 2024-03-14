@@ -44,12 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: TEMPPPP
-        run: ls && cd .. && ls
-
-      - name: TEMPPPP222
-        run: ls
-
       # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
       # - uses: actions/setup-python@v4
       #   with:
@@ -144,7 +138,7 @@ jobs:
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
-        run: cd .. && ls && cd ops-devenv && tilt ci oncall gops-labels
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Tilt CI - expensive E2E tests
         # if: inputs.run-expensive-tests
@@ -154,7 +148,7 @@ jobs:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-        run: tilt ci
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Setup Pages
         if: failure()
