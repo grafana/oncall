@@ -20,7 +20,7 @@ from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
 from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
-from .models.integration_auth_token import IntegrationAuthToken
+from .models.integration_backsync_auth_token import IntegrationBacksyncAuthToken
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -361,9 +361,9 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 
 
 class IntegrationBacksyncAuthentication(BaseAuthentication):
-    model = IntegrationAuthToken
+    model = IntegrationBacksyncAuthToken
 
-    def authenticate(self, request) -> Tuple[ServerUser, IntegrationAuthToken]:
+    def authenticate(self, request) -> Tuple[ServerUser, IntegrationBacksyncAuthToken]:
         token = get_authorization_header(request).decode("utf-8")
 
         if not token:
@@ -371,7 +371,7 @@ class IntegrationBacksyncAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(token)
 
-    def authenticate_credentials(self, token_string: str) -> Tuple[ServerUser, IntegrationAuthToken]:
+    def authenticate_credentials(self, token_string: str) -> Tuple[ServerUser, IntegrationBacksyncAuthToken]:
         try:
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:

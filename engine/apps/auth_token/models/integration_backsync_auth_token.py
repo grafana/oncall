@@ -8,7 +8,7 @@ from apps.auth_token.models import BaseAuthToken
 from apps.user_management.models import Organization
 
 
-class IntegrationAuthToken(BaseAuthToken):
+class IntegrationBacksyncAuthToken(BaseAuthToken):
     alert_receive_channel = models.ForeignKey(
         "alerts.AlertReceiveChannel",
         on_delete=models.CASCADE,
@@ -23,7 +23,7 @@ class IntegrationAuthToken(BaseAuthToken):
         cls,
         alert_receive_channel: AlertReceiveChannel,
         organization: Organization,
-    ) -> Tuple["IntegrationAuthToken", str]:
+    ) -> Tuple["IntegrationBacksyncAuthToken", str]:
         old_token = cls.objects.filter(alert_receive_channel=alert_receive_channel)
         if old_token.exists():
             old_token.delete()

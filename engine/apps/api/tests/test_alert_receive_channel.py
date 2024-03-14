@@ -2332,13 +2332,13 @@ def test_alert_receive_channel_api_token_get(
     alert_receive_channel = make_alert_receive_channel(organization)
 
     url = reverse(
-        "api-internal:alert_receive_channel-alert-receive-channel-token-get",
+        "api-internal:alert_receive_channel-backsync-token-get",
         kwargs={"pk": alert_receive_channel.public_primary_key},
     )
     client = APIClient()
 
     with patch(
-        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.alert_receive_channel_token_get",
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.backsync_token_get",
         return_value=Response(
             status=status.HTTP_200_OK,
         ),
@@ -2369,13 +2369,13 @@ def test_alert_receive_channel_api_token_post(
     alert_receive_channel = make_alert_receive_channel(organization)
 
     url = reverse(
-        "api-internal:alert_receive_channel-alert-receive-channel-token-post",
+        "api-internal:alert_receive_channel-backsync-token-post",
         kwargs={"pk": alert_receive_channel.public_primary_key},
     )
     client = APIClient()
 
     with patch(
-        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.alert_receive_channel_token_post",
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.backsync_token_post",
         return_value=Response(
             status=status.HTTP_201_CREATED,
         ),
@@ -2396,13 +2396,13 @@ def test_integration_api_token(
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
     get_token_url = reverse(
-        "api-internal:alert_receive_channel-alert-receive-channel-token-get",
+        "api-internal:alert_receive_channel-backsync-token-get",
         kwargs={
             "pk": alert_receive_channel.public_primary_key,
         },
     )
     post_token_url = reverse(
-        "api-internal:alert_receive_channel-alert-receive-channel-token-post",
+        "api-internal:alert_receive_channel-backsync-token-post",
         kwargs={
             "pk": alert_receive_channel.public_primary_key,
         },

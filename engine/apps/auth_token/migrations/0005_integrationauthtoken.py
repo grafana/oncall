@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='IntegrationAuthToken',
+            name='IntegrationBacksyncAuthToken',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('token_key', models.CharField(db_index=True, max_length=8)),
