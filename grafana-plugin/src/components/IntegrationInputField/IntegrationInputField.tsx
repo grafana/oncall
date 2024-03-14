@@ -47,13 +47,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   );
 
   function renderInputField() {
-    return (
-      <Input
-        className={inputClassName}
-        value={isInputMasked ? value?.replace(/./g, '*') : value}
-        disabled
-      />
-    );
+    return <Input className={inputClassName} value={isInputMasked ? value?.replace(/./g, '*') : value} disabled />;
   }
 
   function onInputReveal() {

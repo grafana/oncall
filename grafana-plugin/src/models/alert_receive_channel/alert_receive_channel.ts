@@ -76,14 +76,13 @@ export class AlertReceiveChannelStore {
       body: data as ApiSchemas['AlertReceiveChannelUpdate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
-    
+
     runInAction(() => {
       this.items = {
         ...this.items,
-        [id]: { ...result.data }
-      }
-    })
-
+        [id]: { ...result.data },
+      };
+    });
   }
 
   async fetchItemById(
