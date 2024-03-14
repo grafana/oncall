@@ -34,6 +34,7 @@ from apps.api.serializers.webhook import WebhookSerializer
 from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.models.integration_auth_token import IntegrationAuthToken
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
@@ -174,6 +175,8 @@ class AlertReceiveChannelView(
         "connected_alert_receive_channels_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "alert_receive_channel_token_get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "alert_receive_channel_token_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -766,3 +769,43 @@ class AlertReceiveChannelView(
 
         connection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(
+        methods=["get"],
+        responses=inline_serializer(
+            name="IntegrationTokenGetResponse",
+            fields={
+                "created_at": serializers.DateTimeField(),
+            },
+        ),
+    )
+    @action(detail=True, methods=["get"], url_path="api_token")
+    def alert_receive_channel_token_get(self, request, pk):
+        instance = self.get_object()
+        try:
+            token = IntegrationAuthToken.objects.get(
+                alert_receive_channel=instance, organization=request.auth.organization
+            )
+        except IntegrationAuthToken.DoesNotExist:
+            raise NotFound
+
+        data = {"created_at": token.created_at}
+        return Response(data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        methods=["post"],
+        responses=inline_serializer(
+            name="IntegrationTokenPostResponse",
+            fields={
+                "token": serializers.CharField(),
+                "created_at": serializers.DateTimeField(),
+            },
+        ),
+    )
+    @action(detail=True, methods=["post"], url_path="api_token")
+    @alert_receive_channel_token_get.mapping.post
+    def alert_receive_channel_token_post(self, request, pk):
+        instance = self.get_object()
+        instance, token = IntegrationAuthToken.create_auth_token(instance, request.auth.organization)
+        data = {"token": token, "created_at": instance.created_at}
+        return Response(data, status=status.HTTP_201_CREATED)
