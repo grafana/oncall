@@ -197,13 +197,10 @@ export const IntegrationForm = observer(
           <Controller
             name={'description_short'}
             control={control}
-            rules={{ required: 'Description is required' }}
             render={({ field }) => (
               <Field
                 key={'Description'}
                 label={'Integration Description'}
-                invalid={!!errors.description_short}
-                error={errors.description_short?.message}
               >
                 <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
