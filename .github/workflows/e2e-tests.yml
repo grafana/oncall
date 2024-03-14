@@ -44,6 +44,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: TEST1
+        uses: actions/checkout@v4
+        with:
+          repository: grafana/ops-devenv
+          path: ../ops-devenv
+
+      - name: TEST2
+        run: cd .. && ls
+
       # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
       # - uses: actions/setup-python@v4
       #   with:
@@ -130,8 +139,8 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      - name: Setup Ops-DevEnv
-        run: git clone git@github.com:grafana/ops-devenv.git
+      # - name: Setup Ops-DevEnv
+      #   run: git clone git@github.com:grafana/ops-devenv.git
 
       - name: Tilt CI
         shell: bash
