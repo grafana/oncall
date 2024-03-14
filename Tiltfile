@@ -79,7 +79,6 @@ cmd_button(
     inputs=[
         text_input("BROWSERS", "Browsers (e.g. \"chromium,firefox,webkit\")", "chromium", "chromium,firefox,webkit"),
         text_input("TESTS_FILTER", "Test filter (e.g. \"timezones.test quality.test\")", "", "Test file names to run"), 
-        bool_input("REPORTER", "Use HTML reporter", False, 'html', 'line'),
         bool_input("STOP_ON_FIRST_FAILURE", "Stop on first failure", True, "-x", ""),
     ]
 )

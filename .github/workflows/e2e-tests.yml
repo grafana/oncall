@@ -109,7 +109,6 @@ jobs:
 
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
-
       - name: Get installed Playwright version
         id: playwright-version
         working-directory: grafana-plugin
