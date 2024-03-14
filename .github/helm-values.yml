@@ -6,6 +6,8 @@ env:
     value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
+  - name: DANGEROUS_WEBHOOKS_ENABLED
+    value: "True"
 image:
   repository: oncall/engine
   tag: latest

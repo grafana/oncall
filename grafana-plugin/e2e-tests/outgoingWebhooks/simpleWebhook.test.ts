@@ -1,5 +1,4 @@
 import express from 'express';
-import ngrok from 'ngrok';
 
 import { expect, test } from '../fixtures';
 import { EscalationStep, createEscalationChain } from '../utils/escalationChain';
@@ -38,8 +37,7 @@ test.describe('simple webhook', () => {
 
     /**
      * This is a simple express server that listens for outgoing webhook requests
-     * ngrok is used to expose this server to the internet, to make it easier for the backend to be able to send
-     * requests to it
+     * The backend is able to communicate with it via host.docker.internal (docker -> host communication)
      */
     let resolveRequest: (value: unknown) => void;
     const requestPromise = new Promise<any>((resolve) => {
@@ -54,7 +52,11 @@ test.describe('simple webhook', () => {
     });
     app.listen(PORT);
 
-    const webhookUrl = await ngrok.connect(PORT);
+    /**
+     * TODO: this might need to be parametrized to be read from an env var
+     * rather than hardcoding the hostname to be host.docker.internal
+     */
+    const webhookUrl = `http://host.docker.internal:${PORT}`;
     const webhookName = generateRandomValue();
 
     await createWebhook({ page, webhookName, webhookUrl });

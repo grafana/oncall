@@ -99,7 +99,6 @@
     "lodash-es": "^4.17.21",
     "mailslurp-client": "^15.14.1",
     "moment-timezone": "^0.5.35",
-    "ngrok": "^5.0.0-beta.2",
     "openapi-typescript": "^7.0.0-next.4",
     "plop": "^2.7.4",
     "postcss-loader": "^7.0.1",
