@@ -194,7 +194,7 @@ jobs:
         run: yarn test:e2e
 
       - name: Run expensive e2e Tests
-        if: inputs.run-expensive-tests
+        # if: inputs.run-expensive-tests
         env:
           BASE_URL: http://localhost:30002/grafana
           ONCALL_API_URL: http://172.17.0.1:30001
