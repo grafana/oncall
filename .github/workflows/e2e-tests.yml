@@ -140,7 +140,7 @@ jobs:
         if: inputs.run-expensive-tests
         shell: bash
         env:
-          RUN_EXPENSIVE_TESTS: true
+          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           # BASE_URL: http://localhost:30002/grafana
           # ONCALL_API_URL: http://172.17.0.1:30001
