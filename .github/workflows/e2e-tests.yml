@@ -44,6 +44,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: TEMPPPP
+        run: ls && cd .. && ls
+
+      - name: TEMPPPP222
+        run: ls
+
       # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
       # - uses: actions/setup-python@v4
       #   with:
@@ -130,15 +136,18 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
+      - name: Setup Ops-DevEnv
+        run: git clone git@github.com:grafana/ops-devenv.git
+
       - name: Tilt CI
         shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
-        run: tilt ci
+        run: cd .. && ls && cd ops-devenv && tilt ci oncall gops-labels
 
       - name: Tilt CI - expensive E2E tests
-        if: inputs.run-expensive-tests
+        # if: inputs.run-expensive-tests
         shell: bash
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
