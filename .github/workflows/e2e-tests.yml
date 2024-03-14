@@ -123,20 +123,6 @@ jobs:
           path: "~/.cache/ms-playwright"
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
-      # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
-      # due to this bug (https://github.com/microsoft/playwright/issues/13188)
-      # - name: Install Playwright Browsers
-      #   if: steps.playwright-cache.outputs.cache-hit != 'true'
-      #   working-directory: grafana-plugin
-      #   run: ./node_modules/.bin/playwright install --with-deps ${{ inputs.browsers }}
-
-      # use the cached browsers, but we still need to install the necessary system dependencies
-      # (system deps are installed in the cache-miss step above by the --with-deps flag)
-      # - name: Install Playwright System Dependencies
-      #   if: steps.playwright-cache.outputs.cache-hit == 'true'
-      #   working-directory: grafana-plugin
-      #   run: ./node_modules/.bin/playwright install-deps ${{ inputs.browsers }}
-
       - name: Create cluster
         run: |
           make cluster/up
@@ -150,9 +136,9 @@ jobs:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
         run: tilt ci
 
-      # - name: Setup Pages
-      #   if: failure()
-      #   uses: actions/configure-pages@v2
+      - name: Setup Pages
+        if: failure()
+        uses: actions/configure-pages@v2
 
       - name: Upload artifact
         if: failure()
@@ -160,12 +146,12 @@ jobs:
         with:
           path: ./grafana-plugin/playwright-report/
 
-      # - name: Deploy to GitHub Pages
-      #   if: failure()
-      #   id: deployment
-      #   uses: actions/deploy-pages@v3
-      #   with:
-      #     preview: true
+      - name: Deploy to GitHub Pages
+        if: failure()
+        id: deployment
+        uses: actions/deploy-pages@v3
+        with:
+          preview: true
 
       - name: Linked Github Page
         if: failure()
