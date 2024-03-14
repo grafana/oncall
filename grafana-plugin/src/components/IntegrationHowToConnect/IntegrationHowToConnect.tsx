@@ -62,6 +62,7 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
               {url && (
                 <IntegrationInputField
                   value={url}
+                  isMasked
                   className={cx('integration__input-field')}
                   showExternal={!!item?.integration_url}
                 />
