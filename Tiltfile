@@ -3,6 +3,7 @@ running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
 grafana_image_tag = os.getenv("GRAFANA_IMAGE_TAG", "latest")
+run_expensive_tests = os.getenv("RUN_EXPENSIVE_TESTS", "false") == "true"
 is_ci=config.tilt_subcommand == "ci"
 # HELM_PREFIX must be "oncall-dev" as it is hardcoded in dev/helm-local.yml
 HELM_PREFIX = "oncall-dev"
@@ -60,10 +61,11 @@ local_resource(
     allow_parallel=True,
 )
 
+e2e_tests_cmd="cd grafana-plugin && yarn test:e2e" + "-expensive" if run_expensive_tests else ""
 local_resource(
     "e2e-tests",
     labels=["E2eTests"],
-    cmd="cd grafana-plugin && yarn test:e2e",
+    cmd=e2e_tests_cmd,
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
     resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
@@ -162,6 +164,5 @@ k8s_resource(
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):
     return id.name.replace(HELM_PREFIX + "-", "")
-
 
 workload_to_resource_function(resource_name)

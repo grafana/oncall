@@ -136,6 +136,24 @@ jobs:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
         run: tilt ci
 
+      - name: Tilt CI - expensive E2E tests
+        if: inputs.run-expensive-tests
+        shell: bash
+        env:
+          RUN_EXPENSIVE_TESTS: true
+          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          # BASE_URL: http://localhost:30002/grafana
+          # ONCALL_API_URL: http://172.17.0.1:30001
+          GRAFANA_ADMIN_USERNAME: oncall
+          GRAFANA_ADMIN_PASSWORD: oncall
+          GRAFANA_EDITOR_USERNAME: editor
+          GRAFANA_EDITOR_PASSWORD: editor
+          GRAFANA_VIEWER_USERNAME: viewer
+          GRAFANA_VIEWER_PASSWORD: viewer
+          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+          FAKE_VAR: fake_var
+        run: tilt ci
+
       - name: Setup Pages
         if: failure()
         uses: actions/configure-pages@v2
