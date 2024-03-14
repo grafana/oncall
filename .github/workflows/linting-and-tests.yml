@@ -132,18 +132,18 @@ jobs:
           python manage.py makemigrations --check
           python manage.py lintmigrations
 
-  # unit-test-helm-chart:
-  #   name: "Helm Chart Unit Tests"
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: azure/setup-helm@v3
-  #       with:
-  #         version: v3.8.0
-  #     - name: Install helm unittest plugin
-  #       run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version=v0.3.3
-  #     - name: Run tests
-  #       run: helm unittest ./helm/oncall
+  unit-test-helm-chart:
+    name: "Helm Chart Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: azure/setup-helm@v3
+        with:
+          version: v3.8.0
+      - name: Install helm unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version=v0.3.3
+      - name: Run tests
+        run: helm unittest ./helm/oncall
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
