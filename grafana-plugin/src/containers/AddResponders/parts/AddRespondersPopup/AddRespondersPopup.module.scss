@@ -39,7 +39,7 @@
 .table {
   max-height: 150px;
   overflow: auto;
-  padding: 4px 0px;
+  padding: 4px 0;
 
   & tr:hover {
     background: var(--background-secondary) !important;

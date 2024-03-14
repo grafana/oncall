@@ -10,6 +10,7 @@
   &__box:first-child {
     margin-right: 8px;
   }
+
   &__box:last-child {
     margin-left: 8px;
   }
@@ -64,8 +65,8 @@
     display: block;
   }
 
-  i { // Overwrite Grafana's loading icon
+  i {
+    // Overwrite Grafana's loading icon
     font-size: 32px;
   }
-
 }
