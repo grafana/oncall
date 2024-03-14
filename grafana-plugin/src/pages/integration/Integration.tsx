@@ -67,6 +67,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { useDrawer } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
@@ -807,6 +808,8 @@ interface IntegrationActionsProps {
   changeIsTemplateSettingsOpen: () => void;
 }
 
+type IntegrationDrawerKey = 'servicenow';
+
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   isLegacyIntegration,
@@ -828,7 +831,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     onConfirm: () => void;
   }>(undefined);
 
-  const [isServiceNowConfigOpen, setServiceNowConfigOpen] = useState(false);
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
   const [isLabelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
@@ -837,6 +839,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     disabled: boolean;
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
+
+  const { closeDrawer, openDrawer, getIsDrawerOpened } = useDrawer<IntegrationDrawerKey>();
 
   const { id } = alertReceiveChannel;
 
@@ -864,7 +868,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {isServiceNowConfigOpen && <ServiceNowConfigDrawer onHide={() => setServiceNowConfigOpen(false)} />}
+      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={() => closeDrawer()} />}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
@@ -933,7 +937,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               {
                 label: 'ServiceNow configuration',
                 hidden: !getIsBidirectionalIntegration(alertReceiveChannel),
-                onClick: openServiceNowConfigDrawer,
+                onClick: () => openDrawer('servicenow'),
               },
               {
                 onClick: openLabelsForm,
@@ -1099,10 +1103,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
   function openLabelsForm() {
     setLabelsFormOpen(true);
-  }
-
-  function openServiceNowConfigDrawer() {
-    setServiceNowConfigOpen(true);
   }
 
   function openStartMaintenance() {
