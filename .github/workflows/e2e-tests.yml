@@ -41,11 +41,10 @@ jobs:
       id-token: write
       pages: "write"
     steps:
-      - name: Checkout grafana-plugin-examples repo
+      - name: Checkout ops-devenv
         uses: actions/checkout@v4
         with:
           repository: grafana/ops-devenv
-          # path: grafana-plugin-examples
           ref: "main"
 
       - name: Checkout
