@@ -1,5 +1,5 @@
 import json
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, Mock, patch
 
 import pytest
 from django.urls import reverse
@@ -1877,6 +1877,49 @@ def test_update_other_integration_additional_settings(
     }
     response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_create_integration_default_webhooks(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    integration = AlertReceiveChannel._config[0]
+    integration.additional_settings_serializer = AdditionalSettingsTestSerializer
+    integration.create_default_webhooks = Mock()
+
+    client = APIClient()
+    response = client.post(
+        path=reverse("api-internal:alert_receive_channel-list"),
+        data={
+            "integration": integration.slug,
+            "team": None,
+            "additional_settings": {"instance_url": "test"},
+        },
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
+    integration.create_default_webhooks.assert_called_once_with(alert_receive_channel)
+    integration.create_default_webhooks.reset_mock()
+
+    # Create without default webhooks
+    response = client.post(
+        path=reverse("api-internal:alert_receive_channel-list"),
+        data={
+            "integration": integration.slug,
+            "team": None,
+            "additional_settings": {"instance_url": "test"},
+            "create_default_webhooks": False,
+        },
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    integration.create_default_webhooks.assert_not_called()
 
 
 def _webhook_data(webhook_id=ANY, webhook_name=ANY, webhook_url=ANY, alert_receive_channel_id=ANY):
