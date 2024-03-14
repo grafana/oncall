@@ -8,6 +8,7 @@ import {
   Icon,
   Input,
   Label,
+  LoadingPlaceholder,
   RadioButtonGroup,
   Select,
   Switch,
@@ -29,12 +30,14 @@ import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
+import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
@@ -130,6 +133,8 @@ export const IntegrationForm = observer(
       handleSubmit,
       formState: { errors },
     } = formMethods;
+
+    const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
 
     const [
       {
@@ -363,9 +368,7 @@ export const IntegrationForm = observer(
               )}
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <Button type="submit" data-testid="update-integration-button">
-                  {id === 'new' ? 'Create' : 'Update'} Integration
-                </Button>
+                {renderUpdateIntegrationButton(id)}
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
@@ -373,9 +376,18 @@ export const IntegrationForm = observer(
       </FormProvider>
     );
 
+    function renderUpdateIntegrationButton(id: string) {
+      const buttonCopy: string = id === 'new' ? 'Create Integration' : 'Update Integration';
+
+      return (
+        <Button type="submit" data-testid="update-integration-button">
+          {isLoading ? <LoadingPlaceholder text="Loading..." className={styles.loader} /> : buttonCopy}
+        </Button>
+      );
+    }
+
     function validateURL(urlFieldValue: string): string | boolean {
       const regex = new RegExp(URL_REGEX, 'i');
-
       return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 

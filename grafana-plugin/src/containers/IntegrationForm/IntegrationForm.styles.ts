@@ -58,6 +58,10 @@ export const getIntegrationFormStyles = (theme: GrafanaTheme2) => {
       margin-bottom: 20px;
     `,
 
+    loader: css`
+      margin-bottom: 0;
+    `,
+
     // TODO: figure out grafana bug on border
     textarea: css``,
   };

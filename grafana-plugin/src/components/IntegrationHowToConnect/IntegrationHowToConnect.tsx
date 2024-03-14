@@ -101,7 +101,7 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
         {!hasAlerts && (
           <HorizontalGroup spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
+            <Text type={'primary'}>No alerts yet</Text> {callToAction()}
           </HorizontalGroup>
         )}
       </VerticalGroup>

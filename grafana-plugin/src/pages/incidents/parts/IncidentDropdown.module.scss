@@ -36,9 +36,11 @@
   &--acknowledge {
     color: var(--tag-warning);
   }
+
   &--firing {
     color: var(--error-text-color);
   }
+
   &--resolve {
     color: var(--success-text-color);
   }
