@@ -60,6 +60,7 @@ export class AlertReceiveChannelStore {
     return result.data;
   }
 
+  @AutoLoadingState(ActionKey.UPDATE_INTEGRATION)
   @WithGlobalNotification({ failure: 'There was an issue updating Integration. Please try again.' })
   async update({
     id,
@@ -75,7 +76,14 @@ export class AlertReceiveChannelStore {
       body: data as ApiSchemas['AlertReceiveChannelUpdate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
-    return result.data;
+    
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: { ...result.data }
+      }
+    })
+
   }
 
   async fetchItemById(

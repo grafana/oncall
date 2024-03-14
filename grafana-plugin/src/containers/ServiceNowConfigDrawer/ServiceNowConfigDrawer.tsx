@@ -21,11 +21,14 @@ import { Controller, useForm } from 'react-hook-form';
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
+import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
 import { URL_REGEX } from 'utils/consts';
+import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
+import { openNotification } from 'utils/utils';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -49,16 +52,7 @@ interface FormFields {
       acknowledged: string;
       resolved: string;
       silenced: string;
-    }
-
-    /*
-    state_mapping?: {
-      firing: [number, string];
-      acknowledged: [number, string];
-      resolved: [number, string];
-      silenced: [number, string];
     };
-    */
   };
 }
 
@@ -92,6 +86,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   });
 
   const serviceNowAPIToken = 'http://url.com';
+  const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
 
   useEffect(() => {
     (async () => {
@@ -350,8 +345,8 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
               <Button variant="secondary" onClick={onHide}>
                 Close
               </Button>
-              <Button variant="primary" type="submit">
-                Update
+              <Button variant="primary" type="submit" disabled={isLoading}>
+                {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Update'}
               </Button>
             </HorizontalGroup>
           </div>
@@ -398,17 +393,17 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
   }
 
-  function onFormSubmit(formData: FormFields): Promise<void> {
-    console.log({ formData });
-
-    const integrationData: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
+  async function onFormSubmit(formData: FormFields): Promise<void> {
+    const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
       ...integration,
       ...formData,
     };
 
-    console.log({ integrationData });
+    await alertReceiveChannelStore.update({ id: integration.id, data });
 
-    return undefined;
+    openNotification('ServiceNow configuration has been updated');
+
+    onHide();
   }
 });
 
