@@ -44,8 +44,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: TEST1
-        run: git clone https://github.com/grafana/ops-devenv.git
+      # - name: TEST1
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: grafana/ops-devenv
+      #     path: ../ops-devenv
 
       - name: TEST2
         run: cd .. && ls
