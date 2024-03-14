@@ -44,14 +44,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - name: TEST1
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: grafana/ops-devenv
-      #     path: ../ops-devenv
+      - name: Checkout grafana-plugin-examples repo
+        uses: actions/checkout@v4
+        with:
+          repository: grafana/ops-devenv
+          # path: grafana-plugin-examples
+          ref: "main"
 
       - name: TEST2
-        run: cd .. && ls
+        run: ls && cd .. && ls
 
       # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
       # - uses: actions/setup-python@v4
