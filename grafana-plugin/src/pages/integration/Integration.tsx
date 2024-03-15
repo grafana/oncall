@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { LabelTag } from '@grafana/labels';
 import {
@@ -73,6 +73,8 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
+import { CompleteServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigDrawer';
+import { useCurrentIntegration } from './OutgoingTab/OutgoingTab.hooks';
 
 const cx = cn.bind(styles);
 
@@ -808,7 +810,7 @@ interface IntegrationActionsProps {
   changeIsTemplateSettingsOpen: () => void;
 }
 
-type IntegrationDrawerKey = 'servicenow';
+type IntegrationDrawerKey = 'servicenow' | 'completeConfig';
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
@@ -844,6 +846,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
   const { id } = alertReceiveChannel;
 
+  useEffect(() => {
+    /* ServiceNow Only */
+    openServiceNowCompleteConfigurationDrawer();
+  }, []);
+
   return (
     <>
       {confirmModal && (
@@ -868,7 +875,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={() => closeDrawer()} />}
+      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={closeDrawer} />}
+
+      {getIsDrawerOpened('completeConfig') && <CompleteServiceNowConfigDrawer onHide={closeDrawer} />}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
@@ -1059,6 +1068,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       </div>
     </>
   );
+
+  function openServiceNowCompleteConfigurationDrawer() {
+    const isServiceNow = getIsBidirectionalIntegration(alertReceiveChannel);
+    const isConfigured = alertReceiveChannel.additional_settings?.is_configured;
+    if (isServiceNow && !isConfigured) {
+      openDrawer('completeConfig');
+    }
+  }
 
   function getMigrationDisplayName() {
     const name = alertReceiveChannel.integration.toLowerCase().replace('legacy_', '');

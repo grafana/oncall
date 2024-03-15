@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { Drawer } from '@grafana/ui';
+import { Button, Drawer, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { useForm } from 'react-hook-form';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonServiceNowConfig, ServiceNowStatusMapping } from './CommonServiceNowConfig';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Text } from 'components/Text/Text';
+import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
+import { css } from '@emotion/css';
+import { getCommonServiceNowConfigStyles } from './CommonServiceNowConfig.styles';
+import { useStore } from 'state/useStore';
 
 interface CompleteServiceNowConfigDrawerProps {
   onHide: () => void;
@@ -14,7 +20,14 @@ interface FormFields {
 
 export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDrawerProps> = ({ onHide }) => {
   const { handleSubmit } = useForm<FormFields>();
+  const { alertReceiveChannelStore } = useStore();
   const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
+
+  const styles = useStyles2(getStyles);
+  const serviceNowAPIToken = ''; // TODO
+  const onTokenRegenerate = () => {}; // TODO
+
+  const isLoading = false; // TODO
 
   return (
     <Drawer title="Complete ServiceNow configuration" onClose={onHide} closeOnMaskClick={false} size="md">
@@ -51,9 +64,26 @@ export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDr
             </div>
           </VerticalGroup>
         </div>
+
+        <div>
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={onHide}>
+              Close
+            </Button>
+            <Button variant="primary" type="submit" disabled={isLoading}>
+              {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Proceed'}
+            </Button>
+          </HorizontalGroup>
+        </div>
       </form>
     </Drawer>
   );
 
   function onFormSubmit(data: FormFields) {}
+};
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    ...getCommonServiceNowConfigStyles(theme),
+  };
 };

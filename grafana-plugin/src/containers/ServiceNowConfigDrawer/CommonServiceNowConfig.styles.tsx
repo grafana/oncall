@@ -24,5 +24,9 @@ export const getCommonServiceNowConfigStyles = (theme: GrafanaTheme2) => {
     tokenIcons: css`
       top: 10px !important;
     `,
+
+    loader: css`
+      margin-bottom: 0;
+    `,
   };
-}
+};
