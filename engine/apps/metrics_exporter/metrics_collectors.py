@@ -214,9 +214,11 @@ class ApplicationMetricsCollector:
         oncall_users = get_cached_oncall_users_for_multiple_schedules(schedules)
         # Add metrics for each user and team combination in the schedule
         for schedule, users in oncall_users.items():
+            # Get the team name or set it to None if team is None
+            team_name = schedule.team.name if schedule.team else "No team"
             # Add metrics for each user and team combination in the schedule
             for user in users:
-                metrics_schedule.add_metric([schedule.name, schedule.team.name, user.username], 1)
+                metrics_schedule.add_metric([schedule.name, team_name, user.username], 1)
         return metrics_schedule, []
 
 application_metrics_registry.register(ApplicationMetricsCollector())
