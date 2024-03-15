@@ -6,7 +6,6 @@ from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
-from requests.exceptions import RequestException
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -50,7 +49,12 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
-from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import (
+    MaintenanceCouldNotBeStartedError,
+    TeamCanNotBeChangedError,
+    TestConnectionError,
+    UnableToSendDemoAlert,
+)
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -287,8 +291,8 @@ class AlertReceiveChannelView(
         if test_connection_func:
             try:
                 test_connection_func(instance)
-            except RequestException as e:
-                raise BadRequest(detail=str(e))
+            except TestConnectionError as e:
+                raise BadRequest(detail=e.error_msg)
 
         return Response(status=status.HTTP_200_OK)
 

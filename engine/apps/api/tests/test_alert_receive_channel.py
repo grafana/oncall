@@ -3,7 +3,6 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 from django.urls import reverse
-from requests.exceptions import HTTPError
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
@@ -11,6 +10,7 @@ from rest_framework.test import APIClient
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 from apps.labels.models import LabelKeyCache, LabelValueCache
+from common.exceptions import TestConnectionError
 
 
 class AdditionalSettingsTestSerializer(serializers.Serializer):
@@ -1962,7 +1962,7 @@ def test_alert_receive_channel_test_connection(
 
     # test error
     def testing_error(instance):
-        raise HTTPError("Error!")
+        raise TestConnectionError(error_msg="Error!")
 
     with patch.object(integration_config, "test_connection", side_effect=testing_error, create=True):
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
