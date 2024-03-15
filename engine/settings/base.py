@@ -642,7 +642,14 @@ AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
     "django.contrib.auth.backends.ModelBackend",
+    "social_core.backends.google.GoogleOAuth2",
 ]
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "TODOTODO")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET", "TODOTODO")
+# TODO: what is proper the default here?
+# https://developers.google.com/identity/protocols/oauth2/scopes#calendar
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = getenv_list("SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE", default=["https://www.googleapis.com/auth/calendar.events.readonly"])
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
@@ -678,6 +685,11 @@ SOCIAL_AUTH_PIPELINE = (
     "apps.social_auth.pipeline.connect_user_to_slack",
     "apps.social_auth.pipeline.populate_slack_identities",
     "apps.social_auth.pipeline.delete_slack_auth_token",
+)
+
+SOCIAL_AUTH_GOOGLE_PIPELINE = (
+    # TODO:
+    "apps.social_auth.pipeline.google_oauth_testing"
 )
 
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION: typing.List[str] = []

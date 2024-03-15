@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
-import { InlineField, Input, Legend } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, InlineField, Input, Legend } from '@grafana/ui';
+import cn from 'classnames/bind';
 
 import { GrafanaTeamSelect } from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+
+import styles from './UserInfoTab.module.css';
+import { makeRequest } from 'network/network';
+
+const cx = cn.bind(styles);
 
 interface UserInfoTabProps {
   id: ApiSchemas['User']['pk'];
@@ -21,6 +27,12 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
 
   const storeUser = userStore.items[id];
   let width = 15;
+
+  const handleOpenGoogleInstructions = useCallback(async () => {
+    console.log('TODO');
+    const url_for_redirect = await makeRequest('/login/google-oauth2/', {});
+    window.location = url_for_redirect;
+  }, []);
 
   return (
     <>
@@ -57,6 +69,11 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       </InlineField>
       <Legend>Notification channels</Legend>
       <Connectors {...props} />
+      <Button onClick={handleOpenGoogleInstructions}>
+        <HorizontalGroup spacing="xs" align="center">
+          <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
+        </HorizontalGroup>
+      </Button>
     </>
   );
 };

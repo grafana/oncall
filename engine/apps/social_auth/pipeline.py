@@ -116,3 +116,7 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
 
 def delete_slack_auth_token(strategy, *args, **kwargs):
     strategy.request.auth.delete()
+
+# TODO:
+def google_oauth_testing(*args, **kwargs):
+    print("google_oauth_testing", args, kwargs)
