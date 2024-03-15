@@ -31,7 +31,7 @@ def test_complete_slack_auth_redirect_ok(
 
     client = APIClient()
     url = (
-        reverse("api-internal:complete-slack-auth", kwargs={"backend": backend_name})
+        reverse("api-internal:complete-social-auth", kwargs={"backend": backend_name})
         + f"?{SLACK_AUTH_TOKEN_NAME}={slack_token}"
     )
 
@@ -55,7 +55,7 @@ def test_complete_slack_auth_redirect_error(
 
     client = APIClient()
     url = (
-        reverse("api-internal:complete-slack-auth", kwargs={"backend": "slack-login"})
+        reverse("api-internal:complete-social-auth", kwargs={"backend": "slack-login"})
         + f"?{SLACK_AUTH_TOKEN_NAME}={slack_token}"
     )
 

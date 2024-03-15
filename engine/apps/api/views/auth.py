@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, authentication_classes
+from rest_framework.request import Request
 from rest_framework.response import Response
 from social_core.actions import do_auth, do_complete
 from social_django.utils import psa
@@ -22,29 +23,31 @@ logger = logging.getLogger(__name__)
 @authentication_classes([PluginAuthentication])
 @never_cache
 @psa("social:complete")
-def overridden_login_slack_auth(request, backend):
+def overridden_login_social_auth(request: Request, backend: str) -> Response:
     # TODO:
     print("yoooo", request, backend)
 
     # We can't just redirect frontend here because we need to make a API call and pass tokens to this view from JS.
     # So frontend can't follow our redirect.
     # So wrapping and returning URL to redirect as a string.
-    # if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
-    #     return Response(
-    #         "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
-    #         status=400,
-    #     )
+    if "slack" in backend and settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
+        return Response(
+            "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+            status=400,
+        )
+
     url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
 
     return Response(url_to_redirect_to, 200)
 
 
 @api_view(["GET"])
+# TODO: add GoogleOAuth2Authentication class
 @authentication_classes([SlackTokenAuthentication])
 @never_cache
 @csrf_exempt
 @psa("social:complete")
-def overridden_complete_slack_auth(request, backend, *args, **kwargs):
+def overridden_complete_social_auth(request: Request, backend: str, *args, **kwargs) -> Response:
     """Authentication complete view"""
     # InstallSlackOAuth2V2 backend
     redirect_to = "/a/grafana-oncall-app/chat-ops"
