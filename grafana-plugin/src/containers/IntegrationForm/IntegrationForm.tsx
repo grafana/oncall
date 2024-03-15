@@ -391,7 +391,7 @@ export const IntegrationForm = observer(
     async function onFormSubmit(formData: FormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
 
-      const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
+      const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
         labels,
         ...formData,
       };
@@ -419,7 +419,7 @@ export const IntegrationForm = observer(
       await onSubmit();
       onHide();
 
-      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannelCreate']> {
         const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
         const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
           history.push(`${PLUGIN_ROOT}/integrations/${id}`);
