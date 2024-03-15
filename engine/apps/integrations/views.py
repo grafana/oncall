@@ -320,6 +320,9 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
                 f"This url is for integration with {alert_receive_channel.config.title}."
                 f"Key is for {alert_receive_channel.get_integration_display()}"
             )
+        if request.data is None:
+            return HttpResponseBadRequest("Payload is required")
+
         timestamp = timezone.now().isoformat()
         create_alert.apply_async(
             [],
