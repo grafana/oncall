@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Drawer, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonServiceNowConfig, ServiceNowStatusMapping } from './CommonServiceNowConfig';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -19,7 +19,8 @@ interface FormFields {
 }
 
 export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDrawerProps> = ({ onHide }) => {
-  const { handleSubmit } = useForm<FormFields>();
+  const formMethods = useForm<FormFields>();
+  const { handleSubmit } = formMethods;
   const { alertReceiveChannelStore } = useStore();
   const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
 
@@ -31,55 +32,59 @@ export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDr
 
   return (
     <Drawer title="Complete ServiceNow configuration" onClose={onHide} closeOnMaskClick={false} size="md">
-      <form onSubmit={handleSubmit(onFormSubmit)}>
-        <CommonServiceNowConfig statusMapping={statusMapping} setStatusMapping={setStatusMapping} />
+      <FormProvider {...formMethods}>
+        <form onSubmit={handleSubmit(onFormSubmit)}>
+          <CommonServiceNowConfig statusMapping={statusMapping} setStatusMapping={setStatusMapping} />
 
-        <div className={styles.border}>
-          <VerticalGroup>
-            <HorizontalGroup spacing="xs" align="center">
-              <Text type="primary" size="small">
-                ServiceNow API Token
+          <div className={styles.border}>
+            <VerticalGroup>
+              <HorizontalGroup spacing="xs" align="center">
+                <Text type="primary" size="small">
+                  ServiceNow API Token
+                </Text>
+                <Icon name="info-circle" />
+              </HorizontalGroup>
+
+              <Text>
+                Description for such object and{' '}
+                <a href={'#'} target="_blank" rel="noreferrer">
+                  <Text type="link">link to documentation</Text>
+                </a>
               </Text>
-              <Icon name="info-circle" />
-            </HorizontalGroup>
 
-            <Text>
-              Description for such object and{' '}
-              <a href={'#'} target="_blank" rel="noreferrer">
-                <Text type="link">link to documentation</Text>
-              </a>
-            </Text>
+              <div className={styles.tokenContainer}>
+                <IntegrationInputField
+                  inputClassName={styles.tokenInput}
+                  iconsClassName={styles.tokenIcons}
+                  value={serviceNowAPIToken}
+                  showExternal={false}
+                  isMasked
+                />
+                <Button variant="secondary" onClick={onTokenRegenerate}>
+                  Regenerate
+                </Button>
+              </div>
+            </VerticalGroup>
+          </div>
 
-            <div className={styles.tokenContainer}>
-              <IntegrationInputField
-                inputClassName={styles.tokenInput}
-                iconsClassName={styles.tokenIcons}
-                value={serviceNowAPIToken}
-                showExternal={false}
-                isMasked
-              />
-              <Button variant="secondary" onClick={onTokenRegenerate}>
-                Regenerate
+          <div>
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={onHide}>
+                Close
               </Button>
-            </div>
-          </VerticalGroup>
-        </div>
-
-        <div>
-          <HorizontalGroup justify="flex-end">
-            <Button variant="secondary" onClick={onHide}>
-              Close
-            </Button>
-            <Button variant="primary" type="submit" disabled={isLoading}>
-              {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Proceed'}
-            </Button>
-          </HorizontalGroup>
-        </div>
-      </form>
+              <Button variant="primary" type="submit" disabled={isLoading}>
+                {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Proceed'}
+              </Button>
+            </HorizontalGroup>
+          </div>
+        </form>
+      </FormProvider>
     </Drawer>
   );
 
-  function onFormSubmit(data: FormFields) {}
+  function onFormSubmit(data: FormFields) {
+    // alertReceiveChannelStore.update({ id, data, skipErrorHandling: false })
+  }
 };
 
 const getStyles = (theme: GrafanaTheme2) => {

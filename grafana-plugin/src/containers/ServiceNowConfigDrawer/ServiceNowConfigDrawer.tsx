@@ -14,7 +14,7 @@ import {
   LoadingPlaceholder,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -49,17 +49,18 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const [authTestResult, setAuthTestResult] = useState(undefined);
   const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<FormFields>({
+  const formMethods = useForm<FormFields>({
     defaultValues: {
       additional_settings: { ...integration.additional_settings },
     },
     mode: 'onChange',
   });
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = formMethods;
 
   const serviceNowAPIToken = 'http://url.com';
   const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
@@ -73,139 +74,141 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   return (
     <>
       <Drawer title="ServiceNow configuration" onClose={onHide} closeOnMaskClick={false} size="md">
-        <form onSubmit={handleSubmit(onFormSubmit)}>
-          <div className={styles.border}>
-            <Controller
-              name={'additional_settings.instance_url'}
-              control={control}
-              rules={{ required: 'Instance URL is required', validate: validateURL }}
-              render={({ field }) => (
-                <Field
-                  key={'InstanceURL'}
-                  label={'Instance URL'}
-                  invalid={!!errors.additional_settings?.instance_url}
-                  error={errors.additional_settings?.instance_url?.message}
-                >
-                  <Input {...field} />
-                </Field>
-              )}
-            />
+        <FormProvider {...formMethods}>
+          <form onSubmit={handleSubmit(onFormSubmit)}>
+            <div className={styles.border}>
+              <Controller
+                name={'additional_settings.instance_url'}
+                control={control}
+                rules={{ required: 'Instance URL is required', validate: validateURL }}
+                render={({ field }) => (
+                  <Field
+                    key={'InstanceURL'}
+                    label={'Instance URL'}
+                    invalid={!!errors.additional_settings?.instance_url}
+                    error={errors.additional_settings?.instance_url?.message}
+                  >
+                    <Input {...field} />
+                  </Field>
+                )}
+              />
 
-            <Controller
-              name={'additional_settings.username'}
-              control={control}
-              rules={{ required: 'Username is required' }}
-              render={({ field }) => (
-                <Field
-                  key={'AuthUsername'}
-                  label={'Username'}
-                  invalid={!!errors.additional_settings?.username}
-                  error={errors.additional_settings?.username?.message}
-                >
-                  <Input {...field} />
-                </Field>
-              )}
-            />
+              <Controller
+                name={'additional_settings.username'}
+                control={control}
+                rules={{ required: 'Username is required' }}
+                render={({ field }) => (
+                  <Field
+                    key={'AuthUsername'}
+                    label={'Username'}
+                    invalid={!!errors.additional_settings?.username}
+                    error={errors.additional_settings?.username?.message}
+                  >
+                    <Input {...field} />
+                  </Field>
+                )}
+              />
 
-            <Controller
-              name={'additional_settings.password'}
-              control={control}
-              rules={{ required: 'Password is required' }}
-              render={({ field }) => (
-                <Field
-                  key={'AuthPassword'}
-                  label={'Password'}
-                  invalid={!!errors.additional_settings?.password}
-                  error={errors.additional_settings?.password?.message}
-                >
-                  <Input {...field} type="password" />
-                </Field>
-              )}
-            />
+              <Controller
+                name={'additional_settings.password'}
+                control={control}
+                rules={{ required: 'Password is required' }}
+                render={({ field }) => (
+                  <Field
+                    key={'AuthPassword'}
+                    label={'Password'}
+                    invalid={!!errors.additional_settings?.password}
+                    error={errors.additional_settings?.password?.message}
+                  >
+                    <Input {...field} type="password" />
+                  </Field>
+                )}
+              />
 
-            <HorizontalGroup>
-              <Button className={''} variant="secondary" onClick={onAuthTest}>
-                Test
-              </Button>
-              <div>
-                <RenderConditionally shouldRender={isAuthTestRunning}>
-                  <LoadingPlaceholder text="Loading" className={styles.loader} />
-                </RenderConditionally>
-
-                <RenderConditionally shouldRender={!isAuthTestRunning && authTestResult !== undefined}>
-                  <HorizontalGroup align="center" justify="center">
-                    <Text type="primary">{authTestResult ? 'Connection OK' : 'Connection failed'}</Text>
-                    <Icon name={authTestResult ? 'check-circle' : 'x'} />
-                  </HorizontalGroup>
-                </RenderConditionally>
-              </div>
-            </HorizontalGroup>
-          </div>
-
-          <div className={styles.border}>
-            <CommonServiceNowConfig setStatusMapping={setStatusMapping} statusMapping={statusMapping} />
-          </div>
-
-          <div className={styles.border}>
-            <VerticalGroup>
-              <HorizontalGroup spacing="xs" align="center">
-                <Text type="primary" size="small">
-                  Labels Mapping
-                </Text>
-                <Icon name="info-circle" />
-              </HorizontalGroup>
-
-              <Text>
-                Description for such object and{' '}
-                <a href={'#'} target="_blank" rel="noreferrer">
-                  <Text type="link">link to documentation</Text>
-                </a>
-              </Text>
-            </VerticalGroup>
-          </div>
-
-          <div className={styles.border}>
-            <VerticalGroup>
-              <HorizontalGroup spacing="xs" align="center">
-                <Text type="primary" size="small">
-                  ServiceNow API Token
-                </Text>
-                <Icon name="info-circle" />
-              </HorizontalGroup>
-
-              <Text>
-                Description for such object and{' '}
-                <a href={'#'} target="_blank" rel="noreferrer">
-                  <Text type="link">link to documentation</Text>
-                </a>
-              </Text>
-
-              <div className={styles.tokenContainer}>
-                <IntegrationInputField
-                  inputClassName={styles.tokenInput}
-                  iconsClassName={styles.tokenIcons}
-                  value={serviceNowAPIToken}
-                  showExternal={false}
-                  isMasked
-                />
-                <Button variant="secondary" onClick={onTokenRegenerate}>
-                  Regenerate
+              <HorizontalGroup>
+                <Button className={''} variant="secondary" onClick={onAuthTest}>
+                  Test
                 </Button>
-              </div>
-            </VerticalGroup>
-          </div>
+                <div>
+                  <RenderConditionally shouldRender={isAuthTestRunning}>
+                    <LoadingPlaceholder text="Loading" className={styles.loader} />
+                  </RenderConditionally>
 
-          <div className={styles.formButtons}>
-            <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={onHide}>
-                Close
-              </Button>
-              <Button variant="primary" type="submit" disabled={isLoading}>
-                {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Update'}
-              </Button>
-            </HorizontalGroup>
-          </div>
-        </form>
+                  <RenderConditionally shouldRender={!isAuthTestRunning && authTestResult !== undefined}>
+                    <HorizontalGroup align="center" justify="center">
+                      <Text type="primary">{authTestResult ? 'Connection OK' : 'Connection failed'}</Text>
+                      <Icon name={authTestResult ? 'check-circle' : 'x'} />
+                    </HorizontalGroup>
+                  </RenderConditionally>
+                </div>
+              </HorizontalGroup>
+            </div>
+
+            <div className={styles.border}>
+              <CommonServiceNowConfig setStatusMapping={setStatusMapping} statusMapping={statusMapping} />
+            </div>
+
+            <div className={styles.border}>
+              <VerticalGroup>
+                <HorizontalGroup spacing="xs" align="center">
+                  <Text type="primary" size="small">
+                    Labels Mapping
+                  </Text>
+                  <Icon name="info-circle" />
+                </HorizontalGroup>
+
+                <Text>
+                  Description for such object and{' '}
+                  <a href={'#'} target="_blank" rel="noreferrer">
+                    <Text type="link">link to documentation</Text>
+                  </a>
+                </Text>
+              </VerticalGroup>
+            </div>
+
+            <div className={styles.border}>
+              <VerticalGroup>
+                <HorizontalGroup spacing="xs" align="center">
+                  <Text type="primary" size="small">
+                    ServiceNow API Token
+                  </Text>
+                  <Icon name="info-circle" />
+                </HorizontalGroup>
+
+                <Text>
+                  Description for such object and{' '}
+                  <a href={'#'} target="_blank" rel="noreferrer">
+                    <Text type="link">link to documentation</Text>
+                  </a>
+                </Text>
+
+                <div className={styles.tokenContainer}>
+                  <IntegrationInputField
+                    inputClassName={styles.tokenInput}
+                    iconsClassName={styles.tokenIcons}
+                    value={serviceNowAPIToken}
+                    showExternal={false}
+                    isMasked
+                  />
+                  <Button variant="secondary" onClick={onTokenRegenerate}>
+                    Regenerate
+                  </Button>
+                </div>
+              </VerticalGroup>
+            </div>
+
+            <div className={styles.formButtons}>
+              <HorizontalGroup justify="flex-end">
+                <Button variant="secondary" onClick={onHide}>
+                  Close
+                </Button>
+                <Button variant="primary" type="submit" disabled={isLoading}>
+                  {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Update'}
+                </Button>
+              </HorizontalGroup>
+            </div>
+          </form>
+        </FormProvider>
       </Drawer>
     </>
   );
