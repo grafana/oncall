@@ -1,6 +1,6 @@
 import pytest
 
-from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
+from apps.alerts.incident_appearance.templaters import AlertSlackTemplater, AlertWebTemplater
 from apps.alerts.models import AlertGroup
 from config_integrations import grafana
 
@@ -28,6 +28,29 @@ def test_render_alert(
     )
     assert templated_alert.message == grafana.tests["slack"]["message"]
     assert templated_alert.image_url == grafana.tests["slack"]["image_url"]
+
+
+@pytest.mark.django_db
+def test_render_web_alert_links(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+    )
+    alert_group = make_alert_group(alert_receive_channel)
+
+    links = [f"http://example.com/{i}" for i in range(10)] + ["http://example2.com"] * 5
+    alert = make_alert(alert_group=alert_group, raw_request_data={"message": "\n".join(links)})
+
+    templater = AlertWebTemplater(alert)
+    templated_alert = templater.render()
+    assert templated_alert.message == "<p>{}</p>".format(
+        "<br/>\n".join([f'<a href="{link}">{link}</a> ' for link in links])
+    )
 
 
 @pytest.mark.django_db
