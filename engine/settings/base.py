@@ -647,7 +647,10 @@ AUTHENTICATION_BACKENDS = [
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "TODOTODO")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET", "TODOTODO")
-# TODO: what is proper the default here?
+# NOTE: for right now we probably only need the calendar.events.readonly scope
+# however, if we want to write events back to the user's calendar
+# we'll probably need to change this to the calendar.events scope
+# (not sure how hard this is to migrate to in the future?)
 # https://developers.google.com/identity/protocols/oauth2/scopes#calendar
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = getenv_list("SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE", default=["https://www.googleapis.com/auth/calendar.events.readonly"])
 
