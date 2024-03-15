@@ -51,13 +51,9 @@ interface FormFields {
   alert_manager?: string;
   contact_point?: string;
   integration: ApiSchemas['AlertReceiveChannel']['integration'];
+  create_default_webhooks: boolean;
 
-  additional_settings: {
-    instance_url: string;
-    username: string;
-    password: string;
-    default_webhooks: boolean;
-  };
+  additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
 interface IntegrationFormProps {
@@ -106,6 +102,13 @@ export const IntegrationForm = observer(
             instance_url: undefined,
             password: undefined,
             username: undefined,
+            is_configured: false,
+            state_mapping: {
+              acknowledged: undefined,
+              firing: undefined,
+              resolved: undefined,
+              silenced: undefined,
+            },
           },
         }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
@@ -117,9 +120,7 @@ export const IntegrationForm = observer(
         ? {
             // these are the default values for creating an integration
             integration,
-            additional_settings: {
-              default_webhooks: true,
-            },
+            additional_settings: {},
           }
         : {
             // existing values from existing integration (edit-mode)
@@ -338,7 +339,7 @@ export const IntegrationForm = observer(
             </Button>
 
             <Controller
-              name={'additional_settings.default_webhooks'}
+              name={'create_default_webhooks'}
               control={control}
               render={({ field }) => (
                 <div className={styles.webhookSwitch}>
