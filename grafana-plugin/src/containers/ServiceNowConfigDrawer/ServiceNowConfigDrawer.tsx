@@ -42,18 +42,7 @@ enum OnCallAGStatus {
 }
 
 interface FormFields {
-  additional_settings: {
-    instance_url: string;
-    username: string;
-    password: string;
-
-    state_mapping?: {
-      firing: string;
-      acknowledged: string;
-      resolved: string;
-      silenced: string;
-    };
-  };
+  additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
 interface StatusMapping {

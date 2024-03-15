@@ -1190,6 +1190,7 @@ export interface components {
      * @enum {string}
      */
     ActionEnum: 'acknowledge' | 'resolve' | 'silence' | 'restart';
+    AdditionalSettingsField: components['schemas']['Settings'];
     Alert: {
       readonly id: string;
       /** Format: uri */
@@ -1445,17 +1446,7 @@ export interface components {
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
-      additional_settings?: {
-        instance_url: string;
-        username: string;
-        password: string;
-        state_mapping?: {
-          firing: string;
-          acknowledged: string;
-          resolved: string;
-          silenced: string;
-        };
-      };
+      additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
@@ -1482,6 +1473,49 @@ export interface components {
       uid: string;
       name: string;
       contact_points: string[];
+    };
+    AlertReceiveChannelCreate: {
+      readonly id: string;
+      readonly description: string | null;
+      description_short?: string | null;
+      integration: components['schemas']['IntegrationEnum'];
+      readonly smile_code: string;
+      verbal_name?: string | null;
+      readonly author: string;
+      readonly organization: string;
+      team?: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      readonly integration_url: string | null;
+      readonly alert_count: number;
+      readonly alert_groups_count: number;
+      allow_source_based_resolving?: boolean;
+      readonly instructions: string;
+      readonly is_able_to_autoresolve: boolean;
+      readonly default_channel_filter: string | null;
+      readonly demo_alert_enabled: boolean;
+      readonly maintenance_mode:
+        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
+        | null;
+      readonly maintenance_till: number | null;
+      readonly heartbeat: components['schemas']['IntegrationHeartBeat'] | null;
+      readonly is_available_for_integration_heartbeat: boolean;
+      readonly allow_delete: boolean;
+      readonly demo_alert_payload: {
+        [key: string]: unknown;
+      };
+      readonly routes_count: number;
+      readonly connected_escalations_chains_count: number;
+      readonly is_based_on_alertmanager: boolean;
+      readonly inbound_email: string;
+      readonly is_legacy: boolean;
+      labels?: components['schemas']['LabelPair'][];
+      alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
+      /** Format: date-time */
+      readonly alertmanager_v2_migrated_at: string | null;
+      additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
+      /** @default true */
+      create_default_webhooks: boolean;
     };
     AlertReceiveChannelCreateContactPoint: {
       datasource_uid: string;
@@ -1564,17 +1598,7 @@ export interface components {
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
-      additional_settings?: {
-        instance_url: string;
-        username: string;
-        password: string;
-        state_mapping?: {
-          firing: string;
-          acknowledged: string;
-          resolved: string;
-          silenced: string;
-        };
-      };
+      additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
@@ -1882,17 +1906,7 @@ export interface components {
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at?: string | null;
-      additional_settings?: {
-        instance_url: 'string';
-        username: 'string';
-        password: 'string';
-        state_mapping?: {
-          firing: null;
-          acknowledged: null;
-          resolved: null;
-          silenced: null;
-        };
-      };
+      additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
     };
     PatchedUser: {
       readonly pk?: string;
@@ -1960,6 +1974,20 @@ export interface components {
      * @enum {integer}
      */
     RoleEnum: 0 | 1 | 2 | 3;
+    Settings: {
+      instance_url: string;
+      username: string;
+      password: string;
+      /** @default {
+       *       "firing": null,
+       *       "acknowledged": null,
+       *       "resolved": null,
+       *       "silenced": null
+       *     } */
+      state_mapping: components['schemas']['StateMapping'];
+      /** @default false */
+      is_configured: boolean;
+    };
     ShortAlertGroup: {
       readonly pk: string;
       readonly render_for_web:
@@ -1979,6 +2007,12 @@ export interface components {
       readonly avatar: string;
       readonly name: string;
       readonly display_name: string | null;
+    };
+    StateMapping: {
+      firing: unknown[] | null;
+      acknowledged: unknown[] | null;
+      resolved: unknown[] | null;
+      silenced: unknown[] | null;
     };
     TelegramToUserConnector: {
       telegram_nick_name?: string | null;
@@ -2291,9 +2325,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertReceiveChannel'];
-        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannel'];
-        'multipart/form-data': components['schemas']['AlertReceiveChannel'];
+        'application/json': components['schemas']['AlertReceiveChannelCreate'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelCreate'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelCreate'];
       };
     };
     responses: {
@@ -2302,7 +2336,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannel'];
+          'application/json': components['schemas']['AlertReceiveChannelCreate'];
         };
       };
     };
