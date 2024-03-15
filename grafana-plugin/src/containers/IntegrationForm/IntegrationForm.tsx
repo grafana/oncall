@@ -281,7 +281,7 @@ export const IntegrationForm = observer(
 
           {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
 
-          <RenderConditionally shouldRender={isServiceNow}>
+          <RenderConditionally shouldRender={isServiceNow && isNew}>
             <div className={styles.serviceNowHeading}>
               <Text type="primary">ServiceNow configuration</Text>
             </div>

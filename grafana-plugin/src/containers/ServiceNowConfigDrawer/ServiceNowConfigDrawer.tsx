@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { GrafanaTheme2 } from '@grafana/data';
 import {
   Drawer,
   Field,
@@ -12,8 +12,6 @@ import {
   useStyles2,
   Button,
   LoadingPlaceholder,
-  Select,
-  SelectBaseProps,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
@@ -30,26 +28,15 @@ import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 import { openNotification } from 'utils/utils';
 
+import { CommonServiceNowConfig, ServiceNowStatusMapping } from './CommonServiceNowConfig';
+import { getCommonServiceNowConfigStyles } from './CommonServiceNowConfig.styles';
+
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
 }
 
-enum OnCallAGStatus {
-  Firing = 'Firing',
-  Resolved = 'Resolved',
-  Silenced = 'Silenced',
-  Acknowledged = 'Acknowledged',
-}
-
 interface FormFields {
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
-}
-
-interface StatusMapping {
-  [OnCallAGStatus.Firing]?: string;
-  [OnCallAGStatus.Resolved]?: string;
-  [OnCallAGStatus.Silenced]?: string;
-  [OnCallAGStatus.Acknowledged]?: string;
 }
 
 export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps> = observer(({ onHide }) => {
@@ -60,7 +47,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
   const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
   const [authTestResult, setAuthTestResult] = useState(undefined);
-  const [statusMapping, setStatusMapping] = useState<StatusMapping>({});
+  const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
 
   const {
     control,
@@ -82,12 +69,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
       await alertReceiveChannelStore.fetchServiceNowListOfStatus();
     })();
   }, []);
-
-  const selectCommonProps: Partial<SelectBaseProps<any>> = {
-    backspaceRemovesValue: true,
-    isClearable: true,
-    placeholder: 'Not Selected',
-  };
 
   return (
     <>
@@ -162,122 +143,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
           </div>
 
           <div className={styles.border}>
-            <VerticalGroup spacing="md">
-              <HorizontalGroup spacing="xs" align="center">
-                <Text type="primary" size="small">
-                  Status Mapping
-                </Text>
-                <Icon name="info-circle" />
-              </HorizontalGroup>
-
-              <table className={'filter-table'}>
-                <thead>
-                  <tr>
-                    <th>OnCall Alert group status</th>
-                    <th>ServiceNow incident status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Firing</td>
-
-                    <td>
-                      <Controller
-                        name={'additional_settings.state_mapping.firing'}
-                        control={control}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            key="state_mapping.firing"
-                            menuShouldPortal
-                            className="select control"
-                            options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
-                            onChange={(option: SelectableValue) => {
-                              onStatusSelectChange(option, OnCallAGStatus.Firing);
-                              setValue('additional_settings.state_mapping.firing', null);
-                            }}
-                            {...selectCommonProps}
-                          />
-                        )}
-                      />
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td>Acknowledged</td>
-
-                    <td>
-                      <Controller
-                        name={'additional_settings.state_mapping.acknowledged'}
-                        control={control}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            menuShouldPortal
-                            className="select control"
-                            disabled={false}
-                            options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
-                            onChange={(option: SelectableValue) => {
-                              onStatusSelectChange(option, OnCallAGStatus.Acknowledged);
-                              setValue('additional_settings.state_mapping.acknowledged', null);
-                            }}
-                            {...selectCommonProps}
-                          />
-                        )}
-                      />
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td>Resolved</td>
-                    <td>
-                      <Controller
-                        name={'additional_settings.state_mapping.resolved'}
-                        control={control}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            menuShouldPortal
-                            className="select control"
-                            disabled={false}
-                            options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
-                            onChange={(option: SelectableValue) => {
-                              onStatusSelectChange(option, OnCallAGStatus.Resolved);
-                              setValue('additional_settings.state_mapping.resolved', null);
-                            }}
-                            {...selectCommonProps}
-                          />
-                        )}
-                      />
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td>Silenced</td>
-                    <td>
-                      <Controller
-                        name={'additional_settings.state_mapping.silenced'}
-                        control={control}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            menuShouldPortal
-                            className="select control"
-                            disabled={false}
-                            options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
-                            onChange={(option: SelectableValue) => {
-                              onStatusSelectChange(option, OnCallAGStatus.Silenced);
-                              setValue('additional_settings.state_mapping.silenced', null);
-                            }}
-                            {...selectCommonProps}
-                          />
-                        )}
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </VerticalGroup>
+            <CommonServiceNowConfig setStatusMapping={setStatusMapping} statusMapping={statusMapping} />
           </div>
 
           <div className={styles.border}>
@@ -348,25 +214,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     // Call API and reset token
   }
 
-  function getAvailableStatusOptions(currentAction: OnCallAGStatus) {
-    const keys = Object.keys(statusMapping);
-    const values = keys.map((k) => statusMapping[k]).filter(Boolean);
-
-    return (alertReceiveChannelStore.serviceNowStatusList || [])
-      .filter((status) => values.indexOf(status.name) === -1 || statusMapping[currentAction] === status.name)
-      .map((status) => ({
-        value: status.id,
-        label: status.name,
-      }));
-  }
-
-  function onStatusSelectChange(option: SelectableValue, action: OnCallAGStatus) {
-    setStatusMapping({
-      ...statusMapping,
-      [action]: option?.label,
-    });
-  }
-
   function onAuthTest() {
     return new Promise(() => {
       setIsAuthTestRunning(true);
@@ -398,27 +245,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
 const getStyles = (theme: GrafanaTheme2) => {
   return {
-    tokenContainer: css`
-      display: flex;
-      width: 100%;
-      gap: 8px;
-    `,
-
-    tokenInput: css`
-      height: 32px !important;
-      padding-top: 4px !important;
-    `,
-
-    tokenIcons: css`
-      top: 10px !important;
-    `,
-
-    border: css`
-      padding: 12px;
-      margin-bottom: 24px;
-      border: 1px solid ${theme.colors.border.weak};
-      border-radius: ${theme.shape.radius.default};
-    `,
+    ...getCommonServiceNowConfigStyles(theme),
 
     loader: css`
       margin-bottom: 0;
