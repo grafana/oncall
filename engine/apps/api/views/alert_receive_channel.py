@@ -50,9 +50,9 @@ from common.api_helpers.mixins import (
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.exceptions import (
+    BacksyncIntegrationRequestError,
     MaintenanceCouldNotBeStartedError,
     TeamCanNotBeChangedError,
-    TestConnectionError,
     UnableToSendDemoAlert,
 )
 from common.insight_log import EntityEvent, write_resource_insight_log
@@ -283,8 +283,8 @@ class AlertReceiveChannelView(
         if integration_func:
             try:
                 return integration_func(instance)
-            except TestConnectionError as e:
-                raise BadRequest(detail=str(e))
+            except BacksyncIntegrationRequestError as e:
+                raise BadRequest(detail=e.error_msg)
 
     @extend_schema(request=AlertReceiveChannelSerializer)
     @action(detail=False, methods=["post"])
