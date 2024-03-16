@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+from social_core.backends.google import GoogleOAuth2 as BaseGoogleOAuth2
 from social_core.backends.slack import SlackOAuth2
 from social_core.utils import handle_http_errors
 
@@ -39,11 +40,17 @@ BOT_SCOPE = [
     "users:write",
 ]
 
-# Reference to Slack tokens: https://api.slack.com/authentication/token-types
+
+class GoogleOAuth2(BaseGoogleOAuth2):
+    # Remove redirect state because we lose session during redirects
+    REDIRECT_STATE = False
+    STATE_PARAMETER = False
 
 
 class SlackOAuth2V2(SlackOAuth2):
     """
+    Reference to Slack tokens: https://api.slack.com/authentication/token-types
+
     Slack app with granular permissions require using SlackOauth2.0 V2.
     SlackOAuth2V2 and its inheritors tune SlackOAuth2 implementation from social core to fit new endpoints
     and response shapes.

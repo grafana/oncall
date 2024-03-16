@@ -217,6 +217,23 @@ class SlackTokenAuthentication(BaseAuthentication):
         return auth_token.user, auth_token
 
 
+class GoogleTokenAuthentication(BaseAuthentication):
+    def authenticate(self, request) -> Tuple[User, None]:
+        # TODO:
+        # auth = request.query_params.get(SLACK_AUTH_TOKEN_NAME)
+        # if not auth:
+        #     raise exceptions.AuthenticationFailed("Invalid token.")
+        # user, auth_token = self.authenticate_credentials(auth)
+        return User.objects.first(), None
+
+    # def authenticate_credentials(self, token_string: str) -> Tuple[User, SlackAuthToken]:
+    #     try:
+    #         auth_token = self.model.validate_token_string(token_string)
+    #     except InvalidToken:
+    #         raise exceptions.AuthenticationFailed("Invalid token.")
+
+    #     return auth_token.user, auth_token
+
 class ScheduleExportAuthentication(BaseAuthentication):
     model = ScheduleExportAuthToken
 

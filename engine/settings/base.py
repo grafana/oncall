@@ -641,8 +641,8 @@ SOCIAL_AUTH_STRATEGY = "apps.social_auth.live_setting_django_strategy.LiveSettin
 AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
+    "apps.social_auth.backends.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    "social_core.backends.google.GoogleOAuth2",
 ]
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "TODOTODO")
@@ -683,17 +683,24 @@ SOCIAL_AUTH_SLACK_INSTALL_FREE_CUSTOM_SCOPE = [
 ]
 
 SOCIAL_AUTH_PIPELINE = (
-    "apps.social_auth.pipeline.set_user_and_organization_from_request",
+    "apps.social_auth.pipeline.slack.set_user_and_organization_from_request",
     "social_core.pipeline.social_auth.social_details",
-    "apps.social_auth.pipeline.connect_user_to_slack",
-    "apps.social_auth.pipeline.populate_slack_identities",
-    "apps.social_auth.pipeline.delete_slack_auth_token",
+    "apps.social_auth.pipeline.slack.connect_user_to_slack",
+    "apps.social_auth.pipeline.slack.populate_slack_identities",
+    "apps.social_auth.pipeline.slack.delete_slack_auth_token",
 )
 
-SOCIAL_AUTH_GOOGLE_PIPELINE = (
+SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
     # TODO:
-    "apps.social_auth.pipeline.google_oauth_testing"
+    "apps.social_auth.pipeline.google.google_oauth_testing",
+    "apps.social_auth.pipeline.google.redirect_if_no_refresh_token",
 )
+
+# https://python-social-auth.readthedocs.io/en/latest/use_cases.html#re-prompt-google-oauth2-users-to-refresh-the-refresh-token
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    "access_type": "offline",
+    "approval_prompt": "auto",
+}
 
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION: typing.List[str] = []
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = getenv_boolean("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=True)
