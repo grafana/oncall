@@ -49,7 +49,12 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
-from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import (
+    MaintenanceCouldNotBeStartedError,
+    TeamCanNotBeChangedError,
+    TestConnectionError,
+    UnableToSendDemoAlert,
+)
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -166,6 +171,7 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
@@ -268,6 +274,25 @@ class AlertReceiveChannelView(
             instance.send_demo_alert(payload=payload)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(request=AlertReceiveChannelSerializer)
+    @action(detail=False, methods=["post"])
+    def test_connection(self, request):
+        # create in-memory instance to test with the (possible) unsaved data
+        data = request.data
+        # clear name while testing connection (to avoid name already used validation error)
+        data["verbal_name"] = None
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = AlertReceiveChannel(**serializer.validated_data)
+        test_connection_func = getattr(instance.config, "test_connection", None)
+        if test_connection_func:
+            try:
+                test_connection_func(instance)
+            except TestConnectionError as e:
+                raise BadRequest(detail=e.error_msg)
 
         return Response(status=status.HTTP_200_OK)
 

@@ -21,3 +21,11 @@ class UnableToSendDemoAlert(OperationCouldNotBePerformedError):
 
 class UserNotificationPolicyCouldNotBeDeleted(OperationCouldNotBePerformedError):
     pass
+
+
+class TestConnectionError(Exception):
+    """Error testing alert receive channel connection."""
+
+    def __init__(self, *args, **kwargs):
+        self.error_msg = kwargs.pop("error_msg", None)
+        super().__init__(*args, **kwargs)
