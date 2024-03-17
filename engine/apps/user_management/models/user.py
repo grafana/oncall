@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 
 import pytz
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
 from django.db.models import Q
@@ -256,7 +257,11 @@ class User(models.Model):
 
     @property
     def has_google_oauth2_connected(self) -> bool:
-        return self.google_oauth2_user is not None
+        try:
+            # https://stackoverflow.com/a/35005034/3902555
+            return self.google_oauth2_user is not None
+        except ObjectDoesNotExist:
+            return False
 
     @property
     def avatar_full_url(self):
