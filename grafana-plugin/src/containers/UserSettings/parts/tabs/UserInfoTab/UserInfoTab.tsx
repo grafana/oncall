@@ -37,6 +37,23 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
     window.location = url_for_redirect;
   }, []);
 
+  const ConnectGoogle = () => {
+    if (!store.hasFeature(AppFeature.GoogleOauth2)) {
+      return null;
+    } else if (storeUser.has_google_oauth2_connected) {
+      // TODO: style this
+      return <p>Google already connected</p>;
+    }
+    // TODO: style this
+    return (
+      <Button onClick={handleOpenGoogleInstructions}>
+        <HorizontalGroup spacing="xs" align="center">
+          <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
+        </HorizontalGroup>
+      </Button>
+    );
+  };
+
   return (
     <>
       <Legend>User information</Legend>
@@ -72,14 +89,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       </InlineField>
       <Legend>Notification channels</Legend>
       <Connectors {...props} />
-      {/* TODO: style this */}
-      {store.hasFeature(AppFeature.GoogleOauth2) && (
-        <Button onClick={handleOpenGoogleInstructions}>
-          <HorizontalGroup spacing="xs" align="center">
-            <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
-          </HorizontalGroup>
-        </Button>
-      )}
+      <ConnectGoogle />
     </>
   );
 };

@@ -366,6 +366,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/alert_receive_channels/test_connection/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_test_connection_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alert_receive_channels/validate_name/': {
     parameters: {
       query?: never;
@@ -1190,7 +1207,7 @@ export interface components {
      * @enum {string}
      */
     ActionEnum: 'acknowledge' | 'resolve' | 'silence' | 'restart';
-    AdditionalSettingsField: components['schemas']['Settings'];
+    AdditionalSettingsField: unknown;
     Alert: {
       readonly id: string;
       /** Format: uri */
@@ -1683,22 +1700,6 @@ export interface components {
      *     * `slack_channel` - Slack Channel
      *     * `zabbix` - Zabbix
      *     * `direct_paging` - Direct paging
-     *     * `amazon_sns` - Amazon SNS
-     *     * `stackdriver` - Stackdriver
-     *     * `curler` - Curler
-     *     * `datadog` - Datadog
-     *     * `demo` - Demo
-     *     * `fabric` - Fabric
-     *     * `newrelic` - New Relic
-     *     * `pagerduty` - Pagerduty
-     *     * `pingdom` - Pingdom
-     *     * `prtg` - PRTG
-     *     * `sentry` - Sentry
-     *     * `uptimerobot` - UptimeRobot
-     *     * `jira` - Jira
-     *     * `zendesk` - Zendesk
-     *     * `appdynamics` - AppDynamics
-     *     * `servicenow` - ServiceNow
      * @enum {string}
      */
     IntegrationEnum:
@@ -1717,23 +1718,7 @@ export interface components {
       | 'manual'
       | 'slack_channel'
       | 'zabbix'
-      | 'direct_paging'
-      | 'amazon_sns'
-      | 'stackdriver'
-      | 'curler'
-      | 'datadog'
-      | 'demo'
-      | 'fabric'
-      | 'newrelic'
-      | 'pagerduty'
-      | 'pingdom'
-      | 'prtg'
-      | 'sentry'
-      | 'uptimerobot'
-      | 'jira'
-      | 'zendesk'
-      | 'appdynamics'
-      | 'servicenow';
+      | 'direct_paging';
     IntegrationHeartBeat: {
       readonly id: string;
       timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
@@ -1810,6 +1795,7 @@ export interface components {
       };
       readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
     };
     /**
      * @description * `0` - Debug
@@ -1941,6 +1927,7 @@ export interface components {
       };
       readonly cloud_connection_status?: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected?: boolean;
       readonly is_currently_oncall?: boolean;
     };
     PreviewTemplateRequest: {
@@ -1974,20 +1961,6 @@ export interface components {
      * @enum {integer}
      */
     RoleEnum: 0 | 1 | 2 | 3;
-    Settings: {
-      instance_url: string;
-      username: string;
-      password: string;
-      /** @default {
-       *       "firing": null,
-       *       "acknowledged": null,
-       *       "resolved": null,
-       *       "silenced": null
-       *     } */
-      state_mapping: components['schemas']['StateMapping'];
-      /** @default false */
-      is_configured: boolean;
-    };
     ShortAlertGroup: {
       readonly pk: string;
       readonly render_for_web:
@@ -2008,15 +1981,8 @@ export interface components {
       readonly name: string;
       readonly display_name: string | null;
     };
-    StateMapping: {
-      firing: unknown[] | null;
-      acknowledged: unknown[] | null;
-      resolved: unknown[] | null;
-      silenced: unknown[] | null;
-    };
     TelegramToUserConnector: {
       telegram_nick_name?: string | null;
-      /** Format: int64 */
       telegram_chat_id: number;
     };
     /**
@@ -2066,6 +2032,7 @@ export interface components {
       };
       readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
       readonly is_currently_oncall: boolean;
     };
     UserExportTokenGetResponse: {
@@ -2172,56 +2139,24 @@ export interface operations {
          *     * `manual` - Manual
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
-         *     * `direct_paging` - Direct paging
-         *     * `amazon_sns` - Amazon SNS
-         *     * `stackdriver` - Stackdriver
-         *     * `curler` - Curler
-         *     * `datadog` - Datadog
-         *     * `demo` - Demo
-         *     * `fabric` - Fabric
-         *     * `newrelic` - New Relic
-         *     * `pagerduty` - Pagerduty
-         *     * `pingdom` - Pingdom
-         *     * `prtg` - PRTG
-         *     * `sentry` - Sentry
-         *     * `uptimerobot` - UptimeRobot
-         *     * `jira` - Jira
-         *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics
-         *     * `servicenow` - ServiceNow */
+         *     * `direct_paging` - Direct paging */
         integration?: (
           | 'alertmanager'
-          | 'amazon_sns'
-          | 'appdynamics'
-          | 'curler'
-          | 'datadog'
-          | 'demo'
           | 'direct_paging'
           | 'elastalert'
-          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
-          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
-          | 'newrelic'
-          | 'pagerduty'
-          | 'pingdom'
-          | 'prtg'
-          | 'sentry'
-          | 'servicenow'
           | 'slack_channel'
-          | 'stackdriver'
-          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
-          | 'zendesk'
         )[];
         /** @description * `alertmanager` - Alertmanager
          *     * `legacy_alertmanager` - (Legacy) AlertManager
@@ -2238,56 +2173,24 @@ export interface operations {
          *     * `manual` - Manual
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
-         *     * `direct_paging` - Direct paging
-         *     * `amazon_sns` - Amazon SNS
-         *     * `stackdriver` - Stackdriver
-         *     * `curler` - Curler
-         *     * `datadog` - Datadog
-         *     * `demo` - Demo
-         *     * `fabric` - Fabric
-         *     * `newrelic` - New Relic
-         *     * `pagerduty` - Pagerduty
-         *     * `pingdom` - Pingdom
-         *     * `prtg` - PRTG
-         *     * `sentry` - Sentry
-         *     * `uptimerobot` - UptimeRobot
-         *     * `jira` - Jira
-         *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics
-         *     * `servicenow` - ServiceNow */
+         *     * `direct_paging` - Direct paging */
         integration_ne?: (
           | 'alertmanager'
-          | 'amazon_sns'
-          | 'appdynamics'
-          | 'curler'
-          | 'datadog'
-          | 'demo'
           | 'direct_paging'
           | 'elastalert'
-          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
-          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
-          | 'newrelic'
-          | 'pagerduty'
-          | 'pingdom'
-          | 'prtg'
-          | 'sentry'
-          | 'servicenow'
           | 'slack_channel'
-          | 'stackdriver'
-          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
-          | 'zendesk'
         )[];
         /** @description * `0` - Debug
          *     * `1` - Maintenance */
@@ -3004,6 +2907,30 @@ export interface operations {
       };
     };
   };
+  alert_receive_channels_test_connection_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannel'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannel'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannel'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   alert_receive_channels_validate_name_retrieve: {
     parameters: {
       query: {
@@ -3571,6 +3498,7 @@ export interface operations {
             | 'grafana_cloud_connection'
             | 'grafana_alerting_v2'
             | 'labels'
+            | 'google_oauth2'
           )[];
         };
       };
