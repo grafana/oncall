@@ -93,6 +93,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
+            "has_google_oauth2_connected",
         ]
         read_only_fields = [
             "email",
@@ -100,6 +101,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "name",
             "role",
             "verified_phone_number",
+            "has_google_oauth2_connected",
         ]
 
     def validate_working_hours(self, working_hours):

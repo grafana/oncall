@@ -255,6 +255,10 @@ class User(models.Model):
         return True
 
     @property
+    def has_google_oauth2_connected(self) -> bool:
+        return self.google_oauth2_user is not None
+
+    @property
     def avatar_full_url(self):
         return urljoin(self.organization.grafana_url, self.avatar_url)
 
