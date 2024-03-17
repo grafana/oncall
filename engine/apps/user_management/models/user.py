@@ -30,6 +30,7 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
     from apps.base.models import UserNotificationPolicy
+    from apps.google.models import GoogleOAuth2User
     from apps.slack.models import SlackUserIdentity
     from apps.user_management.models import Organization, Team
 
@@ -174,6 +175,7 @@ class User(models.Model):
     auth_tokens: "RelatedManager['ApiAuthToken']"
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
+    google_oauth2_user: typing.Optional["GoogleOAuth2User"]
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"

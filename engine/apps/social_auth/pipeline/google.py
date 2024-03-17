@@ -6,17 +6,18 @@ from rest_framework.response import Response
 from social_core.backends.base import BaseAuth
 
 from apps.google.models import GoogleOAuth2User
-from apps.user_management.models import Organization, User
+from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 
 
-def google_oauth_testing(backend: typing.Type[BaseAuth], response: Response, user: User, organization: Organization,
-                         *args, **kwargs):
+def google_oauth_testing(backend: typing.Type[BaseAuth], response: Response, user: User, *args, **kwargs):
     print("google_oauth_testing", response, backend, args, kwargs)
 
     # TODO: what happens if refresh_token is not present? what are the scenarios that lead to this?
-    # TODO: how to ensure that we don't create a duplicate GoogleOAuth2User here?
+    # NOTE: I think it's only included when ther user initially grants access to our Google OAuth2 app
+    # on subsequent logins, the refresh_token is not included in the response, only access_token.. what to do here?
+    # https://medium.com/starthinker/google-oauth-2-0-access-token-and-refresh-token-explained-cccf2fc0a6d9
 
     obj, created = GoogleOAuth2User.objects.update_or_create(
         user=user,
