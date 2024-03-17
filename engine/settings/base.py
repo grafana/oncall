@@ -71,6 +71,7 @@ GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATION
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
+FEATURE_GOOGLE_OAUTH2_ENABLED = getenv_boolean("FEATURE_GOOGLE_OAUTH2_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -641,12 +642,15 @@ SOCIAL_AUTH_STRATEGY = "apps.social_auth.live_setting_django_strategy.LiveSettin
 AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
-    "apps.social_auth.backends.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", "TODOTODO")
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET", "TODOTODO")
+if FEATURE_GOOGLE_OAUTH2_ENABLED:
+    AUTHENTICATION_BACKENDS.append("apps.social_auth.backends.GoogleOAuth2")
+    INSTALLED_APPS.append("apps.google")
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
 # NOTE: for right now we probably only need the calendar.events.readonly scope
 # however, if we want to write events back to the user's calendar
 # we'll probably need to change this to the calendar.events scope
@@ -683,7 +687,7 @@ SOCIAL_AUTH_SLACK_INSTALL_FREE_CUSTOM_SCOPE = [
 ]
 
 SOCIAL_AUTH_PIPELINE = (
-    "apps.social_auth.pipeline.slack.set_user_and_organization_from_request",
+    "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
     "social_core.pipeline.social_auth.social_details",
     "apps.social_auth.pipeline.slack.connect_user_to_slack",
     "apps.social_auth.pipeline.slack.populate_slack_identities",
@@ -691,13 +695,16 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
-    # TODO:
+    "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
     "apps.social_auth.pipeline.google.google_oauth_testing",
     "apps.social_auth.pipeline.google.redirect_if_no_refresh_token",
 )
 
 # https://python-social-auth.readthedocs.io/en/latest/use_cases.html#re-prompt-google-oauth2-users-to-refresh-the-refresh-token
+# https://developers.google.com/identity/protocols/oauth2/web-server
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    # Indicates whether your application can refresh access tokens when the user is not present at the browser.
+    # Valid parameter values are online, which is the default value, and offline.
     "access_type": "offline",
     "approval_prompt": "auto",
 }
@@ -711,7 +718,7 @@ PUBLIC_PRIMARY_KEY_MIN_LENGTH = 12
 PUBLIC_PRIMARY_KEY_ALLOWED_CHARS = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
 
 AUTH_LINK_TIMEOUT_SECONDS = 300
-SLACK_AUTH_TOKEN_TIMEOUT_SECONDS = 300
+AUTH_TOKEN_TIMEOUT_SECONDS = 300
 
 SLACK_INSTALL_RETURN_REDIRECT_HOST = os.environ.get("SLACK_INSTALL_RETURN_REDIRECT_HOST", None)
 

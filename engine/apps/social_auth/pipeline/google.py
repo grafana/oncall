@@ -1,19 +1,41 @@
 import logging
+import typing
 
 from django.shortcuts import redirect
+from rest_framework.response import Response
+from social_core.backends.base import BaseAuth
+
+from apps.google.models import GoogleOAuth2User
+from apps.user_management.models import Organization, User
+
 logger = logging.getLogger(__name__)
 
-def google_oauth_testing(*args, **kwargs):
-    # TODO: persist auth_token and refresh_token here
-    print("google_oauth_testing", args, kwargs)
+
+def google_oauth_testing(backend: typing.Type[BaseAuth], response: Response, user: User, organization: Organization,
+                         *args, **kwargs):
+    print("google_oauth_testing", response, backend, args, kwargs)
+
+    # TODO: what happens if refresh_token is not present? what are the scenarios that lead to this?
+    # TODO: how to ensure that we don't create a duplicate GoogleOAuth2User here?
+
+    obj, created = GoogleOAuth2User.objects.update_or_create(
+        user=user,
+        defaults={
+            "google_user_id": response.get("sub"),
+            "refresh_token": response.get("refresh_token"),
+            "oauth_scope": response.get("scope"),
+        },
+    )
+
+    print("google_oauth_testing", obj, created)
 
 
-def redirect_if_no_refresh_token(backend, response, *args, **kwargs):
+
+def redirect_if_no_refresh_token(backend: typing.Type[BaseAuth], response: Response, *args, **kwargs):
     """
     https://python-social-auth.readthedocs.io/en/latest/use_cases.html#re-prompt-google-oauth2-users-to-refresh-the-refresh-token
     """
     social = kwargs.get("social")
-    print("redirect_if_no_refresh_token", backend, response, social, args, kwargs)
 
     if backend.name == "google-oauth2" and social and response.get("refresh_token") is None and social.extra_data.get("refresh_token") is None:
         return redirect("/login/google-oauth2?approval_prompt=force")

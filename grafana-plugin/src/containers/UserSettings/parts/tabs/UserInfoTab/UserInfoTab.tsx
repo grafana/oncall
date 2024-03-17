@@ -11,6 +11,7 @@ import { useStore } from 'state/useStore';
 
 import styles from './UserInfoTab.module.css';
 import { makeRequest } from 'network/network';
+import { AppFeature } from 'state/features';
 
 const cx = cn.bind(styles);
 
@@ -29,7 +30,9 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
   let width = 15;
 
   const handleOpenGoogleInstructions = useCallback(async () => {
-    console.log('TODO');
+    /**
+     * TODO: should this be moved to a "store" class?
+     */
     const url_for_redirect = await makeRequest('/login/google-oauth2/', {});
     window.location = url_for_redirect;
   }, []);
@@ -69,11 +72,14 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       </InlineField>
       <Legend>Notification channels</Legend>
       <Connectors {...props} />
-      <Button onClick={handleOpenGoogleInstructions}>
-        <HorizontalGroup spacing="xs" align="center">
-          <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
-        </HorizontalGroup>
-      </Button>
+      {/* TODO: style this */}
+      {store.hasFeature(AppFeature.GoogleOauth2) && (
+        <Button onClick={handleOpenGoogleInstructions}>
+          <HorizontalGroup spacing="xs" align="center">
+            <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
+          </HorizontalGroup>
+        </Button>
+      )}
     </>
   );
 };

@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Tuple
+import typing
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -16,13 +16,15 @@ from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
 from settings.base import SELF_HOSTED_SETTINGS
 
-from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
+from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
 from .grafana.grafana_auth_token import get_service_account_token_permissions
-from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
+from .models import ApiAuthToken, GoogleOAuth2Token, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+T = typing.TypeVar("T")
 
 
 class ApiTokenAuthentication(BaseAuthentication):
@@ -68,7 +70,7 @@ class BasePluginAuthentication(BaseAuthentication):
         # Check parent's method comments
         return "Bearer"
 
-    def authenticate(self, request: Request) -> Tuple[User, PluginAuthToken]:
+    def authenticate(self, request: Request) -> typing.Tuple[User, PluginAuthToken]:
         token_string = get_authorization_header(request).decode()
 
         if not token_string:
@@ -76,7 +78,7 @@ class BasePluginAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(token_string, request)
 
-    def authenticate_credentials(self, token_string: str, request: Request) -> Tuple[User, PluginAuthToken]:
+    def authenticate_credentials(self, token_string: str, request: Request) -> typing.Tuple[User, PluginAuthToken]:
         context_string = request.headers.get("X-Instance-Context")
         if not context_string:
             raise exceptions.AuthenticationFailed("No instance context provided.")
@@ -175,7 +177,7 @@ class GrafanaIncidentStaticKeyAuth(BaseAuthentication):
         # Check parent's method comments
         return "Bearer"
 
-    def authenticate(self, request: Request) -> Tuple[GrafanaIncidentUser, None]:
+    def authenticate(self, request: Request) -> typing.Tuple[GrafanaIncidentUser, None]:
         token_string = get_authorization_header(request).decode()
 
         if (
@@ -189,7 +191,7 @@ class GrafanaIncidentStaticKeyAuth(BaseAuthentication):
 
         return self.authenticate_credentials(token_string, request)
 
-    def authenticate_credentials(self, token_string: str, request: Request) -> Tuple[GrafanaIncidentUser, None]:
+    def authenticate_credentials(self, token_string: str, request: Request) -> typing.Tuple[GrafanaIncidentUser, None]:
         try:
             user = GrafanaIncidentUser()
         except InvalidToken:
@@ -198,17 +200,15 @@ class GrafanaIncidentStaticKeyAuth(BaseAuthentication):
         return user, None
 
 
-class SlackTokenAuthentication(BaseAuthentication):
-    model = SlackAuthToken
-
-    def authenticate(self, request) -> Tuple[User, SlackAuthToken]:
-        auth = request.query_params.get(SLACK_AUTH_TOKEN_NAME)
+class _SocialAuthTokenAuthentication(BaseAuthentication, typing.Generic[T]):
+    def authenticate(self, request) -> typing.Tuple[User, T]:
+        auth = request.query_params.get(self.token_query_param_name)
         if not auth:
             raise exceptions.AuthenticationFailed("Invalid token.")
         user, auth_token = self.authenticate_credentials(auth)
         return user, auth_token
 
-    def authenticate_credentials(self, token_string: str) -> Tuple[User, SlackAuthToken]:
+    def authenticate_credentials(self, token_string: str) -> typing.Tuple[User, T]:
         try:
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:
@@ -217,27 +217,20 @@ class SlackTokenAuthentication(BaseAuthentication):
         return auth_token.user, auth_token
 
 
-class GoogleTokenAuthentication(BaseAuthentication):
-    def authenticate(self, request) -> Tuple[User, None]:
-        # TODO:
-        # auth = request.query_params.get(SLACK_AUTH_TOKEN_NAME)
-        # if not auth:
-        #     raise exceptions.AuthenticationFailed("Invalid token.")
-        # user, auth_token = self.authenticate_credentials(auth)
-        return User.objects.first(), None
+class SlackTokenAuthentication(_SocialAuthTokenAuthentication[SlackAuthToken]):
+    token_query_param_name = SLACK_AUTH_TOKEN_NAME
+    model = SlackAuthToken
 
-    # def authenticate_credentials(self, token_string: str) -> Tuple[User, SlackAuthToken]:
-    #     try:
-    #         auth_token = self.model.validate_token_string(token_string)
-    #     except InvalidToken:
-    #         raise exceptions.AuthenticationFailed("Invalid token.")
 
-    #     return auth_token.user, auth_token
+class GoogleTokenAuthentication(_SocialAuthTokenAuthentication[GoogleOAuth2Token]):
+    token_query_param_name = GOOGLE_OAUTH2_AUTH_TOKEN_NAME
+    model = GoogleOAuth2Token
+
 
 class ScheduleExportAuthentication(BaseAuthentication):
     model = ScheduleExportAuthToken
 
-    def authenticate(self, request) -> Tuple[User, ScheduleExportAuthToken]:
+    def authenticate(self, request) -> typing.Tuple[User, ScheduleExportAuthToken]:
         auth = request.query_params.get(SCHEDULE_EXPORT_TOKEN_NAME)
         public_primary_key = request.parser_context.get("kwargs", {}).get("pk")
         if not auth:
@@ -248,7 +241,7 @@ class ScheduleExportAuthentication(BaseAuthentication):
 
     def authenticate_credentials(
         self, token_string: str, public_primary_key: str
-    ) -> Tuple[User, ScheduleExportAuthToken]:
+    ) -> typing.Tuple[User, ScheduleExportAuthToken]:
         try:
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:
@@ -271,7 +264,7 @@ class ScheduleExportAuthentication(BaseAuthentication):
 class UserScheduleExportAuthentication(BaseAuthentication):
     model = UserScheduleExportAuthToken
 
-    def authenticate(self, request) -> Tuple[User, UserScheduleExportAuthToken]:
+    def authenticate(self, request) -> typing.Tuple[User, UserScheduleExportAuthToken]:
         auth = request.query_params.get(SCHEDULE_EXPORT_TOKEN_NAME)
         public_primary_key = request.parser_context.get("kwargs", {}).get("pk")
 
@@ -283,7 +276,7 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 
     def authenticate_credentials(
         self, token_string: str, public_primary_key: str
-    ) -> Tuple[User, UserScheduleExportAuthToken]:
+    ) -> typing.Tuple[User, UserScheduleExportAuthToken]:
         try:
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:

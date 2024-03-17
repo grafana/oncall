@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponse
 from rest_framework import status
-from social_core.exceptions import AuthForbidden
 
 from apps.slack.tasks import populate_slack_channels_for_team, populate_slack_usergroups_for_team
 from apps.social_auth.exceptions import InstallMultiRegionSlackException
@@ -15,16 +14,6 @@ from common.oncall_gateway import can_link_slack_team_wrapper, link_slack_team_w
 
 logger = logging.getLogger(__name__)
 
-
-def set_user_and_organization_from_request(backend, strategy, *args, **kwargs):
-    user = strategy.request.user
-    organization = strategy.request.auth.organization
-    if user is None or organization is None:
-        return HttpResponse(str(AuthForbidden(backend)), status=status.HTTP_401_UNAUTHORIZED)
-    return {
-        "user": user,
-        "organization": organization,
-    }
 
 
 def connect_user_to_slack(response, backend, strategy, user, organization, *args, **kwargs):

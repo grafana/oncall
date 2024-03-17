@@ -35,20 +35,18 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
         )
 
     url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
-    print("in overridden_login_social_auth - url_to_redirect_to", url_to_redirect_to)
     return Response(url_to_redirect_to, 200)
 
 
 @api_view(["GET"])
-#TODO:
+# TODO: why does authentication_classes not check all class
+# @authentication_classes([SlackTokenAuthentication, GoogleTokenAuthentication])
 @authentication_classes([GoogleTokenAuthentication])
 @never_cache
 @csrf_exempt
 @psa("social:complete")
 def overridden_complete_social_auth(request: Request, backend: str, *args, **kwargs) -> Response:
     """Authentication complete view"""
-    print("yoooo completing", request, backend, request.strategy, args, kwargs)
-
     if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2)):
         # if this was a user login/linking account, redirect to profile
         redirect_to = "/a/grafana-oncall-app/users/me"
