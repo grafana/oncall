@@ -649,6 +649,12 @@ if FEATURE_GOOGLE_OAUTH2_ENABLED:
     AUTHENTICATION_BACKENDS.append("apps.social_auth.backends.GoogleOAuth2")
     INSTALLED_APPS.append("apps.google")
 
+    CELERY_BEAT_SCHEDULE["sync_google_calendar_out_of_office_events_for_all_users"] = {
+        "task": "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users",
+        "schedule": crontab(minute="*/30"),  # every 30 minutes
+        "args": (),
+    }
+
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
 # NOTE: for right now we probably only need the calendar.events.readonly scope
