@@ -50,14 +50,10 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
         <thead>
           <tr>
             <th>
-              <Text type="primary">
-                OnCall Alert group status
-              </Text>
+              <Text type="primary">OnCall Alert group status</Text>
             </th>
             <th>
-              <Text type="primary">
-                ServiceNow incident status
-              </Text>
+              <Text type="primary">ServiceNow incident status</Text>
             </th>
           </tr>
         </thead>
