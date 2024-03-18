@@ -1,7 +1,7 @@
 from .exceptions import (  # noqa: F401
+    BacksyncIntegrationRequestError,
     MaintenanceCouldNotBeStartedError,
     TeamCanNotBeChangedError,
-    TestConnectionError,
     UnableToSendDemoAlert,
     UserNotificationPolicyCouldNotBeDeleted,
 )

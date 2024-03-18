@@ -51,9 +51,9 @@ from common.api_helpers.mixins import (
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.exceptions import (
+    BacksyncIntegrationRequestError,
     MaintenanceCouldNotBeStartedError,
     TeamCanNotBeChangedError,
-    TestConnectionError,
     UnableToSendDemoAlert,
 )
 from common.insight_log import EntityEvent, write_resource_insight_log
@@ -173,6 +173,7 @@ class AlertReceiveChannelView(
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "test_connection": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "status_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
@@ -280,6 +281,14 @@ class AlertReceiveChannelView(
 
         return Response(status=status.HTTP_200_OK)
 
+    def _backsync_integration_request(self, instance, func_name):
+        integration_func = getattr(instance.config, func_name, None)
+        if integration_func:
+            try:
+                return integration_func(instance)
+            except BacksyncIntegrationRequestError as e:
+                raise BadRequest(detail=e.error_msg)
+
     @extend_schema(request=AlertReceiveChannelSerializer)
     @action(detail=False, methods=["post"])
     def test_connection(self, request):
@@ -290,14 +299,29 @@ class AlertReceiveChannelView(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = AlertReceiveChannel(**serializer.validated_data)
-        test_connection_func = getattr(instance.config, "test_connection", None)
-        if test_connection_func:
-            try:
-                test_connection_func(instance)
-            except TestConnectionError as e:
-                raise BadRequest(detail=e.error_msg)
+
+        # will raise if there are errors
+        self._backsync_integration_request(instance, "test_connection")
 
         return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelBacksyncStatusOptions",
+            fields={
+                "value": serializers.CharField(),
+                "display_name": serializers.CharField(),
+            },
+            many=True,
+        ),
+    )
+    @action(detail=True, methods=["get"])
+    def status_options(self, request, pk):
+        instance = self.get_object()
+        choices = self._backsync_integration_request(instance, "status_options")
+        if choices is None:
+            choices = []
+        return Response(choices)
 
     @extend_schema(
         responses=inline_serializer(
