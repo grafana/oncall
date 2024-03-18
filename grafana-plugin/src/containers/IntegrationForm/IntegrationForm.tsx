@@ -8,6 +8,7 @@ import {
   Icon,
   Input,
   Label,
+  LoadingPlaceholder,
   RadioButtonGroup,
   Select,
   Switch,
@@ -29,12 +30,14 @@ import { Labels } from 'containers/Labels/Labels';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
+import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
@@ -48,13 +51,9 @@ interface FormFields {
   alert_manager?: string;
   contact_point?: string;
   integration: ApiSchemas['AlertReceiveChannel']['integration'];
+  create_default_webhooks: boolean;
 
-  additional_settings: {
-    instance_url: string;
-    username: string;
-    password: string;
-    default_webhooks: boolean;
-  };
+  additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
 interface IntegrationFormProps {
@@ -103,6 +102,13 @@ export const IntegrationForm = observer(
             instance_url: undefined,
             password: undefined,
             username: undefined,
+            is_configured: false,
+            state_mapping: {
+              acknowledged: undefined,
+              firing: undefined,
+              resolved: undefined,
+              silenced: undefined,
+            },
           },
         }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
@@ -114,9 +120,7 @@ export const IntegrationForm = observer(
         ? {
             // these are the default values for creating an integration
             integration,
-            additional_settings: {
-              default_webhooks: true,
-            },
+            additional_settings: {},
           }
         : {
             // existing values from existing integration (edit-mode)
@@ -130,6 +134,8 @@ export const IntegrationForm = observer(
       handleSubmit,
       formState: { errors },
     } = formMethods;
+
+    const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
 
     const [
       {
@@ -192,14 +198,8 @@ export const IntegrationForm = observer(
           <Controller
             name={'description_short'}
             control={control}
-            rules={{ required: 'Description is required' }}
             render={({ field }) => (
-              <Field
-                key={'Description'}
-                label={'Integration Description'}
-                invalid={!!errors.description_short}
-                error={errors.description_short?.message}
-              >
+              <Field key={'Description'} label={'Integration Description'}>
                 <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
             )}
@@ -339,7 +339,7 @@ export const IntegrationForm = observer(
             </Button>
 
             <Controller
-              name={'additional_settings.default_webhooks'}
+              name={'create_default_webhooks'}
               control={control}
               render={({ field }) => (
                 <div className={styles.webhookSwitch}>
@@ -363,9 +363,7 @@ export const IntegrationForm = observer(
               )}
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <Button type="submit" data-testid="update-integration-button">
-                  {id === 'new' ? 'Create' : 'Update'} Integration
-                </Button>
+                {renderUpdateIntegrationButton(id)}
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
@@ -373,9 +371,18 @@ export const IntegrationForm = observer(
       </FormProvider>
     );
 
+    function renderUpdateIntegrationButton(id: string) {
+      const buttonCopy: string = id === 'new' ? 'Create Integration' : 'Update Integration';
+
+      return (
+        <Button type="submit" data-testid="update-integration-button">
+          {isLoading ? <LoadingPlaceholder text="Loading..." className={styles.loader} /> : buttonCopy}
+        </Button>
+      );
+    }
+
     function validateURL(urlFieldValue: string): string | boolean {
       const regex = new RegExp(URL_REGEX, 'i');
-
       return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
@@ -384,7 +391,7 @@ export const IntegrationForm = observer(
     async function onFormSubmit(formData: FormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
 
-      const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
+      const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
         labels,
         ...formData,
       };
@@ -412,7 +419,7 @@ export const IntegrationForm = observer(
       await onSubmit();
       onHide();
 
-      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannelCreate']> {
         const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
         const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
           history.push(`${PLUGIN_ROOT}/integrations/${id}`);

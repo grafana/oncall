@@ -14,7 +14,7 @@ import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 import { OmitReadonlyMembers } from 'utils/types';
 
-import { AlertReceiveChannelCounters, ContactPoint } from './alert_receive_channel.types';
+import { AlertReceiveChannelCounters, ContactPoint, ServiceNowStatus } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore {
   rootStore: RootBaseStore;
@@ -37,6 +37,7 @@ export class AlertReceiveChannelStore {
   alertReceiveChannelOptions: Array<ApiSchemas['AlertReceiveChannelIntegrationOptions']> = [];
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
   connectedContactPoints: { [id: string]: ContactPoint[] } = {};
+  serviceNowStatusList: ServiceNowStatus[];
 
   constructor(rootStore: RootBaseStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -48,17 +49,18 @@ export class AlertReceiveChannelStore {
     data,
     skipErrorHandling,
   }: {
-    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']>;
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']>;
     skipErrorHandling?: boolean;
   }) {
     const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/', {
       params: {},
-      body: data as ApiSchemas['AlertReceiveChannel'],
+      body: data as ApiSchemas['AlertReceiveChannelCreate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
     return result.data;
   }
 
+  @AutoLoadingState(ActionKey.UPDATE_INTEGRATION)
   @WithGlobalNotification({ failure: 'There was an issue updating Integration. Please try again.' })
   async update({
     id,
@@ -74,7 +76,13 @@ export class AlertReceiveChannelStore {
       body: data as ApiSchemas['AlertReceiveChannelUpdate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
-    return result.data;
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: { ...result.data },
+      };
+    });
   }
 
   async fetchItemById(
@@ -95,6 +103,25 @@ export class AlertReceiveChannelStore {
     this.populateHearbeats([alertReceiveChannel.data]);
 
     return alertReceiveChannel.data;
+  }
+
+  async fetchServiceNowListOfStatus(): Promise<void> {
+    this.serviceNowStatusList = [
+      {
+        id: 1,
+        name: 'Resolved',
+      },
+      {
+        id: 2,
+        name: 'In Progress',
+      },
+      {
+        id: 3,
+        name: 'New',
+      },
+    ];
+
+    return Promise.resolve();
   }
 
   async fetchItems(query: any = '') {
