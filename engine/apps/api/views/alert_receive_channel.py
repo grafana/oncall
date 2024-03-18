@@ -783,14 +783,13 @@ class AlertReceiveChannelView(
     def backsync_token_get(self, request, pk):
         instance = self.get_object()
         try:
-            token = IntegrationBacksyncAuthToken.objects.get(
+            _ = IntegrationBacksyncAuthToken.objects.get(
                 alert_receive_channel=instance, organization=request.auth.organization
             )
         except IntegrationBacksyncAuthToken.DoesNotExist:
             raise NotFound
 
-        data = {"created_at": token.created_at}
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
         methods=["post"],
@@ -807,5 +806,5 @@ class AlertReceiveChannelView(
     def backsync_token_post(self, request, pk):
         instance = self.get_object()
         instance, token = IntegrationBacksyncAuthToken.create_auth_token(instance, request.auth.organization)
-        data = {"token": token, "created_at": instance.created_at}
+        data = {"token": token}
         return Response(data, status=status.HTTP_201_CREATED)
