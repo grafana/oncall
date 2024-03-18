@@ -34,6 +34,7 @@ from apps.api.serializers.webhook import WebhookSerializer
 from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.models.integration_backsync_auth_token import IntegrationBacksyncAuthToken
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
@@ -49,7 +50,12 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
-from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import (
+    BacksyncIntegrationRequestError,
+    MaintenanceCouldNotBeStartedError,
+    TeamCanNotBeChangedError,
+    UnableToSendDemoAlert,
+)
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -166,6 +172,8 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "status_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
@@ -174,6 +182,8 @@ class AlertReceiveChannelView(
         "connected_alert_receive_channels_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "backsync_token_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "backsync_token_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -270,6 +280,48 @@ class AlertReceiveChannelView(
             raise BadRequest(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
+
+    def _backsync_integration_request(self, instance, func_name):
+        integration_func = getattr(instance.config, func_name, None)
+        if integration_func:
+            try:
+                return integration_func(instance)
+            except BacksyncIntegrationRequestError as e:
+                raise BadRequest(detail=e.error_msg)
+
+    @extend_schema(request=AlertReceiveChannelSerializer)
+    @action(detail=False, methods=["post"])
+    def test_connection(self, request):
+        # create in-memory instance to test with the (possible) unsaved data
+        data = request.data
+        # clear name while testing connection (to avoid name already used validation error)
+        data["verbal_name"] = None
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = AlertReceiveChannel(**serializer.validated_data)
+
+        # will raise if there are errors
+        self._backsync_integration_request(instance, "test_connection")
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=inline_serializer(
+            name="AlertReceiveChannelBacksyncStatusOptions",
+            fields={
+                "value": serializers.CharField(),
+                "display_name": serializers.CharField(),
+            },
+            many=True,
+        ),
+    )
+    @action(detail=True, methods=["get"])
+    def status_options(self, request, pk):
+        instance = self.get_object()
+        choices = self._backsync_integration_request(instance, "status_options")
+        if choices is None:
+            choices = []
+        return Response(choices)
 
     @extend_schema(
         responses=inline_serializer(
@@ -766,3 +818,32 @@ class AlertReceiveChannelView(
 
         connection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["get"], url_path="api_token")
+    def backsync_token_get(self, request, pk):
+        instance = self.get_object()
+        try:
+            _ = IntegrationBacksyncAuthToken.objects.get(
+                alert_receive_channel=instance, organization=request.auth.organization
+            )
+        except IntegrationBacksyncAuthToken.DoesNotExist:
+            raise NotFound
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        methods=["post"],
+        responses=inline_serializer(
+            name="IntegrationTokenPostResponse",
+            fields={
+                "token": serializers.CharField(),
+            },
+        ),
+    )
+    @action(detail=True, methods=["post"], url_path="api_token")
+    @backsync_token_get.mapping.post
+    def backsync_token_post(self, request, pk):
+        instance = self.get_object()
+        instance, token = IntegrationBacksyncAuthToken.create_auth_token(instance, request.auth.organization)
+        data = {"token": token}
+        return Response(data, status=status.HTTP_201_CREATED)

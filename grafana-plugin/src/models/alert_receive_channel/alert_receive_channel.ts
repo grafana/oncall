@@ -49,12 +49,12 @@ export class AlertReceiveChannelStore {
     data,
     skipErrorHandling,
   }: {
-    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']>;
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']>;
     skipErrorHandling?: boolean;
   }) {
     const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/', {
       params: {},
-      body: data as ApiSchemas['AlertReceiveChannel'],
+      body: data as ApiSchemas['AlertReceiveChannelCreate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
     return result.data;
