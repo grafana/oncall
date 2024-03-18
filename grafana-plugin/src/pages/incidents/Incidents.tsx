@@ -318,6 +318,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             team: [],
             status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
             mine: false,
+            started_at: 'now-7d/now',
           }}
         />
       </div>
