@@ -5,13 +5,9 @@ env:
   #   value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
-# image:
-#   repository: localhost:63628/oncall/engine
-#   tag: dev
-#   pullPolicy: IfNotPresent
 image:
-  repository: oncall/engine
-  tag: latest
+  repository: localhost:63628/oncall/engine
+  tag: dev
   pullPolicy: IfNotPresent
 broker:
   type: redis
