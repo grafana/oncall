@@ -770,15 +770,6 @@ class AlertReceiveChannelView(
         connection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(
-        methods=["get"],
-        responses=inline_serializer(
-            name="IntegrationTokenGetResponse",
-            fields={
-                "created_at": serializers.DateTimeField(),
-            },
-        ),
-    )
     @action(detail=True, methods=["get"], url_path="api_token")
     def backsync_token_get(self, request, pk):
         instance = self.get_object()
@@ -797,7 +788,6 @@ class AlertReceiveChannelView(
             name="IntegrationTokenPostResponse",
             fields={
                 "token": serializers.CharField(),
-                "created_at": serializers.DateTimeField(),
             },
         ),
     )
