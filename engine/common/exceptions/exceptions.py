@@ -23,8 +23,8 @@ class UserNotificationPolicyCouldNotBeDeleted(OperationCouldNotBePerformedError)
     pass
 
 
-class TestConnectionError(Exception):
-    """Error testing alert receive channel connection."""
+class BacksyncIntegrationRequestError(Exception):
+    """Error making request to alert receive channel backsync connection."""
 
     def __init__(self, *args, **kwargs):
         self.error_msg = kwargs.pop("error_msg", None)
