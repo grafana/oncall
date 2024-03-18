@@ -4,6 +4,12 @@ running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
 grafana_image_tag = os.getenv("GRAFANA_IMAGE_TAG", "latest")
 e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e")
+twilio_values=[
+    "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
+    "oncall.twilio.authToken=" + os.getenv("TWILIO_AUTH_TOKEN", ""),
+    "oncall.twilio.phoneNumber=" + os.getenv("TWILIO_PHONE_NUMBER", ""),
+    "oncall.twilio.verifySid=" + os.getenv("TWILIO_VERIFY_SID", ""),
+]
 is_ci=config.tilt_subcommand == "ci"
 # HELM_PREFIX must be "oncall-dev" as it is hardcoded in dev/helm-local.yml
 HELM_PREFIX = "oncall-dev"
@@ -107,7 +113,7 @@ cmd_button(
     icon_name="dangerous",
 )
 
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"], set=twilio_values)
 
 k8s_yaml(yaml)
 

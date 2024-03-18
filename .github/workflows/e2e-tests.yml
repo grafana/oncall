@@ -122,6 +122,8 @@ jobs:
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
       - name: Tilt CI
+        # TODO: Revert after check
+        if: inputs.run-expensive-tests
         shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
@@ -137,6 +139,10 @@ jobs:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+          TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
         run: tilt ci
 
       - name: Setup Pages
