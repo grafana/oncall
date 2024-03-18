@@ -41,25 +41,8 @@ jobs:
       id-token: write
       pages: "write"
     steps:
-      - name: Checkout ops-devenv
-        uses: actions/checkout@v4
-        with:
-          repository: grafana/ops-devenv
-
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: TEST2
-        run: ls && cd .. && ls
-
-      # TODO: re-enable this when we get the docker build build-context caching working.. see other TODO comment below
-      # - uses: actions/setup-python@v4
-      #   with:
-      #     python-version: "3.11.4"
-      #     cache: "pip"
-      #     cache-dependency-path: |
-      #       engine/requirements.txt
-      #       engine/requirements-dev.txt
+        uses: actions/checkout@v3
 
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
@@ -138,17 +121,15 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      # - name: Setup Ops-DevEnv
-      #   run: git clone git@github.com:grafana/ops-devenv.git
-
       - name: Tilt CI
         shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
-        run: cd ../ops-devenv && tilt ci gops-labels oncall
+        run: tilt ci
 
       - name: Tilt CI - expensive E2E tests
+        # TODO: Revert after check
         # if: inputs.run-expensive-tests
         shell: bash
         env:
@@ -156,7 +137,7 @@ jobs:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-        run: cd ../ops-devenv && tilt ci gops-labels oncall
+        run: tilt ci
 
       - name: Setup Pages
         if: failure()
