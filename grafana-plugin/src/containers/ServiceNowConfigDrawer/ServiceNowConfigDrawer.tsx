@@ -151,7 +151,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             <div className={styles.border}>
               <VerticalGroup>
                 <HorizontalGroup spacing="xs" align="center">
-                  <Text type="primary" size="small">
+                  <Text type="primary" strong>
                     Labels Mapping
                   </Text>
                   <Icon name="info-circle" />
@@ -169,8 +169,8 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             <div className={styles.border}>
               <VerticalGroup>
                 <HorizontalGroup spacing="xs" align="center">
-                  <Text type="primary" size="small">
-                    ServiceNow API Token
+                  <Text type="primary" strong>
+                    ServiceNow backsync API token
                   </Text>
                   <Icon name="info-circle" />
                 </HorizontalGroup>

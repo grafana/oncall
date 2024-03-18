@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, LoadingPlaceholder, Modal, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
+import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
-import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 
 interface CompleteServiceNowConfigModalProps {
   onHide: () => void;
@@ -23,15 +24,18 @@ interface FormFields {
 
 export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProps> = ({ onHide }) => {
   const formMethods = useForm<FormFields>();
-  const { handleSubmit } = formMethods;
   const { alertReceiveChannelStore } = useStore();
   const integration = useCurrentIntegration();
+
   const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
   const [isFormActionsDisabled, setIsFormActionsDisabled] = useState(false);
 
   const styles = useStyles2(getStyles);
+  const { handleSubmit } = formMethods;
   const serviceNowAPIToken = ''; // TODO
   const onTokenRegenerate = () => {}; // TODO
+
+  const { id } = integration;
 
   return (
     <Modal closeOnEscape={false} isOpen title={'Complete ServiceNow configuration'} onDismiss={onHide} className={''}>
@@ -45,7 +49,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
             <VerticalGroup>
               <HorizontalGroup spacing="xs" align="center">
                 <Text type="primary" strong>
-                  Generate backsync API token
+                  ServiceNow backsync API token
                 </Text>
               </HorizontalGroup>
 
@@ -86,13 +90,14 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
     </Modal>
   );
 
-  function onFormAcknowledge() {
+  async function onFormAcknowledge() {
     setIsFormActionsDisabled(true);
 
     try {
-      alertReceiveChannelStore.update({
-        id: integration.id,
+      await alertReceiveChannelStore.update({
+        id,
         data: {
+          ...integration,
           additional_settings: {
             ...integration.additional_settings,
             is_configured: true,
@@ -106,8 +111,13 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
     }
   }
 
-  function onFormSubmit(data: FormFields) {
-    // alertReceiveChannelStore.update({ id, data, skipErrorHandling: false })
+  async function onFormSubmit(formData: FormFields) {
+    const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
+      ...integration,
+      ...formData,
+    };
+
+    await alertReceiveChannelStore.update({ id, data });
   }
 };
 

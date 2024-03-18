@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Icon, Select, SelectBaseProps, VerticalGroup } from '@grafana/ui';
+import { HorizontalGroup, Select, SelectBaseProps, VerticalGroup } from '@grafana/ui';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Text } from 'components/Text/Text';
