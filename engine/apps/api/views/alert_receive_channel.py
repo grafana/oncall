@@ -780,6 +780,12 @@ class AlertReceiveChannelView(
             batch_size=5000,
         )
 
+        # add connected integrations to filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.add(
+                *instance.organization.alert_receive_channels.filter(public_primary_key__in=backsync_map.keys())
+            )
+
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -817,6 +823,11 @@ class AlertReceiveChannelView(
             raise NotFound
 
         connection.delete()
+
+        # remove the connected integration from filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.remove(connection.connected_alert_receive_channel)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["get"], url_path="api_token")

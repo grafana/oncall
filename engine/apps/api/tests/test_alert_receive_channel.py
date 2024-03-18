@@ -2231,10 +2231,15 @@ def test_connected_alert_receive_channels_get(
 def test_connected_alert_receive_channels_post(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
+    make_custom_webhook,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
+
     source_alert_receive_channel = make_alert_receive_channel(organization)
+    webhook = make_custom_webhook(organization, is_from_connected_integration=True)
+    webhook.filtered_integrations.set([source_alert_receive_channel])
+
     alert_receive_channel_to_connect_1 = make_alert_receive_channel(organization)
     alert_receive_channel_to_connect_2 = make_alert_receive_channel(organization)
 
@@ -2278,6 +2283,11 @@ def test_connected_alert_receive_channels_post(
         ],
     }
     assert source_alert_receive_channel.connected_alert_receive_channels.count() == 2
+    assert set(webhook.filtered_integrations.values_list("id", flat=True)) == {
+        source_alert_receive_channel.id,
+        alert_receive_channel_to_connect_1.id,
+        alert_receive_channel_to_connect_2.id,
+    }
 
 
 @pytest.mark.django_db
@@ -2322,6 +2332,7 @@ def test_connected_alert_receive_channels_delete(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_alert_receive_channel_connection,
+    make_custom_webhook,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -2332,6 +2343,11 @@ def test_connected_alert_receive_channels_delete(
 
     make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel_1)
     make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel_2)
+
+    webhook = make_custom_webhook(organization, is_from_connected_integration=True)
+    webhook.filtered_integrations.set(
+        [source_alert_receive_channel, connected_alert_receive_channel_1, connected_alert_receive_channel_2]
+    )
 
     client = APIClient()
     url = reverse(
@@ -2349,6 +2365,10 @@ def test_connected_alert_receive_channels_delete(
         source_alert_receive_channel.connected_alert_receive_channels.first().connected_alert_receive_channel
         == connected_alert_receive_channel_2
     )
+    assert set(webhook.filtered_integrations.values_list("id", flat=True)) == {
+        source_alert_receive_channel.id,
+        connected_alert_receive_channel_2.id,
+    }
 
 
 @pytest.mark.django_db

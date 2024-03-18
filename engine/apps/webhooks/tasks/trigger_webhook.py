@@ -122,6 +122,13 @@ def _build_payload(
 
     data = serialize_event(event, alert_group, user, webhook, responses_data)
 
+    # TODO: find a better way to filter, additional_settings__isnull is a workaround
+    source_alert_receive_channel = webhook.filtered_integrations.filter(additional_settings__isnull=False).first()
+    if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "additional_template_context"):
+        data.update(
+            source_alert_receive_channel.config.additional_template_context(alert_group, source_alert_receive_channel)
+        )
+
     return data
 
 
