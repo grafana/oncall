@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 class GoogleCalendarAPIClient:
 
-    MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH = 10
+    MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH = 250
     """
     By default the value is 250 events. The page size can never be larger than 2500 events
     """
@@ -44,9 +44,7 @@ class GoogleCalendarAPIClient:
             """
             return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # TODO: uncomment out when done testing
-        # now = _format_datetime_arg(datetime.datetime.now(datetime.UTC))
-        now = _format_datetime_arg(datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=90))
+        now = _format_datetime_arg(datetime.datetime.now(datetime.UTC))
 
         logger.info(
             f"GoogleCalendarAPIClient - Getting the upcoming {self.MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH} "

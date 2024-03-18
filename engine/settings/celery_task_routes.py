@@ -113,7 +113,6 @@ CELERY_TASK_ROUTES = {
     "apps.base.tasks.process_failed_to_invoke_celery_tasks": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks_batch": {"queue": "critical"},
     "apps.email.tasks.notify_user_async": {"queue": "critical"},
-    # TODO: should these be on the critical queue or a different one?
     "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users": {"queue": "critical"},
     "apps.google.tasks.sync_out_of_office_calendar_events_for_user": {"queue": "critical"},
     "apps.integrations.tasks.create_alert": {"queue": "critical"},
