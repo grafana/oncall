@@ -45,7 +45,7 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, PluginAuthToken, SlackAuthToken
+from apps.auth_token.models import ApiAuthToken, IntegrationBacksyncAuthToken, PluginAuthToken, SlackAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -249,6 +249,14 @@ def make_token_for_organization():
         return PluginAuthToken.create_auth_token(organization)
 
     return _make_token_for_organization
+
+
+@pytest.fixture
+def make_token_for_integration():
+    def _make_token_for_integration(alert_receive_channel, organization):
+        return IntegrationBacksyncAuthToken.create_auth_token(alert_receive_channel, organization)
+
+    return _make_token_for_integration
 
 
 @pytest.fixture
