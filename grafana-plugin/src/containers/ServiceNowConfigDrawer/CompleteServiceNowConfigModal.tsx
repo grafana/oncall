@@ -11,6 +11,7 @@ import { useStore } from 'state/useStore';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 
 interface CompleteServiceNowConfigModalProps {
   onHide: () => void;
@@ -24,16 +25,15 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
   const formMethods = useForm<FormFields>();
   const { handleSubmit } = formMethods;
   const { alertReceiveChannelStore } = useStore();
+  const integration = useCurrentIntegration();
   const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
+  const [isFormActionsDisabled, setIsFormActionsDisabled] = useState(false);
 
   const styles = useStyles2(getStyles);
   const serviceNowAPIToken = ''; // TODO
   const onTokenRegenerate = () => {}; // TODO
 
-  const isLoading = false; // TODO
-
   return (
-    // <Drawer title="Complete ServiceNow configuration" onClose={onHide} closeOnMaskClick={false} size="md">
     <Modal closeOnEscape={false} isOpen title={'Complete ServiceNow configuration'} onDismiss={onHide} className={''}>
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
@@ -44,10 +44,9 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
           <div className={styles.border}>
             <VerticalGroup>
               <HorizontalGroup spacing="xs" align="center">
-                <Text type="primary" size="small">
-                  ServiceNow API Token
+                <Text type="primary" strong>
+                  Generate backsync API token
                 </Text>
-                <Icon name="info-circle" />
               </HorizontalGroup>
 
               <Text>
@@ -66,7 +65,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
                   isMasked
                 />
                 <Button variant="secondary" onClick={onTokenRegenerate}>
-                  Regenerate
+                  {serviceNowAPIToken ? 'Regenerate' : 'Generate'}
                 </Button>
               </div>
             </VerticalGroup>
@@ -74,11 +73,11 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
 
           <div>
             <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={onHide}>
+              <Button variant="secondary" onClick={onFormAcknowledge} disabled={isFormActionsDisabled}>
                 Close
               </Button>
-              <Button variant="primary" type="submit" disabled={isLoading}>
-                {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Proceed'}
+              <Button variant="primary" type="submit" disabled={isFormActionsDisabled}>
+                {isFormActionsDisabled ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Proceed'}
               </Button>
             </HorizontalGroup>
           </div>
@@ -86,6 +85,26 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
       </FormProvider>
     </Modal>
   );
+
+  function onFormAcknowledge() {
+    setIsFormActionsDisabled(true);
+
+    try {
+      alertReceiveChannelStore.update({
+        id: integration.id,
+        data: {
+          additional_settings: {
+            ...integration.additional_settings,
+            is_configured: true,
+          },
+        },
+      });
+
+      onHide();
+    } catch (ex) {
+      setIsFormActionsDisabled(false);
+    }
+  }
 
   function onFormSubmit(data: FormFields) {
     // alertReceiveChannelStore.update({ id, data, skipErrorHandling: false })

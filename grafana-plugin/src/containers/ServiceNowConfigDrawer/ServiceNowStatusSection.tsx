@@ -25,7 +25,10 @@ interface ServiceNowStatusSectionProps {
   setStatusMapping: React.Dispatch<React.SetStateAction<ServiceNowStatusMapping>>;
 }
 
-export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = ({ statusMapping, setStatusMapping }) => {
+export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = ({
+  statusMapping,
+  setStatusMapping,
+}) => {
   const { control, setValue } = useFormContext<ServiceNowFormFields>();
   const { alertReceiveChannelStore } = useStore();
 
@@ -38,17 +41,24 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
   return (
     <VerticalGroup spacing="md">
       <HorizontalGroup spacing="xs" align="center">
-        <Text type="primary" size="small">
+        <Text type="primary" strong>
           Status Mapping
         </Text>
-        <Icon name="info-circle" />
       </HorizontalGroup>
 
       <table className={'filter-table'}>
         <thead>
           <tr>
-            <th>OnCall Alert group status</th>
-            <th>ServiceNow incident status</th>
+            <th>
+              <Text type="primary">
+                OnCall Alert group status
+              </Text>
+            </th>
+            <th>
+              <Text type="primary">
+                ServiceNow incident status
+              </Text>
+            </th>
           </tr>
         </thead>
         <tbody>
