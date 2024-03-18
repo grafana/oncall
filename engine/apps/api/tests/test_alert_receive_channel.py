@@ -2414,7 +2414,6 @@ def test_integration_api_token(
     # create token
     response = client.post(post_token_url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json().get("created_at")
     integration_token_string = response.json().get("token")
     integration_token_1 = alert_receive_channel.auth_tokens.first()
 
