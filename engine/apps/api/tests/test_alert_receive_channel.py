@@ -2363,3 +2363,123 @@ def test_delete_connection_on_channel_delete(
 
     response = client.get(connected_integration_url, **make_user_auth_headers(user, token))
     assert len(response.json()["source_alert_receive_channels"]) == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_receive_channel_api_token_get(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    url = reverse(
+        "api-internal:alert_receive_channel-backsync-token-get",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+    client = APIClient()
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.backsync_token_get",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_201_CREATED),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_receive_channel_api_token_post(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    url = reverse(
+        "api-internal:alert_receive_channel-backsync-token-post",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+    client = APIClient()
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.backsync_token_post",
+        return_value=Response(
+            status=status.HTTP_201_CREATED,
+        ),
+    ):
+        response = client.post(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_integration_api_token(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    client = APIClient()
+    get_token_url = reverse(
+        "api-internal:alert_receive_channel-backsync-token-get",
+        kwargs={
+            "pk": alert_receive_channel.public_primary_key,
+        },
+    )
+    post_token_url = reverse(
+        "api-internal:alert_receive_channel-backsync-token-post",
+        kwargs={
+            "pk": alert_receive_channel.public_primary_key,
+        },
+    )
+    # token does not exist
+    response = client.get(get_token_url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # create token
+    response = client.post(post_token_url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    integration_token_string = response.json().get("token")
+    integration_token_1 = alert_receive_channel.auth_tokens.first()
+
+    # token was found
+    response = client.get(get_token_url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # recreate token, the first token will be revoked
+    response = client.post(post_token_url, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    integration_token_1.refresh_from_db()
+    integration_token_2 = alert_receive_channel.auth_tokens.first()
+    assert integration_token_2 != integration_token_1
+    assert integration_token_1.revoked_at is not None
+    assert integration_token_string != response.json().get("token")
