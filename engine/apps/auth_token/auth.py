@@ -19,8 +19,15 @@ from settings.base import SELF_HOSTED_SETTINGS
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
 from .grafana.grafana_auth_token import get_service_account_token_permissions
-from .models import ApiAuthToken, GoogleOAuth2Token, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
-from .models.integration_backsync_auth_token import IntegrationBacksyncAuthToken
+from .models import (
+    ApiAuthToken,
+    GoogleOAuth2Token,
+    IntegrationBacksyncAuthToken,
+    PluginAuthToken,
+    ScheduleExportAuthToken,
+    SlackAuthToken,
+    UserScheduleExportAuthToken,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
