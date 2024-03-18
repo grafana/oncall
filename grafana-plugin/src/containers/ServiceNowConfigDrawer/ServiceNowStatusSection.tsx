@@ -20,12 +20,12 @@ interface ServiceNowFormFields {
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
-interface CommonServiceNowConfigProps {
+interface ServiceNowStatusSectionProps {
   statusMapping: ServiceNowStatusMapping;
   setStatusMapping: React.Dispatch<React.SetStateAction<ServiceNowStatusMapping>>;
 }
 
-export const CommonServiceNowConfig: React.FC<CommonServiceNowConfigProps> = ({ statusMapping, setStatusMapping }) => {
+export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = ({ statusMapping, setStatusMapping }) => {
   const { control, setValue } = useFormContext<ServiceNowFormFields>();
   const { alertReceiveChannelStore } = useStore();
 

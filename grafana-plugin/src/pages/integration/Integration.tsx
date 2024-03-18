@@ -48,6 +48,7 @@ import { IntegrationFormContainer } from 'containers/IntegrationForm/Integration
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
 import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
@@ -73,8 +74,6 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
-import { CompleteServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigDrawer';
-import { useCurrentIntegration } from './OutgoingTab/OutgoingTab.hooks';
 
 const cx = cn.bind(styles);
 
@@ -833,6 +832,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     onConfirm: () => void;
   }>(undefined);
 
+  const [isCompleteServiceNowConfigOpen, setIsCompleteServiceNowConfigOpen] = useState(false);
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
   const [isLabelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
@@ -877,7 +877,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
       {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={closeDrawer} />}
 
-      {getIsDrawerOpened('completeConfig') && <CompleteServiceNowConfigDrawer onHide={closeDrawer} />}
+      {isCompleteServiceNowConfigOpen && <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
@@ -1073,7 +1073,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     const isServiceNow = getIsBidirectionalIntegration(alertReceiveChannel);
     const isConfigured = alertReceiveChannel.additional_settings?.is_configured;
     if (isServiceNow && !isConfigured) {
-      openDrawer('completeConfig');
+      setIsCompleteServiceNowConfigOpen(true);
     }
   }
 

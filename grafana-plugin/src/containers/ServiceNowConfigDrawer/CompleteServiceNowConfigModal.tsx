@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, Drawer, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
@@ -12,7 +12,7 @@ import { useStore } from 'state/useStore';
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
 
-interface CompleteServiceNowConfigDrawerProps {
+interface CompleteServiceNowConfigModalProps {
   onHide: () => void;
 }
 
@@ -20,7 +20,7 @@ interface FormFields {
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
-export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDrawerProps> = ({ onHide }) => {
+export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProps> = ({ onHide }) => {
   const formMethods = useForm<FormFields>();
   const { handleSubmit } = formMethods;
   const { alertReceiveChannelStore } = useStore();
@@ -33,7 +33,8 @@ export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDr
   const isLoading = false; // TODO
 
   return (
-    <Drawer title="Complete ServiceNow configuration" onClose={onHide} closeOnMaskClick={false} size="md">
+    // <Drawer title="Complete ServiceNow configuration" onClose={onHide} closeOnMaskClick={false} size="md">
+    <Modal closeOnEscape={false} isOpen title={'Complete ServiceNow configuration'} onDismiss={onHide} className={''}>
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.border}>
@@ -62,10 +63,10 @@ export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDr
                   iconsClassName={styles.tokenIcons}
                   value={serviceNowAPIToken}
                   showExternal={false}
-                  showEye={false}
+                  isMasked
                 />
                 <Button variant="secondary" onClick={onTokenRegenerate}>
-                  {serviceNowAPIToken ? 'Regenerate' : 'Generate'}
+                  Regenerate
                 </Button>
               </div>
             </VerticalGroup>
@@ -83,7 +84,7 @@ export const CompleteServiceNowConfigDrawer: React.FC<CompleteServiceNowConfigDr
           </div>
         </form>
       </FormProvider>
-    </Drawer>
+    </Modal>
   );
 
   function onFormSubmit(data: FormFields) {

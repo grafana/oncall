@@ -28,8 +28,8 @@ import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 import { openNotification } from 'utils/utils';
 
-import { CommonServiceNowConfig, ServiceNowStatusMapping } from './CommonServiceNowConfig';
-import { getCommonServiceNowConfigStyles } from './CommonServiceNowConfig.styles';
+import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
+import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -145,7 +145,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             </div>
 
             <div className={styles.border}>
-              <CommonServiceNowConfig setStatusMapping={setStatusMapping} statusMapping={statusMapping} />
+              <ServiceNowStatusSection setStatusMapping={setStatusMapping} statusMapping={statusMapping} />
             </div>
 
             <div className={styles.border}>
