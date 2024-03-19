@@ -187,12 +187,11 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
         data["alert_group"]["labels"] = get_alert_group_labels_dict(alert_group)
 
     # Add additional webhook data if the integration has it
-    # TODO: find a better way to filter, additional_settings__isnull is a workaround
-    source_alert_receive_channel = webhook.filtered_integrations.filter(additional_settings__isnull=False).first()
+    source_alert_receive_channel = webhook.filtered_integrations.filter(
+        connected_alert_receive_channels__isnull=False
+    ).first()  # TODO: is it possible to have more than one?
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "additional_webhook_data"):
-        data.update(
-            source_alert_receive_channel.config.additional_webhook_data(alert_group, source_alert_receive_channel)
-        )
+        data.update(source_alert_receive_channel.config.additional_webhook_data(source_alert_receive_channel))
 
     # Add external ID (e.g. ServiceNow incident ID) to webhook data
     if source_alert_receive_channel:
