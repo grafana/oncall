@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 from apps.labels.models import LabelKeyCache, LabelValueCache
-from common.exceptions import TestConnectionError
+from common.exceptions import BacksyncIntegrationRequestError
 
 
 class AdditionalSettingsTestSerializer(serializers.Serializer):
@@ -1962,7 +1962,7 @@ def test_alert_receive_channel_test_connection(
 
     # test error
     def testing_error(instance):
-        raise TestConnectionError(error_msg="Error!")
+        raise BacksyncIntegrationRequestError(error_msg="Error!")
 
     with patch.object(integration_config, "test_connection", side_effect=testing_error, create=True):
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -1974,6 +1974,45 @@ def test_alert_receive_channel_test_connection(
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"team": ["Object does not exist"]}
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_status_options(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    integration_config = AlertReceiveChannel._config[0]
+    alert_receive_channel = make_alert_receive_channel(organization, integration=integration_config.slug)
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-status-options",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    # no status options setup
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
+
+    # test ok
+    def testing_ok(instance):
+        return [("The option", "value"), ("Another", "another")]
+
+    with patch.object(integration_config, "status_options", side_effect=testing_ok, create=True):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [["The option", "value"], ["Another", "another"]]
+
+    # test error
+    def testing_error(instance):
+        raise BacksyncIntegrationRequestError(error_msg="Error!")
+
+    with patch.object(integration_config, "status_options", side_effect=testing_error, create=True):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Error!"}
 
 
 def _webhook_data(webhook_id=ANY, webhook_name=ANY, webhook_url=ANY, alert_receive_channel_id=ANY):
