@@ -107,4 +107,10 @@ export class UserHelper {
       })
     ).data;
   }
+
+  static async handleOpenGoogleInstructions() {
+    // TODO: add openAPI schemas for /login/google-oauth2/ on the backend and regenerate schemas
+    const { data } = await onCallApi().GET('/login/google-oauth2/', undefined);
+    window.location = data;
+  }
 }

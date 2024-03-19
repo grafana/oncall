@@ -1,17 +1,18 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { Button, HorizontalGroup, Icon, InlineField, Input, Legend } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import { GrafanaTeamSelect } from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
+import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import styles from './UserInfoTab.module.css';
-import { makeRequest } from 'network/network';
-import { AppFeature } from 'state/features';
 
 const cx = cn.bind(styles);
 
@@ -28,31 +29,6 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
 
   const storeUser = userStore.items[id];
   let width = 15;
-
-  const handleOpenGoogleInstructions = useCallback(async () => {
-    /**
-     * TODO: should this be moved to a "store" class?
-     */
-    const url_for_redirect = await makeRequest('/login/google-oauth2/', {});
-    window.location = url_for_redirect;
-  }, []);
-
-  const ConnectGoogle = () => {
-    if (!store.hasFeature(AppFeature.GoogleOauth2)) {
-      return null;
-    } else if (storeUser.has_google_oauth2_connected) {
-      // TODO: style this
-      return <p>Google already connected</p>;
-    }
-    // TODO: style this
-    return (
-      <Button onClick={handleOpenGoogleInstructions}>
-        <HorizontalGroup spacing="xs" align="center">
-          <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
-        </HorizontalGroup>
-      </Button>
-    );
-  };
 
   return (
     <>
@@ -93,3 +69,20 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
     </>
   );
 };
+
+const ConnectGoogle = observer(() => {
+  const { hasFeature, userStore } = useStore();
+
+  if (!hasFeature(AppFeature.GoogleOauth2)) {
+    return null;
+  }
+  return userStore.currentUser.has_google_oauth2_connected ? (
+    <p>Google already connected</p>
+  ) : (
+    <Button onClick={UserHelper.handleOpenGoogleInstructions}>
+      <HorizontalGroup spacing="xs" align="center">
+        <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Google connection page
+      </HorizontalGroup>
+    </Button>
+  );
+});
