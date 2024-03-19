@@ -1,6 +1,16 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox, ConfirmModal } from '@grafana/ui';
+import {
+  HorizontalGroup,
+  Tooltip,
+  Icon,
+  useStyles2,
+  IconButton,
+  Switch,
+  Checkbox,
+  ConfirmModal,
+  useTheme2,
+} from '@grafana/ui';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
@@ -12,6 +22,8 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { useConfirmModal } from 'utils/hooks';
+
+import { useIntegrationTokenCheck } from '../Integration.hooks';
 
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
@@ -33,6 +45,8 @@ interface ConnectedIntegrationsTableProps {
 const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer(
   ({ selectable, allowDelete, onChange, onBacksyncChange, tableProps, defaultBacksyncedIds = [], allowBacksync }) => {
     const { alertReceiveChannelStore } = useStore();
+    const { colors } = useTheme2();
+    const tokenExists = useIntegrationTokenCheck();
 
     const columns = [
       ...(selectable
@@ -70,15 +84,22 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
               title: (
                 <HorizontalGroup>
                   <Text type="secondary">Backsync</Text>
-                  <Tooltip content={<>Switch on to start sending data from other integrations</>}>
-                    <Icon name={'info-circle'} />
-                  </Tooltip>
+                  {tokenExists ? (
+                    <Tooltip content={<>Switch on to start sending data from other integrations</>}>
+                      {<Icon name={'info-circle'} />}
+                    </Tooltip>
+                  ) : (
+                    <Tooltip content={<>Token must be generated to enable backsync</>}>
+                      {<Icon name={'info-circle'} color={colors.error.shade} />}
+                    </Tooltip>
+                  )}
                 </HorizontalGroup>
               ),
               render: (connectedIntegration: ConnectedIntegration) => (
                 <BacksyncSwitcher
                   defaultChecked={defaultBacksyncedIds.includes(connectedIntegration.id)}
                   onChange={(checked: boolean) => onBacksyncChange(connectedIntegration.id, checked)}
+                  disabled={!tokenExists}
                 />
               ),
             },
@@ -98,15 +119,21 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
 const BacksyncSwitcher = ({
   onChange,
   defaultChecked,
+  disabled,
 }: {
   onChange: (checked: boolean) => void;
   defaultChecked?: boolean;
+  disabled?: boolean;
 }) => {
   const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.backsyncColumn}>
-      <Switch defaultChecked={defaultChecked} onChange={({ currentTarget }) => onChange(currentTarget.checked)} />
+      <Switch
+        disabled={disabled}
+        defaultChecked={defaultChecked}
+        onChange={({ currentTarget }) => onChange(currentTarget.checked)}
+      />
     </div>
   );
 };
