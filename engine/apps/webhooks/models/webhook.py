@@ -346,9 +346,8 @@ def webhook_response_post_save(sender, instance, created, *args, **kwargs):
     if not created:
         return
 
-    # TODO: find a better way to filter, additional_settings__isnull is a workaround
     source_alert_receive_channel = instance.webhook.filtered_integrations.filter(
-        additional_settings__isnull=False
-    ).first()
+        connected_alert_receive_channels__isnull=False
+    ).first()  # TODO: is it possible to have more than one?
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "on_webhook_response_created"):
         source_alert_receive_channel.config.on_webhook_response_created(instance, source_alert_receive_channel)

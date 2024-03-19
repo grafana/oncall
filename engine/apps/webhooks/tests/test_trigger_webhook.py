@@ -734,7 +734,10 @@ def test_execute_webhook_integration_config(
         create=True,
         return_value={"additional_field": "additional_value"},
     ) as mock_additional_webhook_data:
-        execute_webhook(webhook.pk, alert_group.pk, user.pk, None, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
+        with patch.object(
+            source_alert_receive_channel.config, "on_webhook_response_created", create=True
+        ) as mock_on_webhook_response_created:
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
 
     assert mock_requests_post.called
 
@@ -745,3 +748,6 @@ def test_execute_webhook_integration_config(
     # check additional webhook data
     assert mock_requests_post.call_args[1]["json"]["additional_field"] == "additional_value"
     mock_additional_webhook_data.assert_called_once_with(source_alert_receive_channel)
+
+    # check on_webhook_response_created is called
+    mock_on_webhook_response_created.assert_called_once_with(webhook.responses.all()[0], source_alert_receive_channel)
