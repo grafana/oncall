@@ -74,7 +74,7 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
                     onChange={(option: SelectableValue) => {
                       onStatusSelectChange(option, OnCallAGStatus.Firing);
-                      setValue('additional_settings.state_mapping.firing', null);
+                      setValue('additional_settings.state_mapping.firing', option?.value);
                     }}
                     {...selectCommonProps}
                   />
@@ -99,7 +99,7 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
                     onChange={(option: SelectableValue) => {
                       onStatusSelectChange(option, OnCallAGStatus.Acknowledged);
-                      setValue('additional_settings.state_mapping.acknowledged', null);
+                      setValue('additional_settings.state_mapping.acknowledged', option?.value);
                     }}
                     {...selectCommonProps}
                   />
@@ -123,7 +123,7 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
                     onChange={(option: SelectableValue) => {
                       onStatusSelectChange(option, OnCallAGStatus.Resolved);
-                      setValue('additional_settings.state_mapping.resolved', null);
+                      setValue('additional_settings.state_mapping.resolved', option?.value);
                     }}
                     {...selectCommonProps}
                   />
@@ -147,7 +147,7 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
                     onChange={(option: SelectableValue) => {
                       onStatusSelectChange(option, OnCallAGStatus.Silenced);
-                      setValue('additional_settings.state_mapping.silenced', null);
+                      setValue('additional_settings.state_mapping.silenced', option?.value);
                     }}
                     {...selectCommonProps}
                   />
@@ -170,8 +170,9 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
   function getAvailableStatusOptions(currentAction: OnCallAGStatus) {
     const keys = Object.keys(statusMapping);
     const values = keys.map((k) => statusMapping[k]).filter(Boolean);
+    const statusList = (alertReceiveChannelStore.serviceNowStatusList || []).map(([name, id]) => ({ id, name }));
 
-    return (alertReceiveChannelStore.serviceNowStatusList || [])
+    return statusList
       .filter((status) => values.indexOf(status.name) === -1 || statusMapping[currentAction] === status.name)
       .map((status) => ({
         value: status.id,

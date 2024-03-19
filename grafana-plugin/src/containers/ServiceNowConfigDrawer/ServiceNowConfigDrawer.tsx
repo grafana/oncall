@@ -67,7 +67,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
   useEffect(() => {
     (async () => {
-      await alertReceiveChannelStore.fetchServiceNowListOfStatus();
+      await alertReceiveChannelStore.fetchServiceNowStatusList({ id: integration.id });
     })();
   }, []);
 
