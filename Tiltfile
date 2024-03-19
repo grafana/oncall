@@ -78,7 +78,8 @@ local_resource(
 
 cmd_button(
     name="E2E Tests - headless run",
-    argv=["sh", "-c", "yarn --cwd ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
+    # TODO: revert
+    argv=["sh", "-c", "yarn --cwd ./grafana-plugin test:e2e-expensive $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
     text="Restart headless run",
     resource="e2e-tests",
     icon_name="replay",
@@ -91,7 +92,8 @@ cmd_button(
 
 cmd_button(
     name="E2E Tests - open watch mode",
-    argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e:watch"],
+    # TODO: revert
+    argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e-expensive:watch"],
     text="Open watch mode",
     resource="e2e-tests",
     icon_name="visibility",
