@@ -30,6 +30,7 @@ import { openNotification } from 'utils/utils';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
+import { ServiceNowTokenSection } from './ServiceNowTokenSection';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -62,7 +63,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     formState: { errors },
   } = formMethods;
 
-  const serviceNowAPIToken = 'http://url.com';
   const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
 
   useEffect(() => {
@@ -167,34 +167,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             </div>
 
             <div className={styles.border}>
-              <VerticalGroup>
-                <HorizontalGroup spacing="xs" align="center">
-                  <Text type="primary" strong>
-                    ServiceNow backsync API token
-                  </Text>
-                  <Icon name="info-circle" />
-                </HorizontalGroup>
-
-                <Text>
-                  Description for such object and{' '}
-                  <a href={'#'} target="_blank" rel="noreferrer">
-                    <Text type="link">link to documentation</Text>
-                  </a>
-                </Text>
-
-                <div className={styles.tokenContainer}>
-                  <IntegrationInputField
-                    inputClassName={styles.tokenInput}
-                    iconsClassName={styles.tokenIcons}
-                    value={serviceNowAPIToken}
-                    showExternal={false}
-                    isMasked
-                  />
-                  <Button variant="secondary" onClick={onTokenRegenerate}>
-                    Regenerate
-                  </Button>
-                </div>
-              </VerticalGroup>
+              <ServiceNowTokenSection />
             </div>
 
             <div className={styles.formButtons}>

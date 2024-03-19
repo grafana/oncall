@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, LoadingPlaceholder, Modal, VerticalGroup, useStyles2 } from '@grafana/ui';
@@ -13,6 +13,8 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { ServiceNowTokenSection } from './ServiceNowTokenSection';
 
 interface CompleteServiceNowConfigModalProps {
   onHide: () => void;
@@ -32,8 +34,6 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
 
   const styles = useStyles2(getStyles);
   const { handleSubmit } = formMethods;
-  const serviceNowAPIToken = ''; // TODO
-  const onTokenRegenerate = () => {}; // TODO
 
   const { id } = integration;
 
@@ -46,33 +46,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
           </div>
 
           <div className={styles.border}>
-            <VerticalGroup>
-              <HorizontalGroup spacing="xs" align="center">
-                <Text type="primary" strong>
-                  ServiceNow backsync API token
-                </Text>
-              </HorizontalGroup>
-
-              <Text>
-                Description for such object and{' '}
-                <a href={'#'} target="_blank" rel="noreferrer">
-                  <Text type="link">link to documentation</Text>
-                </a>
-              </Text>
-
-              <div className={styles.tokenContainer}>
-                <IntegrationInputField
-                  inputClassName={styles.tokenInput}
-                  iconsClassName={styles.tokenIcons}
-                  value={serviceNowAPIToken}
-                  showExternal={false}
-                  isMasked
-                />
-                <Button variant="secondary" onClick={onTokenRegenerate}>
-                  {serviceNowAPIToken ? 'Regenerate' : 'Generate'}
-                </Button>
-              </div>
-            </VerticalGroup>
+            <ServiceNowTokenSection />
           </div>
 
           <div>

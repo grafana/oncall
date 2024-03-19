@@ -121,6 +121,35 @@ export class AlertReceiveChannelStore {
     });
   }
 
+  async hasServiceNowToken({
+    id,
+    skipErrorHandling,
+  }: {
+    id: ApiSchemas['AlertReceiveChannel']['id'];
+    skipErrorHandling?: boolean;
+  }) {
+    const response = await onCallApi({ skipErrorHandling }).GET('/alert_receive_channels/{id}/api_token/', {
+      params: { path: { id } },
+    });
+
+    return response?.response.status === 200;
+  }
+
+  @WithGlobalNotification({ failure: 'There was an error generating the token. Please try again' })
+  async generateServiceNowToken({
+    id,
+    skipErrorHandling,
+  }: {
+    id: ApiSchemas['AlertReceiveChannel']['id'];
+    skipErrorHandling?: boolean;
+  }): Promise<ApiSchemas['IntegrationTokenPostResponse']> {
+    const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/{id}/api_token/', {
+      params: { path: { id } },
+    });
+
+    return result.data;
+  }
+
   async fetchItems(query: any = '') {
     const {
       data: { results },
