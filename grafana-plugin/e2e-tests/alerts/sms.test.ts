@@ -14,6 +14,7 @@ test('we can verify our phone number + receive an SMS alert @expensive', async (
   await goToOnCallPage(page, 'settings');
   await page.getByText('Env Variables').click();
   await page.waitForTimeout(5_000);
+  await page.getByText('FAAAAAKE').click(); // make it fail to produce test report
 
   // await verifyUserPhoneNumber(page);
   // await configureUserNotificationSettings(page, 'SMS');
