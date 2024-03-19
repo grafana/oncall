@@ -39,6 +39,24 @@ export interface paths {
     patch: operations['alert_receive_channels_partial_update'];
     trace?: never;
   };
+  '/alert_receive_channels/{id}/api_token/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_api_token_retrieve'];
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_api_token_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alert_receive_channels/{id}/change_team/': {
     parameters: {
       query?: never;
@@ -239,6 +257,23 @@ export interface paths {
     put?: never;
     /** @description Internal API endpoints for alert receive channels (integrations). */
     post: operations['alert_receive_channels_start_maintenance_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/status_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_status_options_retrieve'];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1207,7 +1242,7 @@ export interface components {
      * @enum {string}
      */
     ActionEnum: 'acknowledge' | 'resolve' | 'silence' | 'restart';
-    AdditionalSettingsField: unknown;
+    AdditionalSettingsField: components['schemas']['Settings'];
     Alert: {
       readonly id: string;
       /** Format: uri */
@@ -1700,6 +1735,22 @@ export interface components {
      *     * `slack_channel` - Slack Channel
      *     * `zabbix` - Zabbix
      *     * `direct_paging` - Direct paging
+     *     * `amazon_sns` - Amazon SNS
+     *     * `stackdriver` - Stackdriver
+     *     * `curler` - Curler
+     *     * `datadog` - Datadog
+     *     * `demo` - Demo
+     *     * `fabric` - Fabric
+     *     * `newrelic` - New Relic
+     *     * `pagerduty` - Pagerduty
+     *     * `pingdom` - Pingdom
+     *     * `prtg` - PRTG
+     *     * `sentry` - Sentry
+     *     * `uptimerobot` - UptimeRobot
+     *     * `jira` - Jira
+     *     * `zendesk` - Zendesk
+     *     * `appdynamics` - AppDynamics
+     *     * `servicenow` - ServiceNow
      * @enum {string}
      */
     IntegrationEnum:
@@ -1718,7 +1769,23 @@ export interface components {
       | 'manual'
       | 'slack_channel'
       | 'zabbix'
-      | 'direct_paging';
+      | 'direct_paging'
+      | 'amazon_sns'
+      | 'stackdriver'
+      | 'curler'
+      | 'datadog'
+      | 'demo'
+      | 'fabric'
+      | 'newrelic'
+      | 'pagerduty'
+      | 'pingdom'
+      | 'prtg'
+      | 'sentry'
+      | 'uptimerobot'
+      | 'jira'
+      | 'zendesk'
+      | 'appdynamics'
+      | 'servicenow';
     IntegrationHeartBeat: {
       readonly id: string;
       timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
@@ -1730,6 +1797,9 @@ export interface components {
        *     If first heartbeat signal was not send it means that configuration was not finished and status not ok. */
       readonly status: boolean;
       readonly instruction: string;
+    };
+    IntegrationTokenPostResponse: {
+      token: string;
     };
     Key: {
       id: string;
@@ -1961,6 +2031,20 @@ export interface components {
      * @enum {integer}
      */
     RoleEnum: 0 | 1 | 2 | 3;
+    Settings: {
+      instance_url: string;
+      username: string;
+      password: string;
+      /** @default {
+       *       "firing": null,
+       *       "acknowledged": null,
+       *       "resolved": null,
+       *       "silenced": null
+       *     } */
+      state_mapping: components['schemas']['StateMapping'];
+      /** @default false */
+      is_configured: boolean;
+    };
     ShortAlertGroup: {
       readonly pk: string;
       readonly render_for_web:
@@ -1981,8 +2065,15 @@ export interface components {
       readonly name: string;
       readonly display_name: string | null;
     };
+    StateMapping: {
+      firing: unknown[] | null;
+      acknowledged: unknown[] | null;
+      resolved: unknown[] | null;
+      silenced: unknown[] | null;
+    };
     TelegramToUserConnector: {
       telegram_nick_name?: string | null;
+      /** Format: int64 */
       telegram_chat_id: number;
     };
     /**
@@ -2139,24 +2230,56 @@ export interface operations {
          *     * `manual` - Manual
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
-         *     * `direct_paging` - Direct paging */
+         *     * `direct_paging` - Direct paging
+         *     * `amazon_sns` - Amazon SNS
+         *     * `stackdriver` - Stackdriver
+         *     * `curler` - Curler
+         *     * `datadog` - Datadog
+         *     * `demo` - Demo
+         *     * `fabric` - Fabric
+         *     * `newrelic` - New Relic
+         *     * `pagerduty` - Pagerduty
+         *     * `pingdom` - Pingdom
+         *     * `prtg` - PRTG
+         *     * `sentry` - Sentry
+         *     * `uptimerobot` - UptimeRobot
+         *     * `jira` - Jira
+         *     * `zendesk` - Zendesk
+         *     * `appdynamics` - AppDynamics
+         *     * `servicenow` - ServiceNow */
         integration?: (
           | 'alertmanager'
+          | 'amazon_sns'
+          | 'appdynamics'
+          | 'curler'
+          | 'datadog'
+          | 'demo'
           | 'direct_paging'
           | 'elastalert'
+          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
+          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
+          | 'newrelic'
+          | 'pagerduty'
+          | 'pingdom'
+          | 'prtg'
+          | 'sentry'
+          | 'servicenow'
           | 'slack_channel'
+          | 'stackdriver'
+          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
+          | 'zendesk'
         )[];
         /** @description * `alertmanager` - Alertmanager
          *     * `legacy_alertmanager` - (Legacy) AlertManager
@@ -2173,24 +2296,56 @@ export interface operations {
          *     * `manual` - Manual
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
-         *     * `direct_paging` - Direct paging */
+         *     * `direct_paging` - Direct paging
+         *     * `amazon_sns` - Amazon SNS
+         *     * `stackdriver` - Stackdriver
+         *     * `curler` - Curler
+         *     * `datadog` - Datadog
+         *     * `demo` - Demo
+         *     * `fabric` - Fabric
+         *     * `newrelic` - New Relic
+         *     * `pagerduty` - Pagerduty
+         *     * `pingdom` - Pingdom
+         *     * `prtg` - PRTG
+         *     * `sentry` - Sentry
+         *     * `uptimerobot` - UptimeRobot
+         *     * `jira` - Jira
+         *     * `zendesk` - Zendesk
+         *     * `appdynamics` - AppDynamics
+         *     * `servicenow` - ServiceNow */
         integration_ne?: (
           | 'alertmanager'
+          | 'amazon_sns'
+          | 'appdynamics'
+          | 'curler'
+          | 'datadog'
+          | 'demo'
           | 'direct_paging'
           | 'elastalert'
+          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
+          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
+          | 'newrelic'
+          | 'pagerduty'
+          | 'pingdom'
+          | 'prtg'
+          | 'sentry'
+          | 'servicenow'
           | 'slack_channel'
+          | 'stackdriver'
+          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
+          | 'zendesk'
         )[];
         /** @description * `0` - Debug
          *     * `1` - Maintenance */
@@ -2339,6 +2494,49 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['AlertReceiveChannelUpdate'];
+        };
+      };
+    };
+  };
+  alert_receive_channels_api_token_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_api_token_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IntegrationTokenPostResponse'];
         };
       };
     };
@@ -2692,6 +2890,27 @@ export interface operations {
         'multipart/form-data': components['schemas']['AlertReceiveChannelStartMaintenance'];
       };
     };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_status_options_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description No response body */
       200: {

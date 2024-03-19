@@ -380,7 +380,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
 class IntegrationBacksyncAuthentication(BaseAuthentication):
     model = IntegrationBacksyncAuthToken
 
-    def authenticate(self, request) -> Tuple[ServerUser, IntegrationBacksyncAuthToken]:
+    def authenticate(self, request) -> typing.Tuple[ServerUser, IntegrationBacksyncAuthToken]:
         token = get_authorization_header(request).decode("utf-8")
 
         if not token:
@@ -388,7 +388,7 @@ class IntegrationBacksyncAuthentication(BaseAuthentication):
 
         return self.authenticate_credentials(token)
 
-    def authenticate_credentials(self, token_string: str) -> Tuple[ServerUser, IntegrationBacksyncAuthToken]:
+    def authenticate_credentials(self, token_string: str) -> typing.Tuple[ServerUser, IntegrationBacksyncAuthToken]:
         try:
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:
