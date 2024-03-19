@@ -68,3 +68,15 @@ def test_complete_slack_auth_redirect_error(
 
     assert response.status_code == status.HTTP_302_FOUND
     assert response.url == "some-url"
+
+
+# TODO: finish this
+# @pytest.mark.django_db
+# def test_google_auth_redirect_ok(
+#     make_organization,
+#     make_user_for_organization,
+#     make_google_oauth2_token,
+# ):
+#     organization = make_organization()
+#     admin = make_user_for_organization(organization)
+#     _, google_oauth2_token = make_google_oauth2_token(admin)
