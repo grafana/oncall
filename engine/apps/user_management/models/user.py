@@ -15,6 +15,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
 
+from apps.google.models import GoogleOAuth2User
 from apps.api.permissions import (
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
@@ -31,8 +32,8 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
     from apps.base.models import UserNotificationPolicy
-    from apps.google.models import GoogleOAuth2User
     from apps.slack.models import SlackUserIdentity
+    from apps.social_auth.types import GoogleOauth2Response
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -176,7 +177,7 @@ class User(models.Model):
     auth_tokens: "RelatedManager['ApiAuthToken']"
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
-    google_oauth2_user: typing.Optional["GoogleOAuth2User"]
+    google_oauth2_user: typing.Optional[GoogleOAuth2User]
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
@@ -470,6 +471,24 @@ class User(models.Model):
         if self.alert_group_table_selected_columns != columns:
             self.alert_group_table_selected_columns = columns
             self.save(update_fields=["alert_group_table_selected_columns"])
+
+
+    def finish_google_oauth2_connection_flow(self, google_oauth2_response: "GoogleOauth2Response") -> None:
+        _obj, created = GoogleOAuth2User.objects.update_or_create(
+            user=self,
+            defaults={
+                "google_user_id": google_oauth2_response.get("sub"),
+                "access_token": google_oauth2_response.get("access_token"),
+                "refresh_token": google_oauth2_response.get("refresh_token"),
+                "oauth_scope": google_oauth2_response.get("scope"),
+            },
+        )
+        if created:
+            self.google_calendar_settings = {
+                "create_shift_swaps_automatically": True,
+                "specific_oncall_schedules_to_sync": [],
+            }
+            self.save(update_fields=["google_calendar_settings"])
 
 
 # TODO: check whether this signal can be moved to save method of the model

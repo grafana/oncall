@@ -183,11 +183,12 @@ class UserSerializer(ListUserSerializer):
     context: UserSerializerContext
 
     is_currently_oncall = serializers.SerializerMethodField()
-    google_calendar_settings = GoogleCalendarSettingsSerializer()
+    google_calendar_settings = GoogleCalendarSettingsSerializer(required=False)
 
     class Meta(ListUserSerializer.Meta):
         fields = ListUserSerializer.Meta.fields + [
             "is_currently_oncall",
+            "google_calendar_settings",
         ]
         read_only_fields = ListUserSerializer.Meta.read_only_fields + [
             "is_currently_oncall",
