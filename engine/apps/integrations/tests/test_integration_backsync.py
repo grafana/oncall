@@ -24,6 +24,7 @@ def test_integration_backsync_endpoint(
     assert response.status_code == status.HTTP_200_OK
 
 
+@pytest.mark.django_db
 def test_integration_backsync_endpoint_wrong_token(
     make_organization,
     make_alert_receive_channel,
