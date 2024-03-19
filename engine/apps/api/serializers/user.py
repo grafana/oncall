@@ -12,8 +12,13 @@ from apps.base.utils import live_settings
 from apps.oss_installation.constants import CloudSyncStatus
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.schedules.ical_utils import SchedulesOnCallUsers
+from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
+from common.api_helpers.custom_fields import (
+    OrganizationFilteredPrimaryKeyRelatedField,
+    TeamPrimaryKeyRelatedField,
+    TimeZoneField
+)
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import check_phone_number_is_valid
 
@@ -29,6 +34,13 @@ class UserSerializerContext(typing.TypedDict):
 
 class UserPermissionSerializer(serializers.Serializer):
     action = serializers.CharField(read_only=True)
+
+
+class GoogleCalendarSettingsSerializer(serializers.Serializer):
+    create_shift_swaps_automatically = serializers.BooleanField()
+    specific_oncall_schedules_to_sync = OrganizationFilteredPrimaryKeyRelatedField(
+        queryset=OnCallSchedule.objects, required=False, allow_null=True, many=True,
+    )
 
 
 class NotificationChainVerbal(typing.TypedDict):
@@ -171,6 +183,7 @@ class UserSerializer(ListUserSerializer):
     context: UserSerializerContext
 
     is_currently_oncall = serializers.SerializerMethodField()
+    google_calendar_settings = GoogleCalendarSettingsSerializer()
 
     class Meta(ListUserSerializer.Meta):
         fields = ListUserSerializer.Meta.fields + [

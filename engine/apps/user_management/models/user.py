@@ -22,7 +22,7 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
-from apps.user_management.constants import AlertGroupTableColumn
+from apps.user_management.constants import AlertGroupTableColumn, GoogleCalendarSettings
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -241,6 +241,8 @@ class User(models.Model):
     permissions = models.JSONField(null=False, default=list)
 
     alert_group_table_selected_columns: list[AlertGroupTableColumn] | None = models.JSONField(default=None, null=True)
+
+    google_calendar_settings: GoogleCalendarSettings | None = models.JSONField(default=None, null=True)
 
     def __str__(self):
         return f"{self.pk}: {self.username}"
