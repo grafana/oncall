@@ -30,6 +30,8 @@ export const verifyUserPhoneNumber = async (page: Page): Promise<void> => {
   // get the phone number we will use
   const phoneNumber = await getPhoneNumber();
 
+  console.log(phoneNumber); // TODO: revert
+
   /**
    * input the phone number and submit the form
    * on the backend this should trigger twilio to send out an SMS verification code
