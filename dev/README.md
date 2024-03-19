@@ -41,6 +41,8 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 5. Clean up the project by deleting the local k8s cluster:
 
+6. Test
+
    ```bash
    make cluster/down
    ```
