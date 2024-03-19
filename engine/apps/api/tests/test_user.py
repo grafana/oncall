@@ -63,6 +63,8 @@ def test_current_user(
         "slack_user_identity": None,
         "avatar": user.avatar_url,
         "avatar_full": user.avatar_full_url,
+        "has_google_oauth2_connected": False,
+        "google_calendar_settings": None,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -126,6 +128,42 @@ def test_update_user(
     assert response.json()["current_team"] == data["current_team"]
 
 
+@pytest.mark.parametrize("add_specific_oncall_schedules_to_sync", [True, False])
+@pytest.mark.django_db
+def test_update_user_google_calendar_settings(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    add_specific_oncall_schedules_to_sync,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule1 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    schedule2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    client = APIClient()
+    url = reverse("api-internal:user-detail", kwargs={"pk": admin.public_primary_key})
+
+    schedule_public_primary_keys = [schedule1.public_primary_key, schedule2.public_primary_key] if add_specific_oncall_schedules_to_sync else []
+    data = {
+        "google_calendar_settings": {
+            "create_shift_swaps_automatically": True,
+            "specific_oncall_schedules_to_sync": schedule_public_primary_keys,
+        },
+    }
+
+    response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["google_calendar_settings"] == {
+        "create_shift_swaps_automatically": True,
+        "specific_oncall_schedules_to_sync": schedule_public_primary_keys,
+    }
+
+
 @override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_update_user_cant_change_email_and_username(
@@ -171,6 +209,8 @@ def test_update_user_cant_change_email_and_username(
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
         "avatar_full": admin.avatar_full_url,
+        "has_google_oauth2_connected": False,
+        "google_calendar_settings": None,
     }
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
@@ -222,6 +262,7 @@ def test_list_users(
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
                 "cloud_connection_status": None,
+                "has_google_oauth2_connected": False,
             },
             {
                 "pk": editor.public_primary_key,
@@ -247,6 +288,7 @@ def test_list_users(
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
                 "cloud_connection_status": None,
+                "has_google_oauth2_connected": False,
             },
         ],
         "current_page_number": 1,
