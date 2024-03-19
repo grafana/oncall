@@ -765,6 +765,9 @@ class AlertReceiveChannelView(
         backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
 
         # bulk create connections
+        alert_receive_channels = instance.organization.alert_receive_channels.filter(
+            public_primary_key__in=backsync_map.keys()
+        )
         AlertReceiveChannelConnection.objects.bulk_create(
             [
                 AlertReceiveChannelConnection(
@@ -772,9 +775,7 @@ class AlertReceiveChannelView(
                     connected_alert_receive_channel=alert_receive_channel,
                     backsync=backsync_map[alert_receive_channel.public_primary_key],
                 )
-                for alert_receive_channel in instance.organization.alert_receive_channels.filter(
-                    public_primary_key__in=backsync_map.keys()
-                )
+                for alert_receive_channel in alert_receive_channels
             ],
             ignore_conflicts=True,
             batch_size=5000,
@@ -782,9 +783,7 @@ class AlertReceiveChannelView(
 
         # add connected integrations to filtered_integrations
         for webhook in instance.webhooks.filter(is_from_connected_integration=True):
-            webhook.filtered_integrations.add(
-                *instance.organization.alert_receive_channels.filter(public_primary_key__in=backsync_map.keys())
-            )
+            webhook.filtered_integrations.add(*alert_receive_channels)
 
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
 
