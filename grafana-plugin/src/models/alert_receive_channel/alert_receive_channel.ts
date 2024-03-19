@@ -121,18 +121,29 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async hasServiceNowToken({
-    id,
-    skipErrorHandling,
-  }: {
-    id: ApiSchemas['AlertReceiveChannel']['id'];
-    skipErrorHandling?: boolean;
-  }) {
-    const response = await onCallApi({ skipErrorHandling }).GET('/alert_receive_channels/{id}/api_token/', {
-      params: { path: { id } },
-    });
+  async hasServiceNowToken({ id }: { id: ApiSchemas['AlertReceiveChannel']['id'] }) {
+    try {
+      const response = await onCallApi({ skipErrorHandling: true }).GET('/alert_receive_channels/{id}/api_token/', {
+        params: { path: { id } },
+      });
+      return response?.response.status === 200;
+    } catch (ex) {
+      return false;
+    }
+  }
 
-    return response?.response.status === 200;
+  async testServiceNowAuthentication({ data }: { data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> }) {
+    try {
+      const result = await onCallApi({ skipErrorHandling: false }).POST('/alert_receive_channels/test_connection/', {
+        // @ts-ignore
+        body: {
+          ...data,
+        },
+      });
+      return result?.response.status === 200;
+    } catch (ex) {
+      return false;
+    }
   }
 
   @WithGlobalNotification({ failure: 'There was an error generating the token. Please try again' })

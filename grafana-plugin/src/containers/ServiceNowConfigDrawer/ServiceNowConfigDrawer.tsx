@@ -16,7 +16,6 @@ import {
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
-import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
@@ -60,6 +59,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = formMethods;
 
@@ -186,17 +186,17 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     </>
   );
 
-  function onTokenRegenerate() {
-    // Call API and reset token
-  }
-
   function onAuthTest() {
-    return new Promise(() => {
+    const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
+      ...integration,
+      ...getValues(),
+    };
+
+    return new Promise(async () => {
       setIsAuthTestRunning(true);
-      setTimeout(() => {
-        setIsAuthTestRunning(false);
-        setAuthTestResult(true);
-      }, 500);
+      const result = await alertReceiveChannelStore.testServiceNowAuthentication({ data });
+      setAuthTestResult(result);
+      setIsAuthTestRunning(false);
     });
   }
 

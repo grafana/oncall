@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, LoadingPlaceholder, Modal, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, LoadingPlaceholder, Modal, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
-import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
@@ -13,7 +11,6 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ServiceNowTokenSection } from './ServiceNowTokenSection';
 
 interface CompleteServiceNowConfigModalProps {

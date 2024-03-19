@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup, useStyles2 } from "@grafana/ui";
-import { useCurrentIntegration } from "pages/integration/OutgoingTab/OutgoingTab.hooks";
+import React, { useEffect, useState } from 'react';
+
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
+
+import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { Text } from 'components/Text/Text';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
+import { useStore } from 'state/useStore';
+
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-import { useStore } from "state/useStore";
-import { Text } from "components/Text/Text";
-import { RenderConditionally } from "components/RenderConditionally/RenderConditionally";
-import { IntegrationInputField } from "components/IntegrationInputField/IntegrationInputField";
-import { GrafanaTheme2 } from "@grafana/data";
 
 interface ServiceNowTokenSectionProps {}
 
@@ -20,9 +23,12 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
   useEffect(() => {
     (async function () {
       const hasToken = await alertReceiveChannelStore.hasServiceNowToken({ id });
+      console.log({ hasToken });
       setIsExistingToken(hasToken);
     })();
   }, []);
+
+  console.log({ currentToken });
 
   return (
     <VerticalGroup>
@@ -46,11 +52,20 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
       <RenderConditionally shouldRender={isExistingToken !== undefined}>
         <div className={styles.tokenContainer}>
           <IntegrationInputField
+            placeholder={
+              currentToken
+                ? ''
+                : isExistingToken
+                ? 'A token had already been generated'
+                : 'Click Generate to create a token'
+            }
             inputClassName={styles.tokenInput}
             iconsClassName={styles.tokenIcons}
             value={currentToken}
             showExternal={false}
-            isMasked
+            showCopy={Boolean(currentToken)}
+            showEye={false}
+            isMasked={false}
           />
           <Button variant="secondary" onClick={onTokenGenerate}>
             {isExistingToken ? 'Regenerate' : 'Generate'}
@@ -67,8 +82,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
 };
 
 const getStyles = (theme: GrafanaTheme2) => {
-    return {
-      ...getCommonServiceNowConfigStyles(theme),
-    };
+  return {
+    ...getCommonServiceNowConfigStyles(theme),
   };
-  
+};
