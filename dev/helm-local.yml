@@ -1,8 +1,8 @@
 base_url: localhost:8080
 base_url_protocol: http
 env:
-  # - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
-  #   value: "False"
+  - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+    value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
 image:
