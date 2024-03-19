@@ -324,5 +324,3 @@ jobs:
       # grafana-image-tag: 10.3.3
       run-expensive-tests: false
       browsers: "chromium"
-    # TODO: revert after check
-    secrets: inherit

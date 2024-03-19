@@ -165,10 +165,6 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const providerConfiguration = organizationStore.currentOrganization?.env_status.phone_provider;
   const isPhoneProviderConfigured = providerConfiguration?.configured;
 
-  console.log({
-    providerConfiguration,
-  });
-
   const phoneHasMinimumLength = phone?.length > 8;
 
   const isPhoneValid = phoneHasMinimumLength && PHONE_REGEX.test(phone);
