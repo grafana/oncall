@@ -4,7 +4,7 @@ import pytest
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks import wipe
 from apps.alerts.tasks.delete_alert_group import (
     delete_alert_group,
@@ -665,3 +665,26 @@ def test_delete_by_user(
 
     for dependent_alert_group in dependent_alert_groups:
         dependent_alert_group.un_attach_by_delete.assert_called_with()
+
+
+@pytest.mark.django_db
+def test_integration_config_on_alert_group_created(make_organization, make_alert_receive_channel, make_channel_filter):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization, grouping_id_template="group_to_one_group")
+
+    with patch.object(
+        alert_receive_channel.config, "on_alert_group_created", create=True
+    ) as mock_on_alert_group_created:
+        for _ in range(2):
+            alert = Alert.create(
+                title="the title",
+                message="the message",
+                alert_receive_channel=alert_receive_channel,
+                raw_request_data={},
+                integration_unique_data={},
+                image_url=None,
+                link_to_upstream_details=None,
+            )
+
+    assert alert.group.alerts.count() == 2
+    mock_on_alert_group_created.assert_called_once_with(alert.group)
