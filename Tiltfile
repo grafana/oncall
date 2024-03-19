@@ -7,7 +7,7 @@ e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e")
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
     "oncall.twilio.authToken=" + os.getenv("TWILIO_AUTH_TOKEN", ""),
-    "oncall.twilio.phoneNumber=+" + os.getenv("TWILIO_PHONE_NUMBER", ""),
+    "oncall.twilio.phoneNumber=" + os.getenv("TWILIO_PHONE_NUMBER", ""),
     "oncall.twilio.verifySid=" + os.getenv("TWILIO_VERIFY_SID", ""),
 ]
 is_ci=config.tilt_subcommand == "ci"

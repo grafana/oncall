@@ -15,20 +15,18 @@ test('we can verify our phone number + receive an SMS alert @expensive', async (
   await goToOnCallPage(page, 'settings');
   await page.getByText('Env Variables').click();
   await page.waitForTimeout(5_000);
-  // await page.getByText('FAAAAAKE').click(); // make it fail to produce test report
 
   await verifyUserPhoneNumber(page);
 
   await page.waitForTimeout(5_000);
-  await page.getByText('FAAAAAKE').click(); // make it fail to produce test report
-  // await configureUserNotificationSettings(page, 'SMS');
+  await configureUserNotificationSettings(page, 'SMS');
 
-  // await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName);
-  // await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
+  await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName);
+  await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
 
-  // // wait for the SMS alert notification to arrive
-  // const smsAlertNotification = await waitForSms();
+  // wait for the SMS alert notification to arrive
+  const smsAlertNotification = await waitForSms();
 
-  // expect(smsAlertNotification).toContain('OnCall');
-  // expect(smsAlertNotification).toContain('alert');
+  expect(smsAlertNotification).toContain('OnCall');
+  expect(smsAlertNotification).toContain('alert');
 });
