@@ -19,11 +19,10 @@ import { IntegrationLogoWithTitle } from 'components/IntegrationLogo/Integration
 import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useIntegrationTokenCheck } from 'pages/integration/Integration.hooks';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { useConfirmModal } from 'utils/hooks';
-
-import { useIntegrationTokenCheck } from '../Integration.hooks';
 
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
