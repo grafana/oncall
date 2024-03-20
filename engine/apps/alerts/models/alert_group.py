@@ -3,6 +3,7 @@ import logging
 import typing
 import urllib
 from collections import namedtuple
+from dataclasses import dataclass
 from functools import partial
 from urllib.parse import urljoin
 
@@ -611,6 +612,115 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def _update_metrics(self, organization_id, previous_state, state):
         """Update metrics cache for response time and state as needed."""
         update_metrics_for_alert_group.apply_async((self.id, organization_id, previous_state, state))
+
+    def update_state_by_backsync(
+        self, alert_receive_channel: "AlertReceiveChannel", new_state: AlertGroupState
+    ) -> None:
+        if self.state == new_state:
+            return
+
+        from apps.alerts.models import AlertGroupLogRecord
+
+        @dataclass
+        class StateUpdateData:
+            method: typing.Callable
+            log_type: int
+            kwargs: dict | None = None
+
+        @dataclass
+        class StateData:
+            remove_state: StateUpdateData
+            set_state: StateUpdateData
+
+        state_update_mapping = {
+            AlertGroupState.ACKNOWLEDGED: StateData(
+                set_state=StateUpdateData(
+                    method=self.acknowledge,
+                    log_type=AlertGroupLogRecord.TYPE_ACK,
+                    kwargs={"acknowledged_by": AlertGroup.SOURCE},
+                ),
+                remove_state=StateUpdateData(method=self.unacknowledge, log_type=AlertGroupLogRecord.TYPE_UN_ACK),
+            ),
+            AlertGroupState.RESOLVED: StateData(
+                set_state=StateUpdateData(
+                    method=self.resolve,
+                    log_type=AlertGroupLogRecord.TYPE_RESOLVED,
+                    kwargs={"resolved_by": AlertGroup.SOURCE},
+                ),
+                remove_state=StateUpdateData(method=self.unresolve, log_type=AlertGroupLogRecord.TYPE_UN_RESOLVED),
+            ),
+            AlertGroupState.SILENCED: StateData(
+                set_state=StateUpdateData(method=self.silence, log_type=AlertGroupLogRecord.TYPE_SILENCE),
+                remove_state=StateUpdateData(method=self.un_silence, log_type=AlertGroupLogRecord.TYPE_UN_SILENCE),
+            ),
+        }
+
+        initial_state = self.state
+        action_source = ActionSource.BACKSYNC
+
+        logger.debug(
+            f"Started change_state_by_backsync for alert_group {self.pk}, change state: {self.state} -> {new_state}"
+        )
+        if new_state == AlertGroupState.FIRING:
+            # Remove previous state without creating log record. It will be created later in transaction.
+            state_update_data = state_update_mapping[self.state].remove_state
+            state_update_data.method()
+        elif self.state != AlertGroupState.FIRING and not (
+            self.state == AlertGroupState.ACKNOWLEDGED and new_state == AlertGroupState.RESOLVED
+        ):
+            # Remove previous state and create log record.
+            state_update_data = state_update_mapping[self.state].remove_state
+            state_update_data.method()
+            self.log_records.create(
+                type=state_update_data.log_type,
+                reason="Backsync signal",
+                action_source=action_source,
+                step_specific_info={"source_integration_name": alert_receive_channel.verbal_name},
+            )
+        # Set new state
+        if new_state != AlertGroupState.FIRING:  # No need to set FIRING state
+            state_update_data = state_update_mapping[new_state].set_state
+            kwargs = state_update_data.kwargs or {}
+            state_update_data.method(**kwargs)
+
+        # Update alert group state metric cache
+        self._update_metrics(
+            organization_id=alert_receive_channel.organization_id, previous_state=initial_state, state=self.state
+        )
+
+        if self.is_root_alert_group:
+            if self.state == AlertGroupState.FIRING:
+                self.start_escalation_if_needed()
+            else:
+                if self.state == AlertGroupState.ACKNOWLEDGED:
+                    self.start_ack_reminder_if_needed()
+                self.stop_escalation()
+
+        # If state was changed to FIRING, get log type from remove_state (unacknowledged, unresolved, unsilenced),
+        # otherwise get log from set_state (acknowledged, resolved, silenced)
+        log_type = (
+            state_update_mapping[new_state].set_state.log_type
+            if new_state != AlertGroupState.FIRING
+            else state_update_mapping[initial_state].remove_state.log_type
+        )
+        with transaction.atomic():
+            log_record = self.log_records.create(
+                type=log_type,
+                action_source=action_source,
+                step_specific_info={"source_integration_name": alert_receive_channel.verbal_name},
+            )
+
+            logger.debug(
+                f"send alert_group_action_triggered_signal for alert_group {self.pk}, "
+                f"log record {log_record.pk} with type '{log_record.get_type_display()}', "
+                f"action source: {action_source.name}"
+            )
+
+            transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
+
+        for dependent_alert_group in self.dependent_alert_groups.all():
+            dependent_alert_group.change_state_by_backsync(alert_receive_channel, new_state)
+        logger.debug(f"Finished change_state_by_backsync for alert_group {self.pk}")
 
     def acknowledge_by_user(self, user: User, action_source: typing.Optional[ActionSource] = None) -> None:
         from apps.alerts.models import AlertGroupLogRecord
