@@ -6,7 +6,7 @@ import pytest
 import requests
 from django.utils import timezone
 
-from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
+from apps.alerts.models import AlertGroupExternalID, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
 from apps.public_api.serializers import IncidentSerializer
 from apps.webhooks.models import Webhook
@@ -689,3 +689,65 @@ def test_manually_retried_exceptions(
 
     mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
     spy_execute_webhook.apply_async.assert_not_called()
+
+
+@patch("apps.webhooks.models.webhook.requests.post", return_value=MockResponse())
+@patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8")
+@pytest.mark.django_db
+def test_execute_webhook_integration_config(
+    _,
+    mock_requests_post,
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+    make_custom_webhook,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+
+    # create connected integrations
+    source_alert_receive_channel = make_alert_receive_channel(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    make_alert_receive_channel_connection(source_alert_receive_channel, alert_receive_channel)
+
+    alert_group = make_alert_group(alert_receive_channel)
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://something/{{ external_id }}",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        forward_all=True,
+    )
+    webhook.filtered_integrations.set([source_alert_receive_channel, alert_receive_channel])
+
+    # create external ID entry
+    AlertGroupExternalID.objects.create(
+        source_alert_receive_channel=source_alert_receive_channel, alert_group=alert_group, value="test123"
+    )
+
+    with patch.object(
+        source_alert_receive_channel.config,
+        "additional_webhook_data",
+        create=True,
+        return_value={"additional_field": "additional_value"},
+    ) as mock_additional_webhook_data:
+        with patch.object(
+            source_alert_receive_channel.config, "on_webhook_response_created", create=True
+        ) as mock_on_webhook_response_created:
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
+
+    assert mock_requests_post.called
+
+    # check external ID
+    assert mock_requests_post.call_args[0][0] == "https://something/test123"
+    assert mock_requests_post.call_args[1]["json"]["external_id"] == "test123"
+
+    # check additional webhook data
+    assert mock_requests_post.call_args[1]["json"]["additional_field"] == "additional_value"
+    mock_additional_webhook_data.assert_called_once_with(source_alert_receive_channel)
+
+    # check on_webhook_response_created is called
+    mock_on_webhook_response_created.assert_called_once_with(webhook.responses.all()[0], source_alert_receive_channel)
