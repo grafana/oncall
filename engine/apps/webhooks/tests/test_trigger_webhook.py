@@ -709,7 +709,9 @@ def test_execute_webhook_integration_config(
     user = make_user_for_organization(organization)
 
     # create connected integrations
-    source_alert_receive_channel = make_alert_receive_channel(organization)
+    source_alert_receive_channel = make_alert_receive_channel(
+        organization, additional_settings={"must_be": "non_empty"}
+    )  # TODO: revisit this
     alert_receive_channel = make_alert_receive_channel(organization)
     make_alert_receive_channel_connection(source_alert_receive_channel, alert_receive_channel)
 
