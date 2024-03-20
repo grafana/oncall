@@ -188,7 +188,7 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
 
     # Add additional webhook data if the integration has it
     source_alert_receive_channel = webhook.filtered_integrations.filter(
-        connected_alert_receive_channels__isnull=False
+        additional_settings__isnull=False
     ).first()  # TODO: is it possible to have more than one?
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "additional_webhook_data"):
         data.update(source_alert_receive_channel.config.additional_webhook_data(source_alert_receive_channel))
