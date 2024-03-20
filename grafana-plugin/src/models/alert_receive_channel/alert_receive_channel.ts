@@ -132,7 +132,7 @@ export class AlertReceiveChannelStore {
     }
   }
 
-  async testServiceNowAuthentication({ data }: { data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> }) {
+  async testServiceNowAuthentication({ data }: { data: Partial<ApiSchemas['AlertReceiveChannel']> }) {
     try {
       const result = await onCallApi({ skipErrorHandling: false }).POST('/alert_receive_channels/test_connection/', {
         // @ts-ignore

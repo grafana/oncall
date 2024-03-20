@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -30,6 +30,7 @@ import { openNotification } from 'utils/utils';
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
 import { ServiceNowTokenSection } from './ServiceNowTokenSection';
+import { ServiceNowAuthSection } from './ServiceNowAuthSection';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -43,15 +44,14 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const styles = useStyles2(getStyles);
   const { alertReceiveChannelStore } = useStore();
 
-  const integration = useCurrentIntegration();
+  const currentIntegration = useCurrentIntegration();
 
   const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
   const [authTestResult, setAuthTestResult] = useState(undefined);
-  const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
 
   const formMethods = useForm<FormFields>({
     defaultValues: {
-      additional_settings: { ...integration.additional_settings },
+      additional_settings: { ...currentIntegration.additional_settings },
     },
     mode: 'onChange',
   });
@@ -59,17 +59,10 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const {
     control,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = formMethods;
 
   const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
-
-  useEffect(() => {
-    (async () => {
-      await alertReceiveChannelStore.fetchServiceNowStatusList({ id: integration.id });
-    })();
-  }, []);
 
   return (
     <>
@@ -125,27 +118,11 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
                 )}
               />
 
-              <HorizontalGroup>
-                <Button className={''} variant="secondary" onClick={onAuthTest}>
-                  Test
-                </Button>
-                <div>
-                  <RenderConditionally shouldRender={isAuthTestRunning}>
-                    <LoadingPlaceholder text="Loading" className={styles.loader} />
-                  </RenderConditionally>
-
-                  <RenderConditionally shouldRender={!isAuthTestRunning && authTestResult !== undefined}>
-                    <HorizontalGroup align="center" justify="center">
-                      <Text type="primary">{authTestResult ? 'Connection OK' : 'Connection failed'}</Text>
-                      <Icon name={authTestResult ? 'check-circle' : 'x'} />
-                    </HorizontalGroup>
-                  </RenderConditionally>
-                </div>
-              </HorizontalGroup>
+              <ServiceNowAuthSection />
             </div>
 
             <div className={styles.border}>
-              <ServiceNowStatusSection setStatusMapping={setStatusMapping} statusMapping={statusMapping} />
+              <ServiceNowStatusSection />
             </div>
 
             <div className={styles.border}>
@@ -186,20 +163,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
     </>
   );
 
-  function onAuthTest() {
-    const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
-      ...integration,
-      ...getValues(),
-    };
-
-    return new Promise(async () => {
-      setIsAuthTestRunning(true);
-      const result = await alertReceiveChannelStore.testServiceNowAuthentication({ data });
-      setAuthTestResult(result);
-      setIsAuthTestRunning(false);
-    });
-  }
-
   function validateURL(urlFieldValue: string): string | boolean {
     const regex = new RegExp(URL_REGEX, 'i');
     return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
@@ -207,11 +170,11 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
   async function onFormSubmit(formData: FormFields): Promise<void> {
     const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
-      ...integration,
+      ...currentIntegration,
       ...formData,
     };
 
-    await alertReceiveChannelStore.update({ id: integration.id, data });
+    await alertReceiveChannelStore.update({ id: currentIntegration.id, data });
 
     openNotification('ServiceNow configuration has been updated');
 

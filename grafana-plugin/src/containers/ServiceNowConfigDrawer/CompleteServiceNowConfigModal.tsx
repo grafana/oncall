@@ -39,7 +39,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.border}>
-            <ServiceNowStatusSection statusMapping={statusMapping} setStatusMapping={setStatusMapping} />
+            <ServiceNowStatusSection />
           </div>
 
           <div className={styles.border}>

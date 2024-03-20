@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { HorizontalGroup, Select, SelectBaseProps, VerticalGroup } from '@grafana/ui';
+import { observer } from 'mobx-react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
 import { OnCallAGStatus } from 'utils/consts';
 
@@ -16,21 +18,24 @@ export interface ServiceNowStatusMapping {
   [OnCallAGStatus.Acknowledged]?: string;
 }
 
-interface ServiceNowFormFields {
+export interface ServiceNowFormFields {
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
-interface ServiceNowStatusSectionProps {
-  statusMapping: ServiceNowStatusMapping;
-  setStatusMapping: React.Dispatch<React.SetStateAction<ServiceNowStatusMapping>>;
-}
+export const ServiceNowStatusSection: React.FC = observer(() => {
+  const { control, setValue, getValues } = useFormContext<ServiceNowFormFields>();
 
-export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = ({
-  statusMapping,
-  setStatusMapping,
-}) => {
-  const { control, setValue } = useFormContext<ServiceNowFormFields>();
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
   const { alertReceiveChannelStore } = useStore();
+  const { id } = useCurrentIntegration();
+
+  useEffect(() => {
+    (async () => {
+      await alertReceiveChannelStore.fetchServiceNowStatusList({ id });
+      forceUpdate();
+    })();
+  }, []);
 
   const selectCommonProps: Partial<SelectBaseProps<any>> = {
     backspaceRemovesValue: true,
@@ -73,8 +78,8 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     className="select control"
                     options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
                     onChange={(option: SelectableValue) => {
-                      onStatusSelectChange(option, OnCallAGStatus.Firing);
                       setValue('additional_settings.state_mapping.firing', option?.value);
+                      forceUpdate();
                     }}
                     {...selectCommonProps}
                   />
@@ -98,8 +103,8 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
                     onChange={(option: SelectableValue) => {
-                      onStatusSelectChange(option, OnCallAGStatus.Acknowledged);
                       setValue('additional_settings.state_mapping.acknowledged', option?.value);
+                      forceUpdate();
                     }}
                     {...selectCommonProps}
                   />
@@ -122,8 +127,8 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
                     onChange={(option: SelectableValue) => {
-                      onStatusSelectChange(option, OnCallAGStatus.Resolved);
                       setValue('additional_settings.state_mapping.resolved', option?.value);
+                      forceUpdate();
                     }}
                     {...selectCommonProps}
                   />
@@ -146,8 +151,8 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
                     onChange={(option: SelectableValue) => {
-                      onStatusSelectChange(option, OnCallAGStatus.Silenced);
                       setValue('additional_settings.state_mapping.silenced', option?.value);
+                      forceUpdate();
                     }}
                     {...selectCommonProps}
                   />
@@ -160,23 +165,17 @@ export const ServiceNowStatusSection: React.FC<ServiceNowStatusSectionProps> = (
     </VerticalGroup>
   );
 
-  function onStatusSelectChange(option: SelectableValue, action: OnCallAGStatus) {
-    setStatusMapping({
-      ...statusMapping,
-      [action]: option?.label,
-    });
-  }
-
   function getAvailableStatusOptions(currentAction: OnCallAGStatus) {
-    const keys = Object.keys(statusMapping);
-    const values = keys.map((k) => statusMapping[k]).filter(Boolean);
+    const stateMapping = getValues()?.additional_settings?.state_mapping || {};
+    const keys = Object.keys(stateMapping);
+    const values = keys.map((k) => stateMapping[k]).filter(Boolean);
     const statusList = (alertReceiveChannelStore.serviceNowStatusList || []).map(([name, id]) => ({ id, name }));
 
     return statusList
-      .filter((status) => values.indexOf(status.name) === -1 || statusMapping[currentAction] === status.name)
+      .filter((status) => values.indexOf(status.id) === -1 || stateMapping?.[currentAction] === status.name)
       .map((status) => ({
         value: status.id,
         label: status.name,
       }));
   }
-};
+});

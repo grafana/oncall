@@ -23,12 +23,9 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
   useEffect(() => {
     (async function () {
       const hasToken = await alertReceiveChannelStore.hasServiceNowToken({ id });
-      console.log({ hasToken });
       setIsExistingToken(hasToken);
     })();
   }, []);
-
-  console.log({ currentToken });
 
   return (
     <VerticalGroup>

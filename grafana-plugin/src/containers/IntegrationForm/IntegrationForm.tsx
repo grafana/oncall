@@ -42,6 +42,7 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
+import { ServiceNowAuthSection } from 'containers/ServiceNowConfigDrawer/ServiceNowAuthSection';
 
 interface FormFields {
   verbal_name?: string;
@@ -334,9 +335,8 @@ export const IntegrationForm = observer(
               )}
             />
 
-            <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
-              Test
-            </Button>
+            {/* TODO: Pass needed interface/getValues() */}
+            <ServiceNowAuthSection />
 
             <Controller
               name={'create_default_webhooks'}
@@ -385,8 +385,6 @@ export const IntegrationForm = observer(
       const regex = new RegExp(URL_REGEX, 'i');
       return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
-
-    async function onWebhookTestClick(): Promise<void> {}
 
     async function onFormSubmit(formData: FormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
