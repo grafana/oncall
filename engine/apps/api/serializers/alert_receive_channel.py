@@ -340,7 +340,7 @@ class AlertReceiveChannelSerializer(
             _additional_settings_serializer_from_type(self.instance.config.slug) if self.instance else None
         )
         if settings_serializer_cls:
-            additional_settings_data = data.get("additional_settings")
+            additional_settings_data = data.get("additional_settings", self.instance.additional_settings)
             settings_serializer = settings_serializer_cls(self.instance, data=additional_settings_data)
             settings_serializer.is_valid()
             if settings_serializer.errors:
