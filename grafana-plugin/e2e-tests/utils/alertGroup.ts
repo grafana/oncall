@@ -101,6 +101,6 @@ export const verifyThatAlertGroupIsTriggered = async (
 
 export const resolveFiringAlert = async (page: Page) => {
   await goToOnCallPage(page, 'alert-groups');
-  await page.getByText('Acknowledged').nth(1).click();
+  await page.getByText('Firing').nth(2).click();
   await page.getByLabel('Context menu').getByText('Resolve').click();
 };
