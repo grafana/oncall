@@ -217,20 +217,24 @@ class GrafanaIncidentStaticKeyAuth(BaseAuthentication):
 
 
 class _SocialAuthTokenAuthentication(BaseAuthentication, typing.Generic[T]):
-    def authenticate(self, request) -> typing.Tuple[User, T]:
+    def authenticate(self, request) -> typing.Optional[typing.Tuple[User, T]]:
+        """
+        If you don't return `None`, the authenticate will raise an `APIException`, so the next authentication class
+        will not be called.
+        https://stackoverflow.com/a/61623607/3902555
+
+        This is useful for the social_auth views where we want to use multiple authentication classes
+        for the same view.
+        """
         auth = request.query_params.get(self.token_query_param_name)
         if not auth:
-            raise exceptions.AuthenticationFailed("Invalid token.")
-        user, auth_token = self.authenticate_credentials(auth)
-        return user, auth_token
+            return None
 
-    def authenticate_credentials(self, token_string: str) -> typing.Tuple[User, T]:
         try:
-            auth_token = self.model.validate_token_string(token_string)
+            auth_token = self.model.validate_token_string(auth)
+            return auth_token.user, auth_token
         except InvalidToken:
-            raise exceptions.AuthenticationFailed("Invalid token.")
-
-        return auth_token.user, auth_token
+            return None
 
 
 class SlackTokenAuthentication(_SocialAuthTokenAuthentication[SlackAuthToken]):

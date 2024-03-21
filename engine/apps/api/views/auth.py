@@ -39,9 +39,7 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
 
 
 @api_view(["GET"])
-# TODO: why does authentication_classes not check all class
-# @authentication_classes([SlackTokenAuthentication, GoogleTokenAuthentication])
-@authentication_classes([GoogleTokenAuthentication])
+@authentication_classes([GoogleTokenAuthentication, SlackTokenAuthentication])
 @never_cache
 @csrf_exempt
 @psa("social:complete")

@@ -15,13 +15,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
 
-from apps.google.models import GoogleOAuth2User
 from apps.api.permissions import (
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACPermission,
     user_is_authorized,
 )
+from apps.google.models import GoogleOAuth2User
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from apps.user_management.constants import AlertGroupTableColumn, GoogleCalendarSettings
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -471,7 +471,6 @@ class User(models.Model):
         if self.alert_group_table_selected_columns != columns:
             self.alert_group_table_selected_columns = columns
             self.save(update_fields=["alert_group_table_selected_columns"])
-
 
     def finish_google_oauth2_connection_flow(self, google_oauth2_response: "GoogleOauth2Response") -> None:
         _obj, created = GoogleOAuth2User.objects.update_or_create(

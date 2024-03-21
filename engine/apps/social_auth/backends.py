@@ -40,8 +40,8 @@ BOT_SCOPE = [
     "users:write",
 ]
 
-class GoogleOAuth2(BaseGoogleOAuth2):
 
+class GoogleOAuth2(BaseGoogleOAuth2):
     REDIRECT_STATE = False
     """
     Remove redirect state because we lose session during redirects

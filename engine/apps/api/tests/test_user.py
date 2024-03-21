@@ -148,7 +148,9 @@ def test_update_user_google_calendar_settings(
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": admin.public_primary_key})
 
-    schedule_public_primary_keys = [schedule1.public_primary_key, schedule2.public_primary_key] if add_specific_oncall_schedules_to_sync else []
+    schedule_public_primary_keys = (
+        [schedule1.public_primary_key, schedule2.public_primary_key] if add_specific_oncall_schedules_to_sync else []
+    )
     data = {
         "google_calendar_settings": {
             "create_shift_swaps_automatically": True,

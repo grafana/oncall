@@ -662,7 +662,9 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SEC
 # we'll probably need to change this to the calendar.events scope
 # (not sure how hard this is to migrate to in the future?)
 # https://developers.google.com/identity/protocols/oauth2/scopes#calendar
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = getenv_list("SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE", default=["https://www.googleapis.com/auth/calendar.events.readonly"])
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = getenv_list(
+    "SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE", default=["https://www.googleapis.com/auth/calendar.events.readonly"]
+)
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")

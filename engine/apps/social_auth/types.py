@@ -1,5 +1,6 @@
 import typing
 
+
 class GoogleOauth2Response(typing.TypedDict):
     sub: str
     scope: str

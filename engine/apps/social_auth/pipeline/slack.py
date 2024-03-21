@@ -15,7 +15,6 @@ from common.oncall_gateway import can_link_slack_team_wrapper, link_slack_team_w
 logger = logging.getLogger(__name__)
 
 
-
 def connect_user_to_slack(response, backend, strategy, user, organization, *args, **kwargs):
     from apps.slack.models import SlackUserIdentity
 

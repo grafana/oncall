@@ -17,7 +17,7 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     # NOTE: shift swap request generation will be done in https://github.com/grafana/oncall-private/issues/2590
     # QUESTION: will we need to persist any information about these calendar events in our database?
-    _out_of_office_events = google_api_client.fetch_out_of_office_events()
+    google_api_client.fetch_out_of_office_events()
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

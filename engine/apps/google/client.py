@@ -13,7 +13,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class GoogleCalendarAPIClient:
-
     MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH = 250
     """
     By default the value is 250 events. The page size can never be larger than 2500 events
@@ -38,6 +37,7 @@ class GoogleCalendarAPIClient:
         """
         https://developers.google.com/calendar/api/v3/reference/events/list
         """
+
         def _format_datetime_arg(dt: datetime.datetime) -> str:
             """
             https://stackoverflow.com/a/17159470/3902555

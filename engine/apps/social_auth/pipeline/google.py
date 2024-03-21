@@ -21,6 +21,7 @@ def persist_access_and_refresh_tokens(backend: typing.Type[BaseAuth], response: 
     """
     user.finish_google_oauth2_connection_flow(response)
 
+
 # def redirect_if_no_refresh_token(backend: typing.Type[BaseAuth], response: Response, *args, **kwargs):
 #     """
 #     https://python-social-auth.readthedocs.io/en/latest/use_cases.html#re-prompt-google-oauth2-users-to-refresh-the-refresh-token
