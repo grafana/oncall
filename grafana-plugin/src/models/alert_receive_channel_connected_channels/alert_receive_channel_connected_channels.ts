@@ -34,11 +34,19 @@ export class AlertReceiveChannelConnectedChannelsStore {
   }
 
   @AutoLoadingState(ActionKey.FETCH_INTEGRATIONS_AVAILABLE_FOR_CONNECTION)
-  async fetchItemsAvailableForConnection({ search, page }: { search?: string; page: number }) {
+  async fetchItemsAvailableForConnection({
+    search,
+    page,
+    currentIntegrationId,
+  }: {
+    search?: string;
+    page: number;
+    currentIntegrationId: string;
+  }) {
     await this.rootStore.alertReceiveChannelStore.fetchPaginatedItems({
       filters: {
         search,
-        id_ne: this.itemsAsList.map(({ alert_receive_channel: { id } }) => id),
+        id_ne: [...this.itemsAsList.map(({ alert_receive_channel: { id } }) => id), currentIntegrationId],
       },
       perpage: 10,
       page,
