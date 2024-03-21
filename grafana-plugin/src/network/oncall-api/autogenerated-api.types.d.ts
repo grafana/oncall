@@ -271,6 +271,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_status_options_list'];
     put?: never;
     post?: never;
     delete?: never;
