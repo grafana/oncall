@@ -1,8 +1,8 @@
-import dayjs, { Dayjs, ManipulateType } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 import { Timezone } from 'models/timezone/timezone.types';
 
-import { RepeatEveryPeriod } from './RotationForm.types';
+import { PeriodUnitName, RepeatEveryPeriod } from './RotationForm.types';
 
 export const getRepeatShiftsEveryOptions = (repeatEveryPeriod: number) => {
   const count = repeatEveryPeriod === RepeatEveryPeriod.HOURS ? 24 : 30;
@@ -31,11 +31,11 @@ export interface TimeUnit {
 }
 
 export const repeatEveryPeriodMultiplier = {
-  [RepeatEveryPeriod.MONTHS]: 60 * 60 * 24 * 30,
-  [RepeatEveryPeriod.WEEKS]: 60 * 60 * 24 * 7,
-  [RepeatEveryPeriod.DAYS]: 60 * 60 * 24,
-  [RepeatEveryPeriod.HOURS]: 60 * 60,
   [RepeatEveryPeriod.MINUTES]: 60,
+  [RepeatEveryPeriod.HOURS]: 60 * 60,
+  [RepeatEveryPeriod.DAYS]: 60 * 60 * 24,
+  [RepeatEveryPeriod.WEEKS]: 60 * 60 * 24 * 7,
+  [RepeatEveryPeriod.MONTHS]: 60 * 60 * 24 * 30,
 };
 
 export const repeatEveryPeriodToNextPeriodCount = {
@@ -52,12 +52,12 @@ export const TIME_UNITS_ORDER = [
   RepeatEveryPeriod.MINUTES,
 ];
 
-export const repeatEveryPeriodToUnitName: { [key: number]: ManipulateType } = {
-  [RepeatEveryPeriod.DAYS]: 'days',
+export const repeatEveryPeriodToUnitName: { [key: number]: PeriodUnitName } = {
+  [RepeatEveryPeriod.MINUTES]: 'minutes',
   [RepeatEveryPeriod.HOURS]: 'hours',
+  [RepeatEveryPeriod.DAYS]: 'days',
   [RepeatEveryPeriod.WEEKS]: 'weeks',
   [RepeatEveryPeriod.MONTHS]: 'months',
-  [RepeatEveryPeriod.MINUTES]: 'minutes',
 };
 
 export const repeatEveryPeriodToUnitNameShortened = {

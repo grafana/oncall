@@ -9,3 +9,5 @@ export enum RepeatEveryPeriod {
   'HOURS' = 3,
   'MINUTES' = 4,
 }
+
+export type PeriodUnitName = 'minutes' | 'hours' | 'days' | 'weeks' | 'months';
