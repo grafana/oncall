@@ -1710,6 +1710,10 @@ export interface components {
       value: string;
       display_name: string;
     };
+    GoogleCalendarSettings: {
+      create_shift_swaps_automatically: boolean;
+      specific_oncall_schedules_to_sync?: string[] | null;
+    };
     /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
     IntegrationAlertGroupLabels: {
       inheritable: {
@@ -1999,6 +2003,7 @@ export interface components {
       hide_phone_number?: boolean;
       readonly has_google_oauth2_connected?: boolean;
       readonly is_currently_oncall?: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
     };
     PreviewTemplateRequest: {
       template_body?: string | null;
@@ -2125,6 +2130,7 @@ export interface components {
       hide_phone_number?: boolean;
       readonly has_google_oauth2_connected: boolean;
       readonly is_currently_oncall: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
     };
     UserExportTokenGetResponse: {
       /** Format: date-time */

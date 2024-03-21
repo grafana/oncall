@@ -281,6 +281,7 @@ INSTALLED_APPS = [
     "django_dbconn_retry",
     "apps.phone_notifications",
     "drf_spectacular",
+    "apps.google",
 ]
 
 REST_FRAMEWORK = {
@@ -647,7 +648,6 @@ AUTHENTICATION_BACKENDS = [
 
 if FEATURE_GOOGLE_OAUTH2_ENABLED:
     AUTHENTICATION_BACKENDS.append("apps.social_auth.backends.GoogleOAuth2")
-    INSTALLED_APPS.append("apps.google")
 
     CELERY_BEAT_SCHEDULE["sync_google_calendar_out_of_office_events_for_all_users"] = {
         "task": "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users",
