@@ -265,6 +265,7 @@ class AlertReceiveChannelView(
                 "demo_alert_payload": serializers.DictField(required=False, allow_null=True),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
@@ -289,7 +290,10 @@ class AlertReceiveChannelView(
             except BacksyncIntegrationRequestError as e:
                 raise BadRequest(detail=e.error_msg)
 
-    @extend_schema(request=AlertReceiveChannelSerializer)
+    @extend_schema(
+        request=AlertReceiveChannelSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
     @action(detail=False, methods=["post"])
     def test_connection(self, request):
         # create in-memory instance to test with the (possible) unsaved data
@@ -306,7 +310,7 @@ class AlertReceiveChannelView(
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
-        request=inline_serializer(
+        responses=inline_serializer(
             name="AlertReceiveChannelBacksyncStatusOptions",
             fields={
                 "value": serializers.CharField(),
@@ -361,7 +365,9 @@ class AlertReceiveChannelView(
     @extend_schema(
         parameters=[
             inline_serializer(name="AlertReceiveChannelChangeTeam", fields={"team_id": serializers.CharField()})
-        ]
+        ],
+        request=None,
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):
@@ -479,6 +485,7 @@ class AlertReceiveChannelView(
                 ),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def start_maintenance(self, request, pk):
@@ -510,12 +517,14 @@ class AlertReceiveChannelView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["post"])
     def stop_maintenance(self, request, pk):
         instance = self.get_object()
         instance.force_disable_maintenance(request.user)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["post"])
     def migrate(self, request, pk):
         instance = self.get_object()
@@ -631,6 +640,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def connect_contact_point(self, request, pk):
@@ -657,6 +667,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_201_CREATED: None},
     )
     @action(detail=True, methods=["post"])
     def create_contact_point(self, request, pk):
@@ -683,6 +694,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def disconnect_contact_point(self, request, pk):
@@ -765,6 +777,9 @@ class AlertReceiveChannelView(
         backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
 
         # bulk create connections
+        alert_receive_channels = instance.organization.alert_receive_channels.filter(
+            public_primary_key__in=backsync_map.keys()
+        )
         AlertReceiveChannelConnection.objects.bulk_create(
             [
                 AlertReceiveChannelConnection(
@@ -772,13 +787,15 @@ class AlertReceiveChannelView(
                     connected_alert_receive_channel=alert_receive_channel,
                     backsync=backsync_map[alert_receive_channel.public_primary_key],
                 )
-                for alert_receive_channel in instance.organization.alert_receive_channels.filter(
-                    public_primary_key__in=backsync_map.keys()
-                )
+                for alert_receive_channel in alert_receive_channels
             ],
             ignore_conflicts=True,
             batch_size=5000,
         )
+
+        # add connected integrations to filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.add(*alert_receive_channels)
 
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
 
@@ -817,8 +834,14 @@ class AlertReceiveChannelView(
             raise NotFound
 
         connection.delete()
+
+        # remove the connected integration from filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.remove(connection.connected_alert_receive_channel)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["get"], url_path="api_token")
     def backsync_token_get(self, request, pk):
         instance = self.get_object()
@@ -833,6 +856,7 @@ class AlertReceiveChannelView(
 
     @extend_schema(
         methods=["post"],
+        request=None,
         responses=inline_serializer(
             name="IntegrationTokenPostResponse",
             fields={
