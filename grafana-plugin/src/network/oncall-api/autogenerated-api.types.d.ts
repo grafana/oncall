@@ -39,6 +39,24 @@ export interface paths {
     patch: operations['alert_receive_channels_partial_update'];
     trace?: never;
   };
+  '/alert_receive_channels/{id}/api_token/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_api_token_retrieve'];
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_api_token_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alert_receive_channels/{id}/change_team/': {
     parameters: {
       query?: never;
@@ -245,6 +263,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/alert_receive_channels/{id}/status_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    get: operations['alert_receive_channels_status_options_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alert_receive_channels/{id}/stop_maintenance/': {
     parameters: {
       query?: never;
@@ -360,6 +395,23 @@ export interface paths {
     get: operations['alert_receive_channels_integration_options_list'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/test_connection/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_test_connection_create'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1448,6 +1500,10 @@ export interface components {
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
     };
+    AlertReceiveChannelBacksyncStatusOptions: {
+      value: string;
+      display_name: string;
+    };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
       contact_point_name: string;
@@ -1745,6 +1801,9 @@ export interface components {
        *     If first heartbeat signal was not send it means that configuration was not finished and status not ok. */
       readonly status: boolean;
       readonly instruction: string;
+    };
+    IntegrationTokenPostResponse: {
+      token: string;
     };
     Key: {
       id: string;
@@ -2440,6 +2499,49 @@ export interface operations {
       };
     };
   };
+  alert_receive_channels_api_token_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_api_token_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IntegrationTokenPostResponse'];
+        };
+      };
+    };
+  };
   alert_receive_channels_change_team_update: {
     parameters: {
       query: {
@@ -2661,7 +2763,7 @@ export interface operations {
     };
     responses: {
       /** @description No response body */
-      200: {
+      201: {
         headers: {
           [name: string]: unknown;
         };
@@ -2796,6 +2898,28 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  alert_receive_channels_status_options_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelBacksyncStatusOptions'][];
+        };
       };
     };
   };
@@ -3001,6 +3125,30 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AlertReceiveChannelIntegrationOptions'][];
         };
+      };
+    };
+  };
+  alert_receive_channels_test_connection_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannel'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannel'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannel'];
+      };
+    };
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
