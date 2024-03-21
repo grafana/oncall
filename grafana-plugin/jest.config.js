@@ -26,6 +26,18 @@ module.exports = {
 
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
+  reporters: process.env.HTML_REPORT_ENABLED
+    ? [
+        'default',
+        [
+          'jest-html-reporters',
+          {
+            openReport: process.env.NODE_ENV !== 'production',
+          },
+        ],
+      ]
+    : ['default'],
+
   testTimeout: 10000,
   testPathIgnorePatterns: ['/node_modules/', '/e2e-tests/'],
   transform: {

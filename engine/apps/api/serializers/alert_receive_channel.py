@@ -340,7 +340,7 @@ class AlertReceiveChannelSerializer(
             _additional_settings_serializer_from_type(self.instance.config.slug) if self.instance else None
         )
         if settings_serializer_cls:
-            additional_settings_data = data.get("additional_settings")
+            additional_settings_data = data.get("additional_settings", self.instance.additional_settings)
             settings_serializer = settings_serializer_cls(self.instance, data=additional_settings_data)
             settings_serializer.is_valid()
             if settings_serializer.errors:
@@ -381,6 +381,7 @@ class AlertReceiveChannelSerializer(
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        create_default_webhooks = validated_data.pop("create_default_webhooks", True)
         if has_legacy_prefix(integration):
             raise BadRequest(detail="This integration is deprecated")
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
@@ -408,6 +409,10 @@ class AlertReceiveChannelSerializer(
         # Create label associations first, then update alert group labels
         self.update_labels_association_if_needed(labels, instance, organization)
         instance = IntegrationAlertGroupLabelsSerializer.update(instance, alert_group_labels)
+
+        # Create default webhooks if needed
+        if create_default_webhooks and hasattr(instance.config, "create_default_webhooks"):
+            instance.config.create_default_webhooks(instance)
 
         return instance
 
@@ -483,6 +488,16 @@ class AlertReceiveChannelSerializer(
             .distinct()
             .count()
         )
+
+
+class AlertReceiveChannelCreateSerializer(AlertReceiveChannelSerializer):
+    create_default_webhooks = serializers.BooleanField(required=False, default=True)
+
+    class Meta(AlertReceiveChannelSerializer.Meta):
+        fields = [
+            *AlertReceiveChannelSerializer.Meta.fields,
+            "create_default_webhooks",
+        ]
 
 
 class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):

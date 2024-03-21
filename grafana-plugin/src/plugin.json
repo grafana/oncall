@@ -137,51 +137,6 @@
       ]
     },
     {
-      "path": "api/internal/v1/plugin/sync",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/sync",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallApiToken }}"
-        }
-      ]
-    },
-    {
-      "path": "api/internal/v1/plugin/*",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallApiToken }}"
-        }
-      ]
-    },
-    {
-      "path": "api/internal/v1/login/slack-install-free/",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/login/slack-install-free/",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallApiToken }}"
-        }
-      ]
-    },
-    {
       "path": "api/internal/v1/*",
       "method": "*",
       "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/",

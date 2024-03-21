@@ -62,6 +62,7 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
               {url && (
                 <IntegrationInputField
                   value={url}
+                  isMasked
                   className={cx('integration__input-field')}
                   showExternal={!!item?.integration_url}
                 />
@@ -101,7 +102,7 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
         {!hasAlerts && (
           <HorizontalGroup spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
+            <Text type={'primary'}>No alerts yet</Text> {callToAction()}
           </HorizontalGroup>
         )}
       </VerticalGroup>
