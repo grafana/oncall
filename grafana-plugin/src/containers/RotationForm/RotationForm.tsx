@@ -110,13 +110,13 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.utc().add(1, 'day'));
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
   const [activePeriod, setActivePeriod] = useState<number | undefined>(undefined);
   const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
 
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
   const [endLess, setEndless] = useState<boolean>(true);
-  const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.utc().add(1, 'month'));
+  const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<RepeatEveryPeriod>(RepeatEveryPeriod.DAYS);
@@ -272,16 +272,16 @@ export const RotationForm = observer((props: RotationFormProps) => {
   }, [shift?.updated_shift]);
 
   const handleRepeatEveryPeriodChange = useCallback(
-    (value: RepeatEveryPeriod) => {
+    (value) => {
       setShiftPeriodDefaultValue(undefined);
 
       setRepeatEveryPeriod(value);
 
       if (!showActiveOnSelectedPartOfDay) {
         if (showActiveOnSelectedDays) {
-          setShiftEnd(shiftStart.utc().add(24, 'hours'));
+          setShiftEnd(shiftStart.add(24, 'hours'));
         } else {
-          setShiftEnd(shiftStart.utc().add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
+          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
         }
       }
     },
@@ -318,7 +318,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const handleActivePeriodChange = useCallback(
     (value) => {
       setActivePeriod(value);
-      setShiftEnd(shiftStart.utc().add(value, 'seconds'));
+      setShiftEnd(shiftStart.add(value, 'seconds'));
     },
     [shiftStart]
   );
@@ -337,10 +337,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setShowActiveOnSelectedDays(value);
 
       if (value) {
-        setShiftEnd(shiftStart.utc().add(24, 'hours'));
+        setShiftEnd(shiftStart.add(24, 'hours'));
       } else {
         if (!showActiveOnSelectedPartOfDay) {
-          setShiftEnd(shiftStart.utc().add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
         }
       }
     },
@@ -354,9 +354,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       if (!value) {
         if (showActiveOnSelectedPartOfDay) {
-          setShiftEnd(shiftStart.utc().add(24, 'hours'));
+          setShiftEnd(shiftStart.add(24, 'hours'));
         } else {
-          setShiftEnd(shiftStart.utc().add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
         }
       }
     },
