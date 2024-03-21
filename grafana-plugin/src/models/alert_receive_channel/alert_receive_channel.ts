@@ -146,6 +146,7 @@ export class AlertReceiveChannelStore {
     }
   }
 
+  @AutoLoadingState(ActionKey.UPDATE_SERVICENOW_TOKEN)
   @WithGlobalNotification({ failure: 'There was an error generating the token. Please try again' })
   async generateServiceNowToken({
     id,

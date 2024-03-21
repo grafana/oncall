@@ -73,12 +73,13 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    value={field.value?.[1]}
                     key="state_mapping.firing"
                     menuShouldPortal
                     className="select control"
                     options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.firing', option?.value);
+                      setValue('additional_settings.state_mapping.firing', [option?.label, option?.value]);
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -98,12 +99,13 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    value={field.value?.[1]}
                     menuShouldPortal
                     className="select control"
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.acknowledged', option?.value);
+                      setValue('additional_settings.state_mapping.acknowledged', [option?.label, option?.value]);
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -122,12 +124,13 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    value={field.value?.[1]}
                     menuShouldPortal
                     className="select control"
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.resolved', option?.value);
+                      setValue('additional_settings.state_mapping.resolved', [option?.label, option?.value]);
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -146,12 +149,13 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    value={field.value?.[1]}
                     menuShouldPortal
                     className="select control"
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.silenced', option?.value);
+                      setValue('additional_settings.state_mapping.silenced', [option?.label, option?.value]);
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -168,7 +172,9 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
   function getAvailableStatusOptions(currentAction: OnCallAGStatus) {
     const stateMapping = getValues()?.additional_settings?.state_mapping || {};
     const keys = Object.keys(stateMapping);
-    const values = keys.map((k) => stateMapping[k]).filter(Boolean);
+
+    // values are list of array-like values [label, id]
+    const values = keys.map((k) => stateMapping[k]).filter(Boolean).map(arr => arr[1]);
     const statusList = (alertReceiveChannelStore.serviceNowStatusList || []).map(([name, id]) => ({ id, name }));
 
     return statusList

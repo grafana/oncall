@@ -18,7 +18,6 @@ export const getCommonServiceNowConfigStyles = (theme: GrafanaTheme2) => {
 
     tokenInput: css`
       height: 32px !important;
-      padding-top: 4px !important;
     `,
 
     tokenIcons: css`

@@ -1,22 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import {
-  Drawer,
-  Field,
-  HorizontalGroup,
-  Input,
-  VerticalGroup,
-  Icon,
-  useStyles2,
-  Button,
-  LoadingPlaceholder,
-} from '@grafana/ui';
+import { Drawer, Field, HorizontalGroup, Input, VerticalGroup, Icon, useStyles2, Button } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -28,9 +17,9 @@ import { OmitReadonlyMembers } from 'utils/types';
 import { openNotification } from 'utils/utils';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
-import { ServiceNowTokenSection } from './ServiceNowTokenSection';
 import { ServiceNowAuthSection } from './ServiceNowAuthSection';
+import { ServiceNowStatusSection } from './ServiceNowStatusSection';
+import { ServiceNowTokenSection } from './ServiceNowTokenSection';
 
 interface ServiceNowConfigurationDrawerProps {
   onHide(): void;
@@ -45,9 +34,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   const { alertReceiveChannelStore } = useStore();
 
   const currentIntegration = useCurrentIntegration();
-
-  const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
-  const [authTestResult, setAuthTestResult] = useState(undefined);
 
   const formMethods = useForm<FormFields>({
     defaultValues: {
@@ -149,11 +135,11 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
             <div className={styles.formButtons}>
               <HorizontalGroup justify="flex-end">
-                <Button variant="secondary" onClick={onHide}>
+                <Button variant="secondary" onClick={onHide} disabled={isLoading}>
                   Close
                 </Button>
                 <Button variant="primary" type="submit" disabled={isLoading}>
-                  {isLoading ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Update'}
+                  Update
                 </Button>
               </HorizontalGroup>
             </div>
@@ -164,8 +150,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
   );
 
   function validateURL(urlFieldValue: string): string | boolean {
-    const regex = new RegExp(URL_REGEX, 'i');
-    return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
+    return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
   }
 
   async function onFormSubmit(formData: FormFields): Promise<void> {

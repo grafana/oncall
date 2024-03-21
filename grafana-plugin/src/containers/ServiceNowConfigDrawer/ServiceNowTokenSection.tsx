@@ -10,6 +10,8 @@ import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab
 import { useStore } from 'state/useStore';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
+import { useIsLoading } from 'utils/hooks';
+import { ActionKey } from 'models/loader/action-keys';
 
 interface ServiceNowTokenSectionProps {}
 
@@ -19,6 +21,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
   const { alertReceiveChannelStore } = useStore();
   const [isExistingToken, setIsExistingToken] = useState(undefined);
   const [currentToken, setCurrentToken] = useState(undefined);
+  const isLoading = useIsLoading(ActionKey.UPDATE_SERVICENOW_TOKEN);
 
   useEffect(() => {
     (async function () {
@@ -56,6 +59,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
                 ? 'A token had already been generated'
                 : 'Click Generate to create a token'
             }
+            isButtonHeight
             inputClassName={styles.tokenInput}
             iconsClassName={styles.tokenIcons}
             value={currentToken}
@@ -64,7 +68,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
             showEye={false}
             isMasked={false}
           />
-          <Button variant="secondary" onClick={onTokenGenerate}>
+          <Button variant="secondary" onClick={onTokenGenerate} disabled={isLoading}>
             {isExistingToken ? 'Regenerate' : 'Generate'}
           </Button>
         </div>

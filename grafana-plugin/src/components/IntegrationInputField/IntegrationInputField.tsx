@@ -17,6 +17,7 @@ interface IntegrationInputFieldProps {
   inputClassName?: string;
   iconsClassName?: string;
   placeholder?: string;
+  isButtonHeight?: boolean;
 }
 
 const cx = cn.bind(styles);
@@ -27,6 +28,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   showEye = true,
   showCopy = true,
   showExternal = true,
+  isButtonHeight = false,
   className,
   placeholder = '',
   inputClassName = '',
@@ -49,9 +51,14 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   );
 
   function renderInputField() {
+    let baseClassname = inputClassName;
+    if (isButtonHeight) {
+      baseClassname = 'button-input-height';
+    }
+
     return (
       <Input
-        className={inputClassName}
+        className={cx(baseClassname)}
         value={isInputMasked ? value?.replace(/./g, '*') : value}
         placeholder={placeholder}
         disabled

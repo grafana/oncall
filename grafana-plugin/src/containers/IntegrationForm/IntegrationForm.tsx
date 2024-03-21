@@ -27,6 +27,7 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { Labels } from 'containers/Labels/Labels';
+import { ServiceNowAuthSection } from 'containers/ServiceNowConfigDrawer/ServiceNowAuthSection';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
@@ -42,9 +43,9 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
-import { ServiceNowAuthSection } from 'containers/ServiceNowConfigDrawer/ServiceNowAuthSection';
+import { parseUrl } from 'query-string';
 
-interface FormFields {
+export interface IntegrationFormFields {
   verbal_name?: string;
   description_short?: string;
   team?: string;
@@ -116,7 +117,7 @@ export const IntegrationForm = observer(
 
     const { integration } = data;
 
-    const formMethods = useForm<FormFields>({
+    const formMethods = useForm<IntegrationFormFields>({
       defaultValues: isNew
         ? {
             // these are the default values for creating an integration
@@ -335,7 +336,6 @@ export const IntegrationForm = observer(
               )}
             />
 
-            {/* TODO: Pass needed interface/getValues() */}
             <ServiceNowAuthSection />
 
             <Controller
@@ -382,11 +382,10 @@ export const IntegrationForm = observer(
     }
 
     function validateURL(urlFieldValue: string): string | boolean {
-      const regex = new RegExp(URL_REGEX, 'i');
-      return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
+      return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
-    async function onFormSubmit(formData: FormFields): Promise<void> {
+    async function onFormSubmit(formData: IntegrationFormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
 
       const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
@@ -487,7 +486,7 @@ const GrafanaContactPoint = observer(
       setValue,
       formState: { errors },
       register,
-    } = useFormContext<FormFields>();
+    } = useFormContext<IntegrationFormFields>();
 
     useEffect(() => {
       (async function () {

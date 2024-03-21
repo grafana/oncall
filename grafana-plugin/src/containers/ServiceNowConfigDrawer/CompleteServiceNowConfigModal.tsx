@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, LoadingPlaceholder, Modal, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, Modal, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -10,7 +10,7 @@ import { useStore } from 'state/useStore';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-import { ServiceNowStatusSection, ServiceNowStatusMapping } from './ServiceNowStatusSection';
+import { ServiceNowStatusSection } from './ServiceNowStatusSection';
 import { ServiceNowTokenSection } from './ServiceNowTokenSection';
 
 interface CompleteServiceNowConfigModalProps {
@@ -26,7 +26,6 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
   const { alertReceiveChannelStore } = useStore();
   const integration = useCurrentIntegration();
 
-  const [statusMapping, setStatusMapping] = useState<ServiceNowStatusMapping>({});
   const [isFormActionsDisabled, setIsFormActionsDisabled] = useState(false);
 
   const styles = useStyles2(getStyles);
@@ -35,7 +34,16 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
   const { id } = integration;
 
   return (
-    <Modal closeOnEscape={false} isOpen title={'Complete ServiceNow configuration'} onDismiss={onHide} className={''}>
+    <Modal
+      closeOnEscape={false}
+      isOpen
+      title={'Complete ServiceNow configuration'}
+      onDismiss={() =>
+        onFormAcknowledge().finally(() => {
+          // onHide
+        })
+      }
+    >
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.border}>
@@ -52,7 +60,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
                 Close
               </Button>
               <Button variant="primary" type="submit" disabled={isFormActionsDisabled}>
-                {isFormActionsDisabled ? <LoadingPlaceholder className={styles.loader} text="Loading..." /> : 'Proceed'}
+                Proceed
               </Button>
             </HorizontalGroup>
           </div>
@@ -70,6 +78,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
         data: {
           ...integration,
           additional_settings: {
+            // use existing fields
             ...integration.additional_settings,
             is_configured: true,
           },
@@ -83,12 +92,23 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
   }
 
   async function onFormSubmit(formData: FormFields) {
+    setIsFormActionsDisabled(true);
+
     const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
       ...integration,
       ...formData,
+
+      additional_settings: {
+        ...integration.additional_settings,
+        ...formData.additional_settings,
+      },
     };
 
-    await alertReceiveChannelStore.update({ id, data });
+    try {
+      await alertReceiveChannelStore.update({ id, data });
+    } finally {
+      setIsFormActionsDisabled(false);
+    }
   }
 };
 
