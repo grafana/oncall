@@ -183,4 +183,15 @@ export class AlertReceiveChannelHelper {
       data,
     });
   }
+
+  static async checkIfTokenExists(integrationId: string) {
+    try {
+      await onCallApi({ skipErrorHandling: true }).GET('/alert_receive_channels/{id}/api_token/', {
+        params: { path: { id: integrationId } },
+      });
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
 }

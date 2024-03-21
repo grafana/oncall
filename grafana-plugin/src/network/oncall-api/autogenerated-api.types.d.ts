@@ -271,7 +271,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    get: operations['alert_receive_channels_status_options_retrieve'];
+    get: operations['alert_receive_channels_status_options_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1499,6 +1499,10 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
+    };
+    AlertReceiveChannelBacksyncStatusOptions: {
+      value: string;
+      display_name: string;
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
@@ -2762,7 +2766,7 @@ export interface operations {
     };
     responses: {
       /** @description No response body */
-      200: {
+      201: {
         headers: {
           [name: string]: unknown;
         };
@@ -2900,7 +2904,7 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_status_options_retrieve: {
+  alert_receive_channels_status_options_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -2912,12 +2916,13 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description No response body */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': components['schemas']['AlertReceiveChannelBacksyncStatusOptions'][];
+        };
       };
     };
   };
