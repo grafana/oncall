@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { DateTime, dateTime } from '@grafana/data';
-import { DatePickerWithInput, TimeOfDayPicker, VerticalGroup } from '@grafana/ui';
+import { DatePickerWithInput, TimeOfDayPicker, useStyles2, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -11,6 +11,7 @@ import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpe
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
+import { css } from '@emotion/css';
 
 const cx = cn.bind(styles);
 
@@ -25,6 +26,7 @@ interface DateTimePickerProps {
 
 export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
+    const styles = useStyles2(getStyles);
     const {
       timezoneStore: { getDateInSelectedTimezone },
     } = useStore();
@@ -61,7 +63,7 @@ export const DateTimePicker = observer(
 
     return (
       <VerticalGroup>
-        <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+        <div className={styles.wrapper}>
           <div
             onFocus={onFocus}
             onBlur={onBlur}
@@ -90,3 +92,12 @@ export const DateTimePicker = observer(
     );
   }
 );
+
+const getStyles = () => ({
+  wrapper: css`
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    z-index: 2;
+  `,
+});
