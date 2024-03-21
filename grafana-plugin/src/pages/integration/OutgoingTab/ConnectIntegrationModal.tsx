@@ -38,6 +38,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
     await alertReceiveChannelConnectedChannelsStore.fetchItemsAvailableForConnection({
       page,
       search,
+      currentIntegrationId: currentIntegration.id,
     });
   };
 
