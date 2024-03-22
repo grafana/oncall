@@ -8,6 +8,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
 import { OmitReadonlyMembers } from 'utils/types';
+import { openNotification } from 'utils/utils';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection } from './ServiceNowStatusSection';
@@ -22,9 +23,16 @@ interface FormFields {
 }
 
 export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProps> = ({ onHide }) => {
-  const formMethods = useForm<FormFields>();
   const { alertReceiveChannelStore } = useStore();
   const integration = useCurrentIntegration();
+
+  const formMethods = useForm<FormFields>({
+    values: {
+      additional_settings: {
+        ...integration.additional_settings,
+      },
+    },
+  });
 
   const [isFormActionsDisabled, setIsFormActionsDisabled] = useState(false);
 
@@ -34,16 +42,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
   const { id } = integration;
 
   return (
-    <Modal
-      closeOnEscape={false}
-      isOpen
-      title={'Complete ServiceNow configuration'}
-      onDismiss={() =>
-        onFormAcknowledge().finally(() => {
-          // onHide
-        })
-      }
-    >
+    <Modal closeOnEscape={false} isOpen title={'Complete ServiceNow configuration'} onDismiss={onDismiss}>
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.border}>
@@ -68,6 +67,16 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
       </FormProvider>
     </Modal>
   );
+
+  async function onDismiss() {
+    setIsFormActionsDisabled(true);
+    try {
+      await onFormAcknowledge();
+      onHide();
+    } catch (ex) {
+      setIsFormActionsDisabled(false);
+    }
+  }
 
   async function onFormAcknowledge() {
     setIsFormActionsDisabled(true);
@@ -101,11 +110,17 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
       additional_settings: {
         ...integration.additional_settings,
         ...formData.additional_settings,
+        state_mapping: {
+          ...formData.additional_settings.state_mapping,
+        },
+        is_configured: true,
       },
     };
 
     try {
       await alertReceiveChannelStore.update({ id, data });
+      openNotification('You successfully completed your ServiceNow configuration');
+      onHide();
     } finally {
       setIsFormActionsDisabled(false);
     }

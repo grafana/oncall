@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { observable } from 'mobx';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -13,9 +14,7 @@ import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 
-interface ServiceNowTokenSectionProps {}
-
-export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () => {
+export const ServiceNowTokenSection: React.FC = observable(() => {
   const styles = useStyles2(getStyles);
   const { id } = useCurrentIntegration();
   const { alertReceiveChannelStore } = useStore();
@@ -77,10 +76,13 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = () 
   );
 
   async function onTokenGenerate() {
-    const result = await alertReceiveChannelStore.generateServiceNowToken({ id });
-    setCurrentToken(result.token);
+    const res = await alertReceiveChannelStore.generateServiceNowToken({ id });
+
+    if (res?.token) {
+      setCurrentToken(res.token);
+    }
   }
-};
+});
 
 const getStyles = (theme: GrafanaTheme2) => {
   return {

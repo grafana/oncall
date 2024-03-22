@@ -4,6 +4,7 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Drawer, Field, HorizontalGroup, Input, VerticalGroup, Icon, useStyles2, Button } from '@grafana/ui';
 import { observer } from 'mobx-react';
+import { parseUrl } from 'query-string';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 import { Text } from 'components/Text/Text';

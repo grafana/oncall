@@ -78,8 +78,8 @@ export const INCIDENT_HORIZONTAL_SCROLLING_STORAGE = 'isIncidentalTableHorizonta
 export const IRM_TAB = 'IRM';
 
 export enum OnCallAGStatus {
-  Firing = 'Firing',
-  Resolved = 'Resolved',
-  Silenced = 'Silenced',
-  Acknowledged = 'Acknowledged',
+  Firing = 'firing',
+  Resolved = 'resolved',
+  Silenced = 'silenced',
+  Acknowledged = 'acknowledged',
 }

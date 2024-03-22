@@ -28,7 +28,8 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const { alertReceiveChannelStore } = useStore();
-  const { id } = useCurrentIntegration();
+  const currentIntegration = useCurrentIntegration();
+  const { id } = currentIntegration;
 
   useEffect(() => {
     (async () => {
@@ -79,7 +80,10 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                     className="select control"
                     options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.firing', [option?.label, option?.value]);
+                      setValue(
+                        'additional_settings.state_mapping.firing',
+                        option ? [option.label, option.value] : null
+                      );
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -100,12 +104,16 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                   <Select
                     {...field}
                     value={field.value?.[1]}
+                    defaultValue={field.value?.[1]}
                     menuShouldPortal
                     className="select control"
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.acknowledged', [option?.label, option?.value]);
+                      setValue(
+                        'additional_settings.state_mapping.acknowledged',
+                        option ? [option.label, option.value] : null
+                      );
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -125,12 +133,16 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                   <Select
                     {...field}
                     value={field.value?.[1]}
+                    defaultValue={field.value?.[1]}
                     menuShouldPortal
                     className="select control"
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.resolved', [option?.label, option?.value]);
+                      setValue(
+                        'additional_settings.state_mapping.resolved',
+                        option ? [option.label, option.value] : null
+                      );
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -155,7 +167,10 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                     disabled={false}
                     options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
                     onChange={(option: SelectableValue) => {
-                      setValue('additional_settings.state_mapping.silenced', [option?.label, option?.value]);
+                      setValue(
+                        'additional_settings.state_mapping.silenced',
+                        option ? [option.label, option.value] : null
+                      );
                       forceUpdate();
                     }}
                     {...selectCommonProps}
@@ -174,11 +189,14 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
     const keys = Object.keys(stateMapping);
 
     // values are list of array-like values [label, id]
-    const values = keys.map((k) => stateMapping[k]).filter(Boolean).map(arr => arr[1]);
+    const values = keys
+      .map((k) => stateMapping[k])
+      .filter(Boolean)
+      .map((arr) => arr[1]);
     const statusList = (alertReceiveChannelStore.serviceNowStatusList || []).map(([name, id]) => ({ id, name }));
 
     return statusList
-      .filter((status) => values.indexOf(status.id) === -1 || stateMapping?.[currentAction] === status.name)
+      .filter((status) => values.indexOf(status.id) === -1 || stateMapping?.[currentAction]?.[0] === status.name)
       .map((status) => ({
         value: status.id,
         label: status.name,
