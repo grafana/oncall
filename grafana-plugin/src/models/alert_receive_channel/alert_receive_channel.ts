@@ -117,6 +117,7 @@ export class AlertReceiveChannelStore {
     });
 
     runInAction(() => {
+      // @ts-ignore // looks like wrong schema
       this.serviceNowStatusList = statusList.data;
     });
   }
