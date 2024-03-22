@@ -89,7 +89,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
-                  <Text>({userOffsetHoursStr})</Text>
+                  <Text>({user.timezone})</Text>
                 </VerticalGroup>
               </div>
             </div>
