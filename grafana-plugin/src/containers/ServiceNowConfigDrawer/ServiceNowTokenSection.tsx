@@ -6,12 +6,12 @@ import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup, useStyles2 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
+import { ActionKey } from 'models/loader/action-keys';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
+import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-import { useIsLoading } from 'utils/hooks';
-import { ActionKey } from 'models/loader/action-keys';
 
 interface ServiceNowTokenSectionProps {}
 

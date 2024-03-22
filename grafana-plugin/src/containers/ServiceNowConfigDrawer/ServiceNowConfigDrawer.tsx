@@ -11,7 +11,6 @@ import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
-import { URL_REGEX } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 import { openNotification } from 'utils/utils';

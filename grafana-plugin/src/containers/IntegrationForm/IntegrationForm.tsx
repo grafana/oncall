@@ -18,6 +18,7 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
+import { parseUrl } from 'query-string';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
@@ -37,13 +38,12 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
-import { parseUrl } from 'query-string';
 
 export interface IntegrationFormFields {
   verbal_name?: string;
