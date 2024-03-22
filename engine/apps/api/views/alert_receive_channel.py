@@ -172,6 +172,7 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection_create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "test_connection": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "status_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
@@ -290,24 +291,52 @@ class AlertReceiveChannelView(
             except BacksyncIntegrationRequestError as e:
                 raise BadRequest(detail=e.error_msg)
 
-    @extend_schema(
-        request=AlertReceiveChannelSerializer,
-        responses={status.HTTP_200_OK: None},
-    )
-    @action(detail=False, methods=["post"])
-    def test_connection(self, request):
-        # create in-memory instance to test with the (possible) unsaved data
+    def _test_connection(self, request, pk=None):
+        instance = None
         data = request.data
-        # clear name while testing connection (to avoid name already used validation error)
         data["verbal_name"] = None
-        serializer = self.get_serializer(data=request.data)
+        if pk is not None:
+            instance = self.get_object()
+            serializer = self.update_serializer_class(
+                instance,
+                data=data,
+                partial=True,
+                context={"request": request},
+            )
+        else:
+            serializer = self.create_serializer_class(data=data, context={"request": request})
+
+        # check we have all the required information
         serializer.is_valid(raise_exception=True)
-        instance = AlertReceiveChannel(**serializer.validated_data)
+        if instance is None:
+            serializer.validated_data.pop("create_default_webhooks", None)
+            # create in-memory instance to test with the (possible) unsaved data
+            instance = AlertReceiveChannel(**serializer.validated_data)
+        else:
+            # update instance with the validated data
+            for attr, val in serializer.validated_data.items():
+                setattr(instance, attr, val)
 
         # will raise if there are errors
         self._backsync_integration_request(instance, "test_connection")
 
         return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=AlertReceiveChannelSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(detail=False, methods=["post"], url_path="test_connection")
+    def test_connection_create(self, request):
+        return self._test_connection(request)
+
+    @extend_schema(
+        request=AlertReceiveChannelUpdateSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(detail=True, methods=["post"])
+    def test_connection(self, request, pk):
+        return self._test_connection(request, pk=pk)
 
     @extend_schema(
         responses=inline_serializer(
@@ -777,6 +806,9 @@ class AlertReceiveChannelView(
         backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
 
         # bulk create connections
+        alert_receive_channels = instance.organization.alert_receive_channels.filter(
+            public_primary_key__in=backsync_map.keys()
+        )
         AlertReceiveChannelConnection.objects.bulk_create(
             [
                 AlertReceiveChannelConnection(
@@ -784,13 +816,15 @@ class AlertReceiveChannelView(
                     connected_alert_receive_channel=alert_receive_channel,
                     backsync=backsync_map[alert_receive_channel.public_primary_key],
                 )
-                for alert_receive_channel in instance.organization.alert_receive_channels.filter(
-                    public_primary_key__in=backsync_map.keys()
-                )
+                for alert_receive_channel in alert_receive_channels
             ],
             ignore_conflicts=True,
             batch_size=5000,
         )
+
+        # add connected integrations to filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.add(*alert_receive_channels)
 
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
 
@@ -829,6 +863,11 @@ class AlertReceiveChannelView(
             raise NotFound
 
         connection.delete()
+
+        # remove the connected integration from filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.remove(connection.connected_alert_receive_channel)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(responses={status.HTTP_200_OK: None})
