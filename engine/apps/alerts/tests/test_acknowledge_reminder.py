@@ -71,7 +71,7 @@ def test_acknowledge_by_user_invokes_start_ack_reminder(ack_reminder_test_setup)
     organization, alert_group, user = ack_reminder_test_setup(acknowledged=False)
 
     with patch.object(alert_group, "start_ack_reminder_if_needed") as mock_start_ack_reminder:
-        alert_group.acknowledge_by_user(user, ActionSource.SLACK)
+        alert_group.acknowledge_by_user_or_backsync(user, ActionSource.SLACK)
         mock_start_ack_reminder.assert_called_once_with()
 
 
