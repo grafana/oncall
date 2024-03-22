@@ -4,6 +4,8 @@ from .alert_group_counter import AlertGroupCounter  # noqa: F401
 from .alert_group_log_record import AlertGroupLogRecord, listen_for_alertgrouplogrecord  # noqa: F401
 from .alert_manager_models import AlertForAlertManager, AlertGroupForAlertManager  # noqa: F401
 from .alert_receive_channel import AlertReceiveChannel, listen_for_alertreceivechannel_model_save  # noqa: F401
+from .alert_receive_channel_connection import AlertGroupExternalID  # noqa: F401
+from .alert_receive_channel_connection import AlertReceiveChannelConnection  # noqa: F401
 from .channel_filter import ChannelFilter  # noqa: F401
 from .custom_button import CustomButton  # noqa: F401
 from .escalation_chain import EscalationChain  # noqa: F401

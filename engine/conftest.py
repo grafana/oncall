@@ -28,6 +28,7 @@ from apps.alerts.tests.factories import (
     AlertFactory,
     AlertGroupFactory,
     AlertGroupLogRecordFactory,
+    AlertReceiveChannelConnectionFactory,
     AlertReceiveChannelFactory,
     ChannelFilterFactory,
     CustomActionFactory,
@@ -44,7 +45,7 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, PluginAuthToken, SlackAuthToken
+from apps.auth_token.models import ApiAuthToken, IntegrationBacksyncAuthToken, PluginAuthToken, SlackAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -103,6 +104,7 @@ register(TeamFactory)
 
 
 register(AlertReceiveChannelFactory)
+register(AlertReceiveChannelConnectionFactory)
 register(ChannelFilterFactory)
 register(EscalationPolicyFactory)
 register(OnCallScheduleICalFactory)
@@ -247,6 +249,14 @@ def make_token_for_organization():
         return PluginAuthToken.create_auth_token(organization)
 
     return _make_token_for_organization
+
+
+@pytest.fixture
+def make_token_for_integration():
+    def _make_token_for_integration(alert_receive_channel, organization):
+        return IntegrationBacksyncAuthToken.create_auth_token(alert_receive_channel, organization)
+
+    return _make_token_for_integration
 
 
 @pytest.fixture
@@ -479,6 +489,19 @@ def make_alert_receive_channel():
         return alert_receive_channel
 
     return _make_alert_receive_channel
+
+
+@pytest.fixture
+def make_alert_receive_channel_connection():
+    def _make_alert_receive_channel_connection(source_alert_receive_channel, connected_alert_receive_channel, **kwargs):
+        alert_receive_channel_connection = AlertReceiveChannelConnectionFactory(
+            source_alert_receive_channel=source_alert_receive_channel,
+            connected_alert_receive_channel=connected_alert_receive_channel,
+            **kwargs,
+        )
+        return alert_receive_channel_connection
+
+    return _make_alert_receive_channel_connection
 
 
 @pytest.fixture

@@ -17,9 +17,16 @@ class IntegrationOptionsMixin:
         super(IntegrationOptionsMixin, self).__init__(*args, **kwargs)
         # Object integration configs (imported as submodules earlier) are also available in `config` field,
         # e.g. instance.config.id, instance.config.slug, instance.config.description, etc...
-        for integration in self._config:
-            if integration.slug == self.integration:
-                self.config = integration
+        self.config = IntegrationOptionsMixin.get_config_from_type(self.integration)
+
+    @classmethod
+    def get_config_from_type(cls, integration_type):
+        config = None
+        for integration in cls._config:
+            if integration.slug == integration_type:
+                config = integration
+                break
+        return config
 
     # Define variables for backward compatibility, e.g. INTEGRATION_GRAFANA, INTEGRATION_FORMATTED_WEBHOOK, etc...
     for integration_config in _config:

@@ -22,11 +22,13 @@
     border: 1px solid var(--tag-border-warning);
     color: var(--tag-text-warning);
   }
+
   &--success {
     background: var(--tag-background-success);
     border: 1px solid var(--tag-border-success);
     color: var(--tag-text-success);
   }
+
   &--danger {
     background: var(--tag-background-danger);
     border: 1px solid var(--tag-border-danger);
