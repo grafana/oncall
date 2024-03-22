@@ -24,6 +24,7 @@ import { Text } from 'components/Text/Text';
 import { UserGroups } from 'components/UserGroups/UserGroups';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import {
+  dayJSAddWithDSTFixed,
   getRepeatShiftsEveryOptions,
   putDownMaxValues,
   reduceTheLastUnitValue,
@@ -281,7 +282,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
         if (showActiveOnSelectedDays) {
           setShiftEnd(shiftStart.add(24, 'hours'));
         } else {
-          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
+          setShiftEnd(
+            dayJSAddWithDSTFixed({
+              baseDate: shiftStart,
+              addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[value]],
+            })
+          );
         }
       }
     },

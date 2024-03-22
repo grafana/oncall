@@ -11,7 +11,7 @@ import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
-import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
@@ -32,8 +32,12 @@ interface ScheduleSlotProps {
 }
 
 const cx = cn.bind(styles);
+const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
 export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
+  const {
+    timezoneStore: { getDateInSelectedTimezone },
+  } = useStore();
   const {
     event,
     color,
@@ -46,14 +50,12 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     showScheduleNameAsSlotTitle,
   } = props;
 
-  const start = dayjs(event.start);
-  const end = dayjs(event.end);
+  const start = getDateInSelectedTimezone(event.start);
+  const end = getDateInSelectedTimezone(event.end);
 
-  const duration = end.diff(start, 'seconds');
+  const durationInSeconds = end.diff(start, 'seconds');
 
-  const base = 60 * 60 * 24 * 7;
-
-  const width = Math.max(duration / base, 0);
+  const width = Math.max(durationInSeconds / ONE_WEEK_IN_SECONDS, 0);
 
   const currentMoment = useMemo(() => dayjs(), []);
 
@@ -90,7 +92,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         onShiftSwapClick={onShiftSwapClick}
         filters={filters}
         start={start}
-        duration={duration}
+        duration={durationInSeconds}
         color={color}
         currentMoment={currentMoment}
         showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
@@ -411,7 +413,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
-            <br />({getTzOffsetString(currentMoment.tz(user?.timezone))})
+            <br />({user?.timezone})
           </Text>
           <Text type="secondary" data-testid="schedule-slot-current-timezone">
             Current timezone
