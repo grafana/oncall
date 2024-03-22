@@ -31,7 +31,7 @@ test.describe('Insights', () => {
     // setup data source if it's not already connected
     const isDataSourceAlreadyConnected = await page.getByText(DATASOURCE_NAME).isVisible();
     if (!isDataSourceAlreadyConnected) {
-      await page.getByRole('link', { name: 'Add data source' }).click();
+      await page.getByRole('link', { name: 'Add new data source' }).click();
       await clickButton({ page, buttonText: 'Prometheus' });
       await page.getByRole('textbox', { name: 'Data source settings page name input field' }).fill(DATASOURCE_NAME);
       await page.getByPlaceholder('http://localhost:9090').fill(DATASOURCE_URL);
