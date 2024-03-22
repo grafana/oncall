@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { css } from '@emotion/css';
 import { DateTime, dateTime } from '@grafana/data';
 import { DatePickerWithInput, TimeOfDayPicker, useStyles2, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -11,7 +12,6 @@ import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpe
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
-import { css } from '@emotion/css';
 
 const cx = cn.bind(styles);
 
