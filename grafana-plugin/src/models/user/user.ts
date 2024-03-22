@@ -129,12 +129,12 @@ export class UserStore {
   }
 
   async unlinkSlack(userPk: ApiSchemas['User']['pk']) {
-    await onCallApi().POST('/users/{id}/unlink_slack/', { params: { path: { id: userPk } } });
+    await onCallApi().POST('/users/{id}/unlink_slack/', undefined);
     await this.fetchItemById({ userPk });
   }
 
   async unlinkTelegram(userPk: ApiSchemas['User']['pk']) {
-    await onCallApi().POST('/users/{id}/unlink_telegram/', { params: { path: { id: userPk } } });
+    await onCallApi().POST('/users/{id}/unlink_telegram/', undefined);
     await this.fetchItemById({ userPk });
   }
 
