@@ -937,6 +937,38 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/login/{backend}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['login_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/login/{backend}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['login_retrieve_2'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/users/': {
     parameters: {
       query?: never;
@@ -3900,6 +3932,46 @@ export interface operations {
         content: {
           'application/json': components['schemas']['LabelKey'][];
         };
+      };
+    };
+  };
+  login_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  login_retrieve_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

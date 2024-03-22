@@ -322,6 +322,7 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/alert_receive_channels",
     "/users",
     "/labels",
+    "/login",
 ]
 
 MIDDLEWARE = [
