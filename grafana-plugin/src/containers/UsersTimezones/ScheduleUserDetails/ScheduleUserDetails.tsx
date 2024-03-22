@@ -35,8 +35,6 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
     timezoneStore: { calendarStartDate },
   } = useStore();
   const { user, currentMoment, isOncall, scheduleId } = props;
-  const userMoment = currentMoment.tz(user.timezone);
-  const userOffsetHoursStr = getTzOffsetString(userMoment);
   const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
 
   const store = useStore();

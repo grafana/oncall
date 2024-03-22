@@ -80,7 +80,9 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
   }, []);
 
   useEffect(() => {
-    store.timezoneStore.setSelectedTimezoneOffset(selectedOption.value);
+    if (selectedOption?.value) {
+      store.timezoneStore.setSelectedTimezoneOffset(selectedOption.value);
+    }
   }, [options]);
 
   const handleCreateOption = useCallback(
