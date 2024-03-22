@@ -7,6 +7,7 @@ import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
 import { GoogleConnector } from 'containers/UserSettings/parts/connectors/GoogleConnector';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 interface UserInfoTabProps {
@@ -56,8 +57,12 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
           }}
         />
       </InlineField>
-      <Legend>Google Calendar</Legend>
-      <GoogleConnector {...props} />
+      {store.hasFeature(AppFeature.GoogleOauth2) && (
+        <>
+          <Legend>Google Calendar</Legend>
+          <GoogleConnector {...props} />
+        </>
+      )}
       <Legend>Notification channels</Legend>
       <Connectors {...props} />
     </>
