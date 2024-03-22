@@ -132,13 +132,11 @@ export class AlertReceiveChannelStore {
     }
   }
 
-  async testServiceNowAuthentication({ data }: { data: Partial<ApiSchemas['AlertReceiveChannel']> }) {
+  async testServiceNowAuthentication({ data }: { data: ApiSchemas['AlertReceiveChannel'] }) {
     try {
       const result = await onCallApi({ skipErrorHandling: false }).POST('/alert_receive_channels/test_connection/', {
-        // @ts-ignore
-        body: {
-          ...data,
-        },
+        body: data,
+        params: {},
       });
       return result?.response.status === 200;
     } catch (ex) {
