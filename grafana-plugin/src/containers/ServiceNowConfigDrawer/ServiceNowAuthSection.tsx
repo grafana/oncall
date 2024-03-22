@@ -11,6 +11,7 @@ import { IntegrationFormFields } from 'containers/IntegrationForm/IntegrationFor
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
+import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowFormFields } from './ServiceNowStatusSection';
@@ -47,7 +48,7 @@ export const ServiceNowAuthSection: React.FC = observer(() => {
   );
 
   async function onAuthTest() {
-    const data: Partial<ApiSchemas['AlertReceiveChannel']> = {
+    const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
       integration: currentIntegration ? currentIntegration.integration : 'servicenow',
       ...getValues(),
     };

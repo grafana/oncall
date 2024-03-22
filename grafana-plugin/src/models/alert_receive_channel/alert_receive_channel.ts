@@ -133,10 +133,10 @@ export class AlertReceiveChannelStore {
     }
   }
 
-  async testServiceNowAuthentication({ data }: { data: ApiSchemas['AlertReceiveChannel'] }) {
+  async testServiceNowAuthentication({ data }: { data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']> }) {
     try {
       const result = await onCallApi({ skipErrorHandling: false }).POST('/alert_receive_channels/test_connection/', {
-        body: data,
+        body: data as ApiSchemas['AlertReceiveChannelUpdate'],
         params: {},
       });
       return result?.response.status === 200;
