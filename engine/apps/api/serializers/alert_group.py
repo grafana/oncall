@@ -168,6 +168,7 @@ class AlertGroupListSerializer(
             "team",
             "grafana_incident_id",
             "labels",
+            "permalinks",
         ]
 
     def get_render_for_web(self, obj: "AlertGroup") -> RenderForWeb | EmptyRenderForWeb:
@@ -218,7 +219,6 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "alerts",
             "render_after_resolve_report_json",
             "slack_permalink",  # TODO: make plugin frontend use "permalinks" field to get Slack link
-            "permalinks",
             "last_alert_at",
             "paged_users",
         ]
