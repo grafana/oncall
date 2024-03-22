@@ -275,7 +275,7 @@ def test_create_missing_direct_paging_integrations(
 def test_create_duplicate_direct_paging_integrations(make_organization, make_team, make_alert_receive_channel):
     """Check that it's not possible to have more than one active direct paging integration per team."""
 
-    # MariaDB is not supported for this test ()
+    # MariaDB is not supported for this test
     # See comment: https://github.com/grafana/oncall/commit/381a9ecf54bf0dd076f233b207c13d72ed792181#diff-9d96504027309f2bd1e95352bac1433b09b60eb4fafb611b52a6c15ed16cbc48R219-R223
     is_local_dev_env = os.environ.get("DJANGO_SETTINGS_MODULE") == "settings.tilt-dev"
     is_db_type_mysql = settings.DATABASE_TYPE == DatabaseTypes.MYSQL
