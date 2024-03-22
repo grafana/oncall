@@ -45,8 +45,6 @@ SECURE_HSTS_SECONDS = 360000
 
 CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
 
-CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
-
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
