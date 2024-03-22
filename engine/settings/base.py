@@ -706,7 +706,6 @@ SOCIAL_AUTH_PIPELINE = (
 SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
     "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
     "apps.social_auth.pipeline.google.persist_access_and_refresh_tokens",
-    # "apps.social_auth.pipeline.google.redirect_if_no_refresh_token",
 )
 
 # https://python-social-auth.readthedocs.io/en/latest/use_cases.html#re-prompt-google-oauth2-users-to-refresh-the-refresh-token
