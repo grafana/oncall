@@ -61,7 +61,7 @@ local_resource(
 
 local_resource(
     "e2e-tests",
-    labels=["E2eTests"],
+    labels=["Tests"],
     cmd="cd grafana-plugin && yarn test:e2e",
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=False,
@@ -104,6 +104,30 @@ cmd_button(
     text="Stop",
     resource="e2e-tests",
     icon_name="dangerous",
+)
+
+# Inspired by https://github.com/grafana/slo/blob/main/Tiltfile#L72
+pod_engine_pytest_script = '''
+set -eu
+# get engine k8s pod name from tilt resource name
+POD_NAME="$(tilt get kubernetesdiscovery "engine" -ojsonpath='{.status.pods[0].name}')"
+kubectl exec "$POD_NAME" -- pytest .
+'''
+local_resource(
+    "pytest-tests",
+    labels=["Tests"],
+    cmd=['sh', '-c', pod_engine_pytest_script],
+    trigger_mode=TRIGGER_MODE_MANUAL,
+    auto_init=False,
+    resource_deps=["engine"]
+)
+
+cmd_button(
+    name="pytest Tests - headless run",
+    argv=['sh', '-c', pod_engine_pytest_script],
+    text="Run pytest",
+    resource="pytest-tests",
+    icon_name="replay",
 )
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"])
@@ -149,7 +173,11 @@ k8s_resource(
     resource_deps=["mariadb", "redis-master"],
     labels=["OnCallBackend"],
 )
+k8s_resource(workload="engine-migrate", labels=["OnCallBackend"])
+
 k8s_resource(workload="redis-master", labels=["OnCallDeps"])
+k8s_resource(workload="rabbitmq", labels=["OnCallDeps"])
+k8s_resource(workload="prometheus-server", labels=["OnCallDeps"])
 k8s_resource(
     workload="mariadb",
     port_forwards='3307:3306', # <host_port>:<container_port>
@@ -159,6 +187,9 @@ k8s_resource(
 
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):
+    # Remove variable date from job name
+    if id.name.startswith(HELM_PREFIX + "-engine-migrate"):
+        return "engine-migrate"
     return id.name.replace(HELM_PREFIX + "-", "")
 
 

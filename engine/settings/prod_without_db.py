@@ -16,10 +16,8 @@ except ModuleNotFoundError:
     # Only works under uwsgi web server environment
     pass
 
-
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
-
 
 STATICFILES_DIRS = [
     "/etc/app/static",

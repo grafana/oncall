@@ -132,7 +132,9 @@ def create_alert(
             },
             countdown=countdown,
         )
-        logger.warning(f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError")
+        logger.warning(
+            f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError for alert_receive_channel={alert_receive_channel_pk}"
+        )
 
 
 @shared_dedicated_queue_retry_task()

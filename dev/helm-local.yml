@@ -5,6 +5,14 @@ env:
     value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
+  - name: DJANGO_SETTINGS_MODULE
+    value: "settings.tilt-dev"
+  - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+    value: "True"
+  - name: FEATURE_SLACK_INTEGRATION_ENABLED
+    value: "True"
+  - name: SLACK_SLASH_COMMAND_NAME
+    value: "/oncall"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev
@@ -137,6 +145,14 @@ service:
   nodePort: 30001
 prometheus:
   enabled: true
+  alertmanager:
+    enabled: false
+  kube-state-metrics:
+    enabled: false
+  prometheus-node-exporter:
+    enabled: false
+  prometheus-pushgateway:
+    enabled: false
   extraScrapeConfigs: |
     - job_name: 'oncall-exporter'
       metrics_path: /metrics/
