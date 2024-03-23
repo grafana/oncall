@@ -2,10 +2,9 @@ import logging
 
 from celery.utils.log import get_task_logger
 
-from apps.google import constants
 from apps.google.client import GoogleCalendarAPIClient
 from apps.google.models import GoogleOAuth2User
-from apps.schedules.models import OnCallSchedule
+from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -36,30 +35,47 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     for out_of_office_event in google_api_client.fetch_out_of_office_events():
         event_id = out_of_office_event.raw_event["id"]
-        start_time = out_of_office_event.start_time
-        end_time = out_of_office_event.end_time
+        start_time_utc = out_of_office_event.start_time_utc
+        end_time_utc = out_of_office_event.end_time_utc
 
         logger.info(
-            f"Processing out of office event {event_id} starting at {start_time} and ending at "
-            f"{end_time} for user {user_id}"
+            f"Processing out of office event {event_id} starting at {start_time_utc} and ending at "
+            f"{end_time_utc} for user {user_id}"
         )
 
         for schedule in users_schedules:
-            oncall_shifts = schedule.shifts_for_user(
-                user, start_time, constants.DAYS_IN_FUTURE_TO_CONSIDER_OUT_OF_OFFICE_EVENTS
+            _, _, upcoming_shifts = schedule.shifts_for_user(
+                user,
+                start_time_utc,
+                (start_time_utc - end_time_utc).days + 1,
             )
 
-            # TODO: figure out datetime comparison here
+            if not upcoming_shifts:
+                logger.info(
+                    f"No upcoming shifts found for user {user_id} during the out of office event {event_id}"
+                )
+                continue
+
+            logger.info(
+                f"Found {len(upcoming_shifts)} upcoming shift(s) for user {user_id} "
+                f"during the out of office event {event_id}"
+            )
 
             if user_google_calendar_settings["create_shift_swaps_automatically"]:
-                # TODO: create the shift swap
-                pass
+                ShiftSwapRequest.objects.create(
+                    beneficiary=user,
+                    schedule=schedule,
+                    swap_start=start_time_utc,
+                    swap_end=end_time_utc,
+                    # TODO: should we pull this from the event summary or just something like
+                    # {name} will be out of office during this time
+                    description=""
+                )
             else:
-                # TODO: send Slack notification to the user, will be done in https://github.com/grafana/oncall-private/issues/2585
-                # TODO: send mobile app notification to the user, will be done in https://github.com/grafana/oncall-private/issues/2586
+                # TODO: user wants to have a say in the shift swap creation
+                # send Slack notification to the user, will be done in https://github.com/grafana/oncall-private/issues/2585
+                # send mobile app notification to the user, will be done in https://github.com/grafana/oncall-private/issues/2586
                 pass
-
-            print("oncall_shifts", oncall_shifts)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

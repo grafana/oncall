@@ -101,7 +101,15 @@ def test_sync_out_of_office_calendar_events_for_user(
     }
 
     organization = make_organization()
-    user = make_user_for_organization(organization)
+    user = make_user_for_organization(
+        organization,
+        # normally this 👇 is done via User.finish_google_oauth2_connection_flow.. but since we're creating
+        # the user via a fixture we need to manually add this
+        google_calendar_settings={
+            "create_shift_swaps_automatically": True,
+            "specific_oncall_schedules_to_sync": [],
+        },
+    )
     google_oauth2_user = make_google_oauth2_user_for_user(user)
 
     schedule = make_schedule(
@@ -138,7 +146,18 @@ def test_sync_out_of_office_calendar_events_for_user(
     )
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
 
     assert True is False
+
+
+def test_sync_out_of_office_calendar_events_for_user_specific_schedules_to_sync_setting():
+    # TODO:
+    pass
+
+
+def test_sync_out_of_office_calendar_events_for_user_create_shift_swaps_automatically_setting():
+    # TODO:
+    pass
