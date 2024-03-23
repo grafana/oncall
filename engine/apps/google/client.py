@@ -14,7 +14,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class GoogleCalendarEvent:
-
     def __init__(self, event: GoogleCalendarEventType):
         self.raw_event = event
         self.start_time = utils.datetime_strptime(event["start"]["dateTime"])
@@ -53,7 +52,9 @@ class GoogleCalendarAPIClient:
 
         now = datetime.datetime.now(datetime.UTC)
         time_min = utils.datetime_strftime(now)
-        time_max = utils.datetime_strftime(now + datetime.timedelta(days=constants.DAYS_IN_FUTURE_TO_CONSIDER_OUT_OF_OFFICE_EVENTS))
+        time_max = utils.datetime_strftime(
+            now + datetime.timedelta(days=constants.DAYS_IN_FUTURE_TO_CONSIDER_OUT_OF_OFFICE_EVENTS)
+        )
 
         events_result = (
             self.service.events()

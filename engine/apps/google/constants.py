@@ -1,4 +1,4 @@
-GOOGLE_CALENDAR_EVENT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+GOOGLE_CALENDAR_EVENT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 """
 https://stackoverflow.com/a/17159470/3902555
 """
