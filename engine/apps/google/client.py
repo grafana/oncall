@@ -6,10 +6,19 @@ from django.conf import settings
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-from apps.google.types import GoogleCalendarEvent
+from apps.google import constants, utils
+from apps.google.types import GoogleCalendarEvent as GoogleCalendarEventType
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+class GoogleCalendarEvent:
+
+    def __init__(self, event: GoogleCalendarEventType):
+        self.raw_event = event
+        self.start_time = utils.datetime_strptime(event["start"]["dateTime"])
+        self.end_time = utils.datetime_strptime(event["end"]["dateTime"])
 
 
 class GoogleCalendarAPIClient:
@@ -37,26 +46,21 @@ class GoogleCalendarAPIClient:
         """
         https://developers.google.com/calendar/api/v3/reference/events/list
         """
-
-        def _format_datetime_arg(dt: datetime.datetime) -> str:
-            """
-            https://stackoverflow.com/a/17159470/3902555
-            """
-            return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-        now = _format_datetime_arg(datetime.datetime.now(datetime.UTC))
-
         logger.info(
             f"GoogleCalendarAPIClient - Getting the upcoming {self.MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH} "
             "out of office events"
         )
 
+        now = datetime.datetime.now(datetime.UTC)
+        time_min = utils.datetime_strftime(now)
+        time_max = utils.datetime_strftime(now + datetime.timedelta(days=constants.DAYS_IN_FUTURE_TO_CONSIDER_OUT_OF_OFFICE_EVENTS))
+
         events_result = (
             self.service.events()
             .list(
                 calendarId="primary",
-                timeMin=now,
-                # timeMax= TODO: should we only fetch out of office events for next X amount of time?
+                timeMin=time_min,
+                timeMax=time_max,
                 maxResults=self.MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH,
                 singleEvents=True,
                 orderBy="startTime",
@@ -64,4 +68,4 @@ class GoogleCalendarAPIClient:
             )
             .execute()
         )
-        return events_result.get("items", [])
+        return [GoogleCalendarEvent(event) for event in events_result.get("items", [])]
