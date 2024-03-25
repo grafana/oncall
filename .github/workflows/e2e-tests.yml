@@ -122,7 +122,7 @@ jobs:
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
       - name: Tilt CI
-        if: False # TODO: revert!
+        if: False # TODO: revert
         shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
@@ -130,7 +130,7 @@ jobs:
         run: tilt ci
 
       - name: Tilt CI - expensive E2E tests
-        # if: inputs.run-expensive-tests TODO: revert!
+        # if: inputs.run-expensive-tests TODO: revert
         shell: bash
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
