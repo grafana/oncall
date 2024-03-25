@@ -31,12 +31,6 @@ class KaveNegarPhoneProvider(PhoneProvider):
         self.verification_sms_template=live_settings.KAVENEGAR_VERIFICATION_SMS_TEMPLATE
         
     def make_notification_call(self, number: str, text: str):
-        self.make_call(number, text)
-
-    def send_notification_sms(self, number: str, message: str):
-        self.send_sms(number, message)
-
-    def make_call(self, number: str, text: str):
         params = {
             "receptor": number,
             "message": text,
@@ -50,11 +44,10 @@ class KaveNegarPhoneProvider(PhoneProvider):
             logger.error(f"KaveNegarPhoneProvider.make_call: failed {e}")
             raise FailedToMakeCall
 
-    def send_sms(self, number: str, text: str):
-        
+    def send_notification_sms(self, number: str, message: str):
         params = {
         "receptor": number,
-        "message": text,
+        "message": message,
         }
         try:
             response = self.api.sms_send(params)
