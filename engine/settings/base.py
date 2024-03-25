@@ -281,7 +281,7 @@ INSTALLED_APPS = [
     "django_dbconn_retry",
     "apps.phone_notifications",
     "drf_spectacular",
-    "apps.kavenegarphonecall"
+    "apps.kavenegarapp"
 ]
 
 REST_FRAMEWORK = {
@@ -827,7 +827,7 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 DEFAULT_PHONE_PROVIDER = "twilio"
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
-    "kavenegar": "apps.kavenegarphonecall.phone_provider.KaveNegarPhoneProvider",
+    "kavenegar": "apps.kavenegarapp.phone_provider.KaveNegarPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
     
 }
