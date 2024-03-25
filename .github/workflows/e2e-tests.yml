@@ -129,7 +129,7 @@ jobs:
         run: tilt ci
 
       - name: Tilt CI - expensive E2E tests
-        if: inputs.run-expensive-tests
+        # if: inputs.run-expensive-tests TODO: revert
         shell: bash
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
