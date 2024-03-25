@@ -280,7 +280,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       if (!showActiveOnSelectedPartOfDay) {
         if (showActiveOnSelectedDays) {
-          setShiftEnd(shiftStart.add(24, 'hours'));
+          setShiftEnd(
+            dayJSAddWithDSTFixed({
+              baseDate: shiftStart,
+              addParams: [24, 'hours'],
+            })
+          );
         } else {
           setShiftEnd(
             dayJSAddWithDSTFixed({
@@ -304,7 +309,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setRepeatEveryValue(value);
 
     if (!showActiveOnSelectedPartOfDay) {
-      setShiftEnd(rotationStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      setShiftEnd(
+        dayJSAddWithDSTFixed({
+          baseDate: rotationStart,
+          addParams: [value, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
+        })
+      );
     }
   };
 
@@ -313,9 +323,19 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setRotationStart(value);
       setShiftStart(value);
       if (showActiveOnSelectedPartOfDay) {
-        setShiftEnd(value.add(activePeriod, 'seconds'));
+        setShiftEnd(
+          dayJSAddWithDSTFixed({
+            baseDate: value,
+            addParams: [activePeriod, 'seconds'],
+          })
+        );
       } else {
-        setShiftEnd(value.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+        setShiftEnd(
+          dayJSAddWithDSTFixed({
+            baseDate: value,
+            addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
+          })
+        );
       }
     },
     [showActiveOnSelectedPartOfDay, activePeriod, repeatEveryPeriod, repeatEveryValue]
@@ -324,7 +344,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const handleActivePeriodChange = useCallback(
     (value) => {
       setActivePeriod(value);
-      setShiftEnd(shiftStart.add(value, 'seconds'));
+      setShiftEnd(
+        dayJSAddWithDSTFixed({
+          baseDate: shiftStart,
+          addParams: [value, 'seconds'],
+        })
+      );
     },
     [shiftStart]
   );
@@ -343,10 +368,20 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setShowActiveOnSelectedDays(value);
 
       if (value) {
-        setShiftEnd(shiftStart.add(24, 'hours'));
+        setShiftEnd(
+          dayJSAddWithDSTFixed({
+            baseDate: shiftStart,
+            addParams: [24, 'hours'],
+          })
+        );
       } else {
         if (!showActiveOnSelectedPartOfDay) {
-          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+          setShiftEnd(
+            dayJSAddWithDSTFixed({
+              baseDate: shiftStart,
+              addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
+            })
+          );
         }
       }
     },
@@ -360,9 +395,19 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       if (!value) {
         if (showActiveOnSelectedPartOfDay) {
-          setShiftEnd(shiftStart.add(24, 'hours'));
+          setShiftEnd(
+            dayJSAddWithDSTFixed({
+              baseDate: shiftStart,
+              addParams: [24, 'hours'],
+            })
+          );
         } else {
-          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+          setShiftEnd(
+            dayJSAddWithDSTFixed({
+              baseDate: shiftStart,
+              addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
+            })
+          );
         }
       }
     },
