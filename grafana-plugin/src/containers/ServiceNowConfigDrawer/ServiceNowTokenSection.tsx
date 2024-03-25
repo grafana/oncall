@@ -7,18 +7,16 @@ import { observer } from 'mobx-react';
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
-import { useStore } from 'state/useStore';
 import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 export const ServiceNowTokenSection: React.FC = observer(() => {
   const styles = useStyles2(getStyles);
   const { id } = useCurrentIntegration();
-  const { alertReceiveChannelStore } = useStore();
   const [isExistingToken, setIsExistingToken] = useState(undefined);
   const [currentToken, setCurrentToken] = useState<string>(undefined);
   const isLoading = useIsLoading(ActionKey.UPDATE_SERVICENOW_TOKEN);

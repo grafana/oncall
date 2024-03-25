@@ -1,16 +1,16 @@
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { SelectOption } from 'state/types';
+import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
+import { OmitReadonlyMembers } from 'utils/types';
 import { showApiError } from 'utils/utils';
 
 import { AlertReceiveChannelStore } from './alert_receive_channel';
 import { MaintenanceMode } from './alert_receive_channel.types';
-import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
-import { ActionKey } from 'models/loader/action-keys';
-import { OmitReadonlyMembers } from 'utils/types';
 
 export class AlertReceiveChannelHelper {
   static getAlertReceiveChannelDisplayName(
@@ -73,7 +73,11 @@ export class AlertReceiveChannelHelper {
     return result.data;
   }
 
-  static async testServiceNowAuthentication({ data }: { data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']> }) {
+  static async testServiceNowAuthentication({
+    data,
+  }: {
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']>;
+  }) {
     try {
       const result = await onCallApi({ skipErrorHandling: false }).POST('/alert_receive_channels/test_connection/', {
         body: data as ApiSchemas['AlertReceiveChannelUpdate'],

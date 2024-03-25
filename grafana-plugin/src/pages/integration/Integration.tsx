@@ -877,7 +877,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
       {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={closeDrawer} />}
 
-      {isCompleteServiceNowConfigOpen && <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />}
+      {isCompleteServiceNowConfigOpen && (
+        <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />
+      )}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer

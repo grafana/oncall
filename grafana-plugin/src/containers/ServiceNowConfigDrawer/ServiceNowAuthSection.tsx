@@ -8,18 +8,16 @@ import { useFormContext } from 'react-hook-form';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { IntegrationFormFields } from 'containers/IntegrationForm/IntegrationForm';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
-import { useStore } from 'state/useStore';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowFormFields } from './ServiceNowStatusSection';
-import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 export const ServiceNowAuthSection: React.FC = observer(() => {
   const { getValues } = useFormContext<ServiceNowFormFields | IntegrationFormFields>();
-  const { alertReceiveChannelStore } = useStore();
 
   const currentIntegration = useCurrentIntegration();
   const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
