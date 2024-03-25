@@ -70,7 +70,7 @@ local_resource(
 local_resource(
     "e2e-tests",
     labels=["E2eTests"],
-    cmd=e2e_tests_cmd,
+    cmd="cd grafana-plugin && yarn test:e2e-expensive",
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
     resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
