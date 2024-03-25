@@ -15,6 +15,7 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowFormFields } from './ServiceNowStatusSection';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 export const ServiceNowAuthSection: React.FC = observer(() => {
   const { getValues } = useFormContext<ServiceNowFormFields | IntegrationFormFields>();
@@ -22,7 +23,7 @@ export const ServiceNowAuthSection: React.FC = observer(() => {
 
   const currentIntegration = useCurrentIntegration();
   const [isAuthTestRunning, setIsAuthTestRunning] = useState(false);
-  const [authTestResult, setAuthTestResult] = useState(undefined);
+  const [authTestResult, setAuthTestResult] = useState<boolean>(undefined);
   const styles = useStyles2(getStyles);
 
   return (
@@ -54,7 +55,7 @@ export const ServiceNowAuthSection: React.FC = observer(() => {
     };
 
     setIsAuthTestRunning(true);
-    const result = await alertReceiveChannelStore.testServiceNowAuthentication({ data });
+    const result = await AlertReceiveChannelHelper.testServiceNowAuthentication({ data });
     setAuthTestResult(result);
     setIsAuthTestRunning(false);
   }

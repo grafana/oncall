@@ -122,45 +122,6 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async hasServiceNowToken({ id }: { id: ApiSchemas['AlertReceiveChannel']['id'] }) {
-    try {
-      const response = await onCallApi({ skipErrorHandling: true }).GET('/alert_receive_channels/{id}/api_token/', {
-        params: { path: { id } },
-      });
-      return response?.response.status === 200;
-    } catch (ex) {
-      return false;
-    }
-  }
-
-  async testServiceNowAuthentication({ data }: { data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']> }) {
-    try {
-      const result = await onCallApi({ skipErrorHandling: false }).POST('/alert_receive_channels/test_connection/', {
-        body: data as ApiSchemas['AlertReceiveChannelUpdate'],
-        params: {},
-      });
-      return result?.response.status === 200;
-    } catch (ex) {
-      return false;
-    }
-  }
-
-  @AutoLoadingState(ActionKey.UPDATE_SERVICENOW_TOKEN)
-  @WithGlobalNotification({ failure: 'There was an error generating the token. Please try again' })
-  async generateServiceNowToken({
-    id,
-    skipErrorHandling,
-  }: {
-    id: ApiSchemas['AlertReceiveChannel']['id'];
-    skipErrorHandling?: boolean;
-  }): Promise<ApiSchemas['IntegrationTokenPostResponse']> {
-    const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/{id}/api_token/', {
-      params: { path: { id } },
-    });
-
-    return result.data;
-  }
-
   async fetchItems(query: any = '') {
     const {
       data: { results },

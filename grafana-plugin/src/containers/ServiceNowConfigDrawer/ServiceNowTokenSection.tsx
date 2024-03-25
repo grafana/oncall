@@ -13,19 +13,19 @@ import { useStore } from 'state/useStore';
 import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 
 export const ServiceNowTokenSection: React.FC = observer(() => {
   const styles = useStyles2(getStyles);
   const { id } = useCurrentIntegration();
   const { alertReceiveChannelStore } = useStore();
   const [isExistingToken, setIsExistingToken] = useState(undefined);
-  const [currentToken, setCurrentToken] = useState(undefined);
+  const [currentToken, setCurrentToken] = useState<string>(undefined);
   const isLoading = useIsLoading(ActionKey.UPDATE_SERVICENOW_TOKEN);
 
   useEffect(() => {
     (async function () {
-      const hasToken = await alertReceiveChannelStore.hasServiceNowToken({ id });
+      const hasToken = await AlertReceiveChannelHelper.checkIfServiceNowHasToken({ id });
       setIsExistingToken(hasToken);
     })();
   }, []);
@@ -77,7 +77,7 @@ export const ServiceNowTokenSection: React.FC = observer(() => {
   );
 
   async function onTokenGenerate() {
-    const res = await alertReceiveChannelStore.generateServiceNowToken({ id });
+    const res = await AlertReceiveChannelHelper.generateServiceNowToken({ id });
 
     if (res?.token) {
       setCurrentToken(res.token);

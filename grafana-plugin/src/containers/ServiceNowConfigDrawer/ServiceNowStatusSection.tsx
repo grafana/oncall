@@ -184,7 +184,7 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
     </VerticalGroup>
   );
 
-  function getAvailableStatusOptions(currentAction: OnCallAGStatus) {
+  function getAvailableStatusOptions(currentAction: OnCallAGStatus): SelectableValue[] {
     const stateMapping = getValues()?.additional_settings?.state_mapping || {};
     const keys = Object.keys(stateMapping);
 
