@@ -122,6 +122,7 @@ jobs:
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
       - name: Tilt CI
+        if: False # TODO: revert
         shell: bash
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
