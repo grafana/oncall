@@ -57,7 +57,7 @@ export const ServiceNowTokenSection: React.FC = observer(() => {
                 ? 'A token had already been generated'
                 : 'Click Generate to create a token'
             }
-            isButtonHeight
+            className={styles.buttonInputHeight}
             inputClassName={styles.tokenInput}
             iconsClassName={styles.tokenIcons}
             value={currentToken}

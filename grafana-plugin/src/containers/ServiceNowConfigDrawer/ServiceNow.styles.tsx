@@ -20,6 +20,12 @@ export const getCommonServiceNowConfigStyles = (theme: GrafanaTheme2) => {
       height: 32px !important;
     `,
 
+    buttonInputHeight: css`
+      input {
+        height: 32px !important;
+      }
+    `,
+
     tokenIcons: css`
       top: 10px !important;
     `,
