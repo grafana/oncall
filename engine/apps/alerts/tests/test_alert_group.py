@@ -2,7 +2,7 @@ from unittest.mock import call, patch
 
 import pytest
 
-from apps.alerts.constants import ActionSource
+from apps.alerts.constants import ActionSource, AlertGroupState
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks import wipe
@@ -688,3 +688,44 @@ def test_integration_config_on_alert_group_created(make_organization, make_alert
 
     assert alert.group.alerts.count() == 2
     mock_on_alert_group_created.assert_called_once_with(alert.group)
+
+
+@patch.object(AlertGroup, "start_escalation_if_needed")
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "new_state,log_type,to_firing_log_type",
+    [
+        (AlertGroupState.ACKNOWLEDGED, AlertGroupLogRecord.TYPE_ACK, AlertGroupLogRecord.TYPE_UN_ACK),
+        (AlertGroupState.RESOLVED, AlertGroupLogRecord.TYPE_RESOLVED, AlertGroupLogRecord.TYPE_UN_RESOLVED),
+        (AlertGroupState.SILENCED, AlertGroupLogRecord.TYPE_SILENCE, AlertGroupLogRecord.TYPE_UN_SILENCE),
+    ],
+)
+def test_update_state_by_backsync(
+    mock_start_escalation_if_needed,
+    new_state,
+    log_type,
+    to_firing_log_type,
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    expected_log_data = (ActionSource.BACKSYNC, None, {"source_integration_name": alert_receive_channel.verbal_name})
+    assert alert_group.state == AlertGroupState.FIRING
+    # set to new_state
+    alert_group.update_state_by_backsync(new_state)
+    alert_group.refresh_from_db()
+    assert alert_group.state == new_state
+    last_log = alert_group.log_records.last()
+    assert (last_log.action_source, last_log.author, last_log.step_specific_info) == expected_log_data
+    assert last_log.type == log_type
+    # set back to firing
+    alert_group.update_state_by_backsync(AlertGroupState.FIRING)
+    alert_group.refresh_from_db()
+    assert alert_group.state == AlertGroupState.FIRING
+    last_log = alert_group.log_records.last()
+    assert (last_log.action_source, last_log.author, last_log.step_specific_info) == expected_log_data
+    assert last_log.type == to_firing_log_type
+    mock_start_escalation_if_needed.assert_called_once()
