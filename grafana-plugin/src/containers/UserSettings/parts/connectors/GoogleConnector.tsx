@@ -32,10 +32,10 @@ export const GoogleConnector = (props: GoogleConnectorProps) => {
 
   return (
     <div>
-      <InlineField label="Google Account" labelWidth={15} disabled={!isCurrentUser}>
+      <InlineField label="Google Account" labelWidth={15}>
         {storeUser.has_google_oauth2_connected ? (
           <HorizontalGroup spacing="xs">
-            <Input disabled={true} value={'google_username_here'} />
+            <Input disabled value={'google_username_here'} />
             <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
               <Button
                 onClick={handleUnlinkGoogleAccount}
@@ -46,7 +46,9 @@ export const GoogleConnector = (props: GoogleConnectorProps) => {
             </WithConfirm>
           </HorizontalGroup>
         ) : (
-          <Button onClick={handleConnectButtonClick}>Connect account</Button>
+          <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
+            Connect account
+          </Button>
         )}
       </InlineField>
     </div>
