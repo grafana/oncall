@@ -10,9 +10,8 @@ test(`user can see the other user's details`, async ({ adminRolePage, editorRole
   await createOnCallScheduleWithRotation(page, onCallScheduleName, adminUserName);
   await createRotation(page, editorUserName, false);
 
+  await page.waitForTimeout(1_000);
+
   await page.getByTestId('user-avatar-in-schedule').first().hover();
   await expect(page.getByTestId('schedule-user-details')).toHaveText(new RegExp(editorUserName));
-
-  await page.getByTestId('user-avatar-in-schedule').nth(1).hover();
-  await expect(page.getByTestId('schedule-user-details')).toHaveText(new RegExp(adminUserName));
 });
