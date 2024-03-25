@@ -140,7 +140,7 @@ jobs:
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           # wrapping single quotes are required to prevent stripping leading "+" from the number
-          TWILIO_PHONE_NUMBER: "\"${{ secrets.TWILIO_PHONE_NUMBER }}\""
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
         run: tilt ci
 
