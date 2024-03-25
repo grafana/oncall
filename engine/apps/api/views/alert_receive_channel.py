@@ -338,16 +338,7 @@ class AlertReceiveChannelView(
     def test_connection(self, request, pk):
         return self._test_connection(request, pk=pk)
 
-    @extend_schema(
-        responses=inline_serializer(
-            name="AlertReceiveChannelBacksyncStatusOptions",
-            fields={
-                "value": serializers.CharField(),
-                "display_name": serializers.CharField(),
-            },
-            many=True,
-        ),
-    )
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(list[tuple[str, str]])})
     @action(detail=True, methods=["get"])
     def status_options(self, request, pk):
         instance = self.get_object()
