@@ -3,11 +3,11 @@ running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
 grafana_image_tag = os.getenv("GRAFANA_IMAGE_TAG", "latest")
-e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e")
+e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e-expensive")
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
     "oncall.twilio.authToken=" + os.getenv("TWILIO_AUTH_TOKEN", ""),
-    "oncall.twilio.phoneNumber=" + os.getenv("TWILIO_PHONE_NUMBER", ""),
+    "oncall.twilio.phoneNumber=" + os.getenv("TWILIO_PHONE_NUMBER", "123"),
     "oncall.twilio.verifySid=" + os.getenv("TWILIO_VERIFY_SID", ""),
 ]
 is_ci=config.tilt_subcommand == "ci"
@@ -93,7 +93,7 @@ cmd_button(
 
 cmd_button(
     name="E2E Tests - open watch mode",
-    argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e:watch"],
+    argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e-expensive:watch"],
     text="Open watch mode",
     resource="e2e-tests",
     icon_name="visibility",
