@@ -167,7 +167,7 @@ def isoformat_with_tz_suffix(value):
     Default python datetime.isoformat() return tz offset like +00:00 instead of military tz suffix (e.g.Z for UTC)".
     On the other hand DRF returns datetime with military tz suffix.
     This utility function exists to return consistent datetime string in api.
-    Is is copied from DRF DateTimeField.to_representation
+    It is copied from DRF DateTimeField.to_representation
     """
     value = value.isoformat()
     if value.endswith("+00:00"):
@@ -239,7 +239,7 @@ def clean_markup(text):
 
 
 def escape_html(text):
-    return html.escape(text)
+    return html.escape(text, quote=False)
 
 
 def urlize_with_respect_to_a(html):

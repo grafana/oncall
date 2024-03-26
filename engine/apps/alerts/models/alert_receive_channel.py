@@ -294,8 +294,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    AlertGroupCustomLabels = list[tuple[str, str | None, str | None]] | None
-    alert_group_labels_custom: AlertGroupCustomLabels = models.JSONField(null=True, default=None)
+    AlertGroupCustomLabelsDB = list[tuple[str, str | None, str | None]] | None
+    alert_group_labels_custom: AlertGroupCustomLabelsDB = models.JSONField(null=True, default=None)
     """
     Stores "custom labels" for alert group labels. Custom labels can be either "plain" or "templated".
     For plain labels, the format is: [<LABEL_KEY_ID>, <LABEL_VALUE_ID>, None]
@@ -304,6 +304,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
     """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
+
+    additional_settings: dict | None = models.JSONField(null=True, default=None)
 
     class Meta:
         constraints = [
@@ -775,6 +777,11 @@ def listen_for_alertreceivechannel_model_save(
     elif instance.deleted_at:
         if instance.is_alerting_integration:
             disconnect_integration_from_alerting_contact_points.apply_async((instance.pk,), countdown=5)
+        # delete alert receive channel connections
+        instance.connected_alert_receive_channels.all().delete()
+        instance.source_alert_receive_channels.all().delete()
+        # delete connected auth tokens
+        instance.auth_tokens.all().delete()
 
         metrics_remove_deleted_integration_from_cache(instance)
     else:

@@ -6,7 +6,5 @@ interface RenderConditionallyProps {
   backupChildren?: ReactNode;
 }
 
-const RenderConditionally: FC<RenderConditionallyProps> = ({ shouldRender, children, backupChildren = null }) =>
+export const RenderConditionally: FC<RenderConditionallyProps> = ({ shouldRender, children, backupChildren = null }) =>
   shouldRender ? <>{children}</> : <>{backupChildren}</>;
-
-export default RenderConditionally;

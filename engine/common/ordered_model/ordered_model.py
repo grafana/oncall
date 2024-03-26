@@ -179,7 +179,7 @@ class OrderedModel(models.Model):
         self.order = order
         self._manager.filter(pk__in=pks).bulk_update([self] + instances_to_move, fields=["order"])
 
-    @_retry(OperationalError)  # retry on deadlock
+    @_retry((IntegrityError, OperationalError))  # retry on duplicate order or deadlock
     def swap(self, order: int) -> None:
         """
         Swap self with an instance at a given order.

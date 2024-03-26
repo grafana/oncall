@@ -6,6 +6,29 @@ import '@testing-library/jest-dom';
 
 import 'plugin/dayjs';
 
+import { TextEncoder, TextDecoder } from 'util';
+
+jest.mock('@grafana/runtime', () => ({
+  __esModule: true,
+  config: {
+    featureToggles: {
+      topNav: false,
+    },
+    bootData: {
+      user: {
+        timezone: 'UTC',
+      },
+    },
+  },
+  getBackendSrv: jest.fn().mockImplementation(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+  })),
+  getLocationSrv: jest.fn(),
+}));
+
+Object.assign(global, { TextDecoder, TextEncoder });
+
 // https://stackoverflow.com/a/66055672
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {

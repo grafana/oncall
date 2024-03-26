@@ -6,25 +6,25 @@ import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
-import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
-import Text from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { IsOncallIcon } from 'icons';
+import { Avatar } from 'components/Avatar/Avatar';
+import { ScheduleBorderedAvatar } from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
+import { Text } from 'components/Text/Text';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
+import { IsOncallIcon } from 'icons/Icons';
 import { Schedule } from 'models/schedule/schedule.types';
 import { getCurrentDateInTimezone } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
-import ScheduleUserDetails from './ScheduleUserDetails/ScheduleUserDetails';
+import { ScheduleUserDetails } from './ScheduleUserDetails/ScheduleUserDetails';
 import { calculateTimePassedInDayPercentage } from './UsersTimezones.helpers';
 
 import styles from './UsersTimezones.module.css';
 
 interface UsersTimezonesProps {
-  userIds: Array<User['pk']>;
-  onCallNow: Array<Partial<User>>;
+  userIds: Array<ApiSchemas['User']['pk']>;
+  onCallNow: Array<Partial<ApiSchemas['User']>>;
   scheduleId: Schedule['id'];
 }
 
@@ -34,7 +34,7 @@ const hoursToSplit = 3;
 
 const jLimit = 24 / hoursToSplit;
 
-const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
+export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   const store = useStore();
   const {
     userStore,
@@ -46,7 +46,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   useEffect(() => {
     userIds.forEach((userId) => {
       if (!store.userStore.items[userId]) {
-        store.userStore.updateItem(userId);
+        store.userStore.fetchItemById({ userPk: userId, skipIfAlreadyPending: true });
       }
     });
   }, [userIds]);
@@ -156,10 +156,10 @@ const CurrentTimeLineIndicator = observer(() => {
 });
 
 interface UserAvatarsProps {
-  users: User[];
+  users: Array<ApiSchemas['User']>;
   currentMoment: dayjs.Dayjs;
   scheduleId: Schedule['id'];
-  onCallNow: Array<Partial<User>>;
+  onCallNow: Array<Partial<ApiSchemas['User']>>;
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
@@ -205,14 +205,14 @@ const UserAvatars = (props: UserAvatarsProps) => {
 };
 
 interface AvatarGroupProps {
-  users: User[];
+  users: Array<ApiSchemas['User']>;
   xPos: number;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
   scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
-  onCallNow: Array<Partial<User>>;
+  onCallNow: Array<Partial<ApiSchemas['User']>>;
 }
 
 const LIMIT = 3;
@@ -319,5 +319,3 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
     </div>
   );
 });
-
-export default UsersTimezones;

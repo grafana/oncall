@@ -126,9 +126,6 @@ $LARGE-MARGIN: 24px;
   align-items: center;
   gap: 8px;
 }
-.tag {
-  height: 25px;
-}
 
 .heartbeat-badge {
   padding: 4px 8px;
@@ -160,9 +157,11 @@ $LARGE-MARGIN: 24px;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+
   &__item--large {
     max-width: calc((100% - 150px) / 2);
   }
+
   &__item--small {
     max-width: 150px;
   }
@@ -208,10 +207,6 @@ $LARGE-MARGIN: 24px;
   }
 }
 
-.radius {
-  border-radius: 4px;
-}
-
 .inline-switch {
   height: 34px;
   border: var(--border-weak);
@@ -221,15 +216,18 @@ $LARGE-MARGIN: 24px;
   &__table {
     margin-bottom: 24px;
   }
+
   &__connect {
     padding: 12px;
     margin-bottom: 24px;
     border: var(--border-weak);
     border-radius: var(--border-radius);
   }
+
   &__connect-toggler {
     width: 100%;
   }
+
   &__connect-toggler:hover {
     cursor: pointer;
   }

@@ -26,38 +26,39 @@ import reactStringReplace from 'react-string-replace';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
-import Collapse from 'components/Collapse/Collapse';
+import { Collapse } from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
-import Block from 'components/GBlock/Block';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { Block } from 'components/GBlock/Block';
+import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
-import PluginLink from 'components/PluginLink/PluginLink';
-import SourceCode from 'components/SourceCode/SourceCode';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import AddResponders from 'containers/AddResponders/AddResponders';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { SourceCode } from 'components/SourceCode/SourceCode';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
 import { UserResponder } from 'containers/AddResponders/AddResponders.types';
-import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
+import { AttachIncidentForm } from 'containers/AttachIncidentForm/AttachIncidentForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
+import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
+import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
-import sanitize from 'utils/sanitize';
+import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
+import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
@@ -75,7 +76,7 @@ interface IncidentPageState extends PageBaseState {
 }
 
 @observer
-class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
+class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
@@ -87,7 +88,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     this.update();
 
-    store.alertGroupStore.updateSilenceOptions();
+    store.alertGroupStore.fetchSilenceOptions();
   }
 
   componentWillUnmount(): void {
@@ -112,9 +113,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     store.alertGroupStore
       .getAlert(id)
-      .then((alertGroup) => {
-        store.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
-      })
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
 
@@ -129,7 +127,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
     const { isNotFoundError, isWrongTeamError, isUnknownError } = errorData;
-    // const { alertReceiveChannelStore } = store;
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
@@ -248,16 +245,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   }
 
-  handlePagedUserRemove = (userId: User['pk']) => {
+  handlePagedUserRemove = (userId: ApiSchemas['User']['pk']) => {
     return async () => {
       const {
-        store,
         match: {
           params: { id: alertId },
         },
       } = this.props;
 
-      await store.alertGroupStore.unpageUser(alertId, userId);
+      await AlertGroupHelper.unpageUser(alertId, userId);
 
       this.update();
     };
@@ -271,17 +267,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         params: { id },
       },
     } = this.props;
-
     const { alerts } = store.alertGroupStore;
-
     const incident = alerts.get(id);
-
-    const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
-
+    const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
+      store.alertReceiveChannelStore,
+      incident.alert_receive_channel
+    );
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
-
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
-
     const sourceLink = incident?.render_for_web?.source_link;
 
     return (
@@ -435,15 +428,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident.pk),
                 onUnsilence: this.getUnsilenceClickHandler(incident.pk),
               })}
-              {incident.grafana_incident_id === null && (
-                <PluginBridge plugin={SupportedPlugin.Incident}>
-                  <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                    <Button variant="secondary" size="md" icon="fire">
-                      Declare incident
-                    </Button>
-                  </a>
-                </PluginBridge>
-              )}
               <ExtensionLinkDropdown
                 incident={incident}
                 extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
@@ -487,11 +471,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     this.setState({ showAttachIncidentForm: true });
   };
 
-  getUnattachClickHandler = (pk: Alert['pk']) => {
-    const { store } = this.props;
-
-    return store.alertGroupStore.unattachAlert(pk).then(this.update);
-  };
+  getUnattachClickHandler = (pk: ApiSchemas['AlertGroup']['pk']) =>
+    AlertGroupHelper.unattachAlert(pk).then(this.update);
 
   renderTimeline = () => {
     const {
@@ -575,7 +556,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   };
 
-  filterTimeline = (timeline: TimeLineItem[]) => {
+  filterTimeline = (timeline: ApiSchemas['AlertGroup']['render_after_resolve_report_json']) => {
     if (this.state.timelineFilter === 'all') {
       return timeline;
     } else {
@@ -629,40 +610,38 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     };
   };
 
-  getOnActionButtonClick = (incidentId: Alert['pk'], action: AlertAction) => {
+  getOnActionButtonClick = (incidentId: ApiSchemas['AlertGroup']['pk'], action: AlertAction) => {
     const { store } = this.props;
 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action);
     };
   };
 
-  getSilenceClickHandler = (incidentId: Alert['pk']) => {
+  getSilenceClickHandler = (incidentId: ApiSchemas['AlertGroup']['pk']) => {
     const { store } = this.props;
 
     return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.Silence, false, {
-        delay: value,
-      });
+      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.Silence, value);
     };
   };
 
-  getUnsilenceClickHandler = (incidentId: Alert['pk']) => {
+  getUnsilenceClickHandler = (incidentId: ApiSchemas['AlertGroup']['pk']) => {
     const { store } = this.props;
 
     return (event: any) => {
       event.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.unSilence);
     };
   };
 
-  getIncidentDatetimeReference = (incident: Alert | GroupedAlert): string => {
+  getIncidentDatetimeReference = (incident: ApiSchemas['AlertGroup'] | GroupedAlert): string => {
     let datetimeReference;
-    if ((incident as Alert).last_alert_at || incident.created_at) {
-      const m = moment((incident as Alert).last_alert_at || incident.created_at);
+    if ((incident as ApiSchemas['AlertGroup']).last_alert_at || incident.created_at) {
+      const m = moment((incident as ApiSchemas['AlertGroup']).last_alert_at || incident.created_at);
       datetimeReference = `(${m.fromNow()}, ${m.toString()})`;
     }
 
@@ -670,7 +649,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 }
 
-function Incident({ incident }: { incident: Alert; datetimeReference: string }) {
+function Incident({ incident }: { incident: ApiSchemas['AlertGroup']; datetimeReference: string }) {
   return (
     <div key={incident.pk} className={cx('incident')}>
       <div
@@ -725,7 +704,6 @@ function GroupedIncidentsList({
 }
 
 function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAlert; datetimeReference: string }) {
-  const store = useStore();
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const payloadJSON = isModalOpen ? JSON.stringify(incidentRawResponse.raw_request_data, null, 4) : undefined;
@@ -791,7 +769,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   );
 
   async function openIncidentResponse(incident: GroupedAlert) {
-    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(incident.id);
+    const currentIncidentRawResponse = await AlertGroupHelper.getPayloadForIncident(incident.id);
     setIncidentRawResponse(currentIncidentRawResponse);
     setIsModalOpen(true);
   }
@@ -861,4 +839,4 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   );
 };
 
-export default withRouter(withMobXProviderContext(IncidentPage));
+export const IncidentPage = withRouter(withMobXProviderContext(_IncidentPage));

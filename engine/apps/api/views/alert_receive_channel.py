@@ -1,5 +1,6 @@
 import typing
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,30 +8,40 @@ from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, AlertReceiveChannelConnection
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
+    AlertReceiveChannelCreateSerializer,
     AlertReceiveChannelSerializer,
     AlertReceiveChannelUpdateSerializer,
     FilterAlertReceiveChannelSerializer,
 )
+from apps.api.serializers.alert_receive_channel_connection import (
+    AlertReceiveChannelConnectedChannelSerializer,
+    AlertReceiveChannelConnectionSerializer,
+    AlertReceiveChannelNewConnectionSerializer,
+)
+from apps.api.serializers.webhook import WebhookSerializer
 from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.models.integration_backsync_auth_token import IntegrationBacksyncAuthToken
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
+    CreateSerializerMixin,
     FilterSerializerMixin,
     PreviewTemplateException,
     PreviewTemplateMixin,
@@ -39,7 +50,12 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
-from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import (
+    BacksyncIntegrationRequestError,
+    MaintenanceCouldNotBeStartedError,
+    TeamCanNotBeChangedError,
+    UnableToSendDemoAlert,
+)
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -60,6 +76,12 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         choices=AlertReceiveChannel.INTEGRATION_CHOICES, field_name="integration", exclude=True
     )
     team = TeamModelMultipleChoiceFilter()
+    id_ne = filters.ModelMultipleChoiceFilter(
+        queryset=lambda request: request.auth.organization.alert_receive_channels.all(),
+        field_name="public_primary_key",
+        to_field_name="public_primary_key",
+        exclude=True,
+    )
 
     class Meta:
         model = AlertReceiveChannel
@@ -99,6 +121,7 @@ class AlertReceiveChannelView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[AlertReceiveChannel],
     FilterSerializerMixin,
+    CreateSerializerMixin,
     UpdateSerializerMixin,
     ModelViewSet,
 ):
@@ -116,6 +139,7 @@ class AlertReceiveChannelView(
     queryset = AlertReceiveChannel.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertReceiveChannelSerializer
     filter_serializer_class = FilterAlertReceiveChannelSerializer
+    create_serializer_class = AlertReceiveChannelCreateSerializer
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
@@ -148,6 +172,19 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection_create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "status_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "webhooks_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_alert_receive_channels_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "connected_alert_receive_channels_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_alert_receive_channels_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_alert_receive_channels_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "backsync_token_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "backsync_token_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -229,6 +266,7 @@ class AlertReceiveChannelView(
                 "demo_alert_payload": serializers.DictField(required=False, allow_null=True),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
@@ -244,6 +282,70 @@ class AlertReceiveChannelView(
             raise BadRequest(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
+
+    def _backsync_integration_request(self, instance, func_name):
+        integration_func = getattr(instance.config, func_name, None)
+        if integration_func:
+            try:
+                return integration_func(instance)
+            except BacksyncIntegrationRequestError as e:
+                raise BadRequest(detail=e.error_msg)
+
+    def _test_connection(self, request, pk=None):
+        instance = None
+        data = request.data
+        data["verbal_name"] = None
+        if pk is not None:
+            instance = self.get_object()
+            serializer = self.update_serializer_class(
+                instance,
+                data=data,
+                partial=True,
+                context={"request": request},
+            )
+        else:
+            serializer = self.create_serializer_class(data=data, context={"request": request})
+
+        # check we have all the required information
+        serializer.is_valid(raise_exception=True)
+        if instance is None:
+            serializer.validated_data.pop("create_default_webhooks", None)
+            # create in-memory instance to test with the (possible) unsaved data
+            instance = AlertReceiveChannel(**serializer.validated_data)
+        else:
+            # update instance with the validated data
+            for attr, val in serializer.validated_data.items():
+                setattr(instance, attr, val)
+
+        # will raise if there are errors
+        self._backsync_integration_request(instance, "test_connection")
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=AlertReceiveChannelSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(detail=False, methods=["post"], url_path="test_connection")
+    def test_connection_create(self, request):
+        return self._test_connection(request)
+
+    @extend_schema(
+        request=AlertReceiveChannelUpdateSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(detail=True, methods=["post"])
+    def test_connection(self, request, pk):
+        return self._test_connection(request, pk=pk)
+
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(list[tuple[str, str]])})
+    @action(detail=True, methods=["get"])
+    def status_options(self, request, pk):
+        instance = self.get_object()
+        choices = self._backsync_integration_request(instance, "status_options")
+        if choices is None:
+            choices = []
+        return Response(choices)
 
     @extend_schema(
         responses=inline_serializer(
@@ -283,7 +385,9 @@ class AlertReceiveChannelView(
     @extend_schema(
         parameters=[
             inline_serializer(name="AlertReceiveChannelChangeTeam", fields={"team_id": serializers.CharField()})
-        ]
+        ],
+        request=None,
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):
@@ -401,6 +505,7 @@ class AlertReceiveChannelView(
                 ),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def start_maintenance(self, request, pk):
@@ -432,12 +537,14 @@ class AlertReceiveChannelView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["post"])
     def stop_maintenance(self, request, pk):
         instance = self.get_object()
         instance.force_disable_maintenance(request.user)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["post"])
     def migrate(self, request, pk):
         instance = self.get_object()
@@ -511,7 +618,11 @@ class AlertReceiveChannelView(
             fields={
                 "uid": serializers.CharField(),
                 "name": serializers.CharField(),
-                "contact_points": serializers.ListField(child=serializers.CharField()),
+                "contact_points": inline_serializer(
+                    "AlertReceiveChannelConnectedContactPointsInner",
+                    fields={"name": serializers.CharField(), "notification_connected": serializers.BooleanField()},
+                    many=True,
+                ),
             },
             many=True,
         )
@@ -549,6 +660,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def connect_contact_point(self, request, pk):
@@ -575,6 +687,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_201_CREATED: None},
     )
     @action(detail=True, methods=["post"])
     def create_contact_point(self, request, pk):
@@ -601,6 +714,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def disconnect_contact_point(self, request, pk):
@@ -618,3 +732,162 @@ class AlertReceiveChannelView(
         if not disconnected:
             raise BadRequest(detail=error)
         return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=WebhookSerializer(many=True))
+    @action(detail=True, methods=["get"], url_path="webhooks")
+    def webhooks_get(self, request, pk):
+        instance = self.get_object()
+        return Response(
+            WebhookSerializer(
+                instance.webhooks.filter(is_from_connected_integration=True),
+                many=True,
+                context={"request": request},
+            ).data
+        )
+
+    @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
+    @webhooks_get.mapping.post
+    # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
+    def webhooks_post(self, request, pk):
+        instance = self.get_object()
+        serializer = WebhookSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(filtered_integrations=[instance], is_from_connected_integration=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(request=WebhookSerializer, responses=WebhookSerializer)
+    @action(detail=True, methods=["put"], url_path=r"webhooks/(?P<webhook_id>\w+)")
+    def webhooks_put(self, request, pk, webhook_id):
+        instance = self.get_object()
+        try:
+            webhook = instance.webhooks.get(is_from_connected_integration=True, public_primary_key=webhook_id)
+        except ObjectDoesNotExist:
+            raise NotFound
+        serializer = WebhookSerializer(webhook, data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=None)
+    @webhooks_put.mapping.delete
+    # https://www.django-rest-framework.org/api-guide/viewsets/#routing-additional-http-methods-for-extra-actions
+    def webhooks_delete(self, request, pk, webhook_id):
+        instance = self.get_object()
+        try:
+            webhook = instance.webhooks.get(is_from_connected_integration=True, public_primary_key=webhook_id)
+        except ObjectDoesNotExist:
+            raise NotFound
+        webhook.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(request=None, responses=AlertReceiveChannelConnectionSerializer)
+    @action(detail=True, methods=["get"], url_path="connected_alert_receive_channels")
+    def connected_alert_receive_channels_get(self, request, pk):
+        instance = self.get_object()
+        return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=AlertReceiveChannelNewConnectionSerializer(many=True), responses=AlertReceiveChannelConnectionSerializer
+    )
+    @connected_alert_receive_channels_get.mapping.post
+    def connected_alert_receive_channels_post(self, request, pk):
+        instance = self.get_object()
+        serializer = AlertReceiveChannelNewConnectionSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
+
+        # bulk create connections
+        alert_receive_channels = instance.organization.alert_receive_channels.filter(
+            public_primary_key__in=backsync_map.keys()
+        )
+        AlertReceiveChannelConnection.objects.bulk_create(
+            [
+                AlertReceiveChannelConnection(
+                    source_alert_receive_channel=instance,
+                    connected_alert_receive_channel=alert_receive_channel,
+                    backsync=backsync_map[alert_receive_channel.public_primary_key],
+                )
+                for alert_receive_channel in alert_receive_channels
+            ],
+            ignore_conflicts=True,
+            batch_size=5000,
+        )
+
+        # add connected integrations to filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.add(*alert_receive_channels)
+
+        return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        request=AlertReceiveChannelConnectedChannelSerializer,
+        responses=AlertReceiveChannelConnectedChannelSerializer,
+    )
+    @action(
+        detail=True,
+        methods=["put"],
+        url_path=r"connected_alert_receive_channels/(?P<connected_alert_receive_channel_id>\w+)",
+    )
+    def connected_alert_receive_channels_put(self, request, pk, connected_alert_receive_channel_id):
+        instance = self.get_object()
+        try:
+            connection = instance.connected_alert_receive_channels.get(
+                connected_alert_receive_channel_id__public_primary_key=connected_alert_receive_channel_id
+            )
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        serializer = AlertReceiveChannelConnectedChannelSerializer(connection, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(request=None, responses=None)
+    @connected_alert_receive_channels_put.mapping.delete
+    def connected_alert_receive_channels_delete(self, request, pk, connected_alert_receive_channel_id):
+        instance = self.get_object()
+        try:
+            connection = instance.connected_alert_receive_channels.get(
+                connected_alert_receive_channel_id__public_primary_key=connected_alert_receive_channel_id
+            )
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        connection.delete()
+
+        # remove the connected integration from filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.remove(connection.connected_alert_receive_channel)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(responses={status.HTTP_200_OK: None})
+    @action(detail=True, methods=["get"], url_path="api_token")
+    def backsync_token_get(self, request, pk):
+        instance = self.get_object()
+        try:
+            _ = IntegrationBacksyncAuthToken.objects.get(
+                alert_receive_channel=instance, organization=request.auth.organization
+            )
+        except IntegrationBacksyncAuthToken.DoesNotExist:
+            raise NotFound
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        methods=["post"],
+        request=None,
+        responses=inline_serializer(
+            name="IntegrationTokenPostResponse",
+            fields={
+                "token": serializers.CharField(),
+            },
+        ),
+    )
+    @action(detail=True, methods=["post"], url_path="api_token")
+    @backsync_token_get.mapping.post
+    def backsync_token_post(self, request, pk):
+        instance = self.get_object()
+        instance, token = IntegrationBacksyncAuthToken.create_auth_token(instance, request.auth.organization)
+        data = {"token": token}
+        return Response(data, status=status.HTTP_201_CREATED)

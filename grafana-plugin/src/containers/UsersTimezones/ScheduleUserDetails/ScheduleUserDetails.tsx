@@ -5,38 +5,36 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
-import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
-import Text from 'components/Text/Text';
+import { Avatar } from 'components/Avatar/Avatar';
+import { ScheduleBorderedAvatar } from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
+import { Text } from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
 import {
   getCurrentDateInTimezone,
   getCurrentlyLoggedInUserDate,
   getTzOffsetString,
 } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
-  user: User;
+  user: ApiSchemas['User'];
   isOncall: boolean;
   scheduleId: string;
 }
 
 const cx = cn.bind(styles);
 
-const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
+export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate },
   } = useStore();
   const { user, currentMoment, isOncall, scheduleId } = props;
-  const userMoment = currentMoment.tz(user.timezone);
-  const userOffsetHoursStr = getTzOffsetString(userMoment);
   const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
 
   const store = useStore();
@@ -48,7 +46,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
     organizationStore.currentOrganization.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} data-testid="schedule-user-details">
       <VerticalGroup spacing="xs">
         <ScheduleBorderedAvatar
           colors={colorSchemeList}
@@ -89,7 +87,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
-                  <Text>({userOffsetHoursStr})</Text>
+                  <Text>({user.timezone})</Text>
                 </VerticalGroup>
               </div>
             </div>
@@ -153,5 +151,3 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
     </div>
   );
 });
-
-export default ScheduleUserDetails;

@@ -1,18 +1,19 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
+import { BaseStore } from 'models/base_store';
 import { LabelsErrors } from 'models/label/label.types';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { makeRequest } from 'network/network';
+import { ApiSchemas } from 'network/oncall-api/api.types';
+import { RootStore } from 'state/rootStore';
 
-import { OutgoingWebhook, OutgoingWebhookPreset } from './outgoing_webhook.types';
+import { OutgoingWebhookPreset } from './outgoing_webhook.types';
 
 export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
-  items: { [id: string]: OutgoingWebhook } = {};
+  items: { [id: string]: ApiSchemas['Webhook'] } = {};
 
   @observable.shallow
-  searchResult: { [key: string]: Array<OutgoingWebhook['id']> } = {};
+  searchResult: { [key: string]: Array<ApiSchemas['Webhook']['id']> } = {};
 
   @observable.shallow
   outgoingWebhookPresets: OutgoingWebhookPreset[] = [];
@@ -28,8 +29,8 @@ export class OutgoingWebhookStore extends BaseStore {
     this.path = '/webhooks/';
   }
 
-  @action
-  async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
+  @action.bound
+  async loadItem(id: ApiSchemas['Webhook']['id'], skipErrorHandling = false): Promise<ApiSchemas['Webhook']> {
     const outgoingWebhook = await this.getById(id, skipErrorHandling);
 
     runInAction(() => {
@@ -42,8 +43,8 @@ export class OutgoingWebhookStore extends BaseStore {
     return outgoingWebhook;
   }
 
-  @action
-  async updateById(id: OutgoingWebhook['id']) {
+  @action.bound
+  async updateById(id: ApiSchemas['Webhook']['id']) {
     const response = await this.getById(id);
 
     runInAction(() => {
@@ -54,8 +55,8 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
-  async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
+  @action.bound
+  async updateItem(id: ApiSchemas['Webhook']['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
 
     runInAction(() => {
@@ -66,7 +67,7 @@ export class OutgoingWebhookStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -78,7 +79,7 @@ export class OutgoingWebhookStore extends BaseStore {
       this.items = {
         ...this.items,
         ...results.reduce(
-          (acc: { [key: number]: OutgoingWebhook }, item: OutgoingWebhook) => ({
+          (acc: { [key: number]: ApiSchemas['Webhook'] }, item: ApiSchemas['Webhook']) => ({
             ...acc,
             [item.id]: item,
           }),
@@ -90,26 +91,28 @@ export class OutgoingWebhookStore extends BaseStore {
 
       this.searchResult = {
         ...this.searchResult,
-        [key]: results.map((item: OutgoingWebhook) => item.id),
+        [key]: results.map((item: ApiSchemas['Webhook']) => item.id),
       };
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
 
-    return this.searchResult[query].map((outgoingWebhookId: OutgoingWebhook['id']) => this.items[outgoingWebhookId]);
-  }
+    return this.searchResult[query].map(
+      (outgoingWebhookId: ApiSchemas['Webhook']['id']) => this.items[outgoingWebhookId]
+    );
+  };
 
-  async getLastResponses(id: OutgoingWebhook['id']) {
+  async getLastResponses(id: ApiSchemas['Webhook']['id']) {
     const result = await makeRequest(`${this.path}${id}/responses`, {});
 
     return result;
   }
 
-  async renderPreview(id: OutgoingWebhook['id'], template_name: string, template_body: string, payload) {
+  async renderPreview(id: ApiSchemas['Webhook']['id'], template_name: string, template_body: string, payload) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
       data: { template_name, template_body, payload },

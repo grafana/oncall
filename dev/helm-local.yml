@@ -28,14 +28,7 @@ engine:
   replicaCount: 1
 celery:
   replicaCount: 1
-
-ui:
-  enabled: false
-  image:
-    repository: localhost:63628/oncall/ui
-  env:
-    ONCALL_API_URL: http://oncall-dev-engine:8080
-    MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
+  worker_beat_enabled: false
 
 externalGrafana:
   url: http://grafana:3000
@@ -47,8 +40,6 @@ grafana:
       domain: localhost:3000
       root_url: "%(protocol)s://%(domain)s"
   replicas: 1
-  image:
-    tag: 10.0.2
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
@@ -137,6 +128,9 @@ service:
   nodePort: 30001
 prometheus:
   enabled: true
+  server:
+    global:
+      scrape_interval: 10s
   extraScrapeConfigs: |
     - job_name: 'oncall-exporter'
       metrics_path: /metrics/

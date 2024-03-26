@@ -1,10 +1,14 @@
 import { Page } from '@playwright/test';
 import dayjs from 'dayjs';
 
-import { clickButton, fillInInput, selectDropdownValue } from './forms';
+import { clickButton, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
 
-export const createOnCallSchedule = async (page: Page, scheduleName: string, userName: string): Promise<void> => {
+export const createOnCallScheduleWithRotation = async (
+  page: Page,
+  scheduleName: string,
+  userName: string
+): Promise<void> => {
   // go to the schedules page
   await goToOnCallPage(page, 'schedules');
 
@@ -13,20 +17,25 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string, use
   (await page.waitForSelector('button >> text=Create >> nth=0')).click();
 
   // fill in the name input
-  await fillInInput(page, 'div[class*="ScheduleForm"] input[name="name"]', scheduleName);
+  await page.getByTestId('schedule-form').locator('input[name="name"]').fill(scheduleName);
 
   // Add a new layer w/ the current user to it
   await clickButton({ page, buttonText: 'Create Schedule' });
 
-  await clickButton({ page, buttonText: 'Add rotation' });
+  await createRotation(page, userName);
+};
 
+export const createRotation = async (page: Page, userName: string, isFirstScheduleRotation = true) => {
+  await clickButton({ page, buttonText: 'Add rotation' });
+  if (!isFirstScheduleRotation) {
+    await page.getByText('Layer 1 rotation', { exact: true }).click();
+  }
   await selectDropdownValue({
     page,
     selectType: 'grafanaSelect',
     placeholderText: 'Add user',
     value: userName,
   });
-
   await clickButton({ page, buttonText: 'Create' });
 };
 

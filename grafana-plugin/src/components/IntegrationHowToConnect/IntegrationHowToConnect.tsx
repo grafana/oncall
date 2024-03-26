@@ -4,18 +4,17 @@ import { HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 
-import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import Tag from 'components/Tag/Tag';
-import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
+import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
+import { IntegrationTag } from 'components/Integrations/IntegrationTag';
+import { Text } from 'components/Text/Text';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
-const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveChannel']['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
@@ -40,11 +39,7 @@ const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ 
       toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
-          <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
-            <Text type="primary" size="small" className={cx('radius')}>
-              {howToConnectTagName(item?.integration)}
-            </Text>
-          </Tag>
+          <IntegrationTag>{howToConnectTagName(item?.integration)}</IntegrationTag>
           {item?.integration === 'direct_paging' ? (
             <>
               <Text type="secondary">Alert Groups raised manually via Web or ChatOps</Text>
@@ -67,6 +62,7 @@ const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ 
               {url && (
                 <IntegrationInputField
                   value={url}
+                  isMasked
                   className={cx('integration__input-field')}
                   showExternal={!!item?.integration_url}
                 />
@@ -106,12 +102,10 @@ const IntegrationHowToConnect: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ 
         {!hasAlerts && (
           <HorizontalGroup spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
+            <Text type={'primary'}>No alerts yet</Text> {callToAction()}
           </HorizontalGroup>
         )}
       </VerticalGroup>
     );
   }
 };
-
-export default IntegrationHowToConnect;

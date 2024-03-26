@@ -4,14 +4,14 @@ import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } 
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { Text } from 'components/Text/Text';
+import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { Alert } from 'models/alertgroup/alertgroup.types';
-import { OutgoingWebhook, OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
+import { OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
@@ -26,17 +26,17 @@ export enum TEMPLATE_PAGE {
 interface TemplatesAlertGroupsListProps {
   templatePage: TEMPLATE_PAGE;
   templates: AlertTemplatesDTO[];
-  alertReceiveChannelId?: AlertReceiveChannel['id'];
-  outgoingwebhookId?: OutgoingWebhook['id'];
+  alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
+  outgoingwebhookId?: ApiSchemas['Webhook']['id'];
   heading?: string;
 
-  onSelectAlertGroup?: (alertGroup: Alert) => void;
+  onSelectAlertGroup?: (alertGroup: ApiSchemas['AlertGroup']) => void;
 
   onEditPayload?: (payload: string) => void;
   onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
 
-const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
+export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   const {
     templatePage,
     heading = 'Recent Alert groups',
@@ -62,7 +62,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         store.outgoingWebhookStore.getLastResponses(outgoingwebhookId).then(setOutgoingWebhookLastResponses);
       }
     } else if (templatePage === TEMPLATE_PAGE.Integrations) {
-      store.alertGroupStore.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
+      AlertGroupHelper.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
         setAlertGroupsList(result.slice(0, 30));
         onLoadAlertGroupsList(result.length > 0);
       });
@@ -84,8 +84,8 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   // for Integrations
 
   const getAlertGroupPayload = async (id) => {
-    const groupedAlert = await store.alertGroupStore.getAlertsFromGroup(id);
-    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(groupedAlert?.alerts[0]?.id);
+    const groupedAlert = await AlertGroupHelper.getAlertsFromGroup(id);
+    const currentIncidentRawResponse = await AlertGroupHelper.getPayloadForIncident(groupedAlert?.alerts[0]?.id);
     setSelectedTitle(getAlertGroupName(groupedAlert));
     setSelectedPayload(currentIncidentRawResponse?.raw_request_data);
 
@@ -94,7 +94,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     onEditPayload(JSON.stringify(currentIncidentRawResponse?.raw_request_data));
   };
 
-  const getAlertGroupName = (alertGroup: Alert) => {
+  const getAlertGroupName = (alertGroup: ApiSchemas['AlertGroup']) => {
     // Integrations page
     return alertGroup.inside_organization_number
       ? `#${alertGroup.inside_organization_number} ${alertGroup.render_for_web?.title}`
@@ -311,5 +311,3 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     );
   }
 };
-
-export default TemplatesAlertGroupsList;

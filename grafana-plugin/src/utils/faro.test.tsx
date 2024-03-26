@@ -1,7 +1,7 @@
 import 'jest/matchMedia.ts';
 import { describe, test } from '@jest/globals';
 
-import FaroHelper from 'utils/faro';
+import { FaroHelper } from 'utils/faro';
 
 import '@testing-library/jest-dom';
 import { ONCALL_DEV, ONCALL_OPS, ONCALL_PROD } from './consts';
@@ -14,17 +14,13 @@ jest.mock('@grafana/faro-web-sdk', () => ({
       pushLog: jest.fn(),
     },
   }),
+  LogLevel: jest.requireActual('@grafana/faro-web-sdk').LogLevel,
+  InternalLoggerLevel: jest.requireActual('@grafana/faro-web-sdk').InternalLoggerLevel,
   getWebInstrumentations: () => [],
 }));
 
 jest.mock('@grafana/faro-web-tracing', () => ({
   TracingInstrumentation: jest.fn(),
-}));
-jest.mock('@opentelemetry/instrumentation-document-load', () => ({
-  DocumentLoadInstrumentation: jest.fn(),
-}));
-jest.mock('@opentelemetry/instrumentation-fetch', () => ({
-  FetchInstrumentation: jest.fn(),
 }));
 
 describe('Faro', () => {

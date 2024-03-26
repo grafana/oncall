@@ -557,8 +557,8 @@ def test_user_detail_self_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
         (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -577,6 +577,13 @@ def test_user_detail_other_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
+    # hidden information for editor/viewer
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    if role in (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER):
+        user_details = response.json()
+        for f_name in user_details:
+            if f_name not in available_fields:
+                assert user_details[f_name] == "******"
 
 
 @pytest.mark.django_db
@@ -1118,7 +1125,13 @@ def test_user_can_detail_users(
     url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
 
     response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
+    # hidden information though
+    user_details = response.json()
+    available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
+    for f_name in user_details:
+        if f_name not in available_fields:
+            assert user_details[f_name] == "******"
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
@@ -1411,20 +1424,6 @@ def test_viewer_can_list_users(make_organization_and_user_with_plugin_token, mak
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-
-
-@pytest.mark.django_db
-def test_viewer_cant_detail_users(
-    make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
-):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
-
-    client = APIClient()
-    url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())

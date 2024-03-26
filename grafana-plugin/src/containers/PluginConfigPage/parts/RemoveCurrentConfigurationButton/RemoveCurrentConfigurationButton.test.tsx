@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import RemoveCurrentConfigurationButton from '.';
+import { RemoveCurrentConfigurationButton } from './RemoveCurrentConfigurationButton';
 
 describe('RemoveCurrentConfigurationButton', () => {
   test('It renders properly when enabled', () => {

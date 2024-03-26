@@ -7,7 +7,7 @@ from apps.api.serializers.labels import LabelsSerializerMixin
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import IntegrationFilteredByOrganizationField, TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -37,6 +37,9 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
     last_response_log = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(allow_null=True)
     trigger_type_name = serializers.SerializerMethodField()
+    integration_filter = IntegrationFilteredByOrganizationField(
+        source="filtered_integrations", many=True, required=False
+    )
 
     PREFETCH_RELATED = ["labels", "labels__key", "labels__value"]
 
@@ -114,6 +117,10 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
             data["password"] = webhook.password
         if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:
             data["authorization_header"] = webhook.authorization_header
+
+        if not data.get("integration_filter"):
+            data["integration_filter"] = []
+
         return super().to_internal_value(data)
 
     def _validate_template_field(self, template):
@@ -182,13 +189,13 @@ class WebhookSerializer(LabelsSerializerMixin, serializers.ModelSerializer):
             for controlled_field in preset_metadata.controlled_fields:
                 if controlled_field in self.initial_data:
                     if self.instance:
-                        if self.initial_data[controlled_field] is not None and self.initial_data[
-                            controlled_field
-                        ] != getattr(self.instance, controlled_field):
+                        if bool(self.initial_data[controlled_field]) and self.initial_data[controlled_field] != getattr(
+                            self.instance, controlled_field
+                        ):
                             raise serializers.ValidationError(
                                 detail=f"{controlled_field} is controlled by preset, cannot update"
                             )
-                    elif self.initial_data[controlled_field] is not None:
+                    elif bool(self.initial_data[controlled_field]):
                         raise serializers.ValidationError(
                             detail=f"{controlled_field} is controlled by preset, cannot create"
                         )

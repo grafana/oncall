@@ -4,7 +4,7 @@ import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import { isUserActionAllowed, UserAction } from 'utils/authorization';
+import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
 
 import styles from './WithPermissionControlTooltip.module.css';
 
@@ -13,7 +13,6 @@ const cx = cn.bind(styles);
 interface WithPermissionControlTooltipProps {
   userAction: UserAction;
   children: ReactElement;
-  disableByPaywall?: boolean;
   className?: string;
 }
 

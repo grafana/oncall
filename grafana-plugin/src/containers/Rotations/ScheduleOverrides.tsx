@@ -7,10 +7,10 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import Rotation from 'containers/Rotation/Rotation';
-import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
-import TimelineMarks from 'containers/TimelineMarks/TimelineMarks';
+import { Text } from 'components/Text/Text';
+import { Rotation } from 'containers/Rotation/Rotation';
+import { ScheduleOverrideForm } from 'containers/RotationForm/ScheduleOverrideForm';
+import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   getLayersFromStore,
@@ -23,7 +23,7 @@ import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedul
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findClosestUserEvent, findColor } from './Rotations.helpers';
@@ -53,7 +53,7 @@ interface ScheduleOverridesState {
 }
 
 @observer
-class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
+class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {
     shiftStartToShowOverrideForm: undefined,
     shiftEndToShowOverrideForm: undefined,
@@ -273,4 +273,4 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 }
 
-export default withMobXProviderContext(ScheduleOverrides);
+export const ScheduleOverrides = withMobXProviderContext(_ScheduleOverrides);

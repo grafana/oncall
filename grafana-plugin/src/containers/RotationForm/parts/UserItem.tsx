@@ -3,9 +3,9 @@ import React, { useEffect } from 'react';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import Text from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { User } from 'models/user/user.types';
+import { Text } from 'components/Text/Text';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -13,7 +13,7 @@ import styles from 'containers/RotationForm/RotationForm.module.css';
 const cx = cn.bind(styles);
 
 interface UserItemProps {
-  pk: User['pk'];
+  pk: ApiSchemas['User']['pk'];
   shiftColor: string;
   shiftStart: string;
   shiftEnd: string;
@@ -21,12 +21,12 @@ interface UserItemProps {
 
 const WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
 
-const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
+export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const { userStore } = useStore();
 
   useEffect(() => {
     if (!userStore.items[pk]) {
-      userStore.updateItem(pk);
+      userStore.fetchItemById({ userPk: pk, skipIfAlreadyPending: true });
     }
   }, []);
 
@@ -53,5 +53,3 @@ const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
     </div>
   );
 };
-
-export default UserItem;

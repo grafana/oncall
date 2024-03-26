@@ -1,6 +1,6 @@
 import { AppPluginMeta, KeyValue } from '@grafana/data';
 
-import { RootStore } from 'state/index';
+import { RootStore } from 'state/rootStore';
 
 export interface WithStoreProps {
   store: RootStore;

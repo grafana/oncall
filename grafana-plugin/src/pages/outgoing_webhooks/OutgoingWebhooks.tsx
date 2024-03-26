@@ -1,45 +1,37 @@
 import React from 'react';
 
-import {
-  Button,
-  ConfirmModal,
-  ConfirmModalProps,
-  HorizontalGroup,
-  Icon,
-  IconButton,
-  VerticalGroup,
-  WithContextMenu,
-} from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment-timezone';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import GTable from 'components/GTable/GTable';
-import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
-import LabelsTooltipBadge from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { GTable } from 'components/GTable/GTable';
+import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
+import { LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
+import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import TextEllipsisTooltip from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
-import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
-import TeamName from 'containers/TeamName/TeamName';
+import { PluginLink } from 'components/PluginLink/PluginLink';
+import { Text } from 'components/Text/Text';
+import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
+import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
+import { WebhookName } from 'components/Webhooks/WebhookName';
+import { OutgoingWebhookForm } from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { openErrorNotification, openNotification } from 'utils';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { openErrorNotification, openNotification } from 'utils/utils';
 
 import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
@@ -53,7 +45,7 @@ interface OutgoingWebhooksProps
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookAction?: WebhookFormActionType;
-  outgoingWebhookId?: OutgoingWebhook['id'];
+  outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   confirmationModal: ConfirmModalProps;
 }
 
@@ -127,7 +119,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         width: '25%',
         title: 'Name',
         dataIndex: 'name',
-        render: this.renderName,
+        render: (name: string, webhook: ApiSchemas['Webhook']) => (
+          <WebhookName
+            name={name}
+            isEnabled={webhook.is_webhook_enabled}
+            displayAsLink
+            onNameClick={() => this.onEditClick(webhook.id)}
+          />
+        ),
       },
       {
         width: '10%',
@@ -143,14 +142,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       {
         width: '10%',
         title: 'Last event',
-        render: this.renderLastEvent,
+        render: (webhook: ApiSchemas['Webhook']) => (
+          <WebhookLastEventTimestamp webhook={webhook} openDrawer={() => this.onLastRunClick(webhook.id)} />
+        ),
       },
       ...(hasFeature(AppFeature.Labels)
         ? [
             {
               width: '10%',
               title: 'Labels',
-              render: ({ labels }: OutgoingWebhook) => (
+              render: ({ labels }: ApiSchemas['Webhook']) => (
                 <LabelsTooltipBadge
                   labels={labels}
                   onClick={(label) => filtersStore.applyLabelFilter(label, PAGE.Webhooks)}
@@ -162,7 +163,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       {
         width: '15%',
         title: 'Team',
-        render: (item: OutgoingWebhook) => this.renderTeam(item, grafanaTeamStore.items),
+        render: (item: ApiSchemas['Webhook']) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '20%',
@@ -190,6 +191,18 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 }
               />
             )}
+            <div className={cx('newWebhookButton')}>
+              <PluginLink
+                query={{ page: 'outgoing_webhooks', id: 'new' }}
+                disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
+              >
+                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                  <Button variant="primary" icon="plus">
+                    New Outgoing Webhook
+                  </Button>
+                </WithPermissionControlTooltip>
+              </PluginLink>
+            </div>
 
             <div className={cx('root')} data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
@@ -201,18 +214,6 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                       <LegacyNavHeading>
                         <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       </LegacyNavHeading>
-                    </div>
-                    <div className="u-pull-right">
-                      <PluginLink
-                        query={{ page: 'outgoing_webhooks', id: 'new' }}
-                        disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
-                      >
-                        <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                          <Button variant="primary" icon="plus">
-                            New Outgoing Webhook
-                          </Button>
-                        </WithPermissionControlTooltip>
-                      </PluginLink>
                     </div>
                   </div>
                 )}
@@ -268,134 +269,90 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     });
   };
 
-  renderTeam(record: OutgoingWebhook, teams: any) {
+  renderTeam(record: ApiSchemas['Webhook'], teams: any) {
     return <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />;
   }
 
-  renderActionButtons = (record: OutgoingWebhook) => {
+  renderActionButtons = (record: ApiSchemas['Webhook']) => {
     return (
-      <WithContextMenu
-        renderMenuItems={() => (
-          <div className={cx('hamburgerMenu')}>
-            <div className={cx('hamburgerMenu__item')} onClick={() => this.onLastRunClick(record.id)}>
-              <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-                <Text type="primary">View Last Run</Text>
-              </WithPermissionControlTooltip>
-            </div>
-
-            <div className={cx('hamburgerMenu__item')} onClick={() => this.onEditClick(record.id)}>
-              <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">Edit settings</Text>
-              </WithPermissionControlTooltip>
-            </div>
-
-            <div
-              className={cx('hamburgerMenu__item')}
-              onClick={() =>
-                this.setState({
-                  confirmationModal: {
-                    isOpen: true,
-                    confirmText: 'Confirm',
-                    dismissText: 'Cancel',
-                    onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
-                    title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
-                  } as ConfirmModalProps,
-                })
-              }
-            >
-              <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>
-              </WithPermissionControlTooltip>
-            </div>
-
-            <div className={cx('hamburgerMenu__item')} onClick={() => this.onCopyClick(record.id)}>
-              <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">Make a copy</Text>
-              </WithPermissionControlTooltip>
-            </div>
-
-            <CopyToClipboard text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
-              <div className={cx('hamburgerMenu__item')}>
-                <HorizontalGroup type="primary" spacing="xs">
-                  <Icon name="clipboard-alt" />
-                  <Text type="primary">UID: {record.id}</Text>
-                </HorizontalGroup>
-              </div>
-            </CopyToClipboard>
-
-            <div className={cx('thin-line-break')} />
-
-            <div
-              className={cx('hamburgerMenu__item')}
-              onClick={() =>
-                this.setState({
-                  confirmationModal: {
-                    isOpen: true,
-                    confirmText: 'Confirm',
-                    dismissText: 'Cancel',
-                    onConfirm: () => this.onDeleteClick(record.id),
-                    body: 'The action cannot be undone.',
-                    title: `Are you sure you want to delete webhook?`,
-                  } as Partial<ConfirmModalProps> as ConfirmModalProps,
-                })
-              }
-            >
-              <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <HorizontalGroup spacing="xs">
-                  <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
-                  <Text type="danger">Delete Webhook</Text>
-                </HorizontalGroup>
-              </WithPermissionControlTooltip>
-            </div>
-          </div>
-        )}
-      >
-        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={225} withBackground />}
-      </WithContextMenu>
+      <HamburgerContextMenu
+        items={[
+          {
+            onClick: () => this.onLastRunClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksRead,
+            label: <Text type="primary">View Last Event</Text>,
+          },
+          {
+            onClick: () => this.onEditClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Edit settings</Text>,
+          },
+          {
+            onClick: () =>
+              this.setState({
+                confirmationModal: {
+                  isOpen: true,
+                  confirmText: 'Confirm',
+                  dismissText: 'Cancel',
+                  onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
+                  title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
+                } as ConfirmModalProps,
+              }),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>,
+          },
+          {
+            onClick: () => this.onCopyClick(record.id),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: <Text type="primary">Make a copy</Text>,
+          },
+          {
+            label: (
+              <CopyToClipboard key="uid" text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
+                <div>
+                  <HorizontalGroup type="primary" spacing="xs">
+                    <Icon name="clipboard-alt" />
+                    <Text type="primary">UID: {record.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+            ),
+          },
+          'divider',
+          {
+            onClick: () =>
+              this.setState({
+                confirmationModal: {
+                  isOpen: true,
+                  confirmText: 'Confirm',
+                  dismissText: 'Cancel',
+                  onConfirm: () => this.onDeleteClick(record.id),
+                  body: 'The action cannot be undone.',
+                  title: `Are you sure you want to delete webhook?`,
+                } as Partial<ConfirmModalProps> as ConfirmModalProps,
+              }),
+            requiredPermission: UserActions.OutgoingWebhooksWrite,
+            label: (
+              <HorizontalGroup spacing="xs">
+                <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                <Text type="danger">Delete Webhook</Text>
+              </HorizontalGroup>
+            ),
+          },
+        ]}
+      />
     );
   };
-
-  renderName(name: String) {
-    return (
-      <div className="u-break-word">
-        <span>{name}</span>
-      </div>
-    );
-  }
 
   renderUrl(url: string) {
     return (
       <TextEllipsisTooltip content={url} placement="top">
-        <CopyToClipboard text={url} onCopy={() => openNotification('URL has been copied')}>
-          <Text type="link" className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>
-            {url}
-          </Text>
-        </CopyToClipboard>
+        <Text className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>{url}</Text>
       </TextEllipsisTooltip>
     );
   }
 
-  renderLastEvent(record: OutgoingWebhook) {
-    const lastEventMoment = moment(record.last_response_log?.timestamp);
-
-    return !record.is_webhook_enabled ? (
-      <Text type="secondary">Disabled</Text>
-    ) : (
-      <VerticalGroup spacing="none">
-        <Text type="secondary">{lastEventMoment.isValid() ? lastEventMoment.format('MMM DD, YYYY') : '-'}</Text>
-        <Text type="secondary">{lastEventMoment.isValid() ? lastEventMoment.format('HH:mm') : ''}</Text>
-        <Text type="secondary">
-          {lastEventMoment.isValid()
-            ? record.last_response_log?.status_code
-              ? 'Status: ' + record.last_response_log?.status_code
-              : 'Check Status'
-            : ''}
-        </Text>
-      </VerticalGroup>
-    );
-  }
-
-  onDeleteClick = (id: OutgoingWebhook['id']): Promise<void> => {
+  onDeleteClick = (id: ApiSchemas['Webhook']['id']): Promise<void> => {
     const { store } = this.props;
     return store.outgoingWebhookStore
       .delete(id)
@@ -405,7 +362,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
-  onEditClick = (id: OutgoingWebhook['id']) => {
+  onEditClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
     this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.EDIT_SETTINGS }, () =>
@@ -413,7 +370,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  onCopyClick = (id: OutgoingWebhook['id']) => {
+  onCopyClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
     this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.COPY }, () =>
@@ -421,7 +378,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  onDisableWebhook = (id: OutgoingWebhook['id'], isEnabled: boolean) => {
+  onDisableWebhook = (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
     const {
       store: { outgoingWebhookStore },
     } = this.props;
@@ -442,7 +399,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
-  onLastRunClick = (id: OutgoingWebhook['id']) => {
+  onLastRunClick = (id: ApiSchemas['Webhook']['id']) => {
     const { history } = this.props;
 
     this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.VIEW_LAST_RUN }, () =>
@@ -473,4 +430,4 @@ function convertWebhookUrlToAction(urlAction: string) {
 
 export { OutgoingWebhooks };
 
-export default withRouter(withMobXProviderContext(OutgoingWebhooks));
+export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(OutgoingWebhooks));

@@ -6,55 +6,56 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
-import Text from 'components/Text/Text';
-import GSelect from 'containers/GSelect/GSelect';
+import { Text } from 'components/Text/Text';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert } from 'models/alertgroup/alertgroup.types';
+import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './AttachIncidentForm.module.css';
 
 const cx = cn.bind(styles);
 
 interface AttachIncidentFormProps {
-  id: Alert['pk'];
+  id: ApiSchemas['AlertGroup']['pk'];
   onUpdate: () => void;
   onHide: () => void;
 }
 
 interface GroupedAlertNumberProps {
-  value: Alert['pk'];
+  value: ApiSchemas['AlertGroup']['pk'];
 }
 
-const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
+const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
+  const { alertGroupStore } = useStore();
+  const alert = alertGroupStore.alerts.get(value);
+
+  return (
+    <div>
+      #{alert?.inside_organization_number} {alert?.render_for_web?.title}
+    </div>
+  );
+});
+
+export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
   const { alertGroupStore } = store;
 
-  const [selected, setSelected] = useState<Alert['pk']>(undefined);
+  const [selected, setSelected] = useState<ApiSchemas['AlertGroup']['pk']>(undefined);
 
   const getChangeHandler = useCallback((value) => {
     setSelected(value);
   }, []);
 
   const handleLinkClick = useCallback(() => {
-    alertGroupStore.attachAlert(id, selected).then(() => {
+    AlertGroupHelper.attachAlert(id, selected).then(() => {
       onHide();
       onUpdate();
     });
   }, [selected, alertGroupStore, id, onHide, onUpdate]);
-
-  const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
-    const { alertGroupStore } = useStore();
-    const alert = alertGroupStore.items[value];
-
-    return (
-      <div>
-        #{alert?.inside_organization_number} {alert?.render_for_web?.title}
-      </div>
-    );
-  });
 
   return (
     <Modal
@@ -74,17 +75,22 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
         description="Linking alert groups together can help the team investigate the underlying issue."
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-          <GSelect
+          <GSelect<ApiSchemas['AlertGroup']>
             showSearch
-            modelName="alertGroupStore"
+            items={Object.fromEntries(alertGroupStore.alerts)}
+            fetchItemsFn={async (query: string) => {
+              await alertGroupStore.fetchAlertGroups(false, query);
+            }}
+            fetchItemFn={alertGroupStore.getAlert}
+            getSearchResult={() => AlertGroupHelper.getAlertSearchResult(alertGroupStore).results}
             valueField="pk"
             displayField="render_for_web.title"
-            placeholder="Select Incident"
+            placeholder="Select Alert Group"
             className={cx('select', 'control')}
             filterOptions={(optionId) => optionId !== id}
             value={selected}
             onChange={getChangeHandler}
-            getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm')}
+            getDescription={(item: ApiSchemas['AlertGroup']) => moment(item.started_at).format('MMM DD, YYYY hh:mm')}
             getOptionLabel={(item: SelectableValue) => <GroupedAlertNumber value={item.value} />}
           />
         </WithPermissionControlTooltip>
@@ -100,5 +106,3 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
     </Modal>
   );
 });
-
-export default AttachIncidentForm;

@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 
 import styles from './ScheduleFilters.module.scss';
 import { ScheduleFiltersType } from './ScheduleFilters.types';
@@ -12,11 +12,11 @@ const cx = cn.bind(styles);
 
 interface SchedulesFiltersProps {
   value: ScheduleFiltersType;
-  currentUserPk: User['pk'];
+  currentUserPk: ApiSchemas['User']['pk'];
   onChange: (filters: ScheduleFiltersType) => void;
 }
 
-const SchedulesFilters = (props: SchedulesFiltersProps) => {
+export const ScheduleFilters = (props: SchedulesFiltersProps) => {
   const { value, currentUserPk, onChange } = props;
 
   const handleShowMyShiftsOnlyClick = useCallback(
@@ -46,5 +46,3 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
     </div>
   );
 };
-
-export default SchedulesFilters;

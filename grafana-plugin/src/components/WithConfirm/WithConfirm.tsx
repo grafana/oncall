@@ -8,7 +8,7 @@ type WithConfirmProps = Partial<ConfirmModalProps> & {
   skip?: boolean;
 };
 
-const WithConfirm: React.FC<WithConfirmProps> = ({
+export const WithConfirm: React.FC<WithConfirmProps> = ({
   title = 'Are you sure to delete?',
   confirmText = 'Delete',
   body,
@@ -66,5 +66,3 @@ const WithConfirm: React.FC<WithConfirmProps> = ({
     </>
   );
 };
-
-export default WithConfirm;

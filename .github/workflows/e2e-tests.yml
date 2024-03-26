@@ -15,24 +15,31 @@ name: e2e tests
         required: true
         type: boolean
     secrets:
+      # NOTE: these are only required for the "expensive" e2e tests, which are only run via
+      # a daily GitHub Actions cron job (see .github/workflows/daily-e2e-tests.yml)
       TWILIO_ACCOUNT_SID:
-        required: true
+        required: false
       TWILIO_AUTH_TOKEN:
-        required: true
+        required: false
       TWILIO_PHONE_NUMBER:
-        required: true
+        required: false
       TWILIO_VERIFY_SID:
-        required: true
+        required: false
       MAILSLURP_API_KEY:
-        required: true
+        required: false
 
 jobs:
   end-to-end-tests:
     # default "ubuntu-latest" runners only provide 2 CPU cores + 7GB of RAM. this seems to lead to HTTP 504s from
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     name: "Grafana: ${{ inputs.grafana-image-tag }}"
+    environment:
+      name: github-pages
+    permissions:
+      id-token: write
+      pages: "write"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -44,16 +51,28 @@ jobs:
           proc_trace_chart_show: false
           proc_trace_table_show: false
 
-      - name: Create k8s Kind Cluster
+      - name: Install Kind
         uses: helm/kind-action@v1.3.0
         with:
-          config: ./.github/kind.yml
+          config: ./dev/kind.yml
+          install_only: true
 
       - uses: actions/setup-node@v3
         with:
           node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
+
+      - name: Install Tilt
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+
+      - name: Install ctlptl
+        run: |
+          CTLPTL_VERSION="0.8.20"
+          CTLPTL_FILE_NAME="ctlptl.$CTLPTL_VERSION.linux.x86_64.tar.gz"
+          curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/$CTLPTL_FILE_NAME | \
+            tar -xzv -C /usr/local/bin ctlptl
 
       - name: Use cached frontend dependencies
         id: cache-frontend-dependencies
@@ -79,35 +98,6 @@ jobs:
         working-directory: grafana-plugin
         run: yarn build:dev
 
-      - name: Set up Docker Buildx # We need this step for docker caching
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build engine Docker image locally # using github actions docker cache
-        uses: docker/build-push-action@v4
-        with:
-          context: ./engine
-          file: ./engine/Dockerfile
-          push: false
-          load: true
-          tags: oncall/engine:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/oncall-engine.tar
-
-      - name: Load engine Docker image on the nodes of the cluster
-        run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
-
-      - name: Install helm chart
-        run: |
-          helm install oncall-ci \
-            --values ./.github/helm-values.yml \
-            --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
-            --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
-            --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
-            --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
-            --set grafana.image.tag=${{ inputs.grafana-image-tag }} \
-            ./helm/oncall
-
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
       - name: Get installed Playwright version
@@ -122,93 +112,56 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.cache/ms-playwright"
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
-      # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
-      # due to this bug (https://github.com/microsoft/playwright/issues/13188)
-      - name: Install Playwright Browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: ./node_modules/.bin/playwright install --with-deps ${{ inputs.browsers }}
-
-      # use the cached browsers, but we still need to install the necessary system dependencies
-      # (system deps are installed in the cache-miss step above by the --with-deps flag)
-      - name: Install Playwright System Dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        working-directory: grafana-plugin
-        run: ./node_modules/.bin/playwright install-deps ${{ inputs.browsers }}
-
-      # we could instead use the --wait flag for the helm install command above
-      # but there's no reason to block on that step
-      # instead we can let the k8s resources start up behind the scenes and do other
-      # setup tasks (ex. install playwright + its dependencies)
-      - name: Wait until k8s resources are ready
+      - name: Create cluster
         run: |
-          kubectl rollout status deployment/oncall-ci-grafana --timeout=300s
-          kubectl rollout status deployment/oncall-ci-engine --timeout=300s
-          kubectl rollout status deployment/oncall-ci-celery --timeout=300s
+          make cluster/up
 
-      - name: Run e2e Tests
+      - name: Install Playwright deps
+        uses: docker://mcr.microsoft.com/playwright:next-jammy
+
+      - name: Tilt CI
+        shell: bash
         env:
-          # BASE_URL represents what is accessed via a browser
-          BASE_URL: http://localhost:30002/grafana
-          # ONCALL_API_URL is what is configured in the plugin configuration form
-          # it is what the grafana container uses to communicate with the OnCall backend
-          #
-          # 172.17.0.1 is the docker bridge network default gateway. Requests originate in the grafana container
-          # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
-          # to the OnCall API
-          ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_ADMIN_USERNAME: oncall
-          GRAFANA_ADMIN_PASSWORD: oncall
-          GRAFANA_EDITOR_USERNAME: editor
-          GRAFANA_EDITOR_PASSWORD: editor
-          GRAFANA_VIEWER_USERNAME: viewer
-          GRAFANA_VIEWER_PASSWORD: viewer
-          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
-        working-directory: ./grafana-plugin
-        run: yarn test:e2e
+        run: tilt ci
 
-      - name: Run expensive e2e Tests
+      - name: Tilt CI - expensive E2E tests
         if: inputs.run-expensive-tests
+        shell: bash
         env:
-          BASE_URL: http://localhost:30002/grafana
-          ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_ADMIN_USERNAME: oncall
-          GRAFANA_ADMIN_PASSWORD: oncall
-          GRAFANA_EDITOR_USERNAME: editor
-          GRAFANA_EDITOR_PASSWORD: editor
-          GRAFANA_VIEWER_USERNAME: viewer
-          GRAFANA_VIEWER_PASSWORD: viewer
+          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
+          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-        working-directory: ./grafana-plugin
-        run: yarn test:e2e-expensive
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          # wrapping single quotes are required to prevent stripping leading "+" from the number
+          TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
+          TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
+        run: tilt ci
 
-      # spit out the engine, celery, and grafana logs, if the the e2e tests have failed (or were flaky)
-      # can be helpful for debugging these tests
-      # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
-      - name: oncall-engine logs
-        if: always()
-        uses: jupyterhub/action-k8s-namespace-report@v1
-        with:
-          important-workloads: deploy/oncall-ci-engine
-
-      - name: oncall-celery logs
-        if: always()
-        uses: jupyterhub/action-k8s-namespace-report@v1
-        with:
-          important-workloads: deploy/oncall-ci-celery
-
-      - name: grafana logs
-        if: always()
-        uses: jupyterhub/action-k8s-namespace-report@v1
-        with:
-          important-workloads: deploy/oncall-ci-grafana
-
-      - uses: actions/upload-artifact@v3
+      - name: Setup Pages
         if: failure()
+        uses: actions/configure-pages@v2
+
+      - name: Upload artifact
+        if: failure()
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: playwright-report
           path: ./grafana-plugin/playwright-report/
-          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: failure()
+        id: deployment
+        uses: actions/deploy-pages@v3
+        with:
+          preview: true
+
+      - name: Linked Github Page
+        if: failure()
+        run: |
+          echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" \
+          >> $GITHUB_STEP_SUMMARY

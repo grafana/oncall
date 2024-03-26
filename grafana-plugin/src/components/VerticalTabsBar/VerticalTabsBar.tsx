@@ -20,7 +20,7 @@ interface VerticalTabsBarProps {
   onChange: (id: string) => void;
 }
 
-const VerticalTabsBar = (props: VerticalTabsBarProps) => {
+export const VerticalTabsBar = (props: VerticalTabsBarProps) => {
   const { children, activeTab, onChange } = props;
 
   const getClickHandler = (id: string) => {
@@ -45,5 +45,3 @@ const VerticalTabsBar = (props: VerticalTabsBarProps) => {
     </div>
   );
 };
-
-export default VerticalTabsBar;

@@ -1,13 +1,14 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
-import { ServiceLabels, ServiceLabelsProps } from '@grafana/labels';
+import { ServiceLabelsProps, ServiceLabels } from '@grafana/labels';
 import { Field, Label } from '@grafana/ui';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import { splitToGroups } from 'models/label/label.helpers';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
+import { openErrorNotification } from 'utils/utils';
 
 export interface LabelsProps {
   value: LabelKeyValue[];
@@ -16,7 +17,7 @@ export interface LabelsProps {
   description?: React.ComponentProps<typeof Label>['description'];
 }
 
-const Labels = observer(
+const _Labels = observer(
   forwardRef(function Labels2(props: LabelsProps, ref) {
     const { value: defaultValue, errors: propsErrors, onDataUpdate, description } = props;
 
@@ -46,20 +47,32 @@ const Labels = observer(
       [value]
     );
 
-    const cachedOnLoadKeys = useCallback(() => {
+    const onLoadKeys = async (search?: string) => {
       let result = undefined;
-      return async (search?: string) => {
-        if (!result) {
-          try {
-            result = await labelsStore.loadKeys();
-          } catch (error) {
-            openErrorNotification('There was an error processing your request. Please try again');
-          }
-        }
+      try {
+        result = await labelsStore.loadKeys(search);
+      } catch (error) {
+        openErrorNotification('There was an error processing your request. Please try again');
+      }
 
-        return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-      };
-    }, []);
+      const groups = splitToGroups(result);
+
+      return groups;
+    };
+
+    const onLoadValuesForKey = async (key: string, search?: string) => {
+      let result = undefined;
+      try {
+        const { values } = await labelsStore.loadValuesForKey(key, search);
+        result = values;
+      } catch (error) {
+        openErrorNotification('There was an error processing your request. Please try again');
+      }
+
+      const groups = splitToGroups(result);
+
+      return groups;
+    };
 
     const isValid = () => {
       return (
@@ -86,30 +99,14 @@ const Labels = observer(
       );
     };
 
-    const cachedOnLoadValuesForKey = useCallback(() => {
-      let result = undefined;
-      return async (key: string, search?: string) => {
-        if (!result) {
-          try {
-            const { values } = await labelsStore.loadValuesForKey(key, search);
-            result = values;
-          } catch (error) {
-            openErrorNotification('There was an error processing your request. Please try again');
-          }
-        }
-
-        return result.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
-      };
-    }, []);
-
     return (
       <div>
         <Field label={<Label description={<div className="u-padding-vertical-xs">{description}</div>}>Labels</Label>}>
           <ServiceLabels
             loadById
             value={value}
-            onLoadKeys={cachedOnLoadKeys()}
-            onLoadValuesForKey={cachedOnLoadValuesForKey()}
+            onLoadKeys={onLoadKeys}
+            onLoadValuesForKey={onLoadValuesForKey}
             onCreateKey={labelsStore.createKey}
             onUpdateKey={labelsStore.updateKey}
             onCreateValue={labelsStore.createValue}
@@ -118,6 +115,8 @@ const Labels = observer(
             onUpdateError={onUpdateError}
             errors={isValid() ? {} : { ...propsErrors }}
             onDataUpdate={onChange}
+            getIsKeyEditable={(option) => !option.prescribed}
+            getIsValueEditable={(option) => !option.prescribed}
           />
         </Field>
       </div>
@@ -133,4 +132,4 @@ function onUpdateError(res) {
   }
 }
 
-export default React.memo(Labels);
+export const Labels = React.memo(_Labels);

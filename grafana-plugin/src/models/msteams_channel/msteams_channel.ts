@@ -1,8 +1,8 @@
 import { action, computed, observable, makeObservable, runInAction } from 'mobx';
 
-import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
-import { RootStore } from 'state';
+import { BaseStore } from 'models/base_store';
+import { makeRequest } from 'network/network';
+import { RootStore } from 'state/rootStore';
 
 import { MSTeamsChannel } from './msteams_channel.types';
 
@@ -26,7 +26,7 @@ export class MSTeamsChannelStore extends BaseStore {
     this.path = '/msteams/channels/';
   }
 
-  @action
+  @action.bound
   async updateMSTeamsChannels() {
     const response = await makeRequest(this.path, {});
 
@@ -48,7 +48,7 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateById(id: MSTeamsChannel['id']) {
     const response = await this.getById(id);
 
@@ -60,7 +60,7 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  @action
+  @action.bound
   async updateItems(query = '') {
     const result = await this.getAll();
 
@@ -83,12 +83,12 @@ export class MSTeamsChannelStore extends BaseStore {
     });
   }
 
-  getSearchResult(query = '') {
+  getSearchResult = (query = '') => {
     if (!this.searchResult[query]) {
       return undefined;
     }
     return this.searchResult[query].map((msteamsChannelId: MSTeamsChannel['id']) => this.items[msteamsChannelId]);
-  }
+  };
 
   @computed
   get hasItems() {

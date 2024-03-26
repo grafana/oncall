@@ -4,7 +4,7 @@ import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup } from
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { openNotification } from 'utils';
+import { openNotification } from 'utils/utils';
 
 import styles from './Text.module.scss';
 
@@ -37,7 +37,7 @@ const PLACEHOLDER = '**********';
 
 const cx = cn.bind(styles);
 
-const Text: TextInterface = (props) => {
+export const Text: TextInterface = (props) => {
   const {
     type,
     size = 'medium',
@@ -177,5 +177,3 @@ const Title: FC<TitleProps> = (props) => {
 };
 
 Text.Title = Title;
-
-export default Text;

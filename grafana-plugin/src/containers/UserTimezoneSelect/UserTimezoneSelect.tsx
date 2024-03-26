@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
@@ -8,6 +8,7 @@ import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from './UserTimezoneSelect.module.css';
@@ -24,9 +25,9 @@ interface UserTimezoneSelectProps {
   scheduleId?: string;
 }
 
-const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
+export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
   const store = useStore();
-  const users = store.userStore.getSearchResult().results || [];
+  const users = UserHelper.getSearchResult(store.userStore).results || [];
 
   const [extraOptions, setExtraOptions] = useState<TimezoneOption[]>([
     {
@@ -65,6 +66,8 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }
     );
   }, [users, extraOptions]);
 
+  const selectedOption = options.find(({ value }) => value === store.timezoneStore.selectedTimezoneOffset);
+
   const filterOption = useCallback((item: SelectableValue<number>, searchQuery: string) => {
     const { data } = item;
 
@@ -75,6 +78,12 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }
       return data[key]?.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedOption?.value) {
+      store.timezoneStore.setSelectedTimezoneOffset(selectedOption.value);
+    }
+  }, [options]);
 
   const handleCreateOption = useCallback(
     (value: string) => {
@@ -109,7 +118,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }
   return (
     <div className={cx('root')} data-testid="timezone-select">
       <Select
-        value={options.find(({ value }) => value === store.timezoneStore.selectedTimezoneOffset)}
+        value={selectedOption}
         onChange={(option) => store.timezoneStore.setSelectedTimezoneOffset(option.value)}
         width={30}
         options={options}
@@ -129,5 +138,3 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }
     </div>
   );
 });
-
-export default UserTimezoneSelect;

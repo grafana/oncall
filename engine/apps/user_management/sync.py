@@ -183,7 +183,17 @@ def delete_organization_if_needed(organization: Organization) -> bool:
 def cleanup_organization(organization_pk: int) -> None:
     logger.info(f"Start cleanup Organization {organization_pk}")
     try:
-        organization = Organization.objects.get(pk=organization_pk)
+        organization = Organization.objects_with_deleted.get(pk=organization_pk)
+
+        from apps.grafana_plugin.tasks.sync import cleanup_empty_deleted_integrations
+
+        cleanup_empty_deleted_integrations.apply_async(
+            (
+                organization.pk,
+                False,
+            ),
+        )
+
         if delete_organization_if_needed(organization):
             logger.info(
                 f"Deleting organization due to stack deletion. "
@@ -191,5 +201,6 @@ def cleanup_organization(organization_pk: int) -> None:
             )
         else:
             logger.info(f"Organization {organization_pk} not deleted in gcom, no action taken")
+
     except Organization.DoesNotExist:
         logger.info(f"Organization {organization_pk} was not found")

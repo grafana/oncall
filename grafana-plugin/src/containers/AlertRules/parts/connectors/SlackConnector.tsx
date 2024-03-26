@@ -1,20 +1,17 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, InlineSwitch } from '@grafana/ui';
+import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
-import GSelect from 'containers/GSelect/GSelect';
+import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization/authorization';
 
-import styles from './index.module.css';
+import styles from './Connectors.module.css';
 
 const cx = cn.bind(styles);
 
@@ -22,13 +19,14 @@ interface SlackConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
+export const SlackConnector = (props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
   const {
     organizationStore: { currentOrganization },
     alertReceiveChannelStore,
+    slackChannelStore,
   } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -56,59 +54,41 @@ const SlackConnector = (props: SlackConnectorProps) => {
         </div>
         Slack Channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <GSelect
+          <GSelect<SlackChannel>
             showSearch
             allowClear
             className={cx('select', 'control')}
-            modelName="slackChannelStore"
+            items={slackChannelStore.items}
+            fetchItemsFn={slackChannelStore.updateItems}
+            fetchItemFn={slackChannelStore.updateItem}
+            getSearchResult={getSearchResult}
             displayField="display_name"
             valueField="id"
             placeholder="Select Slack Channel"
             value={channelFilter.slack_channel?.id || currentOrganization?.slack_channel?.id}
+            // prevent showing it as General (Default) when already selected
+            parseDisplayName={(label) => label.replace(` (Default)`, '')}
             onChange={handleSlackChannelChange}
             nullItemName={PRIVATE_CHANNEL_NAME}
           />
         </WithPermissionControlTooltip>
-        <HorizontalGroup>
-          {Boolean(
-            channelFilter.slack_channel?.id &&
-              currentOrganization?.slack_channel?.id &&
-              channelFilter.slack_channel?.id !== currentOrganization?.slack_channel?.id
-          ) ? (
-            <Text type="secondary">
-              default slack channel is <Text strong>#{getSlackChannelName(currentOrganization?.slack_channel)}</Text>{' '}
-              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  fill="text"
-                  onClick={() => {
-                    handleSlackChannelChange(
-                      currentOrganization?.slack_channel?.id,
-                      currentOrganization?.slack_channel
-                    );
-                  }}
-                >
-                  Use it here
-                </Button>
-              </WithPermissionControlTooltip>
-            </Text>
-          ) : currentOrganization?.slack_channel?.id ? (
-            <Text type="secondary">
-              This is the default slack channel{' '}
-              <PluginLink query={{ page: 'chat-ops' }} disabled={!isUserActionAllowed(UserActions.ChatOpsWrite)}>
-                <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-                  <Button variant="primary" size="sm" fill="text">
-                    Change in Slack settings
-                  </Button>
-                </WithPermissionControlTooltip>
-              </PluginLink>
-            </Text>
-          ) : null}
-        </HorizontalGroup>
       </HorizontalGroup>
     </div>
   );
-};
 
-export default SlackConnector;
+  function getSearchResult(query = ''): SlackChannel[] {
+    const results = slackChannelStore.getSearchResult(query);
+    const defaultChannelId = currentOrganization?.slack_channel?.id;
+
+    if (defaultChannelId) {
+      // if there's any default channel id, put it first in the list
+      const defaultChannel = results.find((res) => res.id === defaultChannelId);
+      const newList = results.filter((channel) => channel.id !== defaultChannelId);
+      defaultChannel.display_name += ` (Default)`;
+      newList.unshift(defaultChannel);
+      return newList;
+    }
+
+    return results;
+  }
+};

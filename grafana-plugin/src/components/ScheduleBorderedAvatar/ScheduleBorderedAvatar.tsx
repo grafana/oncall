@@ -14,7 +14,7 @@ interface ScheduleBorderedAvatarProps {
   renderIcon: () => JSX.Element;
 }
 
-export default function ScheduleBorderedAvatar({
+export const ScheduleBorderedAvatar = function ({
   colors,
   renderAvatar,
   renderIcon,
@@ -74,4 +74,4 @@ export default function ScheduleBorderedAvatar({
       return <path key={colorIndex} d={d} stroke={colors[colorIndex]} />;
     });
   }
-}
+};

@@ -12,9 +12,15 @@ class LoaderStoreClass {
     makeObservable(this);
   }
 
-  @action
-  setLoadingAction(actionKey: string, isLoading: boolean) {
-    this.items[actionKey] = isLoading;
+  @action.bound
+  setLoadingAction(actionKey: string | string[], isLoading: boolean) {
+    if (Array.isArray(actionKey)) {
+      actionKey.forEach((key) => {
+        this.items[key] = isLoading;
+      });
+    } else {
+      this.items[actionKey] = isLoading;
+    }
   }
 
   isLoading(actionKey: string): boolean {

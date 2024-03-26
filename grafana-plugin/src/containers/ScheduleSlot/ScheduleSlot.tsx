@@ -5,14 +5,14 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import { Avatar } from 'components/Avatar/Avatar';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Text from 'components/Text/Text';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
+import { Text } from 'components/Text/Text';
+import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
-import { getOffsetOfCurrentUser, getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import { getTitle } from './ScheduleSlot.helpers';
@@ -32,8 +32,12 @@ interface ScheduleSlotProps {
 }
 
 const cx = cn.bind(styles);
+const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
-const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
+export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
+  const {
+    timezoneStore: { getDateInSelectedTimezone },
+  } = useStore();
   const {
     event,
     color,
@@ -46,14 +50,12 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     showScheduleNameAsSlotTitle,
   } = props;
 
-  const start = dayjs(event.start);
-  const end = dayjs(event.end);
+  const start = getDateInSelectedTimezone(event.start);
+  const end = getDateInSelectedTimezone(event.end);
 
-  const duration = end.diff(start, 'seconds');
+  const durationInSeconds = end.diff(start, 'seconds');
 
-  const base = 60 * 60 * 24 * 7;
-
-  const width = Math.max(duration / base, 0);
+  const width = Math.max(durationInSeconds / ONE_WEEK_IN_SECONDS, 0);
 
   const currentMoment = useMemo(() => dayjs(), []);
 
@@ -90,7 +92,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         onShiftSwapClick={onShiftSwapClick}
         filters={filters}
         start={start}
-        duration={duration}
+        duration={durationInSeconds}
         color={color}
         currentMoment={currentMoment}
         showScheduleNameAsSlotTitle={showScheduleNameAsSlotTitle}
@@ -104,8 +106,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     </div>
   );
 });
-
-export default ScheduleSlot;
 
 interface ShiftSwapEventProps {
   event: Event;
@@ -124,13 +124,13 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
 
   useEffect(() => {
     if (shiftSwap?.beneficiary && !store.userStore.items[shiftSwap.beneficiary.pk]) {
-      store.userStore.updateItem(shiftSwap.beneficiary.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.beneficiary.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.beneficiary]);
 
   useEffect(() => {
     if (shiftSwap?.benefactor && !store.userStore.items[shiftSwap.benefactor.pk]) {
-      store.userStore.updateItem(shiftSwap.benefactor.pk);
+      store.userStore.fetchItemById({ userPk: shiftSwap.benefactor.pk, skipIfAlreadyPending: true });
     }
   }, [shiftSwap?.benefactor]);
 
@@ -312,7 +312,7 @@ const RegularEvent = (props: RegularEventProps) => {
 };
 
 interface ScheduleSlotDetailsProps {
-  user: User;
+  user: ApiSchemas['User'];
   isOncall?: boolean;
   event: Event;
   handleAddOverride?: (event: React.SyntheticEvent) => void;
@@ -413,7 +413,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
-            <br />({getTzOffsetString(currentMoment.tz(user?.timezone))})
+            <br />({user?.timezone})
           </Text>
           <Text type="secondary" data-testid="schedule-slot-current-timezone">
             Current timezone
@@ -429,9 +429,9 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           <Text type="primary" className={cx('second-column')}>
             This shift
             <br />
-            {dayjs(event.start).utcOffset(getOffsetOfCurrentUser()).format('DD MMM, HH:mm')}
+            {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}
             <br />
-            {dayjs(event.end).utcOffset(getOffsetOfCurrentUser()).format('DD MMM, HH:mm')}
+            {dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}
           </Text>
           <Text type="secondary">
             &nbsp; <br />

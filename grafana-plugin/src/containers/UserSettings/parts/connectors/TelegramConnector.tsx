@@ -1,18 +1,19 @@
 import React, { useCallback } from 'react';
 
 import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { User } from 'models/user/user.types';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 interface TelegramConnectorProps {
-  id: User['pk'];
+  id: ApiSchemas['User']['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const TelegramConnector = (props: TelegramConnectorProps) => {
+export const TelegramConnector = observer((props: TelegramConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -58,6 +59,4 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
       </InlineField>
     </div>
   );
-};
-
-export default TelegramConnector;
+});

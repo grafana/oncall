@@ -79,14 +79,18 @@ def test_initial_state(
 @pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
 @pytest.mark.django_db
 def test_initial_unauthorized(make_organization_and_user_with_slack_identities, role):
-    _, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(role=role)
+    _, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(role=role)
     payload = {"channel_id": "123", "trigger_id": "111"}
 
-    step = StartDirectPaging(slack_team_identity, user=user)
-    with patch.object(step, "open_unauthorized_warning") as mock_open_unauthorized_warning:
+    step = StartDirectPaging(slack_team_identity)
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    mock_open_unauthorized_warning.assert_called_once()
+    view = mock_slack_api_call.call_args.kwargs["view"]
+    assert (
+        view["blocks"][0]["text"]["text"]
+        == ":warning: You do not have permission to perform this action.\nAsk an admin to upgrade your permissions."
+    )
 
 
 @pytest.mark.django_db
@@ -253,11 +257,15 @@ def test_trigger_paging_unauthorized(make_organization_and_user_with_slack_ident
     )
     payload = make_slack_payload(organization=organization)
 
-    step = FinishDirectPaging(slack_team_identity, user=user)
-    with patch.object(step, "open_unauthorized_warning") as mock_open_unauthorized_warning:
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+    step = FinishDirectPaging(slack_team_identity)
+    with patch.object(step._slack_client, "api_call"):
+        response = step.process_scenario(slack_user_identity, slack_team_identity, payload)
+    response = response.data
 
-    mock_open_unauthorized_warning.assert_called_once()
+    assert response["response_action"] == "update"
+    assert (
+        response["view"]["blocks"][0]["text"]["text"] == ":no_entry: You do not have permission to perform this action."
+    )
 
 
 @pytest.mark.django_db

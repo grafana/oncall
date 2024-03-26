@@ -4,12 +4,12 @@ import { Button, HorizontalGroup, Label, Legend, LinkButton, LoadingPlaceholder,
 import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
-import PluginState, { PluginStatusResponseBase } from 'state/plugin';
+import { PluginState, PluginStatusResponseBase } from 'state/plugin/plugin';
 import { FALLBACK_LICENSE, getOnCallApiUrl, GRAFANA_LICENSE_OSS, hasPluginBeenConfigured } from 'utils/consts';
 
-import ConfigurationForm from './parts/ConfigurationForm';
-import RemoveCurrentConfigurationButton from './parts/RemoveCurrentConfigurationButton';
-import StatusMessageBlock from './parts/StatusMessageBlock';
+import { ConfigurationForm } from './parts/ConfigurationForm/ConfigurationForm';
+import { RemoveCurrentConfigurationButton } from './parts/RemoveCurrentConfigurationButton/RemoveCurrentConfigurationButton';
+import { StatusMessageBlock } from './parts/StatusMessageBlock/StatusMessageBlock';
 
 const PLUGIN_CONFIGURED_QUERY_PARAM = 'pluginConfigured';
 const PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE = 'true';
@@ -44,7 +44,7 @@ export const removePluginConfiguredQueryParams = (pluginIsEnabled: boolean): voi
   }
 };
 
-const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
+export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   plugin: {
     meta,
     meta: { enabled: pluginIsEnabled },
@@ -218,10 +218,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     );
     content =
       licenseType === GRAFANA_LICENSE_OSS ? (
-        <HorizontalGroup>
-          {pluginLink}
-          <RemoveConfigButton />
-        </HorizontalGroup>
+        <div>
+          <HorizontalGroup>
+            {pluginLink}
+            <RemoveConfigButton />
+          </HorizontalGroup>
+        </div>
       ) : (
         <VerticalGroup>
           <Label>This is a cloud managed configuration.</Label>
@@ -246,5 +248,3 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     </>
   );
 };
-
-export default PluginConfigPage;

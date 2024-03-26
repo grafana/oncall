@@ -16,7 +16,7 @@ interface DaysSelectorProps {
   disabled?: boolean;
 }
 
-const DaysSelector = ({ value, onChange, options: optionsProp, weekStart, disabled }: DaysSelectorProps) => {
+export const DaysSelector = ({ value, onChange, options: optionsProp, weekStart, disabled }: DaysSelectorProps) => {
   const getDayClickHandler = (day: string) => {
     return () => {
       const newValue = [...value];
@@ -49,5 +49,3 @@ const DaysSelector = ({ value, onChange, options: optionsProp, weekStart, disabl
     </div>
   );
 };
-
-export default DaysSelector;

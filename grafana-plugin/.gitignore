@@ -15,6 +15,10 @@ yarn-error.log*
 grafana-plugin.yml
 
 # playwright
-/playwright-report/
+/playwright-report*
 /playwright/.cache/
 /e2e-tests/storageState.json
+
+# Jest test report
+jest_html_reporters.html
+jest-html-reporters*
