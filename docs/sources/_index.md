@@ -35,7 +35,7 @@ cards:
       height: 24
     - title: Integrations
       href: ./integrations/
-      description: Connect external alert sources, ChatOps tools, and much more to ensure alerts and updates are routed in and out of OnCall, regardless of the other tools in your workflow.
+      description: Connect external alert sources, ChatOps tools, and much more to ensure alerts and updates are routed to and from OnCall, regardless of the other tools in your workflow.
     - title: Manage on-call schedules
       href: ./manage/on-call-schedules/
       description: Create and manage on-call schedules, scheduled overrides, and shift swaps.
@@ -53,13 +53,13 @@ cards:
 ## Overview
 
 Respond to issues faster and improve your service reliability with Grafana OnCall.
-Integrated directly into Grafana Cloud, you can automatically routes alerts to designated on-call teams and ChatOps
+Integrated directly into Grafana Cloud, you can automatically route alerts to designated on-call teams and ChatOps
 channels according to predefined escalation policies, schedules, and notification preferences.
 
-Alleviate the burden of being on-call with customized schedules tailored to your team's availability and time zones.
+Alleviate the burden of being on-call with customized schedules tailored to your team's availability and timezones.
 Personalize notification settings to ensure individuals receive alerts through their preferred channels, such as SMS, mobile apps, or ChatOps platforms.
 
-Through automated alert routing and escalation, Grafana OnCall reduces incident response times, minimizes downtime and helps mitigate the impact of incidents.
+Through automated alert routing and escalation, Grafana OnCall reduces incident response time, minimizes downtime and helps mitigate the impact of incidents.
 
 ## Explore
 
