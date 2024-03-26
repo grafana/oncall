@@ -44,9 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Test
-        run: ${{ secrets.TWILIO_AUTH_TOKEN }} ${{ secrets.MAILSLURP_API_KEY }} ${{ secrets.TWILIO_VERIFY_SID }} ${{ secrets.TWILIO_ACCOUNT_SID }} ${{ secrets.TWILIO_PHONE_NUMBER }}
-
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
         with:
