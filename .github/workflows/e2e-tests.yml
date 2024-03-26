@@ -121,18 +121,19 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      - name: Tilt CI
+      - name: Tilt CI - standard E2E tests
         shell: bash
+        if: ${{ inputs.run-expensive-tests == false }}
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
         run: tilt ci
 
-      - name: Tilt CI - expensive E2E tests
+      - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
         shell: bash
         env:
-          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
+          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive && yarn test:e2e"
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
