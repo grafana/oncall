@@ -304,6 +304,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderIncidentFilters() {
     const { query, store } = this.props;
+    const defaultStart = moment().subtract(7, 'days');
+    const defaultEnd = moment().add(1, 'days');
     return (
       <div className={cx('filters')}>
         <RemoteFilters
@@ -318,6 +320,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             team: [],
             status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
             mine: false,
+            started_at: `${defaultStart.format('YYYY-MM-DDTHH:mm:ss')}/${defaultEnd.format('YYYY-MM-DDTHH:mm:ss')}`,
           }}
         />
       </div>
