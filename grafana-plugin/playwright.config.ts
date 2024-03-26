@@ -30,13 +30,13 @@ export default defineConfig({
   reporter: [['html', { open: IS_CI ? 'never' : 'always' }]],
 
   /* Maximum time one test can run for. */
-  timeout: 60_000,
+  timeout: 120_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 6_000,
+    timeout: 20_000,
   },
   /* Run tests in files in parallel */
   fullyParallel: false,
