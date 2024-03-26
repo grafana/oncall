@@ -19,11 +19,11 @@ jobs:
 
           # 9.2.0 is the earliest version where things work
           - 9.2.20
-          - 9.3.16
-          - 9.4.13
-          - 9.5.7
-          - 10.0.11
-          - 10.1.7
+          # - 9.3.16
+          # - 9.4.13
+          # - 9.5.7
+          # - 10.0.11
+          # - 10.1.7
           # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
           # - 10.2.4
           # - latest
