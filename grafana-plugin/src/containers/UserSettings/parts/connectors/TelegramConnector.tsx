@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
@@ -12,7 +13,7 @@ interface TelegramConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const TelegramConnector = (props: TelegramConnectorProps) => {
+export const TelegramConnector = observer((props: TelegramConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -58,4 +59,4 @@ export const TelegramConnector = (props: TelegramConnectorProps) => {
       </InlineField>
     </div>
   );
-};
+});
