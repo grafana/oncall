@@ -484,10 +484,15 @@ class User(models.Model):
         )
         if created:
             self.google_calendar_settings = {
-                "create_shift_swaps_automatically": True,
                 "specific_oncall_schedules_to_sync": [],
             }
             self.save(update_fields=["google_calendar_settings"])
+
+    def finish_google_oauth2_disconnection_flow(self) -> None:
+        GoogleOAuth2User.objects.filter(user=self).delete()
+
+        self.google_calendar_settings = None
+        self.save(update_fields=["google_calendar_settings"])
 
 
 # TODO: check whether this signal can be moved to save method of the model

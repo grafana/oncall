@@ -19,3 +19,9 @@ def persist_access_and_refresh_tokens(backend: typing.Type[BaseAuth], response: 
     https://medium.com/starthinker/google-oauth-2-0-access-token-and-refresh-token-explained-cccf2fc0a6d9
     """
     user.finish_google_oauth2_connection_flow(response)
+
+
+def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user: User, *args, **kwargs):
+    # 2nd argument, uid, is not needed for GoogleOauth2 backend
+    backend.revoke_token(user.google_oauth2_user.access_token, "")
+    user.finish_google_oauth2_disconnection_flow()

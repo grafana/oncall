@@ -153,7 +153,6 @@ def test_update_user_google_calendar_settings(
     )
     data = {
         "google_calendar_settings": {
-            "create_shift_swaps_automatically": True,
             "specific_oncall_schedules_to_sync": schedule_public_primary_keys,
         },
     }
@@ -161,7 +160,6 @@ def test_update_user_google_calendar_settings(
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["google_calendar_settings"] == {
-        "create_shift_swaps_automatically": True,
         "specific_oncall_schedules_to_sync": schedule_public_primary_keys,
     }
 

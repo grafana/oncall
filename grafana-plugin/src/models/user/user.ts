@@ -138,11 +138,6 @@ export class UserStore {
     await this.fetchItemById({ userPk });
   }
 
-  async unlinkGoogle(userPk: ApiSchemas['User']['pk']) {
-    //await onCallApi().POST('/users/{id}/unlink_google/', {}); // TODO implement
-    await this.fetchItemById({ userPk });
-  }
-
   async unlinkBackend(userPk: ApiSchemas['User']['pk'], backend: string) {
     await onCallApi().POST('/users/{id}/unlink_backend/', { params: { path: { id: userPk }, query: { backend } } });
     this.loadCurrentUser();

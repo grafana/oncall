@@ -32,17 +32,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
     });
   };
 
-  const handleCreateShiftSwapsAutomaticallyChange = (event) => {
-    setGoogleCalendarSettings((v) => ({ ...v, create_shift_swaps_automatically: event.target.checked }));
-
-    userStore.updateCurrentUser({
-      google_calendar_settings: {
-        ...googleCalendarSettings,
-        create_shift_swaps_automatically: event.target.checked,
-      },
-    });
-  };
-
   return (
     <VerticalGroup>
       <Block bordered style={{ width: '100%' }}>
@@ -60,7 +49,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                   <GoogleLogo width={24} height={24} />
                   <Text>Google calendar is connected</Text>
                 </HorizontalGroup>
-                <Button variant="destructive" fill="outline" onClick={UserHelper.handleOpenGoogleInstructions}>
+                <Button variant="destructive" fill="outline" onClick={UserHelper.handleDisconnectGoogle}>
                   Disconnect
                 </Button>
               </HorizontalGroup>
@@ -71,7 +60,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                 <GoogleLogo width={32} height={32} />
                 <Text>Connect using your Google account</Text>
               </HorizontalGroup>
-              <Button variant="secondary" onClick={UserHelper.handleOpenGoogleInstructions}>
+              <Button variant="secondary" onClick={UserHelper.handleConnectGoogle}>
                 Connect
               </Button>
             </HorizontalGroup>
@@ -79,13 +68,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
 
           <Divider />
 
-          <InlineSwitch
-            showLabel
-            label="Create shift swap requests automatically"
-            value={googleCalendarSettings?.create_shift_swaps_automatically}
-            transparent
-            onChange={handleCreateShiftSwapsAutomaticallyChange}
-          />
           <InlineSwitch
             showLabel
             label="Specify the schedules to sync with Google calendar"

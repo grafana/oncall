@@ -271,7 +271,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    get: operations['alert_receive_channels_status_options_list'];
+    get: operations['alert_receive_channels_status_options_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -849,6 +849,39 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/complete/{backend}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Authentication complete view */
+    get: operations['complete_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/disconnect/{backend}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['disconnect_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/features/': {
     parameters: {
       query?: never;
@@ -1345,6 +1378,11 @@ export interface components {
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly permalinks: {
+        slack: string | null;
+        telegram: string | null;
+        web: string;
+      };
       readonly alerts: components['schemas']['Alert'][];
       readonly render_after_resolve_report_json: {
         time: string;
@@ -1361,11 +1399,6 @@ export interface components {
         };
       }[];
       readonly slack_permalink: string | null;
-      readonly permalinks: {
-        slack: string | null;
-        telegram: string | null;
-        web: string;
-      };
       /** Format: date-time */
       readonly last_alert_at: string;
       readonly paged_users: {
@@ -1450,6 +1483,11 @@ export interface components {
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly permalinks: {
+        slack: string | null;
+        telegram: string | null;
+        web: string;
+      };
     };
     AlertGroupResolve: {
       resolution_note?: string | null;
@@ -1548,10 +1586,6 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
-    };
-    AlertReceiveChannelBacksyncStatusOptions: {
-      value: string;
-      display_name: string;
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
@@ -1764,7 +1798,6 @@ export interface components {
       display_name: string;
     };
     GoogleCalendarSettings: {
-      create_shift_swaps_automatically: boolean;
       specific_oncall_schedules_to_sync?: string[] | null;
     };
     /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
@@ -2959,7 +2992,7 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_status_options_list: {
+  alert_receive_channels_status_options_retrieve: {
     parameters: {
       query?: never;
       header?: never;
@@ -2976,7 +3009,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelBacksyncStatusOptions'][];
+          'application/json': string[][];
         };
       };
     };
@@ -3778,6 +3811,46 @@ export interface operations {
         content: {
           'application/json': components['schemas']['AlertGroupStats'];
         };
+      };
+    };
+  };
+  complete_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  disconnect_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

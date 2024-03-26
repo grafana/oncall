@@ -6,6 +6,7 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { UserHelper } from 'models/user/user.helpers';
 
 interface GoogleConnectorProps {
   id: ApiSchemas['User']['pk'];
@@ -27,7 +28,8 @@ export const GoogleConnector = (props: GoogleConnectorProps) => {
   }, [onTabChange]);
 
   const handleUnlinkGoogleAccount = useCallback(() => {
-    userStore.unlinkGoogle(userStore.currentUserPk);
+    // TODO: finish setting this up properly
+    UserHelper.handleDisconnectGoogle();
   }, []);
 
   return (
