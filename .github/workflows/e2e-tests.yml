@@ -115,20 +115,20 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       - name: Create cluster
-        run: |
-          make cluster/up
+        run: make cluster/up
 
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      - name: Tilt CI
+      - name: Tilt CI - standard E2E tests
         shell: bash
+        if: ${{ inputs.run-expensive-tests == false }}
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
         run: tilt ci
 
-      - name: Tilt CI - expensive E2E tests
+      - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
         shell: bash
         env:
