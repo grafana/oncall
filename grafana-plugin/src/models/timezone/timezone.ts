@@ -23,7 +23,7 @@ export class TimezoneStore {
   calendarStartDate = getStartOfWeekBasedOnCurrentDate(this.currentDateInSelectedTimezone);
 
   @action.bound
-  async setSelectedTimezoneOffset(offset: number) {
+  setSelectedTimezoneOffset(offset: number) {
     this.selectedTimezoneOffset = offset;
     this.calendarStartDate = getStartOfWeekBasedOnCurrentDate(this.currentDateInSelectedTimezone);
   }
