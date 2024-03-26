@@ -132,7 +132,7 @@ jobs:
         if: inputs.run-expensive-tests
         shell: bash
         env:
-          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive && yarn test:e2e"
+          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
