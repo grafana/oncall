@@ -49,7 +49,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                   <GoogleLogo width={24} height={24} />
                   <Text>Google calendar is connected</Text>
                 </HorizontalGroup>
-                <Button variant="destructive" fill="outline" onClick={UserHelper.handleOpenGoogleInstructions}>
+                <Button variant="destructive" fill="outline" onClick={UserHelper.handleDisconnectGoogle}>
                   Disconnect
                 </Button>
               </HorizontalGroup>
@@ -60,7 +60,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                 <GoogleLogo width={32} height={32} />
                 <Text>Connect using your Google account</Text>
               </HorizontalGroup>
-              <Button variant="secondary" onClick={UserHelper.handleOpenGoogleInstructions}>
+              <Button variant="secondary" onClick={UserHelper.handleConnectGoogle}>
                 Connect
               </Button>
             </HorizontalGroup>

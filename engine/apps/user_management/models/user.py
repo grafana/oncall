@@ -488,6 +488,12 @@ class User(models.Model):
             }
             self.save(update_fields=["google_calendar_settings"])
 
+    def finish_google_oauth2_disconnection_flow(self) -> None:
+        GoogleOAuth2User.objects.filter(user=self).delete()
+
+        self.google_calendar_settings = None
+        self.save(update_fields=["google_calendar_settings"])
+
 
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)

@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
-from social_core.actions import do_auth, do_complete
+from social_core.actions import do_auth, do_complete, do_disconnect
 from social_core.backends.google import GoogleOAuth2
 from social_django.utils import psa
 from social_django.views import _do_login
@@ -74,3 +74,13 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
         # We build the frontend url using org url since multiple stacks could be connected to one backend.
         return_to = urljoin(request.user.organization.grafana_url, redirect_to)
     return HttpResponseRedirect(return_to)
+
+
+@api_view(["GET"])
+@authentication_classes([PluginAuthentication])
+@never_cache
+@psa("social:disconnect")
+def overridden_disconnect_social_auth(request: Request, backend: str) -> Response:
+    if backend == "google-oauth2":
+        do_disconnect(request.backend, request.user)
+    return Response("ok", 200)
