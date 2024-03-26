@@ -11,7 +11,7 @@ test('we can verify our phone number + receive an SMS alert @expensive', async (
   const escalationChainName = generateRandomValue();
   const integrationName = generateRandomValue();
 
-  await goToGrafanaPage(page, 'settings');
+  await goToGrafanaPage(page, '/settings');
   await page.getByText('Env Variables').click();
   await page.waitForTimeout(3000);
 
