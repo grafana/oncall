@@ -5,7 +5,7 @@ name: Linting and Unit/e2e Tests
     branches:
       - main
       - dev
-  pull_request:
+  # pull_request: # TODO: revert
   # You can use the merge_group event to trigger your GitHub Actions workflow when
   # a pull request is added to a merge queue
   # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
@@ -318,7 +318,6 @@ jobs:
   end-to-end-tests:
     name: End to end tests
     uses: ./.github/workflows/e2e-tests.yml
-    secrets: inherit # TODO: revert
     with:
       # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
       grafana-image-tag: 10.1.7
