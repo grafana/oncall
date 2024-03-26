@@ -110,7 +110,9 @@ export class UserHelper {
 
   static async handleOpenGoogleInstructions() {
     // TODO: add openAPI schemas for /login/google-oauth2/ on the backend and regenerate schemas
+    // @ts-ignore TODO: remove this
     const { data } = await onCallApi().GET('/login/google-oauth2/', undefined);
+    // @ts-ignore TODO: remove this
     window.location = data;
   }
 }

@@ -32,7 +32,6 @@ class UserPermissionSerializer(serializers.Serializer):
 
 
 class GoogleCalendarSettingsSerializer(serializers.Serializer):
-    create_shift_swaps_automatically = serializers.BooleanField()
     # # TODO: figure out how to get OrganizationFilteredPrimaryKeyRelatedField to work with many=True
     # specific_oncall_schedules_to_sync =
     # specific_oncall_schedules_to_sync = serializers.ListField(

@@ -32,17 +32,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
     });
   };
 
-  const handleCreateShiftSwapsAutomaticallyChange = (event) => {
-    setGoogleCalendarSettings((v) => ({ ...v, create_shift_swaps_automatically: event.target.checked }));
-
-    userStore.updateCurrentUser({
-      google_calendar_settings: {
-        ...googleCalendarSettings,
-        create_shift_swaps_automatically: event.target.checked,
-      },
-    });
-  };
-
   return (
     <VerticalGroup>
       <Block bordered style={{ width: '100%' }}>
@@ -79,13 +68,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
 
           <Divider />
 
-          <InlineSwitch
-            showLabel
-            label="Create shift swap requests automatically"
-            value={googleCalendarSettings?.create_shift_swaps_automatically}
-            transparent
-            onChange={handleCreateShiftSwapsAutomaticallyChange}
-          />
           <InlineSwitch
             showLabel
             label="Specify the schedules to sync with Google calendar"
