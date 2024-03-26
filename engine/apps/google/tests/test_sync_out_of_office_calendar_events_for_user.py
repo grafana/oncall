@@ -106,7 +106,6 @@ def test_sync_out_of_office_calendar_events_for_user(
         # normally this 👇 is done via User.finish_google_oauth2_connection_flow.. but since we're creating
         # the user via a fixture we need to manually add this
         google_calendar_settings={
-            "create_shift_swaps_automatically": True,
             "specific_oncall_schedules_to_sync": [],
         },
     )
@@ -157,7 +156,3 @@ def test_sync_out_of_office_calendar_events_for_user_specific_schedules_to_sync_
     # TODO:
     pass
 
-
-def test_sync_out_of_office_calendar_events_for_user_create_shift_swaps_automatically_setting():
-    # TODO:
-    pass

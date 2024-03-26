@@ -44,38 +44,34 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
         )
 
         for schedule in users_schedules:
+            # print("Yooooo", start_time_utc, end_time_utc)
+
             _, _, upcoming_shifts = schedule.shifts_for_user(
                 user,
                 start_time_utc,
-                (start_time_utc - end_time_utc).days + 1,
+                datetime_end=end_time_utc,
             )
 
-            if not upcoming_shifts:
+            if upcoming_shifts:
                 logger.info(
-                    f"No upcoming shifts found for user {user_id} during the out of office event {event_id}"
+                    f"Found {len(upcoming_shifts)} upcoming shift(s) for user {user_id} "
+                    f"during the out of office event {event_id}"
                 )
-                continue
 
-            logger.info(
-                f"Found {len(upcoming_shifts)} upcoming shift(s) for user {user_id} "
-                f"during the out of office event {event_id}"
-            )
+                # print(upcoming_shifts)
 
-            if user_google_calendar_settings["create_shift_swaps_automatically"]:
+                # TODO: check if a shift swap request already exists for this user, schedule, and time range
                 ShiftSwapRequest.objects.create(
                     beneficiary=user,
                     schedule=schedule,
                     swap_start=start_time_utc,
                     swap_end=end_time_utc,
-                    # TODO: should we pull this from the event summary or just something like
-                    # {name} will be out of office during this time
-                    description=""
+                    description=f"{user.name or user.email} will be out of office during this time according to Google Calendar",
                 )
             else:
-                # TODO: user wants to have a say in the shift swap creation
-                # send Slack notification to the user, will be done in https://github.com/grafana/oncall-private/issues/2585
-                # send mobile app notification to the user, will be done in https://github.com/grafana/oncall-private/issues/2586
-                pass
+                logger.info(
+                    f"No upcoming shifts found for user {user_id} during the out of office event {event_id}"
+                )
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

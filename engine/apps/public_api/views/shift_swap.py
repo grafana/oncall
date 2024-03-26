@@ -85,8 +85,7 @@ class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
         return user
 
     def perform_create(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
-        beneficiary = self._get_user("beneficiary")
-        self._do_create(beneficiary=beneficiary, serializer=serializer)
+        serializer.save(beneficiary=self._get_user("beneficiary"))
 
     @action(methods=["post"], detail=True)
     def take(self, request: AuthenticatedRequest, pk: str) -> Response:
