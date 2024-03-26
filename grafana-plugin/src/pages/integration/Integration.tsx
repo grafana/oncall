@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { LabelTag } from '@grafana/labels';
 import {
@@ -48,6 +48,7 @@ import { IntegrationFormContainer } from 'containers/IntegrationForm/Integration
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
 import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
@@ -808,7 +809,7 @@ interface IntegrationActionsProps {
   changeIsTemplateSettingsOpen: () => void;
 }
 
-type IntegrationDrawerKey = 'servicenow';
+type IntegrationDrawerKey = 'servicenow' | 'completeConfig';
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
@@ -831,6 +832,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     onConfirm: () => void;
   }>(undefined);
 
+  const [isCompleteServiceNowConfigOpen, setIsCompleteServiceNowConfigOpen] = useState(false);
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
   const [isLabelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
@@ -843,6 +845,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   const { closeDrawer, openDrawer, getIsDrawerOpened } = useDrawer<IntegrationDrawerKey>();
 
   const { id } = alertReceiveChannel;
+
+  useEffect(() => {
+    /* ServiceNow Only */
+    openServiceNowCompleteConfigurationDrawer();
+  }, []);
 
   return (
     <>
@@ -868,7 +875,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={() => closeDrawer()} />}
+      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={closeDrawer} />}
+
+      {isCompleteServiceNowConfigOpen && (
+        <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />
+      )}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
@@ -1059,6 +1070,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       </div>
     </>
   );
+
+  function openServiceNowCompleteConfigurationDrawer() {
+    const isServiceNow = getIsBidirectionalIntegration(alertReceiveChannel);
+    const isConfigured = alertReceiveChannel.additional_settings?.is_configured;
+    if (isServiceNow && !isConfigured) {
+      setIsCompleteServiceNowConfigOpen(true);
+    }
+  }
 
   function getMigrationDisplayName() {
     const name = alertReceiveChannel.integration.toLowerCase().replace('legacy_', '');

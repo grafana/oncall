@@ -14,7 +14,7 @@ import {
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
-import { debounce, isEmpty, isUndefined, omitBy, pickBy } from 'lodash-es';
+import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
@@ -29,6 +29,7 @@ import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
+import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
@@ -102,7 +103,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
-    if (isEmpty(values)) {
+    if (allFieldsEmpty(values)) {
       ({ filters, values } = parseFilters(defaultFilters, filterOptions, query));
     }
 
