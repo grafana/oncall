@@ -1,8 +1,10 @@
 import { SelectableValue } from '@grafana/data';
 import { UseFormGetValues } from 'react-hook-form';
-import { ServiceNowFormFields } from './ServiceNowStatusSection';
-import { OnCallAGStatus } from 'utils/consts';
+
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
+import { OnCallAGStatus } from 'utils/consts';
+
+import { ServiceNowFormFields } from './ServiceNowStatusSection';
 
 export class ServiceNowHelper {
   static getAvailableStatusOptions({
