@@ -1,6 +1,5 @@
 name: Daily e2e tests
 "on":
-  pull_request:
   # allows manual run on github actions
   workflow_dispatch:
   schedule:
