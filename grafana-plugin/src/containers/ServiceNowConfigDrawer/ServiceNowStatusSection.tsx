@@ -11,6 +11,8 @@ import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab
 import { useStore } from 'state/useStore';
 import { OnCallAGStatus } from 'utils/consts';
 
+import { ServiceNowHelper } from './ServiceNowConfig.helpers';
+
 export interface ServiceNowStatusMapping {
   [OnCallAGStatus.Firing]?: string;
   [OnCallAGStatus.Resolved]?: string;
@@ -78,7 +80,11 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                     key="state_mapping.firing"
                     menuShouldPortal
                     className="select control"
-                    options={getAvailableStatusOptions(OnCallAGStatus.Firing)}
+                    options={ServiceNowHelper.getAvailableStatusOptions({
+                      getValues,
+                      currentAction: OnCallAGStatus.Firing,
+                      alertReceiveChannelStore,
+                    })}
                     onChange={(option: SelectableValue) => {
                       setValue(
                         'additional_settings.state_mapping.firing',
@@ -108,7 +114,11 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                     menuShouldPortal
                     className="select control"
                     disabled={false}
-                    options={getAvailableStatusOptions(OnCallAGStatus.Acknowledged)}
+                    options={ServiceNowHelper.getAvailableStatusOptions({
+                      getValues,
+                      currentAction: OnCallAGStatus.Acknowledged,
+                      alertReceiveChannelStore,
+                    })}
                     onChange={(option: SelectableValue) => {
                       setValue(
                         'additional_settings.state_mapping.acknowledged',
@@ -137,7 +147,11 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                     menuShouldPortal
                     className="select control"
                     disabled={false}
-                    options={getAvailableStatusOptions(OnCallAGStatus.Resolved)}
+                    options={ServiceNowHelper.getAvailableStatusOptions({
+                      getValues,
+                      currentAction: OnCallAGStatus.Resolved,
+                      alertReceiveChannelStore,
+                    })}
                     onChange={(option: SelectableValue) => {
                       setValue(
                         'additional_settings.state_mapping.resolved',
@@ -165,7 +179,11 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
                     menuShouldPortal
                     className="select control"
                     disabled={false}
-                    options={getAvailableStatusOptions(OnCallAGStatus.Silenced)}
+                    options={ServiceNowHelper.getAvailableStatusOptions({
+                      getValues,
+                      currentAction: OnCallAGStatus.Silenced,
+                      alertReceiveChannelStore,
+                    })}
                     onChange={(option: SelectableValue) => {
                       setValue(
                         'additional_settings.state_mapping.silenced',
@@ -183,23 +201,4 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
       </table>
     </VerticalGroup>
   );
-
-  function getAvailableStatusOptions(currentAction: OnCallAGStatus): SelectableValue[] {
-    const stateMapping = getValues()?.additional_settings?.state_mapping || {};
-    const keys = Object.keys(stateMapping);
-
-    // values are list of array-like values [label, id]
-    const values = keys
-      .map((k) => stateMapping[k])
-      .filter(Boolean)
-      .map((arr) => arr[1]);
-    const statusList = (alertReceiveChannelStore.serviceNowStatusList || []).map(([name, id]) => ({ id, name }));
-
-    return statusList
-      .filter((status) => values.indexOf(status.id) === -1 || stateMapping?.[currentAction]?.[0] === status.name)
-      .map((status) => ({
-        value: status.id,
-        label: status.name,
-      }));
-  }
 });
