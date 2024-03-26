@@ -115,8 +115,7 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       - name: Create cluster
-        run: |
-          make cluster/up
+        run: make cluster/up
 
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
