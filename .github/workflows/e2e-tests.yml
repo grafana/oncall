@@ -45,11 +45,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Test
-        run: >
-          echo "MATRIX: ${{ matrix }}" |
-          echo "MATRIX_JSON: ${{ toJSON(matrix) }}" |
-          echo: "SECRETS: ${{ secrets }}" |
-          echo: "SECRETS_JSON: ${{ toJSON(secrets) }}"
+        run: ${{ secrets.TWILIO_AUTH_TOKEN }} ${{ secrets.MAILSLURP_API_KEY }} ${{ secrets.TWILIO_VERIFY_SID }} ${{ secrets.TWILIO_ACCOUNT_SID }} ${{ secrets.TWILIO_PHONE_NUMBER }}
 
       # - name: Collect Workflow Telemetry
       #   uses: runforesight/workflow-telemetry-action@v1
