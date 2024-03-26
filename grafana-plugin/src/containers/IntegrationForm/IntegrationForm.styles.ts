@@ -52,6 +52,7 @@ export const getIntegrationFormStyles = (theme: GrafanaTheme2) => {
       align-items: center;
       gap: 8px;
       margin-bottom: 24px;
+      padding-top: 12px;
     `,
 
     labels: css`

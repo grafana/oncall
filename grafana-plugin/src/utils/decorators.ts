@@ -9,7 +9,7 @@ export function AutoLoadingState(actionKey: string) {
       LoaderStore.setLoadingAction(actionKey, true);
       nbOfPendingActions++;
       try {
-        await originalFunction.apply(this, args);
+        return await originalFunction.apply(this, args);
       } finally {
         nbOfPendingActions--;
         // if there are other pending actions with the same key, wait till the last one is done
