@@ -16,6 +16,7 @@ interface IntegrationInputFieldProps {
   className?: string;
   inputClassName?: string;
   iconsClassName?: string;
+  placeholder?: string;
 }
 
 const cx = cn.bind(styles);
@@ -27,6 +28,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   showCopy = true,
   showExternal = true,
   className,
+  placeholder = '',
   inputClassName = '',
   iconsClassName = '',
 }) => {
@@ -47,7 +49,14 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   );
 
   function renderInputField() {
-    return <Input className={inputClassName} value={isInputMasked ? value?.replace(/./g, '*') : value} disabled />;
+    return (
+      <Input
+        className={cx(inputClassName)}
+        value={isInputMasked ? value?.replace(/./g, '*') : value}
+        placeholder={placeholder}
+        disabled
+      />
+    );
   }
 
   function onInputReveal() {
