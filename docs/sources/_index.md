@@ -17,32 +17,32 @@ hero:
   image: /media/docs/grafana-cloud/alerting-and-irm/grafana-icon-oncall.svg
   width: 100
   height: 100
-  description: Grafana OnCall allows you to automate alert routing and escalation to ensure swift resolution and service reliability.
+  description: Grafana OnCall allows you to automate on-call management and alert escalation to ensure swift resolution and service reliability.
 cards:
   title_class: pt-0 lh-1
   items:
     - title: Introduction
       href: ./intro/
-      description: Learn more about the available features that help you improve your on-call management and response process.
+      description: Learn more about the key benefits and features that are available with Grafana OnCall.
       height: 24
     - title: Set up
       href: ./set-up/
-      description: Access and set up Grafana OnCall.
+      description: Set up and get started with Grafana OnCall.
       height: 24
     - title: Configure
       href: ./configure/
-      description: Customize your alert escalation and routing with flexible configuration options.
+      description: Customize alert escalation and routing with flexible configuration options. Explore how to configure alert templates, routing rules, and outgoing webhooks.
       height: 24
     - title: Integrations
       href: ./integrations/
-      description: Connect with alert sources, ChatOps, and much more to ensure all alerts and updates are routed in and out of OnCall, regardless of the other tools in your workflow.  
+      description: Connect external alert sources, ChatOps tools, and much more to ensure alerts and updates are routed in and out of OnCall, regardless of the other tools in your workflow.
     - title: Manage on-call schedules
       href: ./manage/on-call-schedules/
       description: Create and manage on-call schedules, scheduled overrides, and shift swaps.
       height: 24
     - title: Configure user notifications
       href: ./manage/notify/
-      description: Create, manage, and view user notification policies. 
+      description: Create, manage, and view user notification policies.
       height: 24
 # This is the oncall index document
 # Please do not make changes to the weight of this document
@@ -56,13 +56,13 @@ cards:
 ## Overview
 
 Respond to issues faster and improve your service reliability with Grafana OnCall.
-Integrated directly into Grafana Cloud, you can automatically routes alerts to designated on-call teams and ChatOps channels according to predefined escalation
+Integrated directly into Grafana Cloud, you can automatically route alerts to designated on-call teams and ChatOps channels according to predefined escalation
 policies, schedules, and notification preferences.
 
-Alleviate the burden of being on-call with customized schedules tailored to your team's availability and time zones.
+Alleviate the burden of being on-call with customized schedules tailored to your team's availability and timezones.
 Personalize notification settings to ensure individuals receive alerts through their preferred channels, such as SMS, mobile apps, or ChatOps platforms.
 
-Through automated alert routing and escalation, Grafana OnCall reduces incident response times, minimizes downtime and helps mitigate the impact of incidents.
+Through automated alert routing and escalation, Grafana OnCall reduces response times, minimizes downtime and helps mitigate the impact of incidents.
 
 ## Explore
 
