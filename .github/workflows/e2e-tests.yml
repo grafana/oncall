@@ -47,124 +47,124 @@ jobs:
       - name: Test
         run: ${{ secrets.TWILIO_AUTH_TOKEN }} ${{ secrets.MAILSLURP_API_KEY }} ${{ secrets.TWILIO_VERIFY_SID }} ${{ secrets.TWILIO_ACCOUNT_SID }} ${{ secrets.TWILIO_PHONE_NUMBER }}
 
-      # - name: Collect Workflow Telemetry
-      #   uses: runforesight/workflow-telemetry-action@v1
-      #   with:
-      #     comment_on_pr: false
-      #     proc_trace_chart_show: false
-      #     proc_trace_table_show: false
+      - name: Collect Workflow Telemetry
+        uses: runforesight/workflow-telemetry-action@v1
+        with:
+          comment_on_pr: false
+          proc_trace_chart_show: false
+          proc_trace_table_show: false
 
-      # - name: Install Kind
-      #   uses: helm/kind-action@v1.3.0
-      #   with:
-      #     config: ./dev/kind.yml
-      #     install_only: true
+      - name: Install Kind
+        uses: helm/kind-action@v1.3.0
+        with:
+          config: ./dev/kind.yml
+          install_only: true
 
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 18.16.0
-      #     cache: "yarn"
-      #     cache-dependency-path: grafana-plugin/yarn.lock
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.16.0
+          cache: "yarn"
+          cache-dependency-path: grafana-plugin/yarn.lock
 
-      # - name: Install Tilt
-      #   run: |
-      #     curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+      - name: Install Tilt
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
-      # - name: Install ctlptl
-      #   run: |
-      #     CTLPTL_VERSION="0.8.20"
-      #     CTLPTL_FILE_NAME="ctlptl.$CTLPTL_VERSION.linux.x86_64.tar.gz"
-      #     curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/$CTLPTL_FILE_NAME | \
-      #       tar -xzv -C /usr/local/bin ctlptl
+      - name: Install ctlptl
+        run: |
+          CTLPTL_VERSION="0.8.20"
+          CTLPTL_FILE_NAME="ctlptl.$CTLPTL_VERSION.linux.x86_64.tar.gz"
+          curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/$CTLPTL_FILE_NAME | \
+            tar -xzv -C /usr/local/bin ctlptl
 
-      # - name: Use cached frontend dependencies
-      #   id: cache-frontend-dependencies
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: grafana-plugin/node_modules
-      #     key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+      - name: Use cached frontend dependencies
+        id: cache-frontend-dependencies
+        uses: actions/cache@v3
+        with:
+          path: grafana-plugin/node_modules
+          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
 
-      # - name: Install frontend dependencies
-      #   if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-      #   working-directory: grafana-plugin
-      #   run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+      - name: Install frontend dependencies
+        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+        working-directory: grafana-plugin
+        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
-      # - name: Use cached plugin frontend build
-      #   id: cache-plugin-frontend
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: grafana-plugin/dist
-      #     key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
+      - name: Use cached plugin frontend build
+        id: cache-plugin-frontend
+        uses: actions/cache@v3
+        with:
+          path: grafana-plugin/dist
+          key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
 
-      # - name: Build plugin frontend
-      #   if: steps.cache-plugin-frontend.outputs.cache-hit != 'true'
-      #   working-directory: grafana-plugin
-      #   run: yarn build:dev
+      - name: Build plugin frontend
+        if: steps.cache-plugin-frontend.outputs.cache-hit != 'true'
+        working-directory: grafana-plugin
+        run: yarn build:dev
 
-      # # helpful reference for properly caching the playwright binaries/dependencies
-      # # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
-      # - name: Get installed Playwright version
-      #   id: playwright-version
-      #   working-directory: grafana-plugin
-      #   run: >
-      #     echo "PLAYWRIGHT_VERSION=$(cat ./package.json |
-      #     jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_ENV
+      # helpful reference for properly caching the playwright binaries/dependencies
+      # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
+      - name: Get installed Playwright version
+        id: playwright-version
+        working-directory: grafana-plugin
+        run: >
+          echo "PLAYWRIGHT_VERSION=$(cat ./package.json |
+          jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_ENV
 
-      # - name: Cache Playwright binaries/dependencies
-      #   id: playwright-cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: "~/.cache/ms-playwright"
-      #     key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
+      - name: Cache Playwright binaries/dependencies
+        id: playwright-cache
+        uses: actions/cache@v3
+        with:
+          path: "~/.cache/ms-playwright"
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
-      # - name: Create cluster
-      #   run: |
-      #     make cluster/up
+      - name: Create cluster
+        run: |
+          make cluster/up
 
-      # - name: Install Playwright deps
-      #   uses: docker://mcr.microsoft.com/playwright:next-jammy
+      - name: Install Playwright deps
+        uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      # - name: Tilt CI
-      #   shell: bash
-      #   env:
-      #     GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
-      #     BROWSERS: ${{ inputs.browsers }}
-      #   run: tilt ci
+      - name: Tilt CI
+        shell: bash
+        env:
+          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          BROWSERS: ${{ inputs.browsers }}
+        run: tilt ci
 
-      # - name: Tilt CI - expensive E2E tests
-      #   if: inputs.run-expensive-tests
-      #   shell: bash
-      #   env:
-      #     E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
-      #     GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
-      #     BROWSERS: ${{ inputs.browsers }}
-      #     MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
-      #     TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-      #     TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-      #     # wrapping single quotes are required to prevent stripping leading "+" from the number
-      #     TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
-      #     TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-      #   run: tilt ci
+      - name: Tilt CI - expensive E2E tests
+        if: inputs.run-expensive-tests
+        shell: bash
+        env:
+          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
+          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          BROWSERS: ${{ inputs.browsers }}
+          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          # wrapping single quotes are required to prevent stripping leading "+" from the number
+          TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
+          TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
+        run: tilt ci
 
-      # - name: Setup Pages
-      #   if: failure()
-      #   uses: actions/configure-pages@v2
+      - name: Setup Pages
+        if: failure()
+        uses: actions/configure-pages@v2
 
-      # - name: Upload artifact
-      #   if: failure()
-      #   uses: actions/upload-pages-artifact@v1
-      #   with:
-      #     path: ./grafana-plugin/playwright-report/
+      - name: Upload artifact
+        if: failure()
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./grafana-plugin/playwright-report/
 
-      # - name: Deploy to GitHub Pages
-      #   if: failure()
-      #   id: deployment
-      #   uses: actions/deploy-pages@v3
-      #   with:
-      #     preview: true
+      - name: Deploy to GitHub Pages
+        if: failure()
+        id: deployment
+        uses: actions/deploy-pages@v3
+        with:
+          preview: true
 
-      # - name: Linked Github Page
-      #   if: failure()
-      #   run: |
-      #     echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" \
-      #     >> $GITHUB_STEP_SUMMARY
+      - name: Linked Github Page
+        if: failure()
+        run: |
+          echo "Test report has been deployed to [GitHub Pages](https://grafana.github.io/oncall/) :rocket:" \
+          >> $GITHUB_STEP_SUMMARY
