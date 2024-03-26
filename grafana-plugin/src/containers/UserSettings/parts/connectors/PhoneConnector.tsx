@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 
 import { Alert, Button, HorizontalGroup, InlineField, Input, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
@@ -21,7 +22,7 @@ interface PhoneConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const PhoneConnector = (props: PhoneConnectorProps) => {
+export const PhoneConnector = observer((props: PhoneConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -174,4 +175,4 @@ export const PhoneConnector = (props: PhoneConnectorProps) => {
       )}
     </div>
   );
-};
+});

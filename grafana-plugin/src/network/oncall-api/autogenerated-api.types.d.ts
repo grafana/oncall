@@ -297,6 +297,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/alert_receive_channels/{id}/test_connection/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_test_connection_create_2'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/alert_receive_channels/{id}/webhooks/': {
     parameters: {
       query?: never;
@@ -2975,6 +2992,33 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_test_connection_create_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelUpdate'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelUpdate'];
+      };
+    };
     responses: {
       /** @description No response body */
       200: {
