@@ -11,11 +11,6 @@ class AlertPhoneCallRenderer(AlertBaseRenderer):
 
 
 class AlertGroupPhoneCallRenderer(AlertGroupBaseRenderer):
-    TEMPLATE = (
-        "You are invited to check an Alert Group from Grafana OnCall. "
-        "Alert via {integration_name} with title {title} triggered {alert_count} times"
-    )
-
     @property
     def alert_renderer_class(self):
         return AlertPhoneCallRenderer
@@ -24,10 +19,4 @@ class AlertGroupPhoneCallRenderer(AlertGroupBaseRenderer):
         templated_alert = self.alert_renderer.templated_alert
         title = str_or_backup(templated_alert.title, DEFAULT_BACKUP_TITLE)
 
-        text = self.TEMPLATE.format(
-            integration_name=self.alert_group.channel.short_name,
-            title=title,
-            alert_count=self.alert_group.alerts.count(),
-        )
-
-        return text
+        return title
