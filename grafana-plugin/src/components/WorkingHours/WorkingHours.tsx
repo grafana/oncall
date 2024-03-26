@@ -54,7 +54,7 @@ export const WorkingHours: FC<WorkingHoursProps> = (props) => {
               key={index}
               x={`${duration > 0 ? (start * 100) / duration : 0}%`} // x/0 is NaN
               y={0}
-              width={`${duration > 0 ? (diff * 100) / duration : 0} %`} // x/0 is NaN
+              width={`${duration > 0 ? (diff * 100) / duration : 0}%`} // x/0 is NaN
               height="100%"
               fill={light ? 'url(#stripes_light)' : 'url(#stripes)'}
             />
