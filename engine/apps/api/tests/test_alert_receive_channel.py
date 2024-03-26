@@ -1941,7 +1941,7 @@ def test_alert_receive_channel_test_connection(
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
-    url = reverse("api-internal:alert_receive_channel-test-connection")
+    url = reverse("api-internal:alert_receive_channel-test-connection-create")
     integration_config = AlertReceiveChannel._config[0]
     data = {
         "integration": integration_config.slug,
@@ -1974,6 +1974,33 @@ def test_alert_receive_channel_test_connection(
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"team": ["Object does not exist"]}
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_test_connection_existing_integration(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    integration_config = AlertReceiveChannel._config[0]
+    integration = make_alert_receive_channel(organization, integration=integration_config.slug, description_short="ok")
+
+    def testing_connection(instance):
+        if instance.description_short != "ok":
+            raise BacksyncIntegrationRequestError(error_msg="Error!")
+
+    url = reverse("api-internal:alert_receive_channel-test-connection", kwargs={"pk": integration.public_primary_key})
+    with patch.object(integration_config, "test_connection", side_effect=testing_connection, create=True):
+        data = {}  # no updates, use original data
+        response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_200_OK
+
+        data = {"description_short": "notok"}
+        response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"detail": "Error!"}
 
 
 @pytest.mark.django_db

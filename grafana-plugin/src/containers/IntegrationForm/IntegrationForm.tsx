@@ -18,6 +18,7 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
+import { parseUrl } from 'query-string';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
@@ -27,6 +28,7 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { Labels } from 'containers/Labels/Labels';
+import { ServiceNowAuthSection } from 'containers/ServiceNowConfigDrawer/ServiceNowAuthSection';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
@@ -36,14 +38,14 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
-interface FormFields {
+export interface IntegrationFormFields {
   verbal_name?: string;
   description_short?: string;
   team?: string;
@@ -115,7 +117,7 @@ export const IntegrationForm = observer(
 
     const { integration } = data;
 
-    const formMethods = useForm<FormFields>({
+    const formMethods = useForm<IntegrationFormFields>({
       defaultValues: isNew
         ? {
             // these are the default values for creating an integration
@@ -281,7 +283,7 @@ export const IntegrationForm = observer(
 
           {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
 
-          <RenderConditionally shouldRender={isServiceNow}>
+          <RenderConditionally shouldRender={isServiceNow && isNew}>
             <div className={styles.serviceNowHeading}>
               <Text type="primary">ServiceNow configuration</Text>
             </div>
@@ -334,9 +336,7 @@ export const IntegrationForm = observer(
               )}
             />
 
-            <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
-              Test
-            </Button>
+            <ServiceNowAuthSection />
 
             <Controller
               name={'create_default_webhooks'}
@@ -382,13 +382,10 @@ export const IntegrationForm = observer(
     }
 
     function validateURL(urlFieldValue: string): string | boolean {
-      const regex = new RegExp(URL_REGEX, 'i');
-      return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
+      return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
-    async function onWebhookTestClick(): Promise<void> {}
-
-    async function onFormSubmit(formData: FormFields): Promise<void> {
+    async function onFormSubmit(formData: IntegrationFormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
 
       const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
@@ -489,7 +486,7 @@ const GrafanaContactPoint = observer(
       setValue,
       formState: { errors },
       register,
-    } = useFormContext<FormFields>();
+    } = useFormContext<IntegrationFormFields>();
 
     useEffect(() => {
       (async function () {
