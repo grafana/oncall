@@ -225,8 +225,14 @@ class Alert(models.Model):
         use_error_msg_as_fallback=False,
         check_if_templated_value_is_truthy=False,
     ) -> typing.Union[str, None, bool]:
+        extra_context_func = getattr(alert_receive_channel.config, "additional_webhook_data", None)
+        context = {}
+        if extra_context_func is not None:
+            context.update({"integration": extra_context_func(alert_receive_channel)})
         try:
-            templated_value = apply_jinja_template_to_alert_payload_and_labels(template, raw_request_data, labels)
+            templated_value = apply_jinja_template_to_alert_payload_and_labels(
+                template, raw_request_data, labels, extra_context=context
+            )
             return templated_value_is_truthy(templated_value) if check_if_templated_value_is_truthy else templated_value
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             fallback_msg = e.fallback_message

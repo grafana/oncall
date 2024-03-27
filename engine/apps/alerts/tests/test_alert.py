@@ -3,7 +3,7 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from django.utils import timezone
 
-from apps.alerts.models import Alert, ChannelFilter, EscalationPolicy
+from apps.alerts.models import Alert, AlertReceiveChannel, ChannelFilter, EscalationPolicy
 from apps.alerts.tasks import distribute_alert, escalate_alert_group
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
@@ -285,4 +285,42 @@ def test_apply_jinja_template_to_alert_payload_and_labels_jinja_exceptions(
     )
     assert result == expected
 
-    mock_apply_jinja_template_to_alert_payload_and_labels.assert_called_once_with(template, raw_request_data, labels)
+    mock_apply_jinja_template_to_alert_payload_and_labels.assert_called_once_with(
+        template, raw_request_data, labels, extra_context={}
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "template,check_if_templated_value_is_truthy,expected",
+    [
+        ('{{ "foo" in integration.extra }}', True, True),
+        (' {{ "foo" in integration.extra }} ', False, " True "),
+    ],
+)
+def test_apply_jinja_template_to_alert_payload_use_integration_extra_data(
+    make_organization, make_alert_receive_channel, template, check_if_templated_value_is_truthy, expected
+):
+    template_name = "test_template_name"
+    raw_request_data = {"value": 5}
+    labels = {}
+
+    organization = make_organization()
+    integration_config = AlertReceiveChannel._config[0]
+    alert_receive_channel = make_alert_receive_channel(organization, integration=integration_config.slug)
+
+    def additional_webhook_data(instance):
+        return {"extra": ["foo"]}
+
+    with patch.object(integration_config, "additional_webhook_data", side_effect=additional_webhook_data, create=True):
+        assert (
+            Alert._apply_jinja_template_to_alert_payload_and_labels(
+                template,
+                template_name,
+                alert_receive_channel,
+                raw_request_data,
+                labels,
+                check_if_templated_value_is_truthy=check_if_templated_value_is_truthy,
+            )
+            == expected
+        )

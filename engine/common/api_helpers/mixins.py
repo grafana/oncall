@@ -350,8 +350,16 @@ class PreviewTemplateMixin:
             templated_attr = getattr(templated_alert, attr_name)
 
         elif attr_name in BEHAVIOUR_TEMPLATE_NAMES:
+            # are we sure this will always be an integration?
+            channel = self.get_object()
+            extra_context_func = getattr(channel.config, "additional_webhook_data", None)
+            context = {}
+            if extra_context_func is not None:
+                context.update({"integration": extra_context_func(channel)})
             try:
-                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+                templated_attr = apply_jinja_template(
+                    template_body, payload=alert_to_template.raw_request_data, **context
+                )
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
