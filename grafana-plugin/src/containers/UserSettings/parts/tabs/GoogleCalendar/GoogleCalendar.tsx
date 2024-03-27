@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
+import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { GSelect } from 'containers/GSelect/GSelect';
 import GoogleLogo from 'icons/GoogleLogo';
 import { Schedule } from 'models/schedule/schedule.types';
@@ -17,6 +18,18 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
 
   const user = userStore.items[id];
   const [googleCalendarSettings, setGoogleCalendarSettings] = useState(user?.google_calendar_settings);
+  const [showSchedulesDropdown, setShowSchedulesDropdown] = useState(
+    user.google_calendar_settings?.specific_oncall_schedules_to_sync.length > 0
+  );
+
+  const handleShowSchedulesDropdownChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.checked;
+    setShowSchedulesDropdown(value);
+
+    if (!value) {
+      handleSchedulesChange([]);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -49,9 +62,16 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                   <GoogleLogo width={24} height={24} />
                   <Text>Google calendar is connected</Text>
                 </HorizontalGroup>
-                <Button variant="destructive" fill="outline" onClick={UserHelper.handleDisconnectGoogle}>
-                  Disconnect
-                </Button>
+                <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      userStore.disconnectGoogle();
+                    }}
+                  >
+                    Disconnect
+                  </Button>
+                </WithConfirm>
               </HorizontalGroup>
             </VerticalGroup>
           ) : (
@@ -66,36 +86,38 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
             </HorizontalGroup>
           )}
 
-          <Divider />
+          {user.has_google_oauth2_connected && (
+            <VerticalGroup>
+              <Divider />
 
-          <InlineSwitch
-            showLabel
-            label="Specify the schedules to sync with Google calendar"
-            value={true}
-            transparent
-            onChange={(_event) => {
-              /* organizationStore.saveCurrentOrganization({
-                  is_resolution_note_required: event.currentTarget.checked,
-                }); */
-            }}
-          />
-          <div style={{ width: '100%' }}>
-            <GSelect<Schedule>
-              isMulti
-              showSearch
-              allowClear
-              disabled={false}
-              items={scheduleStore.items}
-              fetchItemsFn={scheduleStore.updateItems}
-              fetchItemFn={scheduleStore.updateItem}
-              getSearchResult={scheduleStore.getSearchResult}
-              displayField="name"
-              valueField="id"
-              placeholder="Select Schedules"
-              value={googleCalendarSettings?.specific_oncall_schedules_to_sync}
-              onChange={handleSchedulesChange}
-            />
-          </div>
+              <InlineSwitch
+                showLabel
+                label="Specify the schedules to sync with Google calendar"
+                value={showSchedulesDropdown}
+                transparent
+                onChange={handleShowSchedulesDropdownChange}
+              />
+              {showSchedulesDropdown && (
+                <div style={{ width: '100%' }}>
+                  <GSelect<Schedule>
+                    isMulti
+                    showSearch
+                    allowClear
+                    disabled={false}
+                    items={scheduleStore.items}
+                    fetchItemsFn={scheduleStore.updateItems}
+                    fetchItemFn={scheduleStore.updateItem}
+                    getSearchResult={scheduleStore.getSearchResult}
+                    displayField="name"
+                    valueField="id"
+                    placeholder="Select Schedules"
+                    value={googleCalendarSettings?.specific_oncall_schedules_to_sync}
+                    onChange={handleSchedulesChange}
+                  />
+                </div>
+              )}
+            </VerticalGroup>
+          )}
         </VerticalGroup>
       </Block>
     </VerticalGroup>
