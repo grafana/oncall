@@ -122,22 +122,22 @@ def test_update_metric_alert_groups_total_cache_on_action(
         mock_cache_set_called_args = mock_cache_set.call_args_list
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        alert_group.acknowledge_by_user(user)
+        alert_group.acknowledge_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_acked)
 
-        alert_group.un_acknowledge_by_user(user)
+        alert_group.un_acknowledge_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        alert_group.resolve_by_user(user)
+        alert_group.resolve_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_resolved)
 
-        alert_group.un_resolve_by_user(user)
+        alert_group.un_resolve_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        alert_group.silence_by_user(user, silence_delay=None)
+        alert_group.silence_by_user_or_backsync(user, silence_delay=None)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_silenced)
 
-        alert_group.un_silence_by_user(user)
+        alert_group.un_silence_by_user_or_backsync(user)
         get_called_arg_index_and_compare_results(expected_result_firing)
 
 
@@ -212,30 +212,30 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
         # alert_groups_response_time cache shouldn't be updated on create alert group
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.acknowledge_by_user(user)
+        alert_group_1.acknowledge_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results()
 
         # assert that only the first action counts
-        alert_group_1.un_acknowledge_by_user(user)
+        alert_group_1.un_acknowledge_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.resolve_by_user(user)
+        alert_group_1.resolve_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.un_resolve_by_user(user)
+        alert_group_1.un_resolve_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.silence_by_user(user, silence_delay=None)
+        alert_group_1.silence_by_user_or_backsync(user, silence_delay=None)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.un_silence_by_user(user)
+        alert_group_1.un_silence_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
         # check that response_time cache updates on other actions with other alert groups
-        alert_group_2.resolve_by_user(user)
+        alert_group_2.resolve_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results()
 
-        alert_group_3.silence_by_user(user, silence_delay=None)
+        alert_group_3.silence_by_user_or_backsync(user, silence_delay=None)
         get_called_arg_index_and_compare_results()
 
 

@@ -291,7 +291,7 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
             silence_delay = int(value)
 
-        alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
+        alert_group.silence_by_user_or_backsync(self.user, silence_delay, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -311,7 +311,7 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_silence_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -659,7 +659,7 @@ class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                 )
                 return
 
-            alert_group.resolve_by_user(self.user, action_source=ActionSource.SLACK)
+            alert_group.resolve_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
@@ -683,7 +683,7 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_resolve_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -703,7 +703,7 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.acknowledge_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -723,7 +723,7 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_acknowledge_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         from apps.alerts.models import AlertGroupLogRecord
