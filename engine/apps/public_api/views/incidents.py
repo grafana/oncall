@@ -10,7 +10,8 @@ from rest_framework.viewsets import GenericViewSet
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.alerts.tasks import delete_alert_group, wipe
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
 from apps.public_api.helpers import is_valid_group_creation_date, team_has_slack_token_for_deleting
 from apps.public_api.serializers import IncidentSerializer
@@ -37,8 +38,23 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
 class IncidentView(
     RateLimitHeadersMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet
 ):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (
+        GrafanaServiceAccountAuthentication,
+        ApiTokenAuthentication,
+    )
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "acknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unacknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "resolve": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unresolve": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+    }
 
     throttle_classes = [UserThrottle]
 
