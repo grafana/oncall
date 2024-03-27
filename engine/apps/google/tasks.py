@@ -44,8 +44,6 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
         )
 
         for schedule in users_schedules:
-            # print("Yooooo", start_time_utc, end_time_utc)
-
             _, _, upcoming_shifts = schedule.shifts_for_user(
                 user,
                 start_time_utc,
@@ -58,16 +56,30 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
                     f"during the out of office event {event_id}"
                 )
 
-                # print(upcoming_shifts)
-
-                # TODO: check if a shift swap request already exists for this user, schedule, and time range
-                ShiftSwapRequest.objects.create(
+                shift_swap_request_exists = ShiftSwapRequest.objects.filter(
                     beneficiary=user,
                     schedule=schedule,
                     swap_start=start_time_utc,
                     swap_end=end_time_utc,
-                    description=f"{user.name or user.email} will be out of office during this time according to Google Calendar",
-                )
+                ).exists()
+
+                if not shift_swap_request_exists:
+                    logger.info(
+                        f"Creating shift swap request for user {user_id} schedule {schedule.pk}"
+                        f"due to the out of office event {event_id}"
+                    )
+
+                    ssr = ShiftSwapRequest.objects.create(
+                        beneficiary=user,
+                        schedule=schedule,
+                        swap_start=start_time_utc,
+                        swap_end=end_time_utc,
+                        description=f"{user.name or user.email} will be out of office during this time according to Google Calendar",
+                    )
+
+                    logger.info(f"Created shift swap request {ssr.pk}")
+                else:
+                    logger.info(f"Shift swap request already exists for user {user_id} schedule {schedule.pk}")
             else:
                 logger.info(
                     f"No upcoming shifts found for user {user_id} during the out of office event {event_id}"
