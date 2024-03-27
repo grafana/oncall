@@ -2,7 +2,7 @@ from unittest.mock import call, patch
 
 import pytest
 
-from apps.alerts.constants import ActionSource
+from apps.alerts.constants import ActionSource, AlertGroupState
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks import wipe
@@ -327,7 +327,7 @@ def test_silence_by_user_for_period(
         author=user,
     ).exists()
 
-    alert_group.silence_by_user(user, silence_delay=silence_delay)
+    alert_group.silence_by_user_or_backsync(user, silence_delay=silence_delay)
 
     assert alert_group.log_records.filter(
         type=AlertGroupLogRecord.TYPE_SILENCE,
@@ -364,7 +364,7 @@ def test_silence_by_user_forever(
         author=user,
     ).exists()
 
-    alert_group.silence_by_user(user, silence_delay=None)
+    alert_group.silence_by_user_or_backsync(user, silence_delay=None)
 
     assert alert_group.log_records.filter(
         type=AlertGroupLogRecord.TYPE_SILENCE,
@@ -476,32 +476,32 @@ def test_alert_group_log_record_action_source(
     root_alert_group = make_alert_group(alert_receive_channel)
 
     # Silence alert group
-    alert_group.silence_by_user(user, 42, action_source=action_source)
+    alert_group.silence_by_user_or_backsync(user, 42, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_SILENCE, action_source)
 
     # Unsilence alert group
-    alert_group.un_silence_by_user(user, action_source=action_source)
+    alert_group.un_silence_by_user_or_backsync(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_SILENCE, action_source)
 
     # Acknowledge alert group
-    alert_group.acknowledge_by_user(user, action_source=action_source)
+    alert_group.acknowledge_by_user_or_backsync(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_ACK, action_source)
 
     # Unacknowledge alert group
-    alert_group.un_acknowledge_by_user(user, action_source=action_source)
+    alert_group.un_acknowledge_by_user_or_backsync(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_ACK, action_source)
 
     # Resolve alert group
-    alert_group.resolve_by_user(user, action_source=action_source)
+    alert_group.resolve_by_user_or_backsync(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_RESOLVED, action_source)
 
     # Unresolve alert group
-    alert_group.un_resolve_by_user(user, action_source=action_source)
+    alert_group.un_resolve_by_user_or_backsync(user, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_RESOLVED, action_source)
 
@@ -594,16 +594,16 @@ def test_filter_active_alert_groups(
     # alert groups with active escalation
     alert_group_active = make_alert_group(alert_receive_channel)
     alert_group_active_silenced = make_alert_group(alert_receive_channel)
-    alert_group_active_silenced.silence_by_user(user, silence_delay=1800)  # silence by period
+    alert_group_active_silenced.silence_by_user_or_backsync(user, silence_delay=1800)  # silence by period
     # alert groups with inactive escalation
     alert_group_1 = make_alert_group(alert_receive_channel)
-    alert_group_1.acknowledge_by_user(user)
+    alert_group_1.acknowledge_by_user_or_backsync(user)
     alert_group_2 = make_alert_group(alert_receive_channel)
-    alert_group_2.resolve_by_user(user)
+    alert_group_2.resolve_by_user_or_backsync(user)
     alert_group_3 = make_alert_group(alert_receive_channel)
     alert_group_3.attach_by_user(user, alert_group_active)
     alert_group_4 = make_alert_group(alert_receive_channel)
-    alert_group_4.silence_by_user(user, silence_delay=None)  # silence forever
+    alert_group_4.silence_by_user_or_backsync(user, silence_delay=None)  # silence forever
 
     active_alert_groups = AlertGroup.objects.filter_active()
     assert active_alert_groups.count() == 2
@@ -688,3 +688,44 @@ def test_integration_config_on_alert_group_created(make_organization, make_alert
 
     assert alert.group.alerts.count() == 2
     mock_on_alert_group_created.assert_called_once_with(alert.group)
+
+
+@patch.object(AlertGroup, "start_escalation_if_needed")
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "new_state,log_type,to_firing_log_type",
+    [
+        (AlertGroupState.ACKNOWLEDGED, AlertGroupLogRecord.TYPE_ACK, AlertGroupLogRecord.TYPE_UN_ACK),
+        (AlertGroupState.RESOLVED, AlertGroupLogRecord.TYPE_RESOLVED, AlertGroupLogRecord.TYPE_UN_RESOLVED),
+        (AlertGroupState.SILENCED, AlertGroupLogRecord.TYPE_SILENCE, AlertGroupLogRecord.TYPE_UN_SILENCE),
+    ],
+)
+def test_update_state_by_backsync(
+    mock_start_escalation_if_needed,
+    new_state,
+    log_type,
+    to_firing_log_type,
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    expected_log_data = (ActionSource.BACKSYNC, None, {"source_integration_name": alert_receive_channel.verbal_name})
+    assert alert_group.state == AlertGroupState.FIRING
+    # set to new_state
+    alert_group.update_state_by_backsync(new_state)
+    alert_group.refresh_from_db()
+    assert alert_group.state == new_state
+    last_log = alert_group.log_records.last()
+    assert (last_log.action_source, last_log.author, last_log.step_specific_info) == expected_log_data
+    assert last_log.type == log_type
+    # set back to firing
+    alert_group.update_state_by_backsync(AlertGroupState.FIRING)
+    alert_group.refresh_from_db()
+    assert alert_group.state == AlertGroupState.FIRING
+    last_log = alert_group.log_records.last()
+    assert (last_log.action_source, last_log.author, last_log.step_specific_info) == expected_log_data
+    assert last_log.type == to_firing_log_type
+    mock_start_escalation_if_needed.assert_called_once()

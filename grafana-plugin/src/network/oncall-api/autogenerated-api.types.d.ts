@@ -271,7 +271,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    get: operations['alert_receive_channels_status_options_list'];
+    get: operations['alert_receive_channels_status_options_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1313,6 +1313,11 @@ export interface components {
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly permalinks: {
+        slack: string | null;
+        telegram: string | null;
+        web: string;
+      };
       readonly alerts: components['schemas']['Alert'][];
       readonly render_after_resolve_report_json: {
         time: string;
@@ -1329,11 +1334,6 @@ export interface components {
         };
       }[];
       readonly slack_permalink: string | null;
-      readonly permalinks: {
-        slack: string | null;
-        telegram: string | null;
-        web: string;
-      };
       /** Format: date-time */
       readonly last_alert_at: string;
       readonly paged_users: {
@@ -1418,6 +1418,11 @@ export interface components {
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly permalinks: {
+        slack: string | null;
+        telegram: string | null;
+        web: string;
+      };
     };
     AlertGroupResolve: {
       resolution_note?: string | null;
@@ -1516,10 +1521,6 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
-    };
-    AlertReceiveChannelBacksyncStatusOptions: {
-      value: string;
-      display_name: string;
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
@@ -2918,7 +2919,7 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_status_options_list: {
+  alert_receive_channels_status_options_retrieve: {
     parameters: {
       query?: never;
       header?: never;
@@ -2935,7 +2936,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelBacksyncStatusOptions'][];
+          'application/json': string[][];
         };
       };
     };

@@ -92,7 +92,7 @@ def test_actions_keyboard_acknowledged(
 
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
-    alert_group.acknowledge_by_user(user)
+    alert_group.acknowledge_by_user_or_backsync(user)
 
     renderer = TelegramKeyboardRenderer(alert_group=alert_group)
     keyboard = renderer.render_actions_keyboard()
@@ -127,7 +127,7 @@ def test_actions_keyboard_resolved(
 
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
-    alert_group.resolve_by_user(user)
+    alert_group.resolve_by_user_or_backsync(user)
 
     renderer = TelegramKeyboardRenderer(alert_group=alert_group)
     keyboard = renderer.render_actions_keyboard()
@@ -155,7 +155,7 @@ def test_actions_keyboard_silenced(
 
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
-    alert_group.silence_by_user(user, silence_delay=None)
+    alert_group.silence_by_user_or_backsync(user, silence_delay=None)
 
     renderer = TelegramKeyboardRenderer(alert_group=alert_group)
     keyboard = renderer.render_actions_keyboard()
