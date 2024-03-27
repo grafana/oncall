@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0047_alertreceivechannel_additional_settings'),
+        ('alerts', '0049_alter_alertgrouplogrecord_action_source'),
     ]
 
     operations = [
