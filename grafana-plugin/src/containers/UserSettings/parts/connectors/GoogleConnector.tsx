@@ -4,9 +4,11 @@ import { Button, HorizontalGroup, InlineField } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { UserActions } from 'utils/authorization/authorization';
 
 interface GoogleConnectorProps {
   id: ApiSchemas['User']['pk'];
@@ -35,16 +37,20 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
       <InlineField label="Google Account" labelWidth={15}>
         {storeUser.has_google_oauth2_connected ? (
           <HorizontalGroup spacing="xs">
-            <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
-              <Button disabled={!isCurrentUser} variant="destructive" onClick={handleUnlinkGoogleAccount}>
-                Disconnect
-              </Button>
-            </WithConfirm>
+            <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
+              <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
+                <Button disabled={!isCurrentUser} variant="destructive" onClick={handleUnlinkGoogleAccount}>
+                  Disconnect
+                </Button>
+              </WithConfirm>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         ) : (
-          <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
-            Connect account
-          </Button>
+          <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
+            <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
+              Connect account
+            </Button>
+          </WithPermissionControlTooltip>
         )}
       </InlineField>
     </div>
