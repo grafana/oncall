@@ -34,6 +34,7 @@ from apps.api.serializers.webhook import WebhookSerializer
 from apps.api.throttlers import DemoAlertThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.models.integration_backsync_auth_token import IntegrationBacksyncAuthToken
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
@@ -49,7 +50,12 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.paginators import FifteenPageSizePaginator
-from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import (
+    BacksyncIntegrationRequestError,
+    MaintenanceCouldNotBeStartedError,
+    TeamCanNotBeChangedError,
+    UnableToSendDemoAlert,
+)
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -166,6 +172,9 @@ class AlertReceiveChannelView(
         "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection_create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "test_connection": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "status_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "webhooks_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "webhooks_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
@@ -174,6 +183,8 @@ class AlertReceiveChannelView(
         "connected_alert_receive_channels_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_put": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "connected_alert_receive_channels_delete": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "backsync_token_get": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "backsync_token_post": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -255,6 +266,7 @@ class AlertReceiveChannelView(
                 "demo_alert_payload": serializers.DictField(required=False, allow_null=True),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
@@ -270,6 +282,70 @@ class AlertReceiveChannelView(
             raise BadRequest(detail=str(e))
 
         return Response(status=status.HTTP_200_OK)
+
+    def _backsync_integration_request(self, instance, func_name):
+        integration_func = getattr(instance.config, func_name, None)
+        if integration_func:
+            try:
+                return integration_func(instance)
+            except BacksyncIntegrationRequestError as e:
+                raise BadRequest(detail=e.error_msg)
+
+    def _test_connection(self, request, pk=None):
+        instance = None
+        data = request.data
+        data["verbal_name"] = None
+        if pk is not None:
+            instance = self.get_object()
+            serializer = self.update_serializer_class(
+                instance,
+                data=data,
+                partial=True,
+                context={"request": request},
+            )
+        else:
+            serializer = self.create_serializer_class(data=data, context={"request": request})
+
+        # check we have all the required information
+        serializer.is_valid(raise_exception=True)
+        if instance is None:
+            serializer.validated_data.pop("create_default_webhooks", None)
+            # create in-memory instance to test with the (possible) unsaved data
+            instance = AlertReceiveChannel(**serializer.validated_data)
+        else:
+            # update instance with the validated data
+            for attr, val in serializer.validated_data.items():
+                setattr(instance, attr, val)
+
+        # will raise if there are errors
+        self._backsync_integration_request(instance, "test_connection")
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=AlertReceiveChannelSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(detail=False, methods=["post"], url_path="test_connection")
+    def test_connection_create(self, request):
+        return self._test_connection(request)
+
+    @extend_schema(
+        request=AlertReceiveChannelUpdateSerializer,
+        responses={status.HTTP_200_OK: None},
+    )
+    @action(detail=True, methods=["post"])
+    def test_connection(self, request, pk):
+        return self._test_connection(request, pk=pk)
+
+    @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(list[tuple[str, str]])})
+    @action(detail=True, methods=["get"])
+    def status_options(self, request, pk):
+        instance = self.get_object()
+        choices = self._backsync_integration_request(instance, "status_options")
+        if choices is None:
+            choices = []
+        return Response(choices)
 
     @extend_schema(
         responses=inline_serializer(
@@ -309,7 +385,9 @@ class AlertReceiveChannelView(
     @extend_schema(
         parameters=[
             inline_serializer(name="AlertReceiveChannelChangeTeam", fields={"team_id": serializers.CharField()})
-        ]
+        ],
+        request=None,
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):
@@ -427,6 +505,7 @@ class AlertReceiveChannelView(
                 ),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def start_maintenance(self, request, pk):
@@ -458,12 +537,14 @@ class AlertReceiveChannelView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["post"])
     def stop_maintenance(self, request, pk):
         instance = self.get_object()
         instance.force_disable_maintenance(request.user)
         return Response(status=status.HTTP_200_OK)
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["post"])
     def migrate(self, request, pk):
         instance = self.get_object()
@@ -579,6 +660,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def connect_contact_point(self, request, pk):
@@ -605,6 +687,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_201_CREATED: None},
     )
     @action(detail=True, methods=["post"])
     def create_contact_point(self, request, pk):
@@ -631,6 +714,7 @@ class AlertReceiveChannelView(
                 "contact_point_name": serializers.CharField(),
             },
         ),
+        responses={status.HTTP_200_OK: None},
     )
     @action(detail=True, methods=["post"])
     def disconnect_contact_point(self, request, pk):
@@ -713,6 +797,9 @@ class AlertReceiveChannelView(
         backsync_map = {connection["id"]: connection["backsync"] for connection in serializer.validated_data}
 
         # bulk create connections
+        alert_receive_channels = instance.organization.alert_receive_channels.filter(
+            public_primary_key__in=backsync_map.keys()
+        )
         AlertReceiveChannelConnection.objects.bulk_create(
             [
                 AlertReceiveChannelConnection(
@@ -720,13 +807,15 @@ class AlertReceiveChannelView(
                     connected_alert_receive_channel=alert_receive_channel,
                     backsync=backsync_map[alert_receive_channel.public_primary_key],
                 )
-                for alert_receive_channel in instance.organization.alert_receive_channels.filter(
-                    public_primary_key__in=backsync_map.keys()
-                )
+                for alert_receive_channel in alert_receive_channels
             ],
             ignore_conflicts=True,
             batch_size=5000,
         )
+
+        # add connected integrations to filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.add(*alert_receive_channels)
 
         return Response(AlertReceiveChannelConnectionSerializer(instance).data, status=status.HTTP_201_CREATED)
 
@@ -765,4 +854,40 @@ class AlertReceiveChannelView(
             raise NotFound
 
         connection.delete()
+
+        # remove the connected integration from filtered_integrations
+        for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+            webhook.filtered_integrations.remove(connection.connected_alert_receive_channel)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(responses={status.HTTP_200_OK: None})
+    @action(detail=True, methods=["get"], url_path="api_token")
+    def backsync_token_get(self, request, pk):
+        instance = self.get_object()
+        try:
+            _ = IntegrationBacksyncAuthToken.objects.get(
+                alert_receive_channel=instance, organization=request.auth.organization
+            )
+        except IntegrationBacksyncAuthToken.DoesNotExist:
+            raise NotFound
+
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        methods=["post"],
+        request=None,
+        responses=inline_serializer(
+            name="IntegrationTokenPostResponse",
+            fields={
+                "token": serializers.CharField(),
+            },
+        ),
+    )
+    @action(detail=True, methods=["post"], url_path="api_token")
+    @backsync_token_get.mapping.post
+    def backsync_token_post(self, request, pk):
+        instance = self.get_object()
+        instance, token = IntegrationBacksyncAuthToken.create_auth_token(instance, request.auth.organization)
+        data = {"token": token}
+        return Response(data, status=status.HTTP_201_CREATED)

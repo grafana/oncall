@@ -10,7 +10,8 @@ type OnCallPage =
   | 'outgoing_webhooks'
   | 'users'
   | 'users/me'
-  | 'insights';
+  | 'insights'
+  | 'settings';
 
 const _goToPage = async (page: Page, url = '') => page.goto(`${BASE_URL}${url}`);
 

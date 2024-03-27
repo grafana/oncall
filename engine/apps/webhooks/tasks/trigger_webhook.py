@@ -120,9 +120,7 @@ def _build_payload(
                 response_data = r.content
             responses_data[r.webhook.public_primary_key] = response_data
 
-    data = serialize_event(event, alert_group, user, webhook, responses_data)
-
-    return data
+    return serialize_event(event, alert_group, user, webhook, responses_data)
 
 
 def mask_authorization_header(

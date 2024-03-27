@@ -9,6 +9,7 @@ class ActionSource(IntegerChoices):
     PHONE = 2, "Phone"
     TELEGRAM = 3, "Telegram"
     API = 4, "API"
+    BACKSYNC = 5, "Backsync"
 
 
 TASK_DELAY_SECONDS = 1

@@ -37,6 +37,7 @@ export class AlertReceiveChannelStore {
   alertReceiveChannelOptions: Array<ApiSchemas['AlertReceiveChannelIntegrationOptions']> = [];
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
   connectedContactPoints: { [id: string]: ContactPoint[] } = {};
+  serviceNowStatusList: string[][];
 
   constructor(rootStore: RootBaseStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -48,17 +49,18 @@ export class AlertReceiveChannelStore {
     data,
     skipErrorHandling,
   }: {
-    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']>;
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']>;
     skipErrorHandling?: boolean;
   }) {
     const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/', {
       params: {},
-      body: data as ApiSchemas['AlertReceiveChannel'],
+      body: data as ApiSchemas['AlertReceiveChannelCreate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
     return result.data;
   }
 
+  @AutoLoadingState(ActionKey.UPDATE_INTEGRATION)
   @WithGlobalNotification({ failure: 'There was an issue updating Integration. Please try again.' })
   async update({
     id,
@@ -74,7 +76,13 @@ export class AlertReceiveChannelStore {
       body: data as ApiSchemas['AlertReceiveChannelUpdate'],
     });
     await this.rootStore.organizationStore.loadCurrentOrganization();
-    return result.data;
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        [id]: { ...result.data },
+      };
+    });
   }
 
   async fetchItemById(
@@ -95,6 +103,22 @@ export class AlertReceiveChannelStore {
     this.populateHearbeats([alertReceiveChannel.data]);
 
     return alertReceiveChannel.data;
+  }
+
+  async fetchServiceNowStatusList({
+    id,
+    skipErrorHandling,
+  }: {
+    id: ApiSchemas['AlertReceiveChannel']['id'];
+    skipErrorHandling?: boolean;
+  }): Promise<void> {
+    const statusList = await onCallApi({ skipErrorHandling }).GET('/alert_receive_channels/{id}/status_options/', {
+      params: { path: { id } },
+    });
+
+    runInAction(() => {
+      this.serviceNowStatusList = statusList.data;
+    });
   }
 
   async fetchItems(query: any = '') {
