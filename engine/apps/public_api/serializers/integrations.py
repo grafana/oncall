@@ -147,11 +147,15 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def validate(self, attrs):
+        self.validate_name_uniqueness(attrs)
+        return attrs
+
+    def validate_name_uniqueness(self, attrs):
         organization = self.context["request"].auth.organization
         verbal_name = attrs.get("verbal_name", None)
-        team = attrs.get("team", None)
         if verbal_name is None:
-            return attrs
+            return
+        team = self.get_team_for_name_validation(attrs)
         try:
             obj = AlertReceiveChannel.objects.get(
                 organization=organization,
@@ -159,14 +163,33 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 verbal_name=verbal_name,
             )
         except AlertReceiveChannel.DoesNotExist:
-            return attrs
+            return
         except AlertReceiveChannel.MultipleObjectsReturned:
             raise BadRequest(detail="An integration with this name already exists for this team")
 
         if self.instance and obj.id == self.instance.id:
-            return attrs
+            return
         else:
             raise BadRequest(detail="An integration with this name already exists for this team")
+
+    def get_team_for_name_validation(self, validated_data):
+        """
+        get_team_for_name_validation retrieves the team to be used in the validation process.
+
+        If the serializer is used to update an existing object, it returns the team from the request data if it's present,
+        otherwise, it returns the team from the existing instance.
+        It's needed to validate name correctly even if team is not present in request data (It's not required).
+
+        If the serializer is used to create a new object, it returns the team from the request data.
+        """
+        if self.instance:
+            if "team" in validated_data:
+                team = validated_data.get("team", None)
+            else:
+                team = self.instance.team
+        else:
+            team = validated_data.get("team")
+        return team
 
     def validate_templates(self, templates):
         if not isinstance(templates, dict):

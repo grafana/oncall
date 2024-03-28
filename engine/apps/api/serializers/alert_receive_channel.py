@@ -359,9 +359,13 @@ class AlertReceiveChannelSerializer(
 
     def validate(self, data):
         validated_data = super().validate(data)
+        self.validate_name_uniqueness(validated_data)
+        return validated_data
+
+    def validate_name_uniqueness(self, validated_data):
         organization = self.context["request"].auth.organization
         verbal_name = validated_data.get("verbal_name")
-        team = validated_data.get("team")
+        team = self.get_team_for_name_validation(validated_data)
         try:
             obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
         except AlertReceiveChannel.DoesNotExist:
@@ -376,7 +380,24 @@ class AlertReceiveChannelSerializer(
                     {"verbal_name": "An integration with this name already exists for this team"}
                 )
 
-        return validated_data
+    def get_team_for_name_validation(self, validated_data):
+        """
+        get_team_for_name_validation retrieves the team to be used in the validation process.
+
+        If the serializer is used to update an existing object, it returns the team from the request data if it's present,
+        otherwise, it returns the team from the existing instance.
+        It's needed to validate name correctly even if team is not present in request data (It's not required).
+
+        If the serializer is used to create a new object, it returns the team from the request data.
+        """
+        if self.instance:
+            if "team" in validated_data:
+                team = validated_data.get("team", None)
+            else:
+                team = self.instance.team
+        else:
+            team = validated_data.get("team")
+        return team
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
