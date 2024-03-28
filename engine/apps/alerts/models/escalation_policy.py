@@ -47,7 +47,8 @@ class EscalationPolicy(OrderedModel):
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_TEAM_MEMBERS,
         STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
-    ) = range(19)
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
+    ) = range(20)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -70,6 +71,7 @@ class EscalationPolicy(OrderedModel):
         (STEP_TRIGGER_CUSTOM_WEBHOOK, "Trigger Webhook"),
         (STEP_NOTIFY_TEAM_MEMBERS, "Notify all users in a Team"),
         (STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT, "Notify all users in a Team (Important)"),
+        (STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES, "Run escalation from stage (5 times max)"),
     )
 
     # Ordered step choices available for internal api.
@@ -91,6 +93,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
     ]
     # Steps can be stored in db while interacting with internal api
     # Includes important versions of default steps
@@ -112,6 +115,7 @@ class EscalationPolicy(OrderedModel):
         STEP_TRIGGER_CUSTOM_BUTTON,
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
     ]
 
     # Maps internal api's steps choices to their verbal. First string in tuple is display name for existent step.
@@ -151,6 +155,10 @@ class EscalationPolicy(OrderedModel):
             "Repeat escalation from the beginning (5 times max)",
             "Repeat escalations from the beginning (5 times max)",
         ),
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES: (
+            "Run escalation from stage {{run_from_stage}} (5 times max)",
+            "Run escalation from stage (5 times max)",
+        ),
     }
 
     STEPS_WITH_NO_IMPORTANT_VERSION_SET = {
@@ -162,6 +170,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
     }
 
     DEFAULT_TO_IMPORTANT_STEP_MAPPING = {
@@ -212,6 +221,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
     ]
 
     PUBLIC_STEP_CHOICES_MAP = {
@@ -234,6 +244,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME: "notify_if_time_from_to",
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: "notify_if_num_alerts_in_window",
         STEP_REPEAT_ESCALATION_N_TIMES: "repeat_escalation",
+        STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES: "run_escalation_from_stage",
     }
 
     public_primary_key = models.CharField(
@@ -261,6 +272,7 @@ class EscalationPolicy(OrderedModel):
     )
 
     step = models.IntegerField(choices=STEP_CHOICES, default=None, null=True)
+    run_from_stage = models.PositiveIntegerField(null=True, default=None)
 
     notify_to_team_members = models.ForeignKey(
         "user_management.Team",

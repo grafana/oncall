@@ -65,6 +65,7 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
     num_minutes_in_window = serializers.IntegerField(allow_null=True, default=None)
     pause_escalation = serializers.BooleanField(default=False)
     last_notified_user = PrimaryKeyRelatedFieldWithNoneValue(allow_null=True, queryset=User.objects)
+    run_from_stage = serializers.IntegerField(allow_null=True, default=None)
 
     class Meta:
         model = EscalationPolicy
@@ -87,4 +88,5 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
             "escalation_counter",
             "passed_last_time",
             "pause_escalation",
+            "run_from_stage",
         ]

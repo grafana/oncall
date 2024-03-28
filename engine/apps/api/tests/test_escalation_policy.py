@@ -83,6 +83,53 @@ def test_create_escalation_policy_webhook(
 
 
 @pytest.mark.django_db
+def test_create_escalation_policy_run_from_stage(
+    escalation_policy_internal_api_setup, make_escalation_policy, make_user_auth_headers
+):
+    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.ONE_MINUTE,
+    )
+    client = APIClient()
+    url = reverse("api-internal:escalation_policy-list")
+    data = {
+        "step": EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
+        "escalation_chain": escalation_chain.public_primary_key,
+        "run_from_stage": 1,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["run_from_stage"] == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "run_from_stage",
+    [0, 10],
+)
+def test_cannot_create_escalation_policy_with_invalid_run_from_stage(
+    escalation_policy_internal_api_setup, make_escalation_policy, run_from_stage, make_user_auth_headers
+):
+    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.ONE_MINUTE,
+    )
+    client = APIClient()
+    url = reverse("api-internal:escalation_policy-list")
+    data = {
+        "step": EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES,
+        "escalation_chain": escalation_chain.public_primary_key,
+        "run_from_stage": run_from_stage,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_update_notify_multiple_users_step(escalation_policy_internal_api_setup, make_user_auth_headers):
     token, _, escalation_policy, first_user, second_user = escalation_policy_internal_api_setup
     client = APIClient()
@@ -715,6 +762,7 @@ def test_escalation_policy_can_not_create_with_non_step_type_related_data(
         (EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS, ["notify_to_users_queue"]),
         (EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON, ["custom_button_trigger"]),
         (EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK, ["custom_webhook"]),
+        (EscalationPolicy.STEP_RUN_ESCALATION_FROM_STAGE_N_TIMES, ["run_from_stage"]),
     ],
 )
 def test_escalation_policy_update_drop_non_step_type_related_data(
@@ -755,6 +803,7 @@ def test_escalation_policy_update_drop_non_step_type_related_data(
         "to_time",
         "custom_button_trigger",
         "custom_webhook",
+        "run_from_stage",
     ]
     for f in related_fields:
         fields_to_check.remove(f)
@@ -811,6 +860,7 @@ def test_escalation_policy_switch_importance(
         "notify_to_team_members": None,
         "important": True,
         "wait_delay": None,
+        "run_from_stage": None,
     }
 
     client = APIClient()
@@ -868,6 +918,7 @@ def test_escalation_policy_filter_by_user(
             "notify_to_group": None,
             "notify_to_team_members": None,
             "important": False,
+            "run_from_stage": None,
         },
         {
             "id": escalation_policy_with_two_users.public_primary_key,
@@ -886,6 +937,7 @@ def test_escalation_policy_filter_by_user(
             "notify_to_group": None,
             "notify_to_team_members": None,
             "important": False,
+            "run_from_stage": None,
         },
     ]
 
@@ -952,6 +1004,7 @@ def test_escalation_policy_filter_by_slack_channel(
             "notify_to_group": None,
             "notify_to_team_members": None,
             "important": False,
+            "run_from_stage": None,
         },
     ]
 
