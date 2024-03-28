@@ -13,11 +13,6 @@ logger.setLevel(logging.DEBUG)
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
 def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> None:
-    """
-    TODO: this is suppeerrr inefficient, having these nested for loops run, for each user, every 30 mins.. optimize this
-
-    QUESTION: will we need to persist any information about these calendar events in our database?
-    """
     google_oauth2_user = GoogleOAuth2User.objects.get(pk=google_oauth2_user_pk)
     google_api_client = GoogleCalendarAPIClient(google_oauth2_user.access_token, google_oauth2_user.refresh_token)
 
@@ -65,7 +60,7 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
                 if not shift_swap_request_exists:
                     logger.info(
-                        f"Creating shift swap request for user {user_id} schedule {schedule.pk}"
+                        f"Creating shift swap request for user {user_id} schedule {schedule.pk} "
                         f"due to the out of office event {event_id}"
                     )
 
