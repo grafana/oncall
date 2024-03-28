@@ -37,3 +37,10 @@ def default_columns() -> typing.List[AlertGroupTableColumn]:
         {"name": column.label, "id": column.value, "type": AlertGroupTableColumnTypeChoices.DEFAULT.value}
         for column in AlertGroupTableDefaultColumnChoices
     ]
+
+
+class GoogleCalendarSettings(typing.TypedDict):
+    specific_oncall_schedules_to_sync: typing.Optional[typing.List[str]]
+    """
+    `public_primary_key` of specific OnCall schedules that should be considering for automatic shift swap creation.
+    """

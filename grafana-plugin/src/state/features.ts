@@ -6,4 +6,5 @@ export enum AppFeature {
   CloudConnection = 'grafana_cloud_connection',
   Labels = 'labels',
   MsTeams = 'msteams',
+  GoogleOauth2 = 'google_oauth2',
 }
