@@ -14,6 +14,7 @@ from apps.metrics_exporter.constants import (
     AlertGroupsTotalMetricsDict,
     RecalculateOrgMetricsDict,
     UserWasNotifiedOfAlertGroupsMetricsDict,
+    METRICS_SCHEDULE,
 )
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
@@ -24,6 +25,9 @@ from apps.metrics_exporter.helpers import (
     get_organization_ids,
 )
 from apps.metrics_exporter.tasks import start_calculate_and_cache_metrics, start_recalculation_for_new_metric
+
+from apps.schedules.models import OnCallSchedule
+from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 
 application_metrics_registry = CollectorRegistry()
 
@@ -62,6 +66,8 @@ class ApplicationMetricsCollector:
         alert_groups_response_time_seconds, missing_org_ids_2 = self._get_response_time_metric(org_ids)
         # user was notified of alert groups metrics: counter
         user_was_notified, missing_org_ids_3 = self._get_user_was_notified_of_alert_groups_metric(org_ids)
+        # add new metric metrics_schedule
+        metrics_schedule, _ = self._get_schedule()
 
         # This part is used for releasing new metrics to avoid recalculation for every metric.
         # Uncomment with metric name when needed.
@@ -75,6 +81,7 @@ class ApplicationMetricsCollector:
         yield alert_groups_total
         yield alert_groups_response_time_seconds
         yield user_was_notified
+        yield metrics_schedule
 
     def _get_alert_groups_total_metric(self, org_ids):
         alert_groups_total = GaugeMetricFamily(
@@ -196,5 +203,22 @@ class ApplicationMetricsCollector:
             sum_value += value
         return buckets_values, sum_value
 
+    def _get_schedule(self):
+        # Initialize the metric object with the updated metric name
+        metrics_schedule = GaugeMetricFamily(
+            METRICS_SCHEDULE, "Description of metric", labels=["schedule", "team", "username"]
+        )
+        # Retrieve on-call schedules data
+        schedules = OnCallSchedule.objects.all()
+        # Process on-call schedule data
+        oncall_users = get_cached_oncall_users_for_multiple_schedules(schedules)
+        # Add metrics for each user and team combination in the schedule
+        for schedule, users in oncall_users.items():
+            # Get the team name or set it to None if team is None
+            team_name = schedule.team.name if schedule.team else "No team"
+            # Add metrics for each user and team combination in the schedule
+            for user in users:
+                metrics_schedule.add_metric([schedule.name, team_name, user.username], 1)
+        return metrics_schedule, []
 
 application_metrics_registry.register(ApplicationMetricsCollector())
