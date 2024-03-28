@@ -12,7 +12,7 @@ export function getNewAlertGroupsTimeseriesScene({ datasource, stack }: Insights
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: `delta(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[30m:])[1h:]) >= 0`,
+        expr: `delta(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"}))[30m:])[1h:]) >= 0`,
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',

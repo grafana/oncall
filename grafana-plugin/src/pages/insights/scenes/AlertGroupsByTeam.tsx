@@ -10,7 +10,7 @@ export function getAlertGroupsByTeamScene({ datasource, stack }: InsightsConfig)
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `sort_desc(delta(max_over_time(sum by(team) (avg without(pod, instance)($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[1h:])[$__range:])>=0)`,
+        expr: `sort_desc(delta(max_over_time(sum by(team) (avg without(pod, instance)($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"}))[1h:])[$__range:])>=0)`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',

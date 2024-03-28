@@ -10,7 +10,7 @@ export function getMTTRChangedTimeseriesScene({ datasource, stack }: InsightsCon
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `avg(sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))`,
+        expr: `avg(sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"}))`,
         instant: false,
         legendFormat: '__auto',
         range: true,
