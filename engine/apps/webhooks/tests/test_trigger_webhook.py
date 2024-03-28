@@ -249,7 +249,7 @@ def test_execute_webhook_ok(
     assert log.url == templated_url
     # check log record
     log_record = alert_group.log_records.last()
-    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     expected_info = {
         "trigger": "acknowledge",
         "webhook_id": webhook.public_primary_key,
@@ -306,7 +306,7 @@ def test_execute_webhook_via_escalation_ok(
     assert mock_requests.post.called
     # check log record
     log_record = alert_group.log_records.last()
-    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     expected_info = {
         "trigger": "escalation",
         "webhook_id": webhook.public_primary_key,
