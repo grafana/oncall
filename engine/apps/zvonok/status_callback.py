@@ -81,4 +81,4 @@ def update_zvonok_call_status(call_id: str, call_status: str, user_choice: Optio
                 f"alert_group_id={alert_group.id} user_id={user.id}"
             )
 
-            alert_group.acknowledge_by_user(user, action_source=ActionSource.PHONE)
+            alert_group.acknowledge_by_user_or_backsync(user, action_source=ActionSource.PHONE)

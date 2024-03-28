@@ -7,5 +7,9 @@ export function prepareForEdit(item: ApiSchemas['AlertReceiveChannel']): Partial
     team: item.team,
     labels: item.labels,
     integration: item.integration,
+
+    additional_settings: {
+      ...item.additional_settings,
+    },
   };
 }

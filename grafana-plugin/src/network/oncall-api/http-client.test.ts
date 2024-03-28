@@ -21,10 +21,10 @@ jest.mock('openapi-fetch', () => ({
 
 const fetchMock = jest.fn().mockResolvedValue(true);
 
+const HEADERS = new Headers();
+HEADERS.set('Content-Type', 'application/json');
 const REQUEST_CONFIG = {
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: HEADERS,
 };
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
@@ -63,12 +63,10 @@ describe('customFetch', () => {
 
   describe('if there is otel', () => {
     const spanEndMock = jest.fn();
-    const setStatusMock = jest.fn();
     const setAttributeMock = jest.fn();
     const spanStartMock = jest.fn(() => ({
       setAttribute: setAttributeMock,
       end: spanEndMock,
-      setStatus: setStatusMock,
     }));
     const otel = {
       trace: {
@@ -93,11 +91,9 @@ describe('customFetch', () => {
       expect(spanStartMock).toHaveBeenCalledTimes(1);
     });
 
-    it(`adds 'X-Idempotency-Key' header`, async () => {
+    it(`passes request config`, async () => {
       await customFetch(URL, REQUEST_CONFIG);
-      expect(fetchMock).toHaveBeenCalledWith(expect.any(String), {
-        headers: { ...REQUEST_CONFIG.headers, 'X-Idempotency-Key': expect.any(String) },
-      });
+      expect(fetchMock).toHaveBeenCalledWith(expect.any(String), REQUEST_CONFIG);
     });
 
     describe('if response is successful', () => {
@@ -116,7 +112,6 @@ describe('customFetch', () => {
         await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(ERROR_MOCK);
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
         expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(ERROR_MOCK);
-        expect(setStatusMock).toHaveBeenCalledTimes(1);
         expect(spanEndMock).toHaveBeenCalledTimes(1);
       });
     });

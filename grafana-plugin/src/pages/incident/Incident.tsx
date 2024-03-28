@@ -276,6 +276,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
     const sourceLink = incident?.render_for_web?.source_link;
+    const isServiceNow = incident?.alert_receive_channel?.integration === 'servicenow';
 
     return (
       <Block className={cx('block')}>
@@ -390,6 +391,15 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       </Tooltip>
                     </Button>
                   </PluginLink>
+
+                  {isServiceNow && (
+                    <Button variant="secondary" fill="outline" size="sm" className={cx('label-button')}>
+                      <HorizontalGroup spacing="xs">
+                        <Icon name="exchange-alt" />
+                        <span>Service Now</span>
+                      </HorizontalGroup>
+                    </Button>
+                  )}
 
                   <Tooltip
                     placement="top"

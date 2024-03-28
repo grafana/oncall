@@ -35,8 +35,6 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
     timezoneStore: { calendarStartDate },
   } = useStore();
   const { user, currentMoment, isOncall, scheduleId } = props;
-  const userMoment = currentMoment.tz(user.timezone);
-  const userOffsetHoursStr = getTzOffsetString(userMoment);
   const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
 
   const store = useStore();
@@ -48,7 +46,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
     organizationStore.currentOrganization.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} data-testid="schedule-user-details">
       <VerticalGroup spacing="xs">
         <ScheduleBorderedAvatar
           colors={colorSchemeList}
@@ -89,7 +87,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                 <VerticalGroup className={cx('timezone-info')} spacing="none">
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
-                  <Text>({userOffsetHoursStr})</Text>
+                  <Text>({user.timezone})</Text>
                 </VerticalGroup>
               </div>
             </div>

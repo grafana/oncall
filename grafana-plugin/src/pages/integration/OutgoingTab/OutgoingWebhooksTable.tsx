@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC, ReactElement, useEffect } from 'react';
 
 import { IconButton, HorizontalGroup, Icon, ConfirmModal, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
@@ -22,14 +22,16 @@ import { OutgoingTabDrawerKey, TriggerDetailsQueryStringKey, TriggerDetailsTab }
 
 interface OutgoingWebhooksTableProps {
   openDrawer: (key: OutgoingTabDrawerKey) => void;
+  noItemsInfo?: ReactElement;
 }
 
-export const OutgoingWebhooksTable: FC<OutgoingWebhooksTableProps> = observer(({ openDrawer }) => {
+export const OutgoingWebhooksTable: FC<OutgoingWebhooksTableProps> = observer(({ openDrawer, noItemsInfo }) => {
   const styles = useStyles2(getStyles);
   const {
     alertReceiveChannelWebhooksStore: { items, fetchItems },
   } = useStore();
   const integrationId = useIntegrationIdFromUrl();
+  const itemsAsList = Object.values(items);
 
   useEffect(() => {
     fetchItems(integrationId);
@@ -43,12 +45,15 @@ export const OutgoingWebhooksTable: FC<OutgoingWebhooksTableProps> = observer(({
     openDrawer('webhookDetails');
   };
 
+  if (!itemsAsList?.length && noItemsInfo) {
+    return noItemsInfo;
+  }
   return (
     <GTable
       emptyText={items ? 'No outgoing webhooks found' : 'Loading...'}
       rowKey="id"
       columns={getColumns(openTriggerDetailsDrawer)}
-      data={Object.values(items)}
+      data={itemsAsList}
       className={styles.outgoingWebhooksTable}
     />
   );

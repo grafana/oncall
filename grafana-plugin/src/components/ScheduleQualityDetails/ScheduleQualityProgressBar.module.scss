@@ -20,9 +20,11 @@ $border-radius: 2px;
 .c-progressBar__bar--warning {
   background-color: var(--warning-text-color);
 }
+
 .c-progressBar__bar--error {
   background-color: var(--error-text-color);
 }
+
 .c-progressBar__bar--primary {
   background-color: var(--success-text-color);
 }
@@ -36,6 +38,7 @@ $border-radius: 2px;
   border-top-left-radius: $border-radius;
   border-bottom-left-radius: $border-radius;
 }
+
 .c-progressBar__row:last-child,
 .c-progressBar__row:last-child > .c-progressBar__bar {
   border-top-right-radius: $border-radius;

@@ -23,6 +23,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_channel = serializers.SerializerMethodField()
 
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
+    grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")
 
     SELECT_RELATED = ["slack_team_identity"]
 
@@ -35,11 +36,13 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_team_identity",
             "slack_channel",
             "rbac_enabled",
+            "grafana_incident_enabled",
         ]
         read_only_fields = [
             "stack_slug",
             "slack_team_identity",
             "rbac_enabled",
+            "grafana_incident_enabled",
         ]
 
     def get_slack_channel(self, obj):

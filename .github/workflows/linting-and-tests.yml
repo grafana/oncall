@@ -69,9 +69,9 @@ jobs:
         if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
         working-directory: grafana-plugin
         run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
-      - name: Build frontend (will run linter and tests)
+      - name: Build, lint and test frontend
         working-directory: grafana-plugin
-        run: yarn build
+        run: yarn lint && yarn test && yarn build
 
   test-technical-documentation:
     name: "Test technical documentation"

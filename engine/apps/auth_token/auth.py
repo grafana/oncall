@@ -20,9 +20,18 @@ from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
 from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
+from .models.integration_backsync_auth_token import IntegrationBacksyncAuthToken
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+class ServerUser(AnonymousUser):
+    @property
+    def is_authenticated(self):
+        # Always return True. This is a way to tell if
+        # the user has been authenticated in permissions
+        return True
 
 
 class ApiTokenAuthentication(BaseAuthentication):
@@ -349,3 +358,30 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         if "dashboards:read" in permissions:
             return LegacyAccessControlRole.VIEWER
         return LegacyAccessControlRole.NONE
+
+
+class IntegrationBacksyncAuthentication(BaseAuthentication):
+    model = IntegrationBacksyncAuthToken
+
+    def authenticate(self, request) -> Tuple[ServerUser, IntegrationBacksyncAuthToken]:
+        token = get_authorization_header(request).decode("utf-8")
+
+        if not token:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+
+        return self.authenticate_credentials(token)
+
+    def authenticate_credentials(self, token_string: str) -> Tuple[ServerUser, IntegrationBacksyncAuthToken]:
+        try:
+            auth_token = self.model.validate_token_string(token_string)
+        except InvalidToken:
+            raise exceptions.AuthenticationFailed("Invalid token")
+
+        if auth_token.organization.is_moved:
+            raise OrganizationMovedException(auth_token.organization)
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
+
+        user = ServerUser()
+
+        return user, auth_token

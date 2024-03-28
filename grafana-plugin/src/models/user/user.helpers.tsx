@@ -97,7 +97,7 @@ export class UserHelper {
   }
 
   static async deleteiCalLink(userPk: ApiSchemas['User']['pk']) {
-    return (await onCallApi().POST('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
+    return (await onCallApi().DELETE('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
   }
 
   static async sendTestPushNotification(userId: ApiSchemas['User']['pk'], isCritical: boolean) {

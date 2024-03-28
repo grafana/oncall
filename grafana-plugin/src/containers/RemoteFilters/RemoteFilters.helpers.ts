@@ -15,7 +15,7 @@ export function parseFilters(
   filterOptions: FilterOption[],
   query: { [key: string]: any }
 ) {
-  const dataWithPredefinedTeams = { ...data, team: data.team || [] };
+  const dataWithPredefinedTeams = { ...data, team: data?.team || [] };
   const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in dataWithPredefinedTeams);
 
   const values = filters.reduce((memo: any, filterOption: FilterOption) => {

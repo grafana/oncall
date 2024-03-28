@@ -74,11 +74,11 @@ def process_digit(call_sid, digit):
             f"twilio_phone_call_sid={call_sid} digit={digit} alert_group_id={alert_group.id} user_id={user.id}"
         )
         if digit == "1":
-            alert_group.acknowledge_by_user(user, action_source=ActionSource.PHONE)
+            alert_group.acknowledge_by_user_or_backsync(user, action_source=ActionSource.PHONE)
         elif digit == "2":
-            alert_group.resolve_by_user(user, action_source=ActionSource.PHONE)
+            alert_group.resolve_by_user_or_backsync(user, action_source=ActionSource.PHONE)
         elif digit == "3":
-            alert_group.silence_by_user(user, silence_delay=1800, action_source=ActionSource.PHONE)
+            alert_group.silence_by_user_or_backsync(user, silence_delay=1800, action_source=ActionSource.PHONE)
 
 
 def get_gather_url():

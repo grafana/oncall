@@ -18,11 +18,13 @@
     color: var(--tag-text-danger);
     border: 1px solid var(--tag-border-danger);
   }
+
   &--warning {
     background-color: var(--tag-background-warning);
     color: var(--tag-text-warning);
     border: 1px solid var(--tag-border-warning);
   }
+
   &--primary {
     background-color: var(--tag-background-success);
     color: var(--tag-text-success);

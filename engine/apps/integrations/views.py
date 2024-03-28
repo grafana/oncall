@@ -8,10 +8,12 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_sns_view.views import SNSEndpoint
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.auth_token.auth import IntegrationBacksyncAuthentication
 from apps.heartbeat.tasks import process_heartbeat_task
 from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.integrations.mixins import (
@@ -22,6 +24,7 @@ from apps.integrations.mixins import (
     is_ratelimit_ignored,
 )
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.integrations.throttlers.integration_backsync_throttler import BacksyncRateThrottle
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from common.api_helpers.utils import create_engine_url
 
@@ -320,6 +323,9 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
                 f"This url is for integration with {alert_receive_channel.config.title}."
                 f"Key is for {alert_receive_channel.get_integration_display()}"
             )
+        if request.data is None:
+            return HttpResponseBadRequest("Payload is required")
+
         timestamp = timezone.now().isoformat()
         create_alert.apply_async(
             [],
@@ -350,3 +356,16 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         process_heartbeat_task.apply_async(
             (alert_receive_channel.pk,),
         )
+
+
+class IntegrationBacksyncAPIView(APIView):
+    authentication_classes = (IntegrationBacksyncAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (BacksyncRateThrottle,)
+
+    def post(self, request):
+        alert_receive_channel = request.auth.alert_receive_channel
+        integration_backsync_func = getattr(alert_receive_channel.config, "integration_backsync", None)
+        if integration_backsync_func:
+            integration_backsync_func(alert_receive_channel, request.data)
+        return Response(status=200)

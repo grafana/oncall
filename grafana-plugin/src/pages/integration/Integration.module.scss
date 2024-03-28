@@ -157,9 +157,11 @@ $LARGE-MARGIN: 24px;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+
   &__item--large {
     max-width: calc((100% - 150px) / 2);
   }
+
   &__item--small {
     max-width: 150px;
   }
@@ -214,15 +216,18 @@ $LARGE-MARGIN: 24px;
   &__table {
     margin-bottom: 24px;
   }
+
   &__connect {
     padding: 12px;
     margin-bottom: 24px;
     border: var(--border-weak);
     border-radius: var(--border-radius);
   }
+
   &__connect-toggler {
     width: 100%;
   }
+
   &__connect-toggler:hover {
     cursor: pointer;
   }

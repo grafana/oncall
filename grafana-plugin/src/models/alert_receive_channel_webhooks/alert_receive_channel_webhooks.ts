@@ -88,7 +88,7 @@ export class AlertReceiveChannelWebhooksStore {
   ) {
     const { data } = await onCallApi().PUT('/alert_receive_channels/{id}/webhooks/{webhook_id}/', {
       params: { path: { id: integrationId, webhook_id: webhook.id } },
-      body: webhook as ApiSchemas['Webhook'],
+      body: { ...this.items[webhook.id], ...webhook },
     });
     runInAction(() => {
       this.items[data.id] = data;

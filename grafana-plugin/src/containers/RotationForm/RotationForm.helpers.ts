@@ -187,3 +187,24 @@ export const getDateForDatePicker = (dayJsDate: Dayjs) => {
   date.setSeconds(dayJsDate.second());
   return date;
 };
+
+export const dayJSAddWithDSTFixed = ({
+  baseDate,
+  addParams,
+}: {
+  baseDate: Dayjs;
+  addParams: Parameters<Dayjs['add']>;
+}) => {
+  // At first we add time as usual
+  let newDateCandidate = baseDate.add(...addParams);
+
+  const differenceInHoursInLocalTimezone = newDateCandidate.hour() - baseDate.hour();
+  const differenceInHoursInUTC = newDateCandidate.utc().hour() - baseDate.utc().hour();
+
+  // But if we identify that there was a DST change before base date and the result candidate
+  if (differenceInHoursInLocalTimezone !== differenceInHoursInUTC) {
+    // then we make the resulting date to ignore DST change
+    newDateCandidate = newDateCandidate.subtract(differenceInHoursInUTC, 'hours');
+  }
+  return newDateCandidate;
+};

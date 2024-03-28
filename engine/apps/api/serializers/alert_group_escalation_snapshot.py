@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from apps.api.serializers.custom_button import CustomButtonFastSerializer
 from apps.api.serializers.escalation_policy import EscalationPolicySerializer
 from apps.api.serializers.schedule_base import ScheduleFastSerializer
 from apps.api.serializers.user import FastUserSerializer
@@ -14,7 +13,6 @@ class EscalationPolicySnapshotAPISerializer(EscalationPolicySerializer):
     notify_to_users_queue = FastUserSerializer(many=True, read_only=True)
     notify_schedule = ScheduleFastSerializer(read_only=True)
     notify_to_group = UserGroupSerializer(read_only=True)
-    custom_button_trigger = CustomButtonFastSerializer(read_only=True)
     custom_webhook = WebhookFastSerializer(read_only=True)
 
     class Meta(EscalationPolicySerializer.Meta):
@@ -27,7 +25,6 @@ class EscalationPolicySnapshotAPISerializer(EscalationPolicySerializer):
             "num_alerts_in_window",
             "num_minutes_in_window",
             "slack_integration_required",
-            "custom_button_trigger",
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",

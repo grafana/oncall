@@ -2149,8 +2149,8 @@ def test_timeline_api_action(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
     make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
 
-    alert_group.acknowledge_by_user(user, action_source=ActionSource.WEB)
-    alert_group.resolve_by_user(user, action_source=ActionSource.API)
+    alert_group.acknowledge_by_user_or_backsync(user, action_source=ActionSource.WEB)
+    alert_group.resolve_by_user_or_backsync(user, action_source=ActionSource.API)
 
     client = APIClient()
     url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})

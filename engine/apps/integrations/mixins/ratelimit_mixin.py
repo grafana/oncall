@@ -14,8 +14,8 @@ from apps.integrations.tasks import start_notify_about_integration_ratelimit
 logger = logging.getLogger(__name__)
 
 
-RATELIMIT_INTEGRATION = 300
-RATELIMIT_TEAM = 900
+RATELIMIT_INTEGRATION = "300/5m"
+RATELIMIT_TEAM = "900/5m"
 RATELIMIT_REASON_INTEGRATION = "channel"
 RATELIMIT_REASON_TEAM = "team"
 
@@ -124,7 +124,10 @@ class RateLimitMixin(ABC, View):
         raise NotImplementedError
 
     def execute_rate_limit_with_notification_logic(self, *args, **kwargs):
-        self.execute_rate_limit(self.request)
+        try:
+            self.execute_rate_limit(self.request)
+        except Ratelimited:
+            pass
         self.notify()
 
     @property
@@ -155,12 +158,13 @@ class IntegrationHeartBeatRateLimitMixin(RateLimitMixin, View):
 
     @ratelimit(
         key=get_rate_limit_per_channel_key,
-        rate=str(RATELIMIT_INTEGRATION) + "/5m",
+        rate=RATELIMIT_INTEGRATION,
         group="integration",
         reason=RATELIMIT_REASON_INTEGRATION,
+        block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=str(RATELIMIT_TEAM) + "/5m", group="team", reason=RATELIMIT_REASON_TEAM
+        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass
@@ -190,12 +194,13 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
 
     @ratelimit(
         key=get_rate_limit_per_channel_key,
-        rate=str(RATELIMIT_INTEGRATION) + "/5m",
+        rate=RATELIMIT_INTEGRATION,
         group="integration",
         reason=RATELIMIT_REASON_INTEGRATION,
+        block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=str(RATELIMIT_TEAM) + "/5m", group="team", reason=RATELIMIT_REASON_TEAM
+        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass

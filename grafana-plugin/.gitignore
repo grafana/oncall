@@ -18,3 +18,7 @@ grafana-plugin.yml
 /playwright-report*
 /playwright/.cache/
 /e2e-tests/storageState.json
+
+# Jest test report
+jest_html_reporters.html
+jest-html-reporters*

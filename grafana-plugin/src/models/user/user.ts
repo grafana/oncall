@@ -29,6 +29,7 @@ export class UserStore {
   notificationChoices: any = [];
   notifyByOptions: any = [];
   currentUserPk?: ApiSchemas['User']['pk'];
+  usersCurrentlyBeingFetched: { [pk: string]: boolean } = {};
 
   constructor(rootStore: RootStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -69,7 +70,6 @@ export class UserStore {
     return response;
   }
 
-  @AutoLoadingState(ActionKey.FETCH_USERS)
   @action.bound
   async fetchItemById({
     userPk,
@@ -80,11 +80,11 @@ export class UserStore {
     skipErrorHandling?: boolean;
     skipIfAlreadyPending?: boolean;
   }) {
-    const isAlreadyFetching = this.rootStore.loaderStore.isLoading(ActionKey.FETCH_USERS);
-
-    if (skipIfAlreadyPending && isAlreadyFetching) {
+    if (skipIfAlreadyPending && this.usersCurrentlyBeingFetched[userPk]) {
       return this.items[userPk];
     }
+
+    this.usersCurrentlyBeingFetched[userPk] = true;
 
     const { data } = await onCallApi({ skipErrorHandling }).GET('/users/{id}/', { params: { path: { id: userPk } } });
 
@@ -93,6 +93,7 @@ export class UserStore {
         ...this.items,
         [data.pk]: { ...data, timezone: UserHelper.getTimezone(data) },
       };
+      delete this.usersCurrentlyBeingFetched[userPk];
     });
 
     return data;
@@ -128,12 +129,12 @@ export class UserStore {
   }
 
   async unlinkSlack(userPk: ApiSchemas['User']['pk']) {
-    await onCallApi().POST('/users/{id}/unlink_slack/', undefined);
+    await onCallApi().POST('/users/{id}/unlink_slack/', { params: { path: { id: userPk } } });
     await this.fetchItemById({ userPk });
   }
 
   async unlinkTelegram(userPk: ApiSchemas['User']['pk']) {
-    await onCallApi().POST('/users/{id}/unlink_telegram/', undefined);
+    await onCallApi().POST('/users/{id}/unlink_telegram/', { params: { path: { id: userPk } } });
     await this.fetchItemById({ userPk });
   }
 

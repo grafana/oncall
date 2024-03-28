@@ -9,6 +9,8 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import F
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
@@ -337,3 +339,15 @@ class WebhookResponse(models.Model):
     def json(self):
         if self.content:
             return json.loads(self.content)
+
+
+@receiver(post_save, sender=WebhookResponse)
+def webhook_response_post_save(sender, instance, created, *args, **kwargs):
+    if not created:
+        return
+
+    source_alert_receive_channel = instance.webhook.filtered_integrations.filter(
+        additional_settings__isnull=False
+    ).first()  # TODO: is it possible to have more than one?
+    if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "on_webhook_response_created"):
+        source_alert_receive_channel.config.on_webhook_response_created(instance, source_alert_receive_channel)

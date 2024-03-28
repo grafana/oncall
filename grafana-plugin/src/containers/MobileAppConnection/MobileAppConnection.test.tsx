@@ -14,23 +14,6 @@ jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
 }));
 
-jest.mock('@grafana/runtime', () => ({
-  __esModule: true,
-
-  config: {
-    featureToggles: {
-      topNav: false,
-    },
-  },
-
-  getBackendSrv: jest.fn().mockImplementation(() => ({
-    get: jest.fn(),
-    post: jest.fn(),
-  })),
-
-  getLocationSrv: jest.fn(),
-}));
-
 jest.mock('utils/authorization/authorization', () => ({
   ...jest.requireActual('utils/authorization/authorization'),
   isUserActionAllowed: jest.fn().mockReturnValue(true),
@@ -44,7 +27,7 @@ jest.mock('state/rootStore', () => ({
 
 const mockRootStore = (rest?: any, connected = false, cloud_connected = true) => {
   rootStore.userStore = {
-    loadUser: loadUserMock,
+    fetchItemById: loadUserMock,
     currentUser: {
       messaging_backends: {
         MOBILE_APP: { connected },
@@ -76,13 +59,11 @@ describe('MobileAppConnection', () => {
   beforeEach(() => {
     loadUserMock.mockClear();
     (rootStore as any).mockClear();
+    mockRootStore();
+    UserHelper.fetchBackendConfirmationCode = jest.fn().mockResolvedValueOnce('dfd');
   });
 
   test('it shows a loading message if it is currently fetching the QR code', async () => {
-    mockRootStore({
-      fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-    });
-
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
@@ -93,10 +74,7 @@ describe('MobileAppConnection', () => {
   });
 
   test('it shows an error message if there was an error fetching the QR code', async () => {
-    mockRootStore({
-      fetchBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
-    });
-
+    UserHelper.fetchBackendConfirmationCode = jest.fn().mockRejectedValueOnce('dfd');
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
@@ -109,10 +87,6 @@ describe('MobileAppConnection', () => {
   });
 
   test("it shows a QR code if the app isn't already connected", async () => {
-    mockRootStore({
-      fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-    });
-
     const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
@@ -125,7 +99,6 @@ describe('MobileAppConnection', () => {
   test('if we disconnect the app, it disconnects and fetches a new QR code', async () => {
     mockRootStore(
       {
-        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockResolvedValueOnce('asdfadsfafds'),
       },
       true
@@ -153,7 +126,6 @@ describe('MobileAppConnection', () => {
   test('it shows a loading message if it is currently disconnecting', async () => {
     mockRootStore(
       {
-        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 500))),
       },
       true
@@ -184,7 +156,6 @@ describe('MobileAppConnection', () => {
   test('it shows an error message if there was an error disconnecting the mobile app', async () => {
     mockRootStore(
       {
-        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
       },
       true
@@ -213,7 +184,6 @@ describe('MobileAppConnection', () => {
   test('it polls loadUser on first render if not connected', async () => {
     mockRootStore(
       {
-        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
         unlinkBackend: jest.fn().mockRejectedValueOnce('asdfadsfafds'),
       },
       false
@@ -232,7 +202,6 @@ describe('MobileAppConnection', () => {
   test('it polls loadUser after disconnect', async () => {
     mockRootStore(
       {
-        fetchBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dff'),
         unlinkBackend: jest.fn().mockRejectedValueOnce('asdff'),
       },
       true

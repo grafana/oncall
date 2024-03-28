@@ -5,6 +5,7 @@ from apps.alerts.models import (
     AlertGroup,
     AlertGroupLogRecord,
     AlertReceiveChannel,
+    AlertReceiveChannelConnection,
     ChannelFilter,
     CustomButton,
     EscalationChain,
@@ -22,6 +23,11 @@ class AlertReceiveChannelFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = AlertReceiveChannel
+
+
+class AlertReceiveChannelConnectionFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = AlertReceiveChannelConnection
 
 
 class ChannelFilterFactory(factory.DjangoModelFactory):

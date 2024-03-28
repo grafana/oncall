@@ -110,15 +110,15 @@ class ButtonPressHandler(UpdateHandler):
     @staticmethod
     def _map_action_context_to_fn(action_context: ActionContext) -> Tuple[Callable, dict]:
         action_to_fn = {
-            Action.RESOLVE: "resolve_by_user",
-            Action.UNRESOLVE: "un_resolve_by_user",
-            Action.ACKNOWLEDGE: "acknowledge_by_user",
-            Action.UNACKNOWLEDGE: "un_acknowledge_by_user",
+            Action.RESOLVE: "resolve_by_user_or_backsync",
+            Action.UNRESOLVE: "un_resolve_by_user_or_backsync",
+            Action.ACKNOWLEDGE: "acknowledge_by_user_or_backsync",
+            Action.UNACKNOWLEDGE: "un_acknowledge_by_user_or_backsync",
             Action.SILENCE: {
-                "fn_name": "silence_by_user",
+                "fn_name": "silence_by_user_or_backsync",
                 "kwargs": {"silence_delay": int(action_context.action_data) if action_context.action_data else None},
             },
-            Action.UNSILENCE: "un_silence_by_user",
+            Action.UNSILENCE: "un_silence_by_user_or_backsync",
         }
 
         fn_info = action_to_fn[action_context.action]

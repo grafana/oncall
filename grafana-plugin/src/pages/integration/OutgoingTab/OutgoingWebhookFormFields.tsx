@@ -20,7 +20,6 @@ import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { VALID_URL_PATTERN } from 'utils/string';
 
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabFormValues } from './OutgoingTab.types';
@@ -101,7 +100,6 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         <Input
           {...register('url', {
             required: 'URL is required',
-            pattern: { value: VALID_URL_PATTERN, message: 'URL is invalid' },
           })}
         />
       </Field>

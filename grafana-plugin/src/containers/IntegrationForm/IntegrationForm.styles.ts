@@ -52,10 +52,15 @@ export const getIntegrationFormStyles = (theme: GrafanaTheme2) => {
       align-items: center;
       gap: 8px;
       margin-bottom: 24px;
+      padding-top: 12px;
     `,
 
     labels: css`
       margin-bottom: 20px;
+    `,
+
+    loader: css`
+      margin-bottom: 0;
     `,
 
     // TODO: figure out grafana bug on border

@@ -47,3 +47,14 @@ alert_group_update_resolution_note_signal.connect(
 user_notification_action_triggered_signal.connect(
     UserSlackRepresentative.on_user_action_triggered,
 )
+
+
+def integration_config_on_alert_group_created(**kwargs):
+    alert_group = kwargs["alert_group"]
+    config = alert_group.channel.config
+    if hasattr(config, "on_alert_group_created"):
+        config.on_alert_group_created(alert_group)
+
+
+# using the "alert_group_escalation_snapshot_built" signal to make sure at least one alert exists for the alert group
+alert_group_escalation_snapshot_built.connect(integration_config_on_alert_group_created)

@@ -11,7 +11,7 @@ from apps.auth_token.models import SlackAuthToken
 USER_SCOPE = ["channels:read", "identify", "chat:write", "users.profile:read", "users:read", "users:read.email"]
 
 # Scopes for slack bot token.
-# Is is prime token we are using for most requests to Slack api.
+# It is prime token we are using for most requests to Slack api.
 # Changing these scopes requires confirmation in Slack app settings.
 BOT_SCOPE = [
     "app_mentions:read",

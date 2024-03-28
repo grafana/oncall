@@ -21,7 +21,10 @@ export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContent
   const { alertReceiveChannelWebhooksStore } = useStore();
   const styles = useStyles2(getStyles);
   const commonStyles = useCommonStyles();
-  const formMethods = useForm<OutgoingTabFormValues>({ mode: 'onChange' });
+  const formMethods = useForm<OutgoingTabFormValues>({
+    mode: 'onChange',
+    defaultValues: { is_webhook_enabled: false },
+  });
   const integrationId = useIntegrationIdFromUrl();
 
   const onSubmit = async (values: OutgoingTabFormValues) => {

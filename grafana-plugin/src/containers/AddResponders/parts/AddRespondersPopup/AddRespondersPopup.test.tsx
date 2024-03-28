@@ -3,6 +3,8 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'mobx-react';
 
+import { UserHelper } from 'models/user/user.helpers';
+
 import { AddRespondersPopup } from './AddRespondersPopup';
 
 describe('AddRespondersPopup', () => {
@@ -30,10 +32,9 @@ describe('AddRespondersPopup', () => {
         getSearchResult: jest.fn().mockReturnValue(teams),
         updateItems: jest.fn(),
       },
-      userStore: {
-        search: jest.fn().mockReturnValue({ results: [] }),
-      },
     };
+
+    UserHelper.search = jest.fn().mockReturnValue({ results: [] });
 
     const component = render(
       <Provider store={mockStoreValue}>

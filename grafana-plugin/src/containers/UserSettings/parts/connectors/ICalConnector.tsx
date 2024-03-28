@@ -73,7 +73,9 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                           openNotification('iCal link is copied');
                         }}
                       >
-                        <Button icon="copy">Copy</Button>
+                        <Button icon="copy" data-testid="copy-ical-link">
+                          Copy
+                        </Button>
                       </CopyToClipboard>
                     </HorizontalGroup>
                   </InlineField>
@@ -97,7 +99,12 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                           }
                           confirmText="Revoke"
                         >
-                          <Button icon="trash-alt" variant="destructive" onClick={handleRevokeiCalLink}>
+                          <Button
+                            icon="trash-alt"
+                            variant="destructive"
+                            onClick={handleRevokeiCalLink}
+                            data-testid="revoke-ical-link"
+                          >
                             Revoke
                           </Button>
                         </WithConfirm>
@@ -114,7 +121,7 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                 labelWidth={12}
                 tooltip={'Secret iCal export link to add your assigned on call shifts to your calendar'}
               >
-                <Button onClick={handleCreateiCalLink} variant="secondary">
+                <Button onClick={handleCreateiCalLink} variant="secondary" data-testid="create-ical-link">
                   Create
                 </Button>
               </InlineField>

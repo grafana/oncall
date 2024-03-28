@@ -11,7 +11,7 @@ logger = logger = get_task_logger(__name__)
 class DedicatedQueueRetryTask(LogExceptionOnFailureTask):
     """
     Custom task sends all retried task to the dedicated retry queue.
-    Is is needed to not to overload regular (high, medium, low) queues with retried tasks.
+    It is needed to not to overload regular (high, medium, low) queues with retried tasks.
     """
 
     def retry(
