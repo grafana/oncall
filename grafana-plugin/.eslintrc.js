@@ -9,6 +9,7 @@ module.exports = {
       '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
   rules: {
+    'prefer-template': 1,
     eqeqeq: 'warn',
     'import/order': [
       'error',
@@ -71,5 +72,30 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'off',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
     '@typescript-eslint/explicit-member-accessibility': 'off',
+    'react/jsx-no-useless-fragment': [
+      1,
+      {
+        allowExpressions: true,
+      },
+    ],
+    'prefer-destructuring': [
+      1,
+      {
+        object: true,
+        array: false,
+      },
+    ],
+    'react/no-unstable-nested-components': [
+      1,
+      {
+        allowAsProps: true,
+      },
+    ],
+    'react/jsx-no-duplicate-props': [
+      1,
+      {
+        ignoreCase: false,
+      },
+    ],
   },
 };
