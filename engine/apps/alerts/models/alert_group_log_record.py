@@ -224,7 +224,7 @@ class AlertGroupLogRecord(models.Model):
     escalation_policy_step = models.IntegerField(null=True, default=None)
     step_specific_info = JSONField(null=True, default=None)
 
-    STEP_SPECIFIC_INFO_KEYS = ["schedule_name", "custom_button_name", "usergroup_handle"]
+    STEP_SPECIFIC_INFO_KEYS = ["schedule_name", "custom_button_name", "usergroup_handle", "source_integration_name"]
 
     def render_log_line_json(self):
         time = humanize.naturaldelta(self.alert_group.started_at - self.created_at)
@@ -271,6 +271,8 @@ class AlertGroupLogRecord(models.Model):
 
         if self.action_source == ActionSource.API:
             author_name = "API"
+        elif self.action_source == ActionSource.BACKSYNC:
+            author_name = "source integration " + step_specific_info.get("source_integration_name", "")
         elif self.author:
             if substitute_author_with_tag:
                 author_name = "{{author}}"
@@ -390,7 +392,7 @@ class AlertGroupLogRecord(models.Model):
                 else:
                     result += f"silenced by {author_name} for {humanize.naturaldelta(self.silence_delay)}"
         elif self.type == AlertGroupLogRecord.TYPE_UN_SILENCE:
-            if self.author is not None:
+            if author_name is not None:
                 result += f"unsilenced by {author_name}"
             else:
                 result += "alert group unsilenced"
