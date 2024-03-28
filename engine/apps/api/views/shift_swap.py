@@ -18,7 +18,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
 from apps.schedules.models import ShiftSwapRequest
-from apps.schedules.tasks.shift_swaps import create_shift_swap_request_message, update_shift_swap_request_message
+from apps.schedules.tasks.shift_swaps import update_shift_swap_request_message
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
@@ -32,13 +32,6 @@ class BaseShiftSwapViewSet(ModelViewSet):
     model = ShiftSwapRequest
     serializer_class = ShiftSwapRequestSerializer
     pagination_class = FiftyPageSizePaginator
-
-    def _do_create(self, beneficiary: User, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
-        shift_swap_request = serializer.save(beneficiary=beneficiary)
-
-        write_resource_insight_log(instance=shift_swap_request, author=self.request.user, event=EntityEvent.CREATED)
-
-        create_shift_swap_request_message.apply_async((shift_swap_request.pk,))
 
     def _do_take(self, benefactor: User) -> dict:
         shift_swap = self.get_object()
@@ -83,7 +76,7 @@ class BaseShiftSwapViewSet(ModelViewSet):
 
     def perform_create(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
         # default to create swap request with logged in user as beneficiary
-        self._do_create(self.request.user, serializer=serializer)
+        serializer.save(beneficiary=self.request.user)
 
     def perform_update(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
         prev_state = serializer.instance.insight_logs_serialized

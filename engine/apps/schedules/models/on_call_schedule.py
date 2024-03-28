@@ -542,10 +542,23 @@ class OnCallSchedule(PolymorphicModel):
         self.save(update_fields=["cached_ical_final_schedule"])
 
     def shifts_for_user(
-        self, user: User, datetime_start: datetime.datetime, days: int = 7
+        self,
+        user: User,
+        datetime_start: datetime.datetime,
+        datetime_end: typing.Optional[datetime.datetime] = None,
+        days: typing.Optional[int] = None,
     ) -> typing.Tuple[ScheduleEvents, ScheduleEvents, ScheduleEvents]:
+        """
+        NOTE: must specify at least `datetime_end` or `days`
+        """
+        if not datetime_end and not days:
+            raise ValueError("Must specify at least `datetime_end` or `days`")
+
         now = timezone.now()
-        datetime_end = datetime_start + datetime.timedelta(days=days)
+
+        if days is not None:
+            datetime_end = datetime_start + datetime.timedelta(days=days)
+
         passed_shifts: ScheduleEvents = []
         current_shifts: ScheduleEvents = []
         upcoming_shifts: ScheduleEvents = []

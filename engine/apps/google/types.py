@@ -2,10 +2,15 @@ import typing
 
 
 class GoogleCalendarEventDate(typing.TypedDict):
-    date: typing.NotRequired[str]
-    """
-    The date, in the format "yyyy-mm-dd", if this is an all-day event.
-    """
+    # NOTE: in reality I haven't seen this field returned, even despite creating
+    # an out of office event with the "All day" checkbox checked. Instead it looks
+    # like it just returns the start.dateTime and end.dateTime as midnight of the
+    # respective days
+
+    # date: typing.NotRequired[str]
+    # """
+    # The date, in the format "yyyy-mm-dd", if this is an all-day event.
+    # """
 
     dateTime: typing.NotRequired[str]
     """
