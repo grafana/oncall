@@ -62,12 +62,13 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
-import { PageProps, SelectOption, WithStoreProps } from 'state/types';
+import { PageProps, SelectOption, WithDrawerConfig, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { withDrawer } from 'utils/hoc';
 import { useDrawer } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
@@ -77,7 +78,11 @@ import { OutgoingTab } from './OutgoingTab/OutgoingTab';
 
 const cx = cn.bind(styles);
 
-interface IntegrationProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IntegrationProps
+  extends WithDrawerConfig<IntegrationDrawerKey>,
+    WithStoreProps,
+    PageProps,
+    RouteComponentProps<{ id: string }> {}
 
 interface IntegrationState extends PageBaseState {
   isLoading: boolean;
@@ -138,6 +143,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       match: {
         params: { id },
       },
+      drawerConfig,
     } = this.props;
 
     const { alertReceiveChannelStore } = store;
@@ -227,6 +233,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                 alertReceiveChannel={alertReceiveChannel}
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
                 isLegacyIntegration={isLegacyIntegration}
+                drawerConfig={drawerConfig}
               />
             </div>
 
@@ -266,7 +273,16 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               <Tabs
                 tabs={[
                   { label: 'Incoming', content: incomingPart },
-                  { label: 'Outgoing', content: <OutgoingTab /> },
+                  {
+                    label: 'Outgoing',
+                    content: (
+                      <OutgoingTab
+                        openSnowConfigurationDrawer={() => {
+                          drawerConfig.openDrawer('servicenow');
+                        }}
+                      />
+                    ),
+                  },
                 ]}
               />
             ) : (
@@ -807,6 +823,7 @@ interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
   alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   changeIsTemplateSettingsOpen: () => void;
+  drawerConfig: ReturnType<typeof useDrawer<IntegrationDrawerKey>>;
 }
 
 type IntegrationDrawerKey = 'servicenow' | 'completeConfig';
@@ -815,6 +832,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   isLegacyIntegration,
   changeIsTemplateSettingsOpen,
+  drawerConfig,
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
@@ -842,7 +860,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
 
-  const { closeDrawer, openDrawer, getIsDrawerOpened } = useDrawer<IntegrationDrawerKey>();
+  const { closeDrawer, openDrawer, getIsDrawerOpened } = drawerConfig;
 
   const { id } = alertReceiveChannel;
 
@@ -1274,4 +1292,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export const IntegrationPage = withRouter(withMobXProviderContext(_IntegrationPage));
+export const IntegrationPage = withRouter(withMobXProviderContext(withDrawer<IntegrationDrawerKey>(_IntegrationPage)));
