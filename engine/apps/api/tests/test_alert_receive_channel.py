@@ -270,7 +270,7 @@ def test_alert_receive_channel_name_uniqueness(
 
 
 @pytest.mark.django_db
-def test_alert_receive_channel_team_name_uniqueness_validation_optional_team_field(
+def test_alert_receive_channel_name_uniqueness_validation_optional_team_field(
     alert_receive_channel_internal_api_setup, make_team, make_user_auth_headers, make_alert_receive_channel
 ):
     """
@@ -290,7 +290,7 @@ def test_alert_receive_channel_team_name_uniqueness_validation_optional_team_fie
 
     client = APIClient()
 
-    # update works
+    # update works when team is not present in request data
     url = reverse(
         "api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel_with_team.public_primary_key}
     )
