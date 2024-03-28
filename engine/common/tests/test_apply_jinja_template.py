@@ -200,3 +200,11 @@ def test_apply_jinja_template_parse_json():
         )
         == expected_name
     )
+
+
+def test_apply_jinja_template_extra_context():
+    payload = {"name": "test"}
+    rendered = apply_jinja_template_to_alert_payload_and_labels(
+        "{{ payload.name, something }}", payload, labels=None, extra_context={"something": "else"}
+    )
+    assert rendered == "('test', 'else')"

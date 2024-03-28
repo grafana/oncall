@@ -53,9 +53,14 @@ def apply_jinja_template(
 
 
 def apply_jinja_template_to_alert_payload_and_labels(
-    template: str, payload: typing.Optional["Alert.RawRequestData"], labels: typing.Optional["AlertLabels"]
+    template: str,
+    payload: typing.Optional["Alert.RawRequestData"],
+    labels: typing.Optional["AlertLabels"],
+    extra_context: typing.Optional[dict] = None,
 ) -> str:
-    return apply_jinja_template(template, payload=payload, labels=labels)
+    if extra_context is None:
+        extra_context = {}
+    return apply_jinja_template(template, payload=payload, labels=labels, **extra_context)
 
 
 def templated_value_is_truthy(value: typing.Optional[str]) -> bool:
