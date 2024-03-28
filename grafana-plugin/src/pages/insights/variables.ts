@@ -59,7 +59,7 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
     name: 'service_name',
     label: 'Service name',
     text: ['All'],
-    value: ['$__all'],
+    value: ['($^)|(.+)'],
     datasource,
     definition: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
     query: {
