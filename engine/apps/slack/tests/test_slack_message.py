@@ -6,6 +6,13 @@ from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRe
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "notify_by",
+    [
+        UserNotificationPolicy.NotificationChannel.SLACK,
+        UserNotificationPolicy.NotificationChannel.SLACK_DM,
+    ],
+)
 def test_send_slack_notification(
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
@@ -14,6 +21,7 @@ def test_send_slack_notification(
     make_user_notification_policy,
     make_slack_channel,
     make_slack_message,
+    notify_by,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
 
@@ -21,7 +29,7 @@ def test_send_slack_notification(
     notification_policy = make_user_notification_policy(
         user,
         UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
+        notify_by=notify_by,
     )
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)

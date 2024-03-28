@@ -151,7 +151,8 @@ To be notified of alerts in Grafana OnCall via Slack mentions:
 2. In the **User Info** tab, edit or configure notification steps by clicking + Add Notification step
 3. select **Notify by** in the first dropdown and select **Slack mentions** in the second dropdown to receive alert
    notifications via Slack mentions.
-
+4. select **Notify by** in the first dropdown and select **Slack Direct Message** in the second dropdown to receive alert
+   notifications via Slack DM.
 ### Configure on-call notifications in Slack
 
 The Slack integration for Grafana Oncall supports automated Slack on-call notifications that notify individuals and
