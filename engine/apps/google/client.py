@@ -2,7 +2,6 @@ import datetime
 import logging
 import typing
 
-import pytz
 from django.conf import settings
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -20,8 +19,8 @@ class GoogleCalendarEvent:
         self._start_time = utils.datetime_strptime(event["start"]["dateTime"])
         self._end_time = utils.datetime_strptime(event["end"]["dateTime"])
 
-        self.start_time_utc = self._start_time.astimezone(pytz.UTC)
-        self.end_time_utc = self._end_time.astimezone(pytz.UTC)
+        self.start_time_utc = self._start_time.astimezone(datetime.timezone.utc)
+        self.end_time_utc = self._end_time.astimezone(datetime.timezone.utc)
 
 
 class GoogleCalendarAPIClient:
