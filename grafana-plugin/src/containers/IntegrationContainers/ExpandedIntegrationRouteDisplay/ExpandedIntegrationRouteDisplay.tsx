@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useCallback, useEffect, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -10,9 +10,13 @@ import {
   ConfirmModal,
   LoadingPlaceholder,
   Select,
-  Alert,
+  InlineSwitch,
+  RadioButtonGroup,
+  AsyncSelect,
+  Field,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -40,6 +44,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { openNotification } from 'utils/utils';
@@ -63,7 +68,23 @@ interface ExpandedIntegrationRouteDisplayState {
   routeIdForDeletion: string;
 }
 
-export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
+enum LABEL_OPTION {
+  BUILDER = 'Builder',
+  CODE = 'Code',
+}
+
+const QueryBuilderOptions = [
+  {
+    label: LABEL_OPTION.BUILDER,
+    value: LABEL_OPTION.BUILDER,
+  },
+  {
+    label: LABEL_OPTION.CODE,
+    value: LABEL_OPTION.CODE,
+  },
+];
+
+const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
   ({
     alertReceiveChannelId,
     channelFilterId,
@@ -84,6 +105,9 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     } = store;
 
     const [isLoading, setIsLoading] = useState(false);
+    const [routeLabelValues, setRouteLabelValues] = useState(INITIAL_LABELS_OPTIONS);
+    const [isExplainEnabled, setIsExplainEnabled] = useState(false);
+    const [labelOption, setLabelOption] = useState<string>(QueryBuilderOptions[0].label);
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -145,38 +169,68 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                     Use routing template
                   </Text>
 
-                  <HorizontalGroup spacing="xs">
-                    <div className={cx('input', 'input--align')}>
-                      <MonacoEditor
-                        value={channelFilterTemplate}
-                        disabled={true}
-                        height={MONACO_INPUT_HEIGHT_SMALL}
-                        data={templates}
-                        showLineNumbers={false}
-                        monacoOptions={MONACO_READONLY_CONFIG}
-                      />
-                    </div>
-                    <Button
-                      variant={'secondary'}
-                      icon="edit"
-                      size={'md'}
-                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
-                    />
-                  </HorizontalGroup>
+                  {store.hasFeature(AppFeature.Labels) && (
+                    <VerticalGroup>
+                      <div className={cx('labels-panel')}>
+                        <HorizontalGroup>
+                          <Text type="secondary">Explain</Text>
+                          <InlineSwitch
+                            value={isExplainEnabled}
+                            onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
+                              setIsExplainEnabled(ev.target.checked)
+                            }
+                            transparent
+                          />
+                        </HorizontalGroup>
 
-                  <div className={cx('routing-alert')}>
-                    <Alert
-                      severity="info"
-                      title={
-                        (
-                          <Text type="primary">
-                            If the Routing template evaluates to True, the alert will be grouped with the Grouping
-                            template and proceed to the following steps
-                          </Text>
-                        ) as any
-                      }
-                    />
-                  </div>
+                        <RadioButtonGroup
+                          options={QueryBuilderOptions}
+                          value={labelOption}
+                          onChange={setLabelOption}
+                        ></RadioButtonGroup>
+                      </div>
+
+                      <RenderConditionally shouldRender={labelOption === LABEL_OPTION.BUILDER}>
+                        <VerticalGroup>
+                          <Block className={cx('block')} onClick={noop}>
+                            <VerticalGroup>
+                              <Text type="primary">Labels to route</Text>
+
+                              <LabelsQueryBuilder values={routeLabelValues} setValues={setRouteLabelValues} />
+                            </VerticalGroup>
+                          </Block>
+
+                          <Block className={cx('block')} onClick={noop}>
+                            <Text type="secondary">
+                              If the Routing template evaluates to True, the alert will be grouped with the Grouping
+                              template and proceed to the following steps
+                            </Text>
+                          </Block>
+                        </VerticalGroup>
+                      </RenderConditionally>
+                    </VerticalGroup>
+                  )}
+
+                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.CODE}>
+                    <HorizontalGroup spacing="xs">
+                      <div className={cx('input', 'input--align')}>
+                        <MonacoEditor
+                          value={channelFilterTemplate}
+                          disabled={true}
+                          height={MONACO_INPUT_HEIGHT_SMALL}
+                          data={templates}
+                          showLineNumbers={false}
+                          monacoOptions={MONACO_READONLY_CONFIG}
+                        />
+                      </div>
+                      <Button
+                        variant={'secondary'}
+                        icon="edit"
+                        size={'md'}
+                        onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                      />
+                    </HorizontalGroup>
+                  </RenderConditionally>
                 </VerticalGroup>
               )}
             </div>
@@ -366,6 +420,220 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     }
   }
 );
+
+const FieldId = 'id';
+const FieldName = 'name';
+
+enum COMPARISON_TYPE {
+  EQUAL = '=',
+  NOTEQUAL = '<>',
+}
+
+const INITIAL_LABELS_OPTIONS = [
+  {
+    key: { [FieldId]: undefined, [FieldName]: undefined },
+    comparison: COMPARISON_TYPE.EQUAL,
+    value: { [FieldId]: undefined, [FieldName]: undefined },
+  },
+];
+
+interface LabelValue {
+  key: ApiSchemas['LabelKey'];
+  value: ApiSchemas['LabelValue'];
+  comparison: COMPARISON_TYPE;
+}
+
+interface LabelsQueryBuilderProps {
+  values: LabelValue[];
+  setValues: (values: LabelValue[]) => void;
+}
+
+interface Error {
+  [identifier: string]: {
+    data: ApiSchemas['LabelKey'] & { error: string };
+  };
+}
+
+const LabelsQueryBuilder: React.FC<LabelsQueryBuilderProps> = ({ values, setValues }) => {
+  const { labelsStore } = useStore();
+  const [, updateState] = useState(undefined);
+  const [valueFieldErrors, setValueFieldErrors] = useState<Error>({});
+  const forceUpdate = useCallback(() => updateState({}), []);
+
+  useEffect(() => {
+    (async function () {
+      await labelsStore.loadKeys();
+    })();
+  }, []);
+
+  const labelKeysOptions = (labelsStore.keys || []).map(
+    (key) =>
+      ({
+        label: key.name,
+        value: key.id,
+      } as SelectableValue)
+  );
+
+  const updateValueFieldErrors = (id: string) => {
+    const errors = { ...valueFieldErrors };
+    if (errors[id]) {
+      delete errors[id];
+      setValueFieldErrors(errors);
+    }
+  };
+
+  const onCommonChange = (labelOptionIndex: number, data: Partial<LabelValue>, appendError = false) => {
+    const newValues: LabelValue[] = values.map((label, labelIdx) => {
+      return labelIdx === labelOptionIndex ? { ...label, ...data } : label;
+    });
+
+    const isDuplicate = hasDuplicateLabelEntries(newValues, labelOptionIndex);
+
+    if (!isDuplicate) {
+      setValues(newValues);
+    } else if (appendError) {
+      setValueFieldErrors({
+        ...valueFieldErrors,
+        [data.value.id]: {
+          data: {
+            error: 'Duplicates not allowed',
+            id: data.value.id,
+            name: data.value.name,
+          },
+        },
+      });
+    }
+
+    if (!isDuplicate && appendError) {
+      updateValueFieldErrors(data.value.id);
+    }
+
+    forceUpdate();
+  };
+
+  const onComparisonChange = (option: SelectableValue, labelOptionIndex: number) =>
+    onCommonChange(labelOptionIndex, { comparison: option.value });
+
+  const onKeyChange = (option: SelectableValue, labelOptionIndex: number) =>
+    onCommonChange(labelOptionIndex, { key: { [FieldId]: option.value, [FieldName]: option.label } });
+
+  const onValueChange = (option: SelectableValue, labelOptionIndex: number) =>
+    onCommonChange(
+      labelOptionIndex,
+      {
+        value: {
+          [FieldId]: option.value,
+          [FieldName]: option.label,
+        },
+      },
+      true
+    );
+
+  const hasDuplicateLabelEntries = (list: LabelValue[], labelOptionIndex: number) => {
+    const el = list[labelOptionIndex];
+    // compare all other entries with current index
+    const duplicateFound = values.find(
+      (v, i) =>
+        v.key[FieldId] === el.key[FieldId] && // compare by ID
+        v.value[FieldId] === el.value[FieldId] && // compare by ID
+        v.comparison === el.comparison &&
+        i !== labelOptionIndex
+    );
+    return !!duplicateFound;
+  };
+
+  const isAddDisabled = () => {
+    const el = values[values.length - 1];
+    return el.key[FieldId] === undefined || el.value[FieldId] === undefined || el.comparison === undefined;
+  };
+
+  return (
+    <VerticalGroup>
+      {values.map((option, labelOptionIndex) => {
+        const valueError = valueFieldErrors[option.value.id];
+
+        return (
+          <HorizontalGroup spacing="none" align="flex-start">
+            <Field className={cx('field')}>
+              <Select
+                key={`${option.key[FieldName]}${
+                  option.key[FieldName] === undefined ? Math.floor(Math.random() * 1000) : ''
+                }`}
+                options={labelKeysOptions}
+                value={option.key[FieldId]}
+                width={250 / 8}
+                placeholder="Key"
+                onChange={(option: SelectableValue) => onKeyChange(option, labelOptionIndex)}
+              />
+            </Field>
+
+            <Select
+              options={Object.keys(COMPARISON_TYPE).map((k) => ({
+                label: COMPARISON_TYPE[k],
+                value: COMPARISON_TYPE[k],
+              }))}
+              value={option.comparison}
+              onChange={(option: SelectableValue) => onComparisonChange(option, labelOptionIndex)}
+            />
+
+            <Field invalid={!!valueError?.data.error} error={valueError?.data.error} className={cx('field')}>
+              <AsyncSelect
+                key={`${option.value[FieldName]}${
+                  option.value[FieldName] === undefined ? Math.floor(Math.random() * 1000) : ''
+                }`}
+                width={250 / 8}
+                disabled={option.key[FieldName] === undefined}
+                value={
+                  option.value[FieldName]
+                    ? {
+                        value: option.value[FieldId],
+                        label: option.value[FieldName],
+                      }
+                    : undefined
+                }
+                defaultOptions
+                loadOptions={async () => {
+                  const result = await labelsStore.loadValuesForKey(option.key.id);
+                  return result.values.map((v) => ({ label: v.name, value: v.id }));
+                }}
+                onChange={(option: SelectableValue) => onValueChange(option, labelOptionIndex)}
+                cacheOptions={false}
+                placeholder={'Value'}
+                noOptionsMessage="No values found"
+                menuShouldPortal
+              />
+            </Field>
+
+            <Button
+              tooltip="Remove label"
+              variant="secondary"
+              icon="times"
+              onClick={() => {
+                if (values.length === 1) {
+                  // restore to empty array
+                  return setValues(INITIAL_LABELS_OPTIONS);
+                }
+
+                setValues(values.slice(labelOptionIndex, 1));
+              }}
+            />
+
+            <Button
+              className={cx('label-add')}
+              disabled={isAddDisabled()}
+              tooltip="Add"
+              variant="secondary"
+              icon="plus"
+              onClick={() => {
+                setValues([...values, ...INITIAL_LABELS_OPTIONS]);
+              }}
+            ></Button>
+          </HorizontalGroup>
+        );
+      })}
+    </VerticalGroup>
+  );
+};
 
 const ReadOnlyEscalationChain: React.FC<{ escalationChainId: string }> = ({ escalationChainId }) => {
   return <EscalationChainSteps isDisabled id={escalationChainId} />;

@@ -26,9 +26,12 @@ export class LabelStore extends BaseStore {
   }
 
   @action.bound
-  async loadValuesForKey(key: ApiSchemas['LabelKey']['id'], search = '') {
+  async loadValuesForKey(
+    key: ApiSchemas['LabelKey']['id'],
+    search = ''
+  ): Promise<components['schemas']['LabelKeyValues'] | Record<string, never>> {
     if (!key) {
-      return [];
+      return {};
     }
 
     const result = await makeRequest(`${this.path}id/${key}`, {
