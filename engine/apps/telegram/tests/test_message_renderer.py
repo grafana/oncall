@@ -150,7 +150,7 @@ def test_personal_message(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=default_channel_filter)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.tests["payload"])
 
-    alert_group.acknowledge_by_user(user)
+    alert_group.acknowledge_by_user_or_backsync(user)
 
     renderer = TelegramMessageRenderer(alert_group=alert_group)
     text = renderer.render_personal_message()
