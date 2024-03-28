@@ -53,7 +53,7 @@ export const ServiceNowAuthSection: React.FC = observer(() => {
     };
 
     setIsAuthTestRunning(true);
-    const result = await AlertReceiveChannelHelper.testServiceNowAuthentication({ data });
+    const result = await AlertReceiveChannelHelper.testServiceNowAuthentication({ id: currentIntegration?.id, data });
     setAuthTestResult(result);
     setIsAuthTestRunning(false);
   }
