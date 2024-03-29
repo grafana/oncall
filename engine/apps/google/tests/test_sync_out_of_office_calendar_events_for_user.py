@@ -115,7 +115,7 @@ def test_setup(
             # normally this 👇 is done via User.finish_google_oauth2_connection_flow.. but since we're creating
             # the user via a fixture we need to manually add this
             google_calendar_settings={
-                "specific_oncall_schedules_to_sync": [],
+                "oncall_schedules_to_consider_for_shift_swaps": [],
             },
             name=user_name,
         )
@@ -199,7 +199,7 @@ def test_sync_out_of_office_calendar_events_for_user_multiple_ooo_events(mock_go
 
 @patch("apps.google.client.build")
 @pytest.mark.django_db
-def test_sync_out_of_office_calendar_events_for_user_specific_schedules_to_sync_setting(
+def test_sync_out_of_office_calendar_events_for_user_oncall_schedules_to_consider_for_shift_swaps_setting(
     mock_google_api_client_build,
     test_setup,
     make_schedule_with_on_call_shift,
@@ -218,7 +218,7 @@ def test_sync_out_of_office_calendar_events_for_user_specific_schedules_to_sync_
     make_schedule_with_on_call_shift(out_of_office_events, schedule1.organization, user)
 
     user.google_calendar_settings = {
-        "specific_oncall_schedules_to_sync": [schedule1.public_primary_key],
+        "oncall_schedules_to_consider_for_shift_swaps": [schedule1.public_primary_key],
     }
     user.save()
 

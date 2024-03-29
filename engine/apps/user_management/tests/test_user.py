@@ -142,7 +142,7 @@ def test_finish_google_oauth2_connection_flow(make_organization_and_user):
     assert google_oauth_user.access_token == "access"
     assert google_oauth_user.refresh_token == "refresh"
     assert google_oauth_user.oauth_scope == "scope"
-    assert user.google_calendar_settings["specific_oncall_schedules_to_sync"] == []
+    assert user.google_calendar_settings["oncall_schedules_to_consider_for_shift_swaps"] == []
 
     oauth_response2 = {
         "access_token": "access2",

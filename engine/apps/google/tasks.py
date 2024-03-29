@@ -21,12 +21,12 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     logger.info(f"Syncing out of office Google Calendar events for user {user_id}")
 
-    user_google_calendar_settings = user.google_calendar_settings
-    specific_oncall_schedules_to_sync = user_google_calendar_settings["specific_oncall_schedules_to_sync"]
-
     users_schedules = OnCallSchedule.objects.related_to_user(user)
-    if specific_oncall_schedules_to_sync:
-        users_schedules = users_schedules.filter(public_primary_key__in=specific_oncall_schedules_to_sync)
+    user_google_calendar_settings = user.google_calendar_settings
+    oncall_schedules_to_consider_for_shift_swaps = user_google_calendar_settings["oncall_schedules_to_consider_for_shift_swaps"]
+
+    if oncall_schedules_to_consider_for_shift_swaps:
+        users_schedules = users_schedules.filter(public_primary_key__in=oncall_schedules_to_consider_for_shift_swaps)
 
     for out_of_office_event in google_api_client.fetch_out_of_office_events():
         event_id = out_of_office_event.raw_event["id"]
