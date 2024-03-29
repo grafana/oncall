@@ -275,13 +275,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                   { label: 'Incoming', content: incomingPart },
                   {
                     label: 'Outgoing',
-                    content: (
-                      <OutgoingTab
-                        openSnowConfigurationDrawer={() => {
-                          drawerConfig.openDrawer('servicenow');
-                        }}
-                      />
-                    ),
+                    content: <OutgoingTab openSnowConfigurationDrawer={() => drawerConfig.openDrawer('servicenow')} />,
                   },
                 ]}
               />
