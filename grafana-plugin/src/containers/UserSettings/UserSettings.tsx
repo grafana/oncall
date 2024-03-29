@@ -62,7 +62,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
     isCurrent,
     store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
-    store.hasFeature(AppFeature.GoogleOauth2),
+    isCurrent && store.hasFeature(AppFeature.GoogleOauth2),
   ];
 
   const title = (

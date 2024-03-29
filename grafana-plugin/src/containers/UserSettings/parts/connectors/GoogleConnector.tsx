@@ -1,20 +1,21 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { Button, HorizontalGroup, InlineField } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserHelper } from 'models/user/user.helpers';
+import { UserActions } from 'utils/authorization/authorization';
 
 interface GoogleConnectorProps {
   id: ApiSchemas['User']['pk'];
-  onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const GoogleConnector = (props: GoogleConnectorProps) => {
-  const { id, onTabChange } = props;
+export const GoogleConnector = observer((props: GoogleConnectorProps) => {
+  const { id } = props;
 
   const store = useStore();
   const { userStore } = store;
@@ -24,12 +25,11 @@ export const GoogleConnector = (props: GoogleConnectorProps) => {
   const isCurrentUser = id === store.userStore.currentUserPk;
 
   const handleConnectButtonClick = useCallback(() => {
-    onTabChange(UserSettingsTab.GoogleCalendar);
-  }, [onTabChange]);
+    UserHelper.handleConnectGoogle();
+  }, []);
 
   const handleUnlinkGoogleAccount = useCallback(() => {
-    // TODO: finish setting this up properly
-    UserHelper.handleDisconnectGoogle();
+    userStore.disconnectGoogle();
   }, []);
 
   return (
@@ -37,22 +37,22 @@ export const GoogleConnector = (props: GoogleConnectorProps) => {
       <InlineField label="Google Account" labelWidth={15}>
         {storeUser.has_google_oauth2_connected ? (
           <HorizontalGroup spacing="xs">
-            <Input disabled value={'google_username_here'} />
-            <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
-              <Button
-                onClick={handleUnlinkGoogleAccount}
-                variant="destructive"
-                icon="times"
-                disabled={!isCurrentUser}
-              />
-            </WithConfirm>
+            <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
+              <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
+                <Button disabled={!isCurrentUser} variant="destructive" onClick={handleUnlinkGoogleAccount}>
+                  Disconnect
+                </Button>
+              </WithConfirm>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         ) : (
-          <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
-            Connect account
-          </Button>
+          <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
+            <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
+              Connect account
+            </Button>
+          </WithPermissionControlTooltip>
         )}
       </InlineField>
     </div>
   );
-};
+});
