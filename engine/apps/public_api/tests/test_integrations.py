@@ -194,7 +194,7 @@ def test_integration_uniqueness_validation_optional_team_field(
     assert response.status_code == status.HTTP_200_OK
 
     # updating works if team is present
-    data = {"type": "grafana", "description_short": "updated_description", "team_id": team.id}
+    data = {"type": "grafana", "description_short": "updated_description", "team_id": team.public_primary_key}
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_200_OK
 
