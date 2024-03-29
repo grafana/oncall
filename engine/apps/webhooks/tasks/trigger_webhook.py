@@ -251,8 +251,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
 
     # create log record
     error_code = None
-    # reuse existing webhooks record type (TODO: rename after migration)
-    log_type = AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    log_type = AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     reason = str(status["status_code"])
     if error is not None:
         log_type = AlertGroupLogRecord.TYPE_ESCALATION_FAILED
