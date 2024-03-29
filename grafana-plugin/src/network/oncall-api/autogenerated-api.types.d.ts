@@ -1798,7 +1798,7 @@ export interface components {
       display_name: string;
     };
     GoogleCalendarSettings: {
-      specific_oncall_schedules_to_sync?: string[] | null;
+      oncall_schedules_to_consider_for_shift_swaps?: string[] | null;
     };
     /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
     IntegrationAlertGroupLabels: {

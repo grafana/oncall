@@ -648,11 +648,10 @@ AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
     "django.contrib.auth.backends.ModelBackend",
+    "apps.social_auth.backends.GoogleOAuth2",
 ]
 
 if FEATURE_GOOGLE_OAUTH2_ENABLED:
-    AUTHENTICATION_BACKENDS.append("apps.social_auth.backends.GoogleOAuth2")
-
     CELERY_BEAT_SCHEDULE["sync_google_calendar_out_of_office_events_for_all_users"] = {
         "task": "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users",
         "schedule": crontab(minute="*/30"),  # every 30 minutes

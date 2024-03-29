@@ -33,8 +33,8 @@ class UserPermissionSerializer(serializers.Serializer):
 
 class GoogleCalendarSettingsSerializer(serializers.Serializer):
     # # TODO: figure out how to get OrganizationFilteredPrimaryKeyRelatedField to work with many=True
-    # specific_oncall_schedules_to_sync =
-    # specific_oncall_schedules_to_sync = serializers.ListField(
+    # oncall_schedules_to_consider_for_shift_swaps =
+    # oncall_schedules_to_consider_for_shift_swaps = serializers.ListField(
     #     child=OrganizationFilteredPrimaryKeyRelatedField(
     #         queryset=OnCallSchedule.objects,
     #         required=False,
@@ -43,7 +43,7 @@ class GoogleCalendarSettingsSerializer(serializers.Serializer):
     #     required=False,
     #     allow_null=True,
     # )
-    specific_oncall_schedules_to_sync = serializers.ListField(
+    oncall_schedules_to_consider_for_shift_swaps = serializers.ListField(
         child=serializers.CharField(),
         required=False,
         allow_null=True,

@@ -484,7 +484,7 @@ class User(models.Model):
         )
         if created:
             self.google_calendar_settings = {
-                "specific_oncall_schedules_to_sync": [],
+                "oncall_schedules_to_consider_for_shift_swaps": [],
             }
             self.save(update_fields=["google_calendar_settings"])
 
