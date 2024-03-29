@@ -36,7 +36,7 @@ interface OutgoingWebhookFormFieldsProps {
 
 export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ webhookId }) => {
   const styles = useStyles2(getStyles);
-  const { control, watch, formState, register } = useFormContext<OutgoingTabFormValues>();
+  const { control, watch, formState } = useFormContext<OutgoingTabFormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
   const [showTriggerTemplate] = watch(['triggerTemplateToogle']);
