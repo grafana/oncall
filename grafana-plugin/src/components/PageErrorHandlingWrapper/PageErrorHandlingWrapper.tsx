@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react';
 
-import { VerticalGroup } from '@grafana/ui';
+import { VerticalGroup, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { openWarningNotification } from 'utils/utils';
 
-import styles from './PageErrorHandlingWrapper.module.css';
-
-const cx = cn.bind(styles);
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 
 export interface PageBaseState {
   errorData: PageErrorData;
@@ -36,6 +35,8 @@ export const PageErrorHandlingWrapper = function ({
   itemNotFoundMessage?: string;
   children: () => React.ReactNode;
 }): JSX.Element {
+  const styles = useStyles2(getStyles);
+
   useEffect(() => {
     if (!errorData) {
       return;
@@ -53,9 +54,9 @@ export const PageErrorHandlingWrapper = function ({
   const { wrongTeamNoPermissions } = errorData;
 
   return (
-    <div className={cx('not-found')}>
+    <div className={cx(styles.notFound)}>
       <VerticalGroup spacing="lg" align="center">
-        <Text.Title level={1} className={cx('error-code')}>
+        <Text.Title level={1} className={cx(styles.errorCode)}>
           403
         </Text.Title>
         {wrongTeamNoPermissions && (
@@ -70,4 +71,24 @@ export const PageErrorHandlingWrapper = function ({
       </VerticalGroup>
     </div>
   );
+};
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    notFound: css`
+      margin: 50px auto;
+      text-align: center;
+      width: 400px;
+    `,
+
+    errorCode: css`
+      color: ${theme.colors.warning.text};
+    `,
+
+    changeTeamIcon: css`
+      color: white;
+      margin-right: 4px;
+      padding-top: 6px;
+    `,
+  };
 };

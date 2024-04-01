@@ -6,5 +6,15 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
     width100: css`
       width: 100%;
     `,
+
+    filterTable: css`
+      white-space: break-spaces;
+      line-height: 20px;
+      height: auto;
+    `,
   };
 };
+
+export enum COLORS {
+  ALWAYS_GREY = '#ccccdc',
+}
