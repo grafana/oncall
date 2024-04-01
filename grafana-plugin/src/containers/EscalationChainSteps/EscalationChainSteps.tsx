@@ -75,6 +75,8 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
   const escalationPolicyIds = escalationPolicyStore.escalationChainToEscalationPolicy[id];
   const isSlackInstalled = Boolean(store.organizationStore.currentOrganization?.slack_team_identity);
 
+  console.log('ChainSteps!');
+
   return (
     // @ts-ignore
     <SortableList useDragHandle className={cx('steps')} axis="y" lockAxis="y" onSortEnd={handleSortEnd}>

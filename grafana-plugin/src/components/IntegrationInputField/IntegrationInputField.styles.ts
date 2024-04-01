@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 
-export const getIntegrationInputFieldStyles = (theme: GrafanaTheme2) => {
+export const getIntegrationInputFieldStyles = (_theme: GrafanaTheme2) => {
   return {
     root: css`
       position: relative;

@@ -25,7 +25,7 @@ export const Avatar: FC<AvatarProps> = (props) => {
   return (
     <img
       src={src}
-      className={cx(styles.root, bem(styles.avatarSize, size), className)}
+      className={cx(bem(styles.avatar, size), className)}
       data-testid="test__avatar"
       {...rest}
     />

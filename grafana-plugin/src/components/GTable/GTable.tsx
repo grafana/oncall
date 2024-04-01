@@ -159,7 +159,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   );
 };
 
-const getGTableStyles = (theme: GrafanaTheme2) => {
+const getGTableStyles = (_theme: GrafanaTheme2) => {
   return {
     root: css`
       table {

@@ -1,13 +1,13 @@
 import React from 'react';
 
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { Button, InlineLabel, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserActions } from 'utils/authorization/authorization';
 
-import { GrafanaTheme2 } from '@grafana/data';
-import { css, cx } from '@emotion/css';
 
 interface IntegrationTemplateBlockProps {
   label: string;

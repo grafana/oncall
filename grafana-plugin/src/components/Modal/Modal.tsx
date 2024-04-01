@@ -1,12 +1,11 @@
 import React, { FC, PropsWithChildren } from 'react';
 
-import ReactModal from 'react-modal';
-
-ReactModal.setAppElement('#reactRoot');
-
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
+import ReactModal from 'react-modal';
+
+ReactModal.setAppElement('#reactRoot');
 
 export interface ModalProps {
   title?: string | JSX.Element;

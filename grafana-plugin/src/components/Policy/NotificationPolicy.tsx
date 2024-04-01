@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { SelectableValue } from '@grafana/data';
-import { Button, IconButton, Select } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { Button, IconButton, Select, Themeable2, withTheme2 } from '@grafana/ui';
 import { SortableElement } from 'react-sortable-hoc';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -19,11 +18,9 @@ import { UserAction } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
 
-import styles from './NotificationPolicy.module.css';
+import { css, cx } from '@emotion/css';
 
-const cx = cn.bind(styles);
-
-export interface NotificationPolicyProps {
+export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
   slackTeamIdentity?: {
     general_log_channel_pk: Channel['id'];
@@ -47,13 +44,21 @@ export interface NotificationPolicyProps {
 }
 
 export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
+  private styles: ReturnType<typeof getStyles>;
+
+  constructor(props: NotificationPolicyProps) {
+    super(props);
+
+    this.styles = getStyles(props.theme);
+  }
+
   render() {
     const { data, notificationChoices, number, color, userAction, isDisabled } = this.props;
     const { id, step } = data;
 
     return (
-      <Timeline.Item className={cx('root')} number={number} backgroundHexNumber={color}>
-        <div className={cx('step')}>
+      <Timeline.Item className={cx(this.styles.root)} number={number} backgroundHexNumber={color}>
+        <div className={cx(this.styles.step)}>
           {!isDisabled && (
             <WithPermissionControlTooltip userAction={userAction}>
               <DragHandle />
@@ -61,7 +66,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           )}
           <WithPermissionControlTooltip userAction={userAction}>
             <Select
-              className={cx('select', 'control')}
+              className={cx(this.styles.select, this.styles.control)}
               onChange={this._getOnChangeHandler('step')}
               value={step}
               options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
@@ -72,7 +77,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
               aria-label="Remove"
-              className={cx('control')}
+              className={cx(this.styles.control)}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}
               variant="secondary"
@@ -179,7 +184,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
         <Select
           key="wait-delay"
           placeholder="Wait Delay"
-          className={cx('select', 'control')}
+          className={cx(this.styles.select, this.styles.control)}
           // @ts-ignore
           value={wait_delay}
           disabled={disabled}
@@ -202,7 +207,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
         <Select
           key="notify_by"
           placeholder="Notify by"
-          className={cx('select', 'control')}
+          className={cx(this.styles.select, this.styles.control)}
           // @ts-ignore
           value={notify_by}
           disabled={disabled}
@@ -267,4 +272,27 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   };
 }
 
-export default SortableElement(NotificationPolicy);
+const getStyles = (_theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      z-index: 1062;
+    `,
+
+    step: css`
+      display: flex;
+      align-items: center;
+    `,
+
+    control: css`
+      margin-right: 10px;
+      flex-shrink: 0;
+    `,
+
+    select: css`
+      width: 200px !important;
+      flex-shrink: 0;
+    `,
+  };
+};
+
+export default SortableElement(withTheme2(NotificationPolicy));

@@ -1,14 +1,13 @@
 import React, { useEffect } from 'react';
 
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { VerticalGroup, useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { openWarningNotification } from 'utils/utils';
 
-import { css, cx } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
 
 export interface PageBaseState {
   errorData: PageErrorData;

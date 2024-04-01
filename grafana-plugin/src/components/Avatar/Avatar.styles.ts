@@ -3,13 +3,11 @@ import { GrafanaTheme2 } from '@grafana/data';
 
 export const getAvatarStyles = (_theme: GrafanaTheme2) => {
   return {
-    root: css`
+    avatar: css`
       display: inline-block;
       border-radius: 50%;
       overflow: hidden;
-    `,
 
-    avatarSize: css`
       &--xs {
         width: 12px;
         height: 12px;
