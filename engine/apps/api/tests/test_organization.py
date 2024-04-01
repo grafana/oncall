@@ -43,6 +43,7 @@ def test_get_organization(
         "slack_team_identity": None,
         "slack_channel": None,
         "rbac_enabled": organization.is_rbac_permissions_enabled,
+        "grafana_incident_enabled": organization.is_grafana_incident_enabled,
         "is_resolution_note_required": False,
         "env_status": mock_env_status,
         "banner": mock_banner,

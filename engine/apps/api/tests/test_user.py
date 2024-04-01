@@ -128,7 +128,7 @@ def test_update_user(
     assert response.json()["current_team"] == data["current_team"]
 
 
-@pytest.mark.parametrize("add_specific_oncall_schedules_to_sync", [True, False])
+@pytest.mark.parametrize("oncall_schedules_to_consider_for_shift_swaps", [True, False])
 @pytest.mark.django_db
 def test_update_user_google_calendar_settings(
     make_organization,
@@ -136,7 +136,7 @@ def test_update_user_google_calendar_settings(
     make_token_for_organization,
     make_user_auth_headers,
     make_schedule,
-    add_specific_oncall_schedules_to_sync,
+    oncall_schedules_to_consider_for_shift_swaps,
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
@@ -149,18 +149,18 @@ def test_update_user_google_calendar_settings(
     url = reverse("api-internal:user-detail", kwargs={"pk": admin.public_primary_key})
 
     schedule_public_primary_keys = (
-        [schedule1.public_primary_key, schedule2.public_primary_key] if add_specific_oncall_schedules_to_sync else []
+        [schedule1.public_primary_key, schedule2.public_primary_key] if oncall_schedules_to_consider_for_shift_swaps else []
     )
     data = {
         "google_calendar_settings": {
-            "specific_oncall_schedules_to_sync": schedule_public_primary_keys,
+            "oncall_schedules_to_consider_for_shift_swaps": schedule_public_primary_keys,
         },
     }
 
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["google_calendar_settings"] == {
-        "specific_oncall_schedules_to_sync": schedule_public_primary_keys,
+        "oncall_schedules_to_consider_for_shift_swaps": schedule_public_primary_keys,
     }
 
 

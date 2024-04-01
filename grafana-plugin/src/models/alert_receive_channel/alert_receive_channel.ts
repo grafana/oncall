@@ -37,7 +37,7 @@ export class AlertReceiveChannelStore {
   alertReceiveChannelOptions: Array<ApiSchemas['AlertReceiveChannelIntegrationOptions']> = [];
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
   connectedContactPoints: { [id: string]: ContactPoint[] } = {};
-  serviceNowStatusList: Array<[string, string]>;
+  serviceNowStatusList: string[][];
 
   constructor(rootStore: RootBaseStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -117,7 +117,6 @@ export class AlertReceiveChannelStore {
     });
 
     runInAction(() => {
-      // @ts-ignore // looks like wrong schema
       this.serviceNowStatusList = statusList.data;
     });
   }

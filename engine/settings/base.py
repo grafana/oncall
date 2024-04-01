@@ -648,11 +648,10 @@ AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
     "django.contrib.auth.backends.ModelBackend",
+    "apps.social_auth.backends.GoogleOAuth2",
 ]
 
 if FEATURE_GOOGLE_OAUTH2_ENABLED:
-    AUTHENTICATION_BACKENDS.append("apps.social_auth.backends.GoogleOAuth2")
-
     CELERY_BEAT_SCHEDULE["sync_google_calendar_out_of_office_events_for_all_users"] = {
         "task": "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users",
         "schedule": crontab(minute="*/30"),  # every 30 minutes
@@ -781,13 +780,13 @@ GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYS
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
-    "STACK_SLUG": "self_hosted_stack",
+    "STACK_SLUG": os.environ.get("SELF_HOSTED_STACK_SLUG", "self_hosted_stack"),
     "ORG_ID": 100,
-    "ORG_SLUG": "self_hosted_org",
-    "ORG_TITLE": "Self-Hosted Organization",
-    "REGION_SLUG": "self_hosted_region",
+    "ORG_SLUG": os.environ.get("SELF_HOSTED_ORG_SLUG", "self_hosted_org"),
+    "ORG_TITLE": os.environ.get("SELF_HOSTED_ORG_TITLE", "Self-Hosted Organization"),
+    "REGION_SLUG": os.environ.get("SELF_HOSTED_REGION_SLUG", "self_hosted_region"),
     "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
-    "CLUSTER_SLUG": "self_hosted_cluster",
+    "CLUSTER_SLUG": os.environ.get("SELF_HOSTED_CLUSTER_SLUG", "self_hosted_cluster"),
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)

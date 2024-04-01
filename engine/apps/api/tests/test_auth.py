@@ -72,14 +72,19 @@ def test_complete_slack_auth_redirect_error(
 
 
 @pytest.mark.django_db
+@patch("apps.social_auth.backends.GoogleOAuth2.get_redirect_uri")
 @patch("apps.social_auth.backends.GoogleOAuth2Token.create_auth_token", return_value=("something", "token_string"))
 @override_settings(SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE=["https://www.googleapis.com/auth/calendar.events.readonly"])
 @override_settings(SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="ouath2_key")
 def test_google_start_auth_redirect_ok(
     _mock_create_google_oauth2_auth_token,
+    mock_google_oauth2_backend_get_redirect_uri,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
+    redirect_uri = "http://testserver"
+    mock_google_oauth2_backend_get_redirect_uri.return_value = redirect_uri
+
     _, user, token = make_organization_and_user_with_plugin_token()
 
     client = APIClient()
@@ -89,7 +94,7 @@ def test_google_start_auth_redirect_ok(
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == (
         "https://accounts.google.com/o/oauth2/auth?client_id=ouath2_key"
-        "&redirect_uri=http://localhost:8080/api/internal/v1/complete/google-oauth2/&response_type=code"
+        f"&redirect_uri={redirect_uri}&response_type=code"
         "&state=token_string&scope=https://www.googleapis.com/auth/calendar.events.readonly+openid+email+profile"
         "&access_type=offline&approval_prompt=auto"
     )
