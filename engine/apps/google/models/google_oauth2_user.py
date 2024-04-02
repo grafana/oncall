@@ -4,7 +4,7 @@ from django.db import models
 from mirage import fields as mirage_fields
 
 if typing.TYPE_CHECKING:
-    from user_management.models import User
+    from apps.user_management.models import User
 
 
 class GoogleOAuth2User(models.Model):
