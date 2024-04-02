@@ -149,7 +149,9 @@ def test_update_user_google_calendar_settings(
     url = reverse("api-internal:user-detail", kwargs={"pk": admin.public_primary_key})
 
     schedule_public_primary_keys = (
-        [schedule1.public_primary_key, schedule2.public_primary_key] if oncall_schedules_to_consider_for_shift_swaps else []
+        [schedule1.public_primary_key, schedule2.public_primary_key]
+        if oncall_schedules_to_consider_for_shift_swaps
+        else []
     )
     data = {
         "google_calendar_settings": {

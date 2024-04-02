@@ -59,7 +59,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       </InlineField>
       {store.hasFeature(AppFeature.GoogleOauth2) && (
         <>
-          <Legend>Google Calendar</Legend>
+          <Legend data-testid="google-calendar-connector-title">Google Calendar</Legend>
           <GoogleConnector {...props} />
         </>
       )}

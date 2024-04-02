@@ -23,7 +23,7 @@ from apps.api.permissions import (
 )
 from apps.google.models import GoogleOAuth2User
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
-from apps.user_management.constants import AlertGroupTableColumn, GoogleCalendarSettings
+from apps.user_management.types import AlertGroupTableColumn, GoogleCalendarSettings
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:

@@ -40,7 +40,7 @@ def convert_custom_button_to_webhook(apps, schema_editor):
             step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
             custom_button_trigger=cb,
         ).update(
-            step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
+            step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
             custom_webhook=webhook,
         )
 

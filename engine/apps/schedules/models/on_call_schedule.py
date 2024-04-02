@@ -388,7 +388,7 @@ class OnCallSchedule(PolymorphicModel):
         events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
-            all_day = type(start) == datetime.date
+            all_day = type(start) is datetime.date
             # fix confusing end date for all-day event
             end = shift["end"] - datetime.timedelta(days=1) if all_day else shift["end"]
             if all_day and all_day_datetime:
@@ -513,7 +513,7 @@ class OnCallSchedule(PolymorphicModel):
                     # check if event was ended or cancelled, update ical
                     dtend = component.get(ICAL_DATETIME_END)
                     dtend_datetime = dtend.dt if dtend else None
-                    if dtend_datetime and type(dtend_datetime) == datetime.date:
+                    if dtend_datetime and type(dtend_datetime) is datetime.date:
                         # shift or overrides coming from ical calendars can be all day events, change to datetime
                         dtend_datetime = datetime.datetime.combine(
                             dtend.dt, datetime.datetime.min.time(), tzinfo=pytz.UTC

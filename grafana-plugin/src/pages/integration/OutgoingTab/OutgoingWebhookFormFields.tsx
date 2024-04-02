@@ -5,7 +5,6 @@ import {
   Field,
   HorizontalGroup,
   Icon,
-  Input,
   Label,
   Select,
   Switch,
@@ -17,7 +16,7 @@ import cn from 'classnames';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
-import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
+import { MONACO_EDITABLE_CONFIG, MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
 
@@ -37,7 +36,7 @@ interface OutgoingWebhookFormFieldsProps {
 
 export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ webhookId }) => {
   const styles = useStyles2(getStyles);
-  const { control, watch, formState, register } = useFormContext<OutgoingTabFormValues>();
+  const { control, watch, formState } = useFormContext<OutgoingTabFormValues>();
   const [templateToEdit, setTemplateToEdit] = useState<TemplateToEdit>();
 
   const [showTriggerTemplate] = watch(['triggerTemplateToogle']);
@@ -83,26 +82,6 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
           </Field>
         )}
       />
-      <Field
-        key="url"
-        invalid={Boolean(formState.errors.url)}
-        error={formState.errors.url?.message}
-        label={
-          <Label>
-            <span>Webhook URL</span>&nbsp;
-            <Tooltip content="Some description" placement="right">
-              <Icon name="info-circle" className={styles.infoIcon} />
-            </Tooltip>
-          </Label>
-        }
-        className={styles.selectField}
-      >
-        <Input
-          {...register('url', {
-            required: 'URL is required',
-          })}
-        />
-      </Field>
       <Controller
         control={control}
         name="http_method"
@@ -132,6 +111,52 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
               placeholder="Select HTTP method"
             />
           </Field>
+        )}
+      />
+      <Controller
+        control={control}
+        name="url"
+        render={({ field }) => (
+          <VerticalGroup>
+            <HorizontalGroup width="100%" justify="space-between">
+              <Label>
+                <span>Webhook URL</span>&nbsp;
+                <Tooltip content="Some description" placement="right">
+                  <Icon name="info-circle" className={styles.infoIcon} />
+                </Tooltip>
+              </Label>
+              <Button
+                icon="edit"
+                variant="secondary"
+                onClick={() => {
+                  setTemplateToEdit({
+                    value: field.value,
+                    displayName: 'webhook url',
+                    name: field.name,
+                  });
+                }}
+              />
+            </HorizontalGroup>
+            <MonacoEditor
+              {...field}
+              data={{}} // TODO:update
+              showLineNumbers={false}
+              height={30}
+              monacoOptions={MONACO_EDITABLE_CONFIG}
+              onChange={field.onChange}
+            />
+            {templateToEdit?.['name'] === field.name && (
+              <WebhooksTemplateEditor
+                id={webhookId}
+                handleSubmit={(value) => {
+                  field.onChange(value);
+                  setTemplateToEdit(undefined);
+                }}
+                onHide={() => setTemplateToEdit(undefined)}
+                template={templateToEdit}
+              />
+            )}
+          </VerticalGroup>
         )}
       />
       <Controller

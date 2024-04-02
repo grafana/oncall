@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { Button, HorizontalGroup, InlineField } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -24,14 +24,6 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
 
   const isCurrentUser = id === store.userStore.currentUserPk;
 
-  const handleConnectButtonClick = useCallback(() => {
-    UserHelper.handleConnectGoogle();
-  }, []);
-
-  const handleUnlinkGoogleAccount = useCallback(() => {
-    userStore.disconnectGoogle();
-  }, []);
-
   return (
     <div>
       <InlineField label="Google Account" labelWidth={15}>
@@ -39,7 +31,7 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
           <HorizontalGroup spacing="xs">
             <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
               <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
-                <Button disabled={!isCurrentUser} variant="destructive" onClick={handleUnlinkGoogleAccount}>
+                <Button disabled={!isCurrentUser} variant="destructive" onClick={userStore.disconnectGoogle}>
                   Disconnect
                 </Button>
               </WithConfirm>
@@ -47,7 +39,7 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
           </HorizontalGroup>
         ) : (
           <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-            <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
+            <Button disabled={!isCurrentUser} onClick={UserHelper.handleConnectGoogle}>
               Connect account
             </Button>
           </WithPermissionControlTooltip>

@@ -79,7 +79,7 @@ export const Tabs = ({
           label="Google Calendar"
           key={UserSettingsTab.GoogleCalendar}
           onChangeTab={getTabClickHandler(UserSettingsTab.GoogleCalendar)}
-          data-testid="google-calendar"
+          data-testid="google-calendar-tab"
         />
       )}
       <Tab
