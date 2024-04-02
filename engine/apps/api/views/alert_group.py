@@ -469,7 +469,7 @@ class AlertGroupView(
             raise BadRequest(detail="Can't acknowledge maintenance alert group")
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't acknowledge an attached alert group")
-        alert_group.acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
+        alert_group.acknowledge_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -492,7 +492,7 @@ class AlertGroupView(
         if alert_group.resolved:
             raise BadRequest(detail="Can't unacknowledge a resolved alert group")
 
-        alert_group.un_acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
+        alert_group.un_acknowledge_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -544,7 +544,7 @@ class AlertGroupView(
                         },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-            alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
+            alert_group.resolve_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @extend_schema(responses=AlertGroupSerializer)
@@ -563,7 +563,7 @@ class AlertGroupView(
         if not alert_group.resolved:
             raise BadRequest(detail="The alert group is not resolved")
 
-        alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
+        alert_group.un_resolve_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @extend_schema(
@@ -628,7 +628,7 @@ class AlertGroupView(
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't silence an attached alert group")
 
-        alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
+        alert_group.silence_by_user_or_backsync(request.user, silence_delay=delay, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
     @extend_schema(
@@ -672,7 +672,7 @@ class AlertGroupView(
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't unsilence an attached alert group")
 
-        alert_group.un_silence_by_user(request.user, action_source=ActionSource.WEB)
+        alert_group.un_silence_by_user_or_backsync(request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 

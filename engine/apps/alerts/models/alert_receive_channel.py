@@ -305,6 +305,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     alert_group_labels_template: str | None = models.TextField(null=True, default=None)
     """Stores a Jinja2 template for "advanced label templating" for alert group labels."""
 
+    additional_settings: dict | None = models.JSONField(null=True, default=None)
+
     class Meta:
         constraints = [
             # This constraint ensures that there's at most one active direct paging integration per team
@@ -775,6 +777,11 @@ def listen_for_alertreceivechannel_model_save(
     elif instance.deleted_at:
         if instance.is_alerting_integration:
             disconnect_integration_from_alerting_contact_points.apply_async((instance.pk,), countdown=5)
+        # delete alert receive channel connections
+        instance.connected_alert_receive_channels.all().delete()
+        instance.source_alert_receive_channels.all().delete()
+        # delete connected auth tokens
+        instance.auth_tokens.all().delete()
 
         metrics_remove_deleted_integration_from_cache(instance)
     else:

@@ -85,10 +85,10 @@ def escape_string(string: str):
 
 class EscapeDoubleQuotesDict(dict):
     """
-    Warning: Please, do not use this dict anywhere except CustomButton._escape_alert_payload.
-    This custom dict escapes double quotes to produce string which is safe to pass to json.loads()
-    It fixes case when CustomButton.build_post_kwargs failing on payloads which contains string with single quote.
-    In this case built-in dict's str method will surround value with double quotes.
+    Warning: Please, do not use this dict anywhere except `apps.webhooks.utils.escape_payload`.
+    This custom dict escapes double quotes to produce string which is safe to pass to `json.loads()`
+    It fixes issues originating from payloads which contains strings with single quote.
+    In this case, built-in `dict`'s `str` method will surround value with double quotes.
 
     For example:
 
@@ -150,6 +150,7 @@ def _extract_users_from_escalation_snapshot(escalation_snapshot):
 
 
 def serialize_event(event, alert_group, user, webhook, responses=None):
+    from apps.alerts.models import AlertGroupExternalID
     from apps.public_api.serializers import IncidentSerializer
 
     alert_payload = alert_group.alerts.first()
@@ -184,4 +185,19 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
         data["webhook"] = {"id": webhook.public_primary_key, "name": webhook.name, "labels": get_labels_dict(webhook)}
         data["integration"]["labels"] = get_labels_dict(alert_group.channel)
         data["alert_group"]["labels"] = get_alert_group_labels_dict(alert_group)
+
+    # Add additional webhook data if the integration has it
+    source_alert_receive_channel = webhook.filtered_integrations.filter(
+        additional_settings__isnull=False
+    ).first()  # TODO: is it possible to have more than one?
+    if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "additional_webhook_data"):
+        data.update(source_alert_receive_channel.config.additional_webhook_data(source_alert_receive_channel))
+
+    # Add external ID (e.g. ServiceNow incident ID) to webhook data
+    if source_alert_receive_channel:
+        external_id = AlertGroupExternalID.objects.filter(
+            source_alert_receive_channel=source_alert_receive_channel, alert_group=alert_group
+        ).first()
+        data["external_id"] = external_id.value if external_id else None
+
     return data

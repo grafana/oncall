@@ -1,23 +1,27 @@
 import React from 'react';
 
-import { useStyles2, Input, IconButton, Button, Drawer, Badge } from '@grafana/ui';
+import { useStyles2, Input, IconButton, Drawer, HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
+import { Button } from 'components/Button/Button';
 import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 import { IntegrationCollapsibleTreeView } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
+import { Text } from 'components/Text/Text';
 import { useDrawer } from 'utils/hooks';
 
 import { NewOutgoingWebhookDrawerContent } from './NewOutgoingWebhookDrawerContent';
 import { OtherIntegrations } from './OtherIntegrations';
+import { useCurrentIntegration } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { OutgoingWebhookDetailsDrawerTabs } from './OutgoingWebhookDetailsDrawerTabs';
 import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
 
-export const OutgoingTab = () => {
+export const OutgoingTab = ({ openSnowConfigurationDrawer }: { openSnowConfigurationDrawer: () => void }) => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
+  const styles = useStyles2(getStyles);
 
   return (
     <>
@@ -41,14 +45,26 @@ export const OutgoingTab = () => {
           {
             customIcon: 'plug',
             startingElemPosition: '50%',
-            expandedView: () => <Connection />,
+            expandedView: () => <Connection openSnowConfigurationDrawer={openSnowConfigurationDrawer} />,
           },
           {
             customIcon: 'plus',
             expandedView: () => (
               <>
                 <Button onClick={() => openDrawer('newOutgoingWebhook')}>Add webhook</Button>
-                <OutgoingWebhooksTable openDrawer={openDrawer} />
+                <OutgoingWebhooksTable
+                  openDrawer={openDrawer}
+                  noItemsInfo={
+                    <div className={styles.noWebhooksInfo}>
+                      <HorizontalGroup>
+                        <Text type="secondary">There are no webhooks.</Text>
+                        <Button variant="primary" showAsLink onClick={() => openDrawer('newOutgoingWebhook')}>
+                          Add one
+                        </Button>
+                      </HorizontalGroup>
+                    </div>
+                  }
+                />
               </>
             ),
           },
@@ -63,13 +79,11 @@ export const OutgoingTab = () => {
   );
 };
 
-const Connection = observer(() => {
+const Connection = observer(({ openSnowConfigurationDrawer }: { openSnowConfigurationDrawer: () => void }) => {
   const styles = useStyles2(getStyles);
-
-  // TODO: bring back when backend ready
-  // const integration = useCurrentIntegration();
-  // const url = integration?.additional_settings?.instance_url;
-  const url = 'https://example.com';
+  const integration = useCurrentIntegration();
+  // TODO: remove casting once backend narrows down the types
+  const url = integration?.additional_settings?.instance_url as string;
 
   return (
     <div>
@@ -79,7 +93,6 @@ const Connection = observer(() => {
         heading={
           <div className={styles.horizontalGroup}>
             <IntegrationTag>ServiceNow connection</IntegrationTag>
-            <Badge text="OK" color="green" />
             <Input
               value={url}
               disabled
@@ -103,6 +116,7 @@ const Connection = observer(() => {
               name="cog"
               aria-label="Open ServiceNow configuration"
               className={styles.openConfigurationBtn}
+              onClick={openSnowConfigurationDrawer}
             />
           </div>
         }

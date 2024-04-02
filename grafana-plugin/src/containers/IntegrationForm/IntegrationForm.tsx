@@ -8,6 +8,7 @@ import {
   Icon,
   Input,
   Label,
+  LoadingPlaceholder,
   RadioButtonGroup,
   Select,
   Switch,
@@ -17,6 +18,7 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
+import { parseUrl } from 'query-string';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
@@ -26,48 +28,34 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { Labels } from 'containers/Labels/Labels';
+import { ServiceNowAuthSection } from 'containers/ServiceNowConfigDrawer/ServiceNowAuthSection';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
+import { useIsLoading } from 'utils/hooks';
+import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
-enum FormFieldKeys {
-  Name = 'verbal_name',
-  Description = 'description_short',
-  Team = 'team',
-  AlertManager = 'alert_manager',
-  ContactPoint = 'contact_point',
-  IsExisting = 'is_existing',
-  Alerting = 'alerting',
-  Integration = 'integration',
+export interface IntegrationFormFields {
+  verbal_name?: string;
+  description_short?: string;
+  team?: string;
+  is_existing?: boolean;
+  alert_manager?: string;
+  contact_point?: string;
+  integration: ApiSchemas['AlertReceiveChannel']['integration'];
+  create_default_webhooks: boolean;
 
-  ServiceNowUrl = 'servicenow_url',
-  AuthUsername = 'auth_username',
-  AuthPassword = 'auth_password',
-  DefaultWebhooks = 'default_webhooks',
-}
-
-interface FormFields {
-  [FormFieldKeys.Name]: string;
-  [FormFieldKeys.Description]: string;
-  [FormFieldKeys.Team]: string;
-  [FormFieldKeys.IsExisting]: boolean;
-  [FormFieldKeys.AlertManager]: string;
-  [FormFieldKeys.ContactPoint]: string;
-  [FormFieldKeys.Alerting]: string;
-  [FormFieldKeys.ServiceNowUrl]: string;
-  [FormFieldKeys.AuthUsername]: string;
-  [FormFieldKeys.AuthPassword]: string;
-  [FormFieldKeys.Integration]: string;
-  [FormFieldKeys.DefaultWebhooks]: boolean;
+  additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
 interface IntegrationFormProps {
@@ -107,18 +95,34 @@ export const IntegrationForm = observer(
     const isNew = id === 'new';
     const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
 
-    const data = isNew
-      ? { integration: selectedIntegration?.value, team: userStore.currentUser?.current_team, labels: [] }
+    const data: Partial<ApiSchemas['AlertReceiveChannel']> = isNew
+      ? {
+          integration: selectedIntegration?.value as ApiSchemas['AlertReceiveChannel']['integration'],
+          team: userStore.currentUser?.current_team,
+          labels: [],
+          additional_settings: {
+            instance_url: undefined,
+            password: undefined,
+            username: undefined,
+            is_configured: false,
+            state_mapping: {
+              acknowledged: undefined,
+              firing: undefined,
+              resolved: undefined,
+              silenced: undefined,
+            },
+          },
+        }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
     const { integration } = data;
 
-    const formMethods = useForm<FormFields>({
+    const formMethods = useForm<IntegrationFormFields>({
       defaultValues: isNew
         ? {
             // these are the default values for creating an integration
-            [FormFieldKeys.Integration]: integration,
-            [FormFieldKeys.DefaultWebhooks]: true,
+            integration,
+            additional_settings: {},
           }
         : {
             // existing values from existing integration (edit-mode)
@@ -126,11 +130,14 @@ export const IntegrationForm = observer(
           },
       mode: 'onChange',
     });
+
     const {
       control,
       handleSubmit,
       formState: { errors },
     } = formMethods;
+
+    const isLoading = useIsLoading(ActionKey.UPDATE_INTEGRATION);
 
     const [
       {
@@ -175,15 +182,15 @@ export const IntegrationForm = observer(
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)} className={styles.form}>
           <Controller
-            name={FormFieldKeys.Name}
+            name={'verbal_name'}
             control={control}
             rules={{ required: 'Name is required' }}
             render={({ field }) => (
               <Field
                 key={'Name'}
                 label={'Integration Name'}
-                invalid={!!errors[FormFieldKeys.Name]}
-                error={errors[FormFieldKeys.Name]?.message}
+                invalid={!!errors.verbal_name}
+                error={errors.verbal_name?.message}
               >
                 <Input {...field} placeholder={'Integration Name'} />
               </Field>
@@ -191,23 +198,17 @@ export const IntegrationForm = observer(
           />
 
           <Controller
-            name={FormFieldKeys.Description}
+            name={'description_short'}
             control={control}
-            rules={{ required: 'Description is required' }}
             render={({ field }) => (
-              <Field
-                key={'Description'}
-                label={'Integration Description'}
-                invalid={!!errors[FormFieldKeys.Description]}
-                error={errors[FormFieldKeys.Description]?.message}
-              >
+              <Field key={'Description'} label={'Integration Description'}>
                 <TextArea {...field} className={styles.textarea} placeholder={'Integration Description'} />
               </Field>
             )}
           />
 
           <Controller
-            name={FormFieldKeys.Team}
+            name={'team'}
             control={control}
             render={({ field }) => (
               <Field
@@ -220,8 +221,8 @@ export const IntegrationForm = observer(
                     </Tooltip>
                   </Label>
                 }
-                invalid={!!errors[FormFieldKeys.Team]}
-                error={errors[FormFieldKeys.Team]?.message}
+                invalid={!!errors.team}
+                error={errors.team?.message}
               >
                 <GSelect<GrafanaTeam>
                   placeholder="Assign to team"
@@ -282,21 +283,21 @@ export const IntegrationForm = observer(
 
           {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
 
-          <RenderConditionally shouldRender={isServiceNow}>
+          <RenderConditionally shouldRender={isServiceNow && isNew}>
             <div className={styles.serviceNowHeading}>
               <Text type="primary">ServiceNow configuration</Text>
             </div>
 
             <Controller
-              name={FormFieldKeys.ServiceNowUrl}
+              name={'additional_settings.instance_url'}
               control={control}
               rules={{ required: 'Instance URL is required', validate: validateURL }}
               render={({ field }) => (
                 <Field
                   key={'InstanceURL'}
                   label={'Instance URL'}
-                  invalid={!!errors[FormFieldKeys.ServiceNowUrl]}
-                  error={errors[FormFieldKeys.ServiceNowUrl]?.message}
+                  invalid={!!errors.additional_settings?.instance_url}
+                  error={errors.additional_settings?.instance_url?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -304,15 +305,15 @@ export const IntegrationForm = observer(
             />
 
             <Controller
-              name={FormFieldKeys.AuthUsername}
+              name={'additional_settings.username'}
               control={control}
               rules={{ required: 'Username is required' }}
               render={({ field }) => (
                 <Field
                   key={'AuthUsername'}
                   label={'Username'}
-                  invalid={!!errors[FormFieldKeys.AuthUsername]}
-                  error={errors[FormFieldKeys.AuthUsername]?.message}
+                  invalid={!!errors.additional_settings?.username}
+                  error={errors.additional_settings?.username?.message}
                 >
                   <Input {...field} />
                 </Field>
@@ -320,27 +321,25 @@ export const IntegrationForm = observer(
             />
 
             <Controller
-              name={FormFieldKeys.AuthPassword}
+              name={'additional_settings.password'}
               control={control}
               rules={{ required: 'Password is required' }}
               render={({ field }) => (
                 <Field
                   key={'AuthPassword'}
                   label={'Password'}
-                  invalid={!!errors[FormFieldKeys.AuthPassword]}
-                  error={errors[FormFieldKeys.AuthPassword]?.message as string}
+                  invalid={!!errors.additional_settings?.password}
+                  error={errors.additional_settings?.password?.message}
                 >
                   <Input {...field} type="password" />
                 </Field>
               )}
             />
 
-            <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
-              Test
-            </Button>
+            <ServiceNowAuthSection />
 
             <Controller
-              name={FormFieldKeys.DefaultWebhooks}
+              name={'create_default_webhooks'}
               control={control}
               render={({ field }) => (
                 <div className={styles.webhookSwitch}>
@@ -364,9 +363,7 @@ export const IntegrationForm = observer(
               )}
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <Button type="submit" data-testid="update-integration-button">
-                  {id === 'new' ? 'Create' : 'Update'} Integration
-                </Button>
+                {renderUpdateIntegrationButton(id)}
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
@@ -374,17 +371,32 @@ export const IntegrationForm = observer(
       </FormProvider>
     );
 
-    function validateURL(urlFieldValue: string): string | boolean {
-      const regex = new RegExp(URL_REGEX, 'i');
+    function renderUpdateIntegrationButton(id: string) {
+      const buttonCopy: string = id === 'new' ? 'Create Integration' : 'Update Integration';
 
-      return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
+      return (
+        <Button type="submit" data-testid="update-integration-button">
+          {isLoading ? <LoadingPlaceholder text="Loading..." className={styles.loader} /> : buttonCopy}
+        </Button>
+      );
     }
 
-    async function onWebhookTestClick(): Promise<void> {}
+    function validateURL(urlFieldValue: string): string | boolean {
+      return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
+    }
 
-    async function onFormSubmit(formData): Promise<void> {
+    async function onFormSubmit(formData: IntegrationFormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
-      const data = { ...formData, labels };
+
+      const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
+        labels,
+        ...formData,
+      };
+
+      if (formData.integration !== 'servicenow') {
+        delete data.additional_settings;
+      }
+
       const isCreate = id === 'new';
 
       try {
@@ -404,7 +416,7 @@ export const IntegrationForm = observer(
       await onSubmit();
       onHide();
 
-      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannel']> {
+      async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannelCreate']> {
         const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
         const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
           history.push(`${PLUGIN_ROOT}/integrations/${id}`);
@@ -416,9 +428,9 @@ export const IntegrationForm = observer(
           pushHistory(response.id);
         }
 
-        await (data.is_existing
+        await (formData.is_existing
           ? AlertReceiveChannelHelper.connectContactPoint
-          : AlertReceiveChannelHelper.createContactPoint)(response.id, data.alert_manager, data.contact_point);
+          : AlertReceiveChannelHelper.createContactPoint)(response.id, formData.alert_manager, formData.contact_point);
 
         pushHistory(response.id);
       }
@@ -473,7 +485,8 @@ const GrafanaContactPoint = observer(
       getValues,
       setValue,
       formState: { errors },
-    } = useFormContext<FormFields>();
+      register,
+    } = useFormContext<IntegrationFormFields>();
 
     useEffect(() => {
       (async function () {
@@ -486,7 +499,7 @@ const GrafanaContactPoint = observer(
         });
       })();
 
-      setValue(FormFieldKeys.IsExisting, true);
+      setValue('is_existing', true);
     }, []);
 
     const styles = useStyles2(getIntegrationFormStyles);
@@ -503,11 +516,12 @@ const GrafanaContactPoint = observer(
 
           <div className={styles.extraFieldsRadio}>
             <Controller
-              name={FormFieldKeys.IsExisting}
+              name={'is_existing'}
               control={control}
               render={({ field }) => (
                 <RadioButtonGroup
                   {...field}
+                  {...register('is_existing')}
                   options={radioOptions}
                   value={isExistingContactPoint ? 'existing' : 'new'}
                   onChange={(radioValue) => {
@@ -518,9 +532,9 @@ const GrafanaContactPoint = observer(
                       selectedContactPointOption: null,
                     });
 
-                    setValue(FormFieldKeys.IsExisting, radioValue === 'existing');
-                    setValue(FormFieldKeys.AlertManager, undefined);
-                    setValue(FormFieldKeys.ContactPoint, undefined);
+                    setValue('is_existing', radioValue === 'existing');
+                    setValue('alert_manager', undefined);
+                    setValue('contact_point', undefined);
                   }}
                 />
               )}
@@ -529,15 +543,11 @@ const GrafanaContactPoint = observer(
 
           <div className={styles.selectorsContainer}>
             <Controller
-              name={FormFieldKeys.AlertManager}
+              name={'alert_manager'}
               control={control}
               rules={{ required: 'Alert Manager is required' }}
               render={({ field }) => (
-                <Field
-                  key={'AlertManager'}
-                  invalid={!!errors[FormFieldKeys.AlertManager]}
-                  error={errors[FormFieldKeys.AlertManager]?.message}
-                >
+                <Field key={'AlertManager'} invalid={!!errors.alert_manager} error={errors.alert_manager?.message}>
                   <Select
                     {...field}
                     options={dataSources}
@@ -550,15 +560,11 @@ const GrafanaContactPoint = observer(
             />
 
             <Controller
-              name={FormFieldKeys.ContactPoint}
+              name={'contact_point'}
               control={control}
               rules={{ required: 'Contact Point is required', validate: contactPointValidator }}
               render={({ field }) => (
-                <Field
-                  key={FormFieldKeys.ContactPoint}
-                  invalid={!!errors[FormFieldKeys.ContactPoint]}
-                  error={errors[FormFieldKeys.ContactPoint]?.message}
-                >
+                <Field key={'contact_point'} invalid={!!errors.contact_point} error={errors.contact_point?.message}>
                   {isExistingContactPoint ? (
                     <Select
                       {...field}
@@ -574,7 +580,7 @@ const GrafanaContactPoint = observer(
                       onChange={({ currentTarget }) => {
                         const { value } = currentTarget;
                         setState({ selectedContactPointOption: value });
-                        setValue(FormFieldKeys.ContactPoint, value, { shouldValidate: true });
+                        setValue('contact_point', value, { shouldValidate: true });
                       }}
                     />
                   )}
@@ -587,8 +593,8 @@ const GrafanaContactPoint = observer(
     );
 
     function contactPointValidator(contactPointInputValue: string) {
-      const alertManager = getValues(FormFieldKeys.AlertManager);
-      const isExisting = getValues(FormFieldKeys.IsExisting);
+      const alertManager = getValues('alert_manager');
+      const isExisting = getValues('is_existing');
 
       const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alertManager);
       const hasContactPointInput = alertManager && contactPointInputValue;
@@ -617,16 +623,16 @@ const GrafanaContactPoint = observer(
 
       if (isExistingContactPoint) {
         newState.selectedContactPointOption = null;
-        setValue(FormFieldKeys.ContactPoint, undefined);
+        setValue('contact_point', undefined);
       }
 
       setState(newState);
-      setValue(FormFieldKeys.AlertManager, option.value, { shouldValidate: true });
+      setValue('alert_manager', option.value, { shouldValidate: true });
     }
 
     function onContactPointChange(option: SelectableValue<string>) {
       setState({ selectedContactPointOption: option.value });
-      setValue(FormFieldKeys.ContactPoint, option.value, { shouldValidate: true });
+      setValue('contact_point', option.value, { shouldValidate: true });
     }
   }
 );
