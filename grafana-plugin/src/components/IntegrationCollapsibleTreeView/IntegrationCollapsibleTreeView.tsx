@@ -118,7 +118,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   const handleIconClick = !item.isCollapsible ? undefined : onClick;
 
   return (
-    <div className={cx(styles.group, { [bem(styles.group, 'hidden')]: item.isHidden })}>
+    <div className={cx(styles.group, { [bem(styles.group, 'hidden')]: item.isHidden }, 'group')} data-emotion='group'>
       <div
         className={cx(styles.icon)}
         style={{

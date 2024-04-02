@@ -10,15 +10,6 @@ export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
       position: relative;
     `,
 
-    timeline: css`
-      .group::before {
-        margin-left: -18px;
-        border: 0 !important;
-        width: 4px;
-        background-color: ${theme.colors.border.medium};
-      }
-    `,
-
     element: css`
       margin-left: 16px;
       visibility: hidden;
@@ -36,11 +27,11 @@ export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
       position: relative;
       padding-bottom: 12px;
 
-      &:not(:last-child)::before {
+      &:not(:last-child):before {
         content: '';
         position: absolute;
         height: 100%;
-        border: ${theme.colors.border.weak};
+        border: 1px solid ${theme.colors.border.weak};
         margin-top: 4px;
         margin-left: -19px;
         top: 20px;
@@ -48,6 +39,15 @@ export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
 
       &--hidden {
         display: none;
+      }
+    `,
+
+    timeline: css`
+      [data-emotion='group']::before {
+        margin-left: -18px;
+        border: 0 !important;
+        width: 4px;
+        background-color: ${theme.colors.border.medium};
       }
     `,
 

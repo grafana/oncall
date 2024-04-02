@@ -20,7 +20,7 @@ export const getBlockStyles = (theme: GrafanaTheme2) => {
       }
 
       &--bordered {
-        var: ${theme.colors.border.weak};
+        border: 1px solid ${theme.colors.border.weak};
       }
 
       &--shadowed {

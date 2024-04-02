@@ -6,8 +6,6 @@ import { COLORS } from 'assets/style/utils.styles';
 const radius = '2px' as string;
 
 export const getScheduleQualityProgressBarStyles = (theme: GrafanaTheme2) => {
-  console.log({ theme });
-
   return {
     wrapper: css`
       width: 100%;

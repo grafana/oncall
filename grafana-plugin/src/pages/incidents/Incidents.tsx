@@ -114,9 +114,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    console.log('Theme');
-    console.log(props.theme);
-
     const {
       store,
       query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },

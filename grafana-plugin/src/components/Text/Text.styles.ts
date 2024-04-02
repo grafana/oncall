@@ -14,11 +14,11 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
 
     text: css`
       &--primary {
-        color: ${theme.colors.text.maxContrast};
+        color: ${theme.colors.text.primary};
       }
 
       &--secondary {
-        color: ${theme.colors.text.disabled};
+        color: ${theme.colors.text.secondary};
       }
 
       &--disabled {

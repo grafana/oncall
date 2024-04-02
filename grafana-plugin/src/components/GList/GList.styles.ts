@@ -17,7 +17,7 @@ export const getGListStyles = (theme: GrafanaTheme2) => {
       cursor: pointer;
 
       &:first-child {
-        border-top: ${theme.colors.border.weak};
+        border-top: 1px solid ${theme.colors.border.weak};
       }
 
       &:hover {

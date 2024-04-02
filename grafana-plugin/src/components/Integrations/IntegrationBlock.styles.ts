@@ -6,8 +6,8 @@ export const getIntegrationBlockStyles = (theme: GrafanaTheme2) => {
     integrationBlockHeading: css`
       padding: 16px;
       background-color: ${theme.colors.background.secondary};
-      border: ${theme.colors.border.medium} !important;
-      border-radius: 4px !important;
+      border: 1px solid ${theme.components.panel.borderColor} !important;
+      border-radius: 4px;
 
       &--noBorderBottom {
         border-bottom-left-radius: 0 !important;
@@ -18,7 +18,7 @@ export const getIntegrationBlockStyles = (theme: GrafanaTheme2) => {
     integrationBlockContent: css`
       padding: 15px;
       background: ${theme.colors.background.primary};
-      border: ${theme.colors.border.medium} !important;
+      border: 1px solid ${theme.components.panel.borderColor} !important;
       border-top: none !important;
       border-bottom-left-radius: 4px !important;
       border-bottom-right-radius: 4px !important;

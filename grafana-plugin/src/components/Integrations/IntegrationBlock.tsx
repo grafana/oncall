@@ -9,8 +9,6 @@ import { bem } from 'utils/utils';
 
 import { getIntegrationBlockStyles } from './IntegrationBlock.styles';
 
-
-
 interface IntegrationBlockProps {
   className?: string;
   noContent?: boolean;
