@@ -78,7 +78,7 @@ def test_export_calendar(make_organization_and_user_with_token, make_user_for_or
 
     cal = Calendar.from_ical(response.data)
 
-    assert type(cal) == Calendar
+    assert type(cal) is Calendar
     # check there are events
     assert len(cal.subcomponents) > 0
     for component in cal.walk():
@@ -112,7 +112,7 @@ def test_export_user_calendar(make_organization_and_user_with_token, make_schedu
 
     cal = Calendar.from_ical(response.data)
 
-    assert type(cal) == Calendar
+    assert type(cal) is Calendar
     assert cal.get("x-wr-calname") == "On-Call Schedule for {0}".format(user.username)
     assert cal.get("x-wr-timezone") == "UTC"
     assert cal.get("calscale") == "GREGORIAN"

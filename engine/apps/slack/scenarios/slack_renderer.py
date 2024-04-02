@@ -22,9 +22,9 @@ class AlertGroupLogSlackRenderer:
         # get rendered logs
         result = ""
         for log_record in all_log_records:  # list of AlertGroupLogRecord and UserNotificationPolicyLogRecord logs
-            if type(log_record) == AlertGroupLogRecord:
+            if type(log_record) is AlertGroupLogRecord:
                 result += f"{log_record.rendered_incident_log_line(for_slack=True)}\n"
-            elif type(log_record) == UserNotificationPolicyLogRecord:
+            elif type(log_record) is UserNotificationPolicyLogRecord:
                 result += f"{log_record.rendered_notification_log_line(for_slack=True)}\n"
 
         attachments.append(
