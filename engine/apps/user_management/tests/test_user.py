@@ -165,12 +165,14 @@ def test_finish_google_oauth2_connection_flow(make_organization_and_user):
 def test_finish_google_oauth2_disconnection_flow(make_organization_and_user):
     _, user = make_organization_and_user()
 
-    user.finish_google_oauth2_connection_flow({
-        "access_token": "access",
-        "refresh_token": "refresh",
-        "sub": "google_user_id",
-        "scope": "scope",
-    })
+    user.finish_google_oauth2_connection_flow(
+        {
+            "access_token": "access",
+            "refresh_token": "refresh",
+            "sub": "google_user_id",
+            "scope": "scope",
+        }
+    )
     user.refresh_from_db()
 
     assert user.google_oauth2_user is not None

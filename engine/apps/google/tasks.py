@@ -23,7 +23,9 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     users_schedules = OnCallSchedule.objects.related_to_user(user)
     user_google_calendar_settings = user.google_calendar_settings
-    oncall_schedules_to_consider_for_shift_swaps = user_google_calendar_settings["oncall_schedules_to_consider_for_shift_swaps"]
+    oncall_schedules_to_consider_for_shift_swaps = user_google_calendar_settings[
+        "oncall_schedules_to_consider_for_shift_swaps"
+    ]
 
     if oncall_schedules_to_consider_for_shift_swaps:
         users_schedules = users_schedules.filter(public_primary_key__in=oncall_schedules_to_consider_for_shift_swaps)
@@ -76,9 +78,7 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
                 else:
                     logger.info(f"Shift swap request already exists for user {user_id} schedule {schedule.pk}")
             else:
-                logger.info(
-                    f"No upcoming shifts found for user {user_id} during the out of office event {event_id}"
-                )
+                logger.info(f"No upcoming shifts found for user {user_id} during the out of office event {event_id}")
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

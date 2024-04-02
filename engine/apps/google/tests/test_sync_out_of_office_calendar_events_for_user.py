@@ -56,8 +56,10 @@ def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: 
     }
 
 
-def _create_event_start_and_end_times(start_days_in_future = 5, end_time_minutes_past_start = 50):
-    start_time = (datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=start_days_in_future)).replace(second=0, microsecond=0)
+def _create_event_start_and_end_times(start_days_in_future=5, end_time_minutes_past_start=50):
+    start_time = (
+        datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=start_days_in_future)
+    ).replace(second=0, microsecond=0)
     end_time = start_time + datetime.timedelta(minutes=end_time_minutes_past_start)
 
     return start_time, end_time
@@ -77,7 +79,9 @@ def make_schedule_with_on_call_shift(make_schedule, make_on_call_shift):
         dt_format = constants.GOOGLE_CALENDAR_EVENT_DATETIME_FORMAT
 
         if out_of_office_events:
-            on_call_shift_start = datetime.datetime.strptime(out_of_office_events[0]["start"]["dateTime"], dt_format) - datetime.timedelta(days=60)
+            on_call_shift_start = datetime.datetime.strptime(
+                out_of_office_events[0]["start"]["dateTime"], dt_format
+            ) - datetime.timedelta(days=60)
         else:
             on_call_shift_start = timezone.now() - datetime.timedelta(days=60)
 
