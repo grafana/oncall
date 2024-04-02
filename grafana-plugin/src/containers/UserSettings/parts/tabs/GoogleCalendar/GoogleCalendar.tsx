@@ -75,9 +75,10 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
               <HorizontalGroup spacing="md">
                 <GoogleCalendarLogo width={32} height={32} />
                 <div>
-                  <Text.Title level={5}>Connect personal Google calendar</Text.Title>
+                  <Text.Title level={5}>Connect your Google Calendar</Text.Title>
                   <Text type="secondary">
-                    Calendar connection allows to sync PTOs and OOO events with your OnCall schedules.
+                    This connection allows Grafana OnCall to read your Out of Office events and autogenerate Shift Swap
+                    Requests
                   </Text>
                 </div>
               </HorizontalGroup>
