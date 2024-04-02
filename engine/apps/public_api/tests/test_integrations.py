@@ -172,6 +172,34 @@ def test_integration_name_duplicated(
 
 
 @pytest.mark.django_db
+def test_integration_uniqueness_validation_optional_team_field(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_team,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    team = make_team(organization)
+    integration_with_team = make_alert_receive_channel(organization, verbal_name=integration.verbal_name, team=team)
+
+    # updating works if team is not present
+    client = APIClient()
+    data = {
+        "type": "grafana",
+        "description_short": "updated_description",
+    }
+
+    url = reverse("api-public:integrations-detail", args=[integration_with_team.public_primary_key])
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    # updating works if team is present
+    data = {"type": "grafana", "description_short": "updated_description", "team_id": team.public_primary_key}
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_create_integrations_with_none_templates(
     make_organization_and_user_with_token,
     make_escalation_chain,
