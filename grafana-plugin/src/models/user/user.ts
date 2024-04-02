@@ -143,6 +143,12 @@ export class UserStore {
     this.loadCurrentUser();
   }
 
+  async disconnectGoogle() {
+    await onCallApi().GET('/disconnect/{backend}', { params: { path: { backend: 'google-oauth2' } } });
+
+    this.loadCurrentUser();
+  }
+
   async updateUser(data: Partial<ApiSchemas['User']>) {
     const user = (
       await onCallApi().PUT('/users/{id}/', {

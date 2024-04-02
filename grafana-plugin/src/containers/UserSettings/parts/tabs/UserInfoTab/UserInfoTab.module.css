@@ -1,7 +1,4 @@
-.user-value {
-  font-size: 16px;
-}
-
-.user-item {
-  margin-bottom: 15px;
+.external-link-style {
+  margin-right: 4px;
+  align-self: baseline;
 }

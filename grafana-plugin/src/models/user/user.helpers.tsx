@@ -107,4 +107,9 @@ export class UserHelper {
       })
     ).data;
   }
+
+  static async handleConnectGoogle() {
+    const { data } = await onCallApi().GET('/login/{backend}', { params: { path: { backend: 'google-oauth2' } } });
+    window.location = data;
+  }
 }
