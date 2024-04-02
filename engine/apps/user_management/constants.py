@@ -1,6 +1,7 @@
 import typing
 
 from django.db.models import TextChoices
+
 from apps.user_management.types import AlertGroupTableColumn
 
 
