@@ -3,7 +3,6 @@ import datetime
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django_deprecate_fields import deprecate_field
 
 from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -279,17 +278,6 @@ class EscalationPolicy(OrderedModel):
         related_name="escalation_policies",
         null=True,
         default=None,
-    )
-
-    # TODO: remove this in a subsequent release
-    custom_button_trigger = deprecate_field(
-        models.ForeignKey(
-            "alerts.CustomButton",
-            on_delete=models.CASCADE,
-            related_name="escalation_policies",
-            default=None,
-            null=True,
-        )
     )
 
     custom_webhook = models.ForeignKey(
