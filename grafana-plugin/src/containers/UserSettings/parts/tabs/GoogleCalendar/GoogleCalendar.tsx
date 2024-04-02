@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, InlineSwitch, VerticalGroup } from '@grafana/ui';
+import { css } from '@emotion/css';
+import { Button, HorizontalGroup, InlineSwitch, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -17,6 +18,8 @@ import { UserActions } from 'utils/authorization/authorization';
 
 const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ id }) => {
   const { userStore, scheduleStore } = useStore();
+
+  const styles = useStyles2(getStyles);
 
   const user = userStore.items[id];
   const [googleCalendarSettings, setGoogleCalendarSettings] = useState(user?.google_calendar_settings);
@@ -49,7 +52,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
 
   return (
     <VerticalGroup>
-      <Block bordered style={{ width: '100%' }}>
+      <Block bordered className={styles.root}>
         <VerticalGroup>
           {user.has_google_oauth2_connected ? (
             <VerticalGroup>
@@ -60,12 +63,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                 </HorizontalGroup>
                 <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                   <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        userStore.disconnectGoogle();
-                      }}
-                    >
+                    <Button variant="destructive" onClick={userStore.disconnectGoogle}>
                       Disconnect
                     </Button>
                   </WithConfirm>
@@ -129,6 +127,12 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
       </Block>
     </VerticalGroup>
   );
+});
+
+export const getStyles = () => ({
+  root: css({
+    width: '100%',
+  }),
 });
 
 export { GoogleCalendar };
