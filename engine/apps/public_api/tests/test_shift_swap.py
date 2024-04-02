@@ -145,7 +145,9 @@ def test_create(
     assert_swap_response(response, data)
 
     ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
-    mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=another_user, event=EntityEvent.CREATED)
+    mock_write_resource_insight_log.assert_called_once_with(
+        instance=ssr, author=another_user, event=EntityEvent.CREATED
+    )
     mock_create_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
