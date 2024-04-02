@@ -359,9 +359,13 @@ class AlertReceiveChannelSerializer(
 
     def validate(self, data):
         validated_data = super().validate(data)
+        self.validate_name_uniqueness(validated_data)
+        return validated_data
+
+    def validate_name_uniqueness(self, validated_data):
         organization = self.context["request"].auth.organization
         verbal_name = validated_data.get("verbal_name")
-        team = validated_data.get("team")
+        team = validated_data.get("team", self.instance.team) if self.instance else validated_data.get("team")
         try:
             obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
         except AlertReceiveChannel.DoesNotExist:
@@ -375,8 +379,6 @@ class AlertReceiveChannelSerializer(
                 raise serializers.ValidationError(
                     {"verbal_name": "An integration with this name already exists for this team"}
                 )
-
-        return validated_data
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
