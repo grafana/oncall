@@ -6,7 +6,6 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { bem, openNotification } from 'utils/utils';
 
-import styles from './Text.module.scss';
 import { getTextStyles } from './Text.styles';
 
 export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning' | 'danger';
@@ -161,6 +160,8 @@ interface TitleProps extends TextProps {
 }
 
 const Title: FC<TitleProps> = (props) => {
+  const styles = useStyles2(getTextStyles);
+
   const { level, className, style, ...restProps } = props;
   // @ts-ignore
   const Tag: keyof JSX.IntrinsicElements = `h${level}`;

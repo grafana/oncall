@@ -8,8 +8,10 @@ import {
   Icon,
   LoadingPlaceholder,
   RadioButtonGroup,
+  Themeable2,
   Tooltip,
   VerticalGroup,
+  withTheme2,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
@@ -66,7 +68,8 @@ interface Pagination {
   start: number;
   end: number;
 }
-interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
+
+interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps, Themeable2 {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<ApiSchemas['AlertGroup']['pk']>;
@@ -110,6 +113,9 @@ const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
 class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
+
+    console.log('Theme');
+    console.log(props.theme);
 
     const {
       store,
@@ -995,4 +1001,4 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 }
 
-export const IncidentsPage = withRouter(withMobXProviderContext(_IncidentsPage));
+export const IncidentsPage = withRouter(withMobXProviderContext(withTheme2(_IncidentsPage)));

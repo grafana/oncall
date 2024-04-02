@@ -1,5 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
+import { COLORS } from 'assets/style/utils.styles';
 
 export const getTextStyles = (theme: GrafanaTheme2) => {
   return {
@@ -13,11 +14,11 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
 
     text: css`
       &--primary {
-        color: ${theme.colors.primary.text};
+        color: ${theme.colors.text.maxContrast};
       }
 
       &--secondary {
-        color: ${theme.colors.secondary.text};
+        color: ${theme.colors.text.disabled};
       }
 
       &--disabled {
@@ -37,8 +38,7 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
       }
 
       &--success {
-        // TODO: Figure this out
-        color: var(--green-5);
+        color: ${COLORS.GREEN_5};
       }
 
       &--strong {

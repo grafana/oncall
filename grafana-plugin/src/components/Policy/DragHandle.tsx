@@ -1,11 +1,12 @@
 import React from 'react';
 
+import { cx } from '@emotion/css';
 import { Icon, useStyles2 } from '@grafana/ui';
 import { SortableHandle } from 'react-sortable-hoc';
 
-import { getPolicyStyles } from './Policy.styles';
 import { bem } from 'utils/utils';
-import { cx } from '@emotion/css';
+
+import { getPolicyStyles } from './Policy.styles';
 
 const _DragHandle = ({ disabled }: { disabled?: boolean }) => {
   const styles = useStyles2(getPolicyStyles);

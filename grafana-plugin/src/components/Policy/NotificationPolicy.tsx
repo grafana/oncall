@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, IconButton, Select, Themeable2, withTheme2 } from '@grafana/ui';
 import { SortableElement } from 'react-sortable-hoc';
@@ -18,7 +19,6 @@ import { UserAction } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
 
-import { css, cx } from '@emotion/css';
 
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;

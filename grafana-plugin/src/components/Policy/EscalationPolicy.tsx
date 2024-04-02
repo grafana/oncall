@@ -1,5 +1,6 @@
 import React, { ChangeEvent } from 'react';
 
+import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -33,7 +34,6 @@ import { UserActions } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
 import { PolicyNote } from './PolicyNote';
-import { cx } from '@emotion/css';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;

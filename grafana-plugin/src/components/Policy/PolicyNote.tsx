@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
 
+import { cx } from '@emotion/css';
 import { Icon, Tooltip, useStyles2 } from '@grafana/ui';
 import MediaQuery from 'react-responsive';
 
-import { css, cx } from '@emotion/css';
 import { bem } from 'utils/utils';
+
 import { getPolicyStyles } from './Policy.styles';
 
 interface PolicyNoteProps {
