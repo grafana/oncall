@@ -6,11 +6,11 @@ from django.utils import timezone
 from apps.auth_token import constants, crypto
 from apps.auth_token.models import BaseAuthToken
 from apps.user_management.models import Organization, User
-from settings.base import SLACK_AUTH_TOKEN_TIMEOUT_SECONDS
+from settings.base import AUTH_TOKEN_TIMEOUT_SECONDS
 
 
 def get_expire_date():
-    return timezone.now() + timezone.timedelta(seconds=SLACK_AUTH_TOKEN_TIMEOUT_SECONDS)
+    return timezone.now() + timezone.timedelta(seconds=AUTH_TOKEN_TIMEOUT_SECONDS)
 
 
 class SlackAuthTokenQueryset(models.QuerySet):

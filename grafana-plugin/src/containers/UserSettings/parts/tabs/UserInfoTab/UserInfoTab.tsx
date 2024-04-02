@@ -5,7 +5,9 @@ import { InlineField, Input, Legend } from '@grafana/ui';
 import { GrafanaTeamSelect } from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors/Connectors';
+import { GoogleConnector } from 'containers/UserSettings/parts/connectors/GoogleConnector';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 interface UserInfoTabProps {
@@ -55,6 +57,12 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
           }}
         />
       </InlineField>
+      {store.hasFeature(AppFeature.GoogleOauth2) && (
+        <>
+          <Legend data-testid="google-calendar-connector-title">Google Calendar</Legend>
+          <GoogleConnector {...props} />
+        </>
+      )}
       <Legend>Notification channels</Legend>
       <Connectors {...props} />
     </>
