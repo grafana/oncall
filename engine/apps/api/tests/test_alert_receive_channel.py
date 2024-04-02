@@ -270,6 +270,63 @@ def test_alert_receive_channel_name_uniqueness(
 
 
 @pytest.mark.django_db
+def test_alert_receive_channel_name_uniqueness_validation_optional_team_field(
+    alert_receive_channel_internal_api_setup, make_team, make_user_auth_headers, make_alert_receive_channel
+):
+    """
+    Test the uniqueness validation for alert receive channel names with optional team field.
+
+    Creates two alert receive channels with the same name, where the first has no team and the second has a team. It
+    checks if updating the second channel with a request without the "team" field passes the uniqueness validation
+    based on team+name. (The team field is optional in the API).
+
+    Related issue: https://github.com/grafana/oncall/issues/4118
+    """
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    team = make_team(alert_receive_channel.organization)
+    alert_receive_channel_with_team = make_alert_receive_channel(
+        alert_receive_channel.organization, team=team, verbal_name=alert_receive_channel.verbal_name
+    )
+
+    client = APIClient()
+
+    # update works when team is not present in request data
+    url = reverse(
+        "api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel_with_team.public_primary_key}
+    )
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # update works when team is present
+    url = reverse(
+        "api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel_with_team.public_primary_key}
+    )
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+                "team": team.public_primary_key,
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_alert_receive_channel_name_duplicated(
     alert_receive_channel_internal_api_setup,
     make_alert_receive_channel,

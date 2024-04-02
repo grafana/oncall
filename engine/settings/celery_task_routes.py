@@ -177,7 +177,6 @@ CELERY_TASK_ROUTES = {
     "apps.telegram.tasks.send_log_and_actions_message": {"queue": "telegram"},
     "apps.telegram.tasks.on_alert_group_action_triggered_async": {"queue": "telegram"},
     # WEBHOOK
-    "apps.alerts.tasks.custom_button_result.custom_button_result": {"queue": "webhook"},
     "apps.alerts.tasks.custom_webhook_result.custom_webhook_result": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.execute_webhook": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.send_webhook_event": {"queue": "webhook"},
