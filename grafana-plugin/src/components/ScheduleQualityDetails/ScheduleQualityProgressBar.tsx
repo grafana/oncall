@@ -14,8 +14,8 @@ interface ProgressBarProps {
 }
 
 export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ className, completed, numTotalSteps }) => {
-  const classList = ['c-progressBar__bar', className || ''];
   const styles = useStyles2(getScheduleQualityProgressBarStyles);
+  const classList = [styles.bar, className || ''];
 
   return (
     <div className={cx(styles.wrapper)}>
@@ -34,8 +34,6 @@ export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ classNa
 
     return new Array(numTotalSteps).fill(0).map((_row, index) => {
       const percentWidth = rowFill[index];
-
-      console.log({ classN: getClassForCompletionLevel() });
 
       return (
         <div

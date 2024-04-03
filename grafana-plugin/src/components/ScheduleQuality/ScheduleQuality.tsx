@@ -12,6 +12,7 @@ import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
+import { bem } from 'utils/utils';
 
 import { getScheduleQualityStyles } from './ScheduleQuality.styles';
 
@@ -88,7 +89,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
           content={<ScheduleQualityDetails quality={quality} getScheduleQualityString={getScheduleQualityString} />}
         >
           <div className={cx(utils.cursorDefault)}>
-            <Tag className={cx(styles.tag, getTagClass())}>
+            <Tag className={cx(styles.tag, bem(styles.tag, getTagSeverity()))}>
               Quality: <strong>{getScheduleQualityString(quality.total_score)}</strong>
             </Tag>
           </div>
@@ -113,13 +114,13 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
     return ScheduleScoreQualityResult.Great;
   }
 
-  function getTagClass() {
+  function getTagSeverity() {
     if (quality?.total_score < 20) {
-      return 'tag--danger';
+      return 'danger';
     }
     if (quality?.total_score < 60) {
-      return 'tag--warning';
+      return 'warning';
     }
-    return 'tag--primary';
+    return 'primary';
   }
 });

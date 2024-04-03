@@ -1,19 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { VerticalGroup, HorizontalGroup, IconButton } from '@grafana/ui';
+import { cx } from '@emotion/css';
+import { VerticalGroup, HorizontalGroup, IconButton, useStyles2 } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
-import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
 import { Text } from 'components/Text/Text';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
+import { bem } from 'utils/utils';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
+import { getUserGroupStyles } from './UserGroups.styles';
 import { Item } from './UserGroups.types';
 
-import styles from './UserGroups.module.css';
 
 interface UserGroupsProps {
   value: Array<Array<ApiSchemas['User']['pk']>>;
@@ -24,13 +25,12 @@ interface UserGroupsProps {
   disabled?: boolean;
 }
 
-const cx = cn.bind(styles);
-
 const DragHandle = () => <IconButton aria-label="Drag" className={cx('icon')} name="draggabledots" />;
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
 export const UserGroups = (props: UserGroupsProps) => {
+  const styles = useStyles2(getUserGroupStyles);
   const { value, onChange, isMultipleGroups, renderUser, showError, disabled } = props;
 
   const handleAddUserGroup = useCallback(() => {
@@ -96,14 +96,14 @@ export const UserGroups = (props: UserGroupsProps) => {
   };
 
   const renderItem = (item: Item, index: number) => (
-    <li className={cx('user')}>
+    <li className={cx(styles.user)}>
       {renderUser(item.data)}
       {!disabled && (
-        <div className={cx('user-buttons')}>
+        <div className={cx(styles.userButtons)}>
           <HorizontalGroup>
             <IconButton
               aria-label="Remove"
-              className={cx('icon')}
+              className={cx(styles.icon)}
               name="trash-alt"
               onClick={getDeleteItemHandler(index)}
             />
@@ -115,7 +115,7 @@ export const UserGroups = (props: UserGroupsProps) => {
   );
 
   return (
-    <div className={cx('root')}>
+    <div className={cx(styles.root)}>
       <VerticalGroup>
         {!disabled && (
           <RemoteSelect
@@ -134,7 +134,7 @@ export const UserGroups = (props: UserGroupsProps) => {
           renderItem={renderItem}
           axis="y"
           lockAxis="y"
-          helperClass={cx('sortable-helper')}
+          helperClass={cx(styles.sortable)}
           items={items}
           onSortEnd={onSortEnd}
           handleAddGroup={handleAddUserGroup}
@@ -166,6 +166,7 @@ interface SortableListProps {
 export const SortableList = SortableContainer<SortableListProps>(
   ({ items, handleAddGroup, isMultipleGroups, renderItem, allowCreate }) => {
     const listRef = useRef<HTMLUListElement>();
+    const styles = useStyles2(getUserGroupStyles);
 
     useEffect(() => {
       const container = listRef.current;
@@ -178,7 +179,7 @@ export const SortableList = SortableContainer<SortableListProps>(
     }, [items]);
 
     return (
-      <ul className={cx('groups')} ref={listRef}>
+      <ul className={cx(styles.groups)} ref={listRef}>
         {items.map((item, index) =>
           item.type === 'item' ? (
             <SortableItem key={item.key} index={index}>
@@ -186,7 +187,7 @@ export const SortableList = SortableContainer<SortableListProps>(
             </SortableItem>
           ) : isMultipleGroups ? (
             <SortableItem key={item.key} index={index}>
-              <li className={cx('separator')}>
+              <li className={cx(styles.separator)}>
                 <Text type="secondary">{item.data.name}</Text>
               </li>
             </SortableItem>
@@ -194,7 +195,10 @@ export const SortableList = SortableContainer<SortableListProps>(
         )}
         {allowCreate && isMultipleGroups && items[items.length - 1]?.type === 'item' && (
           <SortableItem disabled key="New Group" index={items.length + 1}>
-            <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
+            <li
+              onClick={handleAddGroup}
+              className={cx(styles.separator, { [bem(styles.separator, 'clickable')]: true })}
+            >
               <Text type="primary">+ Add user group</Text>
             </li>
           </SortableItem>

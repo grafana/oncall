@@ -18,15 +18,15 @@ export const getScheduleQualityProgressBarStyles = (theme: GrafanaTheme2) => {
       height: 8px;
 
       &--warning {
-        backgorund-color: ${theme.colors.warning.text};
+        backgorund-color: ${theme.colors.warning.main};
       }
 
       &--danger {
-        background-color: ${theme.colors.error.text};
+        background-color: ${theme.colors.error.main};
       }
 
       &--primary {
-        background-color: ${theme.colors.success.text};
+        background-color: ${theme.colors.success.main};
       }
     `,
 
@@ -41,8 +41,8 @@ export const getScheduleQualityProgressBarStyles = (theme: GrafanaTheme2) => {
 
       &:last-child,
       &:last-child > .bar {
-        border-top-right-radius: $border-radius;
-        border-bottom-right-radius: $border-radius;
+        border-top-right-radius: ${radius};
+        border-bottom-right-radius: ${radius};
       }
     `,
   };

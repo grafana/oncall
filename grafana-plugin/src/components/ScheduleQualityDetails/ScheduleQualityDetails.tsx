@@ -6,7 +6,6 @@ import { HorizontalGroup, Icon, IconButton, useStyles2 } from '@grafana/ui';
 import { getUtilStyles } from 'assets/style/utils.styles';
 import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
-import { getVar } from 'utils/DOM';
 import { bem } from 'utils/utils';
 
 import { getScheduleQualityDetailsStyles } from './ScheduleQualityDetails.styles';
@@ -31,15 +30,16 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   const infoComments = comments.filter((c) => c.type === 'info');
   const warningComments = comments.filter((c) => c.type === 'warning');
 
-  console.log(getScheduleQualityMatchingColor(score));
-
   return (
     <div className={cx(styles.root)} data-testid="schedule-quality-details">
       <div className={cx(styles.container)}>
         <div className={cx(styles.container, bem(styles.container, 'withLateralPadding'))}>
           <Text type="secondary" className={cx(styles.header)}>
             Schedule quality:{' '}
-            <Text style={{ color: getScheduleQualityMatchingColor(score) }} className={cx(styles.headerSubText)}>
+            <Text
+              type="primary"
+              className={cx(styles.headerSubText)}
+            >
               {getScheduleQualityString(score)}
             </Text>
           </Text>
@@ -119,7 +119,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Icon name="calculator-alt" />
-              <Text type="secondary" className={cx('metholodogy')}>
+              <Text type="secondary" className={cx(styles.metholodogy)}>
                 Calculation methodology
               </Text>
             </HorizontalGroup>
@@ -147,14 +147,4 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
       </div>
     </div>
   );
-
-  function getScheduleQualityMatchingColor(score: number): string {
-    if (score < 20) {
-      return getVar('--tag-text-danger');
-    }
-    if (score < 60) {
-      return getVar('--tag-text-warning');
-    }
-    return getVar('--tag-text-success');
-  }
 };
