@@ -185,7 +185,7 @@ class UserNotificationPolicy(OrderedModel):
             == 1
         ):
 
-            raise UserNotificationPolicyCouldNotBeDeleted("Can't delete phone call notification policy")
+            raise UserNotificationPolicyCouldNotBeDeleted("User must have at least one phone call notification policy!")
         elif (
             self.notify_by == TELEGRAM_BACKEND_INTERNAL_ID
             and UserNotificationPolicy.objects.filter(
@@ -193,7 +193,7 @@ class UserNotificationPolicy(OrderedModel):
             ).count()
             == 1
         ):
-            raise UserNotificationPolicyCouldNotBeDeleted("Can't delete telegram notification policy")
+            raise UserNotificationPolicyCouldNotBeDeleted("User must have at least one telegram notification policy!")
 
         else:
             super().delete()
