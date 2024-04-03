@@ -518,6 +518,8 @@ def test_sync_organization_lock(make_organization):
 
 @dataclass
 class TestSyncGrafanaLabelsPluginParams:
+    __test__ = False
+
     response: tuple
     expected_result: bool
 
@@ -548,6 +550,8 @@ def test_sync_grafana_labels_plugin(make_organization, test_params: TestSyncGraf
 
 @dataclass
 class TestSyncGrafanaIncidentParams:
+    __test__ = False
+
     response: tuple
     expected_flag: bool
     expected_url: Optional[str]

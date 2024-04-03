@@ -71,6 +71,7 @@ GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATION
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
+FEATURE_GOOGLE_OAUTH2_ENABLED = getenv_boolean("FEATURE_GOOGLE_OAUTH2_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -280,6 +281,7 @@ INSTALLED_APPS = [
     "django_dbconn_retry",
     "apps.phone_notifications",
     "drf_spectacular",
+    "apps.google",
 ]
 
 REST_FRAMEWORK = {
@@ -320,6 +322,10 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/alert_receive_channels",
     "/users",
     "/labels",
+    # social auth routes
+    "/login",
+    "/complete",
+    "/disconnect",
 ]
 
 MIDDLEWARE = [
@@ -642,7 +648,26 @@ AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.InstallSlackOAuth2V2",
     "apps.social_auth.backends.LoginSlackOAuth2V2",
     "django.contrib.auth.backends.ModelBackend",
+    "apps.social_auth.backends.GoogleOAuth2",
 ]
+
+if FEATURE_GOOGLE_OAUTH2_ENABLED:
+    CELERY_BEAT_SCHEDULE["sync_google_calendar_out_of_office_events_for_all_users"] = {
+        "task": "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users",
+        "schedule": crontab(minute="*/30"),  # every 30 minutes
+        "args": (),
+    }
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
+# NOTE: for right now we probably only need the calendar.events.readonly scope
+# however, if we want to write events back to the user's calendar
+# we'll probably need to change this to the calendar.events scope
+# (not sure how hard this is to migrate to in the future?)
+# https://developers.google.com/identity/protocols/oauth2/scopes#calendar
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = getenv_list(
+    "SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE", default=["https://www.googleapis.com/auth/calendar.events.readonly"]
+)
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
@@ -673,12 +698,31 @@ SOCIAL_AUTH_SLACK_INSTALL_FREE_CUSTOM_SCOPE = [
 ]
 
 SOCIAL_AUTH_PIPELINE = (
-    "apps.social_auth.pipeline.set_user_and_organization_from_request",
+    "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
     "social_core.pipeline.social_auth.social_details",
-    "apps.social_auth.pipeline.connect_user_to_slack",
-    "apps.social_auth.pipeline.populate_slack_identities",
-    "apps.social_auth.pipeline.delete_slack_auth_token",
+    "apps.social_auth.pipeline.slack.connect_user_to_slack",
+    "apps.social_auth.pipeline.slack.populate_slack_identities",
+    "apps.social_auth.pipeline.slack.delete_slack_auth_token",
 )
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
+    "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
+    "apps.social_auth.pipeline.google.persist_access_and_refresh_tokens",
+)
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_DISCONNECT_PIPELINE = (
+    "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
+    "apps.social_auth.pipeline.google.disconnect_user_google_oauth2_settings",
+)
+
+# https://python-social-auth.readthedocs.io/en/latest/use_cases.html#re-prompt-google-oauth2-users-to-refresh-the-refresh-token
+# https://developers.google.com/identity/protocols/oauth2/web-server
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {
+    # Indicates whether your application can refresh access tokens when the user is not present at the browser.
+    # Valid parameter values are online, which is the default value, and offline.
+    "access_type": "offline",
+    "approval_prompt": "auto",
+}
 
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION: typing.List[str] = []
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = getenv_boolean("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=True)
@@ -689,7 +733,7 @@ PUBLIC_PRIMARY_KEY_MIN_LENGTH = 12
 PUBLIC_PRIMARY_KEY_ALLOWED_CHARS = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
 
 AUTH_LINK_TIMEOUT_SECONDS = 300
-SLACK_AUTH_TOKEN_TIMEOUT_SECONDS = 300
+AUTH_TOKEN_TIMEOUT_SECONDS = 300
 
 SLACK_INSTALL_RETURN_REDIRECT_HOST = os.environ.get("SLACK_INSTALL_RETURN_REDIRECT_HOST", None)
 
@@ -736,13 +780,13 @@ GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYS
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
-    "STACK_SLUG": "self_hosted_stack",
+    "STACK_SLUG": os.environ.get("SELF_HOSTED_STACK_SLUG", "self_hosted_stack"),
     "ORG_ID": 100,
-    "ORG_SLUG": "self_hosted_org",
-    "ORG_TITLE": "Self-Hosted Organization",
-    "REGION_SLUG": "self_hosted_region",
+    "ORG_SLUG": os.environ.get("SELF_HOSTED_ORG_SLUG", "self_hosted_org"),
+    "ORG_TITLE": os.environ.get("SELF_HOSTED_ORG_TITLE", "Self-Hosted Organization"),
+    "REGION_SLUG": os.environ.get("SELF_HOSTED_REGION_SLUG", "self_hosted_region"),
     "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
-    "CLUSTER_SLUG": "self_hosted_cluster",
+    "CLUSTER_SLUG": os.environ.get("SELF_HOSTED_CLUSTER_SLUG", "self_hosted_cluster"),
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
