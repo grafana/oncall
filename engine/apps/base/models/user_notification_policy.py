@@ -37,6 +37,9 @@ BUILT_IN_BACKENDS = (
     ("TELEGRAM", 3),
 )
 
+PHONE_CALL_BACKEND_INTERNAL_ID = [value for name, value in BUILT_IN_BACKENDS if name == "PHONE_CALL"][0]
+TELEGRAM_BACKEND_INTERNAL_ID = [value for name, value in BUILT_IN_BACKENDS if name == "TELEGRAM"][0]
+
 
 def _notification_channel_choices():
     """Return dynamically built choices for available notification channel backends."""
@@ -174,6 +177,24 @@ class UserNotificationPolicy(OrderedModel):
     def delete(self):
         if UserNotificationPolicy.objects.filter(important=self.important, user=self.user).count() == 1:
             raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
+        elif (
+            self.notify_by == PHONE_CALL_BACKEND_INTERNAL_ID
+            and UserNotificationPolicy.objects.filter(
+                important=self.important, notify_by=PHONE_CALL_BACKEND_INTERNAL_ID, user=self.user
+            ).count()
+            == 1
+        ):
+
+            raise UserNotificationPolicyCouldNotBeDeleted("User must have at least one phone call notification policy!")
+        elif (
+            self.notify_by == TELEGRAM_BACKEND_INTERNAL_ID
+            and UserNotificationPolicy.objects.filter(
+                important=self.important, notify_by=TELEGRAM_BACKEND_INTERNAL_ID, user=self.user
+            ).count()
+            == 1
+        ):
+            raise UserNotificationPolicyCouldNotBeDeleted("User must have at least one telegram notification policy!")
+
         else:
             super().delete()
 
