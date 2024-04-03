@@ -8,7 +8,7 @@ from django.db import OperationalError
 
 from apps.user_management.exceptions import OrganizationMovedException
 
-INTEGRATION_PERMISSION_DENIED_MESSAGE = "Integration key was not found in cache. Permission denied."
+INTEGRATION_PERMISSION_DENIED_MESSAGE = "Integration key was not found. Permission denied."
 
 CHANNEL_DOES_NOT_EXIST_PLACEHOLDER = "DOES_NOT_EXIST"
 
@@ -76,6 +76,11 @@ class AlertChannelDefiningMixin(object):
                 for obj in serializers.deserialize("json", cache.get(self.CACHE_KEY_DB_FALLBACK)):
                     if obj.object.token == kwargs["alert_channel_key"]:
                         alert_receive_channel = obj.object
+
+                if alert_receive_channel is None:
+                    logger.info(f"Integration {kwargs['alert_channel_key']} not found in fallback cache")
+                    raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
+
             else:
                 logger.info("Cache is empty!")
                 raise
