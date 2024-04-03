@@ -1,7 +1,6 @@
 import logging
 import typing
 
-import requests
 from rest_framework.response import Response
 from social_core.backends.base import BaseAuth
 
