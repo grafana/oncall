@@ -37,6 +37,9 @@ BUILT_IN_BACKENDS = (
     ("TELEGRAM", 3),
 )
 
+PHONE_CALL_BACKEND_INTERNAL_ID = [value for name, value in BUILT_IN_BACKENDS if name == "PHONE_CALL"][0]
+TELEGRAM_BACKEND_INTERNAL_ID = [value for name, value in BUILT_IN_BACKENDS if name == "TELEGRAM"][0]
+
 
 def _notification_channel_choices():
     """Return dynamically built choices for available notification channel backends."""
