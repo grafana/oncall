@@ -1,6 +1,7 @@
 import logging
 import typing
 
+import requests
 from rest_framework.response import Response
 from social_core.backends.base import BaseAuth
 
@@ -22,6 +23,12 @@ def persist_access_and_refresh_tokens(backend: typing.Type[BaseAuth], response: 
 
 
 def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user: User, *args, **kwargs):
-    # 2nd argument, uid, is not needed for GoogleOauth2 backend
-    backend.revoke_token(user.google_oauth2_user.access_token, "")
-    user.finish_google_oauth2_disconnection_flow()
+    try:
+        # 2nd argument, uid, is not needed for GoogleOauth2 backend
+        backend.revoke_token(user.google_oauth2_user.access_token, "")
+    except requests.exceptions.HTTPError:
+        logger.exception(f"Failed to revoke Google OAuth2 access token for user {user.email}")
+    finally:
+        # if the above exception occurs, it likely means we got back an HTTP 400 from Google because the user's
+        # token is invalid or revoked.. in either event, we should still finish the disconnection flow
+        user.finish_google_oauth2_disconnection_flow()
