@@ -80,20 +80,20 @@ class AlertChannelDefiningMixin(object):
             else:
                 logger.info("Cache is empty!")
                 raise
-
-        if not alert_receive_channel:
-            logger.info(f"Integration {kwargs['alert_channel_key']} does not exist")
-            raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
-        if alert_receive_channel.organization.is_moved:
-            logger.info(
-                f"Channel {kwargs['alert_channel_key']} in organization {alert_receive_channel.organization.public_primary_key} is moved"
-            )
-            raise OrganizationMovedException(alert_receive_channel.organization)
-        if alert_receive_channel.deleted_at or alert_receive_channel.organization.deleted_at:
-            logger.info(
-                f"Channel {kwargs['alert_channel_key']} or organization {alert_receive_channel.organization.public_primary_key} is deleted"
-            )
-            raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
+        else:
+            if not alert_receive_channel:
+                logger.info(f"Integration {kwargs['alert_channel_key']} does not exist")
+                raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
+            if alert_receive_channel.organization.is_moved:
+                logger.info(
+                    f"Channel {kwargs['alert_channel_key']} in organization {alert_receive_channel.organization.public_primary_key} is moved"
+                )
+                raise OrganizationMovedException(alert_receive_channel.organization)
+            if alert_receive_channel.deleted_at or alert_receive_channel.organization.deleted_at:
+                logger.info(
+                    f"Channel {kwargs['alert_channel_key']} or organization {alert_receive_channel.organization.public_primary_key} is deleted"
+                )
+                raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
 
         del kwargs["alert_channel_key"]
 
