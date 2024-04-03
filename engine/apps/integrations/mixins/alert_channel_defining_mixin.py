@@ -38,37 +38,36 @@ class AlertChannelDefiningMixin(object):
             # Trying to define from short-term cache
             cache_key_short_term = self.CACHE_KEY_SHORT_TERM + "_" + str(kwargs["alert_channel_key"])
             cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
-            if cached_alert_receive_channel_raw != CHANNEL_DOES_NOT_EXIST_PLACEHOLDER:
-                if cached_alert_receive_channel_raw is not None:
-                    try:
-                        alert_receive_channel = next(
-                            serializers.deserialize("json", cached_alert_receive_channel_raw)
-                        ).object
-                    except serializers.base.DeserializationError:
-                        # cached object model is outdated
-                        alert_receive_channel = None
+            if cached_alert_receive_channel_raw == CHANNEL_DOES_NOT_EXIST_PLACEHOLDER:
+                logger.info(f"Integration {kwargs['alert_channel_key']} already cached as non-existent")
+                raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
 
-                if alert_receive_channel is None:
-                    # Trying to define channel from DB
-                    try:
-                        alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(
-                            token=kwargs["alert_channel_key"]
-                        )
-                    except AlertReceiveChannel.DoesNotExist:
-                        cache.set(
-                            cache_key_short_term, CHANNEL_DOES_NOT_EXIST_PLACEHOLDER, self.CACHE_SHORT_TERM_TIMEOUT
-                        )
-                    else:
-                        # Update short term cache
-                        serialized = serializers.serialize("json", [alert_receive_channel])
-                        cache.set(cache_key_short_term, serialized, self.CACHE_SHORT_TERM_TIMEOUT)
+            if cached_alert_receive_channel_raw is not None:
+                try:
+                    alert_receive_channel = next(
+                        serializers.deserialize("json", cached_alert_receive_channel_raw)
+                    ).object
+                except serializers.base.DeserializationError:
+                    # cached object model is outdated
+                    alert_receive_channel = None
 
-                        # Update cached channels
-                        if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
-                            cache.set(
-                                self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL
-                            )
-                            self.update_alert_receive_channel_cache()
+            if alert_receive_channel is None:
+                # Trying to define channel from DB
+                try:
+                    alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(
+                        token=kwargs["alert_channel_key"]
+                    )
+                except AlertReceiveChannel.DoesNotExist:
+                    cache.set(cache_key_short_term, CHANNEL_DOES_NOT_EXIST_PLACEHOLDER, self.CACHE_SHORT_TERM_TIMEOUT)
+                else:
+                    # Update short term cache
+                    serialized = serializers.serialize("json", [alert_receive_channel])
+                    cache.set(cache_key_short_term, serialized, self.CACHE_SHORT_TERM_TIMEOUT)
+
+                    # Update cached channels
+                    if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
+                        cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
+                        self.update_alert_receive_channel_cache()
         except OperationalError:
             logger.info("Cannot connect to database, using cache to consume alerts!")
 
