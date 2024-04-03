@@ -20,7 +20,12 @@ test.skip(
   'Insights is only available in Grafana 10.0.0 and above'
 );
 
-test.describe('Insights', () => {
+/**
+ * skipping as these tests are currently flaky
+ * see this Slack conversation for more details:
+ * https://raintank-corp.slack.com/archives/C04JCU51NF8/p1712069772861909
+ */
+test.describe.skip('Insights', () => {
   test.beforeAll(async ({ adminRolePage: { page } }) => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';

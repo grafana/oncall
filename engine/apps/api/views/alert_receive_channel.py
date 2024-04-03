@@ -443,7 +443,7 @@ class AlertReceiveChannelView(
             if payload is None:
                 return channel.alert_groups.last().alerts.first()
             else:
-                if type(payload) != dict:
+                if type(payload) is not dict:
                     raise PreviewTemplateException("Payload must be a valid json object")
                 # Build Alert and AlertGroup objects to pass to templater without saving them to db
                 alert_group_to_template = AlertGroup(channel=channel)
@@ -529,7 +529,7 @@ class AlertReceiveChannelView(
         try:
             instance.start_maintenance(mode, duration, request.user)
         except MaintenanceCouldNotBeStartedError as e:
-            if type(instance) == AlertReceiveChannel:
+            if type(instance) is AlertReceiveChannel:
                 detail = {"alert_receive_channel_id": ["Already on maintenance"]}
             else:
                 detail = str(e)
