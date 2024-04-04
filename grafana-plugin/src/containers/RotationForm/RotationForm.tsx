@@ -691,8 +691,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         )}
                         {showActiveOnSelectedDays && (
                           <Text type="secondary">
-                            Since masking by weekdays is enabled shift length is limited to 24h and shift will repeat
-                            every day
+                            Since masking by weekdays is enabled, each shift length may not exceed 24hs, and each shift
+                            will repeat every day
                           </Text>
                         )}
                       </VerticalGroup>
