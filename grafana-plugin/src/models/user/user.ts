@@ -101,7 +101,7 @@ export class UserStore {
 
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
-    const timezone = await this.refreshTimezone(response.pk);
+    const timezone = await this.refreshTimezoneIfNeeded(response);
 
     runInAction(() => {
       this.items = {
@@ -112,13 +112,13 @@ export class UserStore {
     });
   }
 
-  async refreshTimezone(id: ApiSchemas['User']['pk']) {
+  async refreshTimezoneIfNeeded(user: ApiSchemas['User']) {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
 
-    if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (user.timezone !== timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       await onCallApi().PUT('/users/{id}/', {
-        params: { path: { id } },
+        params: { path: { id: user.pk } },
         body: { timezone } as ApiSchemas['User'],
       });
     }
