@@ -198,6 +198,8 @@ export const dayJSAddWithDSTFixed = ({
   // At first we add time as usual
   let newDateCandidate = baseDate.add(...addParams);
 
+  return newDateCandidate;
+
   const differenceInHoursInLocalTimezone = newDateCandidate.hour() - baseDate.hour();
   const differenceInHoursInUTC = newDateCandidate.utc().hour() - baseDate.utc().hour();
 
