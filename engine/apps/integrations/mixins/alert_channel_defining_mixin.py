@@ -8,6 +8,10 @@ from django.db import OperationalError
 
 from apps.user_management.exceptions import OrganizationMovedException
 
+INTEGRATION_PERMISSION_DENIED_MESSAGE = "Integration key was not found. Permission denied."
+
+CHANNEL_DOES_NOT_EXIST_PLACEHOLDER = "DOES_NOT_EXIST"
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,6 +38,10 @@ class AlertChannelDefiningMixin(object):
             # Trying to define from short-term cache
             cache_key_short_term = self.CACHE_KEY_SHORT_TERM + "_" + str(kwargs["alert_channel_key"])
             cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
+            if cached_alert_receive_channel_raw == CHANNEL_DOES_NOT_EXIST_PLACEHOLDER:
+                logger.info(f"Integration {kwargs['alert_channel_key']} already cached as non-existent")
+                raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
+
             if cached_alert_receive_channel_raw is not None:
                 try:
                     alert_receive_channel = next(
@@ -45,18 +53,21 @@ class AlertChannelDefiningMixin(object):
 
             if alert_receive_channel is None:
                 # Trying to define channel from DB
-                alert_receive_channel = AlertReceiveChannel.objects.get(token=kwargs["alert_channel_key"])
-                # Update short term cache
-                serialized = serializers.serialize("json", [alert_receive_channel])
-                cache.set(cache_key_short_term, serialized, self.CACHE_SHORT_TERM_TIMEOUT)
+                try:
+                    alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(
+                        token=kwargs["alert_channel_key"]
+                    )
+                except AlertReceiveChannel.DoesNotExist:
+                    cache.set(cache_key_short_term, CHANNEL_DOES_NOT_EXIST_PLACEHOLDER, self.CACHE_SHORT_TERM_TIMEOUT)
+                else:
+                    # Update short term cache
+                    serialized = serializers.serialize("json", [alert_receive_channel])
+                    cache.set(cache_key_short_term, serialized, self.CACHE_SHORT_TERM_TIMEOUT)
 
-                # Update cached channels
-                if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
-                    cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
-                    self.update_alert_receive_channel_cache()
-
-        except AlertReceiveChannel.DoesNotExist:
-            raise PermissionDenied("Integration key was not found. Permission denied.")
+                    # Update cached channels
+                    if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
+                        cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
+                        self.update_alert_receive_channel_cache()
         except OperationalError:
             logger.info("Cannot connect to database, using cache to consume alerts!")
 
@@ -67,18 +78,26 @@ class AlertChannelDefiningMixin(object):
                         alert_receive_channel = obj.object
 
                 if alert_receive_channel is None:
-                    raise PermissionDenied("Integration key was not found in cache. Permission denied.")
+                    logger.info(f"Integration {kwargs['alert_channel_key']} not found in fallback cache")
+                    raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
 
             else:
                 logger.info("Cache is empty!")
                 raise
         else:
+            if not alert_receive_channel:
+                logger.info(f"Integration {kwargs['alert_channel_key']} does not exist")
+                raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
             if alert_receive_channel.organization.is_moved:
+                logger.info(
+                    f"Channel {kwargs['alert_channel_key']} in organization {alert_receive_channel.organization.public_primary_key} is moved"
+                )
                 raise OrganizationMovedException(alert_receive_channel.organization)
-            if alert_receive_channel.organization.deleted_at:
-                # It's better to raise OrganizarionDeletedException, but in legacy code PermissionDenied is returned when integration key not found.
-                # So, keep it consistent.
-                raise PermissionDenied("Integration key was not found. Permission denied.")
+            if alert_receive_channel.deleted_at or alert_receive_channel.organization.deleted_at:
+                logger.info(
+                    f"Channel {kwargs['alert_channel_key']} or organization {alert_receive_channel.organization.public_primary_key} is deleted"
+                )
+                raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
 
         del kwargs["alert_channel_key"]
 
