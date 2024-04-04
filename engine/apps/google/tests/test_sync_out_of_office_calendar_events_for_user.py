@@ -56,10 +56,16 @@ def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: 
     }
 
 
+def _get_utc_now():
+    return datetime.datetime.now(tz=datetime.timezone.utc)
+
+
+def _adjust_datetime(dt):
+    return dt.replace(second=0, microsecond=0)
+
+
 def _create_event_start_and_end_times(start_days_in_future=5, end_time_minutes_past_start=50):
-    start_time = (
-        datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=start_days_in_future)
-    ).replace(second=0, microsecond=0)
+    start_time = _adjust_datetime(_get_utc_now() + datetime.timedelta(days=start_days_in_future))
     end_time = start_time + datetime.timedelta(minutes=end_time_minutes_past_start)
 
     return start_time, end_time
@@ -257,6 +263,29 @@ def test_sync_out_of_office_calendar_events_for_user_no_upcoming_shifts(
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
 
     assert ShiftSwapRequest.objects.filter(beneficiary=user).count() == 0
+
+
+@patch("apps.google.client.build")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_user_considers_current_shifts(
+    mock_google_api_client_build,
+    test_setup,
+):
+    in_five_minutes = _adjust_datetime(_get_utc_now() + datetime.timedelta(minutes=5))
+    in_ten_minutes = in_five_minutes + datetime.timedelta(minutes=5)
+
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.return_value = {
+        "items": [
+            _create_mock_google_calendar_event(in_five_minutes, in_ten_minutes),
+        ],
+    }
+
+    google_oauth2_user, _ = test_setup([])
+    user = google_oauth2_user.user
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+
+    assert ShiftSwapRequest.objects.filter(beneficiary=user).count() == 1
 
 
 @patch("apps.google.client.build")
