@@ -123,6 +123,54 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
 
 
 @pytest.mark.django_db
+def test_get_detail_connected_integration_webhook(
+    webhook_internal_api_setup, make_custom_webhook, make_user_auth_headers
+):
+    user, token, _ = webhook_internal_api_setup
+    # it is possible to get details for a connected integration webhook
+    webhook = make_custom_webhook(organization=user.organization, is_from_connected_integration=True)
+
+    client = APIClient()
+    url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+
+    expected_payload = {
+        "id": webhook.public_primary_key,
+        "name": webhook.name,
+        "team": None,
+        "url": webhook.url,
+        "data": webhook.data,
+        "username": None,
+        "password": None,
+        "authorization_header": None,
+        "forward_all": True,
+        "headers": None,
+        "http_method": "POST",
+        "integration_filter": [],
+        "is_webhook_enabled": True,
+        "labels": [],
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
+            "url": "",
+            "event_data": "",
+        },
+        "trigger_template": None,
+        "trigger_type": "0",
+        "trigger_type_name": "Escalation step",
+        "preset": None,
+    }
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
 def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
