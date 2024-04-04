@@ -100,7 +100,7 @@ def is_ratelimit_ignored(alert_receive_channel):
                 ]
             },
         )[0]
-        integration_tokens_to_ignore_ratelimit = dynamic_setting.json_value[0].json_value
+        integration_tokens_to_ignore_ratelimit = dynamic_setting.json_value
         cache.set(RATELIMIT_BYPASS_CACHE_KEY, integration_tokens_to_ignore_ratelimit, RATELIMIT_BYPASS_CACHE_TIMEOUT)
     return alert_receive_channel.token in integration_tokens_to_ignore_ratelimit
 
