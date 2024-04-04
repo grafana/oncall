@@ -527,7 +527,7 @@ def test_integration_outdated_cached_model(
 @patch("django.core.cache.cache.get", wraps=cache.get)
 @patch("django.core.cache.cache.set", wraps=cache.set)
 @patch(
-    "apps.alerts.models.AlertReceiveChannel.objects_with_deleted.get",
+    "apps.alerts.models.AlertReceiveChannel.objects.get",
     wraps=AlertReceiveChannel.objects_with_deleted.get,
 )
 @pytest.mark.parametrize(
