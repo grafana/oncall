@@ -241,7 +241,7 @@ def test_get_fcm_message(
 
     assert fcm_message == mock_fcm_message
 
-    mock_aps_alert.assert_called_once_with(title=mock_notification_title, subtitle=mock_notification_subtitle)
+    mock_aps_alert.assert_called_once_with(title=mock_notification_title, body=mock_notification_subtitle)
     mock_critical_sound.assert_called_once_with(
         critical=False, name=maus.get_notification_sound_name(MessageType.INFO, Platform.IOS)
     )
