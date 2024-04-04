@@ -367,7 +367,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       setShowActiveOnSelectedDays(value);
 
-      if (value) {
+      if (value && shiftEnd.diff(shiftStart, 'hours') > 24) {
         setShiftEnd(
           dayJSAddWithDSTFixed({
             baseDate: shiftStart,
@@ -385,7 +385,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [showActiveOnSelectedPartOfDay, shiftStart, repeatEveryValue, repeatEveryPeriod]
+    [showActiveOnSelectedPartOfDay, shiftStart, shiftEnd, repeatEveryValue, repeatEveryPeriod]
   );
 
   const handleShowActiveOnSelectedPartOfDayToggle = useCallback(
@@ -394,7 +394,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setShowActiveOnSelectedPartOfDay(value);
 
       if (!value) {
-        if (showActiveOnSelectedPartOfDay) {
+        if (showActiveOnSelectedDays && shiftEnd.diff(shiftStart, 'hours') > 24) {
           setShiftEnd(
             dayJSAddWithDSTFixed({
               baseDate: shiftStart,
@@ -411,7 +411,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [shiftStart, repeatEveryPeriod, repeatEveryValue, showActiveOnSelectedPartOfDay]
+    [shiftStart, shiftEnd, repeatEveryPeriod, repeatEveryValue, showActiveOnSelectedDays]
   );
 
   useEffect(() => {
@@ -691,8 +691,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         )}
                         {showActiveOnSelectedDays && (
                           <Text type="secondary">
-                            Since masking by weekdays is enabled shift length is limited to 24h and shift will repeat
-                            every day
+                            Since masking by weekdays is enabled, each shift length may not exceed 24hs, and each shift
+                            will repeat every day
                           </Text>
                         )}
                       </VerticalGroup>

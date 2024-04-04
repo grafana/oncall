@@ -1,81 +1,66 @@
 ---
-title: Grafana OnCall
-menuTitle: OnCall
-description: Learn about the key features of Grafana OnCall and how improve your IRM solution
-weight: 500
-
-# This is the oncall index document
-# Please do not make changes to the weight of this document
-# The weight is set for ordering in the docs/grafana-cloud/alerting-and-irm/ folder
-
-keywords:
-  - OnCall
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - On-call
-  - Escalation
-  - IRM
-canonical: https://grafana.com/docs/oncall/latest/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/
+  - /docs/oncall/ # /docs/oncall/<ONCALL_VERSION>/
+canonical: https://grafana.com/docs/oncall/latest/
+description: Learn about the key benefits and features of Grafana OnCall
+labels:
+  products:
+    - cloud
+    - oss
+menuTitle: OnCall
+title: Grafana OnCall
+weight: 500
+hero:
+  title: Grafana OnCall
+  level: 1
+  image: /media/docs/grafana-cloud/alerting-and-irm/grafana-icon-oncall.svg
+  width: 100
+  height: 100
+  description: Grafana OnCall allows you to automate alert routing and escalation to ensure swift resolution and service reliability.
+cards:
+  title_class: pt-0 lh-1
+  items:
+    - title: Introduction
+      href: ./intro/
+      description: Learn more about the key benefits and features that are available with Grafana OnCall.
+      height: 24
+    - title: Set up
+      href: ./set-up/
+      description: Explore the set up options for Grafana OnCall.
+      height: 24
+    - title: Configure
+      href: ./configure/
+      description: Customize alert escalation and routing with flexible configuration options. Explore how to configure alert templates, routing rules, and outgoing webhooks.
+      height: 24
+    - title: Integrations
+      href: ./integrations/
+      description: Connect external alert sources, ChatOps tools, and much more to ensure alerts and updates are routed to and from OnCall, regardless of the other tools in your workflow.
+    - title: Manage on-call schedules
+      href: ./manage/on-call-schedules/
+      description: Create and manage on-call schedules, scheduled overrides, and shift swaps.
+      height: 24
+    - title: Configure user notifications
+      href: ./manage/notify/
+      description: Create, manage, and view user notification policies.
+      height: 24
 ---
 
-# Grafana OnCall documentation
+{{< docs/hero-simple key="hero" >}}
 
-Grafana OnCall is an incident response and on-call management system that helps teams reduce the stress and maintenance of being on-call. Based on the Grafana
-OnCall OSS project, Grafana OnCall is available on Grafana Cloud as part of the Grafana Incident Response & Management (IRM) solution.
+---
 
-## What is Grafana OnCall?
+## Overview
 
-Grafana OnCall is a robust on-call management and incident response tool that is conveniently integrated into your Grafana Cloud environment.
+Respond to issues faster and improve your service reliability with Grafana OnCall.
+Integrated directly into Grafana Cloud, you can automatically route alerts to designated on-call teams and ChatOps
+channels according to predefined escalation policies, schedules, and notification preferences.
 
-Positioned at the core of Grafana’s Incident Response & Management (IRM) solution, Grafana OnCall automatically routes and escalates alerts to on-call teams and
-channels based on your predefined escalation policies and on-call schedules.
+Alleviate the burden of being on-call with customized schedules tailored to your team's availability and timezones.
+Personalize notification settings to ensure individuals receive alerts through their preferred channels, such as SMS, mobile apps, or ChatOps platforms.
 
-## Key features
+Through automated alert routing and escalation, Grafana OnCall reduces incident response time, minimizes downtime and helps mitigate the impact of incidents.
 
-### Diverse monitoring system support
+## Explore
 
-Grafana OnCall integrates with a diverse set of monitoring systems, including Grafana, Prometheus, Alertmanager, Zabbix, and more. This flexibility ensures
-that, regardless of your existing monitoring infrastructure, your team benefits from Grafana OnCall.
-
-### Automatic escalation to on-call rotations
-
-Efficiently manage on-call rotations using Grafana OnCall's flexible calendar options. Define on-call schedules directly in the OnCall app, in your preferred
-calendar application with iCal format, or leverage Terraform within your "as-code" workflow. Configurable alert escalation routes notifications to on-call team
-members, Slack channels, and other designated points, ensuring timely responses.
-
-### ChatOps focused
-
-Grafana OnCall integrates closely with your Slack workspace to deliver alert notifications to individuals and groups, making daily alerts more visible and
-easier to manage.
-
-### Mobile app
-
-Access on-call alerts on the go with the dedicated mobile app, putting critical notifications in the palm of your hand.
-
-### As-code and GitOps
-
-Equipped with a full API and Terraform capabilities, Grafana OnCall is ready for GitOps and large organization configuration.
-
-### Fully customizable
-
-With customizable alert grouping and routing, you can decide which alerts you want to be notified of and how, ensuring the right people are notified for the
-right issues.
-
-## Common on-call challenges
-
-Explore how Grafana OnCall addresses common on-call challenges:
-
-- **Alert Noise and Fatigue:** Automatic grouping and configurable auto-resolve settings control alert noise and reduce fatigue during incidents.
-- **Balancing On-Call Load:** Schedule balance feature identifies potential workload imbalances, ensuring fair distribution.
-- **Tool Sprawl:** Grafana OnCall, part of the Grafana Cloud suite, centralizes alert responses and investigations.
-- **Calendar Maintenance:** Manage on-call rotations efficiently with flexible calendar integration for easy scheduling and alert escalation.
-- **Custom Workflows:** Tailor incident response workflows with highly customizable alert grouping and routing for targeted notifications.
-
-## Get started
-
-To learn more about what Grafana OnCall can do for you, explore the following topics:
-
-{{< section >}}
+{{< card-grid key="cards" type="simple" >}}
