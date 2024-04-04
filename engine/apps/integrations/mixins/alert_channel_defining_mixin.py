@@ -11,7 +11,6 @@ from apps.user_management.exceptions import OrganizationMovedException
 INTEGRATION_PERMISSION_DENIED_MESSAGE = "Integration key was not found. Permission denied."
 
 CHANNEL_DOES_NOT_EXIST_PLACEHOLDER = "DOES_NOT_EXIST"
-CHANNEL_MOVED_PLACEHOLDER = "MOVED"
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +34,6 @@ class AlertChannelDefiningMixin(object):
         start = perf_counter()
         alert_receive_channel, status = self.get_alert_receive_channel_from_cache(token)
 
-        if status == CHANNEL_MOVED_PLACEHOLDER:
-            self.handle_organization_moved(token)
-
         if not alert_receive_channel or status == CHANNEL_DOES_NOT_EXIST_PLACEHOLDER:
             logger.info(f"Integration {token} does not exist")
             raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
@@ -57,10 +53,7 @@ class AlertChannelDefiningMixin(object):
         if cached_alert_receive_channel_raw == CHANNEL_DOES_NOT_EXIST_PLACEHOLDER:
             return None, CHANNEL_DOES_NOT_EXIST_PLACEHOLDER
 
-        if cached_alert_receive_channel_raw == CHANNEL_MOVED_PLACEHOLDER:
-            return None, CHANNEL_MOVED_PLACEHOLDER
-
-        if not cached_alert_receive_channel_raw:
+        if cached_alert_receive_channel_raw:
             try:
                 alert_receive_channel = next(serializers.deserialize("json", cached_alert_receive_channel_raw)).object
                 return alert_receive_channel, None
@@ -75,16 +68,7 @@ class AlertChannelDefiningMixin(object):
             return None, CHANNEL_DOES_NOT_EXIST_PLACEHOLDER
 
         if db_ok:
-            if alert_receive_channel.organization.is_moved:
-                logger.info(
-                    f"Channel {token} organization {alert_receive_channel.organization.public_primary_key} is moved"
-                )
-                cache_key_organization_short_term = self.CACHE_KEY_ORGANIZATION_SHORT_TERM + "_" + token
-                serialized_organization = serializers.serialize("json", [alert_receive_channel.organization])
-                cache.set(cache_key_organization_short_term, serialized_organization, self.CACHE_SHORT_TERM_TIMEOUT)
-                return None, CHANNEL_MOVED_PLACEHOLDER
             if alert_receive_channel.organization.deleted_at:
-                # Needs to be checked after is_moved since is_deleted is set for moved orgs
                 logger.info(
                     f"Channel {token} organization {alert_receive_channel.organization.public_primary_key} is deleted"
                 )
@@ -107,6 +91,13 @@ class AlertChannelDefiningMixin(object):
 
         try:
             alert_receive_channel = AlertReceiveChannel.objects.get(token=token)
+            if alert_receive_channel.organization.is_moved:
+                # Lookup moved organizations every time and do not cache. Not currently compatible with fallback logic
+                logger.info(
+                    f"Channel {token} in organization {alert_receive_channel.organization.public_primary_key} is moved"
+                )
+                raise OrganizationMovedException(alert_receive_channel.organization)
+
             return alert_receive_channel, True
         except AlertReceiveChannel.DoesNotExist:
             return None, True
@@ -132,21 +123,3 @@ class AlertChannelDefiningMixin(object):
         serialized = serializers.serialize("json", AlertReceiveChannel.objects.all())
         # Caching forever, re-caching is managed by "obsolete key"
         cache.set(self.CACHE_KEY_DB_FALLBACK, serialized, timeout=None)
-
-    def handle_organization_moved(self, token):
-        # Organization lookup still occurs here, can be optimized if common enough
-        from apps.alerts.models import AlertReceiveChannel
-
-        try:
-            alert_receive_channel = AlertReceiveChannel.objects.get(token=token)
-        except AlertReceiveChannel.DoesNotExist:
-            logger.info(f"Previously moved alert receive channel token={token} not found")
-            raise PermissionDenied(INTEGRATION_PERMISSION_DENIED_MESSAGE)
-        except OperationalError:
-            logger.info(
-                f"Moved organization for alert receive channel token={token} is not compatible with DB fallback"
-            )
-            raise
-
-        logger.info(f"Channel {token} in organization {alert_receive_channel.organization.public_primary_key} is moved")
-        raise OrganizationMovedException(alert_receive_channel.organization)
