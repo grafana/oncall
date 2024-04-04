@@ -14,15 +14,15 @@ export const getCheatSheetStyles = (_theme: GrafanaTheme2) => {
     `,
 
     cheatsheetInnerContainer: css`
-            padding-right: 16px;
-            overflow-y: scroll;
-            height: 100%;
-          
-            > div {
-              height: 100%;
-              max-height: 100%;
-            }
-          }`,
+      padding-right: 16px;
+      overflow-y: scroll;
+      height: 100%;
+    
+      > div {
+        height: 100%;
+        max-height: 100%;
+      }
+    }`,
 
     cheatsheetItem: css`
       margin-bottom: 24px;

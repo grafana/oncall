@@ -66,7 +66,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   render() {
-    const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber, theme } = this.props;
+    const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
 
     const escalationOption = escalationChoices.find(

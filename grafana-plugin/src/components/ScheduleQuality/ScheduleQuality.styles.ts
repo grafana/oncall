@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 
-export const getScheduleQualityStyles = (theme: GrafanaTheme2) => {
+export const getScheduleQualityStyles = (_theme: GrafanaTheme2) => {
   return {
     root: css`
       display: flex;

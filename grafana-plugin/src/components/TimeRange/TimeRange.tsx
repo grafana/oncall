@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, TimeOfDayPicker } from '@grafana/ui';
+import { HorizontalGroup, TimeOfDayPicker, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import moment from 'moment-timezone';
 
 import styles from './TimeRange.module.css';
+import { getUtilStyles } from 'assets/style/utils.styles';
 
 const cx = cn.bind(styles);
 
@@ -94,9 +95,10 @@ export const TimeRange = (props: TimeRangeProps) => {
   );
 
   const showNextDayTip = useMemo(() => to.isBefore(from), [from, to]);
+  const utilStyles = useStyles2(getUtilStyles);
 
   return (
-    <div className={cx('root', className)}>
+    <div className={cx(utilStyles.displayBlock, className)}>
       <HorizontalGroup wrap>
         <div data-testid="time-range-from">
           {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}

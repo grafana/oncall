@@ -13,19 +13,23 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       height: auto;
     `,
 
-    cursorDefault: css`
-      cursor: default;
-    `,
-
     thinLineBreak: css`
       width: 100%;
-      border-top: 1px solid var(--always-gray);
+      border-top: 1px solid ${COLORS.ALWAYS_GREY};
       margin-top: 8px;
       opacity: 15%;
     `,
 
     link: css`
       text-decoration: none !important;
+    `,
+
+    displayBlock: css`
+      display: block;
+    `,
+
+    cursorDefault: css`
+      cursor: default;
     `,
   };
 };

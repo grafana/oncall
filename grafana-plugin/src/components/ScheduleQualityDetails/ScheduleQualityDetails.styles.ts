@@ -4,7 +4,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 const padding = '8px';
 const width = '340px';
 
-export const getScheduleQualityDetailsStyles = (theme: GrafanaTheme2) => {
+export const getScheduleQualityDetailsStyles = (_theme: GrafanaTheme2) => {
   return {
     root: css`
       width: ${width};
