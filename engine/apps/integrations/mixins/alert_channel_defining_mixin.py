@@ -1,11 +1,13 @@
 import logging
 from time import perf_counter
+from typing import Optional
 
 from django.core import serializers
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.user_management.exceptions import OrganizationMovedException
 
 INTEGRATION_PERMISSION_DENIED_MESSAGE = "Integration key was not found. Permission denied."
@@ -45,7 +47,7 @@ class AlertChannelDefiningMixin(object):
         logger.info(f"AlertChannelDefiningMixin finished in {finish - start}")
         return super(AlertChannelDefiningMixin, self).dispatch(*args, **kwargs)
 
-    def get_alert_receive_channel_from_cache(self, token):
+    def get_alert_receive_channel_from_cache(self, token: str) -> tuple[Optional[AlertReceiveChannel], Optional[str]]:
         # Trying to define from short-term cache
         cache_key_short_term = self.CACHE_KEY_SHORT_TERM + "_" + token
         cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
@@ -86,7 +88,7 @@ class AlertChannelDefiningMixin(object):
 
         return alert_receive_channel, None
 
-    def get_alert_receive_channel_from_db(self, token):
+    def get_alert_receive_channel_from_db(self, token: str) -> tuple[Optional[AlertReceiveChannel], bool]:
         from apps.alerts.models import AlertReceiveChannel
 
         try:
@@ -105,7 +107,7 @@ class AlertChannelDefiningMixin(object):
             logger.info("Cannot connect to database, using cache to consume alerts!")
             return self.get_alert_receive_channel_from_db_fallback(token), False
 
-    def get_alert_receive_channel_from_db_fallback(self, token):
+    def get_alert_receive_channel_from_db_fallback(self, token: str) -> Optional[AlertReceiveChannel]:
         if cache.get(self.CACHE_KEY_DB_FALLBACK):
             for obj in serializers.deserialize("json", cache.get(self.CACHE_KEY_DB_FALLBACK)):
                 if obj.object.token == token:
