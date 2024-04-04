@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { Button, HorizontalGroup, InlineSwitch, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, Switch, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -21,11 +21,16 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
 
   const styles = useStyles2(getStyles);
 
-  const user = userStore.items[id];
-  const [googleCalendarSettings, setGoogleCalendarSettings] = useState(user?.google_calendar_settings);
-  const [showSchedulesDropdown, setShowSchedulesDropdown] = useState(
-    user.google_calendar_settings?.oncall_schedules_to_consider_for_shift_swaps?.length > 0
-  );
+  const [googleCalendarSettings, setGoogleCalendarSettings] =
+    useState<ApiSchemas['User']['google_calendar_settings']>();
+  const [showSchedulesDropdown, setShowSchedulesDropdown] = useState<boolean>();
+
+  useEffect(() => {
+    userStore.fetchItemById({ userPk: id }).then((user) => {
+      setGoogleCalendarSettings(user.google_calendar_settings);
+      setShowSchedulesDropdown(user.google_calendar_settings.oncall_schedules_to_consider_for_shift_swaps?.length > 0);
+    });
+  }, []);
 
   const handleShowSchedulesDropdownChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.checked;
@@ -36,12 +41,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      setGoogleCalendarSettings(user.google_calendar_settings);
-    }
-  }, [user]);
-
   const handleSchedulesChange = (value) => {
     setGoogleCalendarSettings((v) => ({ ...v, oncall_schedules_to_consider_for_shift_swaps: value }));
 
@@ -50,10 +49,12 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
     });
   };
 
+  const user = userStore.items[id];
+
   return (
     <VerticalGroup>
       <Block bordered className={styles.root}>
-        <VerticalGroup>
+        <VerticalGroup spacing="lg">
           {user.has_google_oauth2_connected ? (
             <VerticalGroup>
               <HorizontalGroup justify="space-between">
@@ -71,7 +72,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
               </HorizontalGroup>
             </VerticalGroup>
           ) : (
-            <HorizontalGroup justify="space-between">
+            <HorizontalGroup justify="space-between" spacing="lg">
               <HorizontalGroup spacing="md">
                 <GoogleCalendarLogo width={32} height={32} />
                 <div>
@@ -93,13 +94,10 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
           {user.has_google_oauth2_connected && (
             <VerticalGroup>
               <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-                <InlineSwitch
-                  showLabel
-                  label="Specify the schedules to sync with Google calendar"
-                  value={showSchedulesDropdown}
-                  transparent
-                  onChange={handleShowSchedulesDropdownChange}
-                />
+                <HorizontalGroup align="center">
+                  <Switch value={showSchedulesDropdown} onChange={handleShowSchedulesDropdownChange} />
+                  <Text type="secondary">Specify the schedules to sync with Google calendar</Text>
+                </HorizontalGroup>
               </WithPermissionControlTooltip>
               {showSchedulesDropdown && (
                 <div style={{ width: '100%' }}>
