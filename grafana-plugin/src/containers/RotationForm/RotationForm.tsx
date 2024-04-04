@@ -367,7 +367,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       setShowActiveOnSelectedDays(value);
 
-      if (value && shiftEnd.diff(shiftStart, 'hour') > 24) {
+      if (value && shiftEnd.diff(shiftStart, 'hours') > 24) {
         setShiftEnd(
           dayJSAddWithDSTFixed({
             baseDate: shiftStart,
@@ -394,7 +394,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setShowActiveOnSelectedPartOfDay(value);
 
       if (!value) {
-        if (showActiveOnSelectedDays && shiftEnd.diff(shiftStart, 'hour') > 24) {
+        if (showActiveOnSelectedDays && shiftEnd.diff(shiftStart, 'hours') > 24) {
           setShiftEnd(
             dayJSAddWithDSTFixed({
               baseDate: shiftStart,
