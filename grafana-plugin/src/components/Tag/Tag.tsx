@@ -1,12 +1,14 @@
 import React, { FC } from 'react';
 
+
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from 'components/Tag/Tag.module.css';
-import { GrafanaTheme2 } from '@grafana/data';
-import { css } from '@emotion/css';
-import { useStyles2 } from '@grafana/ui';
 import { bem } from 'utils/utils';
+
+import styles from 'components/Tag/Tag.module.css';
 
 interface TagProps {
   color?: string;

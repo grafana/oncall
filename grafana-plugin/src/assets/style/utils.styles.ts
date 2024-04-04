@@ -24,10 +24,6 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       text-decoration: none !important;
     `,
 
-    displayBlock: css`
-      display: block;
-    `,
-
     cursorDefault: css`
       cursor: default;
     `,

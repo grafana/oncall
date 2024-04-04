@@ -1,14 +1,14 @@
 import React, { FC, useMemo } from 'react';
 
+import { cx } from '@emotion/css';
 import { Pagination, VerticalGroup, useStyles2 } from '@grafana/ui';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 
 import { ExpandIcon } from 'icons/Icons';
+import { bem } from 'utils/utils';
 
 import { getTableStyles } from './Table.styles';
-import { bem } from 'utils/utils';
-import { cx } from '@emotion/css';
 
 export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   loading?: boolean;
