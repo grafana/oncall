@@ -331,7 +331,6 @@ SPECTACULAR_INCLUDED_PATHS = [
 MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
     "engine.middlewares.RequestTimeLoggingMiddleware",
-    "engine.middlewares.BanAlertConsumptionBasedOnSettingsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",

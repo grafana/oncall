@@ -12,7 +12,9 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models.alert_receive_channel import random_token_generator
 from apps.integrations.mixins import AlertChannelDefiningMixin
+from apps.integrations.mixins.alert_channel_defining_mixin import CHANNEL_DOES_NOT_EXIST_PLACEHOLDER
 from apps.integrations.views import UniversalAPIView
 
 # https://github.com/pytest-dev/pytest-xdist/issues/432#issuecomment-528510433
@@ -520,3 +522,39 @@ def test_integration_outdated_cached_model(
             "received_at": now.isoformat(),
         },
     )
+
+
+@patch("django.core.cache.cache.get", wraps=cache.get)
+@patch("django.core.cache.cache.set", wraps=cache.set)
+@patch(
+    "apps.alerts.models.AlertReceiveChannel.objects_with_deleted.get",
+    wraps=AlertReceiveChannel.objects_with_deleted.get,
+)
+@pytest.mark.parametrize(
+    "integration_type",
+    [arc_type for arc_type in INTEGRATION_TYPES],
+)
+@pytest.mark.django_db
+def test_non_existent_integration_does_not_repeat_access_db(
+    mock_db_get, mock_cache_set, mock_cache_get, integration_type
+):
+    attempts = 5
+    non_existent_integration_token = random_token_generator()
+    cache_key = AlertChannelDefiningMixin.CACHE_KEY_SHORT_TERM + "_" + non_existent_integration_token
+    client = APIClient()
+    url = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": integration_type, "alert_channel_key": non_existent_integration_token},
+    )
+
+    for _ in range(attempts):
+        data = {"foo": "bar"}
+        response = client.post(url, data, format="json")
+        mock_cache_get.assert_called_with(cache_key)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    assert mock_cache_get.call_count == attempts
+    mock_cache_set.assert_called_once_with(
+        cache_key, CHANNEL_DOES_NOT_EXIST_PLACEHOLDER, AlertChannelDefiningMixin.CACHE_SHORT_TERM_TIMEOUT
+    )
+    mock_db_get.assert_called_once_with(token=non_existent_integration_token)

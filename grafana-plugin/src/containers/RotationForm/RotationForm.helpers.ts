@@ -198,8 +198,8 @@ export const dayJSAddWithDSTFixed = ({
   // At first we add time as usual
   let newDateCandidate = baseDate.add(...addParams);
 
-  const differenceInHoursInLocalTimezone = newDateCandidate.hour() - baseDate.hour();
-  const differenceInHoursInUTC = newDateCandidate.utc().hour() - baseDate.utc().hour();
+  const differenceInHoursInLocalTimezone = newDateCandidate.diff(baseDate, 'hours');
+  const differenceInHoursInUTC = newDateCandidate.utc().diff(baseDate.utc(), 'hours');
 
   // But if we identify that there was a DST change before base date and the result candidate
   if (differenceInHoursInLocalTimezone !== differenceInHoursInUTC) {
