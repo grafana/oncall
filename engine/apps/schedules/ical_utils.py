@@ -101,7 +101,7 @@ def users_in_ical(
 
 
 @timed_lru_cache(timeout=100)
-def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> typing.List["User"]:
+def memoized_users_in_ical(usernames_from_ical: typing.Tuple[str], organization: "Organization") -> typing.List["User"]:
     # using in-memory cache instead of redis to avoid pickling python objects
     return users_in_ical(usernames_from_ical, organization)
 
@@ -358,14 +358,14 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
-) -> typing.List["User"]:
+) -> typing.Sequence["User"]:
     users_found_in_ical: typing.Sequence["User"] = []
     events = schedule.final_events(start_datetime, end_datetime)
-    usernames = []
+    usernames: typing.List[str] = []
     for event in events:
         usernames += [u["email"] for u in event.get("users", [])]
 
-    users_found_in_ical = users_in_ical(usernames, schedule.organization)
+    users_found_in_ical = memoized_users_in_ical(tuple(usernames), schedule.organization)
     return users_found_in_ical
 
 
