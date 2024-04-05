@@ -100,7 +100,7 @@ export class UserStore {
   }
 
   async loadCurrentUser() {
-    const response = await makeRequest('/user/', {});
+    const response = await makeRequest<ApiSchemas['User']>('/user/', {});
     const timezone = await this.refreshTimezoneIfNeeded(response);
 
     runInAction(() => {
