@@ -20,7 +20,7 @@ from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_si
 from apps.api.errors import AlertGroupAPIError
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
+from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer, AlertGroupUpdateSerializer
 from apps.api.serializers.alert_group_escalation_snapshot import AlertGroupEscalationSnapshotAPISerializer
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
@@ -35,7 +35,12 @@ from common.api_helpers.filters import (
     ModelFieldFilterMixin,
     MultipleChoiceCharFilter,
 )
-from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.api_helpers.mixins import (
+    PreviewTemplateMixin,
+    PublicPrimaryKeyMixin,
+    TeamFilteringMixin,
+    UpdateSerializerMixin,
+)
 from common.api_helpers.paginators import AlertGroupCursorPaginator
 
 
@@ -236,6 +241,8 @@ class AlertGroupView(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    UpdateSerializerMixin,
     viewsets.GenericViewSet,
 ):
     """
@@ -252,6 +259,8 @@ class AlertGroupView(
         "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "stats": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "silence_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
@@ -273,6 +282,7 @@ class AlertGroupView(
 
     queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertGroupSerializer
+    update_serializer_class = AlertGroupUpdateSerializer
 
     pagination_class = AlertGroupCursorPaginator
 

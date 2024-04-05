@@ -242,3 +242,8 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
     def get_paged_users(self, obj: "AlertGroup") -> typing.List[PagedUser]:
         return obj.get_paged_users()
+
+
+class AlertGroupUpdateSerializer(AlertGroupSerializer):
+    class Meta(AlertGroupSerializer.Meta):
+        read_only_fields = [field for field in AlertGroupSerializer.Meta.fields if field not in ["grafana_incident_id"]]

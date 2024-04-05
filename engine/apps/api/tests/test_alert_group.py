@@ -2225,6 +2225,57 @@ def test_delete(mock_delete_alert_group, make_user_auth_headers, alert_group_int
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("http_method", ["put", "patch"])
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_group_we_can_only_update_grafana_incident_id_field(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
+    http_method,
+):
+    grafana_incident_id = "abcdefg123"
+
+    _, token, alert_groups = alert_group_internal_api_setup
+    _, _, new_alert_group, _ = alert_groups
+    organization = new_alert_group.channel.organization
+    user = make_user_for_organization(organization, role)
+    auth_headers = make_user_auth_headers(user, token)
+
+    client = APIClient()
+
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
+    client_method = getattr(client, http_method)
+    response = client_method(url, format="json", data={"grafana_incident_id": grafana_incident_id}, **auth_headers)
+
+    assert response.status_code == expected_status
+
+    if expected_status == status.HTTP_200_OK:
+        new_alert_group.refresh_from_db()
+
+        assert new_alert_group.grafana_incident_id == grafana_incident_id
+        assert new_alert_group.silenced is False
+
+        # assert that we can only update the grafana_incident_id field
+        response = client_method(url, format="json", data={"silenced": True}, **auth_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["silenced"] is False
+
+        new_alert_group.refresh_from_db()
+        assert new_alert_group.silenced is False
+
+
+@pytest.mark.django_db
 def test_alert_group_list_labels(
     alert_group_internal_api_setup,
     make_alert_group_label_association,
