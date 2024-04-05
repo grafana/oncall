@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { Provider } from 'mobx-react';
 
 import { UserHelper } from 'models/user/user.helpers';
@@ -10,20 +10,20 @@ import { AddRespondersPopup } from './AddRespondersPopup';
 describe('AddRespondersPopup', () => {
   const teams = [
     {
-      pk: 1,
+      id: 1,
       avatar_url: 'https://example.com',
       name: 'my test team',
       number_of_users_currently_oncall: 1,
     },
     {
-      pk: 2,
+      id: 2,
       avatar_url: 'https://example.com',
       name: 'my test team 2',
       number_of_users_currently_oncall: 0,
     },
   ];
 
-  test('it shows a loading message initially', () => {
+  test('it shows a loading message initially', async () => {
     const mockStoreValue = {
       directPagingStore: {
         selectedTeamResponder: null,
@@ -36,18 +36,20 @@ describe('AddRespondersPopup', () => {
 
     UserHelper.search = jest.fn().mockReturnValue({ results: [] });
 
-    const component = render(
-      <Provider store={mockStoreValue}>
-        <AddRespondersPopup
-          mode="create"
-          visible={true}
-          setVisible={jest.fn()}
-          setCurrentlyConsideredUser={jest.fn()}
-          setShowUserConfirmationModal={jest.fn()}
-        />
-      </Provider>
-    );
+    await waitFor(() => {
+      const component = render(
+        <Provider store={mockStoreValue}>
+          <AddRespondersPopup
+            mode="create"
+            visible={true}
+            setVisible={jest.fn()}
+            setCurrentlyConsideredUser={jest.fn()}
+            setShowUserConfirmationModal={jest.fn()}
+          />
+        </Provider>
+      );
 
-    expect(component.container).toMatchSnapshot();
+      expect(component.container).toMatchSnapshot();
+    });
   });
 });

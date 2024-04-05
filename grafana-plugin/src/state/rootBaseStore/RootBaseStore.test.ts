@@ -33,6 +33,13 @@ const generatePluginData = (
   } as OnCallAppPluginMeta);
 
 describe('rootBaseStore', () => {
+  beforeAll(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { reload: jest.fn() },
+    });
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
