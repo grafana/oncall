@@ -34,7 +34,7 @@ class AlertChannelDefiningMixin(object):
         token = str(kwargs["alert_channel_key"])
         logger.info(f"AlertChannelDefiningMixin started token={token}")
         start = perf_counter()
-        alert_receive_channel, status = self.get_alert_receive_channel_from_cache(token)
+        alert_receive_channel, status = self.get_alert_receive_channel_from_short_term_cache(token)
 
         if not alert_receive_channel or status == CHANNEL_DOES_NOT_EXIST_PLACEHOLDER:
             logger.info(f"Integration {token} does not exist")
@@ -47,7 +47,9 @@ class AlertChannelDefiningMixin(object):
         logger.info(f"AlertChannelDefiningMixin finished in {finish - start}")
         return super(AlertChannelDefiningMixin, self).dispatch(*args, **kwargs)
 
-    def get_alert_receive_channel_from_cache(self, token: str) -> tuple[Optional[AlertReceiveChannel], Optional[str]]:
+    def get_alert_receive_channel_from_short_term_cache(
+        self, token: str
+    ) -> tuple[Optional[AlertReceiveChannel], Optional[str]]:
         # Trying to define from short-term cache
         cache_key_short_term = self.CACHE_KEY_SHORT_TERM + "_" + token
         cached_alert_receive_channel_raw = cache.get(cache_key_short_term)
@@ -84,7 +86,7 @@ class AlertChannelDefiningMixin(object):
             # Update cached channels
             if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
                 cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
-                self.update_alert_receive_channel_cache()
+                self.update_alert_receive_channel_fallback_cache()
 
         return alert_receive_channel, None
 
@@ -105,11 +107,12 @@ class AlertChannelDefiningMixin(object):
             return None, True
         except OperationalError:
             logger.info("Cannot connect to database, using cache to consume alerts!")
-            return self.get_alert_receive_channel_from_db_fallback(token), False
+            return self.get_alert_receive_channel_from_fallback_cache(token), False
 
-    def get_alert_receive_channel_from_db_fallback(self, token: str) -> Optional[AlertReceiveChannel]:
-        if cache.get(self.CACHE_KEY_DB_FALLBACK):
-            for obj in serializers.deserialize("json", cache.get(self.CACHE_KEY_DB_FALLBACK)):
+    def get_alert_receive_channel_from_fallback_cache(self, token: str) -> Optional[AlertReceiveChannel]:
+        fallback_channels = cache.get(self.CACHE_KEY_DB_FALLBACK)
+        if fallback_channels:
+            for obj in serializers.deserialize("json", fallback_channels):
                 if obj.object.token == token:
                     return obj.object
         else:
@@ -118,7 +121,7 @@ class AlertChannelDefiningMixin(object):
         logger.info(f"Integration {token} not found in fallback cache")
         return None
 
-    def update_alert_receive_channel_cache(self):
+    def update_alert_receive_channel_fallback_cache(self):
         from apps.alerts.models import AlertReceiveChannel
 
         logger.info("Caching alert receive channels from database.")

@@ -293,7 +293,7 @@ def test_integration_universal_endpoint_works_without_db(
     )
 
     # populate cache
-    AlertChannelDefiningMixin().update_alert_receive_channel_cache()
+    AlertChannelDefiningMixin().update_alert_receive_channel_fallback_cache()
 
     now = timezone.now()
     with patch("django.utils.timezone.now") as mock_now:
@@ -350,7 +350,7 @@ def test_integration_grafana_endpoint_without_db_has_alerts(
     }
 
     # populate cache
-    AlertChannelDefiningMixin().update_alert_receive_channel_cache()
+    AlertChannelDefiningMixin().update_alert_receive_channel_fallback_cache()
 
     now = timezone.now()
     with patch("django.utils.timezone.now") as mock_now:
