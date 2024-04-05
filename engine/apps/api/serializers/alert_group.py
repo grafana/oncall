@@ -107,15 +107,15 @@ class AlertGroupListSerializer(
     EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer[AlertGroup]
 ):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
-    alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
+    alert_receive_channel = FastAlertReceiveChannelSerializer(read_only=True, source="channel")
     status = serializers.ReadOnlyField()
     resolved_by_user = FastUserSerializer(required=False)
     acknowledged_by_user = FastUserSerializer(required=False)
     silenced_by_user = FastUserSerializer(required=False)
     related_users = serializers.SerializerMethodField()
-    dependent_alert_groups = ShortAlertGroupSerializer(many=True)
-    root_alert_group = ShortAlertGroupSerializer()
-    team = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
+    dependent_alert_groups = ShortAlertGroupSerializer(read_only=True, many=True)
+    root_alert_group = ShortAlertGroupSerializer(read_only=True)
+    team = TeamPrimaryKeyRelatedField(read_only=True, source="channel.team", allow_null=True)
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
