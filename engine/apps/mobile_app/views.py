@@ -174,6 +174,7 @@ class MobileAppGatewayView(APIView):
     ) -> typing.Dict[str, str]:
         headers = {
             "Authorization": f"Bearer {cls._get_auth_token(downstream_backend, user)}",
+            "X-Grafana-User": f"email:{user.email}",
         }
 
         if (v := request.META.get("CONTENT_TYPE", None)) is not None:
