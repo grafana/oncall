@@ -22,6 +22,16 @@ def persist_access_and_refresh_tokens(backend: typing.Type[BaseAuth], response: 
 
 
 def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user: User, *args, **kwargs):
+    """
+    Don't use `google_oauth2_user.access_token` when revoking token, use `refresh_token` instead. If we use
+    the access token, we may get an HTTP 400 from Google because the token may be invalid or revoked.
+
+    https://stackoverflow.com/a/18578660/3902555
+    """
+    logger.info(f"Disconnecting user {user.pk} from Google OAuth2")
+
     # 2nd argument, uid, is not needed for GoogleOauth2 backend
-    backend.revoke_token(user.google_oauth2_user.access_token, "")
+    backend.revoke_token(user.google_oauth2_user.refresh_token, "")
     user.finish_google_oauth2_disconnection_flow()
+
+    logger.info(f"Successfully disconnected user {user.pk} from Google OAuth2")
