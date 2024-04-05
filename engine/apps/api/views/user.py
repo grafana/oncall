@@ -369,6 +369,9 @@ class UserView(
 
         if paginate_results and (page := self.paginate_queryset(queryset)) is not None:
             if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                # set context to avoid additional requests to db
+                context["is_open_source_with_cloud_notifications"] = True
+
                 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
                 if (connector := CloudConnector.objects.first()) is not None:
@@ -377,6 +380,8 @@ class UserView(
                     cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
                     context["cloud_identities"] = cloud_identities
                     context["connector"] = connector
+            else:
+                context["is_open_source_with_cloud_notifications"] = False
 
             serializer = self.get_serializer(page, many=True, context=context)
             return self.get_paginated_response(serializer.data)

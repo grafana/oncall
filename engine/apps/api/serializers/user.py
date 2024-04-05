@@ -88,7 +88,14 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     cloud_connection_status = serializers.SerializerMethodField()
     working_hours = WorkingHoursSerializer(required=False)
 
-    SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
+    SELECT_RELATED = [
+        "telegram_verification_code",
+        "telegram_connection",
+        "organization",
+        "slack_user_identity",
+        "mobileappauthtoken",
+        "google_oauth2_user",
+    ]
 
     class Meta:
         model = User
@@ -159,7 +166,13 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
     def get_cloud_connection_status(self, obj: User) -> CloudSyncStatus | None:
-        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        is_open_source_with_cloud_notifications = self.context.get("is_open_source_with_cloud_notifications", None)
+        is_open_source_with_cloud_notifications = (
+            is_open_source_with_cloud_notifications
+            if is_open_source_with_cloud_notifications is not None
+            else settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+        )
+        if is_open_source_with_cloud_notifications:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
             identity = identities.get(obj.email, None)
