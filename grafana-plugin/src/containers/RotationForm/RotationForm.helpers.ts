@@ -198,11 +198,12 @@ export const dayJSAddWithDSTFixed = ({
   // At first we add time as usual
   let newDateCandidate = baseDate.add(...addParams);
 
+  // seems when tz() called with no params it makes dayjs use the proper timezone, and not to reset to the current
   const oldUtcOffset = baseDate.tz().utcOffset();
   const newUtcOffset = newDateCandidate.tz().utcOffset();
   const diff = newUtcOffset - oldUtcOffset;
 
-  // in most cases diff is equal to zero
+  // in the most cases diff is equal to zero
   newDateCandidate = newDateCandidate.add(diff, 'minutes');
 
   return newDateCandidate;
