@@ -543,7 +543,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
-        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
+
+        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}&grafana_oncall_alert_group_id={self.public_primary_key}")
 
     @property
     def happened_while_maintenance(self):
