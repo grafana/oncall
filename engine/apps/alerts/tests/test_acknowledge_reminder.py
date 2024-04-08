@@ -11,7 +11,7 @@ from apps.alerts.tasks import acknowledge_reminder_task
 from apps.alerts.tasks.acknowledge_reminder import unacknowledge_timeout_task
 from apps.user_management.models import Organization
 
-ROOT_ALERT_GROUP_ID = 42
+ROOT_ALERT_GROUP_ID = 43
 TASK_ID = "TASK_ID"
 
 
