@@ -28,7 +28,6 @@ export const Block: FC<BlockProps> = (props) => {
     ...rest
   } = props;
 
-  console.log('Render');
   const styles = useStyles2(getBlockStyles);
 
   return (
