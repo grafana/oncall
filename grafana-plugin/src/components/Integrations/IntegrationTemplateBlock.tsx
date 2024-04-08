@@ -8,7 +8,6 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserActions } from 'utils/authorization/authorization';
 
-
 interface IntegrationTemplateBlockProps {
   label: string;
   labelTooltip?: string;

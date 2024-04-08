@@ -7,8 +7,6 @@ import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 import { DefaultRecordType } from 'rc-table/lib/interface';
 
-import { getUtilStyles } from 'assets/style/utils.styles';
-
 export interface GTableProps<RecordType = unknown> extends TableProps<RecordType> {
   pagination?: {
     page: number;
@@ -44,7 +42,6 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   } = props;
 
   const styles = useStyles2(getGTableStyles);
-  const utilStyles = useStyles2(getUtilStyles);
 
   if (expandable) {
     expandable.expandIcon = (props: { expanded: boolean; record: any }) => {
@@ -144,7 +141,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         expandable={expandable}
         rowKey={rowKey}
         // .filter-table is grafana-wide classname
-        className={cx('filter-table', utilStyles.filterTable, className)}
+        className={cx('filter-table', className)}
         columns={columns}
         data={data}
         showHeader={showHeader}

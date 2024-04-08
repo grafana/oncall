@@ -10,7 +10,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { UserActions } from 'utils/authorization/authorization';
 
-
 interface NewScheduleSelectorProps {
   onHide: () => void;
   onCreate: (data: Schedule) => void;

@@ -11,7 +11,12 @@ const getKey = (startMoment: dayjs.Dayjs, endMoment: dayjs.Dayjs, workingHours, 
   return `${startMoment}-${endMoment}-${hash(workingHours)}-${timezone}`;
 };
 
-export const getWorkingMoments = (startMoment: dayjs.Dayjs, endMoment: dayjs.Dayjs, workingHours: DefaultWorkingHours, timezone: string) => {
+export const getWorkingMoments = (
+  startMoment: dayjs.Dayjs,
+  endMoment: dayjs.Dayjs,
+  workingHours: DefaultWorkingHours,
+  timezone: string
+) => {
   const weekdays = dayjs.weekdays();
 
   const key = getKey(startMoment, endMoment, workingHours, timezone);

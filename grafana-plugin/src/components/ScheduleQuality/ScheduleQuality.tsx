@@ -4,7 +4,6 @@ import { cx } from '@emotion/css';
 import { Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import { getUtilStyles } from 'assets/style/utils.styles';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
 import { Tag } from 'components/Tag/Tag';
@@ -13,6 +12,7 @@ import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 import { bem } from 'utils/utils';
+import { getUtilStyles } from 'utils/utils.styles';
 
 import { getScheduleQualityStyles } from './ScheduleQuality.styles';
 

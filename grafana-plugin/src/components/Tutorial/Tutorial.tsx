@@ -16,8 +16,6 @@ import chatIcon from './icons/chat-icon.svg';
 import escalationIcon from './icons/escalation-icon.svg';
 import integrationsIcon from './icons/integration-icon.svg';
 
-
-
 interface TutorialProps {
   title: React.ReactNode;
   step: TutorialStep;

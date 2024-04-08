@@ -17,9 +17,9 @@ export const getTooltipBadgeStyles = (theme: GrafanaTheme2) => {
       }
 
       &--secondary {
-        background: var(--background-secondary);
-        border: var(--border);
-        color: var(--primary-text-color);
+        background: ${theme.colors.background.secondary};
+        border: 1px solid ${theme.colors.border.weak};
+        color: ${theme.colors.text.primary};
       }
 
       &--warning {

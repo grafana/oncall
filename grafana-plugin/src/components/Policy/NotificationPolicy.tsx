@@ -19,7 +19,6 @@ import { UserAction } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
 
-
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
   slackTeamIdentity?: {

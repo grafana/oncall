@@ -4,7 +4,6 @@ import { css, cx } from '@emotion/css';
 import { HorizontalGroup, TimeOfDayPicker, useStyles2 } from '@grafana/ui';
 import moment from 'moment-timezone';
 
-
 interface TimeRangeProps {
   className: string;
   from: string | null;
@@ -115,6 +114,6 @@ const getStyles = () => {
   return {
     root: css`
       display: block;
-    `
-  }
-}
+    `,
+  };
+};

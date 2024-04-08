@@ -31,12 +31,8 @@ export const CardButton: FC<CardButtonProps> = (props) => {
       <div className={cx(styles.icon)}>{icon}</div>
       <div className={cx(styles.meta)}>
         <VerticalGroup spacing="xs">
-          <Text type="secondary">
-            {description}
-          </Text>
-          <Text.Title level={1}>
-            {title}
-          </Text.Title>
+          <Text type="secondary">{description}</Text>
+          <Text.Title level={1}>{title}</Text.Title>
         </VerticalGroup>
       </div>
     </Block>

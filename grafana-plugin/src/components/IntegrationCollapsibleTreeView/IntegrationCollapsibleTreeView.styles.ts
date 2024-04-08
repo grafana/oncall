@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 
-import { COLORS } from 'assets/style/utils.styles';
+import { COLORS } from 'utils/utils.styles';
 
 export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
   return {

@@ -15,7 +15,6 @@ import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
 import { getUserGroupStyles } from './UserGroups.styles';
 import { Item } from './UserGroups.types';
 
-
 interface UserGroupsProps {
   value: Array<Array<ApiSchemas['User']['pk']>>;
   onChange: (value: Array<Array<ApiSchemas['User']['pk']>>) => void;

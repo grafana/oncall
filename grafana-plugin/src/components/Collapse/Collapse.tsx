@@ -7,7 +7,6 @@ import { bem } from 'utils/utils';
 
 import { getCollapseStyles } from './Collapse.styles';
 
-
 export interface CollapseProps {
   label: React.ReactNode;
   isOpen: boolean;

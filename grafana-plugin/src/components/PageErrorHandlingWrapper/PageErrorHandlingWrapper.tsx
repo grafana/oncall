@@ -8,7 +8,6 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { openWarningNotification } from 'utils/utils';
 
-
 export interface PageBaseState {
   errorData: PageErrorData;
 }

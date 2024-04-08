@@ -6,7 +6,6 @@ import { Icon, Input, useStyles2 } from '@grafana/ui';
 
 import { useDebouncedCallback } from 'utils/hooks';
 
-
 interface UsersFiltersProps {
   value: any;
   onChange: (filters: any, invalidateFn: () => boolean) => void;
