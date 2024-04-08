@@ -8,7 +8,7 @@ export const getBlockStyles = (theme: GrafanaTheme2) => {
       border-radius: 2px;
 
       &--withBackGround {
-        background: var(--secondary-background);
+        background: ${theme.colors.background.secondary};
       }
 
       &--fullWidth {

@@ -54,7 +54,7 @@ export const PluginLink: FC<PluginLinkProps> = (props) => {
 const getStyles = (theme: GrafanaTheme2) => {
   return {
     root: css`
-      color: var(--primary-text-link);
+      color: ${theme.colors.primary.text};
 
       &--disabled {
         color: ${theme.colors.text.disabled};

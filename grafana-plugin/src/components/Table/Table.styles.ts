@@ -36,7 +36,7 @@ export const getTableStyles = (theme: GrafanaTheme2) => {
 
     expandIcon: css`
       padding: 10px;
-      color: var(--primary-text-color);
+      color: ${theme.colors.text.primary};
       pointer-events: none;
       transform: rotate(-90deg);
       transform-origin: center;

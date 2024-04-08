@@ -12,7 +12,7 @@ export const getGListStyles = (theme: GrafanaTheme2) => {
     item: css`
       padding: 16px;
       width: 100%;
-      border-bottom: var(--border);
+      border: 1px solid ${theme.colors.border.weak};
       position: relative;
       cursor: pointer;
 

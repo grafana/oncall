@@ -61,8 +61,15 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
   constructor(props: EscalationPolicyProps) {
     super(props);
-
     this.styles = getEscalationPolicyStyles(props.theme);
+  }
+
+  componentDidUpdate(prevProps: Readonly<EscalationPolicyProps>): void {
+    if (prevProps.theme !== this.props.theme) {
+      // fetch new styles whenever the theme changes
+      this.styles = getEscalationPolicyStyles(this.props.theme);
+      this.forceUpdate();
+    }
   }
 
   render() {

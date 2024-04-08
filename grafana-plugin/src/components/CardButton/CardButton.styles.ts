@@ -1,7 +1,7 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 
-export const getCardButtonStyles = (_theme: GrafanaTheme2) => {
+export const getCardButtonStyles = (theme: GrafanaTheme2) => {
   return {
     root: css`
       height: 88px;
@@ -13,7 +13,7 @@ export const getCardButtonStyles = (_theme: GrafanaTheme2) => {
       position: absolute;
       left: 20px;
       top: 20px;
-      color: var(--disabled-text-color);
+      color: ${theme.colors.text.disabled};
     `,
 
     meta: css`

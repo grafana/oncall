@@ -34,7 +34,7 @@ export const Tag: FC<TagProps> = (props) => {
   return (
     <span
       style={style}
-      className={cx(styles.root, bem(styles.root, size), className)}
+      className={cx(styles.root, bem(styles.root, size), className, 'test-class-here')}
       onClick={onClick}
       ref={props.forwardedRef}
     >
@@ -49,7 +49,6 @@ const getStyles = (_theme: GrafanaTheme2) => {
       border-radius: 2px;
       line-height: 100%;
       padding: 5px 8px;
-      color: white;
       display: inline-block;
       white-space: nowrap;
     `,

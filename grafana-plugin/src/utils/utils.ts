@@ -117,7 +117,7 @@ function isFieldEmpty(value: any): boolean {
 
 export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
 
-export const bem = (...args: any) =>
+export const bem = (...args: string[]) =>
   args.reduce((out, x, i) => {
     out += x;
     if (i === args.length - 1) {

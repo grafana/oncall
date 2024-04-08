@@ -4,7 +4,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 export const getCollapseStyles = (theme: GrafanaTheme2) => {
   return {
     root: css`
-      border: var(--border);
+      border: 1px solid ${theme.colors.border.weak};
       width: 100%;
     `,
 

@@ -47,8 +47,15 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
 
   constructor(props: NotificationPolicyProps) {
     super(props);
+    this.styles = getStyles(this.props.theme);
+  }
 
-    this.styles = getStyles(props.theme);
+  componentDidUpdate(prevProps: Readonly<NotificationPolicyProps>): void {
+    if (prevProps.theme !== this.props.theme) {
+      // fetch new styles whenever the theme changes
+      this.styles = getStyles(this.props.theme);
+      this.forceUpdate();
+    }
   }
 
   render() {
