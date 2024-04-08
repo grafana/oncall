@@ -45,7 +45,13 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, IntegrationBacksyncAuthToken, PluginAuthToken, SlackAuthToken
+from apps.auth_token.models import (
+    ApiAuthToken,
+    GoogleOAuth2Token,
+    IntegrationBacksyncAuthToken,
+    PluginAuthToken,
+    SlackAuthToken,
+)
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -56,6 +62,7 @@ from apps.base.tests.factories import (
     UserNotificationPolicyLogRecordFactory,
 )
 from apps.email.tests.factories import EmailMessageFactory
+from apps.google.tests.factories import GoogleOAuth2UserFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.labels.tests.factories import (
     AlertGroupAssociatedLabelFactory,
@@ -101,8 +108,6 @@ from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID, Tes
 register(OrganizationFactory)
 register(UserFactory)
 register(TeamFactory)
-
-
 register(AlertReceiveChannelFactory)
 register(AlertReceiveChannelConnectionFactory)
 register(ChannelFilterFactory)
@@ -117,29 +122,24 @@ register(AlertGroupLogRecordFactory)
 register(InvitationFactory)
 register(CustomActionFactory)
 register(SlackUserGroupFactory)
-
 register(SlackUserIdentityFactory)
 register(SlackTeamIdentityFactory)
 register(SlackMessageFactory)
-
 register(TelegramToUserConnectorFactory)
 register(TelegramChannelFactory)
 register(TelegramVerificationCodeFactory)
 register(TelegramChannelVerificationCodeFactory)
 register(TelegramMessageFactory)
-
 register(ResolutionNoteSlackMessageFactory)
-
 register(PhoneCallRecordFactory)
 register(SMSRecordFactory)
 register(EmailMessageFactory)
-
 register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
-
 register(LabelKeyFactory)
 register(LabelValueFactory)
 register(AlertReceiveChannelAssociatedLabelFactory)
+register(GoogleOAuth2UserFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
@@ -281,6 +281,14 @@ def make_slack_token_for_user():
         return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
 
     return _make_slack_token_for_user
+
+
+@pytest.fixture
+def make_google_oauth2_token_for_user():
+    def _make_google_oauth2_token_for_user(user):
+        return GoogleOAuth2Token.create_auth_token(organization=user.organization, user=user)
+
+    return _make_google_oauth2_token_for_user
 
 
 @pytest.fixture
@@ -1053,3 +1061,11 @@ def make_webhook_label_association(make_label_key_and_value):
         return WebhookAssociatedLabelFactory(webhook=webhook, organization=organization, key=key, value=value, **kwargs)
 
     return _make_integration_label_association
+
+
+@pytest.fixture
+def make_google_oauth2_user_for_user():
+    def _make_google_oauth2_user_for_user(user):
+        return GoogleOAuth2UserFactory(user=user)
+
+    return _make_google_oauth2_user_for_user

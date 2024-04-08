@@ -300,7 +300,7 @@ def test_mobile_app_gateway_proxies_headers(
 ):
     mock_requests.post.return_value = MockResponse()
 
-    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    _, user, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
     url = reverse("mobile_app:gateway", kwargs={"downstream_backend": DOWNSTREAM_BACKEND, "downstream_path": "test"})
@@ -313,7 +313,11 @@ def test_mobile_app_gateway_proxies_headers(
         MOCK_DOWNSTREAM_URL,
         data=b"",
         params={},
-        headers={"Authorization": f"Bearer {MOCK_AUTH_TOKEN}", "Content-Type": content_type_header},
+        headers={
+            "Authorization": f"Bearer {MOCK_AUTH_TOKEN}",
+            "X-Grafana-User": f"email:{user.email}",
+            "Content-Type": content_type_header,
+        },
     )
 
 

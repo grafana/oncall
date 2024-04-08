@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 
 import pytz
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
 from django.db.models import Q
@@ -20,8 +21,9 @@ from apps.api.permissions import (
     RBACPermission,
     user_is_authorized,
 )
+from apps.google.models import GoogleOAuth2User
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
-from apps.user_management.constants import AlertGroupTableColumn
+from apps.user_management.types import AlertGroupTableColumn, GoogleCalendarSettings
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -31,6 +33,7 @@ if typing.TYPE_CHECKING:
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
     from apps.base.models import UserNotificationPolicy
     from apps.slack.models import SlackUserIdentity
+    from apps.social_auth.types import GoogleOauth2Response
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -174,6 +177,7 @@ class User(models.Model):
     auth_tokens: "RelatedManager['ApiAuthToken']"
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
+    google_oauth2_user: typing.Optional[GoogleOAuth2User]
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
@@ -239,6 +243,8 @@ class User(models.Model):
 
     alert_group_table_selected_columns: list[AlertGroupTableColumn] | None = models.JSONField(default=None, null=True)
 
+    google_calendar_settings: GoogleCalendarSettings | None = models.JSONField(default=None, null=True)
+
     def __str__(self):
         return f"{self.pk}: {self.username}"
 
@@ -251,6 +257,14 @@ class User(models.Model):
     @property
     def is_authenticated(self):
         return True
+
+    @property
+    def has_google_oauth2_connected(self) -> bool:
+        try:
+            # https://stackoverflow.com/a/35005034/3902555
+            return self.google_oauth2_user is not None
+        except ObjectDoesNotExist:
+            return False
 
     @property
     def avatar_full_url(self):
@@ -457,6 +471,28 @@ class User(models.Model):
         if self.alert_group_table_selected_columns != columns:
             self.alert_group_table_selected_columns = columns
             self.save(update_fields=["alert_group_table_selected_columns"])
+
+    def finish_google_oauth2_connection_flow(self, google_oauth2_response: "GoogleOauth2Response") -> None:
+        _obj, created = GoogleOAuth2User.objects.update_or_create(
+            user=self,
+            defaults={
+                "google_user_id": google_oauth2_response.get("sub"),
+                "access_token": google_oauth2_response.get("access_token"),
+                "refresh_token": google_oauth2_response.get("refresh_token"),
+                "oauth_scope": google_oauth2_response.get("scope"),
+            },
+        )
+        if created:
+            self.google_calendar_settings = {
+                "oncall_schedules_to_consider_for_shift_swaps": [],
+            }
+            self.save(update_fields=["google_calendar_settings"])
+
+    def finish_google_oauth2_disconnection_flow(self) -> None:
+        GoogleOAuth2User.objects.filter(user=self).delete()
+
+        self.google_calendar_settings = None
+        self.save(update_fields=["google_calendar_settings"])
 
 
 # TODO: check whether this signal can be moved to save method of the model

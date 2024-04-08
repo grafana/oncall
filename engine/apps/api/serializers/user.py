@@ -31,6 +31,25 @@ class UserPermissionSerializer(serializers.Serializer):
     action = serializers.CharField(read_only=True)
 
 
+class GoogleCalendarSettingsSerializer(serializers.Serializer):
+    # # TODO: figure out how to get OrganizationFilteredPrimaryKeyRelatedField to work with many=True
+    # oncall_schedules_to_consider_for_shift_swaps =
+    # oncall_schedules_to_consider_for_shift_swaps = serializers.ListField(
+    #     child=OrganizationFilteredPrimaryKeyRelatedField(
+    #         queryset=OnCallSchedule.objects,
+    #         required=False,
+    #         allow_null=True,
+    #     ),
+    #     required=False,
+    #     allow_null=True,
+    # )
+    oncall_schedules_to_consider_for_shift_swaps = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_null=True,
+    )
+
+
 class NotificationChainVerbal(typing.TypedDict):
     default: str
     important: str
@@ -93,6 +112,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
+            "has_google_oauth2_connected",
         ]
         read_only_fields = [
             "email",
@@ -100,6 +120,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "name",
             "role",
             "verified_phone_number",
+            "has_google_oauth2_connected",
         ]
 
     def validate_working_hours(self, working_hours):
@@ -169,10 +190,12 @@ class UserSerializer(ListUserSerializer):
     context: UserSerializerContext
 
     is_currently_oncall = serializers.SerializerMethodField()
+    google_calendar_settings = GoogleCalendarSettingsSerializer(required=False)
 
     class Meta(ListUserSerializer.Meta):
         fields = ListUserSerializer.Meta.fields + [
             "is_currently_oncall",
+            "google_calendar_settings",
         ]
         read_only_fields = ListUserSerializer.Meta.read_only_fields + [
             "is_currently_oncall",

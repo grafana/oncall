@@ -96,7 +96,7 @@ def _get_fcm_message(
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
-            alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
+            alert=ApsAlert(title=notification_title, body=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
                 name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, Platform.IOS),
