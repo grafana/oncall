@@ -271,7 +271,6 @@ def test_get_alert_group_from_slack_message_in_db_no_alert_group(
         step.get_alert_group(slack_team_identity, payload)
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -318,7 +317,6 @@ def test_step_acknowledge(
     assert alert_group.acknowledged is True
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -365,7 +363,6 @@ def test_step_unacknowledge(
     assert alert_group.acknowledged is False
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -412,7 +409,6 @@ def test_step_resolve(
     assert alert_group.resolved is True
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -459,7 +455,6 @@ def test_step_unresolve(
     assert alert_group.resolved is False
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -516,7 +511,6 @@ def test_step_invite(
     assert invitation.invitee == second_user
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -573,7 +567,6 @@ def test_step_stop_invite(
     assert invitation.is_active is False
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -625,7 +618,6 @@ def test_step_silence(
     assert alert_group.silenced is True
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -677,7 +669,6 @@ def test_step_unsilence(
     assert alert_group.silenced is False
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -719,7 +710,6 @@ def test_step_select_attach(
     assert mock_slack_api_call.call_args.args == ("views.open",)
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
@@ -773,7 +763,6 @@ def test_step_unattach(
     assert alert_group.root_alert_group is None
 
 
-@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "payload",
     [
