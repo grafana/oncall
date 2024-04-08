@@ -76,7 +76,7 @@ test.describe('Insights', () => {
     });
   });
 
-  test('There is no panel that misses data', async ({ adminRolePage: { page, userName } }) => {
+  test('There is no panel that misses data', async ({ adminRolePage: { page } }) => {
     test.setTimeout(90_000);
 
     // check that we have data in insights panels
