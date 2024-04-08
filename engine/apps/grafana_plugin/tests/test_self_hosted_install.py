@@ -46,6 +46,7 @@ def make_self_hosted_install_header():
     return _make_instance_context_header
 
 
+@pytest.mark.xdist_group(name="group1")
 @override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
 def test_a_cloud_license_gets_an_unauthorized_error(make_self_hosted_install_header):
     client = APIClient()
@@ -55,6 +56,7 @@ def test_a_cloud_license_gets_an_unauthorized_error(make_self_hosted_install_hea
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.xdist_group(name="group1")
 @pytest.mark.parametrize(
     "grafana_api_status_code,expected_error_msg",
     [
@@ -81,6 +83,7 @@ def test_it_properly_handles_errors_from_the_grafana_api(
     assert response.data["error"] == expected_error_msg
 
 
+@pytest.mark.xdist_group(name="group1")
 @override_settings(SELF_HOSTED_SETTINGS=SELF_HOSTED_SETTINGS)
 @pytest.mark.django_db
 @patch("apps.grafana_plugin.views.self_hosted_install.GrafanaAPIClient")
@@ -124,6 +127,7 @@ def test_if_organization_exists_it_is_updated(
     assert organization.is_rbac_permissions_enabled is True
 
 
+@pytest.mark.xdist_group(name="group1")
 @override_settings(SELF_HOSTED_SETTINGS=SELF_HOSTED_SETTINGS)
 @pytest.mark.django_db
 @patch("apps.grafana_plugin.views.self_hosted_install.GrafanaAPIClient")
