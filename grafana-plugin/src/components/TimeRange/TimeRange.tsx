@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { HorizontalGroup, TimeOfDayPicker, useStyles2 } from '@grafana/ui';
 import moment from 'moment-timezone';
 
-import { css, cx } from '@emotion/css';
 
 interface TimeRangeProps {
   className: string;

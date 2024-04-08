@@ -7,12 +7,6 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       width: 100%;
     `,
 
-    filterTable: css`
-      white-space: break-spaces;
-      line-height: 20px;
-      height: auto;
-    `,
-
     thinLineBreak: css`
       width: 100%;
       border-top: 1px solid ${COLORS.ALWAYS_GREY};

@@ -7,7 +7,6 @@ import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 import { DefaultRecordType } from 'rc-table/lib/interface';
 
-
 import { getUtilStyles } from 'assets/style/utils.styles';
 
 export interface GTableProps<RecordType = unknown> extends TableProps<RecordType> {
@@ -144,7 +143,8 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
       <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
-        className={cx(utilStyles.filterTable, className)}
+        // .filter-table is grafana-wide classname
+        className={cx('filter-table', utilStyles.filterTable, className)}
         columns={columns}
         data={data}
         showHeader={showHeader}
