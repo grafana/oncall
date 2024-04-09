@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { SourceCode } from 'components/SourceCode/SourceCode';
-import { ApiToken } from 'models/api_token/api_token.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
