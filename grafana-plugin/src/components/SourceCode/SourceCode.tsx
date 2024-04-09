@@ -6,7 +6,8 @@ import { Button, IconButton, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { formatSourceCodeJsonString } from 'utils/string';
-import { bem, openNotification } from 'utils/utils';
+import { openNotification } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 interface SourceCodeProps {
   noMaxHeight?: boolean;

@@ -4,7 +4,8 @@ import { cx } from '@emotion/css';
 import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { bem, openNotification } from 'utils/utils';
+import { openNotification } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { getTextStyles } from './Text.styles';
 
