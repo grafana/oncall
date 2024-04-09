@@ -9,7 +9,10 @@ from apps.webhooks.tasks import alert_group_created, alert_group_status_change
 
 
 @pytest.mark.django_db
-def test_alert_group_created(make_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook):
+@pytest.mark.parametrize("is_backsync", [True, False, None])
+def test_alert_group_created(
+    make_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook, is_backsync
+):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
@@ -17,12 +20,13 @@ def test_alert_group_created(make_organization, make_alert_receive_channel, make
     make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
 
     with patch("apps.webhooks.tasks.trigger_webhook.send_webhook_event.apply_async") as mock_send_event:
-        alert_group_created(alert_group.pk)
+        kwargs = {} if is_backsync is None else {"is_backsync": is_backsync}
+        alert_group_created(alert_group.pk, **kwargs)
 
     assert mock_send_event.called
     assert mock_send_event.call_args == call(
         (Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk),
-        kwargs={"organization_id": organization.pk},
+        kwargs={"organization_id": organization.pk, "is_backsync": bool(is_backsync)},
     )
 
 
@@ -43,7 +47,7 @@ def test_alert_group_created_for_team(
     assert mock_send_event.called
     assert mock_send_event.call_args == call(
         (Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk),
-        kwargs={"organization_id": organization.pk},
+        kwargs={"organization_id": organization.pk, "is_backsync": False},
     )
 
 
@@ -72,6 +76,7 @@ def test_alert_group_created_does_not_exist(make_organization, make_custom_webho
         (AlertGroupLogRecord.TYPE_UN_ACK, Webhook.TRIGGER_UNACKNOWLEDGE),
     ],
 )
+@pytest.mark.parametrize("is_backsync", [True, False, None])
 def test_alert_group_status_change(
     make_organization,
     make_user_for_organization,
@@ -80,6 +85,7 @@ def test_alert_group_status_change(
     make_custom_webhook,
     action_type,
     webhook_type,
+    is_backsync,
 ):
     organization = make_organization()
     user = make_user_for_organization(organization)
@@ -89,10 +95,12 @@ def test_alert_group_status_change(
     make_custom_webhook(organization=organization, trigger_type=webhook_type)
 
     with patch("apps.webhooks.tasks.trigger_webhook.send_webhook_event.apply_async") as mock_send_event:
-        alert_group_status_change(action_type, alert_group.pk, user.pk)
+        kwargs = {} if is_backsync is None else {"is_backsync": is_backsync}
+        alert_group_status_change(action_type, alert_group.pk, user.pk, **kwargs)
 
     assert mock_send_event.call_args == call(
-        (webhook_type, alert_group.pk), kwargs={"organization_id": organization.pk, "user_id": user.pk}
+        (webhook_type, alert_group.pk),
+        kwargs={"organization_id": organization.pk, "user_id": user.pk, "is_backsync": bool(is_backsync)},
     )
 
 
@@ -125,5 +133,5 @@ def test_alert_group_status_change_for_team(
 
     assert mock_send_event.call_args == call(
         (Webhook.TRIGGER_RESOLVE, alert_group.pk),
-        kwargs={"organization_id": organization.pk, "user_id": None},
+        kwargs={"organization_id": organization.pk, "user_id": None, "is_backsync": False},
     )

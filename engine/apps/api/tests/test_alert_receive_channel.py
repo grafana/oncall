@@ -2586,11 +2586,11 @@ def test_alert_receive_channel_api_token_post(
 def test_integration_api_token(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_alert_receive_channel_connection,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(organization)
+    integration_config = AlertReceiveChannel._config[0]
+    alert_receive_channel = make_alert_receive_channel(organization, integration=integration_config.slug)
     client = APIClient()
     get_token_url = reverse(
         "api-internal:alert_receive_channel-backsync-token-get",
@@ -2604,14 +2604,22 @@ def test_integration_api_token(
             "pk": alert_receive_channel.public_primary_key,
         },
     )
+
     # token does not exist
     response = client.get(get_token_url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # create token
-    response = client.post(post_token_url, **make_user_auth_headers(user, token))
+    def mock_token_usage(instance, token):
+        return f"token:{token}"
+
+    with patch.object(integration_config, "get_token_usage", side_effect=mock_token_usage, create=True):
+        response = client.post(post_token_url, **make_user_auth_headers(user, token))
+
     assert response.status_code == status.HTTP_201_CREATED
-    integration_token_string = response.json().get("token")
+    response_data = response.json()
+    integration_token_string = response_data.get("token")
+    assert response_data.get("usage") == f"token:{integration_token_string}"
     integration_token_1 = alert_receive_channel.auth_tokens.first()
 
     # token was found
