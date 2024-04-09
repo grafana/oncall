@@ -5,8 +5,8 @@ import { HorizontalGroup, Icon, IconButton, useStyles2 } from '@grafana/ui';
 
 import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
-import { bem } from 'utils/utils';
-import { getUtilStyles } from 'utils/utils.styles';
+import { bem } from 'styles/utils.styles';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { getScheduleQualityDetailsStyles } from './ScheduleQualityDetails.styles';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';

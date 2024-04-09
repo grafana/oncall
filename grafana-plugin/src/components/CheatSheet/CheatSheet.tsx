@@ -6,7 +6,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { bem, openNotification } from 'utils/utils';
-import { getUtilStyles } from 'utils/utils.styles';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
 import { getCheatSheetStyles } from './CheatSheet.styles';

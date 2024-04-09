@@ -3,7 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { cx } from '@emotion/css';
 import { Icon, useStyles2 } from '@grafana/ui';
 
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { getCollapseStyles } from './Collapse.styles';
 

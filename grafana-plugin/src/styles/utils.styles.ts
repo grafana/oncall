@@ -24,6 +24,19 @@ export const getUtilStyles = (_theme: GrafanaTheme2) => {
   };
 };
 
+export const bem = (...args: string[]) =>
+  args.reduce((out, x, i) => {
+    out += x;
+    if (i === args.length - 1) {
+      return out;
+    } else if (i === 0) {
+      return (out += '--');
+    }
+
+    return (out += '-');
+  }, '');
+
+
 export enum COLORS {
   ALWAYS_GREY = '#ccccdc',
   GRAY_8 = '#595959',

@@ -6,7 +6,7 @@ import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { getIntegrationCollapsibleTreeStyles } from './IntegrationCollapsibleTreeView.styles';
 

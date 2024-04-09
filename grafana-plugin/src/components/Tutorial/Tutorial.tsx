@@ -7,7 +7,7 @@ import { useStyles2 } from '@grafana/ui';
 import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { TutorialStep } from './Tutorial.types';
 import bellIcon from './icons/bell-icon.svg';

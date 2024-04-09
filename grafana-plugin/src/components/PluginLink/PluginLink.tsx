@@ -6,7 +6,7 @@ import { useStyles2 } from '@grafana/ui';
 import { Link } from 'react-router-dom';
 
 import { getPathFromQueryParams } from 'utils/url';
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 interface PluginLinkProps {
   disabled?: boolean;

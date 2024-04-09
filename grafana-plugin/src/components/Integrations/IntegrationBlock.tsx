@@ -5,7 +5,7 @@ import { useStyles2 } from '@grafana/ui';
 import { noop } from 'lodash-es';
 
 import { Block } from 'components/GBlock/Block';
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { getIntegrationBlockStyles } from './IntegrationBlock.styles';
 

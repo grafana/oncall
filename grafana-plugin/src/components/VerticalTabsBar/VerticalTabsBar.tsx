@@ -4,7 +4,7 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 interface TabProps {
   id: string;
   children?: any;

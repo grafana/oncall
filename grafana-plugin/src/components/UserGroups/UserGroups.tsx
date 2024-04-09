@@ -9,7 +9,7 @@ import { Text } from 'components/Text/Text';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
 import { getUserGroupStyles } from './UserGroups.styles';

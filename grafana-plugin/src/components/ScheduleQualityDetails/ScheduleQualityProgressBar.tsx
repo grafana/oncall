@@ -3,7 +3,7 @@ import React from 'react';
 import { cx } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
 
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { getScheduleQualityProgressBarStyles } from './ScheduleQualityProgressBar.styles';
 

@@ -6,7 +6,7 @@ import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 
 import { ExpandIcon } from 'icons/Icons';
-import { bem } from 'utils/utils';
+import { bem } from 'styles/utils.styles';
 
 import { getTableStyles } from './Table.styles';
 

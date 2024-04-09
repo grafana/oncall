@@ -11,8 +11,8 @@ import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { bem } from 'utils/utils';
-import { getUtilStyles } from 'utils/utils.styles';
+import { bem } from 'styles/utils.styles';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { getScheduleQualityStyles } from './ScheduleQuality.styles';
 
