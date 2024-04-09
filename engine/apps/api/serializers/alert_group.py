@@ -247,7 +247,6 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
 
 class AlertGroupUpdateSerializer(AlertGroupSerializer):
-
     grafana_incident_id = serializers.CharField(required=False, allow_null=True)
 
     class Meta(AlertGroupSerializer.Meta):
