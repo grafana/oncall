@@ -19,20 +19,22 @@ def configure_cloud_auth_api_client(settings):
 @pytest.mark.django_db
 @pytest.mark.parametrize("response_status_code", [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED])
 @httpretty.activate(verbose=True, allow_net_connect=False)
-def test_request_signed_token(make_organization, response_status_code):
+def test_request_signed_token(make_organization, make_user_for_organization, response_status_code):
     mock_auth_token = ",mnasdlkjlakjoqwejroiqwejr"
     mock_response_text = "error message"
 
     org_id = 1
     stack_id = 5
+    user_id = 12345
 
     organization = make_organization(stack_id=stack_id, org_id=org_id)
+    user = make_user_for_organization(organization=organization, user_id=user_id)
 
     scopes = ["incident:write", "foo:bar"]
-    claims = {"vegetable": "carrot", "fruit": "apple"}
+    extra_claims = {"vegetable": "carrot", "fruit": "apple"}
 
     def _make_request():
-        return CloudAuthApiClient().request_signed_token(organization, scopes, claims)
+        return CloudAuthApiClient().request_signed_token(user, scopes, extra_claims)
 
     url = f"{GRAFANA_CLOUD_AUTH_API_URL}/v1/sign"
     mock_response = httpretty.Response(json.dumps({"data": {"token": mock_auth_token}}), status=response_status_code)
@@ -55,7 +57,10 @@ def test_request_signed_token(make_organization, response_status_code):
 
     # assert we're sending the right body
     assert json.loads(last_request.body) == {
-        "claims": claims,
+        "claims": {
+            "sub": f"user:{user_id}",
+        },
+        "extra": extra_claims,
         "accessPolicy": {
             "scopes": scopes,
         },
