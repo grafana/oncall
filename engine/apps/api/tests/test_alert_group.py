@@ -2262,7 +2262,7 @@ def test_alert_group_we_can_only_update_grafana_incident_id_field(
     if expected_status == status.HTTP_200_OK:
         new_alert_group.refresh_from_db()
 
-        assert new_alert_group.grafana_incident_id == grafana_incident_id
+        assert new_alert_group.grafana_incident_ids == [grafana_incident_id]
         assert new_alert_group.silenced is False
 
         # assert that we can only update the grafana_incident_id field
@@ -2273,6 +2273,41 @@ def test_alert_group_we_can_only_update_grafana_incident_id_field(
 
         new_alert_group.refresh_from_db()
         assert new_alert_group.silenced is False
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("http_method", ["put", "patch"])
+def test_alert_group_we_can_only_update_grafana_incident_ids_appends_to_list(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    http_method,
+):
+    grafana_incident_id1 = "abcdefg123"
+    grafana_incident_id2 = "helloabcd"
+
+    _, token, alert_groups = alert_group_internal_api_setup
+    _, _, new_alert_group, _ = alert_groups
+    organization = new_alert_group.channel.organization
+    user = make_user_for_organization(organization, LegacyAccessControlRole.ADMIN)
+
+    client = APIClient()
+    auth_headers = make_user_auth_headers(user, token)
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
+
+    def _make_request(incident_id):
+        client_method = getattr(client, http_method)
+        return client_method(url, format="json", data={"grafana_incident_id": incident_id}, **auth_headers)
+
+    response = _make_request(grafana_incident_id1)
+    assert response.status_code == status.HTTP_200_OK
+    new_alert_group.refresh_from_db()
+    assert new_alert_group.grafana_incident_ids == [grafana_incident_id1]
+
+    response = _make_request(grafana_incident_id2)
+    assert response.status_code == status.HTTP_200_OK
+    new_alert_group.refresh_from_db()
+    assert new_alert_group.grafana_incident_ids == [grafana_incident_id1, grafana_incident_id2]
 
 
 @pytest.mark.django_db

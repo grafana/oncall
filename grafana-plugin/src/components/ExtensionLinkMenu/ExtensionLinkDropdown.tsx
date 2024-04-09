@@ -10,33 +10,20 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { ExtensionLinkMenu } from './ExtensionLinkMenu';
 
 interface Props {
-  incident: ApiSchemas['AlertGroup'];
+  alertGroup: ApiSchemas['AlertGroup'];
   extensionPointId: OnCallPluginExtensionPoints;
-  declareIncidentLink?: string;
-  grafanaIncidentId: string | null;
 }
 
-export function ExtensionLinkDropdown({
-  incident,
-  extensionPointId,
-  declareIncidentLink,
-  grafanaIncidentId,
-}: Props): ReactElement | null {
+export function ExtensionLinkDropdown({ alertGroup, extensionPointId }: Props): ReactElement | null {
   const [isOpen, setIsOpen] = useState(false);
-  const context = useExtensionPointContext(incident);
+  const context = useExtensionPointContext(alertGroup);
   const extensions = useExtensionLinks(context, extensionPointId);
 
   if (extensions.length === 0) {
     return null;
   }
 
-  const menu = (
-    <ExtensionLinkMenu
-      extensions={extensions}
-      declareIncidentLink={declareIncidentLink}
-      grafanaIncidentId={grafanaIncidentId}
-    />
-  );
+  const menu = <ExtensionLinkMenu alertGroup={alertGroup} extensions={extensions} />;
 
   return (
     <Dropdown onVisibleChange={setIsOpen} placement="bottom-start" overlay={menu}>

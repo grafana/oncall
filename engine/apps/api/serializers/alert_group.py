@@ -107,18 +107,20 @@ class AlertGroupListSerializer(
     EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer[AlertGroup]
 ):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
-    alert_receive_channel = FastAlertReceiveChannelSerializer(read_only=True, source="channel")
+    alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
     status = serializers.ReadOnlyField()
     resolved_by_user = FastUserSerializer(required=False)
     acknowledged_by_user = FastUserSerializer(required=False)
     silenced_by_user = FastUserSerializer(required=False)
     related_users = serializers.SerializerMethodField()
-    dependent_alert_groups = ShortAlertGroupSerializer(read_only=True, many=True)
-    root_alert_group = ShortAlertGroupSerializer(read_only=True)
-    team = TeamPrimaryKeyRelatedField(read_only=True, source="channel.team", allow_null=True)
+    dependent_alert_groups = ShortAlertGroupSerializer(many=True)
+    root_alert_group = ShortAlertGroupSerializer()
+    team = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
+
+    grafana_incident_ids = serializers.ListField(child=serializers.CharField())
 
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
@@ -166,7 +168,7 @@ class AlertGroupListSerializer(
             "status",
             "declare_incident_link",
             "team",
-            "grafana_incident_id",
+            "grafana_incident_ids",
             "labels",
             "permalinks",
         ]
@@ -245,5 +247,16 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
 
 class AlertGroupUpdateSerializer(AlertGroupSerializer):
+
+    grafana_incident_id = serializers.CharField(required=False, allow_null=True)
+
     class Meta(AlertGroupSerializer.Meta):
-        read_only_fields = [field for field in AlertGroupSerializer.Meta.fields if field not in ["grafana_incident_id"]]
+        fields = ["grafana_incident_id"]
+
+    def to_representation(self, instance):
+        return AlertGroupSerializer(instance).data
+
+    def update(self, instance, validated_data):
+        if (grafana_incident_id := validated_data.get("grafana_incident_id")) is not None:
+            instance.update_grafana_incident_ids(grafana_incident_id)
+        return instance

@@ -1378,7 +1378,7 @@ export interface components {
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
-      grafana_incident_id?: string | null;
+      grafana_incident_ids: string[];
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
@@ -1483,7 +1483,7 @@ export interface components {
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
-      grafana_incident_id?: string | null;
+      grafana_incident_ids: string[];
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
@@ -1549,77 +1549,7 @@ export interface components {
       user_id: string;
     };
     AlertGroupUpdate: {
-      readonly pk: string;
-      readonly alerts_count: number;
-      readonly inside_organization_number: number;
-      alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];
-      readonly resolved: boolean;
-      readonly resolved_by: components['schemas']['ResolvedByEnum'];
-      resolved_by_user?: components['schemas']['FastUser'];
-      /** Format: date-time */
-      readonly resolved_at: string | null;
-      /** Format: date-time */
-      readonly acknowledged_at: string | null;
-      readonly acknowledged: boolean;
-      readonly acknowledged_on_source: boolean;
-      acknowledged_by_user?: components['schemas']['FastUser'];
-      readonly silenced: boolean;
-      silenced_by_user?: components['schemas']['FastUser'];
-      /** Format: date-time */
-      readonly silenced_at: string | null;
-      /** Format: date-time */
-      readonly silenced_until: string | null;
-      /** Format: date-time */
-      readonly started_at: string;
-      readonly related_users: components['schemas']['UserShort'][];
-      readonly render_for_web:
-        | {
-            title: string;
-            message: string;
-            image_url: string | null;
-            source_link: string | null;
-          }
-        | Record<string, never>;
-      dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
-      root_alert_group: components['schemas']['ShortAlertGroup'];
-      readonly status: number;
-      /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
-      readonly declare_incident_link: string;
-      team: string | null;
       grafana_incident_id?: string | null;
-      readonly labels: components['schemas']['AlertGroupLabel'][];
-      readonly permalinks: {
-        slack: string | null;
-        telegram: string | null;
-        web: string;
-      };
-      readonly alerts: components['schemas']['Alert'][];
-      readonly render_after_resolve_report_json: {
-        time: string;
-        action: string;
-        /** @enum {string} */
-        realm: 'user_notification' | 'alert_group' | 'resolution_note';
-        type: number;
-        created_at: string;
-        author: {
-          username: string;
-          pk: string;
-          avatar: string;
-          avatar_full: string;
-        };
-      }[];
-      readonly slack_permalink: string | null;
-      /** Format: date-time */
-      readonly last_alert_at: string;
-      readonly paged_users: {
-        id: number;
-        username: string;
-        name: string;
-        pk: string;
-        avatar: string;
-        avatar_full: string;
-        important: boolean;
-      }[];
     };
     AlertReceiveChannel: {
       readonly id: string;
@@ -2089,77 +2019,7 @@ export interface components {
       total_pages?: number;
     };
     PatchedAlertGroupUpdate: {
-      readonly pk?: string;
-      readonly alerts_count?: number;
-      readonly inside_organization_number?: number;
-      alert_receive_channel?: components['schemas']['FastAlertReceiveChannel'];
-      readonly resolved?: boolean;
-      readonly resolved_by?: components['schemas']['ResolvedByEnum'];
-      resolved_by_user?: components['schemas']['FastUser'];
-      /** Format: date-time */
-      readonly resolved_at?: string | null;
-      /** Format: date-time */
-      readonly acknowledged_at?: string | null;
-      readonly acknowledged?: boolean;
-      readonly acknowledged_on_source?: boolean;
-      acknowledged_by_user?: components['schemas']['FastUser'];
-      readonly silenced?: boolean;
-      silenced_by_user?: components['schemas']['FastUser'];
-      /** Format: date-time */
-      readonly silenced_at?: string | null;
-      /** Format: date-time */
-      readonly silenced_until?: string | null;
-      /** Format: date-time */
-      readonly started_at?: string;
-      readonly related_users?: components['schemas']['UserShort'][];
-      readonly render_for_web?:
-        | {
-            title: string;
-            message: string;
-            image_url: string | null;
-            source_link: string | null;
-          }
-        | Record<string, never>;
-      dependent_alert_groups?: components['schemas']['ShortAlertGroup'][];
-      root_alert_group?: components['schemas']['ShortAlertGroup'];
-      readonly status?: number;
-      /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
-      readonly declare_incident_link?: string;
-      team?: string | null;
       grafana_incident_id?: string | null;
-      readonly labels?: components['schemas']['AlertGroupLabel'][];
-      readonly permalinks?: {
-        slack: string | null;
-        telegram: string | null;
-        web: string;
-      };
-      readonly alerts?: components['schemas']['Alert'][];
-      readonly render_after_resolve_report_json?: {
-        time: string;
-        action: string;
-        /** @enum {string} */
-        realm: 'user_notification' | 'alert_group' | 'resolution_note';
-        type: number;
-        created_at: string;
-        author: {
-          username: string;
-          pk: string;
-          avatar: string;
-          avatar_full: string;
-        };
-      }[];
-      readonly slack_permalink?: string | null;
-      /** Format: date-time */
-      readonly last_alert_at?: string;
-      readonly paged_users?: {
-        id: number;
-        username: string;
-        name: string;
-        pk: string;
-        avatar: string;
-        avatar_full: string;
-        important: boolean;
-      }[];
     };
     PatchedAlertReceiveChannelUpdate: {
       readonly id?: string;
@@ -3520,7 +3380,7 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody: {
+    requestBody?: {
       content: {
         'application/json': components['schemas']['AlertGroupUpdate'];
         'application/x-www-form-urlencoded': components['schemas']['AlertGroupUpdate'];
