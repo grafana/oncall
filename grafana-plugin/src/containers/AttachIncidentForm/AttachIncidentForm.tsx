@@ -50,11 +50,10 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
     setSelected(value);
   }, []);
 
-  const handleLinkClick = useCallback(() => {
-    AlertGroupHelper.attachAlert(id, selected).then(() => {
-      onHide();
-      onUpdate();
-    });
+  const handleLinkClick = useCallback(async () => {
+    await AlertGroupHelper.attachAlert(id, selected);
+    onHide();
+    onUpdate();
   }, [selected, alertGroupStore, id, onHide, onUpdate]);
 
   return (

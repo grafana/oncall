@@ -250,6 +250,17 @@ export const IntegrationContactPoint: React.FC<{
   }
 
   function renderActions(item: ContactPoint) {
+    const onDisconnect = async () => {
+      try {
+        await AlertReceiveChannelHelper.disconnectContactPoint(id, item.dataSourceId, item.contactPoint);
+        closeDrawer();
+        openNotification('Contact point has been removed');
+        alertReceiveChannelStore.fetchConnectedContactPoints(id);
+      } catch (_err) {
+        openErrorNotification('An error has occurred. Please try again.');
+      }
+    };
+
     return (
       <HorizontalGroup spacing="md">
         <IconButton
@@ -274,19 +285,7 @@ export const IntegrationContactPoint: React.FC<{
             </VerticalGroup>
           }
         >
-          <IconButton
-            aria-label="Disconnect Contact Point"
-            name="trash-alt"
-            onClick={() => {
-              AlertReceiveChannelHelper.disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
-                .then(() => {
-                  closeDrawer();
-                  openNotification('Contact point has been removed');
-                  alertReceiveChannelStore.fetchConnectedContactPoints(id);
-                })
-                .catch(() => openErrorNotification('An error has occurred. Please try again.'));
-            }}
-          />
+          <IconButton aria-label="Disconnect Contact Point" name="trash-alt" onClick={onDisconnect} />
         </WithConfirm>
       </HorizontalGroup>
     );
@@ -330,23 +329,20 @@ export const IntegrationContactPoint: React.FC<{
     });
   }
 
-  function onContactPointConnect() {
+  async function onContactPointConnect() {
     setState({ isLoading: true });
-
-    (isExistingContactPoint
-      ? AlertReceiveChannelHelper.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
-      : AlertReceiveChannelHelper.createContactPoint(id, selectedAlertManager, selectedContactPoint)
-    )
-      .then(() => {
-        closeDrawer();
-        openNotification('A new contact point has been connected to your integration');
-        alertReceiveChannelStore.fetchConnectedContactPoints(id);
-      })
-      .catch((ex) => {
-        const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';
-        openErrorNotification(error);
-      })
-      .finally(() => setState({ isLoading: false }));
+    try {
+      await (isExistingContactPoint
+        ? AlertReceiveChannelHelper.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+        : AlertReceiveChannelHelper.createContactPoint(id, selectedAlertManager, selectedContactPoint));
+      closeDrawer();
+      openNotification('A new contact point has been connected to your integration');
+      alertReceiveChannelStore.fetchConnectedContactPoints(id);
+    } catch (ex) {
+      const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';
+      openErrorNotification(error);
+    }
+    setState({ isLoading: false });
   }
 
   function onAlertManagerChange(option: SelectableValue<string>) {

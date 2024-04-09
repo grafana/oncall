@@ -26,10 +26,11 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
   const [showSchedulesDropdown, setShowSchedulesDropdown] = useState<boolean>();
 
   useEffect(() => {
-    userStore.fetchItemById({ userPk: id }).then((user) => {
+    (async () => {
+      const user = await userStore.fetchItemById({ userPk: id });
       setGoogleCalendarSettings(user.google_calendar_settings);
       setShowSchedulesDropdown(user.google_calendar_settings.oncall_schedules_to_consider_for_shift_swaps?.length > 0);
-    });
+    })();
   }, []);
 
   const handleShowSchedulesDropdownChange = (event: React.ChangeEvent<HTMLInputElement>) => {

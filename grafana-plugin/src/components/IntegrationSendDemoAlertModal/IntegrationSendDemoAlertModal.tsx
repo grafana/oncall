@@ -101,17 +101,16 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
     setDemoPayload(value);
   }
 
-  function onSendAlert() {
+  async function onSendAlert() {
     let parsedPayload = undefined;
     try {
       parsedPayload = JSON.parse(demoPayload);
     } catch (ex) {}
 
-    AlertReceiveChannelHelper.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
-      alertReceiveChannelStore.fetchCounters();
-      openNotification(<DemoNotification />);
-      onHideOrCancel();
-    });
+    await AlertReceiveChannelHelper.sendDemoAlert(alertReceiveChannel.id, parsedPayload);
+    alertReceiveChannelStore.fetchCounters();
+    openNotification(<DemoNotification />);
+    onHideOrCancel();
   }
 
   function getCurlText() {

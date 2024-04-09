@@ -650,8 +650,9 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     this.setState({ alertReceiveChannelIdToShowLabels: id });
   };
 
-  handleDeleteAlertReceiveChannel = (alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id']) => {
-    AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannelId).then(this.applyFilters);
+  handleDeleteAlertReceiveChannel = async (alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id']) => {
+    await AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannelId);
+    this.applyFilters(false);
     this.setState({ confirmationModal: undefined });
   };
 
@@ -667,17 +668,15 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     const { alertReceiveChannelStore } = store;
     const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 
-    return alertReceiveChannelStore
-      .fetchPaginatedItems({
-        filters: this.getFiltersBasedOnCurrentTab(),
-        page: newPage,
-        shouldFetchCounters: false,
-        invalidateFn: () => this.invalidateRequestFn(newPage),
-      })
-      .then(() => {
-        store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
-        LocationHelper.update({ p: newPage }, 'partial');
-      });
+    await alertReceiveChannelStore.fetchPaginatedItems({
+      filters: this.getFiltersBasedOnCurrentTab(),
+      page: newPage,
+      shouldFetchCounters: false,
+      invalidateFn: () => this.invalidateRequestFn(newPage),
+    });
+
+    store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
+    LocationHelper.update({ p: newPage }, 'partial');
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

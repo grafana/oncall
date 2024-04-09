@@ -28,14 +28,14 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 
   const store = useStore();
 
-  const onCreateTokenCallback = useCallback(() => {
-    store.apiTokenStore
-      .create({ name })
-      .then((data: ApiToken) => {
-        setToken(data.token);
-        onUpdate();
-      })
-      .catch((error) => openErrorNotification(get(error, 'response.data.detail', 'error creating token')));
+  const onCreateTokenCallback = useCallback(async () => {
+    try {
+      const data = await store.apiTokenStore.create({ name });
+      setToken(data.token);
+      onUpdate();
+    } catch (error) {
+      openErrorNotification(get(error, 'response.data.detail', 'error creating token'));
+    }
   }, [name]);
 
   const handleNameChange = useCallback((event) => {

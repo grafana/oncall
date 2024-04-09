@@ -75,20 +75,19 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   );
 
   useEffect(() => {
-    if (isOpen) {
-      waitForElement('#overrides-list').then((elm) => {
+    (async () => {
+      if (isOpen) {
+        const elm = await waitForElement('#overrides-list');
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-
         const coords = getCoords(elm);
-
         const offsetTop = Math.min(
           Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGHT + 10),
           document.body.offsetHeight - modal?.offsetHeight - 10
         );
 
         setOffsetTop(offsetTop);
-      });
-    }
+      }
+    })();
   }, [isOpen]);
 
   const [userGroups, setUserGroups] = useState([[]]);
@@ -130,29 +129,23 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     [shiftId, params, shift]
   );
 
-  const handleDeleteClick = useCallback(() => {
-    store.scheduleStore.deleteOncallShift(shiftId).then(() => {
-      onHide();
-
-      onDelete();
-    });
+  const handleDeleteClick = useCallback(async () => {
+    await store.scheduleStore.deleteOncallShift(shiftId);
+    onHide();
+    onDelete();
   }, []);
 
-  const handleCreate = useCallback(() => {
-    if (shiftId === 'new') {
-      store.scheduleStore
-        .createRotation(scheduleId, true, params)
-        .then(() => {
-          onCreate();
-        })
-        .catch(onError);
-    } else {
-      store.scheduleStore
-        .updateRotation(shiftId, params)
-        .then(() => {
-          onUpdate();
-        })
-        .catch(onError);
+  const handleCreate = useCallback(async () => {
+    try {
+      if (shiftId === 'new') {
+        await store.scheduleStore.createRotation(scheduleId, true, params);
+        onCreate();
+      } else {
+        await store.scheduleStore.updateRotation(shiftId, params);
+        onUpdate();
+      }
+    } catch (err) {
+      onError(err);
     }
   }, [scheduleId, shiftId, params]);
 
