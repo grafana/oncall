@@ -4,9 +4,9 @@ import { cx } from '@emotion/css';
 import { Pagination, VerticalGroup, useStyles2 } from '@grafana/ui';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
+import { bem } from 'styles/utils.styles';
 
 import { ExpandIcon } from 'icons/Icons';
-import { bem } from 'styles/utils.styles';
 
 import { getTableStyles } from './Table.styles';
 

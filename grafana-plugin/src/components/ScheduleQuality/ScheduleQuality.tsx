@@ -3,6 +3,7 @@ import React, { FC, useEffect } from 'react';
 import { cx } from '@emotion/css';
 import { Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
@@ -11,8 +12,6 @@ import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { bem } from 'styles/utils.styles';
-import { getUtilStyles } from 'styles/utils.styles';
 
 import { getScheduleQualityStyles } from './ScheduleQuality.styles';
 

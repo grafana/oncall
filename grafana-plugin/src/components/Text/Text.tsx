@@ -3,9 +3,9 @@ import React, { FC, HTMLAttributes, ChangeEvent, useState, useCallback } from 'r
 import { cx } from '@emotion/css';
 import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { bem } from 'styles/utils.styles';
 
 import { openNotification } from 'utils/utils';
-import { bem } from 'styles/utils.styles';
 
 import { getTextStyles } from './Text.styles';
 

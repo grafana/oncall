@@ -2,11 +2,10 @@ import React, { FC, useCallback, useState } from 'react';
 
 import { cx } from '@emotion/css';
 import { HorizontalGroup, Icon, IconButton, useStyles2 } from '@grafana/ui';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
-import { bem } from 'styles/utils.styles';
-import { getUtilStyles } from 'styles/utils.styles';
 
 import { getScheduleQualityDetailsStyles } from './ScheduleQualityDetails.styles';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';

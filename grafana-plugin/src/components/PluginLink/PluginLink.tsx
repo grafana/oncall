@@ -4,9 +4,9 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { Link } from 'react-router-dom';
+import { bem } from 'styles/utils.styles';
 
 import { getPathFromQueryParams } from 'utils/url';
-import { bem } from 'styles/utils.styles';
 
 interface PluginLinkProps {
   disabled?: boolean;

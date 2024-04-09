@@ -3,8 +3,6 @@ import React, { FC } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
-
 import { bem } from 'styles/utils.styles';
 
 interface TagProps {

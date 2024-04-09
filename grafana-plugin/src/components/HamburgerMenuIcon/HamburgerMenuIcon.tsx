@@ -3,7 +3,6 @@ import React, { useRef } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
-
 import { bem } from 'styles/utils.styles';
 
 interface HamburgerMenuIconProps {

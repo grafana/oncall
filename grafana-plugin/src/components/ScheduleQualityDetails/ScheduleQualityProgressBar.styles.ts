@@ -1,6 +1,5 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-
 import { COLORS } from 'styles/utils.styles';
 
 const radius = '2px' as string;

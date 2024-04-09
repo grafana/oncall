@@ -3,9 +3,9 @@ import React from 'react';
 import { cx } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
 import { noop } from 'lodash-es';
+import { bem } from 'styles/utils.styles';
 
 import { Block } from 'components/GBlock/Block';
-import { bem } from 'styles/utils.styles';
 
 import { getIntegrationBlockStyles } from './IntegrationBlock.styles';
 

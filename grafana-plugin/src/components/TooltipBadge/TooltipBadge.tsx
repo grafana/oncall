@@ -2,9 +2,9 @@ import React, { FC } from 'react';
 
 import { cx } from '@emotion/css';
 import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup, useStyles2 } from '@grafana/ui';
+import { bem } from 'styles/utils.styles';
 
 import { Text, TextType } from 'components/Text/Text';
-import { bem } from 'styles/utils.styles';
 
 import { getTooltipBadgeStyles } from './TooltipBadge.styles';
 

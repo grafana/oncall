@@ -3,7 +3,6 @@ import React, { FC } from 'react';
 import { cx } from '@emotion/css';
 import { Icon, Tooltip, useStyles2 } from '@grafana/ui';
 import MediaQuery from 'react-responsive';
-
 import { bem } from 'styles/utils.styles';
 
 import { getPolicyStyles } from './Policy.styles';

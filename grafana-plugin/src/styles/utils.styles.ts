@@ -36,7 +36,6 @@ export const bem = (...args: string[]) =>
     return (out += '-');
   }, '');
 
-
 export enum COLORS {
   ALWAYS_GREY = '#ccccdc',
   GRAY_8 = '#595959',

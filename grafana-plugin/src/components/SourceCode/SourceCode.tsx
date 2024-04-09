@@ -4,10 +4,10 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, IconButton, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { bem } from 'styles/utils.styles';
 
 import { formatSourceCodeJsonString } from 'utils/string';
 import { openNotification } from 'utils/utils';
-import { bem } from 'styles/utils.styles';
 
 interface SourceCodeProps {
   noMaxHeight?: boolean;

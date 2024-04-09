@@ -4,9 +4,9 @@ import { cx } from '@emotion/css';
 import { Icon, IconButton, IconName, useStyles2 } from '@grafana/ui';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { bem } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
-import { bem } from 'styles/utils.styles';
 
 import { getIntegrationCollapsibleTreeStyles } from './IntegrationCollapsibleTreeView.styles';
 
