@@ -4,7 +4,7 @@ export function initErrorDataState(): Partial<PageErrorData> {
   return { isUnknownError: false, isWrongTeamError: false, wrongTeamNoPermissions: false };
 }
 
-export function getWrongTeamResponseInfo({ response }): Partial<PageErrorData> {
+export function getWrongTeamResponseInfo(response): Partial<PageErrorData> {
   if (response) {
     if (response.status === 404) {
       return { isNotFoundError: true };
