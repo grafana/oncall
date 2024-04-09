@@ -104,7 +104,6 @@ describe('MobileAppConnection', () => {
       true
     );
 
-    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal

@@ -2,11 +2,11 @@ import React from 'react';
 
 import { HorizontalGroup, IconButton, VerticalGroup, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import { getUtilStyles } from 'styles/utils.styles';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import { bem, openNotification } from 'utils/utils';
+import { openNotification } from 'utils/utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
 import { getCheatSheetStyles } from './CheatSheet.styles';
