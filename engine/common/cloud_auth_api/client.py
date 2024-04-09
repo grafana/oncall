@@ -43,8 +43,10 @@ class CloudAuthApiClient:
         self.api_token = settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN
 
     def request_signed_token(
-        self, user: "User", scopes: typing.List[Scopes],
-        extra_claims: typing.Optional[typing.Dict[str, typing.Any]] = None
+        self,
+        user: "User",
+        scopes: typing.List[Scopes],
+        extra_claims: typing.Optional[typing.Dict[str, typing.Any]] = None,
     ) -> str:
         org = user.organization
 
