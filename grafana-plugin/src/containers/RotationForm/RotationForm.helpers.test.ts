@@ -81,7 +81,7 @@ describe('RotationForm helpers', () => {
     });
 
     it('does nothing with hours if both start date and resulting date are out of London DST', () => {
-      // Base date is our of DST: 20th Jan 3:00 (GMT + 0)
+      // Base date is out of DST: 20th Jan 3:00 (GMT + 0)
       const baseDate = dayjs('2018-1-20 3:00');
 
       [
@@ -101,7 +101,7 @@ describe('RotationForm helpers', () => {
     });
 
     it('adds hours correctly within the same day', () => {
-      // Base date is our of DST: 20th Jan 3:00 (GMT + 0)
+      // Base date is out of DST: 20th Jan 3:00 (GMT + 0)
       const baseDate = dayjs('2018-1-20 3:00');
 
       expect(
