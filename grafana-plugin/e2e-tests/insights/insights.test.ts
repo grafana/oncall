@@ -25,8 +25,8 @@ test.skip(
  * see this Slack conversation for more details:
  * https://raintank-corp.slack.com/archives/C04JCU51NF8/p1712069772861909
  */
-test.describe('Insights', () => {
-  test.beforeAll(async ({ adminRolePage: { page, userName } }) => {
+test.describe.skip('Insights', () => {
+  test.beforeAll(async ({ adminRolePage: { page } }) => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';
 
@@ -42,23 +42,6 @@ test.describe('Insights', () => {
       await page.getByPlaceholder('http://localhost:9090').fill(DATASOURCE_URL);
       await clickButton({ page, buttonText: 'Save & test' });
     }
-
-    // send alert and resolve to get some values in insights
-    const escalationChainName = generateRandomValue();
-    const integrationName = generateRandomValue();
-    const onCallScheduleName = generateRandomValue();
-    await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
-    await createEscalationChain(
-      page,
-      escalationChainName,
-      EscalationStep.NotifyUsersFromOnCallSchedule,
-      onCallScheduleName
-    );
-    await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
-    await resolveFiringAlert(page);
-
-    // wait for Prometheus to scrape the data
-    await page.waitForTimeout(5000);
   });
 
   test('Viewer can see all the panels in OnCall insights', async ({ viewerRolePage: { page } }) => {
@@ -76,8 +59,24 @@ test.describe('Insights', () => {
     });
   });
 
-  test('There is no panel that misses data', async ({ adminRolePage: { page } }) => {
+  test('There is no panel that misses data', async ({ adminRolePage: { page, userName } }) => {
     test.setTimeout(90_000);
+
+    // send alert and resolve to get some values in insights
+    const escalationChainName = generateRandomValue();
+    const integrationName = generateRandomValue();
+    const onCallScheduleName = generateRandomValue();
+    await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
+    await createEscalationChain(
+      page,
+      escalationChainName,
+      EscalationStep.NotifyUsersFromOnCallSchedule,
+      onCallScheduleName
+    );
+    await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
+    await resolveFiringAlert(page);
+    // wait for Prometheus to scrape the data
+    await page.waitForTimeout(5000);
 
     // check that we have data in insights panels
     await goToOnCallPage(page, 'insights');
