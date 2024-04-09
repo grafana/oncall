@@ -28,7 +28,7 @@ const REQUEST_CONFIG = {
 };
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
-const ERROR_MOCK = 'error';
+const FAILING_RESPONSE_MOCK = { ok: false, json: () => 'ERROR' };
 const customFetch = getCustomFetchFn({ withGlobalErrorHandler: true });
 
 describe('customFetch', () => {
@@ -53,10 +53,10 @@ describe('customFetch', () => {
     describe('if response is not successful', () => {
       it('should push event and error to faro', async () => {
         (FaroHelper.faro.api.getOTEL as unknown as jest.Mock).mockReturnValueOnce(undefined);
-        fetchMock.mockResolvedValueOnce({ ok: false, json: () => ERROR_MOCK });
-        await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(ERROR_MOCK);
+        fetchMock.mockResolvedValueOnce(FAILING_RESPONSE_MOCK);
+        await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(FAILING_RESPONSE_MOCK);
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
-        expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(ERROR_MOCK);
+        expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(FAILING_RESPONSE_MOCK.json());
       });
     });
   });
@@ -108,10 +108,10 @@ describe('customFetch', () => {
 
     describe('if response is not successful', () => {
       it('should reject Promise, push event to faro, set span status to error and end span', async () => {
-        fetchMock.mockResolvedValueOnce({ ok: false, json: () => ERROR_MOCK });
-        await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(ERROR_MOCK);
+        fetchMock.mockResolvedValueOnce(FAILING_RESPONSE_MOCK);
+        await expect(customFetch(URL, REQUEST_CONFIG)).rejects.toEqual(FAILING_RESPONSE_MOCK);
         expect(FaroHelper.faro.api.pushEvent).toHaveBeenCalledWith('Request failed', { url: URL });
-        expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(ERROR_MOCK);
+        expect(FaroHelper.faro.api.pushError).toHaveBeenCalledWith(FAILING_RESPONSE_MOCK.json());
         expect(spanEndMock).toHaveBeenCalledTimes(1);
       });
     });
