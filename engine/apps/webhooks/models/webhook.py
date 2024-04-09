@@ -346,8 +346,16 @@ def webhook_response_post_save(sender, instance, created, *args, **kwargs):
     if not created:
         return
 
-    source_alert_receive_channel = instance.webhook.filtered_integrations.filter(
-        additional_settings__isnull=False
-    ).first()  # TODO: is it possible to have more than one?
+    filtered_integrations_entry = (
+        instance.webhook.filtered_integrations.through.objects.filter(
+            alertreceivechannel__additional_settings__isnull=False
+        )
+        .order_by("id")
+        .first()
+    )  # get the first source integration
+    source_alert_receive_channel = (
+        filtered_integrations_entry.alertreceivechannel if filtered_integrations_entry else None
+    )
+
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "on_webhook_response_created"):
         source_alert_receive_channel.config.on_webhook_response_created(instance, source_alert_receive_channel)
