@@ -1,6 +1,8 @@
+import re
 import typing
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
@@ -121,6 +123,8 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
 
+    grafana_incident_id = filters.CharFilter(method="filter_grafana_incident_id")
+
     def filter_status(self, queryset, name, value):
         if not value:
             return queryset
@@ -196,6 +200,16 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             queryset = queryset.filter(
                 Q(resolution_notes__isnull=True) | ~Q(resolution_notes__deleted_at=None)
             ).distinct()
+        return queryset
+
+    def filter_grafana_incident_id(self, queryset, name, value):
+        if value:
+            # https://stackoverflow.com/a/50251879
+            if settings.IS_USING_SQLITE:
+                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
+                queryset = queryset.filter(grafana_incident_ids__regex=re.escape(value))
+            else:
+                queryset = queryset.filter(grafana_incident_ids__contains=value)
         return queryset
 
 

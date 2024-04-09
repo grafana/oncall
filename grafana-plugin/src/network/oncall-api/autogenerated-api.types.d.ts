@@ -1895,6 +1895,7 @@ export interface components {
     };
     IntegrationTokenPostResponse: {
       token: string;
+      usage: string;
     };
     Key: {
       id: string;
@@ -3312,6 +3313,7 @@ export interface operations {
         /** @description The pagination cursor value. */
         cursor?: string;
         escalation_chain?: string[];
+        grafana_incident_id?: string;
         integration?: string[];
         invitees_are?: string[];
         involved_users_are?: string[];
@@ -3844,6 +3846,7 @@ export interface operations {
       query?: {
         acknowledged_by?: string[];
         escalation_chain?: string[];
+        grafana_incident_id?: string;
         integration?: string[];
         invitees_are?: string[];
         involved_users_are?: string[];

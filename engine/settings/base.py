@@ -143,6 +143,7 @@ DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
 assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
+IS_USING_SQLITE = DATABASE_TYPE == DatabaseTypes.SQLITE3
 
 DatabaseConfig = typing.Dict[str, typing.Dict[str, typing.Any]]
 

@@ -2289,7 +2289,7 @@ def test_alert_group_we_can_only_update_grafana_incident_ids_appends_to_list(
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
-    user = make_user_for_organization(organization, LegacyAccessControlRole.ADMIN)
+    user = make_user_for_organization(organization)
 
     client = APIClient()
     auth_headers = make_user_auth_headers(user, token)
@@ -2308,6 +2308,34 @@ def test_alert_group_we_can_only_update_grafana_incident_ids_appends_to_list(
     assert response.status_code == status.HTTP_200_OK
     new_alert_group.refresh_from_db()
     assert new_alert_group.grafana_incident_ids == [grafana_incident_id1, grafana_incident_id2]
+
+
+@pytest.mark.django_db
+def test_alert_group_we_can_filter_by_grafana_incident_id(
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+):
+    grafana_incident_id1 = "abcdefg123"
+    grafana_incident_id2 = "helloabcd"
+
+    _, token, alert_groups = alert_group_internal_api_setup
+    _, alert_group1, alert_group2, _ = alert_groups
+    user = make_user_for_organization(alert_group1.channel.organization)
+
+    alert_group1.grafana_incident_ids = [grafana_incident_id1, grafana_incident_id2]
+    alert_group1.save()
+
+    client = APIClient()
+    auth_headers = make_user_auth_headers(user, token)
+    url = reverse("api-internal:alertgroup-list")
+
+    response = client.get(f"{url}?grafana_incident_id={grafana_incident_id1}", **auth_headers)
+    results = response.json()["results"]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(results) == 1
+    assert results[0]["pk"] == alert_group1.public_primary_key
 
 
 @pytest.mark.django_db
