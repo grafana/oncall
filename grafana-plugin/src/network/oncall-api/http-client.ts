@@ -62,7 +62,7 @@ export const getCustomFetchFn =
             if (withGlobalErrorHandler) {
               showApiError(res);
             }
-            reject(errorData);
+            reject(res);
           }
         });
       });
@@ -78,7 +78,7 @@ export const getCustomFetchFn =
         if (withGlobalErrorHandler) {
           showApiError(res);
         }
-        throw errorData;
+        throw res;
       }
     }
   };

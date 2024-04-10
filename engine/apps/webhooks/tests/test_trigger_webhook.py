@@ -737,6 +737,7 @@ def test_execute_webhook_integration_config(
         http_method="POST",
         trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
         forward_all=True,
+        is_from_connected_integration=True,
     )
     webhook.filtered_integrations.set([source_alert_receive_channel, alert_receive_channel])
 
