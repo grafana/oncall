@@ -1874,6 +1874,8 @@ def test_update_additional_settings_integration(
 
     # set up additional settings for an integration
     integration_config = setup_additional_settings_for_integration
+    integration_config.update_default_webhooks = Mock()
+
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=integration_config.slug, additional_settings=settings
     )
@@ -1916,6 +1918,7 @@ def test_update_additional_settings_integration(
 
     alert_receive_channel.refresh_from_db()
     assert alert_receive_channel.additional_settings == data["additional_settings"]
+    integration_config.update_default_webhooks.assert_called_once_with(alert_receive_channel)
 
 
 @pytest.mark.django_db
