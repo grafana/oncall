@@ -181,6 +181,20 @@ class Webhook(models.Model):
     def hard_delete(self):
         super().delete()
 
+    def get_source_alert_receive_channel(self):
+        """Return the webhook source channel if it is connected to an integration."""
+        result = None
+        if self.is_from_connected_integration:
+            filtered_integration = (
+                Webhook.filtered_integrations.through.objects.filter(
+                    alertreceivechannel__additional_settings__isnull=False, webhook=self
+                )
+                .order_by("id")
+                .first()
+            )
+            result = filtered_integration.alertreceivechannel if filtered_integration else None
+        return result
+
     def build_request_kwargs(self, event_data, raise_data_errors=False):
         request_kwargs = {}
         if self.username and self.password:
@@ -346,16 +360,6 @@ def webhook_response_post_save(sender, instance, created, *args, **kwargs):
     if not created:
         return
 
-    filtered_integrations_entry = (
-        instance.webhook.filtered_integrations.through.objects.filter(
-            alertreceivechannel__additional_settings__isnull=False
-        )
-        .order_by("id")
-        .first()
-    )  # get the first source integration
-    source_alert_receive_channel = (
-        filtered_integrations_entry.alertreceivechannel if filtered_integrations_entry else None
-    )
-
+    source_alert_receive_channel = instance.webhook.get_source_alert_receive_channel()
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "on_webhook_response_created"):
         source_alert_receive_channel.config.on_webhook_response_created(instance, source_alert_receive_channel)
