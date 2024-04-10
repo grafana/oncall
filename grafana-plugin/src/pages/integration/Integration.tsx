@@ -795,8 +795,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         // failed fetching the integration (most likely it's not existent)
         history.push(`${PLUGIN_ROOT}/integrations`);
       }
+    } finally {
+      this.setState({ isLoading: false });
     }
-    this.setState({ isLoading: false });
   }
 
   async loadExtraData(id: ApiSchemas['AlertReceiveChannel']['id']) {

@@ -341,8 +341,9 @@ export const IntegrationContactPoint: React.FC<{
     } catch (ex) {
       const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';
       openErrorNotification(error);
+    } finally {
+      setState({ isLoading: false });
     }
-    setState({ isLoading: false });
   }
 
   function onAlertManagerChange(option: SelectableValue<string>) {

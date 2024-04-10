@@ -358,8 +358,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       openNotification('Webhook has been removed');
     } catch (_err) {
       openNotification('Webook could not been removed');
+    } finally {
+      this.setState({ confirmationModal: undefined });
     }
-    this.setState({ confirmationModal: undefined });
   };
 
   onEditClick = (id: ApiSchemas['Webhook']['id']) => {
