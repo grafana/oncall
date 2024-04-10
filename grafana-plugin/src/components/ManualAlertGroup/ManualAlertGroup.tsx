@@ -12,7 +12,9 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
 
-import { ManualAlertGroupFormData } from './ManualAlertGroup.config';
+export type FormData = {
+  message: string;
+};
 
 interface ManualAlertGroupProps {
   onHide: () => void;
@@ -30,7 +32,7 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
     onHide();
   }, [onHide]);
 
-  const formMethods = useForm<ManualAlertGroupFormData>({
+  const formMethods = useForm<FormData>({
     mode: 'onChange',
     defaultValues: { message: '' },
   });
