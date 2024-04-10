@@ -10,8 +10,8 @@ export const getIntegrationFormStyles = (theme: GrafanaTheme2) => {
     extraFields: css`
       padding: 12px;
       margin-bottom: 24px;
-      border: var(--border-weak);
-      border-radius: var(--border-radius);
+      border: 1px solid ${theme.colors.border.weak};
+      border-radius: ${theme.shape.radius.default};
     `,
 
     extraFieldsRadio: css`
