@@ -147,9 +147,11 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     const isNewAlertReceiveChannel = id === 'new';
 
     if (!isNewAlertReceiveChannel) {
-      alertReceiveChannel = await store.alertReceiveChannelStore
-        .fetchItemById(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+      try {
+        alertReceiveChannel = await store.alertReceiveChannelStore.fetchItemById(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+      }
     }
 
     if (alertReceiveChannel || isNewAlertReceiveChannel) {

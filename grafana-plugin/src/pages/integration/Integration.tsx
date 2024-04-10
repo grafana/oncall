@@ -588,31 +588,28 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       {
         isAddingRoute: true,
       },
-      () => {
-        AlertReceiveChannelHelper.createChannelFilter({
+      async () => {
+        const channelFilter: ChannelFilter = await AlertReceiveChannelHelper.createChannelFilter({
           alert_receive_channel: id,
           filtering_term: NEW_ROUTE_DEFAULT,
           filtering_term_type: 1, // non-regex
-        })
-          .then(async (channelFilter: ChannelFilter) => {
-            await alertReceiveChannelStore.fetchChannelFilters(id);
-
-            this.setState(
-              (prevState) => ({
-                isAddingRoute: false,
-                openRoutes: prevState.openRoutes.concat(channelFilter.id),
-              }),
-              () => this.forceUpdate()
-            );
-
-            openNotification('A new route has been added');
-          })
-          .catch((err) => {
-            const errors = get(err, 'response.data');
-            if (errors?.non_field_errors) {
-              openErrorNotification(errors.non_field_errors);
-            }
-          });
+        });
+        try {
+          await alertReceiveChannelStore.fetchChannelFilters(id);
+          this.setState(
+            (prevState) => ({
+              isAddingRoute: false,
+              openRoutes: prevState.openRoutes.concat(channelFilter.id),
+            }),
+            () => this.forceUpdate()
+          );
+          openNotification('A new route has been added');
+        } catch (err) {
+          const errors = get(err, 'response.data');
+          if (errors?.non_field_errors) {
+            openErrorNotification(errors.non_field_errors);
+          }
+        }
       }
     );
   };
@@ -631,7 +628,8 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
     const onRouteDelete = async (routeId: string) => {
-      await alertReceiveChannelStore.deleteChannelFilter(routeId).then(() => this.forceUpdate());
+      await alertReceiveChannelStore.deleteChannelFilter(routeId);
+      this.forceUpdate();
       openNotification('Route has been deleted');
     };
 
@@ -682,7 +680,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
-  onUpdateRoutesCallback = (
+  onUpdateRoutesCallback = async (
     { route_template }: { route_template: string },
     channelFilterId: ChannelFilter['id'],
     filteringTermType?: number
@@ -692,29 +690,26 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       params: { id },
     } = this.props.match;
 
-    alertReceiveChannelStore
-      .saveChannelFilter(channelFilterId, {
+    try {
+      const channelFilter: ChannelFilter = await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
         filtering_term: route_template,
         filtering_term_type: filteringTermType,
-      })
-      .then((channelFilter: ChannelFilter) => {
-        alertReceiveChannelStore.fetchChannelFilters(id, true).then(() => {
-          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
-        });
-        this.setState({
-          isEditTemplateModalOpen: undefined,
-        });
-        LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-      })
-      .catch((err) => {
-        const errors = get(err, 'response.data');
-        if (errors?.non_field_errors) {
-          openErrorNotification(errors.non_field_errors);
-        }
       });
+      await alertReceiveChannelStore.fetchChannelFilters(id, true);
+      escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+      this.setState({
+        isEditTemplateModalOpen: undefined,
+      });
+      LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+    } catch (err) {
+      const errors = get(err, 'response.data');
+      if (errors?.non_field_errors) {
+        openErrorNotification(errors.non_field_errors);
+      }
+    }
   };
 
-  onUpdateTemplatesCallback = (data) => {
+  onUpdateTemplatesCallback = async (data) => {
     const {
       store,
       match: {
@@ -722,21 +717,19 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       },
     } = this.props;
 
-    store.alertReceiveChannelStore
-      .saveTemplates(id, data)
-      .then(() => {
-        openNotification('The Alert templates have been updated');
-        this.setState({ isEditTemplateModalOpen: undefined });
-        this.setState({ isTemplateSettingsOpen: true });
-        LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-      })
-      .catch((err) => {
-        if (err.response?.data?.length > 0) {
-          openErrorNotification(err.response.data);
-        } else {
-          openErrorNotification('Template is not valid. Please check your template and try again');
-        }
-      });
+    try {
+      await store.alertReceiveChannelStore.saveTemplates(id, data);
+      openNotification('The Alert templates have been updated');
+      this.setState({ isEditTemplateModalOpen: undefined });
+      this.setState({ isTemplateSettingsOpen: true });
+      LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+    } catch (err) {
+      if (err.response?.data?.length > 0) {
+        openErrorNotification(err.response.data);
+      } else {
+        openErrorNotification('Template is not valid. Please check your template and try again');
+      }
+    }
   };
 
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
@@ -758,10 +751,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
   };
 
-  onRemovalFn = (id: ApiSchemas['AlertReceiveChannel']['id']) => {
-    AlertReceiveChannelHelper.deleteAlertReceiveChannel(id).then(() =>
-      this.props.history.push(`${PLUGIN_ROOT}/integrations/`)
-    );
+  onRemovalFn = async (id: ApiSchemas['AlertReceiveChannel']['id']) => {
+    await AlertReceiveChannelHelper.deleteAlertReceiveChannel(id);
+    this.props.history.push(`${PLUGIN_ROOT}/integrations/`);
   };
 
   async loadData() {
@@ -773,10 +765,15 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       history,
     } = this.props;
 
-    const promises = [];
+    const promises: Array<Promise<void | { [key: string]: { alerts_count: number; alert_groups_count: number } }>> = [];
+
+    const fetchItemAndLoadExtraData = async () => {
+      await alertReceiveChannelStore.fetchItemById(id);
+      await this.loadExtraData(id);
+    };
 
     if (!alertReceiveChannelStore.items[id]) {
-      promises.push(alertReceiveChannelStore.fetchItemById(id).then(() => this.loadExtraData(id)));
+      promises.push(fetchItemAndLoadExtraData());
     } else {
       promises.push(this.loadExtraData(id));
     }
@@ -791,14 +788,15 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
     promises.push(alertReceiveChannelStore.fetchCountersForIntegration(id));
 
-    await Promise.all(promises)
-      .catch(() => {
-        if (!alertReceiveChannelStore.items[id]) {
-          // failed fetching the integration (most likely it's not existent)
-          history.push(`${PLUGIN_ROOT}/integrations`);
-        }
-      })
-      .finally(() => this.setState({ isLoading: false }));
+    try {
+      await Promise.all(promises);
+    } catch (_err) {
+      if (!alertReceiveChannelStore.items[id]) {
+        // failed fetching the integration (most likely it's not existent)
+        history.push(`${PLUGIN_ROOT}/integrations`);
+      }
+    }
+    this.setState({ isLoading: false });
   }
 
   async loadExtraData(id: ApiSchemas['AlertReceiveChannel']['id']) {
@@ -1102,30 +1100,32 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     }
   }
 
-  function onIntegrationMigrate() {
-    AlertReceiveChannelHelper.migrateChannel(alertReceiveChannel.id)
-      .then(() => {
-        setConfirmModal(undefined);
-        openNotification('Integration has been successfully migrated.');
-      })
-      .then(() =>
-        Promise.all([
-          alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id),
-          alertReceiveChannelStore.fetchTemplates(alertReceiveChannel.id),
-        ])
-      )
-      .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+  async function onIntegrationMigrate() {
+    try {
+      await AlertReceiveChannelHelper.migrateChannel(alertReceiveChannel.id);
+      setConfirmModal(undefined);
+      openNotification('Integration has been successfully migrated.');
+      await Promise.all([
+        alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id),
+        alertReceiveChannelStore.fetchTemplates(alertReceiveChannel.id),
+      ]);
+    } catch (_err) {
+      openErrorNotification('An error has occurred. Please try again.');
+    }
   }
 
   function showHeartbeatSettings() {
     return alertReceiveChannel.is_available_for_integration_heartbeat;
   }
 
-  function deleteIntegration() {
-    AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannel.id)
-      .then(() => history.push(`${PLUGIN_ROOT}/integrations`))
-      .then(() => openNotification('Integration has been succesfully deleted.'))
-      .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+  async function deleteIntegration() {
+    try {
+      await AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannel.id);
+      history.push(`${PLUGIN_ROOT}/integrations`);
+      openNotification('Integration has been succesfully deleted.');
+    } catch (_err) {
+      openErrorNotification('An error has occurred. Please try again.');
+    }
   }
 
   function openIntegrationSettings() {

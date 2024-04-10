@@ -71,7 +71,7 @@ export const IncidentDropdown: FC<{
   const [currentLoadingAction, setCurrentActionLoading] = useState<IncidentStatus>(undefined);
   const [forcedOpenAction, setForcedOpenAction] = useState<string>(undefined);
 
-  const onClickFn = (
+  const onClickFn = async (
     ev: React.SyntheticEvent<HTMLDivElement>,
     actionName: string,
     action: (value: SyntheticEvent | number) => Promise<void>,
@@ -83,15 +83,12 @@ export const IncidentDropdown: FC<{
     // set them to forcedOpen so that they do not close
     setForcedOpenAction(actionName);
 
-    action(ev)
-      .then(() => {
-        // network request is done and succesful, close them
-        setForcedOpenAction(undefined);
-      })
-      .finally(() => {
-        // hide loading/disabled state
-        setIsLoading(false);
-      });
+    await action(ev);
+
+    // network request is done and succesful, close them
+    setForcedOpenAction(undefined);
+    // hide loading/disabled state
+    setIsLoading(false);
   };
 
   if (alert.status === IncidentStatus.Resolved) {

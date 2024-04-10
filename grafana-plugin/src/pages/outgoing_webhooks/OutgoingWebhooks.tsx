@@ -87,11 +87,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     if (isNewWebhook) {
       this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.NEW });
     } else if (id) {
-      await store.outgoingWebhookStore
-        .loadItem(id, true)
-        .catch((error) =>
-          this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhookAction: undefined })
-        );
+      try {
+        await store.outgoingWebhookStore.loadItem(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhookAction: undefined });
+      }
     }
   };
 
@@ -229,11 +229,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 action={outgoingWebhookAction}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
-                onDelete={() => {
-                  this.onDeleteClick(outgoingWebhookId).then(() => {
-                    this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
-                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
-                  });
+                onDelete={async () => {
+                  await this.onDeleteClick(outgoingWebhookId);
+                  this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
+                  history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
                 }}
               />
             )}
@@ -257,16 +256,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  handleFiltersChange = (filters: FiltersValues, isOnMount: boolean) => {
+  handleFiltersChange = async (filters: FiltersValues, isOnMount: boolean) => {
     const { store } = this.props;
 
     const { outgoingWebhookStore } = store;
 
-    outgoingWebhookStore.updateItems(filters).then(() => {
-      if (isOnMount) {
-        this.parseQueryParams();
-      }
-    });
+    await outgoingWebhookStore.updateItems(filters);
+    if (isOnMount) {
+      this.parseQueryParams();
+    }
   };
 
   renderTeam(record: ApiSchemas['Webhook'], teams: any) {
@@ -352,14 +350,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  onDeleteClick = (id: ApiSchemas['Webhook']['id']): Promise<void> => {
+  onDeleteClick = async (id: ApiSchemas['Webhook']['id']): Promise<void> => {
     const { store } = this.props;
-    return store.outgoingWebhookStore
-      .delete(id)
-      .then(this.update)
-      .then(() => openNotification('Webhook has been removed'))
-      .catch(() => openNotification('Webook could not been removed'))
-      .finally(() => this.setState({ confirmationModal: undefined }));
+    try {
+      await store.outgoingWebhookStore.delete(id);
+      await this.update();
+      openNotification('Webhook has been removed');
+    } catch (_err) {
+      openNotification('Webook could not been removed');
+    }
+    this.setState({ confirmationModal: undefined });
   };
 
   onEditClick = (id: ApiSchemas['Webhook']['id']) => {
@@ -378,7 +378,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  onDisableWebhook = (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
+  onDisableWebhook = async (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
     const {
       store: { outgoingWebhookStore },
     } = this.props;
@@ -391,12 +391,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     // don't pass trigger_type to backend as it's not editable
     delete data.trigger_type;
 
-    outgoingWebhookStore
-      .update(id, data)
-      .then(() => this.update())
-      .then(() => openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`))
-      .catch(() => openErrorNotification('Webhook could not been updated'))
-      .finally(() => this.setState({ confirmationModal: undefined }));
+    try {
+      await outgoingWebhookStore.update(id, data);
+      await this.update();
+      openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`);
+    } catch (_err) {
+      openErrorNotification('Webhook could not been updated');
+    }
+    this.setState({ confirmationModal: undefined });
   };
 
   onLastRunClick = (id: ApiSchemas['Webhook']['id']) => {

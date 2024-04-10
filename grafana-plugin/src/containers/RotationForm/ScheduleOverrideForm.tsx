@@ -155,15 +155,22 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     }
   }, []);
 
-  const updatePreview = () => {
+  const updatePreview = async () => {
     setErrors({});
 
-    store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, store.timezoneStore.calendarStartDate, true, params)
-      .catch(onError)
-      .finally(() => {
-        setIsOpen(true);
-      });
+    try {
+      await store.scheduleStore.updateRotationPreview(
+        scheduleId,
+        shiftId,
+        store.timezoneStore.calendarStartDate,
+        true,
+        params
+      );
+    } catch (err) {
+      onError(err);
+    } finally {
+      setIsOpen(true);
+    }
   };
 
   const onError = useCallback((error) => {

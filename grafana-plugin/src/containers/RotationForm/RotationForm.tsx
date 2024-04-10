@@ -184,15 +184,22 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   }, []);
 
-  const updatePreview = () => {
+  const updatePreview = async () => {
     setErrors({});
 
-    store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, store.timezoneStore.calendarStartDate, false, params)
-      .catch(onError)
-      .finally(() => {
-        setIsOpen(true);
-      });
+    try {
+      await store.scheduleStore.updateRotationPreview(
+        scheduleId,
+        shiftId,
+        store.timezoneStore.calendarStartDate,
+        false,
+        params
+      );
+    } catch (err) {
+      onError(err);
+    } finally {
+      setIsOpen(true);
+    }
   };
 
   const onError = useCallback((error) => {
