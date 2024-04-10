@@ -196,15 +196,16 @@ export const IncidentDropdown: FC<{
                 placeholder={
                   currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
                 }
-                onSelect={(value) => {
+                onSelect={async (value) => {
                   setIsLoading(true);
                   setForcedOpenAction(AlertAction.unResolve);
                   setCurrentActionLoading(IncidentStatus.Silenced);
-                  onSilence(value).finally(() => {
-                    setIsLoading(false);
-                    setForcedOpenAction(undefined);
-                    setCurrentActionLoading(undefined);
-                  });
+
+                  await onSilence(value);
+
+                  setIsLoading(false);
+                  setForcedOpenAction(undefined);
+                  setCurrentActionLoading(undefined);
                 }}
               />
             </div>
