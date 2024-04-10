@@ -84,4 +84,4 @@ export enum OnCallAGStatus {
   Acknowledged = 'acknowledged',
 }
 
-export const GENERIC_ERROR = 'An error has occurred. Please try again'
+export const GENERIC_ERROR = 'An error has occurred. Please try again';
