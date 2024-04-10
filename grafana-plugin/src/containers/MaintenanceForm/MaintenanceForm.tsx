@@ -73,7 +73,6 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
         <VerticalGroup>
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
           trigger false alarms.
-          {/* <GForm form={maintenanceForm} data={initialData} onSubmit={handleSubmit} /> */}
           <FormProvider {...formMethods}>
             <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
               <Controller
