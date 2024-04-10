@@ -79,7 +79,7 @@ class CloudAuthApiClient:
             headers=headers,
             json={
                 "claims": {
-                    "sub": f"user:{user.user_id}",
+                    "sub": f"email:{user.email}",
                 },
                 "extra": extra_claims or {},
                 "accessPolicy": {

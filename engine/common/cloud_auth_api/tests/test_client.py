@@ -25,10 +25,9 @@ def test_request_signed_token(make_organization, make_user_for_organization, res
 
     org_id = 1
     stack_id = 5
-    user_id = 12345
 
     organization = make_organization(stack_id=stack_id, org_id=org_id)
-    user = make_user_for_organization(organization=organization, user_id=user_id)
+    user = make_user_for_organization(organization=organization)
 
     scopes = ["incident:write", "foo:bar"]
     extra_claims = {"vegetable": "carrot", "fruit": "apple"}
@@ -58,7 +57,7 @@ def test_request_signed_token(make_organization, make_user_for_organization, res
     # assert we're sending the right body
     assert json.loads(last_request.body) == {
         "claims": {
-            "sub": f"user:{user_id}",
+            "sub": f"email:{user.email}",
         },
         "extra": extra_claims,
         "accessPolicy": {
