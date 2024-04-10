@@ -78,7 +78,7 @@ export const getCustomFetchFn =
         if (withGlobalErrorHandler) {
           showApiError(res);
         }
-        throw res;
+        throw { res, errorData };
       }
     }
   };

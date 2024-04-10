@@ -36,7 +36,7 @@ export function WrapAutoLoadingState(callback: Function, actionKey: string): (..
 type GlobalNotificationConfig = {
   success?: string;
   failure?: string;
-  composeFailureMessageFn?: (error: unknown) => string;
+  composeFailureMessageFn?: (error: { res: unknown; errorData: unknown }) => string;
   failureType?: 'error' | 'warning';
 };
 

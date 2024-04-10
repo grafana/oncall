@@ -8,6 +8,7 @@ import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { LocationHelper } from 'utils/LocationHelper';
+import { GENERIC_ERROR } from 'utils/consts';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { AlertGroupHelper } from './alertgroup.helpers';
@@ -204,9 +205,13 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn: (error) => `${(error.errorData as any)?.detail || GENERIC_ERROR}`,
+  })
   async resolve(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
-    const { data } = await onCallApi().POST('/alertgroups/{id}/resolve/', {
+    const { data, error } = await onCallApi({ skipErrorHandling: true }).POST('/alertgroups/{id}/resolve/', {
       params: { path: { id } },
     });
     this.updateAlert(id, {
@@ -215,6 +220,10 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn: (error) => `${(error.errorData as any)?.detail || GENERIC_ERROR}`,
+  })
   async unresolve(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unresolve/', { params: { path: { id } } });
@@ -224,6 +233,10 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn: (error) => `${(error.errorData as any)?.detail || GENERIC_ERROR}`,
+  })
   async acknowledge(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/acknowledge/', { params: { path: { id } } });
@@ -233,6 +246,10 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn: (error) => `${(error.errorData as any)?.detail || GENERIC_ERROR}`,
+  })
   async unacknowledge(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unacknowledge/', { params: { path: { id } } });
@@ -242,6 +259,10 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn: (error) => `${(error.errorData as any)?.detail || GENERIC_ERROR}`,
+  })
   async silence(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
     this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/silence/', {
@@ -254,6 +275,10 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn: (error) => `${(error.errorData as any)?.detail || GENERIC_ERROR}`,
+  })
   async unsilence(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unsilence/', { params: { path: { id } } });
