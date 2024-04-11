@@ -9,7 +9,7 @@ from django.conf import settings
 from rest_framework import status
 
 if typing.TYPE_CHECKING:
-    from apps.user_management.models import Organization
+    from apps.user_management.models import User
 
 
 logger = logging.getLogger(__name__)
@@ -43,8 +43,13 @@ class CloudAuthApiClient:
         self.api_token = settings.GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN
 
     def request_signed_token(
-        self, org: "Organization", scopes: typing.List[Scopes], claims: typing.Dict[str, typing.Any]
+        self,
+        user: "User",
+        scopes: typing.List[Scopes],
+        extra_claims: typing.Optional[typing.Dict[str, typing.Any]] = None,
     ) -> str:
+        org = user.organization
+
         # The Cloud Auth API expects the org_id and stack_id to be strings
         org_id = str(org.org_id)
         stack_id = str(org.stack_id)
@@ -73,7 +78,10 @@ class CloudAuthApiClient:
             url,
             headers=headers,
             json={
-                "claims": claims,
+                "claims": {
+                    "sub": f"email:{user.email}",
+                },
+                "extra": extra_claims or {},
                 "accessPolicy": {
                     "scopes": scopes,
                 },
