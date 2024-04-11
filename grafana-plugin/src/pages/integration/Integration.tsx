@@ -67,7 +67,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { GENERIC_ERROR, PLUGIN_ROOT } from 'utils/consts';
 import { withDrawer } from 'utils/hoc';
 import { useDrawer } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
@@ -1111,7 +1111,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         alertReceiveChannelStore.fetchTemplates(alertReceiveChannel.id),
       ]);
     } catch (_err) {
-      openErrorNotification('An error has occurred. Please try again.');
+      openErrorNotification(GENERIC_ERROR);
     }
   }
 
@@ -1125,7 +1125,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       history.push(`${PLUGIN_ROOT}/integrations`);
       openNotification('Integration has been succesfully deleted.');
     } catch (_err) {
-      openErrorNotification('An error has occurred. Please try again.');
+      openErrorNotification(GENERIC_ERROR);
     }
   }
 

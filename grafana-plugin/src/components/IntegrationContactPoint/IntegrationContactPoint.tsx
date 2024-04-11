@@ -26,6 +26,7 @@ import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
+import { GENERIC_ERROR } from 'utils/consts';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -257,7 +258,7 @@ export const IntegrationContactPoint: React.FC<{
         openNotification('Contact point has been removed');
         alertReceiveChannelStore.fetchConnectedContactPoints(id);
       } catch (_err) {
-        openErrorNotification('An error has occurred. Please try again.');
+        openErrorNotification(GENERIC_ERROR);
       }
     };
 
@@ -339,7 +340,7 @@ export const IntegrationContactPoint: React.FC<{
       openNotification('A new contact point has been connected to your integration');
       alertReceiveChannelStore.fetchConnectedContactPoints(id);
     } catch (ex) {
-      const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';
+      const error = ex.response?.data?.detail ?? GENERIC_ERROR;
       openErrorNotification(error);
     } finally {
       setState({ isLoading: false });
