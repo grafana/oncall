@@ -49,7 +49,7 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
   // TODO: add a loading state while we're waiting to hear back from the API when submitting
   // const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
 
-  const onSubmit = async (data: ManualAlertGroupFormData) => {
+  const onSubmit = async (data: FormData) => {
     const transformedData = prepareForUpdate(selectedUserResponders, selectedTeamResponder, data);
 
     const resp = await directPagingStore.createManualAlertRule(transformedData);
