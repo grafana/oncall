@@ -207,7 +207,10 @@ export class AlertGroupStore {
 
   @WithGlobalNotification({
     failure: 'Failure',
-    composeFailureMessageFn: (error) => `${(error?.errorData as any)?.detail || GENERIC_ERROR}`,
+    composeFailureMessageFn: async (error) => {
+      let errorData = await error.json();
+      return errorData?.detail || GENERIC_ERROR;
+    },
   })
   async resolve(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
@@ -222,7 +225,7 @@ export class AlertGroupStore {
 
   @WithGlobalNotification({
     failure: 'Failure',
-    composeFailureMessageFn: (error) => `${(error?.errorData as any)?.detail || GENERIC_ERROR}`,
+    composeFailureMessageFn: (error) => Promise.resolve(`${(error?.errorData as any)?.detail || GENERIC_ERROR}`),
   })
   async unresolve(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
@@ -235,7 +238,7 @@ export class AlertGroupStore {
 
   @WithGlobalNotification({
     failure: 'Failure',
-    composeFailureMessageFn: (error) => `${(error?.errorData as any)?.detail || GENERIC_ERROR}`,
+    composeFailureMessageFn: (error) => Promise.resolve(`${(error?.errorData as any)?.detail || GENERIC_ERROR}`),
   })
   async acknowledge(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
@@ -248,7 +251,7 @@ export class AlertGroupStore {
 
   @WithGlobalNotification({
     failure: 'Failure',
-    composeFailureMessageFn: (error) => `${(error?.errorData as any)?.detail || GENERIC_ERROR}`,
+    composeFailureMessageFn: (error) => Promise.resolve(`${(error?.errorData as any)?.detail || GENERIC_ERROR}`),
   })
   async unacknowledge(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);
@@ -261,7 +264,7 @@ export class AlertGroupStore {
 
   @WithGlobalNotification({
     failure: 'Failure',
-    composeFailureMessageFn: (error) => `${(error?.errorData as any)?.detail || GENERIC_ERROR}`,
+    composeFailureMessageFn: (error) => Promise.resolve(`${(error?.errorData as any)?.detail || GENERIC_ERROR}`),
   })
   async silence(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
     this.setLiveUpdatesPaused(true);
@@ -277,7 +280,7 @@ export class AlertGroupStore {
 
   @WithGlobalNotification({
     failure: 'Failure',
-    composeFailureMessageFn: (error) => `${(error?.errorData as any)?.detail || GENERIC_ERROR}`,
+    composeFailureMessageFn: (error) => Promise.resolve(`${(error?.errorData as any)?.detail || GENERIC_ERROR}`),
   })
   async unsilence(id: ApiSchemas['AlertGroup']['pk']) {
     this.setLiveUpdatesPaused(true);

@@ -73,12 +73,14 @@ export const getCustomFetchFn =
         return res;
       } else {
         const errorData = await res.json();
+        const errorData = await res.clone().json();
         faro?.api.pushEvent('Request failed', { url });
         faro?.api.pushError(errorData);
         if (withGlobalErrorHandler) {
           showApiError(res);
         }
-        throw { res, errorData };
+
+        throw res;
       }
     }
   };

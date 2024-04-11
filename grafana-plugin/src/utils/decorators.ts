@@ -36,7 +36,7 @@ export function WrapAutoLoadingState(callback: Function, actionKey: string): (..
 type GlobalNotificationConfig = {
   success?: string;
   failure?: string;
-  composeFailureMessageFn?: (error: { res: unknown; errorData: unknown }) => string;
+  composeFailureMessageFn?: (error: Response) => Promise<string>;
   failureType?: 'error' | 'warning';
 };
 
@@ -50,7 +50,7 @@ export function WrapWithGlobalNotification(
       success && openNotification(success);
     } catch (err) {
       const open = failureType === 'error' ? openErrorNotification : openWarningNotification;
-      const message = composeFailureMessageFn ? composeFailureMessageFn(err) : failure;
+      const message = composeFailureMessageFn ? await composeFailureMessageFn(err) : failure;
       open(message);
       throw err;
     }
@@ -73,7 +73,7 @@ export function WithGlobalNotification({
         return response;
       } catch (err) {
         const open = failureType === 'error' ? openErrorNotification : openWarningNotification;
-        const message = composeFailureMessageFn ? composeFailureMessageFn(err) : failure;
+        const message = composeFailureMessageFn ? await composeFailureMessageFn(err) : failure;
         open(message);
         throw err;
       }
