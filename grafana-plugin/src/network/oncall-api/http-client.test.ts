@@ -31,7 +31,7 @@ const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
 const FAILING_RESPONSE_MOCK = {
   ok: false,
   json: () => 'ERROR',
-  
+
   // we need to have clone available to actually clone the response
   clone: () => ({
     ok: false,
