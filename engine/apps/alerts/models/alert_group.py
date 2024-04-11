@@ -95,6 +95,7 @@ class LogRecords(typing.TypedDict):
 
 class Permalinks(typing.TypedDict):
     slack: typing.Optional[str]
+    slack_app: typing.Optional[str]
     telegram: typing.Optional[str]
     web: str
 
