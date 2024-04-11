@@ -55,7 +55,7 @@ export class BaseStore {
   }
 
   @action.bound
-  async getById(id: string, skipErrorHandling = false, fromOrganization = false): Promise<any> {
+  async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
     try {
       return await makeRequest(`${this.path}${id}`, {
         method: 'GET',
@@ -98,11 +98,12 @@ export class BaseStore {
   @action.bound
   async delete(id: any) {
     try {
-      await makeRequest(`${this.path}${id}/`, {
+      const result = await makeRequest(`${this.path}${id}/`, {
         method: 'DELETE',
       });
       // Update env_status field for current team
       await this.rootStore.organizationStore.loadCurrentOrganization();
+      return result;
     } catch (error) {
       this.onApiError(error);
     }

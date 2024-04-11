@@ -49,22 +49,20 @@ export const LabelsFilter = observer((props: LabelsFilterProps) => {
 
   const handleLoadOptions = async (search) => {
     if (!search) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    return async () => {
-      const keysFiltered = keys.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+    const keysFiltered = keys.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
-      const promises = keysFiltered.map((key) => loadValuesForKey(key.id));
+    const promises = keysFiltered.map((key) => loadValuesForKey(key.id));
 
-      const list = await Promise.all(promises);
-      const options = list.reduce((memo, { key, values }) => {
-        const options = values.map((value) => ({ key, value }));
-        return [...memo, ...options];
-      }, []);
+    const list = await Promise.all(promises);
+    const options = list.reduce((memo, { key, values }) => {
+      const options = values.map((value) => ({ key, value }));
+      return [...memo, ...options];
+    }, []);
 
-      return options;
-    };
+    return options;
   };
 
   return (

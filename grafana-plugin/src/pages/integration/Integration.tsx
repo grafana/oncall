@@ -589,12 +589,12 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         isAddingRoute: true,
       },
       async () => {
-        const channelFilter: ChannelFilter = await AlertReceiveChannelHelper.createChannelFilter({
-          alert_receive_channel: id,
-          filtering_term: NEW_ROUTE_DEFAULT,
-          filtering_term_type: 1, // non-regex
-        });
         try {
+          const channelFilter: ChannelFilter = await AlertReceiveChannelHelper.createChannelFilter({
+            alert_receive_channel: id,
+            filtering_term: NEW_ROUTE_DEFAULT,
+            filtering_term_type: 1, // non-regex
+          });
           await alertReceiveChannelStore.fetchChannelFilters(id);
           this.setState(
             (prevState) => ({

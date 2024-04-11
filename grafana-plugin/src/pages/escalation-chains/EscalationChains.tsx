@@ -420,7 +420,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       let escalationChain: EscalationChain;
 
       try {
-        await escalationChainStore.loadItem(id, true);
+        escalationChain = await escalationChainStore.loadItem(id, true);
       } catch (error) {
         this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
       }

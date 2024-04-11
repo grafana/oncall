@@ -600,9 +600,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const { resolutionNoteText } = this.state;
 
     await store.resolutionNotesStore.createResolutionNote(id, resolutionNoteText);
-
     this.setState({ resolutionNoteText: '' });
-    this.update();
+    await this.update();
   };
 
   getPlaceholderReplaceFn = (entity: any, history) => {
