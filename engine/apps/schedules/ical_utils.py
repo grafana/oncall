@@ -359,14 +359,12 @@ def list_users_to_notify_from_ical_for_period(
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
 ) -> typing.Sequence["User"]:
-    users_found_in_ical: typing.Sequence["User"] = []
     events = schedule.final_events(start_datetime, end_datetime)
     usernames: typing.List[str] = []
     for event in events:
         usernames += [u["email"] for u in event.get("users", [])]
 
-    users_found_in_ical = memoized_users_in_ical(tuple(usernames), schedule.organization)
-    return users_found_in_ical
+    return memoized_users_in_ical(tuple(usernames), schedule.organization)
 
 
 def get_oncall_users_for_multiple_schedules(
