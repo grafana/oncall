@@ -44,6 +44,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: grafana/ops-devenv
+          token: ""
+
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
         with:
