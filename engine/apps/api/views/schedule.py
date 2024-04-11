@@ -143,14 +143,10 @@ class ScheduleView(
         if self.action == "list":
             # listing page, only get oncall users for current page schedules, prefetch shift swap requests
             current_schedules = self.filter_queryset(self.get_queryset(annotate=False)).prefetch_related(
-                Prefetch(
-                    "shift_swap_requests",
+                self.prefetch_shift_swaps(
                     queryset=ShiftSwapRequest.objects.filter(
                         swap_start__lte=events_datetime, swap_end__gte=events_datetime
                     )
-                    .select_related("benefactor", "beneficiary")
-                    .order_by("created_at"),
-                    to_attr=PREFETCHED_SHIFT_SWAPS,
                 )
             )
             current_schedules = self.paginate_queryset(current_schedules)
@@ -158,6 +154,14 @@ class ScheduleView(
             # if this is a particular schedule detail, only consider it as current
             current_schedules = [self.get_object(annotate=False)]
         return get_oncall_users_for_multiple_schedules(current_schedules, events_datetime)
+
+    @staticmethod
+    def prefetch_shift_swaps(queryset):
+        return Prefetch(
+            "shift_swap_requests",
+            queryset=queryset.select_related("benefactor", "beneficiary").order_by("created_at"),
+            to_attr=PREFETCHED_SHIFT_SWAPS,
+        )
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -444,15 +448,11 @@ class ScheduleView(
             OnCallSchedule.objects.related_to_user(self.request.user)
             .select_related("organization")
             .prefetch_related(
-                Prefetch(
-                    "shift_swap_requests",
+                self.prefetch_shift_swaps(
                     queryset=ShiftSwapRequest.objects.filter(
                         Q(swap_start__lt=datetime_start, swap_end__gte=datetime_start)
                         | Q(swap_start__gte=datetime_start, swap_start__lte=datetime_end)
                     )
-                    .select_related("benefactor", "beneficiary")
-                    .order_by("created_at"),
-                    to_attr=PREFETCHED_SHIFT_SWAPS,
                 )
             )
         )
