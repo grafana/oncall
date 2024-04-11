@@ -32,6 +32,7 @@ from apps.schedules.constants import (
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
+    PREFETCHED_SHIFT_SWAPS,
 )
 from apps.schedules.ical_utils import (
     EmptyShifts,
@@ -465,7 +466,7 @@ class OnCallSchedule(PolymorphicModel):
         return events
 
     def filter_swap_requests(
-        self, datetime_start: datetime.datetime, datetime_end: datetime.time
+        self, datetime_start: datetime.datetime, datetime_end: datetime.datetime
     ) -> "RelatedManager['ShiftSwapRequest']":
         swap_requests = self.shift_swap_requests.filter(  # starting before but ongoing
             swap_start__lt=datetime_start, swap_end__gte=datetime_start
@@ -716,7 +717,12 @@ class OnCallSchedule(PolymorphicModel):
     ) -> ScheduleEvents:
         """Apply swap requests details to schedule events."""
         # get swaps requests affecting this schedule / time range
-        swaps = self.filter_swap_requests(datetime_start, datetime_end)
+        prefetched_swaps = getattr(self, PREFETCHED_SHIFT_SWAPS, None)
+        swaps = (
+            prefetched_swaps
+            if prefetched_swaps is not None
+            else self.filter_swap_requests(datetime_start, datetime_end)
+        )
 
         def _insert_event(index: int, event: ScheduleEvent) -> int:
             # add event, if any, to events list in the specified index

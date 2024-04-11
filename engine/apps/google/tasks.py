@@ -41,16 +41,16 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
         )
 
         for schedule in users_schedules:
-            _, _, upcoming_shifts = schedule.shifts_for_user(
+            _, current_shifts, upcoming_shifts = schedule.shifts_for_user(
                 user,
                 start_time_utc,
                 datetime_end=end_time_utc,
             )
 
-            if upcoming_shifts:
+            if current_shifts or upcoming_shifts:
                 logger.info(
-                    f"Found {len(upcoming_shifts)} upcoming shift(s) for user {user_id} "
-                    f"during the out of office event {event_id}"
+                    f"Found {len(current_shifts)} current shift(s) and {len(upcoming_shifts)} upcoming shift(s) "
+                    f"for user {user_id} during the out of office event {event_id}"
                 )
 
                 shift_swap_request_exists = ShiftSwapRequest.objects.filter(
@@ -78,7 +78,9 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
                 else:
                     logger.info(f"Shift swap request already exists for user {user_id} schedule {schedule.pk}")
             else:
-                logger.info(f"No upcoming shifts found for user {user_id} during the out of office event {event_id}")
+                logger.info(
+                    f"No current or upcoming shifts found for user {user_id} during the out of office event {event_id}"
+                )
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

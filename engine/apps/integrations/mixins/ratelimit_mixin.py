@@ -18,6 +18,9 @@ RATELIMIT_INTEGRATION = "300/5m"
 RATELIMIT_TEAM = "900/5m"
 RATELIMIT_REASON_INTEGRATION = "channel"
 RATELIMIT_REASON_TEAM = "team"
+INTEGRATION_TOKEN_TO_IGNORE_KEY = "integration_tokens_to_ignore_ratelimit"
+RATELIMIT_BYPASS_CACHE_KEY = f"{INTEGRATION_TOKEN_TO_IGNORE_KEY}_cache_key"
+RATELIMIT_BYPASS_CACHE_TIMEOUT = 5
 
 
 def get_rate_limit_per_channel_key(_, request):
@@ -85,17 +88,21 @@ def ratelimit(group=None, key=None, rate=None, method=ALL, block=False, reason=N
 
 
 def is_ratelimit_ignored(alert_receive_channel):
-    from apps.base.models import DynamicSetting
+    integration_tokens_to_ignore_ratelimit = cache.get(RATELIMIT_BYPASS_CACHE_KEY)
+    if not integration_tokens_to_ignore_ratelimit:
+        from apps.base.models import DynamicSetting
 
-    integration_token_to_ignore_ratelimit = DynamicSetting.objects.get_or_create(
-        name="integration_tokens_to_ignore_ratelimit",
-        defaults={
-            "json_value": [
-                "dummytoken_uniq_1213kj1h3",
-            ]
-        },
-    )[0]
-    return alert_receive_channel.token in integration_token_to_ignore_ratelimit.json_value
+        dynamic_setting = DynamicSetting.objects.get_or_create(
+            name=INTEGRATION_TOKEN_TO_IGNORE_KEY,
+            defaults={
+                "json_value": [
+                    "dummytoken_uniq_1213kj1h3",
+                ]
+            },
+        )[0]
+        integration_tokens_to_ignore_ratelimit = dynamic_setting.json_value
+        cache.set(RATELIMIT_BYPASS_CACHE_KEY, integration_tokens_to_ignore_ratelimit, RATELIMIT_BYPASS_CACHE_TIMEOUT)
+    return alert_receive_channel.token in integration_tokens_to_ignore_ratelimit
 
 
 class RateLimitMixin(ABC, View):

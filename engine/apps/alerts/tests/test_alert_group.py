@@ -475,45 +475,55 @@ def test_alert_group_log_record_action_source(
     alert_group = make_alert_group(alert_receive_channel)
     root_alert_group = make_alert_group(alert_receive_channel)
 
+    if action_source == ActionSource.BACKSYNC:
+        base_kwargs = {
+            "source_channel": alert_receive_channel,
+        }
+    else:
+        base_kwargs = {
+            "user": user,
+        }
+
     # Silence alert group
-    alert_group.silence_by_user_or_backsync(user, 42, action_source=action_source)
+    alert_group.silence_by_user_or_backsync(**base_kwargs, silence_delay=42, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_SILENCE, action_source)
 
     # Unsilence alert group
-    alert_group.un_silence_by_user_or_backsync(user, action_source=action_source)
+    alert_group.un_silence_by_user_or_backsync(**base_kwargs, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_SILENCE, action_source)
 
     # Acknowledge alert group
-    alert_group.acknowledge_by_user_or_backsync(user, action_source=action_source)
+    alert_group.acknowledge_by_user_or_backsync(**base_kwargs, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_ACK, action_source)
 
     # Unacknowledge alert group
-    alert_group.un_acknowledge_by_user_or_backsync(user, action_source=action_source)
+    alert_group.un_acknowledge_by_user_or_backsync(**base_kwargs, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_ACK, action_source)
 
     # Resolve alert group
-    alert_group.resolve_by_user_or_backsync(user, action_source=action_source)
+    alert_group.resolve_by_user_or_backsync(**base_kwargs, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_RESOLVED, action_source)
 
     # Unresolve alert group
-    alert_group.un_resolve_by_user_or_backsync(user, action_source=action_source)
+    alert_group.un_resolve_by_user_or_backsync(**base_kwargs, action_source=action_source)
     log_record = alert_group.log_records.last()
     assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UN_RESOLVED, action_source)
 
-    # Attach alert group
-    alert_group.attach_by_user(user, root_alert_group, action_source=action_source)
-    log_record = alert_group.log_records.last()
-    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_ATTACHED, action_source)
+    if action_source != ActionSource.BACKSYNC:
+        # Attach alert group
+        alert_group.attach_by_user(user, root_alert_group, action_source=action_source)
+        log_record = alert_group.log_records.last()
+        assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_ATTACHED, action_source)
 
-    # Unattach alert group
-    alert_group.un_attach_by_user(user, action_source=action_source)
-    log_record = alert_group.log_records.last()
-    assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UNATTACHED, action_source)
+        # Unattach alert group
+        alert_group.un_attach_by_user(user, action_source=action_source)
+        log_record = alert_group.log_records.last()
+        assert (log_record.type, log_record.action_source) == (AlertGroupLogRecord.TYPE_UNATTACHED, action_source)
 
 
 @pytest.mark.django_db
@@ -710,19 +720,20 @@ def test_update_state_by_backsync(
     make_alert_group,
 ):
     organization = make_organization()
+    source_channel = make_alert_receive_channel(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    expected_log_data = (ActionSource.BACKSYNC, None, {"source_integration_name": alert_receive_channel.verbal_name})
+    expected_log_data = (ActionSource.BACKSYNC, None, {"source_integration_name": source_channel.verbal_name})
     assert alert_group.state == AlertGroupState.FIRING
     # set to new_state
-    alert_group.update_state_by_backsync(new_state)
+    alert_group.update_state_by_backsync(new_state, source_channel=source_channel)
     alert_group.refresh_from_db()
     assert alert_group.state == new_state
     last_log = alert_group.log_records.last()
     assert (last_log.action_source, last_log.author, last_log.step_specific_info) == expected_log_data
     assert last_log.type == log_type
     # set back to firing
-    alert_group.update_state_by_backsync(AlertGroupState.FIRING)
+    alert_group.update_state_by_backsync(AlertGroupState.FIRING, source_channel=source_channel)
     alert_group.refresh_from_db()
     assert alert_group.state == AlertGroupState.FIRING
     last_log = alert_group.log_records.last()

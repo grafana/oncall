@@ -153,20 +153,11 @@ class MobileAppGatewayView(APIView):
         HS256 = symmetric = shared secret (don't use this)
         """
         org = user.organization
-        token_claims = {
-            "user_id": user.user_id,  # grafana user ID
-            "user_email": user.email,
-            "stack_id": org.stack_id,
-            "organization_id": org.org_id,  # grafana org ID
-            "stack_slug": org.stack_slug,
-            "org_slug": org.org_slug,
-        }
-
         token_scopes = {
             cls.SupportedDownstreamBackends.INCIDENT: [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         }[downstream_backend]
 
-        return f"{org.stack_id}:{CloudAuthApiClient().request_signed_token(org, token_scopes, token_claims)}"
+        return f"{org.stack_id}:{CloudAuthApiClient().request_signed_token(user, token_scopes)}"
 
     @classmethod
     def _get_downstream_headers(
