@@ -20,6 +20,7 @@ import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { QRCode } from './parts/QRCode/QRCode';
+import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
 
 const cx = cn.bind(styles);
 
@@ -143,6 +144,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   let content: React.ReactNode = null;
+  const QRCodeDataParsed = QRCodeValue && getParsedQRCodeValue();
 
   if (fetchingQRCode || disconnectingMobileApp || !userPk || !basicDataLoaded) {
     content = <LoadingPlaceholder text="Loading..." />;
@@ -165,8 +167,6 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
       </VerticalGroup>
     );
   } else if (QRCodeValue) {
-    const QRCodeDataParsed = getParsedQRCodeValue();
-
     content = (
       <VerticalGroup spacing="lg">
         <Text type="primary" strong>
@@ -192,12 +192,19 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     );
   }
 
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
   return (
     <VerticalGroup>
       <div className={cx('container')}>
         <Block shadowed bordered withBackground className={cx('container__box')}>
           <DownloadIcons />
         </Block>
+        {QRCodeValue && isMobile &&
+          (<Block shadowed bordered withBackground className={cx('container__box')}>
+            <LinkLoginButton baseUrl={QRCodeDataParsed.oncall_api_url} token={QRCodeDataParsed.token}/>
+          </Block>
+          )}
         <Block shadowed bordered withBackground className={cx('container__box')}>
           {content}
         </Block>
