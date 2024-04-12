@@ -75,6 +75,7 @@ export function getMTTRChangedTimeseriesScene({ datasource, stack }: InsightsCon
             ],
           },
           unit: 's',
+          min: 0,
         },
         overrides: [
           {
