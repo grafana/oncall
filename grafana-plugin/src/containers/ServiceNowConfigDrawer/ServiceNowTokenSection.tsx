@@ -91,7 +91,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
     const res = await AlertReceiveChannelHelper.generateServiceNowToken({ id });
 
     if (res?.token) {
-      setTokenData(res as any);
+      setTokenData(res);
     }
   }
 });
