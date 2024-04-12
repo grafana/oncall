@@ -14,7 +14,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
+import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
@@ -191,8 +191,6 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
       </VerticalGroup>
     );
   }
-
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
   return (
     <VerticalGroup>
