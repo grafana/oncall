@@ -43,7 +43,7 @@
         "content": "<div>\n  <img src=\"/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
         "mode": "html"
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "transparent": true,
       "type": "text"
     },
@@ -69,7 +69,7 @@
         "content": "# Grafana OnCall Insights",
         "mode": "markdown"
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "transparent": true,
       "type": "text"
     },
@@ -94,7 +94,7 @@
         "content": "📣 This is a read-only dashboard. To make a copy, click \"Settings\" and \"Save as\".\n\n📝 If you see *\"No data\"* errors, check the right datasource is selected\nand that you have already used and setup the [OnCall](/a/grafana-oncall-app/alert-groups) plugin.\nYou can also try [re-importing the dashboard](/plugins/grafana-oncall-app?page=dashboards)\nto confirm you have the latest updates. If you just copied the dashboard,\nyou may need to reload it.",
         "mode": "markdown"
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "transparent": true,
       "type": "text"
     },
@@ -170,7 +170,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -181,7 +181,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "delta(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[30m:])[$__range:]) >= 0",
+          "expr": "sum(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__range])) != 0)",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -217,7 +217,8 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "s",
+          "min": 0
         },
         "overrides": [
           {
@@ -255,7 +256,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -292,8 +293,8 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 80,
-            "gradientMode": "opacity",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -301,9 +302,6 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
-            "lineStyle": {
-              "fill": "solid"
-            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -313,7 +311,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -330,31 +328,9 @@
                 "value": null
               }
             ]
-          },
-          "unitScale": true
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byValue",
-              "options": {
-                "op": "gte",
-                "reducer": "allIsZero",
-                "value": 0
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": true,
-                  "tooltip": true,
-                  "viz": true
-                }
-              }
-            ]
           }
-        ]
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 9,
@@ -375,6 +351,7 @@
           "sort": "desc"
         }
       },
+      "pluginVersion": "11.1.0-69007",
       "targets": [
         {
           "datasource": {
@@ -385,8 +362,9 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "delta(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[30m:])[1h:]) >= 0",
+          "expr": "sum by (integration)(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[30m:])) >= 0)",
           "fullMetaSearch": false,
+          "hide": false,
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -456,7 +434,7 @@
             ]
           },
           "unit": "s",
-          "unitScale": true
+          "min": 0
         },
         "overrides": [
           {
@@ -547,6 +525,7 @@
           },
           "decimals": 0,
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -555,8 +534,7 @@
                 "value": null
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
@@ -597,7 +575,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -606,7 +584,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(delta(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[$__range:])>=0)",
+          "expr": "sort_desc(sum by (integration)(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__range])) != 0))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -617,15 +595,14 @@
       "title": "Alert groups by Integration",
       "transformations": [
         {
-          "id": "seriesToRows",
-          "options": {}
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true
+              "Metric": false,
+              "Time": true,
+              "Value": false
             },
+            "includeByName": {},
             "indexByName": {},
             "renameByName": {
               "Metric": "Integration",
@@ -659,6 +636,7 @@
             "inspect": false
           },
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -672,8 +650,7 @@
               }
             ]
           },
-          "unit": "s",
-          "unitScale": true
+          "unit": "s"
         },
         "overrides": [
           {
@@ -714,7 +691,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -733,10 +710,6 @@
       ],
       "title": "Mean time to respond (MTTR) by Integration",
       "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {}
-        },
         {
           "id": "organize",
           "options": {
@@ -799,7 +772,9 @@
             "inspect": false
           },
           "decimals": 0,
+          "fieldMinMax": true,
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -808,8 +783,7 @@
                 "value": null
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
@@ -850,7 +824,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -859,7 +833,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(delta(max_over_time(sum by(team) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[$__range:])>=0)",
+          "expr": "sort_desc(sum by (team)(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__range])) != 0))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -870,15 +844,14 @@
       "title": "Alert groups by Team",
       "transformations": [
         {
-          "id": "seriesToRows",
-          "options": {}
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true
+              "Time": true,
+              "Value": false,
+              "team": false
             },
+            "includeByName": {},
             "indexByName": {},
             "renameByName": {
               "Metric": "Integration",
@@ -911,7 +884,9 @@
             "filterable": false,
             "inspect": false
           },
+          "fieldMinMax": false,
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -925,8 +900,7 @@
               }
             ]
           },
-          "unit": "s",
-          "unitScale": true
+          "unit": "s"
         },
         "overrides": [
           {
@@ -967,7 +941,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -986,10 +960,6 @@
       ],
       "title": "Mean time to respond (MTTR) by Team",
       "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {}
-        },
         {
           "id": "organize",
           "options": {
@@ -1075,8 +1045,7 @@
                 "value": null
               }
             ]
-          },
-          "unitScale": true
+          }
         },
         "overrides": [
           {
@@ -1130,7 +1099,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "delta(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[30m:])[1h:]) >= 0",
+          "expr": "sum by (username)(round(delta($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}[30m:])) >= 0)",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1163,6 +1132,7 @@
           },
           "decimals": 0,
           "mappings": [],
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1172,8 +1142,7 @@
               }
             ]
           },
-          "unit": "none",
-          "unitScale": true
+          "unit": "none"
         },
         "overrides": [
           {
@@ -1214,7 +1183,7 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "10.4.0-65875",
+      "pluginVersion": "11.1.0-69248",
       "targets": [
         {
           "datasource": {
@@ -1223,7 +1192,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(delta(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[30m:])[$__range:])>=0)",
+          "expr": "sort_desc(sum by (username)(round(delta($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}[$__range])) != 0))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1233,10 +1202,6 @@
       ],
       "title": "New alert groups notifications",
       "transformations": [
-        {
-          "id": "seriesToRows",
-          "options": {}
-        },
         {
           "id": "organize",
           "options": {
@@ -1257,15 +1222,15 @@
       "type": "table"
     }
   ],
-  "refresh": false,
+  "refresh": "",
+  "revision": 2,
   "schemaVersion": 39,
-  "style": "dark",
-  "tags": ["oncall"],
+  "tags": [],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "grafanacloud-usage",
           "value": "grafanacloud-usage"
         },
@@ -1285,8 +1250,8 @@
       {
         "current": {
           "selected": true,
-          "text": ["oncall_alert_groups_total", "grafanacloud_oncall_instance_alert_groups_total"],
-          "value": ["oncall_alert_groups_total", "grafanacloud_oncall_instance_alert_groups_total"]
+          "text": ["grafanacloud_oncall_instance_alert_groups_total"],
+          "value": ["grafanacloud_oncall_instance_alert_groups_total"]
         },
         "datasource": {
           "type": "prometheus",
@@ -1310,6 +1275,11 @@
         "type": "query"
       },
       {
+        "current": {
+          "selected": false,
+          "text": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_count",
+          "value": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_count"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1332,6 +1302,11 @@
         "type": "query"
       },
       {
+        "current": {
+          "selected": false,
+          "text": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_sum",
+          "value": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_sum"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1354,6 +1329,11 @@
         "type": "query"
       },
       {
+        "current": {
+          "selected": false,
+          "text": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket",
+          "value": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1376,6 +1356,11 @@
         "type": "query"
       },
       {
+        "current": {
+          "selected": false,
+          "text": "grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total",
+          "value": "grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
