@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
 
 import { Button, VerticalGroup } from '@grafana/ui';
+
 import { Text } from 'components/Text/Text';
 
 type Props = {

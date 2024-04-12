@@ -19,8 +19,8 @@ import { openErrorNotification, openNotification, openWarningNotification } from
 import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
-import { QRCode } from './parts/QRCode/QRCode';
 import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
+import { QRCode } from './parts/QRCode/QRCode';
 
 const cx = cn.bind(styles);
 
