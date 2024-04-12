@@ -1890,6 +1890,7 @@ export interface components {
     };
     IntegrationTokenPostResponse: {
       token: string;
+      usage: string;
     };
     Key: {
       id: string;
