@@ -6,13 +6,14 @@ import { InsightsConfig } from 'pages/insights/Insights.types';
 export function getNewAlertGroupsTimeseriesScene({ datasource, stack }: InsightsConfig) {
   const query = new SceneQueryRunner({
     datasource,
+    minInterval: '1m',
     queries: [
       {
         disableTextWrap: false,
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: `sum by (integration)(round(delta($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}[30m:])) >= 0)`,
+        expr: `sum by (integration)(round(delta($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}[$__interval:]))) >= 0`,
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',
