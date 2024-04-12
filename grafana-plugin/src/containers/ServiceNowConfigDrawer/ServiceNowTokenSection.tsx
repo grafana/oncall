@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Input, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -13,7 +14,6 @@ import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab
 import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
-import { css } from '@emotion/css';
 
 interface TokenData {
   token: string;
