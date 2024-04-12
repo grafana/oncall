@@ -198,7 +198,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
         <Block shadowed bordered withBackground className={cx('container__box')}>
           <DownloadIcons />
         </Block>
-        {QRCodeValue && isMobile && (
+        {QRCodeDataParsed && isMobile && (
           <Block shadowed bordered withBackground className={cx('container__box')}>
             <LinkLoginButton baseUrl={QRCodeDataParsed.oncall_api_url} token={QRCodeDataParsed.token} />
           </Block>
