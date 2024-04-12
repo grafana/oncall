@@ -68,7 +68,7 @@ Fill in the following details:
    * Table: `incident`
    * Active: ✔
    * Advanced: ✔
-   * When to run > When: `after`
+   * When to run > When: `before`
    * When to run > Insert: ✔
    * When to run > Update: ✔
    * Advanced > Script: Paste the generated script
