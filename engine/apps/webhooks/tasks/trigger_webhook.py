@@ -240,12 +240,16 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     data = _build_payload(webhook, alert_group, user, trigger_type)
     triggered, status, error, exception = make_request(webhook, alert_group, data)
 
-    # create response entry
-    WebhookResponse.objects.create(
-        alert_group=alert_group,
-        trigger_type=trigger_type or webhook.trigger_type,
-        **status,
-    )
+    # create response entry only if webhook was triggered
+    if triggered:
+        WebhookResponse.objects.create(
+            alert_group=alert_group,
+            trigger_type=trigger_type or webhook.trigger_type,
+            **status,
+        )
+    else:
+        reason = status.get("request_trigger", "Unknown")
+        logger.info(f"Webhook {webhook_pk} was not triggered: {reason}")
 
     escalation_policy = step = None
     if escalation_policy_id:
