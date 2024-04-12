@@ -130,7 +130,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             </div>
 
             <div className={styles.border}>
-              <ServiceNowTokenSection />
+              <ServiceNowTokenSection isDrawer />
             </div>
 
             <div className={styles.formButtons}>

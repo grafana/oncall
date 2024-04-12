@@ -12,6 +12,7 @@ import { openNotification } from 'utils/utils';
 interface SourceCodeProps {
   noMaxHeight?: boolean;
   noMinHeight?: boolean;
+  noMarginBottom?: boolean;
   showClipboardIconOnly?: boolean;
   showCopyToClipboard?: boolean;
   children?: string;
