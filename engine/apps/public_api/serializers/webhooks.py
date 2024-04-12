@@ -162,6 +162,8 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
         if (
             self.instance
             and self.instance.preset
+            and WebhookPresetOptions.ADVANCED_PRESET_META_DATA
+            and WebhookPresetOptions.ADVANCED_PRESET_META_DATA.id
             and self.instance.preset != WebhookPresetOptions.ADVANCED_PRESET_META_DATA.id
         ):
             raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
