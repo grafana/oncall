@@ -27,7 +27,6 @@ export const LinkLoginButton: FC<Props> = (props: Props) => {
       >
         Sign in
       </Button>
-
     </VerticalGroup>
   );
 };
