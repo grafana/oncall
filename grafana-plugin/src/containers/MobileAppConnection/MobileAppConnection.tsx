@@ -170,7 +170,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     content = (
       <VerticalGroup spacing="lg">
         <Text type="primary" strong>
-          Sign In
+          Sign in via QR Code
         </Text>
         <Text type="primary">
           Open the Grafana OnCall mobile application and scan this code to sync it with your account.
