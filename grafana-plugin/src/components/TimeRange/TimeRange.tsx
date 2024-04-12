@@ -1,12 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, TimeOfDayPicker } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { HorizontalGroup, TimeOfDayPicker, useStyles2 } from '@grafana/ui';
 import moment from 'moment-timezone';
-
-import styles from './TimeRange.module.css';
-
-const cx = cn.bind(styles);
 
 interface TimeRangeProps {
   className: string;
@@ -94,9 +90,10 @@ export const TimeRange = (props: TimeRangeProps) => {
   );
 
   const showNextDayTip = useMemo(() => to.isBefore(from), [from, to]);
+  const styles = useStyles2(getStyles);
 
   return (
-    <div className={cx('root', className)}>
+    <div className={cx(styles.root, className)}>
       <HorizontalGroup wrap>
         <div data-testid="time-range-from">
           {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
@@ -111,4 +108,12 @@ export const TimeRange = (props: TimeRangeProps) => {
       </HorizontalGroup>
     </div>
   );
+};
+
+const getStyles = () => {
+  return {
+    root: css`
+      display: block;
+    `,
+  };
 };

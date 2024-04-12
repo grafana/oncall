@@ -1,14 +1,11 @@
 import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
-import { Pagination, Checkbox, Icon } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Pagination, Checkbox, Icon, useStyles2 } from '@grafana/ui';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 import { DefaultRecordType } from 'rc-table/lib/interface';
-
-import styles from './GTable.module.css';
-
-const cx = cn.bind(styles);
 
 export interface GTableProps<RecordType = unknown> extends TableProps<RecordType> {
   pagination?: {
@@ -43,6 +40,8 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
     showHeader = true,
     ...restProps
   } = props;
+
+  const styles = useStyles2(getGTableStyles);
 
   if (expandable) {
     expandable.expandIcon = (props: { expanded: boolean; record: any }) => {
@@ -117,7 +116,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         key: 'check',
         title: (
           <Checkbox
-            className={cx('checkbox')}
+            className={cx(styles.checkbox)}
             onChange={handleMasterCheckboxChange}
             value={data?.length > 0 && rowSelection.selectedRowKeys.length === data?.length}
           />
@@ -125,7 +124,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         render: (item: any) => {
           return (
             <Checkbox
-              className={cx('checkbox')}
+              className={cx(styles.checkbox)}
               value={rowSelection.selectedRowKeys.includes(item[rowKey as string])}
               onChange={getCheckboxClickHandler(item[rowKey as string])}
             />
@@ -137,10 +136,11 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   }, [rowSelection, columnsProp, data]);
 
   return (
-    <div className={cx('root')} data-testid="test__gTable">
+    <div className={cx(styles.root)} data-testid="test__gTable">
       <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
+        // .filter-table is grafana-wide classname
         className={cx('filter-table', className)}
         columns={columns}
         data={data}
@@ -148,10 +148,28 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         {...restProps}
       />
       {pagination && (
-        <div className={cx('pagination')}>
+        <div className={cx(styles.pagination)}>
           <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
         </div>
       )}
     </div>
   );
+};
+
+const getGTableStyles = (_theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      table {
+        width: 100%;
+      }
+    `,
+
+    pagination: css`
+      margin-top: 20px;
+    `,
+
+    checkbox: css`
+      display: inline-flex;
+    `,
+  };
 };

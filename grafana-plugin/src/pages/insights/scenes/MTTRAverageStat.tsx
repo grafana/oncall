@@ -48,6 +48,7 @@ export function getMTTRAverage({ datasource, stack }: InsightsConfig) {
             ],
           },
           unit: 's',
+          min: 0,
         },
         overrides: [],
       },

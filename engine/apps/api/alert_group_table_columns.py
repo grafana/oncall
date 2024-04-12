@@ -1,6 +1,7 @@
 import typing
 
-from apps.user_management.constants import AlertGroupTableColumns, default_columns
+from apps.user_management.constants import default_columns
+from apps.user_management.types import AlertGroupTableColumns
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import User

@@ -1,15 +1,15 @@
 import React from 'react';
 
-import { HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { HorizontalGroup, IconButton, VerticalGroup, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { openNotification } from 'utils/utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
-import styles from './CheatSheet.module.scss';
+import { getCheatSheetStyles } from './CheatSheet.styles';
 
 interface CheatSheetProps {
   cheatSheetName: string;
@@ -17,23 +17,25 @@ interface CheatSheetProps {
   onClose: () => void;
 }
 
-const cx = cn.bind(styles);
-
 export const CheatSheet = (props: CheatSheetProps) => {
   const { cheatSheetName, cheatSheetData, onClose } = props;
+
+  const styles = useStyles2(getCheatSheetStyles);
+  const utils = useStyles2(getUtilStyles);
+
   return (
-    <div className={cx('cheatsheet-container')}>
-      <div className={cx('cheatsheet-innerContainer')}>
+    <div className={styles.cheatsheetContainer}>
+      <div className={styles.cheatsheetInnerContainer}>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <Text strong>{cheatSheetName} cheatsheet</Text>
             <IconButton aria-label="Close" name="times" onClick={onClose} />
           </HorizontalGroup>
           <Text type="secondary">{cheatSheetData.description}</Text>
-          <div className={cx('u-width-100')}>
+          <div className={utils.width100}>
             {cheatSheetData.fields?.map((field: CheatSheetItem) => {
               return (
-                <div key={field.name} className={cx('cheatsheet-item')}>
+                <div key={field.name} className={styles.cheatsheetItem}>
                   <CheatSheetListItem field={field} />
                 </div>
               );
@@ -50,6 +52,8 @@ interface CheatSheetListItemProps {
 }
 const CheatSheetListItem = (props: CheatSheetListItemProps) => {
   const { field } = props;
+  const styles = useStyles2(getCheatSheetStyles);
+
   return (
     <>
       <Text>{field.name}</Text>
@@ -63,10 +67,10 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
                 </li>
               )}
               {item.codeExample && (
-                <div className={cx('cheatsheet-item-small')}>
+                <div className={bem(styles.cheatsheetItem, 'small')}>
                   <Block bordered fullWidth withBackground>
                     <HorizontalGroup justify="space-between">
-                      <Text type="link" className={cx('code')}>
+                      <Text type="link" className={styles.code}>
                         {item.codeExample}
                       </Text>
                       <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>

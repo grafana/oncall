@@ -849,6 +849,39 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/complete/{backend}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Authentication complete view */
+    get: operations['complete_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/disconnect/{backend}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['disconnect_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/features/': {
     parameters: {
       query?: never;
@@ -946,6 +979,38 @@ export interface paths {
     };
     /** @description List of labels keys */
     get: operations['labels_keys_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/login/{backend}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['login_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/login/{backend}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['login_retrieve_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1732,6 +1797,9 @@ export interface components {
       value: string;
       display_name: string;
     };
+    GoogleCalendarSettings: {
+      oncall_schedules_to_consider_for_shift_swaps?: string[] | null;
+    };
     /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
     IntegrationAlertGroupLabels: {
       inheritable: {
@@ -1822,6 +1890,7 @@ export interface components {
     };
     IntegrationTokenPostResponse: {
       token: string;
+      usage: string;
     };
     Key: {
       id: string;
@@ -1887,6 +1956,7 @@ export interface components {
       };
       readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
     };
     /**
      * @description * `0` - Debug
@@ -2018,7 +2088,9 @@ export interface components {
       };
       readonly cloud_connection_status?: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected?: boolean;
       readonly is_currently_oncall?: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
     };
     PreviewTemplateRequest: {
       template_body?: string | null;
@@ -2143,7 +2215,9 @@ export interface components {
       };
       readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
       readonly is_currently_oncall: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
     };
     UserExportTokenGetResponse: {
       /** Format: date-time */
@@ -3741,6 +3815,46 @@ export interface operations {
       };
     };
   };
+  complete_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  disconnect_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   features_retrieve: {
     parameters: {
       query?: never;
@@ -3764,6 +3878,7 @@ export interface operations {
             | 'grafana_cloud_connection'
             | 'grafana_alerting_v2'
             | 'labels'
+            | 'google_oauth2'
           )[];
         };
       };
@@ -3935,6 +4050,46 @@ export interface operations {
         content: {
           'application/json': components['schemas']['LabelKey'][];
         };
+      };
+    };
+  };
+  login_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  login_retrieve_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

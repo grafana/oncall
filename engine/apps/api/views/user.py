@@ -137,7 +137,13 @@ class CurrentUserView(APIView, CachedSchedulesContextMixin):
         context = self.get_serializer_context()
         context.update({"request": self.request, "format": self.format_kwarg, "view": self})
 
-        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        is_open_source_with_cloud_notifications = (
+            settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+        )
+        # set context to avoid additional requests to db
+        context["is_open_source_with_cloud_notifications"] = is_open_source_with_cloud_notifications
+
+        if is_open_source_with_cloud_notifications:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
             connector = CloudConnector.objects.first()
@@ -368,7 +374,13 @@ class UserView(
         context = self.get_serializer_context()
 
         if paginate_results and (page := self.paginate_queryset(queryset)) is not None:
-            if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+            is_open_source_with_cloud_notifications = (
+                settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+            )
+            # set context to avoid additional requests to db
+            context["is_open_source_with_cloud_notifications"] = is_open_source_with_cloud_notifications
+
+            if is_open_source_with_cloud_notifications:
                 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
                 if (connector := CloudConnector.objects.first()) is not None:
@@ -393,7 +405,13 @@ class UserView(
         except NotFound:
             return self.wrong_team_response()
 
-        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        is_open_source_with_cloud_notifications = (
+            settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+        )
+        # set context to avoid additional requests to db
+        context["is_open_source_with_cloud_notifications"] = is_open_source_with_cloud_notifications
+
+        if is_open_source_with_cloud_notifications:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
             connector = CloudConnector.objects.first()

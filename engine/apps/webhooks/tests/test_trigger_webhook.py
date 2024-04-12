@@ -42,7 +42,10 @@ def test_send_webhook_event_filters(
     webhooks = {}
     for trigger_type in trigger_types:
         webhooks[trigger_type] = make_custom_webhook(
-            organization=organization, trigger_type=trigger_type, team=make_team(organization)
+            organization=organization,
+            trigger_type=trigger_type,
+            team=make_team(organization),
+            is_from_connected_integration=(trigger_type != Webhook.TRIGGER_ACKNOWLEDGE),
         )
 
     for trigger_type in trigger_types:
@@ -51,6 +54,18 @@ def test_send_webhook_event_filters(
         assert mock_execute.call_args == call(
             (webhooks[trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
         )
+
+    # backsync event exclude connected integration webhooks
+    for trigger_type in trigger_types:
+        with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
+            send_webhook_event(trigger_type, alert_group.pk, organization_id=organization.pk, is_backsync=True)
+            if trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
+                assert mock_execute.call_args == call(
+                    (webhooks[trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
+                )
+            else:
+                # except for the acknowledge webhook (not connected integration set), the webhook is not triggered
+                mock_execute.assert_not_called()
 
     # other org
     other_org_webhook = make_custom_webhook(
@@ -249,7 +264,7 @@ def test_execute_webhook_ok(
     assert log.url == templated_url
     # check log record
     log_record = alert_group.log_records.last()
-    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     expected_info = {
         "trigger": "acknowledge",
         "webhook_id": webhook.public_primary_key,
@@ -306,7 +321,7 @@ def test_execute_webhook_via_escalation_ok(
     assert mock_requests.post.called
     # check log record
     log_record = alert_group.log_records.last()
-    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     expected_info = {
         "trigger": "escalation",
         "webhook_id": webhook.public_primary_key,
@@ -722,6 +737,7 @@ def test_execute_webhook_integration_config(
         http_method="POST",
         trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
         forward_all=True,
+        is_from_connected_integration=True,
     )
     webhook.filtered_integrations.set([source_alert_receive_channel, alert_receive_channel])
 

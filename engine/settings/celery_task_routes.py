@@ -113,6 +113,8 @@ CELERY_TASK_ROUTES = {
     "apps.base.tasks.process_failed_to_invoke_celery_tasks": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks_batch": {"queue": "critical"},
     "apps.email.tasks.notify_user_async": {"queue": "critical"},
+    "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users": {"queue": "critical"},
+    "apps.google.tasks.sync_out_of_office_calendar_events_for_user": {"queue": "critical"},
     "apps.integrations.tasks.create_alert": {"queue": "critical"},
     "apps.integrations.tasks.create_alertmanager_alerts": {"queue": "critical"},
     "apps.integrations.tasks.start_notify_about_integration_ratelimit": {"queue": "critical"},
@@ -177,7 +179,6 @@ CELERY_TASK_ROUTES = {
     "apps.telegram.tasks.send_log_and_actions_message": {"queue": "telegram"},
     "apps.telegram.tasks.on_alert_group_action_triggered_async": {"queue": "telegram"},
     # WEBHOOK
-    "apps.alerts.tasks.custom_button_result.custom_button_result": {"queue": "webhook"},
     "apps.alerts.tasks.custom_webhook_result.custom_webhook_result": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.execute_webhook": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.send_webhook_event": {"queue": "webhook"},

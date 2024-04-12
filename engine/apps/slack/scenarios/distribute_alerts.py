@@ -1,19 +1,15 @@
 import json
 import logging
 import typing
-from contextlib import suppress
 from datetime import datetime
 
 from django.core.cache import cache
 from django.utils import timezone
-from jinja2 import TemplateError
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackRenderer
 from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
-from apps.alerts.tasks import custom_button_result
-from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
@@ -291,7 +287,9 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
             silence_delay = int(value)
 
-        alert_group.silence_by_user_or_backsync(self.user, silence_delay, action_source=ActionSource.SLACK)
+        alert_group.silence_by_user_or_backsync(
+            self.user, silence_delay=silence_delay, action_source=ActionSource.SLACK
+        )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -563,69 +561,6 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
-
-
-class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
-
-    def process_scenario(
-        self,
-        slack_user_identity: "SlackUserIdentity",
-        slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-    ) -> None:
-        from apps.alerts.models import CustomButton
-
-        alert_group = self.get_alert_group(slack_team_identity, payload)
-        if not self.is_authorized(alert_group):
-            self.open_unauthorized_warning(payload)
-            return
-
-        custom_button_pk = payload["actions"][0]["name"].split("_")[1]
-        alert_group_pk = payload["actions"][0]["name"].split("_")[2]
-        try:
-            CustomButton.objects.get(pk=custom_button_pk)
-        except CustomButton.DoesNotExist:
-            warning_text = "Oops! This button was deleted"
-            self.open_warning_window(payload, warning_text=warning_text)
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
-        else:
-            custom_button_result.apply_async(
-                args=(
-                    custom_button_pk,
-                    alert_group_pk,
-                ),
-                kwargs={"user_pk": self.user.pk},
-            )
-
-    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        result_message = log_record.reason
-        custom_button = log_record.custom_button
-        debug_message = ""
-        if not log_record.step_specific_info["is_request_successful"]:
-            with suppress(TemplateError, json.JSONDecodeError):
-                post_kwargs = custom_button.build_post_kwargs(log_record.alert_group.alerts.first())
-                curl_request = render_curl_command(log_record.custom_button.webhook, "POST", post_kwargs)
-                debug_message = f"```{curl_request}```"
-
-        if log_record.author is not None:
-            user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
-            text = (
-                f"{user_verbal} sent a request from an outgoing webhook `{log_record.custom_button.name}` "
-                f"with the result `{result_message}`"
-            )
-        else:
-            text = (
-                f"A request from an outgoing webhook `{log_record.custom_button.name}` was sent "
-                f"according to escalation policy with the result `{result_message}`"
-            )
-        attachments = [
-            {"callback_id": "alert", "text": debug_message},
-        ]
-        self.alert_group_slack_service.publish_message_to_alert_group_thread(
-            alert_group, attachments=attachments, text=text
-        )
 
 
 class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -1161,11 +1096,5 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": StopInvitationProcess.routing_uid(),
         "step": StopInvitationProcess,
-    },
-    {
-        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": InteractiveMessageActionType.BUTTON,
-        "action_name": CustomButtonProcessStep.routing_uid(),
-        "step": CustomButtonProcessStep,
     },
 ]

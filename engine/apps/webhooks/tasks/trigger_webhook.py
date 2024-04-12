@@ -62,7 +62,7 @@ class WebhookRequestStatus(typing.TypedDict):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
+def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None, is_backsync=False):
     from apps.webhooks.models import Webhook
 
     webhooks_qs = Webhook.objects.filter(
@@ -75,6 +75,9 @@ def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_
             trigger_type=Webhook.TRIGGER_STATUS_CHANGE,
             organization_id=organization_id,
         ).exclude(is_webhook_enabled=False)
+
+    if is_backsync:
+        webhooks_qs = webhooks_qs.filter(is_from_connected_integration=False)
 
     for webhook in webhooks_qs:
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None), kwargs={"trigger_type": trigger_type})
@@ -251,8 +254,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
 
     # create log record
     error_code = None
-    # reuse existing webhooks record type (TODO: rename after migration)
-    log_type = AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    log_type = AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     reason = str(status["status_code"])
     if error is not None:
         log_type = AlertGroupLogRecord.TYPE_ESCALATION_FAILED

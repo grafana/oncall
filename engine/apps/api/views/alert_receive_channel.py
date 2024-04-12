@@ -443,7 +443,7 @@ class AlertReceiveChannelView(
             if payload is None:
                 return channel.alert_groups.last().alerts.first()
             else:
-                if type(payload) != dict:
+                if type(payload) is not dict:
                     raise PreviewTemplateException("Payload must be a valid json object")
                 # Build Alert and AlertGroup objects to pass to templater without saving them to db
                 alert_group_to_template = AlertGroup(channel=channel)
@@ -529,7 +529,7 @@ class AlertReceiveChannelView(
         try:
             instance.start_maintenance(mode, duration, request.user)
         except MaintenanceCouldNotBeStartedError as e:
-            if type(instance) == AlertReceiveChannel:
+            if type(instance) is AlertReceiveChannel:
                 detail = {"alert_receive_channel_id": ["Already on maintenance"]}
             else:
                 detail = str(e)
@@ -881,6 +881,7 @@ class AlertReceiveChannelView(
             name="IntegrationTokenPostResponse",
             fields={
                 "token": serializers.CharField(),
+                "usage": serializers.CharField(),
             },
         ),
     )
@@ -889,5 +890,12 @@ class AlertReceiveChannelView(
     def backsync_token_post(self, request, pk):
         instance = self.get_object()
         instance, token = IntegrationBacksyncAuthToken.create_auth_token(instance, request.auth.organization)
-        data = {"token": token}
+
+        usage = ""
+        alert_receive_channel = instance.alert_receive_channel
+        token_usage_func = getattr(alert_receive_channel.config, "get_token_usage", None)
+        if token_usage_func:
+            usage = token_usage_func(alert_receive_channel, token)
+
+        data = {"token": token, "usage": usage}
         return Response(data, status=status.HTTP_201_CREATED)

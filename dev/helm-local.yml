@@ -5,6 +5,9 @@ env:
     value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
+  # enabled to be able to test docker.host.internal in the webhook e2e tests
+  - name: DANGEROUS_WEBHOOKS_ENABLED
+    value: "True"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev

@@ -1,11 +1,12 @@
 import React, { FC, useCallback, useMemo } from 'react';
 
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { useStyles2 } from '@grafana/ui';
 import { Link } from 'react-router-dom';
+import { bem } from 'styles/utils.styles';
 
 import { getPathFromQueryParams } from 'utils/url';
-
-import styles from './PluginLink.module.css';
 
 interface PluginLinkProps {
   disabled?: boolean;
@@ -17,11 +18,10 @@ interface PluginLinkProps {
   onClick?: () => void;
 }
 
-const cx = cn.bind(styles);
-
 export const PluginLink: FC<PluginLinkProps> = (props) => {
   const { children, query, disabled, className, wrap = true, target, onClick } = props;
 
+  const styles = useStyles2(getStyles);
   const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
 
   const handleClick = useCallback(
@@ -43,10 +43,26 @@ export const PluginLink: FC<PluginLinkProps> = (props) => {
     <Link
       target={target}
       onClick={handleClick}
-      className={cx('root', className, { 'no-wrap': !wrap, root_disabled: disabled })}
+      className={cx(styles.root, className, { [styles.noWrap]: !wrap, [bem(styles.root, 'disabled')]: disabled })}
       to={newPath}
     >
       {children}
     </Link>
   );
+};
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      color: ${theme.colors.primary.text};
+
+      &--disabled {
+        color: ${theme.colors.text.disabled};
+      }
+    `,
+
+    noWrap: css`
+      white-space: nowrap;
+    `,
+  };
 };

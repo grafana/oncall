@@ -278,11 +278,6 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
         step = AcknowledgeConfirmationStep(self.log_record.alert_group.channel.organization.slack_team_identity)
         step.process_signal(self.log_record)
 
-    def on_custom_button_triggered(self):
-        CustomButtonProcessStep = ScenarioStep.get_step("distribute_alerts", "CustomButtonProcessStep")
-        step = CustomButtonProcessStep(self.log_record.alert_group.channel.organization.slack_team_identity)
-        step.process_signal(self.log_record)
-
     def on_wiped(self):
         WipeGroupStep = ScenarioStep.get_step("distribute_alerts", "WipeGroupStep")
         step = WipeGroupStep(self.log_record.alert_group.channel.organization.slack_team_identity)
