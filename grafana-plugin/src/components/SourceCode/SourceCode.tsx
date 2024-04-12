@@ -12,6 +12,7 @@ import { openNotification } from 'utils/utils';
 interface SourceCodeProps {
   noMaxHeight?: boolean;
   noMinHeight?: boolean;
+  noMarginBottom?: boolean;
   showClipboardIconOnly?: boolean;
   showCopyToClipboard?: boolean;
   children?: string;
@@ -24,6 +25,7 @@ export const SourceCode: FC<SourceCodeProps> = ({
   children,
   noMaxHeight = false,
   noMinHeight = false,
+  noMarginBottom = false,
   showClipboardIconOnly = false,
   showCopyToClipboard = true,
   rootClassName,
@@ -39,6 +41,7 @@ export const SourceCode: FC<SourceCodeProps> = ({
         styles.root,
         {
           [bem(styles.root, 'noMinHeight')]: noMinHeight,
+          [bem(styles.root, 'noMarginBottom')]: noMarginBottom,
         },
         rootClassName
       )}
@@ -104,6 +107,10 @@ const getStyles = (_theme: GrafanaTheme2) => {
 
       &--noMinHeight pre {
         min-height: unset;
+      }
+
+      &--noMarginBottom pre {
+        margin-bottom: 0;
       }
     `,
     copyIcon: css`
