@@ -135,13 +135,13 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
   }, [mobileAppIsCurrentlyConnected, userPk]);
 
   // Show link to cloud page for OSS instances with no cloud connection
-  // if (
-  //   store.isOpenSource &&
-  //   store.hasFeature(AppFeature.CloudConnection) &&
-  //   !cloudStore.cloudConnectionStatus.cloud_connection_status
-  // ) {
-  //   return renderConnectToCloud();
-  // }
+  if (
+    store.isOpenSource &&
+    store.hasFeature(AppFeature.CloudConnection) &&
+    !cloudStore.cloudConnectionStatus.cloud_connection_status
+  ) {
+    return renderConnectToCloud();
+  }
 
   let content: React.ReactNode = null;
   const QRCodeDataParsed = QRCodeValue && getParsedQRCodeValue();
@@ -203,11 +203,6 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
         <Block shadowed bordered withBackground className={cx('container__box')}>
           <DownloadIcons />
         </Block>
-        {QRCodeDataParsed && isMobile && (
-          <Block shadowed bordered withBackground className={cx('container__box')}>
-            <LinkLoginButton baseUrl={QRCodeDataParsed.oncall_api_url} token={QRCodeDataParsed.token} />
-          </Block>
-        )}
         <Block shadowed bordered withBackground className={cx('container__box')}>
           {content}
         </Block>
