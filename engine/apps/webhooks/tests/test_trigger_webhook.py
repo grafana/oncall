@@ -688,7 +688,9 @@ def test_manually_retried_exceptions(
     execute_webhook(*execute_webhook_args)
 
     mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
-    spy_execute_webhook.apply_async.assert_called_once_with((*execute_webhook_args, 1), countdown=10)
+    spy_execute_webhook.apply_async.assert_called_once_with(
+        execute_webhook_args, kwargs={"trigger_type": None, "manual_retry_num": 1}, countdown=10
+    )
 
     mock_requests.reset_mock()
     spy_execute_webhook.reset_mock()
