@@ -294,8 +294,8 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
+            "fillOpacity": 80,
+            "gradientMode": "opacity",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
@@ -303,6 +303,9 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -1249,15 +1252,14 @@
       "type": "table"
     }
   ],
-  "refresh": "",
-  "revision": 2,
+  "refresh": false,
   "schemaVersion": 39,
-  "tags": [],
+  "tags": ["oncall"],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "grafanacloud-usage",
           "value": "grafanacloud-usage"
         },
@@ -1277,8 +1279,8 @@
       {
         "current": {
           "selected": true,
-          "text": ["grafanacloud_oncall_instance_alert_groups_total"],
-          "value": ["grafanacloud_oncall_instance_alert_groups_total"]
+          "text": ["oncall_alert_groups_total", "grafanacloud_oncall_instance_alert_groups_total"],
+          "value": ["oncall_alert_groups_total", "grafanacloud_oncall_instance_alert_groups_total"]
         },
         "datasource": {
           "type": "prometheus",
@@ -1302,11 +1304,6 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_count",
-          "value": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_count"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1329,11 +1326,6 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_sum",
-          "value": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_sum"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1356,11 +1348,6 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket",
-          "value": "grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1383,11 +1370,6 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": false,
-          "text": "grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total",
-          "value": "grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total"
-        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1497,12 +1479,12 @@
     "to": "now"
   },
   "timepicker": {
-    "refresh_intervals": [],
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
     "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "browser",
   "title": "OnCall Insights",
-  "version": 2,
-  "revision": 2,
+  "version": 3,
+  "revision": 3,
   "weekStart": ""
 }
