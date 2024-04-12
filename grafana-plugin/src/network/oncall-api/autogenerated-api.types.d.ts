@@ -1380,6 +1380,7 @@ export interface components {
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
+        slack_app: string | null;
         telegram: string | null;
         web: string;
       };
@@ -1485,6 +1486,7 @@ export interface components {
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
+        slack_app: string | null;
         telegram: string | null;
         web: string;
       };
