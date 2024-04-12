@@ -13,6 +13,7 @@ import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab
 import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
+import { css } from '@emotion/css';
 
 interface TokenData {
   token: string;
@@ -67,7 +68,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
             </RenderConditionally>
 
             <RenderConditionally shouldRender={tokenData !== undefined}>
-              <SourceCode noMinHeight noMaxHeight={!isDrawer} noMarginBottom showClipboardIconOnly>
+              <SourceCode rootClassName={styles.sourceCodeEl} noMaxHeight={!isDrawer} showClipboardIconOnly>
                 {tokenData?.usage}
               </SourceCode>
             </RenderConditionally>
@@ -99,5 +100,13 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
 const getStyles = (theme: GrafanaTheme2) => {
   return {
     ...getCommonServiceNowConfigStyles(theme),
+
+    sourceCodeEl: css`
+      pre {
+        max-height: 200px;
+        padding-top: 0;
+        margin-bottom: 0;
+      }
+    `,
   };
 };
