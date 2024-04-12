@@ -290,7 +290,8 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
             retry_num = manual_retry_num + 1
             logger.warning(f"Manually retrying execute_webhook for {msg_details} manual_retry_num={retry_num}")
             execute_webhook.apply_async(
-                (webhook_pk, alert_group_id, user_id, escalation_policy_id, retry_num),
+                (webhook_pk, alert_group_id, user_id, escalation_policy_id),
+                kwargs={"trigger_type": trigger_type, "manual_retry_num": retry_num},
                 countdown=10,
             )
         else:
