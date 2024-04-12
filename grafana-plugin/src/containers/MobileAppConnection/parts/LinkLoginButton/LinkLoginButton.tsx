@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const LinkLoginButton: FC<Props> = (props: Props) => {
-  const {baseUrl, token} = props;
+  const { baseUrl, token } = props;
   const mobileDeepLink = `grafana://mobile/login/link-login?oncall_api_url=${baseUrl}&token=${token}`;
 
   return (

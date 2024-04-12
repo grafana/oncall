@@ -6,7 +6,7 @@ import { LinkLoginButton } from './LinkLoginButton';
 
 describe('DownloadIcons', () => {
   test('it renders properly', () => {
-    const component = render(<LinkLoginButton baseUrl='http://test.url' token='test1213'/>);
+    const component = render(<LinkLoginButton baseUrl="http://test.url" token="test1213" />);
     expect(component.container).toMatchSnapshot();
   });
 });
