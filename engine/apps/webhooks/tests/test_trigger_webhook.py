@@ -10,7 +10,7 @@ from apps.alerts.models import AlertGroupExternalID, AlertGroupLogRecord, Escala
 from apps.base.models import UserNotificationPolicyLogRecord
 from apps.public_api.serializers import IncidentSerializer
 from apps.webhooks.models import Webhook
-from apps.webhooks.tasks import execute_webhook, send_webhook_event
+from apps.webhooks.tasks import execute_webhook, send_webhook_event, execute_test_webhook
 from apps.webhooks.tasks.trigger_webhook import NOT_FROM_SELECTED_INTEGRATION
 from settings.base import WEBHOOK_RESPONSE_LIMIT
 
@@ -176,6 +176,51 @@ def test_execute_webhook_integration_filter_matching(
 
 
 ALERT_GROUP_PUBLIC_PRIMARY_KEY = "IXJ47FKMYYJ5U"
+EXAMPLE_PAYLOAD = {
+    "event": {"type": "resolve", "time": "2023-04-19T21:59:21.714058+00:00"},
+    "user": {"id": "UVMX6YI9VY9PV", "username": "admin", "email": "admin@localhost"},
+    "alert_group": {
+        "id": "I6HNZGUFG4K11",
+        "integration_id": "CZ7URAT4V3QF2",
+        "route_id": "RKHXJKVZYYVST",
+        "alerts_count": 1,
+        "state": "resolved",
+        "created_at": "2023-04-19T21:53:48.231148Z",
+        "resolved_at": "2023-04-19T21:59:21.714058Z",
+        "acknowledged_at": "2023-04-19T21:54:39.029347Z",
+        "title": "Incident",
+        "permalinks": {
+            "slack": None,
+            "telegram": None,
+            "web": "https://**********.grafana.net/a/grafana-oncall-app/alert-groups/I6HNZGUFG4K11",
+        },
+    },
+    "alert_group_id": "I6HNZGUFG4K11",
+    "alert_payload": {
+        "endsAt": "0001-01-01T00:00:00Z",
+        "labels": {"region": "eu-1", "alertname": "TestAlert"},
+        "status": "firing",
+        "startsAt": "2018-12-25T15:47:47.377363608Z",
+        "annotations": {"description": "This alert was sent by user for the demonstration purposes"},
+        "generatorURL": "",
+    },
+    "integration": {
+        "id": "CZ7URAT4V3QF2",
+        "type": "webhook",
+        "name": "Main Integration - Webhook",
+        "team": "Webhooks Demo",
+    },
+    "notified_users": [],
+    "users_to_be_notified": [],
+    "responses": {
+        "WHP936BM1GPVHQ": {
+            "id": "7Qw7TbPmzppRnhLvK3AdkQ",
+            "created_at": "15:53:50",
+            "status": "new",
+            "content": {"message": "Ticket created!", "region": "eu"},
+        }
+    },
+}
 
 
 @httpretty.activate(verbose=True, allow_net_connect=False)
@@ -270,6 +315,69 @@ def test_execute_webhook_ok(
     assert log_record.escalation_policy_step is None
     assert log_record.rendered_log_line_action() == f"outgoing webhook `{webhook.name}` triggered by acknowledge"
 
+@httpretty.activate(verbose=True, allow_net_connect=False)
+@pytest.mark.parametrize(
+    "data,expected_request_data,request_post_kwargs",
+    [
+        (
+            '{"value": "{{ alert_group_id }}"}',
+            {"value": "I6HNZGUFG4K11"},
+            {"json": {"value": "I6HNZGUFG4K11"}},
+        ),
+        # test that non-latin characters are properly encoded
+        (
+            "😊",
+            "😊",
+            {"data": "😊".encode("utf-8")},
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_execute_test_webhook_ok(
+    make_organization,
+    make_custom_webhook,
+    make_alert_receive_channel,
+    data,
+    expected_request_data,
+    request_post_kwargs,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://example.com/{{ alert_group_id }}/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        trigger_template="{{{{ alert_group.integration_id == '{}' }}}}".format(
+            EXAMPLE_PAYLOAD["alert_group"]["integration_id"]
+        ),
+        headers='{"some-header": "{{ alert_group_id }}"}',
+        data=data,
+        forward_all=False,
+    )
+    webhook.filtered_integrations.add(alert_receive_channel)
+
+    templated_url = f"https://example.com/{EXAMPLE_PAYLOAD['alert_group']['id']}/"
+    mock_response = httpretty.Response(json.dumps({"response": 200}))
+    httpretty.register_uri(httpretty.POST, templated_url, responses=[mock_response])
+
+    with patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8"):
+        with patch("apps.webhooks.models.webhook.requests", wraps=requests) as mock_requests:
+            execute_test_webhook(webhook.pk, payload=EXAMPLE_PAYLOAD)
+
+    mock_requests.post.assert_called_once_with(
+        templated_url,
+        timeout=TIMEOUT,
+        headers={"some-header": EXAMPLE_PAYLOAD["alert_group"]["id"]},
+        **request_post_kwargs,
+    )
+
+    # assert the request was made to the webhook as we expected
+    last_request = httpretty.last_request()
+    assert last_request.method == "POST"
+    assert last_request.parsed_body == expected_request_data
+    assert last_request.url == templated_url
+    assert last_request.headers["some-header"] == EXAMPLE_PAYLOAD["alert_group"]["id"]
 
 @pytest.mark.django_db
 def test_execute_webhook_via_escalation_ok(

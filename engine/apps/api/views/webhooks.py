@@ -14,11 +14,13 @@ from rest_framework.viewsets import ModelViewSet
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
+from apps.api.throttlers import DemoWebhookThrottler
 from apps.api.views.labels import schedule_update_label_cache
 from apps.auth_token.auth import PluginAuthentication
 from apps.labels.utils import is_labels_feature_enabled
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
+from apps.webhooks.tasks.trigger_webhook import execute_test_webhook
 from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -58,6 +60,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "test_webhook": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_TEST],
     }
 
     model = Webhook
@@ -216,3 +219,17 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
     def preset_options(self, request):
         result = [asdict(preset) for preset in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES]
         return Response(result)
+
+    @action(methods=["post"], detail=True, throttle_classes=[DemoWebhookThrottler])
+    def test_webhook(self, request, pk):
+        instance = self.get_object()
+        payload = request.data.get("webhook_test_payload", None)
+
+        if payload is not None and not isinstance(payload, dict):
+            raise BadRequest(detail="Payload for test webhook must be a valid json object")
+
+        if payload is None:
+            payload = WebhookPresetOptions.EXAMPLE_PAYLOAD
+
+        execute_test_webhook.apply_async((instance.pk, payload))
+        return Response(status=status.HTTP_200_OK)

@@ -181,6 +181,7 @@
 
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:write" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:test" },
 
           { "action": "grafana-oncall-app.maintenance:read" },
           { "action": "grafana-oncall-app.maintenance:write" },
@@ -228,6 +229,7 @@
           { "action": "grafana-oncall-app.chatops:write" },
 
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:test" },
 
           { "action": "grafana-oncall-app.maintenance:read" },
           { "action": "grafana-oncall-app.maintenance:write" },
@@ -454,7 +456,8 @@
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
-          { "action": "grafana-oncall-app.outgoing-webhooks:write" }
+          { "action": "grafana-oncall-app.outgoing-webhooks:write" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:test" }
         ]
       },
       "grants": []
