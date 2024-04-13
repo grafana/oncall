@@ -428,7 +428,6 @@ class User(models.Model):
     def default_notification_policies_defaults(self):
         from apps.base.models import UserNotificationPolicy
         from apps.base.models.user_notification_policy import (
-            PHONE_CALL_BACKEND_INTERNAL_ID,
             TELEGRAM_BACKEND_INTERNAL_ID,
         )
         
@@ -439,18 +438,6 @@ class User(models.Model):
                 notify_by=TELEGRAM_BACKEND_INTERNAL_ID,
                 order=0,
             ),
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.WAIT,
-                wait_delay=datetime.timedelta(minutes=1),
-                order=1,
-            ),
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=PHONE_CALL_BACKEND_INTERNAL_ID,
-                order=2,
-            ),
         )
 
     @property
@@ -458,7 +445,6 @@ class User(models.Model):
         from apps.base.models import UserNotificationPolicy
         from apps.base.models.user_notification_policy import (
             PHONE_CALL_BACKEND_INTERNAL_ID,
-            TELEGRAM_BACKEND_INTERNAL_ID,
         )
 
         return (
@@ -468,13 +454,6 @@ class User(models.Model):
                 notify_by=PHONE_CALL_BACKEND_INTERNAL_ID,
                 important=True,
                 order=0,
-            ),
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=TELEGRAM_BACKEND_INTERNAL_ID,
-                important=True,
-                order=1,
             ),
         )
 
