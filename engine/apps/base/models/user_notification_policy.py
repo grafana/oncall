@@ -179,17 +179,18 @@ class UserNotificationPolicy(OrderedModel):
             raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
         elif (
             self.notify_by == PHONE_CALL_BACKEND_INTERNAL_ID
+            and True == self.important
             and UserNotificationPolicy.objects.filter(
-                important=self.important, notify_by=PHONE_CALL_BACKEND_INTERNAL_ID, user=self.user
+                important=True, notify_by=PHONE_CALL_BACKEND_INTERNAL_ID, user=self.user
             ).count()
             == 1
         ):
-
             raise UserNotificationPolicyCouldNotBeDeleted("User must have at least one phone call notification policy!")
         elif (
             self.notify_by == TELEGRAM_BACKEND_INTERNAL_ID
+            and False == self.important
             and UserNotificationPolicy.objects.filter(
-                important=self.important, notify_by=TELEGRAM_BACKEND_INTERNAL_ID, user=self.user
+                important=False, notify_by=TELEGRAM_BACKEND_INTERNAL_ID, user=self.user
             ).count()
             == 1
         ):
