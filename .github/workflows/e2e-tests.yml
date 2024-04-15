@@ -66,12 +66,15 @@ jobs:
       # ops-devenv setup start
       # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
       - run: npm install @octokit/auth-app
+      - run: npm install execa
       - run: |
-          token=$(node .github/actions/get-installation-token.js)
-          echo "Token: $token"
-          echo "Setting GH_APP_INSTALLATION_TOKEN=$token"
-          # echo "GH_APP_INSTALLATION_TOKEN=$token" >> $GITHUB_ENV
-          echo "GITHUB_TOKEN=$token" >> $GITHUB_ENV
+          node .github/actions/get-installation-token.js
+        # - run: |
+        #     token=$(node .github/actions/get-installation-token.js)
+        #     echo "Token: $token"
+        #     echo "Setting GH_APP_INSTALLATION_TOKEN=$token"
+        #     # echo "GH_APP_INSTALLATION_TOKEN=$token" >> $GITHUB_ENV
+        #     echo "GITHUB_TOKEN=$token" >> $GITHUB_ENV
         id: get-installation-token
         shell: bash
         env:
@@ -79,11 +82,11 @@ jobs:
           GH_APP_ID: ${{ secrets.GH_APP_ID }}
           GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
           GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
-      - name: Clone ops-devenv
-        run: |
-          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/grafana/ops-devenv.git
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      # - name: Clone ops-devenv
+      #   run: |
+      #     git clone https://x-access-token:${GITHUB_TOKEN}@github.com/grafana/ops-devenv.git
+      #   env:
+      #     GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       # - name: Checkout
       #   uses: actions/checkout@v4
       #   with:

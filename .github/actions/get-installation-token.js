@@ -5,12 +5,16 @@ const { createAppAuth } = require("@octokit/auth-app");
     appId: process.env.GH_APP_ID,
     privateKey: process.env.GH_APP_PRIVATE_KEY,
   });
-  const resp = await auth({
+  const { token, tokenType } = await auth({
     type: "installation",
     installationId: process.env.GH_APP_INSTALLATION_ID,
   });
-  process.stdout.write(resp.token);
-  process.exit(0);
+  const tokenWithPrefix =
+    tokenType === "installation" ? `x-access-token:${token}` : token;
+  const repositoryUrl = `https://${tokenWithPrefix}@github.com/grafana/ops-devenv.git`;
+
+  const { stdout } = await execa("git", ["clone", repositoryUrl]);
+  console.log(stdout);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
