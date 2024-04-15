@@ -17,7 +17,9 @@ const { createAppAuth } = require("@octokit/auth-app");
   // });
   // console.log("TOOOKEN", resp.token);
   // return resp.token;
-  return "WOOOOOW";
+  const token = await Promise.resolve("WOOOOOW");
+  console.log("Token:", token);
+  process.exit(0);
 })().catch((e) => {
   // console.error("EEEEERRORRR", e);
   process.exit(1);
