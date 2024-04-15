@@ -2,6 +2,9 @@
 
 exports[`MobileAppConnection it shows a QR code if the app isn't already connected 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -125,6 +128,9 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
 
 exports[`MobileAppConnection it shows a loading message if it is currently disconnecting 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -248,6 +254,9 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
 
 exports[`MobileAppConnection it shows a loading message if it is currently fetching the QR code 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -412,6 +421,9 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
 
 exports[`MobileAppConnection it shows an error message if there was an error disconnecting the mobile app 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -525,6 +537,9 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
 
 exports[`MobileAppConnection it shows an error message if there was an error fetching the QR code 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
