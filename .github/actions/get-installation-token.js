@@ -8,7 +8,7 @@ const { App } = require("octokit");
     privateKey: process.env.GH_APP_PRIVATE_KEY,
   });
   await app.octokit.request("/app");
-  const repos = await octokit.request("Get /user/repos?type=private", {});
+  const repos = await app.octokit.request("Get /user/repos?type=private", {});
   console.log("REPOS: ", repos);
 
   // -----------
