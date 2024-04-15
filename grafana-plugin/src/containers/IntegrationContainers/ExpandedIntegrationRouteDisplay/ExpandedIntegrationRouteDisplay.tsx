@@ -99,9 +99,10 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
 
     useEffect(() => {
       setIsLoading(true);
-      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
-        setIsLoading(false)
-      );
+      (async () => {
+        await Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]);
+        setIsLoading(false);
+      })();
     }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -340,15 +341,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       onRouteDelete(routeIdForDeletion);
     }
 
-    function onEscalationChainChange({ id }) {
-      alertReceiveChannelStore
-        .saveChannelFilter(channelFilterId, {
-          escalation_chain: id,
-        })
-        .then(() => {
-          escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
-          escalationPolicyStore.updateEscalationPolicies(id);
-        });
+    async function onEscalationChainChange({ id }) {
+      await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
+        escalation_chain: id,
+      });
+      escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
+      escalationPolicyStore.updateEscalationPolicies(id);
     }
 
     async function onEscalationChainsRefresh() {

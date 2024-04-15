@@ -95,6 +95,7 @@ class LogRecords(typing.TypedDict):
 
 class Permalinks(typing.TypedDict):
     slack: typing.Optional[str]
+    slack_app: typing.Optional[str]
     telegram: typing.Optional[str]
     web: str
 
@@ -505,6 +506,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return None if self.slack_message is None else self.slack_message.permalink
 
     @property
+    def slack_app_link(self) -> typing.Optional[str]:
+        return None if self.slack_message is None else self.slack_message.deep_link
+
+    @property
     def telegram_permalink(self) -> typing.Optional[str]:
         """
         This property will attempt to access an attribute, `prefetched_telegram_messages`, representing a list of
@@ -527,6 +532,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def permalinks(self) -> Permalinks:
         return {
             "slack": self.slack_permalink,
+            "slack_app": self.slack_app_link,
             "telegram": self.telegram_permalink,
             "web": self.web_link,
         }

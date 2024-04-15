@@ -54,6 +54,7 @@ def construct_expected_response_from_alert_groups(alert_groups):
                 "title": None,
                 "permalinks": {
                     "slack": None,
+                    "slack_app": None,
                     "telegram": None,
                     "web": alert_group.web_link,
                 },
@@ -120,6 +121,34 @@ def test_get_alert_group(alert_group_public_api_setup):
     response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_alert_group_slack_links(
+    alert_group_public_api_setup, make_slack_team_identity, make_slack_channel, make_slack_message
+):
+    token, _, _, _ = alert_group_public_api_setup
+    alert_group = AlertGroup.objects.all().order_by("-started_at").first()
+    organization = alert_group.channel.organization
+    client = APIClient()
+    list_response = construct_expected_response_from_alert_groups(AlertGroup.objects.filter(pk=alert_group.pk))
+    expected_response = list_response["results"][0]
+
+    slack_team_identity = make_slack_team_identity()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, cached_permalink="the-link"
+    )
+
+    url = reverse("api-public:alert_groups-detail", kwargs={"pk": expected_response["id"]})
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    expected_response["permalinks"]["slack"] = slack_message.permalink
+    expected_response["permalinks"]["slack_app"] = slack_message.deep_link
     assert response.json() == expected_response
 
 

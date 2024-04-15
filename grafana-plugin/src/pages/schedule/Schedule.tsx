@@ -278,9 +278,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                     />
                     <Rotations
                       scheduleId={scheduleId}
-                      onCreate={this.handleCreateRotation}
-                      onUpdate={this.handleUpdateRotation}
-                      onDelete={this.handleDeleteRotation}
+                      onCreate={this.refreshEventsAndClearPreview}
+                      onUpdate={this.refreshEventsAndClearPreview}
+                      onDelete={this.refreshEventsAndClearPreview}
                       shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                       onShowRotationForm={this.handleShowRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
@@ -291,9 +291,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
-                      onCreate={this.handleCreateOverride}
-                      onUpdate={this.handleUpdateOverride}
-                      onDelete={this.handleDeleteOverride}
+                      onCreate={this.refreshEventsAndClearPreview}
+                      onUpdate={this.refreshEventsAndClearPreview}
+                      onDelete={this.refreshEventsAndClearPreview}
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
                       disabled={disabledOverrideForm}
@@ -332,7 +332,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                 scheduleId={scheduleId}
                 params={shiftSwapParamsToShowForm}
                 onHide={this.handleHideShiftSwapForm}
-                onUpdate={this.handleUpdateShiftSwaps}
+                onUpdate={this.refreshEventsAndClearPreview}
               />
             )}
           </>
@@ -341,7 +341,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     );
   }
 
-  update = () => {
+  update = async () => {
     const {
       store,
       match: {
@@ -351,9 +351,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const { scheduleStore } = store;
 
-    return scheduleStore.loadItem(scheduleId).then((schedule) => {
-      store.setPageTitle(schedule?.name);
-    });
+    const schedule = await scheduleStore.loadItem(scheduleId);
+    store.setPageTitle(schedule?.name);
   };
 
   handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
@@ -368,7 +367,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     });
   };
 
-  handleNameChange = (value: string) => {
+  handleNameChange = async (value: string) => {
     const {
       store,
       match: {
@@ -378,68 +377,16 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const schedule = store.scheduleStore.items[scheduleId];
 
-    store.scheduleStore
-      .update(scheduleId, { type: schedule.type, name: value })
-      .then(() => store.scheduleStore.loadItem(scheduleId))
-      .then((schedule) => {
-        store.setPageTitle(schedule?.name);
-      });
+    await store.scheduleStore.update(scheduleId, { type: schedule.type, name: value });
+    const loadedSchedule = await store.scheduleStore.loadItem(scheduleId);
+    store.setPageTitle(loadedSchedule?.name);
   };
 
-  handleCreateRotation = () => {
+  refreshEventsAndClearPreview = async () => {
     const { store } = this.props;
 
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
-  };
-
-  handleCreateOverride = () => {
-    const { store } = this.props;
-
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
-  };
-
-  handleUpdateRotation = () => {
-    const { store } = this.props;
-
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
-  };
-
-  handleUpdateShiftSwaps = () => {
-    const { store } = this.props;
-
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
-  };
-
-  handleDeleteRotation = () => {
-    const { store } = this.props;
-
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
-  };
-
-  handleDeleteOverride = () => {
-    const { store } = this.props;
-
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
-  };
-
-  handleUpdateOverride = () => {
-    const { store } = this.props;
-
-    store.scheduleStore.refreshEvents(this.scheduleId).then(() => {
-      store.scheduleStore.clearPreview();
-    });
+    await store.scheduleStore.refreshEvents(this.scheduleId);
+    store.scheduleStore.clearPreview();
   };
 
   handleShedulePeriodTypeChange = (value: string) => {
@@ -494,7 +441,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     };
   };
 
-  handleDelete = () => {
+  handleDelete = async () => {
     const {
       store,
       match: {
@@ -503,7 +450,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       history,
     } = this.props;
 
-    store.scheduleStore.delete(id).then(() => history.replace(`${PLUGIN_ROOT}/schedules`));
+    await store.scheduleStore.delete(id);
+    history.replace(`${PLUGIN_ROOT}/schedules`);
   };
 
   handleShowShiftSwapForm = (id: ShiftSwap['id'], params: Partial<ShiftSwap>) => {
