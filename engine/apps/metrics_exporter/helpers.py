@@ -185,6 +185,7 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
                 "org_id": grafana_org_id,
                 "slug": instance_slug,
                 "id": instance_id,
+                # todo: add services
                 AlertGroupState.FIRING.value: 0,
                 AlertGroupState.ACKNOWLEDGED.value: 0,
                 AlertGroupState.RESOLVED.value: 0,
@@ -208,6 +209,7 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
                 "org_id": grafana_org_id,
                 "slug": instance_slug,
                 "id": instance_id,
+                # todo: add services
                 "response_time": [],
             },
         )

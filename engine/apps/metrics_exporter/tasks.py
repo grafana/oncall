@@ -111,21 +111,51 @@ def calculate_and_cache_metrics(organization_id, force=False):
     }
 
     for integration in integrations:
+        metric_alert_group_total_data = {
+            "integration_name": integration.emojized_verbal_name,
+            "team_name": integration.team_name,
+            "team_id": integration.team_id_or_no_team,
+            "org_id": instance_org_id,
+            "slug": instance_slug,
+            "id": instance_id,
+            "services": {
+                "No service",
+                {
+                    "firing": 0,
+                    "acknowledged": 0,
+                    "resolved": 0,
+                    "silenced": 0,
+                },
+            },
+        }
         # calculate states
         for state, alert_group_filter in states.items():
-            metric_alert_group_total.setdefault(
-                integration.id,
-                {
-                    "integration_name": integration.emojized_verbal_name,
-                    "team_name": integration.team_name,
-                    "team_id": integration.team_id_or_no_team,
-                    "org_id": instance_org_id,
-                    "slug": instance_slug,
-                    "id": instance_id,
-                },
-            )[state] = integration.alert_groups.filter(alert_group_filter).count()
+            # count alert groups with `service_name` label group by label value
+            alert_group_count_by_service = (
+                integration.alert_groups.filter(alert_group_filter, labels__key_name="service_name")
+                .values("labels__value_name")
+                .annotate(count=Count("id"))
+            )
+
+            for value in alert_group_count_by_service:
+                metric_alert_group_total_data["services"].setdefault(
+                    value["labels__value_name"],
+                    {
+                        "firing": 0,
+                        "acknowledged": 0,
+                        "resolved": 0,
+                        "silenced": 0,
+                    },
+                )[state] += value["count"]
+            # count alert groups without `service_name` label
+            alert_groups_count_without_service = integration.alert_groups.filter(
+                alert_group_filter, ~Q(labels__key_name="service_name")
+            ).count()
+            metric_alert_group_total_data["services"]["No service"][state] += alert_groups_count_without_service
+        metric_alert_group_total[integration.id] = metric_alert_group_total_data
 
         # get response time
+        # todo: group by service_name
         all_response_time = integration.alert_groups.filter(
             started_at__gte=response_time_period,
             response_time__isnull=False,
