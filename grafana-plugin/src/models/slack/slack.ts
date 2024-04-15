@@ -62,13 +62,17 @@ export class SlackStore extends BaseStore {
   }
 
   async reinstallSlackIntegration(slack_id: string) {
-    return await makeRequest('/slack_integration/', {
-      validateStatus: function (status) {
-        return status === 200 || status === 403;
-      },
-      method: 'POST',
-      params: { slack_id },
-    }).catch(this.onApiError);
+    try {
+      return await makeRequest('/slack_integration/', {
+        validateStatus: function (status) {
+          return status === 200 || status === 403;
+        },
+        method: 'POST',
+        params: { slack_id },
+      });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   async slackLogin() {

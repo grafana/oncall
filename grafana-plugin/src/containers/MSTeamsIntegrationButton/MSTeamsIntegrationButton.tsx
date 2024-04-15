@@ -60,9 +60,10 @@ const MSTeamsModal = (props: MSTeamsModalProps) => {
   const [verificationCode, setVerificationCode] = useState<string>();
   const store = useStore();
   useEffect(() => {
-    store.msteamsChannelStore.getMSTeamsChannelVerificationCode().then((res) => {
+    (async () => {
+      const res = await store.msteamsChannelStore.getMSTeamsChannelVerificationCode();
       setVerificationCode(res);
-    });
+    })();
   }, []);
 
   return (
