@@ -81,7 +81,7 @@ jobs:
           GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
       - name: Clone ops-devenv
         run: |
-          git clone https://github.com/grafana/ops-devenv.git
+          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/grafana/ops-devenv.git
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       # - name: Checkout
