@@ -193,41 +193,44 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   return (
-    <VerticalGroup>
-      <div className={cx('container')}>
-        {QRCodeDataParsed && isMobile && (
+    <>
+      <h3>Mobile App Connection</h3>
+      <VerticalGroup>
+        <div className={cx('container')}>
+          {QRCodeDataParsed && isMobile && (
+            <Block shadowed bordered withBackground className={cx('container__box')}>
+              <LinkLoginButton baseUrl={QRCodeDataParsed.oncall_api_url} token={QRCodeDataParsed.token} />
+            </Block>
+          )}
           <Block shadowed bordered withBackground className={cx('container__box')}>
-            <LinkLoginButton baseUrl={QRCodeDataParsed.oncall_api_url} token={QRCodeDataParsed.token} />
+            <DownloadIcons />
           </Block>
-        )}
-        <Block shadowed bordered withBackground className={cx('container__box')}>
-          <DownloadIcons />
-        </Block>
-        <Block shadowed bordered withBackground className={cx('container__box')}>
-          {content}
-        </Block>
-      </div>
-      {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (
-        <div className={cx('notification-buttons')}>
-          <HorizontalGroup spacing={'md'} justify={'flex-end'}>
-            <Button
-              variant="secondary"
-              onClick={() => onSendTestNotification()}
-              disabled={isAttemptingTestNotification}
-            >
-              Send Test Push
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => onSendTestNotification(true)}
-              disabled={isAttemptingTestNotification}
-            >
-              Send Test Push Important
-            </Button>
-          </HorizontalGroup>
+          <Block shadowed bordered withBackground className={cx('container__box')}>
+            {content}
+          </Block>
         </div>
-      )}
-    </VerticalGroup>
+        {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (
+          <div className={cx('notification-buttons')}>
+            <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+              <Button
+                variant="secondary"
+                onClick={() => onSendTestNotification()}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Test Push
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => onSendTestNotification(true)}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Test Push Important
+              </Button>
+            </HorizontalGroup>
+          </div>
+        )}
+      </VerticalGroup>
+    </>
   );
 
   function renderConnectToCloud() {
