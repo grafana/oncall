@@ -5,7 +5,7 @@ const { App } = require("octokit");
 (async () => {
   const app = new App({
     appId: process.env.GH_APP_ID,
-    privateKey: process.env.GH_APP_INSTALLATION_ID,
+    privateKey: process.env.GH_APP_PRIVATE_KEY,
   });
   await app.octokit.request("/app");
   const repos = await octokit.request("Get /user/repos?type=private", {});
