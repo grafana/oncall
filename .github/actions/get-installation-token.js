@@ -1,4 +1,4 @@
-import { createAppAuth } from "@octokit/auth-app";
+const { createAppAuth } = require("@octokit/auth-app");
 
 (async () => {
   console.log({
