@@ -68,7 +68,7 @@ jobs:
       - run: npm install @octokit/auth-app
       - run: |
           token=$(node .github/actions/get-installation-token.js)
-          echo "::set-output name=token::$token"
+          echo "GH_APP_INSTALLATION_TOKEN=$token" >> $GITHUB_ENV
         id: get-installation-token
         shell: bash
         env:
@@ -80,7 +80,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: grafana/ops-devenv
-          token: ${{ steps.get-installation-token.outputs.token }}
+          token: ${{ env.GH_APP_INSTALLATION_TOKEN }}
 
       # ops-devenv setup end
 
