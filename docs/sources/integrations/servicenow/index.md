@@ -41,7 +41,7 @@ navigate to **User Administration** > **Users** and click **New**. Fill in the f
    * Active: ✔
    * Web service access only: ✔
 
-   After creating the user, generate a password for the user (use the **Set Password** button) and save it for later use.
+   After creating the user, generate and save a password using the Set Password button for later use.
 2. Grant the following roles to the user (use the **Roles** tab):
    * `itil` (allows creating and updating incidents)
    * `personalize_choices` (allows fetching the list of available incident states)
@@ -98,4 +98,28 @@ integration. To do this:
 
 ## Advanced usage
 
-TBD
+You can customize the integration behaviour by editing the outgoing webhooks on the **Outgoing** tab of the integration.
+
+### Custom incident fields
+
+You can set custom fields on ServiceNow incidents. To do so, edit the **Alert group created** webhook on
+the **Outgoing** tab of the integration.
+
+Example: to set the "urgency" field based on alert group labels, add the following to **Data template**:
+
+ ```json
+ {
+   ...,
+   "urgency": "{{ alert_group.labels.urgency }}"
+ }
+ ```
+
+   Refer to [Outgoing webhook templates] and [Alert group labels] for more info.
+
+{{% docs/reference %}}
+[Alert group labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#alert-group-labels"
+[Alert group labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#alert-group-labels"
+
+[Outgoing webhook templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks#outgoing-webhook-templates"
+[Outgoing webhook templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#outgoing-webhook-templates"
+{{% /docs/reference %}}
