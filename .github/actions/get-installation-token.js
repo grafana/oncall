@@ -1,7 +1,7 @@
 const { createAppAuth } = require("@octokit/auth-app");
 
 (async () => {
-  console.log({
+  console.log("HEEERE", {
     appId: process.env.GH_APP_ID,
     privateKey: process.env.GH_APP_PRIVATE_KEY,
     installationId: process.env.GH_APP_INSTALLATION_ID,
