@@ -14,11 +14,12 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
+import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
+import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
 import { QRCode } from './parts/QRCode/QRCode';
 
 const cx = cn.bind(styles);
@@ -143,6 +144,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   let content: React.ReactNode = null;
+  const QRCodeDataParsed = QRCodeValue && getParsedQRCodeValue();
 
   if (fetchingQRCode || disconnectingMobileApp || !userPk || !basicDataLoaded) {
     content = <LoadingPlaceholder text="Loading..." />;
@@ -165,12 +167,10 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
       </VerticalGroup>
     );
   } else if (QRCodeValue) {
-    const QRCodeDataParsed = getParsedQRCodeValue();
-
     content = (
       <VerticalGroup spacing="lg">
         <Text type="primary" strong>
-          Sign In
+          Sign in via QR Code
         </Text>
         <Text type="primary">
           Open the Grafana OnCall mobile application and scan this code to sync it with your account.
@@ -195,6 +195,11 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
   return (
     <VerticalGroup>
       <div className={cx('container')}>
+        {QRCodeDataParsed && isMobile && (
+          <Block shadowed bordered withBackground className={cx('container__box')}>
+            <LinkLoginButton baseUrl={QRCodeDataParsed.oncall_api_url} token={QRCodeDataParsed.token} />
+          </Block>
+        )}
         <Block shadowed bordered withBackground className={cx('container__box')}>
           <DownloadIcons />
         </Block>

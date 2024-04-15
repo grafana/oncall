@@ -28,7 +28,16 @@ const REQUEST_CONFIG = {
 };
 const URL = 'https://someurl.com';
 const SUCCESSFUL_RESPONSE_MOCK = { ok: true };
-const FAILING_RESPONSE_MOCK = { ok: false, json: () => 'ERROR' };
+const FAILING_RESPONSE_MOCK = {
+  ok: false,
+  json: () => 'ERROR',
+
+  // we need to have clone available to actually clone the response
+  clone: () => ({
+    ok: false,
+    json: () => 'ERROR',
+  }),
+};
 const customFetch = getCustomFetchFn({ withGlobalErrorHandler: true });
 
 describe('customFetch', () => {
