@@ -1,4 +1,5 @@
 const { createAppAuth } = require("@octokit/auth-app");
+const execa = require("execa");
 
 (async () => {
   const auth = createAppAuth({
