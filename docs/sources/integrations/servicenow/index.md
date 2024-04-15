@@ -56,8 +56,8 @@ navigate to **User Administration** > **Users** and click **New**. Fill in the f
 to send alerts to ServiceNow.
 6. Click **Create integration**.
 7. Map ServiceNow incident states to OnCall alert group statuses. Example:
-     * `New -> Triggered`
-     * `In Progress -> Acknowledged`
+     * `Firing -> New`
+     * `Acknowledged -> In Progress`
      * `Resolved -> Resolved`
      * `Silenced -> Not Selected`
 8. Generate a ServiceNow Business Rule script. This script will allow your ServiceNow instance to send updates to
@@ -89,7 +89,7 @@ You can connect other integrations such as Alertmanager, Grafana Alerting, and o
 integration. To do this:
 
 1. Navigate to the **Outgoing** tab of an existing ServiceNow integration.
-2. Click **Connect** and select the integrations you want to connect, then click **Connect**.
+2. Use the **Send data from other integrations** section to connect other integrations.
 3. Enable the **backsync** option if you want alert groups from connected integrations to be updated from ServiceNow.
    If disabled, Grafana OnCall will only send alerts to ServiceNow, but not receive updates back.
 4. Test the connection by creating a demo alert for the connected integration.
