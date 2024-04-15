@@ -1,6 +1,6 @@
 const { createAppAuth } = require("@octokit/auth-app");
 const { exec } = require("child_process");
-// const { App } = require("octokit");
+const { Octokit } = require("@octokit/core");
 
 (async () => {
   // const app = new App({
@@ -11,6 +11,18 @@ const { exec } = require("child_process");
   // await app.octokit.request("/app");
   // const repos = await app.octokit.request("Get /user/repos?type=private", {});
   // console.log("REPOS: ", repos);
+
+  const appOctokit = new Octokit({
+    authStrategy: createAppAuth,
+    auth: {
+      appId: process.env.GH_APP_ID,
+      privateKey: process.env.GH_APP_PRIVATE_KEY,
+      installationId: process.env.GH_APP_INSTALLATION_ID,
+    },
+  });
+
+  const repos = await appOctokit.request("Get /user/repos?type=private", {});
+  console.log("REPOS: ", repos);
 
   // -----------
   const auth = createAppAuth({
