@@ -533,13 +533,15 @@ export interface paths {
      *     - 0: slack
      *     - 1: web */
     get: operations['alertgroups_retrieve'];
-    put?: never;
+    /** @description Internal API endpoints for alert groups. */
+    put: operations['alertgroups_update'];
     post?: never;
     /** @description Internal API endpoints for alert groups. */
     delete: operations['alertgroups_destroy'];
     options?: never;
     head?: never;
-    patch?: never;
+    /** @description Internal API endpoints for alert groups. */
+    patch: operations['alertgroups_partial_update'];
     trace?: never;
   };
   '/alertgroups/{id}/acknowledge/': {
@@ -1376,7 +1378,7 @@ export interface components {
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
-      grafana_incident_id?: string | null;
+      grafana_incident_ids: string[];
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
@@ -1482,7 +1484,7 @@ export interface components {
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
-      grafana_incident_id?: string | null;
+      grafana_incident_ids: string[];
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
@@ -1547,6 +1549,9 @@ export interface components {
     };
     AlertGroupUnpageUser: {
       user_id: string;
+    };
+    AlertGroupUpdate: {
+      grafana_incident_id?: string | null;
     };
     AlertReceiveChannel: {
       readonly id: string;
@@ -2015,6 +2020,9 @@ export interface components {
       page_size?: number;
       current_page_number?: number;
       total_pages?: number;
+    };
+    PatchedAlertGroupUpdate: {
+      grafana_incident_id?: string | null;
     };
     PatchedAlertReceiveChannelUpdate: {
       readonly id?: string;
@@ -3307,6 +3315,7 @@ export interface operations {
         /** @description The pagination cursor value. */
         cursor?: string;
         escalation_chain?: string[];
+        grafana_incident_id?: string;
         integration?: string[];
         invitees_are?: string[];
         involved_users_are?: string[];
@@ -3365,6 +3374,34 @@ export interface operations {
       };
     };
   };
+  alertgroups_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert group. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['AlertGroupUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertGroupUpdate'];
+        'multipart/form-data': components['schemas']['AlertGroupUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertGroupUpdate'];
+        };
+      };
+    };
+  };
   alertgroups_destroy: {
     parameters: {
       query?: never;
@@ -3383,6 +3420,34 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  alertgroups_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert group. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedAlertGroupUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedAlertGroupUpdate'];
+        'multipart/form-data': components['schemas']['PatchedAlertGroupUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AlertGroupUpdate'];
+        };
       };
     };
   };
@@ -3783,6 +3848,7 @@ export interface operations {
       query?: {
         acknowledged_by?: string[];
         escalation_chain?: string[];
+        grafana_incident_id?: string;
         integration?: string[];
         invitees_are?: string[];
         involved_users_are?: string[];

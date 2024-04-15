@@ -97,8 +97,7 @@ def _trigger_alert(
     alert_group = alert.group
 
     if grafana_incident_id is not None:
-        alert_group.grafana_incident_id = grafana_incident_id
-        alert_group.save(update_fields=["grafana_incident_id"])
+        alert_group.update_grafana_incident_ids(grafana_incident_id)
 
     return alert_group
 

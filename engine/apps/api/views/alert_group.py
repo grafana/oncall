@@ -1,6 +1,8 @@
+import re
 import typing
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
@@ -20,7 +22,7 @@ from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_si
 from apps.api.errors import AlertGroupAPIError
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
+from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer, AlertGroupUpdateSerializer
 from apps.api.serializers.alert_group_escalation_snapshot import AlertGroupEscalationSnapshotAPISerializer
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
@@ -35,7 +37,12 @@ from common.api_helpers.filters import (
     ModelFieldFilterMixin,
     MultipleChoiceCharFilter,
 )
-from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.api_helpers.mixins import (
+    PreviewTemplateMixin,
+    PublicPrimaryKeyMixin,
+    TeamFilteringMixin,
+    UpdateSerializerMixin,
+)
 from common.api_helpers.paginators import AlertGroupCursorPaginator
 
 
@@ -116,6 +123,8 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
 
+    grafana_incident_id = filters.CharFilter(method="filter_grafana_incident_id")
+
     def filter_status(self, queryset, name, value):
         if not value:
             return queryset
@@ -193,6 +202,16 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             ).distinct()
         return queryset
 
+    def filter_grafana_incident_id(self, queryset, name, value):
+        if value:
+            # https://stackoverflow.com/a/50251879
+            if settings.IS_USING_SQLITE:
+                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
+                queryset = queryset.filter(grafana_incident_ids__regex=re.escape(value))
+            else:
+                queryset = queryset.filter(grafana_incident_ids__contains=value)
+        return queryset
+
 
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
     TEAM_LOOKUP = "team"
@@ -236,6 +255,8 @@ class AlertGroupView(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    UpdateSerializerMixin,
     viewsets.GenericViewSet,
 ):
     """
@@ -252,6 +273,8 @@ class AlertGroupView(
         "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "stats": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "silence_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
@@ -273,6 +296,7 @@ class AlertGroupView(
 
     queryset = AlertGroup.objects.none()  # needed for drf-spectacular introspection
     serializer_class = AlertGroupSerializer
+    update_serializer_class = AlertGroupUpdateSerializer
 
     pagination_class = AlertGroupCursorPaginator
 

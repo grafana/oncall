@@ -422,7 +422,7 @@ class User(models.Model):
         """
         if organization.is_rbac_permissions_enabled:
             # https://stackoverflow.com/a/50251879
-            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
+            if settings.IS_USING_SQLITE:
                 # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
                 return PermissionsRegexQuery(permissions__regex=re.escape(permission.value))
             required_permission = {"action": permission.value}

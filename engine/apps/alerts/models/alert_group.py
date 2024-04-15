@@ -13,6 +13,7 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django_deprecate_fields import deprecate_field
 
 from apps.alerts.constants import ActionSource, AlertGroupState
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
@@ -416,7 +417,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
-    grafana_incident_id = models.CharField(max_length=100, null=True, default=None)
+    grafana_incident_id = deprecate_field(models.CharField(max_length=100, null=True, default=None))
+    """
+    TODO: drop this field in future release
+    """
+    grafana_incident_ids: typing.List[str] | None = JSONField(null=True, blank=True, default=list)
 
     @staticmethod
     def get_silenced_state_filter():
@@ -549,11 +554,22 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
-        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
+
+        return urljoin(
+            incident_link,
+            f"?caption={caption}&url={link}&title={title}&grafana_oncall_alert_group_id={self.public_primary_key}",
+        )
 
     @property
     def happened_while_maintenance(self):
         return self.root_alert_group is not None and self.root_alert_group.maintenance_uuid is not None
+
+    def update_grafana_incident_ids(self, grafana_incident_id: str) -> None:
+        current_ids = self.grafana_incident_ids or []
+        current_ids.append(grafana_incident_id)
+
+        self.grafana_incident_ids = current_ids
+        self.save(update_fields=["grafana_incident_ids"])
 
     def get_paged_users(self) -> typing.List[PagedUser]:
         from apps.alerts.models import AlertGroupLogRecord

@@ -120,6 +120,8 @@ class AlertGroupListSerializer(
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
 
+    grafana_incident_ids = serializers.ListField(child=serializers.CharField())
+
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
     PREFETCH_RELATED = [
@@ -166,7 +168,7 @@ class AlertGroupListSerializer(
             "status",
             "declare_incident_link",
             "team",
-            "grafana_incident_id",
+            "grafana_incident_ids",
             "labels",
             "permalinks",
         ]
@@ -242,3 +244,18 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
     def get_paged_users(self, obj: "AlertGroup") -> typing.List[PagedUser]:
         return obj.get_paged_users()
+
+
+class AlertGroupUpdateSerializer(AlertGroupSerializer):
+    grafana_incident_id = serializers.CharField(required=False, allow_null=True)
+
+    class Meta(AlertGroupSerializer.Meta):
+        fields = ["grafana_incident_id"]
+
+    def to_representation(self, instance):
+        return AlertGroupSerializer(instance).data
+
+    def update(self, instance, validated_data):
+        if (grafana_incident_id := validated_data.get("grafana_incident_id")) is not None:
+            instance.update_grafana_incident_ids(grafana_incident_id)
+        return instance

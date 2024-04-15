@@ -4,29 +4,22 @@ import { locationUtil, PluginExtensionLink, PluginExtensionTypes } from '@grafan
 import { IconName, Menu } from '@grafana/ui';
 
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { truncateTitle } from 'utils/string';
 
 type Props = {
+  alertGroup: ApiSchemas['AlertGroup'];
   extensions: PluginExtensionLink[];
-  // We require this to be passed in so we can continue to
-  // create a custom Declare incident link. Once the Incident plugin
-  // registers its own extension link, we can remove this.
-  declareIncidentLink?: string;
-  grafanaIncidentId?: string;
 };
 
-export function ExtensionLinkMenu({ extensions, declareIncidentLink, grafanaIncidentId }: Props): ReactElement | null {
+export function ExtensionLinkMenu({ extensions, alertGroup }: Props): ReactElement | null {
   const { categorised, uncategorised } = useExtensionLinksByCategory(extensions);
   const showDivider = uncategorised.length > 0 && Object.keys(categorised).length > 0;
 
   return (
     <Menu>
       <>
-        <DeclareIncidentMenuItem
-          extensions={extensions}
-          declareIncidentLink={declareIncidentLink}
-          grafanaIncidentId={grafanaIncidentId}
-        />
+        <DeclareIncidentMenuItem alertGroup={alertGroup} extensions={extensions} />
         {Object.keys(categorised).map((category) => (
           <Menu.Group key={category} label={truncateTitle(category, 25)}>
             {renderItems(categorised[category])}
@@ -42,10 +35,12 @@ export function ExtensionLinkMenu({ extensions, declareIncidentLink, grafanaInci
 // This menu item is a temporary workaround for the fact that the Incident plugin doesn't
 // register its own extension link.
 // TODO: remove this once Incident is definitely registering its own extension link.
-function DeclareIncidentMenuItem({ extensions, declareIncidentLink, grafanaIncidentId }: Props): ReactElement | null {
+function DeclareIncidentMenuItem({ extensions, alertGroup }: Props): ReactElement | null {
   const declareIncidentExtensionLink = extensions.find(
     (extension) => extension.pluginId === 'grafana-incident-app' && extension.title === 'Declare incident'
   );
+
+  const declareIncidentLink = alertGroup.declare_incident_link;
 
   if (
     // Don't show a custom Declare incident button if the Grafana Incident plugin already configured one.
@@ -53,7 +48,7 @@ function DeclareIncidentMenuItem({ extensions, declareIncidentLink, grafanaIncid
     // Don't show a custom Declare incident button if there's no valid link.
     !declareIncidentLink ||
     // Don't show the button if an incident has already been declared from this alert group.
-    grafanaIncidentId
+    alertGroup.grafana_incident_ids.length > 0
   ) {
     return null;
   }
