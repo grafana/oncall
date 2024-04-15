@@ -10,20 +10,18 @@ const { exec } = require("child_process");
     type: "installation",
     installationId: process.env.GH_APP_INSTALLATION_ID,
   });
+  console.log("TOOOKEN", token);
   const tokenWithPrefix =
     tokenType === "installation" ? `x-access-token:${token}` : token;
   const repositoryUrl = `https://${tokenWithPrefix}@github.com/grafana/ops-devenv.git`;
 
   exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
-    if (error) {
+    if (error || stderr) {
       console.error(`Error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
+      process.exit(1);
     }
     console.log(`stdout: ${stdout}`);
+    process.exit(0);
   });
 })().catch((e) => {
   console.error(e);
