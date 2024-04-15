@@ -71,8 +71,8 @@ jobs:
         id: get-installation-token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_APP_ID: ${{ secrets.GH_APP_ID}}
-          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY
+          GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
           GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
       - name: Checkout
         uses: actions/checkout@v4
