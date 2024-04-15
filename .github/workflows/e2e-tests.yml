@@ -67,7 +67,8 @@ jobs:
       # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
       - run: npm install @octokit/auth-app
       - run: |
-          node .github/actions/get-installation-token.js
+          token=$(node .github/actions/get-installation-token.js)
+          echo "::set-output name=token::$token"
         id: get-installation-token
         shell: bash
         env:
