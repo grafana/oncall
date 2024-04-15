@@ -12,6 +12,6 @@ const { createAppAuth } = require("@octokit/auth-app");
   process.stdout.write(resp.token);
   process.exit(0);
 })().catch((e) => {
-  // console.error("EEEEERRORRR", e);
+  console.error(e);
   process.exit(1);
 });
