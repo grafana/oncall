@@ -1,5 +1,5 @@
 const { createAppAuth } = require("@octokit/auth-app");
-import { execa } from "execa";
+const { exec } = require("child_process");
 
 (async () => {
   const auth = createAppAuth({
@@ -14,8 +14,17 @@ import { execa } from "execa";
     tokenType === "installation" ? `x-access-token:${token}` : token;
   const repositoryUrl = `https://${tokenWithPrefix}@github.com/grafana/ops-devenv.git`;
 
-  const { stdout } = await execa("git", ["clone", repositoryUrl]);
-  console.log(stdout);
+  exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
 })().catch((e) => {
   console.error(e);
   process.exit(1);
