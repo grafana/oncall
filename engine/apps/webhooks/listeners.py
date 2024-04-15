@@ -24,9 +24,8 @@ def on_action_triggered(**kwargs):
     if not isinstance(log_record, AlertGroupLogRecord):
         try:
             log_record = AlertGroupLogRecord.objects.get(pk=log_record)
-        except AlertGroupLogRecord.DoesNotExist as e:
+        except AlertGroupLogRecord.DoesNotExist:
             logger.warning(f"Webhook action triggered: log record {log_record} never created or has been deleted")
-            raise e
 
     # keep track if this status change was triggered by a backsync event
     is_backsync = log_record.action_source == ActionSource.BACKSYNC
