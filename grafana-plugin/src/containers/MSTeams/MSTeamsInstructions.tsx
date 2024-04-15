@@ -28,13 +28,13 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
   const { onCallisAdded, showInfoBox, personalSettings, onHide = () => {}, verificationCode } = props;
   const { msteamsChannelStore } = useStore();
 
-  const handleMSTeamsGetChannels = () => {
-    msteamsChannelStore.updateItems().then(() => {
-      const connectedChannels = msteamsChannelStore.getSearchResult();
-      if (!connectedChannels?.length) {
-        openWarningNotification('No MS Teams channels found');
-      }
-    });
+  const handleMSTeamsGetChannels = async () => {
+    await msteamsChannelStore.updateItems();
+    const connectedChannels = msteamsChannelStore.getSearchResult();
+
+    if (!connectedChannels?.length) {
+      openWarningNotification('No MS Teams channels found');
+    }
 
     onHide();
   };

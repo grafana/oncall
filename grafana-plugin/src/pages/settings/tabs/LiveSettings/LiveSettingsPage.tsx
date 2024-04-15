@@ -216,8 +216,9 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const { store } = this.props;
     const { globalSettingStore } = store;
 
-    return (value: string | boolean) => {
-      globalSettingStore.update(id, { name, value: prepareForUpdate(value) }).then(this.update);
+    return async (value: string | boolean) => {
+      await globalSettingStore.update(id, { name, value: prepareForUpdate(value) });
+      this.update();
     };
   };
 
@@ -239,8 +240,9 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const { store } = this.props;
     const { globalSettingStore } = store;
 
-    return () => {
-      globalSettingStore.delete(item.id).then(this.update);
+    return async () => {
+      await globalSettingStore.delete(item.id);
+      this.update();
     };
   };
 }
