@@ -70,7 +70,8 @@ jobs:
           token=$(node .github/actions/get-installation-token.js)
           echo "Token: $token"
           echo "Setting GH_APP_INSTALLATION_TOKEN=$token"
-          echo "GH_APP_INSTALLATION_TOKEN=$token" >> $GITHUB_ENV
+          # echo "GH_APP_INSTALLATION_TOKEN=$token" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=$token" >> $GITHUB_ENV
         id: get-installation-token
         shell: bash
         env:
@@ -78,12 +79,17 @@ jobs:
           GH_APP_ID: ${{ secrets.GH_APP_ID }}
           GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
           GH_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: grafana/ops-devenv
-          branch: main
-          token: ${{ env.GH_APP_INSTALLATION_TOKEN }}
+      - name: Clone ops-devenv
+        run: |
+          git clone https://github.com/grafana/ops-devenv.git
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      # - name: Checkout
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: grafana/ops-devenv
+      #     branch: main
+      #     token: ${{ env.GH_APP_INSTALLATION_TOKEN }}
 
       # ops-devenv setup end
 
