@@ -111,7 +111,7 @@ are involved in).
 
 ### Ignoring events
 
-If you would like to have Grafana OnCall ignore a specific Out of Office Google Calendar from being considered for
+If you would like to have Grafana OnCall ignore a specific Out of Office event from being considered for
 Shift Swap Request generation, simply add `#grafana-oncall-ignore` to the Out of Office event's title.
 
 ### Configuring for open source
