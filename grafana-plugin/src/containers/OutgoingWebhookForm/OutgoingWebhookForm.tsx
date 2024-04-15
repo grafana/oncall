@@ -93,9 +93,11 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
   const data = prepareDataForEdit(action, item, selectedPreset);
 
   useEffect(() => {
-    const preset = outgoingWebhookStore.outgoingWebhookPresets.find((item) => item.id === data.preset);
-    setSelectedPreset(preset);
-  }, [data]);
+    if (item) {
+      const preset = outgoingWebhookStore.outgoingWebhookPresets.find((item) => item.id === data.preset);
+      setSelectedPreset(preset);
+    }
+  }, [item]);
 
   useEffect(() => {
     if (selectedPreset) {
@@ -103,7 +105,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
     }
   }, [selectedPreset]);
 
-  const formMethods = useForm({
+  const formMethods = useForm<ApiSchemas['Webhook']>({
     mode: 'onChange',
     defaultValues: data,
   });

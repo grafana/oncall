@@ -121,7 +121,7 @@ export class AlertReceiveChannelStore {
     });
   }
 
-  async fetchItems(query: any = '') {
+  async fetchItems(query: any = ''): Promise<Array<ApiSchemas['AlertReceiveChannel']>> {
     const {
       data: { results },
     } = await onCallApi().GET('/alert_receive_channels/', {
@@ -149,6 +149,7 @@ export class AlertReceiveChannelStore {
 
     this.fetchCounters();
 
+    // @ts-ignore for some reason ts doesn't see `results` as list of ApiSchemas['AlertReceiveChannel']
     return results;
   }
 

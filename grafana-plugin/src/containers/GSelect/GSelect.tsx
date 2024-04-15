@@ -19,7 +19,7 @@ interface GSelectProps<Item> {
   fetchItemsFn: (query?: string) => Promise<Item[] | void>;
   fetchItemFn: (id: string) => Promise<Item | void>;
   getSearchResult: (query?: string) => Item[] | { page_size: number; count: number; results: Item[] };
-  placeholder: string;
+  placeholder?: string;
   isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;

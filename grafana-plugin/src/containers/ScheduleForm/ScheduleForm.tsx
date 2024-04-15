@@ -37,8 +37,9 @@ interface ScheduleFormProps {
   type?: ScheduleType;
 }
 
-interface FormFields extends Partial<Schedule> {
+interface FormFields extends Omit<Schedule, 'user_group'> {
   slack_channel_id: SlackChannel['id'];
+  user_group: UserGroup['id'];
 }
 
 export const ScheduleForm = observer((props: ScheduleFormProps) => {
@@ -54,7 +55,7 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
   }, [id]);
 
   const onSubmit = useCallback(
-    async (formData: Partial<Schedule>): Promise<void> => {
+    async (formData: FormFields): Promise<void> => {
       const apiData = { ...formData, type: data.type };
 
       let schedule: Schedule | void;
