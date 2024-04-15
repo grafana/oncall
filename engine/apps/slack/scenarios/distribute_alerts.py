@@ -287,7 +287,9 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
             silence_delay = int(value)
 
-        alert_group.silence_by_user_or_backsync(self.user, silence_delay, action_source=ActionSource.SLACK)
+        alert_group.silence_by_user_or_backsync(
+            self.user, silence_delay=silence_delay, action_source=ActionSource.SLACK
+        )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)

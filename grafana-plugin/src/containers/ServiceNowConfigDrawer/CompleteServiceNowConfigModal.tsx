@@ -42,7 +42,13 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
   const { id } = integration;
 
   return (
-    <Modal closeOnEscape={false} isOpen title={'Complete ServiceNow configuration'} onDismiss={onFormAcknowledge}>
+    <Modal
+      closeOnEscape={false}
+      closeOnBackdropClick={false}
+      isOpen
+      title={'Complete ServiceNow configuration'}
+      onDismiss={onFormAcknowledge}
+    >
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
           <div className={styles.border}>

@@ -1,17 +1,6 @@
 import React, { FC, useState } from 'react';
 
-import {
-  Button,
-  Field,
-  HorizontalGroup,
-  Icon,
-  Label,
-  Select,
-  Switch,
-  Tooltip,
-  useStyles2,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, Field, HorizontalGroup, Label, Select, Switch, useStyles2, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -64,10 +53,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
             error={formState.errors.trigger_type?.message}
             label={
               <Label>
-                <span>Trigger type</span>&nbsp;
-                <Tooltip content="Some description" placement="right">
-                  <Icon name="info-circle" className={styles.infoIcon} />
-                </Tooltip>
+                <span>Trigger type</span>
               </Label>
             }
             className={styles.selectField}
@@ -95,10 +81,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
             error={formState.errors.http_method?.message}
             label={
               <Label>
-                <span>HTTP method</span>&nbsp;
-                <Tooltip content="Some description" placement="right">
-                  <Icon name="info-circle" className={styles.infoIcon} />
-                </Tooltip>
+                <span>HTTP method</span>
               </Label>
             }
             className={styles.selectField}
@@ -120,10 +103,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
           <VerticalGroup>
             <HorizontalGroup width="100%" justify="space-between">
               <Label>
-                <span>Webhook URL</span>&nbsp;
-                <Tooltip content="Some description" placement="right">
-                  <Icon name="info-circle" className={styles.infoIcon} />
-                </Tooltip>
+                <span>Webhook URL</span>
               </Label>
               <Button
                 icon="edit"
@@ -208,9 +188,6 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
           />
           <Label className={styles.switcherLabel}>
             <span>Add trigger template</span>
-            <Tooltip content="Some description" placement="right">
-              <Icon name="info-circle" className={styles.infoIcon} />
-            </Tooltip>
           </Label>
         </div>
         {showTriggerTemplate && (

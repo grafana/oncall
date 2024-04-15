@@ -29,3 +29,5 @@ EXPORT_WINDOW_DAYS_BEFORE = 15
 
 SCHEDULE_ONCALL_CACHE_KEY_PREFIX = "schedule_oncall_users_"
 SCHEDULE_ONCALL_CACHE_TTL = 15 * 60  # 15 minutes in seconds
+
+PREFETCHED_SHIFT_SWAPS = "prefetched_shift_swaps"

@@ -122,6 +122,7 @@ export const IntegrationForm = observer(
         ? {
             // these are the default values for creating an integration
             integration,
+            create_default_webhooks: true,
             additional_settings: {},
           }
         : {
@@ -344,7 +345,7 @@ export const IntegrationForm = observer(
               render={({ field }) => (
                 <div className={styles.webhookSwitch}>
                   <Switch value={field.value} onChange={field.onChange} />
-                  <Text type="primary"> Create default outgoing webhook events</Text>
+                  <Text type="primary"> Create default outgoing webhooks</Text>
                 </div>
               )}
             />

@@ -330,8 +330,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const { store } = this.props;
     const { scheduleStore } = store;
 
-    return () => {
-      scheduleStore.delete(id).then(() => this.update());
+    return async () => {
+      await scheduleStore.delete(id);
+      this.update();
     };
   };
 
@@ -376,13 +377,13 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   };
 
   getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
+    const {
+      store: { scheduleStore },
+    } = this.props;
 
-    return () => {
-      scheduleStore.updateRelatedEscalationChains(scheduleId).then(() => {
-        this.forceUpdate();
-      });
+    return async () => {
+      await scheduleStore.updateRelatedEscalationChains(scheduleId);
+      this.forceUpdate();
     };
   };
 

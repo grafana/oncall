@@ -96,23 +96,23 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     [propItems, onChange]
   );
 
-  const loadOptions = useDebouncedCallback((query: string, cb) => {
-    fetchItemsFn(query).then(() => {
-      const searchResult = getSearchResult(query);
-      // TODO: we need to unify interface of search results to get rid of ts-ignore
-      // @ts-ignore
-      let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
-      if (filterOptions) {
-        items = items.filter((opt: any) => filterOptions(opt[valueField]));
-      }
-      const options = items.map((item: any) => ({
-        value: item[valueField],
-        label: get(item, displayField),
-        imgUrl: item.avatar_url,
-        description: getDescription && getDescription(item),
-      }));
-      cb(options);
-    });
+  const loadOptions = useDebouncedCallback(async (query: string, cb) => {
+    await fetchItemsFn(query);
+
+    const searchResult = getSearchResult(query);
+    // TODO: we need to unify interface of search results to get rid of ts-ignore
+    // @ts-ignore
+    let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
+    if (filterOptions) {
+      items = items.filter((opt: any) => filterOptions(opt[valueField]));
+    }
+    const options = items.map((item: any) => ({
+      value: item[valueField],
+      label: get(item, displayField),
+      imgUrl: item.avatar_url,
+      description: getDescription && getDescription(item),
+    }));
+    cb(options);
   }, 250);
 
   const getValues = () => {

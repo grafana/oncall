@@ -23,27 +23,26 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
   const store = useStore();
 
   const [ICalLink, setICalLink] = useState<string>(undefined);
-  const [isiCalLinkExist, setIsICalLinkExist] = useState<boolean>(false);
-  const [isICalLinkLoading, setIsICalLinkLoading] = useState<boolean>(true);
+  const [isiCalLinkExist, setIsICalLinkExist] = useState(false);
+  const [isICalLinkLoading, setIsICalLinkLoading] = useState(true);
 
   useEffect(() => {
-    store.scheduleStore
-      .getICalLink(id)
-      .then(() => {
+    (async () => {
+      try {
+        await store.scheduleStore.getICalLink(id);
         setIsICalLinkExist(true);
         setIsICalLinkLoading(false);
-      })
-      .catch(() => {
+      } catch (_err) {
         setIsICalLinkExist(false);
         setIsICalLinkLoading(false);
-      });
+      }
+    })();
   }, []);
 
   const handleCreateICalLink = async () => {
     setIsICalLinkExist(true);
-    await store.scheduleStore
-      .createICalLink(id)
-      .then((res: CreateScheduleExportTokenResponse) => setICalLink(res?.export_url));
+    const res: CreateScheduleExportTokenResponse = await store.scheduleStore.createICalLink(id);
+    setICalLink(res?.export_url);
   };
 
   const handleRevokeICalLink = async () => {

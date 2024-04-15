@@ -313,7 +313,10 @@ def test_mobile_app_gateway_proxies_headers(
         MOCK_DOWNSTREAM_URL,
         data=b"",
         params={},
-        headers={"Authorization": f"Bearer {MOCK_AUTH_TOKEN}", "Content-Type": content_type_header},
+        headers={
+            "Authorization": f"Bearer {MOCK_AUTH_TOKEN}",
+            "Content-Type": content_type_header,
+        },
     )
 
 
@@ -324,30 +327,11 @@ def test_mobile_app_gateway_properly_generates_an_auth_token(
     make_organization,
     make_user_for_organization,
 ):
-    user_id = 90095905
     stack_id = 895
-    organization_id = 8905
-    stack_slug = "mvcmnvcmnvc"
-    org_slug = "raintank"
-
-    organization = make_organization(
-        stack_id=stack_id, org_id=organization_id, stack_slug=stack_slug, org_slug=org_slug
-    )
-    user = make_user_for_organization(organization, user_id=user_id)
+    organization = make_organization(stack_id=stack_id)
+    user = make_user_for_organization(organization)
 
     auth_token = MobileAppGatewayView._get_auth_token(DOWNSTREAM_BACKEND, user)
 
     assert auth_token == f"{stack_id}:{MOCK_AUTH_TOKEN}"
-
-    mock_request_signed_token.assert_called_once_with(
-        organization,
-        [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
-        {
-            "user_id": user.user_id,  # grafana user ID
-            "user_email": user.email,
-            "stack_id": organization.stack_id,
-            "organization_id": organization.org_id,  # grafana org ID
-            "stack_slug": organization.stack_slug,
-            "org_slug": organization.org_slug,
-        },
-    )
+    mock_request_signed_token.assert_called_once_with(user, [CloudAuthApiClient.Scopes.INCIDENT_WRITE])

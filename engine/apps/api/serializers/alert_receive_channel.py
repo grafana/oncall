@@ -429,9 +429,15 @@ class AlertReceiveChannelSerializer(
         )
 
         try:
-            return super().update(instance, validated_data)
+            updated_instance = super().update(instance, validated_data)
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
+        # update webhooks if needed, using updated instance
+        if hasattr(instance.config, "update_default_webhooks"):
+            instance.config.update_default_webhooks(updated_instance)
+
+        return updated_instance
 
     def get_instructions(self, obj: "AlertReceiveChannel") -> str:
         # Deprecated, kept for api-backward compatibility

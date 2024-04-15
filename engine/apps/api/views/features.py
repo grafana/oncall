@@ -65,7 +65,7 @@ class FeaturesAPIView(APIView):
         if is_labels_feature_enabled(self.request.auth.organization):
             enabled_features.append(Feature.LABELS)
 
-        if settings.FEATURE_GOOGLE_OAUTH2_ENABLED:
+        if settings.GOOGLE_OAUTH2_ENABLED:
             enabled_features.append(Feature.GOOGLE_OAUTH2)
 
         return enabled_features

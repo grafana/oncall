@@ -198,13 +198,10 @@ export const dayJSAddWithDSTFixed = ({
   // At first we add time as usual
   let newDateCandidate = baseDate.add(...addParams);
 
-  const differenceInHoursInLocalTimezone = newDateCandidate.diff(baseDate, 'hours');
-  const differenceInHoursInUTC = newDateCandidate.utc().diff(baseDate.utc(), 'hours');
+  // tz() called with no params makes dayjs use the proper timezone, and not to reset to the current
+  const oldUtcOffset = baseDate.tz().utcOffset();
+  const newUtcOffset = newDateCandidate.tz().utcOffset();
+  const diff = newUtcOffset - oldUtcOffset;
 
-  // But if we identify that there was a DST change before base date and the result candidate
-  if (differenceInHoursInLocalTimezone !== differenceInHoursInUTC) {
-    // then we make the resulting date to ignore DST change
-    newDateCandidate = newDateCandidate.subtract(differenceInHoursInUTC, 'hours');
-  }
-  return newDateCandidate;
+  return newDateCandidate.add(diff, 'minutes');
 };

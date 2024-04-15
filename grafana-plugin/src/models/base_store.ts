@@ -44,53 +44,68 @@ export class BaseStore {
 
   @action.bound
   async getAll(query = '') {
-    return await makeRequest(`${this.path}`, {
-      params: { search: query },
-      method: 'GET',
-    }).catch(this.onApiError);
+    try {
+      return await makeRequest(`${this.path}`, {
+        params: { search: query },
+        method: 'GET',
+      });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   @action.bound
   async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
-    return await makeRequest(`${this.path}${id}`, {
-      method: 'GET',
-      params: { from_organization: fromOrganization },
-    }).catch((error) => this.onApiError(error, skipErrorHandling));
+    try {
+      return await makeRequest(`${this.path}${id}`, {
+        method: 'GET',
+        params: { from_organization: fromOrganization },
+      });
+    } catch (error) {
+      this.onApiError(error, skipErrorHandling);
+    }
   }
 
   @action.bound
   async create<RT = any>(data: any, skipErrorHandling = false): Promise<RT | void> {
-    return await makeRequest<RT>(this.path, {
-      method: 'POST',
-      data,
-    }).catch((error) => {
+    try {
+      return await makeRequest<RT>(this.path, {
+        method: 'POST',
+        data,
+      });
+    } catch (error) {
       this.onApiError(error, skipErrorHandling);
-    });
+    }
   }
 
   @action.bound
   async update<RT = any>(id: any, data: any, params: any = null, skipErrorHandling = false): Promise<RT | void> {
-    const result = await makeRequest<RT>(`${this.path}${id}/`, {
-      method: 'PUT',
-      data,
-      params: params,
-    }).catch((error) => {
-      this.onApiError(error, skipErrorHandling);
-    });
+    try {
+      const result = await makeRequest<RT>(`${this.path}${id}/`, {
+        method: 'PUT',
+        data,
+        params: params,
+      });
 
-    // Update env_status field for current team
-    await this.rootStore.organizationStore.loadCurrentOrganization();
-    return result;
+      // Update env_status field for current team
+      await this.rootStore.organizationStore.loadCurrentOrganization();
+      return result;
+    } catch (error) {
+      this.onApiError(error, skipErrorHandling);
+    }
   }
 
   @action.bound
   async delete(id: any) {
-    const result = await makeRequest(`${this.path}${id}/`, {
-      method: 'DELETE',
-    }).catch(this.onApiError);
-
-    // Update env_status field for current team
-    await this.rootStore.organizationStore.loadCurrentOrganization();
-    return result;
+    try {
+      const result = await makeRequest(`${this.path}${id}/`, {
+        method: 'DELETE',
+      });
+      // Update env_status field for current team
+      await this.rootStore.organizationStore.loadCurrentOrganization();
+      return result;
+    } catch (error) {
+      this.onApiError(error);
+    }
   }
 }

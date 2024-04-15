@@ -42,7 +42,10 @@ def test_send_webhook_event_filters(
     webhooks = {}
     for trigger_type in trigger_types:
         webhooks[trigger_type] = make_custom_webhook(
-            organization=organization, trigger_type=trigger_type, team=make_team(organization)
+            organization=organization,
+            trigger_type=trigger_type,
+            team=make_team(organization),
+            is_from_connected_integration=(trigger_type != Webhook.TRIGGER_ACKNOWLEDGE),
         )
 
     for trigger_type in trigger_types:
@@ -51,6 +54,18 @@ def test_send_webhook_event_filters(
         assert mock_execute.call_args == call(
             (webhooks[trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
         )
+
+    # backsync event exclude connected integration webhooks
+    for trigger_type in trigger_types:
+        with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
+            send_webhook_event(trigger_type, alert_group.pk, organization_id=organization.pk, is_backsync=True)
+            if trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
+                assert mock_execute.call_args == call(
+                    (webhooks[trigger_type].pk, alert_group.pk, None, None), kwargs={"trigger_type": trigger_type}
+                )
+            else:
+                # except for the acknowledge webhook (not connected integration set), the webhook is not triggered
+                mock_execute.assert_not_called()
 
     # other org
     other_org_webhook = make_custom_webhook(
@@ -113,7 +128,7 @@ def test_execute_webhook_disabled(
 
 @pytest.mark.django_db
 def test_execute_webhook_integration_filter_not_matching(
-    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook
+    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook, caplog
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -129,17 +144,15 @@ def test_execute_webhook_integration_filter_not_matching(
         execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check log should exist but have no status code
-    assert (
-        webhook.responses.count() == 1
-        and webhook.responses.first().status_code is None
-        and webhook.responses.first().request_trigger == NOT_FROM_SELECTED_INTEGRATION
-    )
+    # no response is created for the webhook
+    assert webhook.responses.count() == 0
+    # check log should exist
+    assert f"Webhook {webhook.pk} was not triggered: {NOT_FROM_SELECTED_INTEGRATION}" in caplog.text
 
 
 @pytest.mark.django_db
 def test_execute_webhook_integration_filter_matching(
-    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook
+    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook, caplog
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization, public_primary_key="test-integration-1")
@@ -156,13 +169,10 @@ def test_execute_webhook_integration_filter_matching(
         execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check log should exist but have no status code
-    assert (
-        webhook.responses.count() == 1
-        and webhook.responses.first().status_code is None
-        # Matches evaluated trigger_template
-        and webhook.responses.first().request_trigger == "False"
-    )
+    # no response is created for the webhook
+    assert webhook.responses.count() == 0
+    # check log should exist
+    assert f"Webhook {webhook.pk} was not triggered: False" in caplog.text
 
 
 ALERT_GROUP_PUBLIC_PRIMARY_KEY = "IXJ47FKMYYJ5U"
@@ -500,7 +510,7 @@ def test_execute_webhook_using_responses_data(
 
 @pytest.mark.django_db
 def test_execute_webhook_trigger_false(
-    make_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook
+    make_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook, caplog
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -517,8 +527,10 @@ def test_execute_webhook_trigger_false(
         execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check log should exist but have no status
-    assert webhook.responses.count() == 1 and webhook.responses.first().status_code is None
+    # no response is created for the webhook
+    assert webhook.responses.count() == 0
+    # check log should exist
+    assert f"Webhook {webhook.pk} was not triggered: False" in caplog.text
 
 
 @pytest.mark.django_db
@@ -676,7 +688,9 @@ def test_manually_retried_exceptions(
     execute_webhook(*execute_webhook_args)
 
     mock_requests.post.assert_called_once_with("https://test/", timeout=TIMEOUT, headers={})
-    spy_execute_webhook.apply_async.assert_called_once_with((*execute_webhook_args, 1), countdown=10)
+    spy_execute_webhook.apply_async.assert_called_once_with(
+        execute_webhook_args, kwargs={"trigger_type": None, "manual_retry_num": 1}, countdown=10
+    )
 
     mock_requests.reset_mock()
     spy_execute_webhook.reset_mock()
@@ -722,6 +736,7 @@ def test_execute_webhook_integration_config(
         http_method="POST",
         trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
         forward_all=True,
+        is_from_connected_integration=True,
     )
     webhook.filtered_integrations.set([source_alert_receive_channel, alert_receive_channel])
 

@@ -20,6 +20,7 @@ from .views.organization import (
     CurrentOrganizationView,
     GetChannelVerificationCode,
     GetTelegramVerificationCode,
+    OrganizationConfigChecksView,
     SetGeneralChannel,
 )
 from .views.paging import DirectPagingAPIView
@@ -72,6 +73,11 @@ urlpatterns = [
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
     optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
+    optional_slash_path(
+        "organization/config-checks",
+        OrganizationConfigChecksView.as_view(),
+        name="api-organization-config-checks",
+    ),
     # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
