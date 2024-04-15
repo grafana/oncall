@@ -26,7 +26,7 @@ import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT } from 'utils/consts';
+import { DOCS_ROOT, GENERIC_ERROR } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
@@ -338,7 +338,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
           if (res?.response?.status === 409) {
             openErrorNotification(`Duplicate values are not allowed`);
           } else {
-            openErrorNotification('An error has occurred. Please try again');
+            openErrorNotification(GENERIC_ERROR);
           }
         }}
         renderValue={(option, index, renderValueDefault) => {

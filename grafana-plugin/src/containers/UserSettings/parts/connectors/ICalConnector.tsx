@@ -24,20 +24,22 @@ export const ICalConnector = (props: ICalConnectorProps) => {
   const [iCalLoading, setiCalLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    UserHelper.getiCalLink(id)
-      .then((_res) => {
+    (async () => {
+      try {
+        await UserHelper.getiCalLink(id);
         setIsiCalLinkExisting(true);
         setiCalLoading(false);
-      })
-      .catch((_res) => {
+      } catch (_err) {
         setIsiCalLinkExisting(false);
         setiCalLoading(false);
-      });
+      }
+    })();
   }, []);
 
   const handleCreateiCalLink = async () => {
     setIsiCalLinkExisting(true);
-    await UserHelper.createiCalLink(id).then((res) => setShowiCalLink(res?.export_url));
+    const res = await UserHelper.createiCalLink(id);
+    setShowiCalLink(res?.export_url);
   };
 
   const handleRevokeiCalLink = async () => {

@@ -3,7 +3,7 @@ rulesDirPlugin.RULES_DIR = 'tools/eslint-rules';
 
 module.exports = {
   extends: ['./.config/.eslintrc'],
-  plugins: ['rulesdir', 'import', 'unused-imports'],
+  plugins: ['rulesdir', 'import', 'unused-imports', 'promise'],
   settings: {
     'import/internal-regex':
       '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
@@ -71,5 +71,6 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'off',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
     '@typescript-eslint/explicit-member-accessibility': 'off',
+    'promise/prefer-await-to-then': 'error',
   },
 };

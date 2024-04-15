@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { Button, HorizontalGroup, Switch, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, Switch, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -26,10 +26,11 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
   const [showSchedulesDropdown, setShowSchedulesDropdown] = useState<boolean>();
 
   useEffect(() => {
-    userStore.fetchItemById({ userPk: id }).then((user) => {
+    (async () => {
+      const user = await userStore.fetchItemById({ userPk: id });
       setGoogleCalendarSettings(user.google_calendar_settings);
       setShowSchedulesDropdown(user.google_calendar_settings.oncall_schedules_to_consider_for_shift_swaps?.length > 0);
-    });
+    })();
   }, []);
 
   const handleShowSchedulesDropdownChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,6 +123,21 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
               )}
             </VerticalGroup>
           )}
+
+          <HorizontalGroup spacing="sm">
+            <Icon name="info-circle" />
+            <Text type="secondary">
+              Grafana OnCall's use and transfer to any other app of information received from Google APIs will adhere to{' '}
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes"
+              >
+                <Text type="link">Google API Services User Data Policy</Text>
+              </a>
+              , including the Limited Use requirements.
+            </Text>
+          </HorizontalGroup>
         </VerticalGroup>
       </Block>
     </VerticalGroup>
