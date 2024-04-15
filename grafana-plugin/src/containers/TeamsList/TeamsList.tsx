@@ -143,10 +143,11 @@ export const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
     String(Number(team.is_sharing_resources_to_all))
   );
 
-  const handleSubmit = useCallback(() => {
-    Promise.all([
+  const handleSubmit = useCallback(async () => {
+    await Promise.all([
       grafanaTeamStore.updateTeam(teamId, { is_sharing_resources_to_all: Boolean(Number(shareResourceToAll)) }),
-    ]).then(onHide);
+    ]);
+    onHide();
   }, [shareResourceToAll]);
 
   return (

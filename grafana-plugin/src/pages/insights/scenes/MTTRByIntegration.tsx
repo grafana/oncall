@@ -24,10 +24,6 @@ export function getMTTRByIntegrationScene({ datasource, stack }: InsightsConfig)
     $data: query,
     transformations: [
       {
-        id: 'seriesToRows',
-        options: {},
-      },
-      {
         id: 'organize',
         options: {
           excludeByName: {
@@ -89,6 +85,7 @@ export function getMTTRByIntegrationScene({ datasource, stack }: InsightsConfig)
             ],
           },
           unit: 's',
+          min: 0,
         },
         overrides: [
           {

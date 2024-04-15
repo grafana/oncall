@@ -73,9 +73,13 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
         modeToShowEscalationChainForm: EscalationChainFormMode.Create,
       });
     } else if (id) {
-      let escalationChain = await escalationChainStore
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+      let escalationChain: EscalationChain;
+
+      try {
+        escalationChain = await escalationChainStore.loadItem(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+      }
 
       await escalationChainStore.updateEscalationChainDetails(id);
       if (!escalationChain) {
@@ -250,11 +254,12 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       },
     } = this.props;
 
-    this.setState({ escalationChainsFilters: filters, extraEscalationChains: undefined }, () => {
+    this.setState({ escalationChainsFilters: filters, extraEscalationChains: undefined }, async () => {
+      await this.applyFilters();
       if (isOnMount && id) {
-        this.applyFilters().then(this.parseQueryParams);
+        this.parseQueryParams();
       } else {
-        this.applyFilters().then(this.autoSelectEscalationChain);
+        this.autoSelectEscalationChain();
       }
     });
   };
@@ -412,9 +417,13 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       (!extraEscalationChains ||
         (extraEscalationChains && !extraEscalationChains.some((escalationChain) => escalationChain.id === id)))
     ) {
-      let escalationChain = await escalationChainStore
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+      let escalationChain: EscalationChain;
+
+      try {
+        escalationChain = await escalationChainStore.loadItem(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+      }
 
       if (escalationChain) {
         this.setState({ extraEscalationChains: [...(this.state.extraEscalationChains || []), escalationChain] }, () => {
@@ -426,7 +435,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
     }
   };
 
-  handleDeleteEscalationChain = () => {
+  handleDeleteEscalationChain = async () => {
     const { store, history } = this.props;
     const { escalationChainStore } = store;
     const { selectedEscalationChain, extraEscalationChains } = this.state;
@@ -435,24 +444,22 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       .getSearchResult()
       .findIndex((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain);
 
-    escalationChainStore
-      .delete(selectedEscalationChain)
-      .then(this.applyFilters)
-      .then(() => {
-        if (extraEscalationChains) {
-          const newExtraEscalationChains = extraEscalationChains.filter(
-            (scalationChain) => scalationChain.id !== selectedEscalationChain
-          );
+    await escalationChainStore.delete(selectedEscalationChain);
+    await this.applyFilters();
 
-          this.setState({ extraEscalationChains: newExtraEscalationChains });
-        }
+    if (extraEscalationChains) {
+      const newExtraEscalationChains = extraEscalationChains.filter(
+        (scalationChain) => scalationChain.id !== selectedEscalationChain
+      );
 
-        const escalationChains = escalationChainStore.getSearchResult();
+      this.setState({ extraEscalationChains: newExtraEscalationChains });
+    }
 
-        const newSelected = escalationChains[index - 1] || escalationChains[0];
+    const escalationChains = escalationChainStore.getSearchResult();
 
-        history.push(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
-      });
+    const newSelected = escalationChains[index - 1] || escalationChains[0];
+
+    history.push(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
   };
 
   handleEscalationChainNameChange = (value: string) => {

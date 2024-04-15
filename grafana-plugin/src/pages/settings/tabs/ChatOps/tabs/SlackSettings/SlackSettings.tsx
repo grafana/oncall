@@ -48,19 +48,24 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   componentDidMount() {
-    const { store } = this.props;
-    if (store.hasFeature(AppFeature.LiveSettings)) {
-      this.getSlackLiveSettings().then(() => {
-        this.update();
-      });
-    } else {
-      this.update();
-    }
+    this.onDidMount();
   }
 
-  handleOpenSlackInstructions = () => {
+  onDidMount = async () => {
     const { store } = this.props;
-    store.slackStore.installSlackIntegration().catch(showApiError);
+    if (store.hasFeature(AppFeature.LiveSettings)) {
+      await this.getSlackLiveSettings();
+    }
+    this.update();
+  };
+
+  handleOpenSlackInstructions = async () => {
+    const { store } = this.props;
+    try {
+      await store.slackStore.installSlackIntegration();
+    } catch (err) {
+      showApiError(err);
+    }
   };
 
   update = () => {
@@ -228,14 +233,14 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     );
   };
 
-  removeSlackIntegration = () => {
+  removeSlackIntegration = async () => {
     const { store } = this.props;
-    store.slackStore
-      .removeSlackIntegration()
-      .then(() => {
-        store.organizationStore.loadCurrentOrganization();
-      })
-      .catch(showApiError);
+    try {
+      await store.slackStore.removeSlackIntegration();
+      store.organizationStore.loadCurrentOrganization();
+    } catch (err) {
+      showApiError(err);
+    }
   };
 
   getSlackSettingsChangeHandler = (field: string) => {

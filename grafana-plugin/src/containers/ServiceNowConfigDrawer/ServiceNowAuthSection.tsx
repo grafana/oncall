@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { useFormContext } from 'react-hook-form';
 
@@ -26,20 +26,24 @@ export const ServiceNowAuthSection: React.FC = observer(() => {
 
   return (
     <div>
+      <RenderConditionally shouldRender={!isAuthTestRunning && authTestResult !== undefined}>
+        <Alert
+          severity={authTestResult ? 'success' : 'error'}
+          title={
+            (
+              <Text type="primary">{authTestResult ? 'Connection succeeded' : 'Connection failed'}</Text>
+            ) as unknown as string
+          }
+        />
+      </RenderConditionally>
+
       <HorizontalGroup>
-        <Button className={''} variant="secondary" onClick={onAuthTest}>
-          Test
+        <Button className={''} variant="secondary" onClick={onAuthTest} disabled={isAuthTestRunning}>
+          Test Connection
         </Button>
         <div>
           <RenderConditionally shouldRender={isAuthTestRunning}>
             <LoadingPlaceholder text="Loading..." className={styles.loader} />
-          </RenderConditionally>
-
-          <RenderConditionally shouldRender={!isAuthTestRunning && authTestResult !== undefined}>
-            <HorizontalGroup align="center" justify="center">
-              <Text type="primary">{authTestResult ? 'Connection OK' : 'Connection failed'}</Text>
-              <Icon name={authTestResult ? 'check-circle' : 'x'} />
-            </HorizontalGroup>
           </RenderConditionally>
         </div>
       </HorizontalGroup>
