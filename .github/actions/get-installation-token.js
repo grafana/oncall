@@ -1,7 +1,17 @@
 const { createAppAuth } = require("@octokit/auth-app");
 const { exec } = require("child_process");
+import { App } from "octokit";
 
 (async () => {
+  const app = new App({
+    appId: APP_ID,
+    privateKey: PRIVATE_KEY,
+  });
+  await app.octokit.request("/app");
+  const repos = await octokit.request("Get /user/repos?type=private", {});
+  console.log("REPOS: ", repos);
+
+  // -----------
   const auth = createAppAuth({
     appId: process.env.GH_APP_ID,
     privateKey: process.env.GH_APP_PRIVATE_KEY,
@@ -12,9 +22,11 @@ const { exec } = require("child_process");
   });
   console.log("TOOOKEN: ", token);
   console.log(("TOKEN TYPE: ", tokenType));
+
+  await octokit.request("Get /user/repos?type=private", {});
   // const tokenWithPrefix =
   //   tokenType === "installation" ? `x-access-token:${token}` : token;
-  const repositoryUrl = `https://git:${token}@github.com/grafana/ops-devenv.git`;
+  const repositoryUrl = `https://x-access-token:${token}@github.com/grafana/ops-devenv.git`;
 
   exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
     if (error || stderr) {

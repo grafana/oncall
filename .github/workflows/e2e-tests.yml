@@ -65,7 +65,7 @@ jobs:
 
       # ops-devenv setup start
       # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
-      - run: npm install @octokit/auth-app
+      - run: npm install @octokit/auth-app octokit
       - run: |
           node .github/actions/get-installation-token.js
         # - run: |
