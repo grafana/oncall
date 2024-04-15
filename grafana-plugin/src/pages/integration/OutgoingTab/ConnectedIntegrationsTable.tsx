@@ -84,11 +84,18 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
                 <HorizontalGroup>
                   <Text type="secondary">Backsync</Text>
                   {tokenExists ? (
-                    <Tooltip content={<>Switch on to start sending data from other integrations</>}>
+                    <Tooltip
+                      content={
+                        <>
+                          Switch on to receive updates from ServiceNow. If disabled, Grafana OnCall will still send
+                          alerts to ServiceNow, but not receive updates back.
+                        </>
+                      }
+                    >
                       {<Icon name={'info-circle'} />}
                     </Tooltip>
                   ) : (
-                    <Tooltip content={<>Token must be generated to enable backsync</>}>
+                    <Tooltip content={<>ServiceNow Business Rule script must be generated to enable backsync</>}>
                       {<Icon name={'info-circle'} color={colors.error.shade} />}
                     </Tooltip>
                   )}
