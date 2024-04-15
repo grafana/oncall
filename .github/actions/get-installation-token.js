@@ -15,7 +15,7 @@ const { createAppAuth } = require("@octokit/auth-app");
     type: "installation",
     installationId: process.env.GH_APP_INSTALLATION_ID,
   });
-  console.log(resp.token);
+  console.log("TOOOKEN", resp.token);
   return resp.token;
 })().catch((e) => {
   console.error(e);
