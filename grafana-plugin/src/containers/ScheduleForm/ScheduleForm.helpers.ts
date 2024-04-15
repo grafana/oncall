@@ -7,7 +7,7 @@ export function prepareForEdit(item: Schedule) {
     ical_url_overrides: item.ical_url_overrides,
     enable_web_overrides: item.enable_web_overrides,
     slack_channel_id: item.slack_channel?.id,
-    user_group: item.user_group.id,
+    user_group: item.user_group?.id,
     send_empty_shifts_report: item.send_empty_shifts_report,
     team: item.team,
     notify_oncall_shift_freq: item.notify_oncall_shift_freq,
