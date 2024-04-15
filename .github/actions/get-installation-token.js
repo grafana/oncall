@@ -1,6 +1,6 @@
 const { createAppAuth } = require("@octokit/auth-app");
 const { exec } = require("child_process");
-import { App } from "octokit";
+const { App } = require("octokit");
 
 (async () => {
   const app = new App({
