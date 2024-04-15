@@ -1,5 +1,5 @@
 import datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from django.core.cache import cache
@@ -10,7 +10,13 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
+from apps.alerts.models import (
+    AlertGroup,
+    AlertGroupExternalID,
+    AlertGroupLogRecord,
+    AlertReceiveChannel,
+    ResolutionNote,
+)
 from apps.alerts.paging import direct_paging
 from apps.alerts.tasks import wipe
 from apps.api.errors import AlertGroupAPIError
@@ -2243,3 +2249,42 @@ def test_alert_group_list_labels(
     assert response.json()["results"][-1]["labels"] == [
         {"key": {"id": "a", "name": "a"}, "value": {"id": "b", "name": "b"}}
     ]
+
+
+@pytest.mark.django_db
+def test_alert_group_external_urls(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    make_alert_receive_channel_connection,
+    make_alert_group,
+):
+    client = APIClient()
+
+    integration_config = AlertReceiveChannel._config[0]
+    integration_config.get_url = Mock(return_value="https://some-url")
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    source_alert_receive_channel = make_alert_receive_channel(organization, integration=integration_config.slug)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    make_alert_receive_channel_connection(source_alert_receive_channel, alert_receive_channel)
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.json()["external_urls"] == []
+
+    # create external IDs
+    external_id = AlertGroupExternalID.objects.create(
+        source_alert_receive_channel=source_alert_receive_channel, alert_group=alert_group, value="test123"
+    )
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    expected = {
+        "integration": source_alert_receive_channel.public_primary_key,
+        "integration_type": source_alert_receive_channel.integration,
+        "external_id": external_id.value,
+        "url": "https://some-url",
+    }
+    assert response.json()["external_urls"] == [expected]
