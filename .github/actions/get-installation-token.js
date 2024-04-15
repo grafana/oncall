@@ -1,24 +1,15 @@
 const { createAppAuth } = require("@octokit/auth-app");
 
 (async () => {
-  // console.log("HEEERE", {
-  //   appId: process.env.GH_APP_ID,
-  //   privateKey: process.env.GH_APP_PRIVATE_KEY,
-  //   installationId: process.env.GH_APP_INSTALLATION_ID,
-  // });
-  // const auth = createAppAuth({
-  //   appId: process.env.GH_APP_ID,
-  //   privateKey: process.env.GH_APP_PRIVATE_KEY,
-  // });
-
-  // const resp = await auth({
-  //   type: "installation",
-  //   installationId: process.env.GH_APP_INSTALLATION_ID,
-  // });
-  // console.log("TOOOKEN", resp.token);
-  // return resp.token;
-  const token = await Promise.resolve("WOOOOOW");
-  console.log("Token:", token);
+  const auth = createAppAuth({
+    appId: process.env.GH_APP_ID,
+    privateKey: process.env.GH_APP_PRIVATE_KEY,
+  });
+  const resp = await auth({
+    type: "installation",
+    installationId: process.env.GH_APP_INSTALLATION_ID,
+  });
+  process.stdout.write(resp.token);
   process.exit(0);
 })().catch((e) => {
   // console.error("EEEEERRORRR", e);
