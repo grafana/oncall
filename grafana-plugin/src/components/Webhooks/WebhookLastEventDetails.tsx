@@ -2,7 +2,7 @@ import React, { FC, useMemo } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { VerticalGroup, HorizontalGroup, Badge, useStyles2, Tooltip, Icon, useTheme2 } from '@grafana/ui';
+import { VerticalGroup, HorizontalGroup, Badge, useStyles2, useTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { SourceCode } from 'components/SourceCode/SourceCode';
