@@ -17,6 +17,7 @@ def send_alert_create_signal(alert_id):
         alert = Alert.objects.get(pk=alert_id)
     except Alert.DoesNotExist:
         task_logger.info(f"Alert {alert_id} does not exist, likely parent alert group was deleted")
+        return
 
     if alert.group.channel.maintenance_mode != AlertReceiveChannel.MAINTENANCE:
         alert_create_signal.send(
