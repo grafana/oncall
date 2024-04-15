@@ -84,7 +84,7 @@ export const getStyles = (theme: GrafanaTheme2) => ({
   `,
   tabsWrapper: css`
     padding: 16px 16px 0 8px;
-    height: calc(100vh - 135px);
+    height: calc(100vh - 135px); // 135px is a grafana + drawer header
     overflow: auto;
   `,
   connectIntegrationModalContent: css`
