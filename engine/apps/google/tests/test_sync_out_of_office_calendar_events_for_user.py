@@ -8,8 +8,9 @@ from apps.google import constants, tasks
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 
 
-def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: datetime.datetime,
-                                       summary="Out of office"):
+def _create_mock_google_calendar_event(
+    start_time: datetime.datetime, end_time: datetime.datetime, summary="Out of office"
+):
     return {
         "colorId": "4",
         "created": "2024-03-22T23:06:39.000Z",
