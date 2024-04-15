@@ -27,44 +27,42 @@ export const LabelsFilter = observer((props: LabelsFilterProps) => {
     filterType === 'alert_group_labels' ? AlertGroupHelper.loadValuesForLabelKey : labelsStore.loadValuesForKey;
 
   useEffect(() => {
-    loadKeys().then(setKeys);
+    (async () => {
+      const keys = await loadKeys();
+      setKeys(keys);
+    })();
   }, []);
 
   useEffect(() => {
     const keyValuePairs = (propsValue || []).map((k) => k.split(':'));
     const promises = keyValuePairs.map(([keyId]) => loadValuesForKey(keyId));
-    const fetchKeyValues = async () => await Promise.all(promises);
 
-    fetchKeyValues().then((list) => {
+    (async () => {
+      const list = await Promise.all(promises);
       const value = list.map(({ key, values }, index) => ({
         key,
         value: values.find((v) => v.id === keyValuePairs[index][1]) || {},
       }));
-
       setValue(value);
-    });
+    })();
   }, [propsValue, keys]);
 
-  const handleLoadOptions = (search) => {
+  const handleLoadOptions = async (search) => {
     if (!search) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    return new Promise((resolve) => {
-      const keysFiltered = keys.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
+    const keysFiltered = keys.filter((k) => k.name.toLowerCase().includes(search.toLowerCase()));
 
-      const promises = keysFiltered.map((key) => loadValuesForKey(key.id));
+    const promises = keysFiltered.map((key) => loadValuesForKey(key.id));
 
-      Promise.all(promises).then((list) => {
-        const options = list.reduce((memo, { key, values }) => {
-          const options = values.map((value) => ({ key, value }));
+    const list = await Promise.all(promises);
+    const options = list.reduce((memo, { key, values }) => {
+      const options = values.map((value) => ({ key, value }));
+      return [...memo, ...options];
+    }, []);
 
-          return [...memo, ...options];
-        }, []);
-
-        resolve(options);
-      });
-    });
+    return options;
   };
 
   return (

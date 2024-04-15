@@ -144,8 +144,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
   }, [showActiveOnSelectedDays]);
 
   useEffect(() => {
-    if (isOpen) {
-      waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`).then((elm) => {
+    (async () => {
+      if (isOpen) {
+        const elm = await waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`);
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
         const coords = getCoords(elm);
 
@@ -155,8 +156,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
         );
 
         setOffsetTop(offsetTop);
-      });
-    }
+      }
+    })();
   }, [isOpen]);
 
   const handleChangeEndless = useCallback(
@@ -166,10 +167,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
     [endLess]
   );
 
-  const handleDeleteClick = useCallback((force: boolean) => {
-    store.scheduleStore.deleteOncallShift(shiftId, force).then(() => {
-      onDelete();
-    });
+  const handleDeleteClick = useCallback(async (force: boolean) => {
+    await store.scheduleStore.deleteOncallShift(shiftId, force);
+    onDelete();
   }, []);
 
   useEffect(() => {
@@ -184,15 +184,22 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   }, []);
 
-  const updatePreview = () => {
+  const updatePreview = async () => {
     setErrors({});
 
-    store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, store.timezoneStore.calendarStartDate, false, params)
-      .catch(onError)
-      .finally(() => {
-        setIsOpen(true);
-      });
+    try {
+      await store.scheduleStore.updateRotationPreview(
+        scheduleId,
+        shiftId,
+        store.timezoneStore.calendarStartDate,
+        false,
+        params
+      );
+    } catch (err) {
+      onError(err);
+    } finally {
+      setIsOpen(true);
+    }
   };
 
   const onError = useCallback((error) => {
@@ -241,31 +248,31 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   useEffect(handleChange, [params, store.timezoneStore.calendarStartDate]);
 
-  const create = useCallback(() => {
-    store.scheduleStore
-      .createRotation(scheduleId, false, { ...params, name: rotationName })
-      .then(() => {
-        onCreate();
-      })
-      .catch(onError);
+  const create = useCallback(async () => {
+    try {
+      await store.scheduleStore.createRotation(scheduleId, false, { ...params, name: rotationName });
+      onCreate();
+    } catch (err) {
+      onError(err);
+    }
   }, [scheduleId, shiftId, params]);
 
-  const update = useCallback(() => {
-    store.scheduleStore
-      .updateRotation(shiftId, params)
-      .then(() => {
-        onUpdate();
-      })
-      .catch(onError);
+  const update = useCallback(async () => {
+    try {
+      await store.scheduleStore.updateRotation(shiftId, params);
+      onUpdate();
+    } catch (err) {
+      onError(err);
+    }
   }, [shiftId, params]);
 
-  const updateAsNew = useCallback(() => {
-    store.scheduleStore
-      .updateRotationAsNew(shiftId, params)
-      .then(() => {
-        onUpdate();
-      })
-      .catch(onError);
+  const updateAsNew = useCallback(async () => {
+    try {
+      await store.scheduleStore.updateRotationAsNew(shiftId, params);
+      onUpdate();
+    } catch (err) {
+      onError(err);
+    }
   }, [shiftId, params]);
 
   const handleEditNewerRotationClick = useCallback(() => {

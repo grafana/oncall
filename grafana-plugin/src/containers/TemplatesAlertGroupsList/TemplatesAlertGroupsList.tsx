@@ -57,16 +57,18 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    if (templatePage === TEMPLATE_PAGE.Webhooks) {
-      if (outgoingwebhookId !== 'new') {
-        store.outgoingWebhookStore.getLastResponses(outgoingwebhookId).then(setOutgoingWebhookLastResponses);
-      }
-    } else if (templatePage === TEMPLATE_PAGE.Integrations) {
-      AlertGroupHelper.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
+    (async () => {
+      if (templatePage === TEMPLATE_PAGE.Webhooks) {
+        if (outgoingwebhookId !== 'new') {
+          const res = await store.outgoingWebhookStore.getLastResponses(outgoingwebhookId);
+          setOutgoingWebhookLastResponses(res);
+        }
+      } else if (templatePage === TEMPLATE_PAGE.Integrations) {
+        const result = await AlertGroupHelper.getAlertGroupsForIntegration(alertReceiveChannelId);
         setAlertGroupsList(result.slice(0, 30));
         onLoadAlertGroupsList(result.length > 0);
-      });
-    }
+      }
+    })();
   }, []);
 
   const getChangeHandler = () => {

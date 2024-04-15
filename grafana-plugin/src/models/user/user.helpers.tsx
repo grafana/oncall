@@ -89,7 +89,11 @@ export class UserHelper {
   }
 
   static async getiCalLink(userPk: ApiSchemas['User']['pk']) {
-    return (await onCallApi().GET('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
+    return (
+      await onCallApi({ skipErrorHandling: true }).GET('/users/{id}/export_token/', {
+        params: { path: { id: userPk } },
+      })
+    ).data;
   }
 
   static async createiCalLink(userPk: ApiSchemas['User']['pk']) {
