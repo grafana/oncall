@@ -15,7 +15,6 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_ROOT } from 'utils/consts';
 
 const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ id }) => {
   const { userStore, scheduleStore } = useStore();
@@ -92,18 +91,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           )}
-
-          <Text type="secondary">
-            See the Grafana OnCall{' '}
-            <a
-              href={`${DOCS_ROOT}/manage/on-call-schedules/shift-swaps/#google-calendar-integration`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Text type="link">documentation</Text>
-            </a>{' '}
-            for more information.
-          </Text>
 
           {user.has_google_oauth2_connected && (
             <VerticalGroup>
