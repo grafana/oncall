@@ -360,7 +360,7 @@ export const IntegrationForm = observer(
                     content={
                       <>
                         If enabled, all the necessary webhooks will be created automatically. It's highly recommended to
-                        keep this enabled.
+                        keep this option enabled.
                       </>
                     }
                   >

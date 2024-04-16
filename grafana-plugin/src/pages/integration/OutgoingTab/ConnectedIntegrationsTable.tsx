@@ -88,7 +88,7 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
                       content={
                         <>
                           Switch on to receive updates from ServiceNow. If disabled, Grafana OnCall will still send
-                          alerts to ServiceNow, but not receive updates back.
+                          alerts to ServiceNow, but will not receive any updates back.
                         </>
                       }
                     >
