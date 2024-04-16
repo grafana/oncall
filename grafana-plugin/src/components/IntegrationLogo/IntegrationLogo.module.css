@@ -3,7 +3,7 @@
   background-repeat: no-repeat;
 }
 
-.bg__ServiceNow {
+.bg_ServiceNow {
   background: url(../../assets/img/ServiceNow.svg);
   background-size: 100% !important;
 }
