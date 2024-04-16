@@ -129,7 +129,7 @@ def test_distribute_alert_escalate_alert_group(
     make_escalation_policy,
 ):
     """
-    Check escalate_alert_group is called for the first alert in the group and not called for the second alert in the group.
+    Check start_escalation_if_needed is called for the first alert in the group and not called for the second alert in the group.
     """
     organization = make_organization()
     escalation_chain = make_escalation_chain(organization)
@@ -140,7 +140,7 @@ def test_distribute_alert_escalate_alert_group(
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
 
-    # Check escalate_alert_group is called for the first alert in the group
+    # Check start_escalation_if_needed is called for the first alert in the group
     Alert.create(
         title="the title",
         message="the message",
@@ -154,7 +154,7 @@ def test_distribute_alert_escalate_alert_group(
     mock_start_escalation.assert_called_once()
     mock_start_escalation.reset_mock()
 
-    # Check escalate_alert_group is not called for the second alert in the group
+    # Check start_escalation_if_needed is not called for the second alert in the group
     Alert.create(
         title="the title",
         message="the message",
@@ -180,8 +180,8 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
     make_escalation_policy,
 ):
     """
-    Check escalate_alert_group is called for the first alert in the group and for the second alert in the group when
-    escalation is paused.
+    Check start_escalation_if_needed is called for the first alert in the group and for the second alert in the group
+    when escalation is paused.
     """
     organization = make_organization()
     escalation_chain = make_escalation_chain(organization)
@@ -192,7 +192,7 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
 
-    # Check escalate_alert_group is called for the first alert in the group
+    # Check start_escalation_if_needed is called for the first alert in the group
     Alert.create(
         title="the title",
         message="the message",
@@ -206,7 +206,7 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
     mock_start_escalation.assert_called_once()
     mock_start_escalation.reset_mock()
 
-    # Check escalate_alert_group is called for the second alert in the group when escalation is paused
+    # Check start_escalation_if_needed is called for the second alert in the group when escalation is paused
     with patch(
         "apps.alerts.escalation_snapshot.escalation_snapshot_mixin.EscalationSnapshotMixin.pause_escalation",
         new_callable=PropertyMock(return_value=True),
