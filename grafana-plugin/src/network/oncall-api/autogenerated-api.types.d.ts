@@ -1411,6 +1411,12 @@ export interface components {
         avatar_full: string;
         important: boolean;
       }[];
+      readonly external_urls: {
+        integration: string;
+        integration_type: string;
+        external_id: string;
+        url: string;
+      }[];
     };
     AlertGroupAttach: {
       root_alert_group_pk: string;

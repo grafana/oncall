@@ -30,9 +30,7 @@ export const ServiceNowAuthSection: React.FC = observer(() => {
         <Alert
           severity={authTestResult ? 'success' : 'error'}
           title={
-            (
-              <Text type="primary">{authTestResult ? 'Connection succeeded' : 'Connection failed'}</Text>
-            ) as unknown as string
+            (<Text type="primary">{authTestResult ? 'Connection OK' : 'Connection failed'}</Text>) as unknown as string
           }
         />
       </RenderConditionally>
