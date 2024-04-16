@@ -1285,6 +1285,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
             logger.debug(
                 f"send alert_group_action_triggered_signal for alert_group {self.pk}, "
+                f"in channel {self.channel.pk}, in org {self.channel.organization.pk}, by user {user.pk}, "
                 f"log record {log_record.pk} with type '{log_record.get_type_display()}', "
                 f"action source: delete"
             )

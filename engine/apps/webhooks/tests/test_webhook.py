@@ -323,6 +323,30 @@ def test_webhook_not_deleted_with_team(make_organization, make_team, make_custom
 
 
 @pytest.mark.django_db
+def test_delete_alert_receive_channel_webhooks_deleted(
+    make_organization, make_alert_receive_channel, make_custom_webhook
+):
+    organization = make_organization()
+    channel = make_alert_receive_channel(organization=organization, additional_settings={})
+
+    webhook_from_connected_integration = make_custom_webhook(
+        organization=organization,
+        is_from_connected_integration=True,
+    )
+    other_webhook = make_custom_webhook(organization=organization)
+    webhook_from_connected_integration.filtered_integrations.add(channel)
+    other_webhook.filtered_integrations.add(channel)
+
+    channel.delete()
+
+    webhook_from_connected_integration.refresh_from_db()
+    assert webhook_from_connected_integration.deleted_at is not None
+
+    other_webhook.refresh_from_db()
+    assert other_webhook.deleted_at is None
+
+
+@pytest.mark.django_db
 def test_get_source_alert_receive_channel(make_organization, make_alert_receive_channel, make_custom_webhook):
     organization = make_organization()
     channel1 = make_alert_receive_channel(organization=organization, additional_settings={})
