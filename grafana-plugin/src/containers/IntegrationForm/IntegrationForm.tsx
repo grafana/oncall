@@ -411,7 +411,7 @@ export const IntegrationForm = observer(
 
       const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
         ...formData,
-        labels: [...labels],
+        labels: labels ? [...labels] : undefined,
       };
 
       if (formData.integration !== 'servicenow') {
