@@ -60,8 +60,10 @@ to send alerts to ServiceNow.
      * `Acknowledged -> In Progress`
      * `Resolved -> Resolved`
      * `Silenced -> Not Selected`
-8. Generate a ServiceNow Business Rule script. This script will allow your ServiceNow instance to send updates to
-Grafana OnCall. See the next step for more details on how to create the Business Rule in ServiceNow.
+8. Generate a ServiceNow Business Rule script and copy it to your clipboard. This script will allow your ServiceNow
+instance to send updates to Grafana OnCall. You won't be able to see the script again after closing the
+dialog, but you can regenerate it at any time in integration settings. See the next step for more details on how to
+create a Business Rule in ServiceNow using the generated script.
 9. On your ServiceNow instance, navigate to **System Definition** > **Business Rules** and click **New**.
 Fill in the following details:
    * Name: `grafana-oncall`
@@ -86,7 +88,11 @@ Fill in the following details:
 ## Connect other integrations
 
 You can connect other integrations such as Alertmanager, Grafana Alerting, and others to an existing ServiceNow
-integration. To do this:
+integration. When connected, Grafana OnCall will send alerts from the connected integrations to ServiceNow, and update
+alert groups on the connected integrations based on incident state changes in ServiceNow. Connected integrations will
+use the same ServiceNow credentials and outgoing webhooks as the ServiceNow integration they are connected to.
+
+To connect other integrations:
 
 1. Navigate to the **Outgoing** tab of an existing ServiceNow integration.
 2. Use the **Send data from other integrations** section to connect other integrations.
