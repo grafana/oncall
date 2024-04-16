@@ -281,6 +281,7 @@ INSTALLED_APPS = [
     "apps.phone_notifications",
     "drf_spectacular",
     "apps.google",
+    "apps.chatops_proxy",
 ]
 
 REST_FRAMEWORK = {

@@ -88,3 +88,8 @@ if settings.DRF_SPECTACULAR_ENABLED:
         path("internal/schema/", SpectacularYAMLAPIView.as_view(api_version="internal/v1"), name="schema"),
         path("internal/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     ]
+
+if settings.FEATURE_MULTIREGION_ENABLED:
+    urlpatterns += [
+        path("api/chatops/", include("apps.chatops_proxy.urls")),
+    ]

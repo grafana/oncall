@@ -131,6 +131,15 @@ class ChatopsProxyAPIClient:
         self._check_response(response)
         return response.json()["removed"], response
 
+    def get_slack_oauth_link(
+        self, stack_id: int, grafana_user_id: int, app_redirect: str
+    ) -> tuple[str, requests.models.Response]:
+        url = f"{self.api_base_url}/api/v3/oauth2/start"
+        d = {"stack_id": stack_id, "grafana_user_id": grafana_user_id, "app_redirect": app_redirect}
+        response = requests.post(url=url, json=d, headers=self._headers)
+        self._check_response(response)
+        return response.json()["install_link"], response
+
     def _check_response(self, response: requests.models.Response):
         """
         Wraps an exceptional response to ChatopsProxyAPIException
