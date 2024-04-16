@@ -92,7 +92,7 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
                         </>
                       }
                     >
-                      {<Icon name={'info-circle'} />}
+                      <Icon name={'info-circle'} />
                     </Tooltip>
                   ) : (
                     <Tooltip content={<>ServiceNow Business Rule script must be generated to enable backsync</>}>

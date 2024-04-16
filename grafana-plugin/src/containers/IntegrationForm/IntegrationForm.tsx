@@ -364,7 +364,7 @@ export const IntegrationForm = observer(
                       </>
                     }
                   >
-                    {<Icon name={'info-circle'} />}
+                    <Icon name={'info-circle'} />
                   </Tooltip>
                 </div>
               )}
