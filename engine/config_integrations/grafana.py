@@ -1,8 +1,8 @@
 # Main
 enabled = True
-title = "Grafana 8 (Legacy)"
+title = "Grafana Legacy Alerting"
 slug = "grafana"
-short_description = "Grafana Legacy Alerting"
+short_description = ""
 description = None
 is_displayed_on_web = True
 is_featured = False
