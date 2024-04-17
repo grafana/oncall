@@ -134,20 +134,14 @@ class ApplicationMetricsCollector:
                 ]
                 labels_values = list(map(str, labels_values))
 
-                response_time_values = integration_data["response_time"]
-                if not response_time_values:
-                    continue
-                # todo
-                # for service_name, states in integration_data["services"].items():
-                #     response_time_values = integration_data[service_name]["response_time"]
-                #     buckets, sum_value = self.get_buckets_with_sum(response_time_values)
-                #     buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
-                #     alert_groups_response_time_seconds.add_metric(
-                #         labels_values + [service_name], buckets=buckets, sum_value=sum_value
-                #     )
-                buckets, sum_value = self.get_buckets_with_sum(response_time_values)
-                buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
-                alert_groups_response_time_seconds.add_metric(labels_values, buckets=buckets, sum_value=sum_value)
+                for service_name, response_time in integration_data["services"].items():
+                    if not response_time:
+                        continue
+                    buckets, sum_value = self.get_buckets_with_sum(response_time)
+                    buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
+                    alert_groups_response_time_seconds.add_metric(
+                        labels_values + [service_name], buckets=buckets, sum_value=sum_value
+                    )
             org_id_from_key = RE_ALERT_GROUPS_RESPONSE_TIME.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
         missing_org_ids = org_ids - processed_org_ids
