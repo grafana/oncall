@@ -2,7 +2,7 @@
 enabled = True
 title = "Alertmanager"
 slug = "alertmanager"
-short_description = "External Alertmanager or Grafana Alerting"
+short_description = "Connect external Alertmanager or Grafana Alerting from other Grafana instance"
 is_displayed_on_web = True
 is_featured = True
 is_able_to_autoresolve = True
