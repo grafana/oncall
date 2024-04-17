@@ -14,6 +14,7 @@ import {
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { Collapse } from 'components/Collapse/Collapse';
 import { GSelect } from 'containers/GSelect/GSelect';
@@ -85,7 +86,7 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
 
   const { handleSubmit } = formMethods;
 
-  const styles = useStyles2(getStyles);
+  const utils = useStyles2(getUtilStyles);
 
   return (
     <Drawer
@@ -96,7 +97,7 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
     >
       <VerticalGroup>
         <FormProvider {...formMethods}>
-          <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+          <form onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <FormFields scheduleType={data.type} />
             <div className="buttons">
               <HorizontalGroup justify="flex-end">
@@ -399,9 +400,6 @@ const ScheduleNotificationSettingsFields = () => {
 };
 
 export const getStyles = () => ({
-  form: css`
-    width: 100%;
-  `,
   collapse: css`
     margin-bottom: 16px;
   `,

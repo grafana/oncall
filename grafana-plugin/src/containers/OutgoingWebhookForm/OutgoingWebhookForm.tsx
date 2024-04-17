@@ -29,7 +29,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { KeyValuePair } from 'utils/utils';
 
-import { TemplateParams } from './OutgoingWebhookForm.types';
+import { TemplateParams, WebhookFormFieldName } from './OutgoingWebhookForm.types';
 import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 import { WebhookPresetBlocks } from './WebhookPresetBlocks';
 
@@ -110,7 +110,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
     defaultValues: data,
   });
 
-  const { setValue, handleSubmit, reset } = formMethods;
+  const { setValue, handleSubmit, reset, setError } = formMethods;
 
   const onSubmit = useCallback(
     async (rawData: Partial<ApiSchemas['Webhook']>) => {
@@ -125,9 +125,9 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
         onHide();
         onUpdate();
       } catch (error) {
-        /*  Object.keys(error.response.data).forEach((key) => {
-          setError(key, { message: error.response.data[key][0] });
-        }); */
+        Object.keys(error.response.data).forEach((key) => {
+          setError(key as WebhookFormFieldName, { message: error.response.data[key][0] });
+        });
       }
     },
     [id, selectedPreset]
@@ -238,7 +238,7 @@ const Presets = (props: PresetsProps) => {
 };
 
 interface NewWebhookProps {
-  data: any;
+  data: Partial<ApiSchemas['Webhook']>;
   preset: OutgoingWebhookPreset;
   onHide: () => void;
   onBack: () => void;
@@ -289,7 +289,7 @@ const NewWebhook = (props: NewWebhookProps) => {
 
 interface EditWebhookTabsProps {
   id: OutgoingWebhookFormProps['id'];
-  data: any;
+  data: Partial<ApiSchemas['Webhook']>;
   action: WebhookFormActionType;
   onHide: OutgoingWebhookFormProps['onHide'];
   onUpdate: OutgoingWebhookFormProps['onUpdate'];
@@ -304,7 +304,7 @@ const EditWebhookTabs = (props: EditWebhookTabsProps) => {
 
   const history = useHistory();
 
-  const [activeTab, setActiveTab] = useState<string>(
+  const [activeTab, setActiveTab] = useState(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
 
@@ -362,7 +362,7 @@ interface WebhookTabsProps {
   id: OutgoingWebhookFormProps['id'];
   activeTab: string;
   action: WebhookFormActionType;
-  data: any;
+  data: Partial<ApiSchemas['Webhook']>;
   onHide: () => void;
   onUpdate: () => void;
   onDelete: () => void;

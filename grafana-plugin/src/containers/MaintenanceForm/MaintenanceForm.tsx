@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
 
-import { css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, HorizontalGroup, Select, VerticalGroup, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -65,7 +65,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     formState: { errors },
   } = formMethods;
 
-  const styles = useStyles2(getStyles);
+  const utils = useStyles2(getUtilStyles);
 
   return (
     <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
@@ -74,7 +74,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
           trigger false alarms.
           <FormProvider {...formMethods}>
-            <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+            <form onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
               <Controller
                 name="alert_receive_channel_id"
                 control={control}
@@ -195,10 +195,4 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
       </div>
     </Drawer>
   );
-});
-
-export const getStyles = () => ({
-  form: css`
-    width: 100%;
-  `,
 });

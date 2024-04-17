@@ -1,9 +1,9 @@
 import React, { FC, useCallback } from 'react';
 
-import { css } from '@emotion/css';
 import { Button, Drawer, Field, HorizontalGroup, TextArea, useStyles2, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { AddResponders } from 'containers/AddResponders/AddResponders';
 import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers';
@@ -43,8 +43,7 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
     formState: { errors },
   } = formMethods;
 
-  const hasSelectedEitherATeamOrAUser = selectedTeamResponder !== null || selectedUserResponders.length > 0;
-  const formIsSubmittable = hasSelectedEitherATeamOrAUser;
+  const formIsSubmittable = selectedTeamResponder !== null || selectedUserResponders.length > 0;
 
   // TODO: add a loading state while we're waiting to hear back from the API when submitting
   // const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
@@ -66,13 +65,13 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
     onHide();
   };
 
-  const styles = useStyles2(getStyles);
+  const utils = useStyles2(getUtilStyles);
 
   return (
     <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
         <FormProvider {...formMethods}>
-          <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+          <form onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <Controller
               name="message"
               control={control}
@@ -104,10 +103,4 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
       </VerticalGroup>
     </Drawer>
   );
-});
-
-export const getStyles = () => ({
-  form: css`
-    width: 100%;
-  `,
 });

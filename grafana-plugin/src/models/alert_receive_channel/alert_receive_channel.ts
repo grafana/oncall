@@ -149,8 +149,7 @@ export class AlertReceiveChannelStore {
 
     this.fetchCounters();
 
-    // @ts-ignore for some reason ts doesn't see `results` as list of ApiSchemas['AlertReceiveChannel']
-    return results;
+    return results as Array<ApiSchemas['AlertReceiveChannel']>;
   }
 
   @AutoLoadingState(ActionKey.FETCH_INTEGRATIONS)
