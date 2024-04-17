@@ -2,12 +2,11 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Drawer, Field, HorizontalGroup, Input, VerticalGroup, Icon, useStyles2, Button } from '@grafana/ui';
+import { Drawer, Field, HorizontalGroup, Input, useStyles2, Button } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { parseUrl } from 'query-string';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
-import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
@@ -109,24 +108,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
 
             <div className={styles.border}>
               <ServiceNowStatusSection />
-            </div>
-
-            <div className={styles.border}>
-              <VerticalGroup>
-                <HorizontalGroup spacing="xs" align="center">
-                  <Text type="primary" strong>
-                    Labels Mapping
-                  </Text>
-                  <Icon name="info-circle" />
-                </HorizontalGroup>
-
-                <Text>
-                  Description for such object and{' '}
-                  <a href={'#'} target="_blank" rel="noreferrer">
-                    <Text type="link">link to documentation</Text>
-                  </a>
-                </Text>
-              </VerticalGroup>
             </div>
 
             <div className={styles.border}>

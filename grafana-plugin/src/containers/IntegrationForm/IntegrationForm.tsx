@@ -38,7 +38,7 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, generateAssignToTeamInputDescription } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
@@ -286,7 +286,17 @@ export const IntegrationForm = observer(
 
           <RenderConditionally shouldRender={isServiceNow && isNew}>
             <div className={styles.serviceNowHeading}>
-              <Text type="primary">ServiceNow configuration</Text>
+              <HorizontalGroup>
+                <Text type="primary">ServiceNow configuration</Text>
+              </HorizontalGroup>
+              <HorizontalGroup>
+                <Text type={'primary'} size={'small'}>
+                  Fill in ServiceNow credentials to be used by Grafana OnCall.{' '}
+                  <a href={`${DOCS_ROOT}/integrations/servicenow/`} target="_blank" rel="noreferrer">
+                    <Text type="link">Read setup guide</Text>
+                  </a>
+                </Text>
+              </HorizontalGroup>
             </div>
 
             <Controller
@@ -346,6 +356,16 @@ export const IntegrationForm = observer(
                 <div className={styles.webhookSwitch}>
                   <Switch value={field.value} onChange={field.onChange} />
                   <Text type="primary"> Create default outgoing webhooks</Text>
+                  <Tooltip
+                    content={
+                      <>
+                        If enabled, all the necessary webhooks will be created automatically. It's highly recommended to
+                        keep this option enabled.
+                      </>
+                    }
+                  >
+                    <Icon name={'info-circle'} />
+                  </Tooltip>
                 </div>
               )}
             />
@@ -390,8 +410,8 @@ export const IntegrationForm = observer(
       const labels = labelsRef.current?.getValue();
 
       const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
-        labels,
         ...formData,
+        labels: labels ? [...labels] : undefined,
       };
 
       if (formData.integration !== 'servicenow') {
