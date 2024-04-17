@@ -3,6 +3,11 @@
   background-repeat: no-repeat;
 }
 
+.bg_ServiceNow {
+  background: url(../../assets/img/ServiceNow.png);
+  background-size: 100% !important;
+}
+
 .bg_PagerDuty {
   background: url(../../assets/img/PagerDuty.png);
   background-size: 100% !important;
