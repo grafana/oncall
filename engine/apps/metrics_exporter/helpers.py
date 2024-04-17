@@ -16,6 +16,7 @@ from apps.metrics_exporter.constants import (
     METRICS_RECALCULATION_CACHE_TIMEOUT,
     METRICS_RECALCULATION_CACHE_TIMEOUT_DISPERSE,
     METRICS_RESPONSE_TIME_CALCULATION_PERIOD,
+    NO_SERVICE_VALUE,
     USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
@@ -194,7 +195,7 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
                 "org_id": grafana_org_id,
                 "slug": instance_slug,
                 "id": instance_id,
-                "services": {"No service": get_default_states_dict()},
+                "services": {NO_SERVICE_VALUE: get_default_states_dict()},
             },
         )
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
@@ -214,7 +215,7 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
                 "org_id": grafana_org_id,
                 "slug": instance_slug,
                 "id": instance_id,
-                "services": {"No service": []},
+                "services": {NO_SERVICE_VALUE: []},
             },
         )
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)

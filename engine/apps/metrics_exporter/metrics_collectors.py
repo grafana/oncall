@@ -9,6 +9,7 @@ from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     ALERT_GROUPS_RESPONSE_TIME,
     ALERT_GROUPS_TOTAL,
+    SERVICE_LABEL,
     USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
@@ -52,7 +53,7 @@ class ApplicationMetricsCollector:
                 "team",
             ]
             + self._stack_labels
-            + ["service_name"]
+            + [SERVICE_LABEL]
         )
         self._integration_labels_with_state = self._integration_labels + ["state"]
         self._user_labels = ["username"] + self._stack_labels

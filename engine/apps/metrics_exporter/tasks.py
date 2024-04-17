@@ -8,6 +8,8 @@ from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     METRICS_ORGANIZATIONS_IDS,
     METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT,
+    NO_SERVICE_VALUE,
+    SERVICE_LABEL,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
     RecalculateOrgMetricsDict,
@@ -120,14 +122,14 @@ def calculate_and_cache_metrics(organization_id, force=False):
             "slug": instance_slug,
             "id": instance_id,
             "services": {
-                "No service": get_default_states_dict(),
+                NO_SERVICE_VALUE: get_default_states_dict(),
             },
         }
         # calculate states
         for state, alert_group_filter in states.items():
             # count alert groups with `service_name` label group by label value
             alert_group_count_by_service = (
-                integration.alert_groups.filter(alert_group_filter, labels__key_name="service_name")
+                integration.alert_groups.filter(alert_group_filter, labels__key_name=SERVICE_LABEL)
                 .values("labels__value_name")
                 .annotate(count=Count("id"))
             )
@@ -139,9 +141,9 @@ def calculate_and_cache_metrics(organization_id, force=False):
                 )[state] += value["count"]
             # count alert groups without `service_name` label
             alert_groups_count_without_service = integration.alert_groups.filter(
-                alert_group_filter, ~Q(labels__key_name="service_name")
+                alert_group_filter, ~Q(labels__key_name=SERVICE_LABEL)
             ).count()
-            metric_alert_group_total_data["services"]["No service"][state] += alert_groups_count_without_service
+            metric_alert_group_total_data["services"][NO_SERVICE_VALUE][state] += alert_groups_count_without_service
         metric_alert_group_total[integration.id] = metric_alert_group_total_data
 
         # calculate response time metric
@@ -152,21 +154,21 @@ def calculate_and_cache_metrics(organization_id, force=False):
             "org_id": instance_org_id,
             "slug": instance_slug,
             "id": instance_id,
-            "services": {"No service": []},
+            "services": {NO_SERVICE_VALUE: []},
         }
 
         # filter response time by services
         response_time_by_service = integration.alert_groups.filter(
             started_at__gte=response_time_period,
             response_time__isnull=False,
-            labels__key_name="service_name",
+            labels__key_name=SERVICE_LABEL,
         ).values_list("labels__value_name", "response_time")
         for service_name, response_time in response_time_by_service:
             metric_response_time_data["services"].setdefault(service_name, [])
             metric_response_time_data["services"][service_name].append(response_time.total_seconds())
 
         no_service_response_time = integration.alert_groups.filter(
-            ~Q(labels__key_name="service_name"),
+            ~Q(labels__key_name=SERVICE_LABEL),
             started_at__gte=response_time_period,
             response_time__isnull=False,
         ).values_list("response_time", flat=True)
@@ -174,7 +176,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
         no_service_response_time_seconds = [
             int(response_time.total_seconds()) for response_time in no_service_response_time
         ]
-        metric_response_time_data["services"]["No service"] = no_service_response_time_seconds
+        metric_response_time_data["services"][NO_SERVICE_VALUE] = no_service_response_time_seconds
 
         metric_alert_group_response_time[integration.id] = metric_response_time_data
 
@@ -258,8 +260,8 @@ def update_metrics_for_alert_group(alert_group_id, organization_id, previous_sta
     if previous_state != AlertGroupState.FIRING or alert_group.restarted_at:
         # only consider response time from the first action
         updated_response_time = None
-    service_label = alert_group.labels.filter(key_name="service_name").first()
-    service_name = service_label.value_name if service_label else "No service"
+    service_label = alert_group.labels.filter(key_name=SERVICE_LABEL).first()
+    service_name = service_label.value_name if service_label else NO_SERVICE_VALUE
     MetricsCacheManager.metrics_update_cache_for_alert_group(
         integration_id=alert_group.channel_id,
         organization_id=organization_id,
