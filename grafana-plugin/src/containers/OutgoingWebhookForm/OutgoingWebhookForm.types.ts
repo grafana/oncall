@@ -20,6 +20,6 @@ export type WebhookFormFieldName = (typeof WebhookFormFieldName)[keyof typeof We
 
 export interface TemplateParams {
   name: WebhookFormFieldName;
-  value: any;
+  value: string;
   displayName: string;
 }
