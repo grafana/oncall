@@ -42,9 +42,7 @@ class MobileAppBackend(BaseMessagingBackend):
             user_active_device.delete()
 
     def serialize_user(self, user):
-        from apps.mobile_app.models import MobileAppAuthToken
-
-        return {"connected": MobileAppAuthToken.objects.filter(user=user).exists()}
+        return {"connected": getattr(user, "mobileappauthtoken", None) is not None}
 
     def notify_user(self, user, alert_group, notification_policy, critical=False):
         notify_user_about_new_alert_group.delay(

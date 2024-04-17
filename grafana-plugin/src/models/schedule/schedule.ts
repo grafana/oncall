@@ -486,10 +486,14 @@ export class ScheduleStore extends BaseStore {
   }
 
   async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
-    return await makeRequest(`/oncall_shifts/${shiftId}`, {
-      method: 'DELETE',
-      params: { force },
-    }).catch(this.onApiError);
+    try {
+      return await makeRequest(`/oncall_shifts/${shiftId}`, {
+        method: 'DELETE',
+        params: { force },
+      });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   @action.bound
@@ -566,15 +570,27 @@ export class ScheduleStore extends BaseStore {
   }
 
   async createShiftSwap(params: Partial<ShiftSwap>) {
-    return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params }).catch(this.onApiError);
+    try {
+      return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   async deleteShiftSwap(shiftSwapId: ShiftSwap['id']) {
-    return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' }).catch(this.onApiError);
+    try {
+      return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   async takeShiftSwap(shiftSwapId: ShiftSwap['id']) {
-    return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' }).catch(this.onApiError);
+    try {
+      return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   @action.bound

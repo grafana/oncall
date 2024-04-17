@@ -1380,6 +1380,7 @@ export interface components {
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
+        slack_app: string | null;
         telegram: string | null;
         web: string;
       };
@@ -1409,6 +1410,12 @@ export interface components {
         avatar: string;
         avatar_full: string;
         important: boolean;
+      }[];
+      readonly external_urls: {
+        integration: string;
+        integration_type: string;
+        external_id: string;
+        url: string;
       }[];
     };
     AlertGroupAttach: {
@@ -1485,6 +1492,7 @@ export interface components {
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
+        slack_app: string | null;
         telegram: string | null;
         web: string;
       };
@@ -1890,6 +1898,7 @@ export interface components {
     };
     IntegrationTokenPostResponse: {
       token: string;
+      usage: string;
     };
     Key: {
       id: string;

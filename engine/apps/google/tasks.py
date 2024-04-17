@@ -2,6 +2,7 @@ import logging
 
 from celery.utils.log import get_task_logger
 
+from apps.google import constants
 from apps.google.client import GoogleCalendarAPIClient
 from apps.google.models import GoogleOAuth2User
 from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
@@ -31,7 +32,10 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
         users_schedules = users_schedules.filter(public_primary_key__in=oncall_schedules_to_consider_for_shift_swaps)
 
     for out_of_office_event in google_api_client.fetch_out_of_office_events():
-        event_id = out_of_office_event.raw_event["id"]
+        raw_event = out_of_office_event.raw_event
+
+        event_title = raw_event["summary"]
+        event_id = raw_event["id"]
         start_time_utc = out_of_office_event.start_time_utc
         end_time_utc = out_of_office_event.end_time_utc
 
@@ -40,17 +44,24 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
             f"{end_time_utc} for user {user_id}"
         )
 
+        if constants.EVENT_SUMMARY_IGNORE_KEYWORD in event_title.lower():
+            logger.info(
+                f"Skipping out of office event {event_id} because it contains the ignore keyword "
+                f"'{constants.EVENT_SUMMARY_IGNORE_KEYWORD}'"
+            )
+            continue
+
         for schedule in users_schedules:
-            _, _, upcoming_shifts = schedule.shifts_for_user(
+            _, current_shifts, upcoming_shifts = schedule.shifts_for_user(
                 user,
                 start_time_utc,
                 datetime_end=end_time_utc,
             )
 
-            if upcoming_shifts:
+            if current_shifts or upcoming_shifts:
                 logger.info(
-                    f"Found {len(upcoming_shifts)} upcoming shift(s) for user {user_id} "
-                    f"during the out of office event {event_id}"
+                    f"Found {len(current_shifts)} current shift(s) and {len(upcoming_shifts)} upcoming shift(s) "
+                    f"for user {user_id} during the out of office event {event_id}"
                 )
 
                 shift_swap_request_exists = ShiftSwapRequest.objects.filter(
@@ -78,7 +89,9 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
                 else:
                     logger.info(f"Shift swap request already exists for user {user_id} schedule {schedule.pk}")
             else:
-                logger.info(f"No upcoming shifts found for user {user_id} during the out of office event {event_id}")
+                logger.info(
+                    f"No current or upcoming shifts found for user {user_id} during the out of office event {event_id}"
+                )
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)

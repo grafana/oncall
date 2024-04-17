@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { SourceCode } from 'components/SourceCode/SourceCode';
-import { ApiToken } from 'models/api_token/api_token.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
@@ -28,14 +27,14 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 
   const store = useStore();
 
-  const onCreateTokenCallback = useCallback(() => {
-    store.apiTokenStore
-      .create({ name })
-      .then((data: ApiToken) => {
-        setToken(data.token);
-        onUpdate();
-      })
-      .catch((error) => openErrorNotification(get(error, 'response.data.detail', 'error creating token')));
+  const onCreateTokenCallback = useCallback(async () => {
+    try {
+      const data = await store.apiTokenStore.create({ name });
+      setToken(data.token);
+      onUpdate();
+    } catch (error) {
+      openErrorNotification(get(error, 'response.data.detail', 'error creating token'));
+    }
   }, [name]);
 
   const handleNameChange = useCallback((event) => {
@@ -99,7 +98,9 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
     return (
       <VerticalGroup>
         <Label>Curl command example</Label>
-        <SourceCode showClipboardIconOnly>{getCurlExample(token, store.onCallApiUrl)}</SourceCode>
+        <SourceCode noMinHeight showClipboardIconOnly>
+          {getCurlExample(token, store.onCallApiUrl)}
+        </SourceCode>
       </VerticalGroup>
     );
   }

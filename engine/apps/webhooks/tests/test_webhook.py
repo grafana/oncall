@@ -320,3 +320,53 @@ def test_webhook_not_deleted_with_team(make_organization, make_team, make_custom
 
     webhook = Webhook.objects.get(pk=webhook_pk)
     assert webhook.team is None
+
+
+@pytest.mark.django_db
+def test_delete_alert_receive_channel_webhooks_deleted(
+    make_organization, make_alert_receive_channel, make_custom_webhook
+):
+    organization = make_organization()
+    channel = make_alert_receive_channel(organization=organization, additional_settings={})
+
+    webhook_from_connected_integration = make_custom_webhook(
+        organization=organization,
+        is_from_connected_integration=True,
+    )
+    other_webhook = make_custom_webhook(organization=organization)
+    webhook_from_connected_integration.filtered_integrations.add(channel)
+    other_webhook.filtered_integrations.add(channel)
+
+    channel.delete()
+
+    webhook_from_connected_integration.refresh_from_db()
+    assert webhook_from_connected_integration.deleted_at is not None
+
+    other_webhook.refresh_from_db()
+    assert other_webhook.deleted_at is None
+
+
+@pytest.mark.django_db
+def test_get_source_alert_receive_channel(make_organization, make_alert_receive_channel, make_custom_webhook):
+    organization = make_organization()
+    channel1 = make_alert_receive_channel(organization=organization, additional_settings={})
+    channel2 = make_alert_receive_channel(organization=organization, additional_settings={})
+
+    w1 = make_custom_webhook(
+        organization=organization,
+        is_from_connected_integration=True,
+    )
+    # source integration is the first added channel
+    w1.filtered_integrations.add(channel2)
+    w1.filtered_integrations.add(channel1)
+
+    w2 = make_custom_webhook(
+        organization=organization,
+        is_from_connected_integration=True,
+    )
+    # source integration is the first added channel
+    w2.filtered_integrations.add(channel1)
+    w2.filtered_integrations.add(channel2)
+
+    assert w1.get_source_alert_receive_channel() == channel2
+    assert w2.get_source_alert_receive_channel() == channel1

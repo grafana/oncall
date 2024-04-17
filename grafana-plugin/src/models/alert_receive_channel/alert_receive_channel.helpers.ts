@@ -219,14 +219,19 @@ export class AlertReceiveChannelHelper {
   }
 
   static async sendDemoAlertToParticularRoute(id: ChannelFilter['id']) {
-    await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
+    try {
+      await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' });
+    } catch (err) {
+      showApiError(err);
+    }
   }
 
   static async convertRegexpTemplateToJinja2Template(id: ChannelFilter['id']) {
-    const result = await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' }).catch(
-      showApiError
-    );
-    return result;
+    try {
+      return await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' });
+    } catch (err) {
+      showApiError(err);
+    }
   }
 
   static async createChannelFilter(data: Partial<ChannelFilter>) {

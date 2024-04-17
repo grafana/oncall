@@ -8,7 +8,9 @@ from apps.google import constants, tasks
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 
 
-def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: datetime.datetime):
+def _create_mock_google_calendar_event(
+    start_time: datetime.datetime, end_time: datetime.datetime, summary="Out of office"
+):
     return {
         "colorId": "4",
         "created": "2024-03-22T23:06:39.000Z",
@@ -50,16 +52,22 @@ def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: 
             "timeZone": "America/New_York",
         },
         "status": "confirmed",
-        "summary": "Out of office",
+        "summary": summary,
         "updated": "2024-03-22T23:06:44.299Z",
         "visibility": "public",
     }
 
 
+def _get_utc_now():
+    return datetime.datetime.now(tz=datetime.timezone.utc)
+
+
+def _adjust_datetime(dt):
+    return dt.replace(second=0, microsecond=0)
+
+
 def _create_event_start_and_end_times(start_days_in_future=5, end_time_minutes_past_start=50):
-    start_time = (
-        datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=start_days_in_future)
-    ).replace(second=0, microsecond=0)
+    start_time = _adjust_datetime(_get_utc_now() + datetime.timedelta(days=start_days_in_future))
     end_time = start_time + datetime.timedelta(minutes=end_time_minutes_past_start)
 
     return start_time, end_time
@@ -150,11 +158,25 @@ def test_sync_out_of_office_calendar_events_for_user_no_ooo_events(mock_google_a
 
 
 @patch("apps.google.client.build")
+@pytest.mark.parametrize(
+    "out_of_office_event_title,should_create_ssr",
+    [
+        ("Out of office", True),
+        ("Out of office grafana-oncall-ignore", True),
+        ("Out of office #grafana-oncall-ignore", False),
+        ("Out of office #GRAFANA-ONCALL-IGNORE", False),
+    ],
+)
 @pytest.mark.django_db
-def test_sync_out_of_office_calendar_events_for_user_single_ooo_event(mock_google_api_client_build, test_setup):
+def test_sync_out_of_office_calendar_events_for_user_single_ooo_event(
+    mock_google_api_client_build,
+    test_setup,
+    out_of_office_event_title,
+    should_create_ssr,
+):
     start_time, end_time = _create_event_start_and_end_times()
     out_of_office_events = [
-        _create_mock_google_calendar_event(start_time, end_time),
+        _create_mock_google_calendar_event(start_time, end_time, out_of_office_event_title),
     ]
 
     mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.return_value = {
@@ -167,13 +189,17 @@ def test_sync_out_of_office_calendar_events_for_user_single_ooo_event(mock_googl
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
 
     ssrs = ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule)
-    ssr = ssrs.first()
 
-    assert ssrs.count() == 1
+    if should_create_ssr:
+        assert ssrs.count() == 1
 
-    assert ssr.swap_start == start_time
-    assert ssr.swap_end == end_time
-    assert ssr.description == f"{user.name} will be out of office during this time according to Google Calendar"
+        ssr = ssrs.first()
+
+        assert ssr.swap_start == start_time
+        assert ssr.swap_end == end_time
+        assert ssr.description == f"{user.name} will be out of office during this time according to Google Calendar"
+    else:
+        assert ssrs.count() == 0
 
 
 @patch("apps.google.client.build")
@@ -257,6 +283,29 @@ def test_sync_out_of_office_calendar_events_for_user_no_upcoming_shifts(
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
 
     assert ShiftSwapRequest.objects.filter(beneficiary=user).count() == 0
+
+
+@patch("apps.google.client.build")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_user_considers_current_shifts(
+    mock_google_api_client_build,
+    test_setup,
+):
+    in_five_minutes = _adjust_datetime(_get_utc_now() + datetime.timedelta(minutes=5))
+    in_ten_minutes = in_five_minutes + datetime.timedelta(minutes=5)
+
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.return_value = {
+        "items": [
+            _create_mock_google_calendar_event(in_five_minutes, in_ten_minutes),
+        ],
+    }
+
+    google_oauth2_user, _ = test_setup([])
+    user = google_oauth2_user.user
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+
+    assert ShiftSwapRequest.objects.filter(beneficiary=user).count() == 1
 
 
 @patch("apps.google.client.build")

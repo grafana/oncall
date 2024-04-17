@@ -24,10 +24,6 @@ export function getMTTRByTeamScene({ datasource, stack }: InsightsConfig) {
     $data: query,
     transformations: [
       {
-        id: 'seriesToRows',
-        options: {},
-      },
-      {
         id: 'organize',
         options: {
           excludeByName: {
@@ -79,6 +75,7 @@ export function getMTTRByTeamScene({ datasource, stack }: InsightsConfig) {
             ],
           },
           unit: 's',
+          min: 0,
         },
         overrides: [
           {

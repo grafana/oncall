@@ -60,30 +60,29 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const store = useStore();
   const { outgoingWebhookStore } = store;
 
-  const handleTemplateBodyChange = useDebouncedCallback(() => {
-    (templatePage === TEMPLATE_PAGE.Webhooks
-      ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
-      : alertGroupId
-      ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
-      : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
-    )
-      .then((data) => {
-        setResult(data);
-        if (data?.preview === 'True') {
-          setConditionalResult({ isResult: true, value: 'True' });
-        } else if (templateType === 'boolean') {
-          setConditionalResult({ isResult: true, value: 'False' });
-        } else {
-          setConditionalResult({ isResult: false, value: undefined });
-        }
-      })
-      .catch((err) => {
-        if (err.response?.data?.length > 0) {
-          openErrorNotification(err.response.data);
-        } else {
-          openErrorNotification(err.message);
-        }
-      });
+  const handleTemplateBodyChange = useDebouncedCallback(async () => {
+    try {
+      const data = await (templatePage === TEMPLATE_PAGE.Webhooks
+        ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
+        : alertGroupId
+        ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
+        : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload));
+      setResult(data);
+
+      if (data?.preview === 'True') {
+        setConditionalResult({ isResult: true, value: 'True' });
+      } else if (templateType === 'boolean') {
+        setConditionalResult({ isResult: true, value: 'False' });
+      } else {
+        setConditionalResult({ isResult: false, value: undefined });
+      }
+    } catch (err) {
+      if (err.response?.data?.length > 0) {
+        openErrorNotification(err.response.data);
+      } else {
+        openErrorNotification(err.message);
+      }
+    }
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody, payload]);
