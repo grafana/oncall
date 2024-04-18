@@ -74,7 +74,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
           trigger false alarms.
           <FormProvider {...formMethods}>
-            <form onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
+            <form id="Maintenance" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
               <Controller
                 name="alert_receive_channel_id"
                 control={control}

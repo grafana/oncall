@@ -53,7 +53,7 @@ export const OutgoingWebhookFormFields = ({
         rules={{ required: 'Name is required' }}
         render={({ field }) => (
           <Field label="Name" invalid={Boolean(errors.name)} error={errors.name?.message}>
-            <Input value={field.value} onChange={field.onChange} />
+            <Input name="name" value={field.value} onChange={field.onChange} />
           </Field>
         )}
       />

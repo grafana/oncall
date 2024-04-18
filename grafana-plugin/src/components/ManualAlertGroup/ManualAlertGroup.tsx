@@ -71,19 +71,14 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
     <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
         <FormProvider {...formMethods}>
-          <form onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
+          <form id="Manual Alert Group" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <Controller
               name="message"
               control={control}
               rules={{ required: 'Message is required' }}
               render={({ field }) => (
-                <Field
-                  key="message"
-                  label="What is going on?"
-                  invalid={Boolean(errors.message)}
-                  error={errors.message?.message}
-                >
-                  <TextArea rows={4} {...field} />
+                <Field label="What is going on?" invalid={Boolean(errors.message)} error={errors.message?.message}>
+                  <TextArea name="message" rows={4} {...field} />
                 </Field>
               )}
             />

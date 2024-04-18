@@ -110,7 +110,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
     defaultValues: data,
   });
 
-  const { setValue, handleSubmit, reset, setError } = formMethods;
+  const { setValue, reset, setError } = formMethods;
 
   const onSubmit = useCallback(
     async (rawData: Partial<ApiSchemas['Webhook']>) => {
@@ -173,11 +173,7 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
 
   return (
     <>
-      <FormProvider {...formMethods}>
-        <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-          {mainContent}
-        </form>
-      </FormProvider>
+      <FormProvider {...formMethods}>{mainContent}</FormProvider>
       {templateToEdit && (
         <WebhooksTemplateEditor
           id={id}
@@ -258,29 +254,31 @@ const NewWebhook = (props: NewWebhookProps) => {
     <Drawer scrollableContent title={'New Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
       <div className="webhooks__drawerContent">
         <div className={cx('content')}>
-          <OutgoingWebhookFormFields
-            preset={preset}
-            hasLabelsFeature={hasFeature(AppFeature.Labels)}
-            onTemplateEditClick={onTemplateEditClick}
-          />
-          <div className={cx('buttons')}>
-            <HorizontalGroup justify="flex-end">
-              {action === WebhookFormActionType.NEW ? (
-                <Button variant="secondary" onClick={onBack}>
-                  Back
-                </Button>
-              ) : (
-                <Button variant="secondary" onClick={onHide}>
-                  Cancel
-                </Button>
-              )}
-              <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                <Button type="submit" onClick={handleSubmit(onSubmit)} disabled={data.is_legacy}>
-                  Create
-                </Button>
-              </WithPermissionControlTooltip>
-            </HorizontalGroup>
-          </div>
+          <form id="OutgoingWebhook" onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+            <OutgoingWebhookFormFields
+              preset={preset}
+              hasLabelsFeature={hasFeature(AppFeature.Labels)}
+              onTemplateEditClick={onTemplateEditClick}
+            />
+            <div className={cx('buttons')}>
+              <HorizontalGroup justify="flex-end">
+                {action === WebhookFormActionType.NEW ? (
+                  <Button variant="secondary" onClick={onBack}>
+                    Back
+                  </Button>
+                ) : (
+                  <Button variant="secondary" onClick={onHide}>
+                    Cancel
+                  </Button>
+                )}
+                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                  <Button type="submit" onClick={handleSubmit(onSubmit)} disabled={data.is_legacy}>
+                    Create
+                  </Button>
+                </WithPermissionControlTooltip>
+              </HorizontalGroup>
+            </div>
+          </form>
         </div>
       </div>
     </Drawer>
@@ -391,42 +389,44 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
         {activeTab === WebhookTabs.Settings.key && (
           <>
             <div className={cx('content')}>
-              <OutgoingWebhookFormFields
-                preset={preset}
-                hasLabelsFeature={hasFeature(AppFeature.Labels)}
-                onTemplateEditClick={onTemplateEditClick}
-              />
-              <div className={cx('buttons')}>
-                <HorizontalGroup justify={'flex-end'}>
-                  <Button variant="secondary" onClick={onHide}>
-                    Cancel
-                  </Button>
-                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                    <Button
-                      variant="destructive"
-                      type="button"
-                      disabled={data.is_legacy}
-                      onClick={() => {
-                        setConfirmationModal({
-                          isOpen: true,
-                          body: 'The action cannot be undone.',
-                          confirmText: 'Delete',
-                          dismissText: 'Cancel',
-                          onConfirm: onDelete,
-                          title: `Are you sure you want to delete webhook?`,
-                        } as ConfirmModalProps);
-                      }}
-                    >
-                      Delete Webhook
+              <form id="OutgoingWebhook" onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+                <OutgoingWebhookFormFields
+                  preset={preset}
+                  hasLabelsFeature={hasFeature(AppFeature.Labels)}
+                  onTemplateEditClick={onTemplateEditClick}
+                />
+                <div className={cx('buttons')}>
+                  <HorizontalGroup justify={'flex-end'}>
+                    <Button variant="secondary" onClick={onHide}>
+                      Cancel
                     </Button>
-                  </WithPermissionControlTooltip>
-                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                    <Button type="submit" onClick={handleSubmit(onSubmit)} disabled={data.is_legacy}>
-                      {action === WebhookFormActionType.NEW ? 'Create' : 'Update'}
-                    </Button>
-                  </WithPermissionControlTooltip>
-                </HorizontalGroup>
-              </div>
+                    <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                      <Button
+                        variant="destructive"
+                        type="button"
+                        disabled={data.is_legacy}
+                        onClick={() => {
+                          setConfirmationModal({
+                            isOpen: true,
+                            body: 'The action cannot be undone.',
+                            confirmText: 'Delete',
+                            dismissText: 'Cancel',
+                            onConfirm: onDelete,
+                            title: `Are you sure you want to delete webhook?`,
+                          } as ConfirmModalProps);
+                        }}
+                      >
+                        Delete Webhook
+                      </Button>
+                    </WithPermissionControlTooltip>
+                    <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                      <Button type="submit" onClick={handleSubmit(onSubmit)} disabled={data.is_legacy}>
+                        {action === WebhookFormActionType.NEW ? 'Create' : 'Update'}
+                      </Button>
+                    </WithPermissionControlTooltip>
+                  </HorizontalGroup>
+                </div>
+              </form>
             </div>
             {data.is_legacy ? (
               <div className={cx('content')}>

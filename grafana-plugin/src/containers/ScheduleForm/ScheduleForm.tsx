@@ -97,7 +97,7 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
     >
       <VerticalGroup>
         <FormProvider {...formMethods}>
-          <form onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
+          <form id="Schedule" data-testid="schedule-form" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <FormFields scheduleType={data.type} />
             <div className="buttons">
               <HorizontalGroup justify="flex-end">
@@ -212,7 +212,7 @@ const ScheduleCommonFields = () => {
         rules={{ required: 'Name is required' }}
         render={({ field }) => (
           <Field label="Name" invalid={Boolean(errors.name)} error={errors.name?.message}>
-            <Input value={field.value} onChange={field.onChange} />
+            <Input name="name" value={field.value} onChange={field.onChange} />
           </Field>
         )}
       />
