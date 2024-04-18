@@ -31,6 +31,7 @@ To authorize, use the **Authorization** header:
 # With shell, you can just pass the correct header with each request
 curl "api_endpoint_here" --header "Authorization: "api_key_here""
 ```
+
 Grafana OnCall uses API keys to allow access to the API. You can request a new OnCall API key in OnCall -> Settings page.
 
 An API key is specific to a user and a Grafana stack. If you want to switch to a different stack configuration,
