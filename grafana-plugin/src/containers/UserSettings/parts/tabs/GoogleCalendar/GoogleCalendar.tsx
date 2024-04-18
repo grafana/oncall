@@ -158,7 +158,7 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
         </VerticalGroup>
         {!connected && (
           <Text type="secondary">
-            We use and transfer to any other app of information received from Google APIs will adhere
+            Grafana OnCall's use and transfer to any other app of information received from Google APIs will adhere
             <br />
             to{' '}
             <a
