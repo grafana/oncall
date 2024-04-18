@@ -13,6 +13,7 @@ import { openNotification } from 'utils/utils';
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection } from './ServiceNowStatusSection';
 import { ServiceNowTokenSection } from './ServiceNowTokenSection';
+import { css } from '@emotion/css';
 
 interface CompleteServiceNowConfigModalProps {
   onHide: () => void;
@@ -51,12 +52,14 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
     >
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
-          <div className={styles.border}>
-            <ServiceNowStatusSection />
-          </div>
+          <div className={styles.scrollableContainer}>
+            <div className={styles.border}>
+              <ServiceNowStatusSection />
+            </div>
 
-          <div className={styles.border}>
-            <ServiceNowTokenSection />
+            <div className={styles.border}>
+              <ServiceNowTokenSection />
+            </div>
           </div>
 
           <div>
@@ -126,5 +129,11 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
 const getStyles = (theme: GrafanaTheme2) => {
   return {
     ...getCommonServiceNowConfigStyles(theme),
+
+    scrollableContainer: css`
+      max-height: 400;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    `,
   };
 };
