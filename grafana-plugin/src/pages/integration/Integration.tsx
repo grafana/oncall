@@ -849,7 +849,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
-    disabled: boolean;
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
 
@@ -1138,7 +1137,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function openStartMaintenance() {
-    setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
+    setMaintenanceData({ alert_receive_channel_id: alertReceiveChannel.id });
   }
 
   async function onStopMaintenance() {
