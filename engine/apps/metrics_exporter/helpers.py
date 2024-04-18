@@ -265,16 +265,19 @@ def metrics_update_alert_groups_state_cache(states_diff, organization_id):
         if not integration_alert_groups:
             continue
         for service_name, service_state_diff in service_data.items():
-            states_per_service = integration_alert_groups["services"].setdefault(
-                service_name, get_default_states_dict()
-            )
+            if "services" in integration_alert_groups:
+                states_to_update = integration_alert_groups["services"].setdefault(
+                    service_name, get_default_states_dict()
+                )
+            else:  # support previous version of metrics cache. This clause can be removed later
+                states_to_update = integration_alert_groups
             for previous_state, counter in service_state_diff["previous_states"].items():
-                if states_per_service[previous_state] - counter > 0:
-                    states_per_service[previous_state] -= counter
+                if states_to_update[previous_state] - counter > 0:
+                    states_to_update[previous_state] -= counter
                 else:
                     integration_alert_groups[previous_state] = 0
             for new_state, counter in service_state_diff["new_states"].items():
-                states_per_service[new_state] += counter
+                states_to_update[new_state] += counter
 
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
 
@@ -294,8 +297,11 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time, 
         if not integration_response_time_metrics:
             continue
         for service_name, response_time_values in service_data.items():
-            integration_response_time_metrics["services"].setdefault(service_name, [])
-            integration_response_time_metrics["services"][service_name].extend(response_time_values)
+            if "services" in integration_response_time_metrics:
+                integration_response_time_metrics["services"].setdefault(service_name, [])
+                integration_response_time_metrics["services"][service_name].extend(response_time_values)
+            else:  # support previous version of metrics cache. This clause can be removed later
+                integration_response_time_metrics["response_time"].extend(response_time_values)
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 
 
