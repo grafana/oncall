@@ -133,8 +133,8 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
           </Text.Title>
           {connected ? (
             <Text type="secondary">
-              To exclude OOO events from SSR creation add <Text type="primary">#grafana-oncall-ignore</Text> to GCal
-              event title.{' '}
+              Add <Text type="primary">#grafana-oncall-ignore</Text> to an Out of Office event title to exclude it from
+              Shift Swap Request creation.{' '}
               <a
                 href={`${DOCS_ROOT}/manage/on-call-schedules/shift-swaps/#google-calendar-integration`}
                 target="_blank"
@@ -145,7 +145,7 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
             </Text>
           ) : (
             <Text type="secondary">
-              Calendar connection allows to sync PTOs and OOO events with your OnCall schedules.{' '}
+              This connection allows OnCall to read your Out of Office events and autogenerate Shift Swap Requests.{' '}
               <a
                 href={`${DOCS_ROOT}/manage/on-call-schedules/shift-swaps/#google-calendar-integration`}
                 target="_blank"
