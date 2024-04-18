@@ -58,6 +58,10 @@ export interface IntegrationFormFields {
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
 }
 
+interface AuthSection {
+  testConnection(): Promise<boolean>;
+}
+
 interface IntegrationFormProps {
   id: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
   isTableView?: boolean;
@@ -174,6 +178,7 @@ export const IntegrationForm = observer(
     }, []);
 
     const labelsRef = useRef(null);
+    const authSectionRef = useRef<AuthSection>(null);
 
     const [labelsErrors, setLabelErrors] = useState([]);
     const isServiceNow = getIsBidirectionalIntegration(data as Partial<ApiSchemas['AlertReceiveChannel']>);
@@ -347,7 +352,7 @@ export const IntegrationForm = observer(
               )}
             />
 
-            <ServiceNowAuthSection />
+            <ServiceNowAuthSection ref={authSectionRef} />
 
             <Controller
               name={'create_default_webhooks'}
@@ -414,11 +419,19 @@ export const IntegrationForm = observer(
         labels: labels ? [...labels] : undefined,
       };
 
-      if (formData.integration !== 'servicenow') {
+      const isServiceNow = formData.integration === 'servicenow';
+      const isCreate = id === 'new';
+
+      if (!isServiceNow) {
         delete data.additional_settings;
       }
 
-      const isCreate = id === 'new';
+      if (isServiceNow && isCreate) {
+        const testResult = await authSectionRef?.current?.testConnection();
+        if (!testResult) {
+          return;
+        }
+      }
 
       try {
         if (isCreate) {
