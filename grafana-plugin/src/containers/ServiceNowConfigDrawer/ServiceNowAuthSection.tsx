@@ -17,7 +17,7 @@ import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowFormFields } from './ServiceNowStatusSection';
 
 export const ServiceNowAuthSection: React.FC = observer(
-  forwardRef(function ServiceNowAuthRef (_props, ref) {
+  forwardRef(function ServiceNowAuthRef(_props, ref) {
     const { getValues } = useFormContext<ServiceNowFormFields | IntegrationFormFields>();
 
     const currentIntegration = useCurrentIntegration();
