@@ -40,13 +40,6 @@ const MOCK_HOST = 'localhost:3000';
 const MOCK_PATHNAME = '/dkjdfjkfd';
 const MOCK_URL = `${MOCK_PROTOCOL}//${MOCK_HOST}${MOCK_PATHNAME}`;
 
-/**
- * this is just a little hack to silence a warning that we'll get until we
- * upgrade to 16.9. See also: https://github.com/facebook/react/pull/14853
- * https://github.com/testing-library/react-testing-library#suppressing-unnecessary-warnings-on-react-dom-168
- */
-const originalError = console.error;
-
 beforeEach(() => {
   delete global.window.location;
   global.window ??= Object.create(window);
@@ -57,18 +50,10 @@ beforeEach(() => {
     href: MOCK_URL,
   } as Location;
   global.window.history.pushState = jest.fn();
-
-  console.error = (...args) => {
-    if (/Warning.*not wrapped in act/.test(args[0])) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
 });
 
 afterEach(() => {
   jest.clearAllMocks();
-  console.error = originalError;
 });
 
 const mockCheckTokenAndIfPluginIsConnected = (license: License = License.OSS) => {
