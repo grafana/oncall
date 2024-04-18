@@ -4,6 +4,13 @@ import typing
 from django.conf import settings
 
 
+class AlertGroupStateDict(typing.TypedDict):
+    firing: int
+    acknowledged: int
+    silenced: int
+    resolved: int
+
+
 class AlertGroupsTotalMetricsDict(typing.TypedDict):
     integration_name: str
     team_name: str
@@ -11,10 +18,7 @@ class AlertGroupsTotalMetricsDict(typing.TypedDict):
     org_id: int
     slug: str
     id: int
-    firing: int
-    acknowledged: int
-    silenced: int
-    resolved: int
+    services: typing.Dict[str, AlertGroupStateDict]
 
 
 class AlertGroupsResponseTimeMetricsDict(typing.TypedDict):
@@ -25,6 +29,7 @@ class AlertGroupsResponseTimeMetricsDict(typing.TypedDict):
     slug: str
     id: int
     response_time: list
+    services: typing.Dict[str, list]
 
 
 class UserWasNotifiedOfAlertGroupsMetricsDict(typing.TypedDict):
