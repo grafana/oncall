@@ -275,7 +275,7 @@ def metrics_update_alert_groups_state_cache(states_diff, organization_id):
                 if states_to_update[previous_state] - counter > 0:
                     states_to_update[previous_state] -= counter
                 else:
-                    integration_alert_groups[previous_state] = 0
+                    states_to_update[previous_state] = 0
             for new_state, counter in service_state_diff["new_states"].items():
                 states_to_update[new_state] += counter
 
