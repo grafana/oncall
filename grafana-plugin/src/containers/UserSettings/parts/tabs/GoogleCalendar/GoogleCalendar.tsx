@@ -41,7 +41,8 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
   };
 
   const handleSchedulesChange = (value) => {
-    userStore.updateCurrentUser({
+    userStore.updateUser({
+      pk: id,
       google_calendar_settings: {
         ...user.google_calendar_settings,
         oncall_schedules_to_consider_for_shift_swaps: value,
