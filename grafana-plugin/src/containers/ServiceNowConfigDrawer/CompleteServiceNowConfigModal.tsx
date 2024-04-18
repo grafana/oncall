@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Modal, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -13,7 +14,6 @@ import { openNotification } from 'utils/utils';
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection } from './ServiceNowStatusSection';
 import { ServiceNowTokenSection } from './ServiceNowTokenSection';
-import { css } from '@emotion/css';
 
 interface CompleteServiceNowConfigModalProps {
   onHide: () => void;
@@ -131,9 +131,13 @@ const getStyles = (theme: GrafanaTheme2) => {
     ...getCommonServiceNowConfigStyles(theme),
 
     scrollableContainer: css`
-      max-height: 400;
+      max-height: 60vh;
       overflow-y: auto;
       margin-bottom: 16px;
+
+      @media (max-height: 764px) {
+        max-height: 40vh;
+      }
     `,
   };
 };
