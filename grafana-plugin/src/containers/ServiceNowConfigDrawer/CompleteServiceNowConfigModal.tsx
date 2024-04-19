@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Modal, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -51,12 +52,14 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
     >
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onFormSubmit)}>
-          <div className={styles.border}>
-            <ServiceNowStatusSection />
-          </div>
+          <div className={styles.scrollableContainer}>
+            <div className={styles.border}>
+              <ServiceNowStatusSection />
+            </div>
 
-          <div className={styles.border}>
-            <ServiceNowTokenSection />
+            <div className={styles.border}>
+              <ServiceNowTokenSection />
+            </div>
           </div>
 
           <div>
@@ -126,5 +129,15 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
 const getStyles = (theme: GrafanaTheme2) => {
   return {
     ...getCommonServiceNowConfigStyles(theme),
+
+    scrollableContainer: css`
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-bottom: 16px;
+
+      @media (max-height: 764px) {
+        max-height: 40vh;
+      }
+    `,
   };
 };
