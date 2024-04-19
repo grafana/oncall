@@ -52,7 +52,7 @@ class ApplicationMetricsCollector:
                 "team",
             ]
             + self._stack_labels
-            # + [SERVICE_LABEL]  # todo: uncomment with next release
+            # + [SERVICE_LABEL]  # todo:metrics: uncomment with next release
         )
         self._integration_labels_with_state = self._integration_labels + ["state"]
         self._user_labels = ["username"] + self._stack_labels
@@ -106,7 +106,8 @@ class ApplicationMetricsCollector:
                         for state in AlertGroupState:
                             alert_groups_total.add_metric(
                                 labels_values + [state.value],
-                                # + [service_name, state.value],  todo: replace [state.value] with next release
+                                # todo:metrics: replace [state.value] when all metric cache is updated
+                                # + [service_name, state.value],
                                 integration_data["services"][service_name][state.value],
                             )
                 else:
@@ -142,14 +143,14 @@ class ApplicationMetricsCollector:
 
                 # clause below is needed for compatibility with old metric cache during rollout metrics with services
                 if "services" in integration_data:
-                    # todo: for service_name, response_time
+                    # todo:metrics: for service_name, response_time
                     for _, response_time in integration_data["services"].items():
                         if not response_time:
                             continue
                         buckets, sum_value = self.get_buckets_with_sum(response_time)
                         buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
                         alert_groups_response_time_seconds.add_metric(
-                            labels_values,  # + [service_name]  todo: uncomment with next release
+                            labels_values,  # + [service_name]  todo:metrics: uncomment when all metric cache is updated
                             buckets=buckets,
                             sum_value=sum_value,
                         )

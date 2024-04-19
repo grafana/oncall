@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.base.models import UserNotificationPolicyLogRecord
+from apps.metrics_exporter.constants import NO_SERVICE_VALUE
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
@@ -56,10 +57,14 @@ def test_calculate_and_cache_metrics_task(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "firing": 2,
-            "silenced": 1,
-            "acknowledged": 1,
-            "resolved": 1,
+            "services": {
+                NO_SERVICE_VALUE: {
+                    "firing": 2,
+                    "silenced": 1,
+                    "acknowledged": 1,
+                    "resolved": 1,
+                }
+            },
         },
         alert_receive_channel_2.id: {
             "integration_name": alert_receive_channel_2.verbal_name,
@@ -68,10 +73,14 @@ def test_calculate_and_cache_metrics_task(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "firing": 2,
-            "silenced": 1,
-            "acknowledged": 1,
-            "resolved": 1,
+            "services": {
+                NO_SERVICE_VALUE: {
+                    "firing": 2,
+                    "silenced": 1,
+                    "acknowledged": 1,
+                    "resolved": 1,
+                },
+            },
         },
     }
     expected_result_metric_alert_groups_response_time = {
@@ -82,7 +91,7 @@ def test_calculate_and_cache_metrics_task(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "response_time": [],
+            "services": {NO_SERVICE_VALUE: []},
         },
         alert_receive_channel_2.id: {
             "integration_name": alert_receive_channel_2.verbal_name,
@@ -91,7 +100,7 @@ def test_calculate_and_cache_metrics_task(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "response_time": [],
+            "services": {NO_SERVICE_VALUE: []},
         },
     }
 
@@ -108,9 +117,11 @@ def test_calculate_and_cache_metrics_task(
         metric_alert_groups_response_time_values = args[1].args
         assert metric_alert_groups_response_time_values[0] == metric_alert_groups_response_time_key
         for integration_id, values in metric_alert_groups_response_time_values[1].items():
-            assert len(values["response_time"]) == METRICS_RESPONSE_TIME_LEN
+            assert len(values["services"][NO_SERVICE_VALUE]) == METRICS_RESPONSE_TIME_LEN
             # set response time to expected result because it is calculated on fly
-            expected_result_metric_alert_groups_response_time[integration_id]["response_time"] = values["response_time"]
+            expected_result_metric_alert_groups_response_time[integration_id]["services"][NO_SERVICE_VALUE] = values[
+                "services"
+            ][NO_SERVICE_VALUE]
         assert metric_alert_groups_response_time_values[1] == expected_result_metric_alert_groups_response_time
 
 
