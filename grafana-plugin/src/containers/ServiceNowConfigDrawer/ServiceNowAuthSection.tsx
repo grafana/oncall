@@ -16,7 +16,7 @@ import { OmitReadonlyMembers } from 'utils/types';
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowFormFields } from './ServiceNowStatusSection';
 
-export const ServiceNowAuthSection: React.FC = observer(
+export const ServiceNowAuthSection = observer(
   forwardRef(function ServiceNowAuthRef(_props, ref) {
     const { getValues } = useFormContext<ServiceNowFormFields | IntegrationFormFields>();
 
