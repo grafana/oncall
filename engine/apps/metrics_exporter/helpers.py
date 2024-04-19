@@ -19,6 +19,7 @@ from apps.metrics_exporter.constants import (
     NO_SERVICE_VALUE,
     USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
     AlertGroupsResponseTimeMetricsDict,
+    AlertGroupStateDict,
     AlertGroupsTotalMetricsDict,
     RecalculateMetricsTimer,
     UserWasNotifiedOfAlertGroupsMetricsDict,
@@ -127,7 +128,7 @@ def get_metric_calculation_started_key(metric_name) -> str:
     return f"calculation_started_for_{metric_name}"
 
 
-def get_default_states_dict() -> dict:
+def get_default_states_dict() -> AlertGroupStateDict:
     return {
         AlertGroupState.FIRING.value: 0,
         AlertGroupState.ACKNOWLEDGED.value: 0,
