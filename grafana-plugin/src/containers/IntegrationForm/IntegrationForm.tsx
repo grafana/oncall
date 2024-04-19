@@ -38,7 +38,7 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
@@ -419,7 +419,7 @@ export const IntegrationForm = observer(
         labels: labels ? [...labels] : undefined,
       };
 
-      const isServiceNow = formData.integration === 'servicenow';
+      const isServiceNow = formData.integration === INTEGRATION_SERVICENOW;
       const isCreate = id === 'new';
 
       if (!isServiceNow) {

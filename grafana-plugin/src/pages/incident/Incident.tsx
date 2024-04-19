@@ -55,7 +55,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
 import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
@@ -278,7 +278,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
     const sourceLink = incident?.render_for_web?.source_link;
-    const isServiceNow = Boolean(incident?.external_urls?.find((el) => el.integration_type === 'servicenow'));
+    const isServiceNow = Boolean(incident?.external_urls?.find((el) => el.integration_type === INTEGRATION_SERVICENOW));
 
     return (
       <Block className={cx('block')}>

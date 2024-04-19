@@ -11,6 +11,7 @@ import { IntegrationFormFields } from 'containers/IntegrationForm/IntegrationFor
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
+import { INTEGRATION_SERVICENOW } from 'utils/consts';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
@@ -57,7 +58,7 @@ export const ServiceNowAuthSection = observer(
 
     async function onAuthTest(): Promise<boolean> {
       const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {
-        integration: currentIntegration ? currentIntegration.integration : 'servicenow',
+        integration: currentIntegration ? currentIntegration.integration : INTEGRATION_SERVICENOW,
         ...getValues(),
       };
 
