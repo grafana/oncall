@@ -420,13 +420,12 @@ export const IntegrationForm = observer(
       };
 
       const isServiceNow = formData.integration === INTEGRATION_SERVICENOW;
-      const isCreate = id === 'new';
 
       if (!isServiceNow) {
         delete data.additional_settings;
       }
 
-      if (isServiceNow && isCreate) {
+      if (isServiceNow && isNew) {
         const testResult = await authSectionRef?.current?.testConnection();
         if (!testResult) {
           return;
@@ -434,7 +433,7 @@ export const IntegrationForm = observer(
       }
 
       try {
-        if (isCreate) {
+        if (isNew) {
           await createNewIntegration();
         } else {
           await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
