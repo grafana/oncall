@@ -222,7 +222,7 @@ def metrics_add_integrations_to_cache(integrations: list["AlertReceiveChannel"],
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 
 
-def metrics_bulk_update_team_label_cache(teams_updated_data, organization_id):
+def metrics_bulk_update_team_label_cache(teams_updated_data: dict, organization_id: int):
     """Update team related data in metrics cache for each team in `teams_updated_data`"""
     if not teams_updated_data:
         return
@@ -251,7 +251,7 @@ def metrics_bulk_update_team_label_cache(teams_updated_data, organization_id):
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 
 
-def metrics_update_alert_groups_state_cache(states_diff, organization_id):
+def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: int):
     """Update alert groups state metric cache for each integration in states_diff dict."""
     if not states_diff:
         return
@@ -283,7 +283,7 @@ def metrics_update_alert_groups_state_cache(states_diff, organization_id):
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
 
 
-def metrics_update_alert_groups_response_time_cache(integrations_response_time, organization_id: int):
+def metrics_update_alert_groups_response_time_cache(integrations_response_time: dict, organization_id: int):
     """Update alert groups response time metric cache for each integration in `integrations_response_time` dict."""
     if not integrations_response_time:
         return
