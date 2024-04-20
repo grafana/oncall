@@ -666,7 +666,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(heartbeat, self.integration, None)
 
     # Demo alerts
-    def send_demo_alert(self, payload: typing.Optional[typing.Dict] = None) -> None:
+    def send_demo_alert(self, payload: typing.Optional[typing.Dict] = None, group_alerts: bool = True) -> None:
         logger.info(f"send_demo_alert integration={self.pk}")
 
         if not self.is_demo_alert_enabled:
@@ -687,7 +687,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                     "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                 )
             for alert in alerts:
-                create_alertmanager_alerts.delay(alert_receive_channel_pk=self.pk, alert=alert, is_demo=True)
+                create_alertmanager_alerts.delay(
+                    alert_receive_channel_pk=self.pk, alert=alert, group_alerts=group_alerts
+                )
         else:
             timestamp = timezone.now().isoformat()
             create_alert.delay(
@@ -698,7 +700,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 alert_receive_channel_pk=self.pk,
                 integration_unique_data=None,
                 raw_request_data=payload,
-                is_demo=True,
+                group_alerts=group_alerts,
                 received_at=timestamp,
             )
 

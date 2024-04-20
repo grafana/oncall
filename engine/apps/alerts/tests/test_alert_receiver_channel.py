@@ -108,7 +108,7 @@ def test_send_demo_alert(mocked_create_alert, make_organization, make_alert_rece
     )
     alert_receive_channel.send_demo_alert(payload=payload)
     assert mocked_create_alert.called
-    assert mocked_create_alert.call_args.args[1]["is_demo"]
+    assert mocked_create_alert.call_args.args[1]["group_alerts"]
     assert (
         mocked_create_alert.call_args.args[1]["raw_request_data"] == payload
         or alert_receive_channel.config.example_payload
@@ -139,7 +139,7 @@ def test_send_demo_alert_alertmanager_payload_shape(
     alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
     alert_receive_channel.send_demo_alert(payload=payload)
     assert mocked_create_alert.called
-    assert mocked_create_alert.call_args.args[1]["is_demo"]
+    assert mocked_create_alert.call_args.args[1]["group_alerts"]
     assert (
         mocked_create_alert.call_args.args[1]["alert"] == payload["alerts"][0]
         if payload
