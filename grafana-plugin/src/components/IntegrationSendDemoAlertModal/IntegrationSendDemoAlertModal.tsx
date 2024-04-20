@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
-import { Button, HorizontalGroup, Icon, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, Modal, Tooltip, VerticalGroup, Field, Switch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -33,6 +33,8 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
   const { alertReceiveChannelStore } = store;
   const initialDemoJSON = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
   const [demoPayload, setDemoPayload] = useState<string>(initialDemoJSON);
+  const [groupAlerts, setGroupAlerts] = useState<boolean>(false);
+
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
@@ -82,6 +84,15 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           />
         </div>
 
+        <Field label="Group Alerts" description="Group the alerts based on the grouping template provided">
+          <Switch
+            value={groupAlerts}
+            onChange={(event) => {
+              setGroupAlerts(event.currentTarget.checked);
+            }}
+          />
+        </Field>
+
         <HorizontalGroup justify={'flex-end'} spacing={'md'}>
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
@@ -107,7 +118,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
       parsedPayload = JSON.parse(demoPayload);
     } catch (ex) {}
 
-    await AlertReceiveChannelHelper.sendDemoAlert(alertReceiveChannel.id, parsedPayload);
+    await AlertReceiveChannelHelper.sendDemoAlert(alertReceiveChannel.id, parsedPayload, groupAlerts);
     alertReceiveChannelStore.fetchCounters();
     openNotification(<DemoNotification />);
     onHideOrCancel();
