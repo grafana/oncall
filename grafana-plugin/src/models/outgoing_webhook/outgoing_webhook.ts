@@ -1,7 +1,6 @@
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
-import { LabelsErrors } from 'models/label/label.types';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
@@ -17,9 +16,6 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @observable.shallow
   outgoingWebhookPresets: OutgoingWebhookPreset[] = [];
-
-  @observable
-  labelsFormErrors?: LabelsErrors;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -126,10 +122,5 @@ export class OutgoingWebhookStore extends BaseStore {
     runInAction(() => {
       this.outgoingWebhookPresets = response;
     });
-  }
-
-  @action.bound
-  setLabelsFormErrors(errors: LabelsErrors) {
-    this.labelsFormErrors = errors;
   }
 }

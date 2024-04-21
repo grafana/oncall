@@ -38,7 +38,7 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { OmitReadonlyMembers } from 'utils/types';
 
@@ -56,6 +56,10 @@ export interface IntegrationFormFields {
   create_default_webhooks: boolean;
 
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
+}
+
+interface AuthSection {
+  testConnection(): Promise<boolean>;
 }
 
 interface IntegrationFormProps {
@@ -174,6 +178,7 @@ export const IntegrationForm = observer(
     }, []);
 
     const labelsRef = useRef(null);
+    const authSectionRef = useRef<AuthSection>(null);
 
     const [labelsErrors, setLabelErrors] = useState([]);
     const isServiceNow = getIsBidirectionalIntegration(data as Partial<ApiSchemas['AlertReceiveChannel']>);
@@ -347,7 +352,7 @@ export const IntegrationForm = observer(
               )}
             />
 
-            <ServiceNowAuthSection />
+            <ServiceNowAuthSection ref={authSectionRef} />
 
             <Controller
               name={'create_default_webhooks'}
@@ -414,14 +419,21 @@ export const IntegrationForm = observer(
         labels: labels ? [...labels] : undefined,
       };
 
-      if (formData.integration !== 'servicenow') {
+      const isServiceNow = formData.integration === INTEGRATION_SERVICENOW;
+
+      if (!isServiceNow) {
         delete data.additional_settings;
       }
 
-      const isCreate = id === 'new';
+      if (isServiceNow && isNew) {
+        const testResult = await authSectionRef?.current?.testConnection();
+        if (!testResult) {
+          return;
+        }
+      }
 
       try {
-        if (isCreate) {
+        if (isNew) {
           await createNewIntegration();
         } else {
           await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
@@ -445,13 +457,15 @@ export const IntegrationForm = observer(
           return;
         }
 
-        if (!IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting')) {
-          pushHistory(response.id);
+        if (IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting')) {
+          await (formData.is_existing
+            ? AlertReceiveChannelHelper.connectContactPoint
+            : AlertReceiveChannelHelper.createContactPoint)(
+            response.id,
+            formData.alert_manager,
+            formData.contact_point
+          );
         }
-
-        await (formData.is_existing
-          ? AlertReceiveChannelHelper.connectContactPoint
-          : AlertReceiveChannelHelper.createContactPoint)(response.id, formData.alert_manager, formData.contact_point);
 
         pushHistory(response.id);
       }
