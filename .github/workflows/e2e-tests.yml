@@ -1,5 +1,10 @@
 name: e2e tests
-"on":
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
   workflow_call:
     inputs:
       grafana-image-tag:
