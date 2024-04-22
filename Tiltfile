@@ -113,18 +113,10 @@ cmd_button(
     icon_name="dangerous",
 )
 
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"], set=twilio_values)
-
-ci_env_vars = {
-    "env": [
-        {
-            "name": "FEATURE_LABELS_ENABLED_FOR_ALL",
-            "value": "True"
-        }
-    ]
-}
+helm_oncall_values = ["./dev/helm-local.yml", "./dev/helm-local.dev.yml"]
 if is_ci:
-    yaml = yaml.set(values=ci_env_vars)
+    helm_oncall_values = helm_oncall_values + ["./.github/helm-ci/yml"]
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=helm_oncall_values, set=twilio_values)
 
 k8s_yaml(yaml)
 
