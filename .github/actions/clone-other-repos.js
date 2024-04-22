@@ -13,13 +13,13 @@ const cloneRepo = async (name, installationToken) =>
       (error, stdout, stderr) => {
         if (error) {
           console.error(`Error: ${JSON.stringify(error)}`);
-          reject(error);
-          return;
+          // reject(error);
+          // return;
         }
         if (stderr) {
           console.error(`stderr: ${stderr}`);
-          reject(stderr);
-          return;
+          // reject(stderr);
+          // return;
         }
         console.log(`stdout: ${stdout}`);
         resolve(stdout);
