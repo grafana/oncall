@@ -45,8 +45,12 @@ const { Octokit } = require("octokit");
   const repositoryUrl = `https://x-access-token:${token}@github.com/grafana/ops-devenv.git`;
 
   exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
-    if (error || stderr) {
+    if (error) {
       console.error(`Error: ${JSON.stringify(error)}`);
+      process.exit(1);
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
       process.exit(1);
     }
     console.log(`stdout: ${stdout}`);
