@@ -68,6 +68,7 @@ jobs:
       - run: npm install octokit @octokit/auth-app
       - run: |
           node .github/actions/get-installation-token.js
+          ls
         # - run: |
         #     token=$(node .github/actions/get-installation-token.js)
         #     echo "Token: $token"
