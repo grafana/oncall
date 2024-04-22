@@ -67,7 +67,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { GENERIC_ERROR, PLUGIN_ROOT } from 'utils/consts';
+import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
 import { withDrawer } from 'utils/hoc';
 import { useDrawer } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
@@ -275,7 +275,11 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                   { label: 'Incoming', content: incomingPart },
                   {
                     label: 'Outgoing',
-                    content: <OutgoingTab openSnowConfigurationDrawer={() => drawerConfig.openDrawer('servicenow')} />,
+                    content: (
+                      <OutgoingTab
+                        openSnowConfigurationDrawer={() => drawerConfig.openDrawer(INTEGRATION_SERVICENOW)}
+                      />
+                    ),
                   },
                 ]}
               />
@@ -819,7 +823,7 @@ interface IntegrationActionsProps {
   drawerConfig: ReturnType<typeof useDrawer<IntegrationDrawerKey>>;
 }
 
-type IntegrationDrawerKey = 'servicenow' | 'completeConfig';
+type IntegrationDrawerKey = typeof INTEGRATION_SERVICENOW | 'completeConfig';
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
@@ -849,7 +853,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
-    disabled: boolean;
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
 
@@ -886,7 +889,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={closeDrawer} />}
+      {getIsDrawerOpened(INTEGRATION_SERVICENOW) && <ServiceNowConfigDrawer onHide={closeDrawer} />}
 
       {isCompleteServiceNowConfigOpen && (
         <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />
@@ -959,7 +962,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               {
                 label: 'ServiceNow configuration',
                 hidden: !getIsBidirectionalIntegration(alertReceiveChannel),
-                onClick: () => openDrawer('servicenow'),
+                onClick: () => openDrawer(INTEGRATION_SERVICENOW),
               },
               {
                 onClick: openLabelsForm,
@@ -1138,7 +1141,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function openStartMaintenance() {
-    setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
+    setMaintenanceData({ alert_receive_channel_id: alertReceiveChannel.id });
   }
 
   async function onStopMaintenance() {

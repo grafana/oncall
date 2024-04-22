@@ -380,7 +380,11 @@ class AlertReceiveChannelView(
                     featured_choices.append(choice)
                 else:
                     choices.append(choice)
-        return Response(featured_choices + choices)
+        choices = featured_choices + choices
+        search_term = self.request.query_params.get("search")
+        if search_term:
+            choices = [choice for choice in choices if search_term.lower() in choice["display_name"].lower()]
+        return Response(choices)
 
     @extend_schema(
         parameters=[
