@@ -44,18 +44,21 @@ const { Octokit } = require("octokit");
   //   tokenType === "installation" ? `x-access-token:${token}` : token;
   const repositoryUrl = `https://x-access-token:${token}@github.com/grafana/ops-devenv.git`;
 
-  exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${JSON.stringify(error)}`);
-      // process.exit(1);
+  exec(
+    `cd .. && git clone ${repositoryUrl} && cd oncall`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error: ${JSON.stringify(error)}`);
+        // process.exit(1);
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        // process.exit(1);
+      }
+      console.log(`stdout: ${stdout}`);
+      process.exit(0);
     }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      // process.exit(1);
-    }
-    console.log(`stdout: ${stdout}`);
-    process.exit(0);
-  });
+  );
 })().catch((e) => {
   console.error(e);
   process.exit(1);
