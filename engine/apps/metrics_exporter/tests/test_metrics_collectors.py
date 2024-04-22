@@ -50,7 +50,7 @@ def test_application_metrics_collector(
 @patch("apps.metrics_exporter.metrics_collectors.get_organization_ids", return_value=[1])
 @patch("apps.metrics_exporter.metrics_collectors.start_calculate_and_cache_metrics.apply_async")
 @pytest.mark.django_db
-def test_application_metrics_collector_2(
+def test_application_metrics_collector_mixed_cache(
     mocked_org_ids, mocked_start_calculate_and_cache_metrics, mock_cache_get_metrics_for_collector_mixed_versions
 ):
     """Test that ApplicationMetricsCollector generates expected metrics from previous and new versions of cache"""
