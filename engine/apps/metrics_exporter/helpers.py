@@ -283,7 +283,7 @@ def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: 
     if not metric_alert_groups_total:
         return
     for integration_id, service_data in states_diff.items():
-        integration_alert_groups: AlertGroupsTotalMetricsDict = metric_alert_groups_total.get(int(integration_id))
+        integration_alert_groups = metric_alert_groups_total.get(int(integration_id))
         if not integration_alert_groups:
             continue
         for service_name, service_state_diff in service_data.items():
@@ -325,9 +325,7 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time: 
     if not metric_alert_groups_response_time:
         return
     for integration_id, service_data in integrations_response_time.items():
-        integration_response_time_metrics: AlertGroupsResponseTimeMetricsDict = metric_alert_groups_response_time.get(
-            int(integration_id)
-        )
+        integration_response_time_metrics = metric_alert_groups_response_time.get(int(integration_id))
         if not integration_response_time_metrics:
             continue
         for service_name, response_time_values in service_data.items():
