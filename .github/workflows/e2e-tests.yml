@@ -7,7 +7,7 @@ permissions:
 on:
   workflow_call:
     inputs:
-      grafana-image-tag:
+      grafana_version:
         required: true
         type: string
       browsers:
@@ -39,7 +39,7 @@ jobs:
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-16-cores
-    name: "Grafana: ${{ inputs.grafana-image-tag }}"
+    name: "Grafana: ${{ inputs.grafana_version }}"
     environment:
       name: github-pages
     permissions:
@@ -159,18 +159,19 @@ jobs:
         shell: bash
         if: ${{ inputs.run-expensive-tests == false }}
         env:
-          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          GRAFANA_VERSION: ${{ inputs.grafana_version }}
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
-        run: cd ../ops-devenv && tilt ci gops-labels oncall
+        # TODO: remove checking out feature branch once merged
+        run: cd ../ops-devenv && git checkout brojd/make-grafana-version-configurable && tilt ci gops-labels oncall
 
       - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
         shell: bash
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
-          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          GRAFANA_VERSION: ${{ inputs.grafana_version }}
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}

@@ -2,7 +2,7 @@ load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
-grafana_image_tag = os.getenv("GRAFANA_IMAGE_TAG", "latest")
+grafana_version = os.getenv("GRAFANA_VERSION", "latest")
 e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e")
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
@@ -134,7 +134,7 @@ k8s_resource(
 # Use separate grafana helm chart
 if not running_under_parent_tiltfile:
     grafana(
-        grafana_version=grafana_image_tag,
+        grafana_version=grafana_version,
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
