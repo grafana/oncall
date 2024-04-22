@@ -122,9 +122,7 @@ jobs:
 
       # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
       - run: npm install octokit @octokit/auth-app
-      - run: |
-          cd ..
-          node .github/actions/clone-ops-devenv.js
+      - run: cd .. && node ./oncall/.github/actions/clone-ops-devenv.js
         id: clone-ops-devenv
         shell: bash
         env:
