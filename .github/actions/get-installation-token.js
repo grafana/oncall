@@ -28,7 +28,7 @@ const { Octokit } = require("octokit");
   // console.log("INSTALLATIONS: ", installations);
   // console.log("INSTALLATION REQUESTS: ", installationRequests);
 
-  // -----------
+  // ------------
   const auth = createAppAuth({
     appId: process.env.GH_APP_ID,
     privateKey: process.env.GH_APP_PRIVATE_KEY,
