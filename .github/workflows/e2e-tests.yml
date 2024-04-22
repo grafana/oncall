@@ -146,6 +146,8 @@ jobs:
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          GRAFANA_ADMIN_USERNAME: "irm"
+          GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}

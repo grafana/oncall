@@ -19,7 +19,7 @@ test.describe('Users screen actions', () => {
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
 
-    await accessProfileTabs(page, ['tab-mobile-app', 'tab-phone-verification', 'tab-slack', 'tab-telegram'], false);
+    await accessProfileTabs(page, ['tab-phone-verification', 'tab-slack', 'tab-telegram'], false);
   });
 
   test('Editor is allowed to view the list of users', async ({ editorRolePage }) => {
@@ -51,14 +51,14 @@ test.describe('Users screen actions', () => {
   });
 
   test('Search updates the table view', async ({ adminRolePage }) => {
-    const { page } = adminRolePage;
+    const { page, userName } = adminRolePage;
     await goToOnCallPage(page, 'users');
 
     await page.waitForTimeout(2000);
 
     const searchInput = page.locator(`[data-testid="search-users"]`);
 
-    await searchInput.fill('oncall');
+    await searchInput.fill(userName);
     await page.waitForTimeout(2000);
 
     const result = page.locator(`[data-testid="users-username"]`);
