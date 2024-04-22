@@ -252,7 +252,28 @@ def metrics_bulk_update_team_label_cache(teams_updated_data: dict, organization_
 
 
 def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: int):
-    """Update alert groups state metric cache for each integration in states_diff dict."""
+    """
+    Update alert groups state metric cache for each integration in states_diff dict.
+    states_diff example:
+    {
+        <integration_id>: {
+            <service name>: {
+                "previous_states": {
+                    firing: 1,
+                    acknowledged: 0,
+                    resolved: 0,
+                    silenced: 0,
+                },
+                "new_states": {
+                    firing: 0,
+                    acknowledged: 1,
+                    resolved: 0,
+                    silenced: 0,
+                }
+            }
+        }
+    }
+    """
     if not states_diff:
         return
 
@@ -262,7 +283,7 @@ def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: 
     if not metric_alert_groups_total:
         return
     for integration_id, service_data in states_diff.items():
-        integration_alert_groups = metric_alert_groups_total.get(int(integration_id))
+        integration_alert_groups: AlertGroupsTotalMetricsDict = metric_alert_groups_total.get(int(integration_id))
         if not integration_alert_groups:
             continue
         for service_name, service_state_diff in service_data.items():
@@ -270,7 +291,9 @@ def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: 
                 states_to_update = integration_alert_groups["services"].setdefault(
                     service_name, get_default_states_dict()
                 )
-            else:  # support previous version of metrics cache. This clause can be removed later
+            else:
+                # support version of metrics cache without service name. This clause can be removed when all metrics
+                # cache is updated on prod (~2 days after release)
                 states_to_update = integration_alert_groups
             for previous_state, counter in service_state_diff["previous_states"].items():
                 if states_to_update[previous_state] - counter > 0:
@@ -284,7 +307,15 @@ def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: 
 
 
 def metrics_update_alert_groups_response_time_cache(integrations_response_time: dict, organization_id: int):
-    """Update alert groups response time metric cache for each integration in `integrations_response_time` dict."""
+    """
+    Update alert groups response time metric cache for each integration in `integrations_response_time` dict.
+    integrations_response_time dict example:
+    {
+        <integration_id>: {
+            <service name>: [10],
+        }
+    }
+    """
     if not integrations_response_time:
         return
 
@@ -294,14 +325,18 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time: 
     if not metric_alert_groups_response_time:
         return
     for integration_id, service_data in integrations_response_time.items():
-        integration_response_time_metrics = metric_alert_groups_response_time.get(int(integration_id))
+        integration_response_time_metrics: AlertGroupsResponseTimeMetricsDict = metric_alert_groups_response_time.get(
+            int(integration_id)
+        )
         if not integration_response_time_metrics:
             continue
         for service_name, response_time_values in service_data.items():
             if "services" in integration_response_time_metrics:
                 integration_response_time_metrics["services"].setdefault(service_name, [])
                 integration_response_time_metrics["services"][service_name].extend(response_time_values)
-            else:  # support previous version of metrics cache. This clause can be removed later
+            else:
+                # support version of metrics cache without service name. This clause can be removed when all metrics
+                # cache is updated on prod (~2 days after release)
                 integration_response_time_metrics["response_time"].extend(response_time_values)
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 

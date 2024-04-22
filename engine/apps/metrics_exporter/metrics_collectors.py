@@ -52,7 +52,7 @@ class ApplicationMetricsCollector:
                 "team",
             ]
             + self._stack_labels
-            # + [SERVICE_LABEL]  # todo:metrics: uncomment with next release
+            # + [SERVICE_LABEL]  # todo:metrics: uncomment when all metric cache is updated (~2 after release)
         )
         self._integration_labels_with_state = self._integration_labels + ["state"]
         self._user_labels = ["username"] + self._stack_labels
