@@ -115,6 +115,17 @@ cmd_button(
 
 yaml = helm("helm/oncall", name=HELM_PREFIX, values=["./dev/helm-local.yml", "./dev/helm-local.dev.yml"], set=twilio_values)
 
+ci_env_vars = {
+    "env": [
+        {
+            "name": "FEATURE_LABELS_ENABLED_FOR_ALL",
+            "value": "True"
+        }
+    ]
+}
+if is_ci:
+    yaml = yaml.set(values=ci_env_vars)
+
 k8s_yaml(yaml)
 
 # Generate and load the grafana deploy yaml
