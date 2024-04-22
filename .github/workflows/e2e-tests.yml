@@ -155,7 +155,7 @@ jobs:
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
-        run: cd ../ops-devenv && tilt ci oncall
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
@@ -172,7 +172,7 @@ jobs:
           # wrapping single quotes are required to prevent stripping leading "+" from the number
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-        run: cd ../ops-devenv && tilt ci oncall
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Setup Pages
         if: failure()

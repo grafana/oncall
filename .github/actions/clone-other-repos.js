@@ -34,7 +34,7 @@ const cloneRepo = async (name, installationToken) =>
   });
 
   await cloneRepo("ops-devenv", installationToken);
-  // await cloneRepo("gops-labels", installationToken);
+  await cloneRepo("gops-labels", installationToken);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
