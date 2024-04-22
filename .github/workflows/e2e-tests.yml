@@ -137,7 +137,7 @@ jobs:
         env:
           GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
           BROWSERS: ${{ inputs.browsers }}
-        run: tilt ci oncall gops-labels
+        run: ls && cd ../ops-devenv && tilt ci oncall gops-labels
 
       - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
@@ -152,9 +152,7 @@ jobs:
           # wrapping single quotes are required to prevent stripping leading "+" from the number
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-        run: |
-          tilt ci oncall gops-labels
-          cd ./oncall
+        run: ls && cd ../ops-devenv && tilt ci oncall gops-labels
 
       - name: Setup Pages
         if: failure()
