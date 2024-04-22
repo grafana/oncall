@@ -143,7 +143,7 @@ jobs:
           go-version: "1.21.5"
 
       - name: Install Mage
-        run: go install github.com/magefile/mage@${MAGE_VERSION}
+        run: go install github.com/magefile/mage@v1.15.0
 
       - name: Clone other repos needed for cross-plugin e2e tests
         run: cd .. && node ./oncall/.github/actions/clone-other-repos.js
