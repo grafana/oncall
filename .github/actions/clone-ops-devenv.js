@@ -1,61 +1,36 @@
 const { createAppAuth } = require("@octokit/auth-app");
 const { exec } = require("child_process");
-const { Octokit } = require("octokit");
+
+const cloneRepo = async (name) =>
+  new Promise((resolve, reject) => {
+    exec(`git clone ${name}.git`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error: ${JSON.stringify(error)}`);
+        reject(error);
+        return;
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        reject(stderr);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+      resolve(stdout);
+    });
+  });
 
 (async () => {
-  // const app = new App({
-  //   appId: process.env.GH_APP_ID,
-  //   privateKey: process.env.GH_APP_PRIVATE_KEY,
-  //   installationId: process.env.GH_APP_INSTALLATION_ID,
-  // });
-  // await app.octokit.request("/app");
-  // const repos = await app.octokit.request("Get /user/repos?type=private", {});
-  // console.log("REPOS: ", repos);
-
-  // const appOctokit = new Octokit({
-  //   authStrategy: createAppAuth,
-  //   auth: {
-  //     appId: process.env.GH_APP_ID,
-  //     privateKey: process.env.GH_APP_PRIVATE_KEY,
-  //     installationId: process.env.GH_APP_INSTALLATION_ID,
-  //   },
-  // });
-
-  // const installationRequests = await appOctokit.request(
-  //   "GET /app/installation-requests"
-  // );
-  // const installations = await appOctokit.request("GET /app/installations");
-  // console.log("INSTALLATIONS: ", installations);
-  // console.log("INSTALLATION REQUESTS: ", installationRequests);
-
-  // ------------
   const auth = createAppAuth({
     appId: process.env.GH_APP_ID,
     privateKey: process.env.GH_APP_PRIVATE_KEY,
   });
-  const { token, tokenType } = await auth({
+  await auth({
     type: "installation",
     installationId: process.env.GH_APP_INSTALLATION_ID,
   });
-  console.log("TOOOKEN: ", token);
-  console.log(("TOKEN TYPE: ", tokenType));
 
-  // const tokenWithPrefix =
-  //   tokenType === "installation" ? `x-access-token:${token}` : token;
-  const repositoryUrl = `https://x-access-token:${token}@github.com/grafana/ops-devenv.git`;
-
-  exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${JSON.stringify(error)}`);
-      // process.exit(1);
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      // process.exit(1);
-    }
-    console.log(`stdout: ${stdout}`);
-    process.exit(0);
-  });
+  await cloneRepo("ops-devenv");
+  await cloneRepo("gops-labels");
 })().catch((e) => {
   console.error(e);
   process.exit(1);
