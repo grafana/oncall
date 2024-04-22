@@ -120,10 +120,9 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      # https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
       - run: npm install octokit @octokit/auth-app
-      - run: cd .. && node ./oncall/.github/actions/clone-ops-devenv.js
-        id: clone-ops-devenv
+      - run: cd .. && node ./oncall/.github/actions/clone-other-repos.js
+        id: clone-other-repos
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
