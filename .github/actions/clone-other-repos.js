@@ -2,9 +2,9 @@ const { createAppAuth } = require("@octokit/auth-app");
 const { exec } = require("child_process");
 
 /**
-  https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
-  https://www.npmjs.com/package/@octokit/auth-app#authenticate-as-installation
-*/
+ * https://www.npmjs.com/package/@octokit/auth-app#authenticate-as-installation
+ * https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation#using-octokitjs-to-authenticate-with-an-installation-id
+ */
 
 const cloneRepo = async (name, installationToken) =>
   new Promise((resolve) => {
