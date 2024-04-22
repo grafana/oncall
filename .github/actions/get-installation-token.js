@@ -46,7 +46,7 @@ const { Octokit } = require("octokit");
 
   exec(`git clone ${repositoryUrl}`, (error, stdout, stderr) => {
     if (error || stderr) {
-      console.error(`Error: ${error.message}`);
+      console.error(`Error: ${JSON.stringify(error)}`);
       process.exit(1);
     }
     console.log(`stdout: ${stdout}`);
