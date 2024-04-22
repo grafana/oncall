@@ -109,6 +109,11 @@ under the Google Calendar tab. Once linked, you can further configure things, su
 like us to consider for automatic shift swap generation (by default we will consider all of the schedules that you
 are involved in).
 
+### Ignoring events
+
+If you would like to have Grafana OnCall ignore a specific Out of Office event from being considered for
+Shift Swap Request generation, simply add `#grafana-oncall-ignore` to the Out of Office event's title.
+
 ### Configuring for open source
 
 1. Follow the instructions [here](https://developers.google.com/identity/protocols/oauth2) to setup your Google OAuth2

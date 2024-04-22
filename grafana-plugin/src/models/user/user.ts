@@ -52,6 +52,7 @@ export class UserStore {
           (acc: { [key: number]: ApiSchemas['User'] }, item: ApiSchemas['User']) => ({
             ...acc,
             [item.pk]: {
+              ...this.items[item.pk],
               ...item,
               timezone: UserHelper.getTimezone(item),
             },
