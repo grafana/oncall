@@ -7,7 +7,7 @@ const { exec } = require("child_process");
 */
 
 const cloneRepo = async (name, installationToken) =>
-  new Promise((resolve, reject) => {
+  new Promise((resolve) => {
     exec(
       `git clone https://x-access-token:${installationToken}@github.com/grafana/${name}.git`,
       (error, stdout, stderr) => {
