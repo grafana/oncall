@@ -13,13 +13,9 @@ const cloneRepo = async (name, installationToken) =>
       (error, stdout, stderr) => {
         if (error) {
           console.error(`Error: ${JSON.stringify(error)}`);
-          // reject(error);
-          // return;
         }
         if (stderr) {
           console.error(`stderr: ${stderr}`);
-          // reject(stderr);
-          // return;
         }
         console.log(`stdout: ${stdout}`);
         resolve(stdout);
@@ -38,7 +34,7 @@ const cloneRepo = async (name, installationToken) =>
   });
 
   await cloneRepo("ops-devenv", installationToken);
-  await cloneRepo("gops-labels", installationToken);
+  // await cloneRepo("gops-labels", installationToken);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
