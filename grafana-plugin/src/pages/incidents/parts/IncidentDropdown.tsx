@@ -3,7 +3,7 @@ import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 import { Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import { Tag } from 'components/Tag/Tag';
+import { Tag, TagColor } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -19,15 +19,15 @@ const cx = cn.bind(styles);
 
 const getIncidentTagColor = (alert: ApiSchemas['AlertGroup']) => {
   if (alert.status === IncidentStatus.Resolved) {
-    return getVar('--tag-primary');
+    return TagColor.SUCCESS;
   }
   if (alert.status === IncidentStatus.Firing) {
-    return getVar('--tag-danger');
+    return TagColor.ERROR;
   }
   if (alert.status === IncidentStatus.Acknowledged) {
-    return getVar('--tag-warning');
+    return TagColor.WARNING;
   }
-  return getVar('--tag-secondary');
+  return TagColor.SECONDARY;
 };
 
 function IncidentStatusTag({
@@ -50,9 +50,7 @@ function IncidentStatusTag({
         openMenu({ pageX: boundingRect.left + LEFT_MARGIN, pageY: boundingRect.top + boundingRect.height } as any);
       }}
     >
-      <Text strong size="small">
-        {IncidentStatus[alert.status]}
-      </Text>
+      <Text size="small">{IncidentStatus[alert.status]}</Text>
       <Icon className={cx('incident__icon')} name="angle-down" size="sm" />
     </Tag>
   );
