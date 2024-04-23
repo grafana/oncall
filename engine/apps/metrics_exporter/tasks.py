@@ -129,7 +129,11 @@ def calculate_and_cache_metrics(organization_id, force=False):
         for state, alert_group_filter in states.items():
             # count alert groups with `service_name` label group by label value
             alert_group_count_by_service = (
-                integration.alert_groups.filter(alert_group_filter, labels__key_name=SERVICE_LABEL)
+                integration.alert_groups.filter(
+                    alert_group_filter,
+                    labels__organization=organization,
+                    labels__key_name=SERVICE_LABEL,
+                )
                 .values("labels__value_name")
                 .annotate(count=Count("id"))
             )
@@ -141,7 +145,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
                 )[state] += value["count"]
             # count alert groups without `service_name` label
             alert_groups_count_without_service = integration.alert_groups.filter(
-                alert_group_filter, ~Q(labels__key_name=SERVICE_LABEL)
+                alert_group_filter, ~Q(labels__key_name=SERVICE_LABEL), labels__organization=organization
             ).count()
             metric_alert_group_total_data["services"][NO_SERVICE_VALUE][state] += alert_groups_count_without_service
         metric_alert_group_total[integration.id] = metric_alert_group_total_data
@@ -161,6 +165,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
         response_time_by_service = integration.alert_groups.filter(
             started_at__gte=response_time_period,
             response_time__isnull=False,
+            labels__organization=organization,
             labels__key_name=SERVICE_LABEL,
         ).values_list("labels__value_name", "response_time")
         for service_name, response_time in response_time_by_service:
@@ -169,6 +174,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
 
         no_service_response_time = integration.alert_groups.filter(
             ~Q(labels__key_name=SERVICE_LABEL),
+            labels__organization=organization,
             started_at__gte=response_time_period,
             response_time__isnull=False,
         ).values_list("response_time", flat=True)
