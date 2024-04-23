@@ -1,9 +1,5 @@
 name: e2e tests
 
-permissions:
-  contents: read
-  id-token: write
-
 on:
   workflow_call:
     inputs:
@@ -44,7 +40,8 @@ jobs:
       name: github-pages
     permissions:
       id-token: write
-      pages: "write"
+      pages: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v3
