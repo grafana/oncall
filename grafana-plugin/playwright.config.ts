@@ -25,12 +25,12 @@ export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
-  globalTimeout: 30 * 60 * 1_000, // 30 minutes
+  globalTimeout: 20 * 60 * 1_000, // 30 minutes
 
   reporter: [['html', { open: IS_CI ? 'never' : 'always' }]],
 
   /* Maximum time one test can run for. */
-  timeout: 90_000,
+  timeout: 60_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
