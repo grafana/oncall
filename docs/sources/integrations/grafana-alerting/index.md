@@ -30,20 +30,20 @@ Use the following method if you are connecting Grafana OnCall with alerts coming
 which Grafana OnCall is being managed.
 
 1. In Grafana OnCall, navigate to the **Integrations** tab and select **New Integration to receive alerts**.
-2. Click **Quick connect** in the **Grafana Alerting** tile. This will open a **New Grafana Alerting integration** configuration window.
+1. Click **Quick connect** in the **Grafana Alerting** tile. This will open a **New Grafana Alerting integration** configuration window.
 
-3. In the opened window, enter a name and description for the integration and choose existing or create a new contact point.
+1. In the opened window, enter a name and description for the integration and choose existing or create a new contact point.
    This contact point will send alerts to the created integration.
 
    > **Note:** You must connect the contact point with a notification policy in Grafana Alerting to receive alerts in Grafana OnCall.
    > For more information, see
    > [Contact points in Grafana Alerting](https://grafana.com/docs/grafana/latest/alerting/unified-alerting/contact-points/)
 
-4. Determine the escalation chain for the new integration by either selecting an existing one or by creating a new
+1. Determine the escalation chain for the new integration by either selecting an existing one or by creating a new
    escalation chain.
-5. In Grafana Cloud Alerting, navigate to **Alerting > Contact Points** and find a contact point with a name matching
+1. In Grafana Cloud Alerting, navigate to **Alerting > Contact Points** and find a contact point with a name matching
    the integration you created in Grafana OnCall.
-6. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
+1. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
 
 ## Configure external Grafana Alerting from other Grafana Instance
 
@@ -51,18 +51,18 @@ Connect Grafana OnCall with alerts coming from a Grafana instance that is differ
 OnCall is being managed:
 
 1. In Grafana OnCall, navigate to the **Integrations** tab and select **New Integration to receive alerts**.
-2. Select the **Alertmanager** tile.
-3. Enter a name and description for the integration, click Create
-4. A new page will open with the integration details. Copy the OnCall Integration URL from HTTP Endpoint section.
-5. Go to the other Grafana instance to connect to Grafana OnCall and navigate to **Alerting > Contact Points**.
-6. Select **New Contact Point**.
-7. Choose the contact point type `webhook`, then paste the URL generated in step 3 into the URL field.
+1. Select the **Alertmanager** tile.
+1. Enter a name and description for the integration, click Create
+1. A new page will open with the integration details. Copy the OnCall Integration URL from HTTP Endpoint section.
+1. Go to the other Grafana instance to connect to Grafana OnCall and navigate to **Alerting > Contact Points**.
+1. Select **New Contact Point**.
+1. Choose the contact point type `webhook`, then paste the URL generated in step 3 into the URL field.
 
    > **Note:** You must connect the contact point with a notification policy in Grafana Alerting to receive alerts in Grafana OnCall.
    > For more information, see
    > [Contact points in Grafana Alerting](https://grafana.com/docs/grafana/latest/alerting/unified-alerting/contact-points/)
 
-8. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
+1. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
 
 ## Note about grouping and autoresolution
 
