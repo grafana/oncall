@@ -128,6 +128,15 @@ jobs:
       - name: Install @octokit/auth-app
         run: npm install octokit @octokit/auth-app
 
+      # Go and Mage are required to run gops-labels
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.5"
+
+      - name: Install Mage
+        run: go install github.com/magefile/mage@v1.15.0
+
       - name: Get Vault secrets
         id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
@@ -136,14 +145,6 @@ jobs:
             GH_APP_ID=github-app:app-id
             GH_APP_INSTALLATION_ID=github-app:app-installation-id
             GH_APP_PRIVATE_KEY=github-app:private-key
-
-      - name: Install Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21.5"
-
-      - name: Install Mage
-        run: go install github.com/magefile/mage@v1.15.0
 
       - name: Clone other repos needed for cross-plugin e2e tests
         run: cd .. && node ./oncall/.github/actions/clone-other-repos.js
@@ -163,7 +164,7 @@ jobs:
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
-        # TODO: remove checking out feature branch once merged
+        # TODO: remove checking out feature branch once https://github.com/grafana/ops-devenv/pull/14 is merged
         run: cd ../ops-devenv && git checkout brojd/make-grafana-version-configurable && tilt ci gops-labels oncall
 
       - name: Tilt CI - standard and expensive E2E tests
@@ -181,7 +182,7 @@ jobs:
           # wrapping single quotes are required to prevent stripping leading "+" from the number
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-        # TODO: remove checking out feature branch once merged
+        # TODO: remove checking out feature branch once https://github.com/grafana/ops-devenv/pull/14 is merged
         run: cd ../ops-devenv && git checkout brojd/make-grafana-version-configurable && tilt ci gops-labels oncall
 
       - name: Setup Pages

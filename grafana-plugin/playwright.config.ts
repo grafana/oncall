@@ -25,7 +25,7 @@ export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
-  globalTimeout: 20 * 60 * 1_000, // 30 minutes
+  globalTimeout: 20 * 60 * 1_000, // 20 minutes
 
   reporter: [['html', { open: IS_CI ? 'never' : 'always' }]],
 
