@@ -1,6 +1,5 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
 
 export const getHeaderStyles = (theme: GrafanaTheme2) => {
   return {
