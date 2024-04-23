@@ -20,7 +20,7 @@ test('we can directly page a user', async ({ adminRolePage }) => {
 
   const addRespondersPopup = page.getByTestId('add-responders-popup');
 
-  await addRespondersPopup.getByLabel('Users').click();
+  await addRespondersPopup.getByText('Users').click();
   await addRespondersPopup.getByText(adminRolePage.userName).click();
 
   // If user is not on call, confirm invitation

@@ -14,13 +14,14 @@ test('Integrations table shows data in Monitoring Systems and Direct Paging tabs
   // Create 2 integrations that are not Direct Paging
   await createIntegration({ page, integrationSearchText: 'Webhook', integrationName: WEBHOOK_INTEGRATION_NAME });
   await page.waitForTimeout(1000);
+  await page.getByRole('tab', { name: 'Tab Integrations' }).click();
   await createIntegration({
     page,
     integrationSearchText: 'Alertmanager',
     integrationName: ALERTMANAGER_INTEGRATION_NAME,
   });
   await page.waitForTimeout(1000);
-  await goToOnCallPage(page, 'integrations');
+  await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
   // Create 1 Direct Paging integration if it doesn't exist
   await page.getByRole('tab', { name: 'Tab Manual Direct Paging' }).click();
@@ -35,7 +36,7 @@ test('Integrations table shows data in Monitoring Systems and Direct Paging tabs
     });
     await page.waitForTimeout(1000);
   }
-  await goToOnCallPage(page, 'integrations');
+  await page.getByRole('tab', { name: 'Tab Integrations' }).click();
 
   // By default Monitoring Systems tab is opened and newly created integrations are visible except Direct Paging one
   await searchIntegrationAndAssertItsPresence({ page, integrationName: WEBHOOK_INTEGRATION_NAME });

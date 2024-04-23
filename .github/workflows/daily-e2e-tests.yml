@@ -1,5 +1,6 @@
 name: Daily e2e tests
 "on":
+  pull_request: # TODO: revert before merge
   # allows manual run on github actions
   workflow_dispatch:
   schedule:
