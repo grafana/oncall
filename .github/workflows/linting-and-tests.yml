@@ -279,8 +279,8 @@ jobs:
           uv pip sync --system requirements.txt requirements-dev.txt
           pytest -x
 
-  unit-test-pd-migrator:
-    name: "Unit tests - PagerDuty Migrator"
+  unit-test-migrators:
+    name: "Unit tests - Migrators"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -288,9 +288,9 @@ jobs:
         with:
           python-version: "3.11.4"
           cache: "pip"
-          cache-dependency-path: tools/pagerduty-migrator/requirements.txt
+          cache-dependency-path: tools/migrators/requirements.txt
       - name: Unit Test PD Migrator
-        working-directory: tools/pagerduty-migrator
+        working-directory: tools/migrators
         run: |
           pip install uv
           uv pip sync --system requirements.txt
