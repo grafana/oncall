@@ -10,6 +10,7 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsPar
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { LocationHelper } from 'utils/LocationHelper';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
@@ -46,6 +47,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
   }, [isDesktopOrLaptop, activeTab]);
 
   const onTabChange = useCallback((tab: UserSettingsTab) => {
+    LocationHelper.update({ tab }, 'partial');
     setActiveTab(tab);
   }, []);
 
