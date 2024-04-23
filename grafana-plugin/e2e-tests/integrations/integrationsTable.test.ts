@@ -1,7 +1,6 @@
 import { test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createIntegration, searchIntegrationAndAssertItsPresence } from '../utils/integrations';
-import { goToOnCallPage } from '../utils/navigation';
 
 test('Integrations table shows data in Monitoring Systems and Direct Paging tabs', async ({
   adminRolePage: { page },

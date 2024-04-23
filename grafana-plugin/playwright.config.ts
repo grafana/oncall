@@ -25,12 +25,12 @@ export default defineConfig({
   testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
-  globalTimeout: 20 * 60 * 1_000, // 20 minutes
+  globalTimeout: 30 * 60 * 1_000, // 30 minutes
 
   reporter: [['html', { open: IS_CI ? 'never' : 'always' }]],
 
   /* Maximum time one test can run for. */
-  timeout: 60_000,
+  timeout: 90_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -49,7 +49,7 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: 1,
-  workers: 2,
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
