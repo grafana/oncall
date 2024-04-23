@@ -10,6 +10,7 @@ twilio_values=[
     "oncall.twilio.phoneNumber=" + os.getenv("TWILIO_PHONE_NUMBER", ""),
     "oncall.twilio.verifySid=" + os.getenv("TWILIO_VERIFY_SID", ""),
 ]
+print('HEEERE: ', twilio_values) # revert it!
 is_ci=config.tilt_subcommand == "ci"
 # HELM_PREFIX must be "oncall-dev" as it is hardcoded in dev/helm-local.yml
 HELM_PREFIX = "oncall-dev"
