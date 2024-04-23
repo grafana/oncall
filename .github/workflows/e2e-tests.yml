@@ -181,7 +181,8 @@ jobs:
           # wrapping single quotes are required to prevent stripping leading "+" from the number
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-        run: cd ../ops-devenv && tilt ci gops-labels oncall
+        # TODO: remove checking out feature branch once merged
+        run: cd ../ops-devenv && git checkout brojd/make-grafana-version-configurable && tilt ci gops-labels oncall
 
       - name: Setup Pages
         if: failure()
