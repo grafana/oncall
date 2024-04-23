@@ -401,6 +401,7 @@ def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_e
 def test_check_escalation_finished_task_calls_audit_alert_group_personal_notifications(
     mocked_send_alert_group_escalation_auditor_task_heartbeat,
     make_organization_and_user,
+    make_user_for_organization,
     make_user_notification_policy,
     make_escalation_chain,
     make_escalation_policy,
@@ -414,6 +415,18 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     organization, user = make_organization_and_user()
     user_notification_policy = make_user_notification_policy(
         user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
+    )
+    user2 = make_user_for_organization(organization)
+    user_notification_policy2 = make_user_notification_policy(
+        user=user2,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.PHONE_CALL,
+    )
+    # the previous one will be deleted later, we need to have an extra one (policy cannot be empty)
+    make_user_notification_policy(
+        user=user2,
         step=UserNotificationPolicy.Step.NOTIFY,
         notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
@@ -431,7 +444,8 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     alert_group2 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
     alert_group3 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
     alert_group4 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
-    alert_groups = [alert_group1, alert_group2, alert_group3, alert_group4]
+    alert_group5 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
+    alert_groups = [alert_group1, alert_group2, alert_group3, alert_group4, alert_group5]
     for alert_group in alert_groups:
         alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
         alert_group.raw_escalation_snapshot["last_active_escalation_policy_order"] = 1
@@ -535,6 +549,16 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     )
     # record created < 5 mins ago
     alert_group4.personal_log_records.update(created_at=now - timezone.timedelta(minutes=2))
+
+    # alert_group5: notification triggered but policy is deleted before completion (should be ignored)
+    make_user_notification_policy_log_record(
+        author=user2,
+        alert_group=alert_group5,
+        notification_policy=user_notification_policy2,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        notification_step=UserNotificationPolicy.Step.WAIT,
+    )
+    user_notification_policy2.delete()
 
     # trigger task
     with patch(
