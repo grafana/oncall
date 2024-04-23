@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { Button, HorizontalGroup, Switch, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, Switch, Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { getUtilStyles } from 'styles/utils.styles';
 
@@ -130,7 +130,18 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
       <VerticalGroup spacing="md">
         <VerticalGroup spacing="none">
           <Text.Title level={5}>
-            {connected ? 'Google calendar is connected' : 'Connect your Google Calendar'}
+            {connected ? (
+              <HorizontalGroup>
+                Google calendar is connected
+                <Text type="secondary">
+                  <Tooltip content="OnCall syncs with Google Calendar every 30 mins.">
+                    <Icon name="info-circle" />
+                  </Tooltip>
+                </Text>
+              </HorizontalGroup>
+            ) : (
+              'Connect your Google Calendar'
+            )}
           </Text.Title>
           {connected ? (
             <Text type="secondary">
