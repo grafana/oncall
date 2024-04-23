@@ -21,7 +21,7 @@ services:
     image: grafana/oncall
     restart: always
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     command: sh -c "uwsgi --ini uwsgi.ini"
     environment: *oncall-environment
     volumes:
@@ -78,7 +78,7 @@ services:
     hostname: prometheus
     restart: always
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -89,7 +89,7 @@ services:
     image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
