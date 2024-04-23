@@ -1,21 +1,22 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { Button, HorizontalGroup, InlineField } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 interface GoogleConnectorProps {
   id: ApiSchemas['User']['pk'];
+  onTabChange: (tab: UserSettingsTab) => void;
 }
 
 export const GoogleConnector = observer((props: GoogleConnectorProps) => {
-  const { id } = props;
+  const { id, onTabChange } = props;
 
   const store = useStore();
   const { userStore } = store;
@@ -23,6 +24,10 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
   const storeUser = userStore.items[id];
 
   const isCurrentUser = id === store.userStore.currentUserPk;
+
+  const handleConnectButtonClick = useCallback(() => {
+    onTabChange(UserSettingsTab.GoogleCalendar);
+  }, [onTabChange]);
 
   return (
     <div>
@@ -39,7 +44,7 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
           </HorizontalGroup>
         ) : (
           <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-            <Button disabled={!isCurrentUser} onClick={UserHelper.handleConnectGoogle}>
+            <Button disabled={!isCurrentUser} onClick={handleConnectButtonClick}>
               Connect account
             </Button>
           </WithPermissionControlTooltip>

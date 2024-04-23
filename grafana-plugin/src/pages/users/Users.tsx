@@ -132,6 +132,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       match: {
         params: { id },
       },
+      query: { tab },
     } = this.props;
 
     const isAuthorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
@@ -171,7 +172,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
             {this.renderContentIfAuthorized(isAuthorizedToViewUsers)}
 
-            {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+            {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} tab={tab} />}
           </div>
         )}
       </PageErrorHandlingWrapper>
