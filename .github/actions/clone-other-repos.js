@@ -33,8 +33,11 @@ const cloneRepo = async (name, installationToken) =>
     installationId: process.env.GH_APP_INSTALLATION_ID,
   });
 
-  await cloneRepo("ops-devenv", installationToken);
-  await cloneRepo("gops-labels", installationToken);
+  await Promise.all(
+    ["ops-devenv", "gops-labels"].map((name) =>
+      cloneRepo(name, installationToken)
+    )
+  );
 })().catch((e) => {
   console.error(e);
   process.exit(1);
