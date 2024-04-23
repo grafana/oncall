@@ -85,7 +85,7 @@ export class AlertReceiveChannelHelper {
         ? '/alert_receive_channels/{id}/test_connection/'
         : '/alert_receive_channels/test_connection/';
 
-      const result = await onCallApi({ skipErrorHandling: false }).POST(endpoint, {
+      const result = await onCallApi({ skipErrorHandling: true }).POST(endpoint, {
         body: data as ApiSchemas['AlertReceiveChannelUpdate'],
         params: { path: { id } },
       });

@@ -139,7 +139,7 @@
     "@grafana/data": "^10.2.3",
     "@grafana/faro-web-sdk": "^1.4.2",
     "@grafana/faro-web-tracing": "^1.4.2",
-    "@grafana/labels": "1.5.0",
+    "@grafana/labels": "~1.5.1",
     "@grafana/runtime": "^10.2.2",
     "@grafana/scenes": "^1.28.0",
     "@grafana/schema": "^10.2.2",
