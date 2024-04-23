@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { cx } from '@emotion/css';
 import { Card, HorizontalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
@@ -11,7 +12,6 @@ import { useStore } from 'state/useStore';
 import { APP_SUBTITLE } from 'utils/consts';
 
 import { getHeaderStyles } from './Header.styles';
-import { cx } from '@emotion/css';
 
 export const Header = observer(() => {
   const store = useStore();
