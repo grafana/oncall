@@ -2,9 +2,8 @@ import React, { FC } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, useTheme2 } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { bem } from 'styles/utils.styles';
-import tinycolor from 'tinycolor2';
 
 interface TagProps {
   color?: string | TagColor;
@@ -36,7 +35,7 @@ export const Tag: FC<TagProps> = (props) => {
   return (
     <span
       style={style}
-      className={cx(styles.root, bem(styles.root, size), getMatchingType())}
+      className={cx(styles.root, bem(styles.root, size), getMatchingClass(), className)}
       onClick={onClick}
       ref={props.forwardedRef}
     >
@@ -44,7 +43,7 @@ export const Tag: FC<TagProps> = (props) => {
     </span>
   );
 
-  function getMatchingType() {
+  function getMatchingClass() {
     return styles[color] ? styles[color] : '';
   }
 
@@ -56,7 +55,6 @@ export const Tag: FC<TagProps> = (props) => {
         padding: 5px 8px;
         display: inline-block;
         white-space: nowrap;
-        color: ${theme.isDark ? '#fff' : theme.colors.secondary.text};
       `,
 
       size: css`
@@ -69,22 +67,27 @@ export const Tag: FC<TagProps> = (props) => {
       success: css`
         background-color: ${theme.colors.success.main};
         border: solid 1px ${theme.colors.success.main};
+        color: ${theme.isDark ? '#fff' : theme.colors.success.contrastText};
       `,
       warning: css`
         background-color: ${theme.colors.warning.main};
         border: solid 1px ${theme.colors.warning.main};
+        color: #fff;
       `,
       error: css`
         background-color: ${theme.colors.error.main};
         border: solid 1px ${theme.colors.error.main};
+        color: ${theme.isDark ? '#fff' : theme.colors.error.contrastText};
       `,
       secondary: css`
         background-color: ${theme.colors.secondary.main};
         border: solid 1px ${theme.colors.secondary.main};
+        color: ${theme.isDark ? '#fff' : theme.colors.secondary.contrastText};
       `,
       info: css`
         background-color: ${theme.colors.primary.main};
         border: solid 1px ${theme.colors.primary.main};
+        color: ${theme.isDark ? '#fff' : theme.colors.info.contrastText};
       `,
     };
   }
