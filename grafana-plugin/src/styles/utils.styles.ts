@@ -7,6 +7,10 @@ export const getUtilStyles = (_theme: GrafanaTheme2) => {
       width: 100%;
     `,
 
+    disabled: css`
+      opacity: 0.5;
+    `,
+
     thinLineBreak: css`
       width: 100%;
       border-top: 1px solid ${COLORS.ALWAYS_GREY};
@@ -39,5 +43,6 @@ export const bem = (...args: string[]) =>
 export enum COLORS {
   ALWAYS_GREY = '#ccccdc',
   GRAY_8 = '#595959',
+  GRAY_9 = '#434343',
   GREEN_5 = '#6ccf8e',
 }
