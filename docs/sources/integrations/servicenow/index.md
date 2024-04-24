@@ -41,7 +41,7 @@ navigate to **User Administration** > **Users** and click **New**. Fill in the f
    * Active: ✔
    * Web service access only: ✔
 
-   After creating the user, generate and save a password using the Set Password button for later use.
+   After creating the user, generate and save a password using the **Set Password** button for later use.
 2. Grant the following roles to the user (use the **Roles** tab):
    * `itil` (allows creating and updating incidents)
    * `personalize_choices` (allows fetching the list of available incident states)
@@ -51,7 +51,7 @@ navigate to **User Administration** > **Users** and click **New**. Fill in the f
 1. On the **Integrations** tab, click **+ New integration**.
 2. Select **ServiceNow** from the list of available integrations.
 3. Enter a name and description for the integration.
-4. Enter ServiceNow credentials (instance URL, username, and password) and verify the connection.
+4. Enter ServiceNow credentials (instance URL, username, and password of the [Grafana OnCall user](#prerequisites)) and verify the connection.
 5. Make sure **Create default outgoing webhooks** is enabled. This will create the necessary webhooks in Grafana OnCall
 to send alerts to ServiceNow.
 6. Click **Create integration**.
