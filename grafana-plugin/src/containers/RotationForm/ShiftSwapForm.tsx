@@ -43,9 +43,12 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
   } = store;
 
   useEffect(() => {
-    if (id !== 'new') {
-      scheduleStore.loadShiftSwap(id).then(setShiftSwap);
-    }
+    (async () => {
+      if (id !== 'new') {
+        const shiftSwap = await scheduleStore.loadShiftSwap(id);
+        setShiftSwap(shiftSwap);
+      }
+    })();
   }, [id]);
 
   const handleHide = useCallback(() => {

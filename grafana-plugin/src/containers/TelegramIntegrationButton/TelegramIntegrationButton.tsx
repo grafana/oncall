@@ -67,10 +67,11 @@ const TelegramModal = (props: TelegramModalProps) => {
   const [botLink, setBotLink] = useState<string>();
 
   useEffect(() => {
-    telegramChannelStore.getTelegramVerificationCode().then((res) => {
+    (async () => {
+      const res = await telegramChannelStore.getTelegramVerificationCode();
       setVerificationCode(res.telegram_code);
       setBotLink(res.bot_link);
-    });
+    })();
   }, []);
 
   return (

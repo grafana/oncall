@@ -215,6 +215,9 @@ must match the structure of how the fields are nested in the data.
       "slack": null,
       "telegram": null,
       "web": "https://**********.grafana.net/a/grafana-oncall-app/alert-groups/I6HNZGUFG4K11"
+    },
+    "labels": {
+      "urgency": "3"
     }
   },
   "alert_group_id": "I6HNZGUFG4K11",
@@ -235,7 +238,10 @@ must match the structure of how the fields are nested in the data.
     "id": "CZ7URAT4V3QF2",
     "type": "webhook",
     "name": "Main Integration - Webhook",
-    "team": "Webhooks Demo"
+    "team": "Webhooks Demo",
+    "labels": {
+      "urgency": "3"
+    }
   },
   "notified_users": [],
   "users_to_be_notified": [],
@@ -249,6 +255,11 @@ must match the structure of how the fields are nested in the data.
         "region": "eu"
       }
     }
+  },
+  "webhook": {
+    "id": "WH9NSKXWPXSNY3",
+    "name": "Demo Webhook",
+    "labels": {}
   }
 }
 ```
@@ -286,6 +297,7 @@ Details about the alert group associated with this event.
 - `{{ alert_group.acknowledged_at }}` - Timestamp alert group was acknowledged (None if not acknowledged yet)
 - `{{ alert_group.title }}` - Title of alert group
 - `{{ alert_group.permalinks }}` - Links to alert group in web and chat ops if available
+- `{{ alert_group.labels }}` - [Alert group labels]
 
 #### `{{ alert_group_id }}`
 
@@ -307,6 +319,7 @@ Details about the integration that received this alert
 - `{{ integration.type }}` - Type of integration (grafana, alertmanager, webhook, etc.)
 - `{{ integration.name }}` - Name of integration
 - `{{ integration.team }}` - Team integration belongs to if integration is assigned to a team
+- `{{ integration.labels }}` - [Integration labels]
 
 #### `notified_users`
 
@@ -329,6 +342,14 @@ The keys inside responses are the [UID](#uid) of other outgoing webhooks. The va
 response of the referenced webhook when it was executed on behalf of the current alert group.
 See [Advanced Usage - Using response data](#using-response-data) for more details. Access as
 `{{ responses["WHP936BM1GPVHQ"].content.message }}` for example
+
+#### `webhook`
+
+Triggered webhook details
+
+- `{{ webhook.id }}` - [UID](#uid) of webhook
+- `{{ webhook.name }}` - Name of webhook
+- `{{ webhook.labels }}` - Webhook labels
 
 ### UID
 
@@ -509,7 +530,13 @@ Integrate with third-party services:
 - [ServiceNow][]
 - [Zendesk][]
 
-{{% docs/reference %}}
+- {{% docs/reference %}}
+[Alert group labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#alert-group-labels"
+[Alert group labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#alert-group-labels"
+
+[Integration labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#labels"
+[Integration labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#labels"
+
 [JIRA]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/jira"
 [JIRA]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/jira"
 

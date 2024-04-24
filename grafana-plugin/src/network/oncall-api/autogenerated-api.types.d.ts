@@ -1380,6 +1380,7 @@ export interface components {
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
+        slack_app: string | null;
         telegram: string | null;
         web: string;
       };
@@ -1409,6 +1410,12 @@ export interface components {
         avatar: string;
         avatar_full: string;
         important: boolean;
+      }[];
+      readonly external_urls: {
+        integration: string;
+        integration_type: string;
+        external_id: string;
+        url: string;
       }[];
     };
     AlertGroupAttach: {
@@ -1485,6 +1492,7 @@ export interface components {
       readonly labels: components['schemas']['AlertGroupLabel'][];
       readonly permalinks: {
         slack: string | null;
+        slack_app: string | null;
         telegram: string | null;
         web: string;
       };
@@ -1825,6 +1833,7 @@ export interface components {
      *     * `slack_channel` - Slack Channel
      *     * `zabbix` - Zabbix
      *     * `direct_paging` - Direct paging
+     *     * `servicenow` - ServiceNow
      *     * `amazon_sns` - Amazon SNS
      *     * `stackdriver` - Stackdriver
      *     * `curler` - Curler
@@ -1840,7 +1849,6 @@ export interface components {
      *     * `jira` - Jira
      *     * `zendesk` - Zendesk
      *     * `appdynamics` - AppDynamics
-     *     * `servicenow` - ServiceNow
      * @enum {string}
      */
     IntegrationEnum:
@@ -1860,6 +1868,7 @@ export interface components {
       | 'slack_channel'
       | 'zabbix'
       | 'direct_paging'
+      | 'servicenow'
       | 'amazon_sns'
       | 'stackdriver'
       | 'curler'
@@ -1874,8 +1883,7 @@ export interface components {
       | 'uptimerobot'
       | 'jira'
       | 'zendesk'
-      | 'appdynamics'
-      | 'servicenow';
+      | 'appdynamics';
     IntegrationHeartBeat: {
       readonly id: string;
       timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
@@ -2324,6 +2332,7 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
          *     * `curler` - Curler
@@ -2338,8 +2347,7 @@ export interface operations {
          *     * `uptimerobot` - UptimeRobot
          *     * `jira` - Jira
          *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics
-         *     * `servicenow` - ServiceNow */
+         *     * `appdynamics` - AppDynamics */
         integration?: (
           | 'alertmanager'
           | 'amazon_sns'
@@ -2390,6 +2398,7 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
          *     * `curler` - Curler
@@ -2404,8 +2413,7 @@ export interface operations {
          *     * `uptimerobot` - UptimeRobot
          *     * `jira` - Jira
          *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics
-         *     * `servicenow` - ServiceNow */
+         *     * `appdynamics` - AppDynamics */
         integration_ne?: (
           | 'alertmanager'
           | 'amazon_sns'

@@ -55,7 +55,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
 import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
@@ -101,7 +101,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     }
   }
 
-  update = () => {
+  update = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false
 
     const {
@@ -111,9 +111,11 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
       },
     } = this.props;
 
-    store.alertGroupStore
-      .getAlert(id)
-      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+    try {
+      await store.alertGroupStore.getAlert(id);
+    } catch (error) {
+      this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+    }
   };
 
   render() {
@@ -276,7 +278,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
     const sourceLink = incident?.render_for_web?.source_link;
-    const isServiceNow = incident?.alert_receive_channel?.integration === 'servicenow';
+    const isServiceNow = Boolean(incident?.external_urls?.find((el) => el.integration_type === INTEGRATION_SERVICENOW));
 
     return (
       <Block className={cx('block')}>
@@ -481,8 +483,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     this.setState({ showAttachIncidentForm: true });
   };
 
-  getUnattachClickHandler = (pk: ApiSchemas['AlertGroup']['pk']) =>
-    AlertGroupHelper.unattachAlert(pk).then(this.update);
+  getUnattachClickHandler = async (pk: ApiSchemas['AlertGroup']['pk']) => {
+    await AlertGroupHelper.unattachAlert(pk);
+    this.update();
+  };
 
   renderTimeline = () => {
     const {
@@ -585,7 +589,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     }
   };
 
-  handleCreateResolutionNote = () => {
+  handleCreateResolutionNote = async () => {
     const {
       store,
       match: {
@@ -594,12 +598,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     } = this.props;
 
     const { resolutionNoteText } = this.state;
-    store.resolutionNotesStore
-      .createResolutionNote(id, resolutionNoteText)
-      .then(() => {
-        this.setState({ resolutionNoteText: '' });
-      })
-      .then(this.update);
+
+    await store.resolutionNotesStore.createResolutionNote(id, resolutionNoteText);
+    this.setState({ resolutionNoteText: '' });
+    await this.update();
   };
 
   getPlaceholderReplaceFn = (entity: any, history) => {

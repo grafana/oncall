@@ -85,6 +85,7 @@
     "eslint": "^8.25.0",
     "eslint-plugin-deprecation": "^2.0.0",
     "eslint-plugin-jsdoc": "^44.2.4",
+    "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.31.10",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-rulesdir": "^0.2.1",
@@ -127,7 +128,7 @@
     "webpack-livereload-plugin": "^3.0.2"
   },
   "engines": {
-    "node": "~18.16.0"
+    "node": "18.x"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.0.8",
@@ -138,7 +139,7 @@
     "@grafana/data": "^10.2.3",
     "@grafana/faro-web-sdk": "^1.4.2",
     "@grafana/faro-web-tracing": "^1.4.2",
-    "@grafana/labels": "1.5.0",
+    "@grafana/labels": "~1.5.1",
     "@grafana/runtime": "^10.2.2",
     "@grafana/scenes": "^1.28.0",
     "@grafana/schema": "^10.2.2",

@@ -110,10 +110,13 @@ class Users extends React.Component<UsersProps, UsersState> {
     } = this.props;
 
     if (id) {
-      await (id === 'me'
-        ? store.userStore.loadCurrentUser()
-        : store.userStore.fetchItemById({ userPk: String(id), skipErrorHandling: true })
-      ).catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+      try {
+        await (id === 'me'
+          ? store.userStore.loadCurrentUser()
+          : store.userStore.fetchItemById({ userPk: String(id), skipErrorHandling: true }));
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+      }
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
 

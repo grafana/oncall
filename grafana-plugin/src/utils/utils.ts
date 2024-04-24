@@ -116,3 +116,5 @@ function isFieldEmpty(value: any): boolean {
 }
 
 export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
+
+export const isMobile = window.matchMedia('(max-width: 768px)').matches;

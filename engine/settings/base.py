@@ -71,7 +71,6 @@ GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATION
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
-FEATURE_GOOGLE_OAUTH2_ENABLED = getenv_boolean("FEATURE_GOOGLE_OAUTH2_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -650,15 +649,17 @@ AUTHENTICATION_BACKENDS = [
     "apps.social_auth.backends.GoogleOAuth2",
 ]
 
-if FEATURE_GOOGLE_OAUTH2_ENABLED:
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
+GOOGLE_OAUTH2_ENABLED = SOCIAL_AUTH_GOOGLE_OAUTH2_KEY is not None and SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET is not None
+
+if GOOGLE_OAUTH2_ENABLED:
     CELERY_BEAT_SCHEDULE["sync_google_calendar_out_of_office_events_for_all_users"] = {
         "task": "apps.google.tasks.sync_out_of_office_calendar_events_for_all_users",
         "schedule": crontab(minute="*/30"),  # every 30 minutes
         "args": (),
     }
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
 # NOTE: for right now we probably only need the calendar.events.readonly scope
 # however, if we want to write events back to the user's calendar
 # we'll probably need to change this to the calendar.events scope
@@ -818,13 +819,12 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager",
-    "config_integrations.legacy_alertmanager",
-    "config_integrations.grafana",
+    # Featured
     "config_integrations.grafana_alerting",
-    "config_integrations.legacy_grafana_alerting",
-    "config_integrations.formatted_webhook",
     "config_integrations.webhook",
+    "config_integrations.alertmanager",
+    # Not featured
+    "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
     "config_integrations.heartbeat",
@@ -834,11 +834,19 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
+    # Actually it's Grafana 8 integration.
+    # users are confused and tries to use to send alerts from external Grafana.
+    # So move it closer to the end of the list
+    "config_integrations.grafana",
+    # Legacy are not shown, ordering isn't important
+    "config_integrations.legacy_alertmanager",
+    "config_integrations.legacy_grafana_alerting",
 ]
 
+ADVANCED_WEBHOOK_PRESET = "apps.webhooks.presets.advanced.AdvancedWebhookPreset"
 INSTALLED_WEBHOOK_PRESETS = [
     "apps.webhooks.presets.simple.SimpleWebhookPreset",
-    "apps.webhooks.presets.advanced.AdvancedWebhookPreset",
+    ADVANCED_WEBHOOK_PRESET,
 ]
 
 if IS_OPEN_SOURCE:

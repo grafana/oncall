@@ -1219,10 +1219,10 @@
     "@opentelemetry/sdk-trace-web" "^1.18.1"
     "@opentelemetry/semantic-conventions" "^1.18.1"
 
-"@grafana/labels@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-1.5.0.tgz#e960df1248ba26b5ff06fe8fcde1824022061ce0"
-  integrity sha512-xcX1R0e0usKGLBy4XiOu2QcG1PVhn0uvrN4uvKLRVvbp5jJmSAKqhnHjSDTH/p14MUdsz4lBU1IAKgvGvRAVVQ==
+"@grafana/labels@~1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-1.5.1.tgz#fd77a796cae709d515c928ec672347eb4c32f231"
+  integrity sha512-dlIpsEbu9fW/66SoQ2SxmwOPAJoqwZ6mrMt9Rr/tOYiQbMdmemuPzr3igX21TIWi9mqo+Cu5Aau1nl+ObAo5ZA==
   dependencies:
     "@emotion/css" "^11.11.2"
     "@grafana/ui" "^10.0.0"
@@ -6562,6 +6562,11 @@ eslint-plugin-jsdoc@^44.2.4:
     esquery "^1.5.0"
     semver "^7.5.1"
     spdx-expression-parse "^3.0.1"
+
+eslint-plugin-promise@^6.1.1:
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-6.1.1.tgz#269a3e2772f62875661220631bd4dafcb4083816"
+  integrity sha512-tjqWDwVZQo7UIPMeDReOpUgHCmCiH+ePnVT+5zVapL0uuHnegBUs2smM13CzOs2Xb5+MHMRFTs9v24yjba4Oig==
 
 eslint-plugin-react-hooks@4.6.0, eslint-plugin-react-hooks@^4.6.0:
   version "4.6.0"

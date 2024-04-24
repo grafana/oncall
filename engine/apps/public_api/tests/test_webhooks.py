@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from apps.public_api.serializers.webhooks import PRESET_VALIDATION_MESSAGE
 from apps.webhooks.models import Webhook
-from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID
+from apps.webhooks.tests.test_webhook_presets import ADVANCED_WEBHOOK_PRESET_ID, TEST_WEBHOOK_PRESET_ID
 
 
 def _get_expected_result(webhook):
@@ -437,3 +437,23 @@ def test_webhook_block_preset_update(
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["non_field_errors"][0] == PRESET_VALIDATION_MESSAGE
+
+
+@pytest.mark.django_db
+def test_webhook_advanced_preset_update(
+    make_organization_and_user_with_token,
+    make_custom_webhook,
+    webhook_preset_api_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+    webhook = make_custom_webhook(organization=organization, preset=ADVANCED_WEBHOOK_PRESET_ID)
+    webhook.refresh_from_db()
+
+    url = reverse("api-public:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {
+        "name": "Test rename preset webhook",
+    }
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["name"] == data["name"]
