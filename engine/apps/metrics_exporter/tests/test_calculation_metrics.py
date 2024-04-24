@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.base.models import UserNotificationPolicyLogRecord
-from apps.metrics_exporter.constants import NO_SERVICE_VALUE
+from apps.metrics_exporter.constants import NO_SERVICE_VALUE, SERVICE_LABEL
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
@@ -22,6 +22,7 @@ def test_calculate_and_cache_metrics_task(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_alert_group_label_association,
 ):
     METRICS_RESPONSE_TIME_LEN = 3  # 1 for each alert group with changed state (acked, resolved, silenced)
     organization = make_organization()
@@ -46,6 +47,13 @@ def test_calculate_and_cache_metrics_task(
         make_alert(alert_group=alert_group_to_sil, raw_request_data={})
         alert_group_to_sil.silence()
 
+        alert_group_to_ack_with_service = make_alert_group(alert_receive_channel)
+        make_alert(alert_group=alert_group_to_ack, raw_request_data={})
+        make_alert_group_label_association(
+            organization, alert_group_to_ack_with_service, key_name=SERVICE_LABEL, value_name="test"
+        )
+        alert_group_to_ack_with_service.acknowledge()
+
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
 
@@ -63,7 +71,13 @@ def test_calculate_and_cache_metrics_task(
                     "silenced": 1,
                     "acknowledged": 1,
                     "resolved": 1,
-                }
+                },
+                "test": {
+                    "firing": 0,
+                    "silenced": 0,
+                    "acknowledged": 1,
+                    "resolved": 0,
+                },
             },
         },
         alert_receive_channel_2.id: {
@@ -80,6 +94,12 @@ def test_calculate_and_cache_metrics_task(
                     "acknowledged": 1,
                     "resolved": 1,
                 },
+                "test": {
+                    "firing": 0,
+                    "silenced": 0,
+                    "acknowledged": 1,
+                    "resolved": 0,
+                },
             },
         },
     }
@@ -91,7 +111,7 @@ def test_calculate_and_cache_metrics_task(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "services": {NO_SERVICE_VALUE: []},
+            "services": {NO_SERVICE_VALUE: [], "test": []},
         },
         alert_receive_channel_2.id: {
             "integration_name": alert_receive_channel_2.verbal_name,
@@ -100,7 +120,7 @@ def test_calculate_and_cache_metrics_task(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "services": {NO_SERVICE_VALUE: []},
+            "services": {NO_SERVICE_VALUE: [], "test": []},
         },
     }
 
@@ -122,6 +142,9 @@ def test_calculate_and_cache_metrics_task(
             expected_result_metric_alert_groups_response_time[integration_id]["services"][NO_SERVICE_VALUE] = values[
                 "services"
             ][NO_SERVICE_VALUE]
+            expected_result_metric_alert_groups_response_time[integration_id]["services"]["test"] = values["services"][
+                "test"
+            ]
         assert metric_alert_groups_response_time_values[1] == expected_result_metric_alert_groups_response_time
 
 

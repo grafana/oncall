@@ -168,16 +168,19 @@ def calculate_and_cache_metrics(organization_id, force=False):
             response_time__isnull=False,
             labels__organization=organization,
             labels__key_name=SERVICE_LABEL,
-        ).values_list("labels__value_name", "response_time")
-        for service_name, response_time in response_time_by_service:
+        ).values_list("id", "labels__value_name", "response_time")
+        for _, service_name, response_time in response_time_by_service:
             metric_response_time_data["services"].setdefault(service_name, [])
             metric_response_time_data["services"][service_name].append(response_time.total_seconds())
 
-        no_service_response_time = integration.alert_groups.filter(
-            ~Q(labels__key_name=SERVICE_LABEL),
-            started_at__gte=response_time_period,
-            response_time__isnull=False,
-        ).values_list("response_time", flat=True)
+        no_service_response_time = (
+            integration.alert_groups.filter(
+                started_at__gte=response_time_period,
+                response_time__isnull=False,
+            )
+            .exclude(id__in=[i[0] for i in response_time_by_service])
+            .values_list("response_time", flat=True)
+        )
 
         no_service_response_time_seconds = [
             int(response_time.total_seconds()) for response_time in no_service_response_time
