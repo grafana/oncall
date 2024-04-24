@@ -161,8 +161,7 @@ jobs:
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
-        # TODO: remove checking out feature branch once https://github.com/grafana/ops-devenv/pull/14 is merged
-        run: cd ../ops-devenv && git checkout brojd/make-grafana-version-configurable && tilt ci gops-labels oncall
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
@@ -179,8 +178,7 @@ jobs:
           # wrapping single quotes are required to prevent stripping leading "+" from the number
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
-        # TODO: remove checking out feature branch once https://github.com/grafana/ops-devenv/pull/14 is merged
-        run: cd ../ops-devenv && git checkout brojd/make-grafana-version-configurable && tilt ci gops-labels oncall
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Setup Pages
         if: failure()
