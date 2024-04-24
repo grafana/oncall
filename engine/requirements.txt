@@ -170,7 +170,7 @@ google-api-core==2.17.0
     #   google-cloud-storage
 google-api-python-client==2.122.0
     # via
-    #   -r ./engine/requirements.in
+    #   -r requirements.in
     #   firebase-admin
 google-auth==2.27.0
     # via
@@ -182,10 +182,10 @@ google-auth==2.27.0
     #   google-cloud-storage
 google-auth-httplib2==0.2.0
     # via
-    #   -r ./engine/requirements.in
+    #   -r requirements.in
     #   google-api-python-client
 google-auth-oauthlib==1.2.0
-    # via -r ./engine/requirements.in
+    # via -r requirements.in
 google-cloud-core==2.4.1
     # via
     #   google-cloud-firestore
@@ -425,7 +425,7 @@ slack-export-viewer==1.1.4
     # via -r requirements.in
 slack-sdk==3.21.3
     # via -r requirements.in
-social-auth-app-django==5.3.0
+social-auth-app-django==5.4.1
     # via -r requirements.in
 social-auth-core==4.5.2
     # via social-auth-app-django
