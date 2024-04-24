@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.auth_token.constants import SLACK_AUTH_TOKEN_NAME
+from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
 
 
 @pytest.mark.django_db
@@ -16,7 +17,7 @@ from apps.auth_token.constants import SLACK_AUTH_TOKEN_NAME
     "backend_name,expected_url",
     (
         ("slack-login", "/a/grafana-oncall-app/users/me"),
-        ("slack-install-free", "/a/grafana-oncall-app/chat-ops"),
+        (SLACK_INSTALLATION_BACKEND, "/a/grafana-oncall-app/chat-ops"),
     ),
 )
 def test_complete_slack_auth_redirect_ok(

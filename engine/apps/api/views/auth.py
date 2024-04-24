@@ -15,7 +15,8 @@ from social_django.utils import psa
 from social_django.views import _do_login
 
 from apps.auth_token.auth import GoogleTokenAuthentication, PluginAuthentication, SlackTokenAuthentication
-from apps.social_auth.backends import LoginSlackOAuth2V2
+from apps.chatops_proxy.utils import get_installation_link_from_chatops_proxy
+from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 @api_view(["GET"])
 @authentication_classes([PluginAuthentication])
 @never_cache
-@psa("social:complete")
+@psa("social:begin")
 def overridden_login_social_auth(request: Request, backend: str) -> Response:
     # We can't just redirect frontend here because we need to make a API call and pass tokens to this view from JS.
     # So frontend can't follow our redirect.
@@ -34,7 +35,14 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
             status=400,
         )
 
-    url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
+    if backend == SLACK_INSTALLATION_BACKEND and not settings.IS_OPEN_SOURCE:
+        # if we are installing slack in Cloud - get link from chatops-proxy
+        url_to_redirect_to = get_installation_link_from_chatops_proxy(request)
+        if url_to_redirect_to is None:
+            return Response("Error while getting installation link", 500)
+    else:
+        # Otherwise use social-auth.
+        url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
     return Response(url_to_redirect_to, 200)
 
 

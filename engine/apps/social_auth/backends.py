@@ -191,8 +191,13 @@ class LoginSlackOAuth2V2(SlackOAuth2V2):
         return {"user_scope": USER_SCOPE}
 
 
+# it's named slack-install-free because it was used to install free version of Slack App.
+# There is no free/paid version of Slack App anymore, so it's just a name.
+SLACK_INSTALLATION_BACKEND = "slack-install-free"
+
+
 class InstallSlackOAuth2V2(SlackOAuth2V2):
-    name = "slack-install-free"
+    name = SLACK_INSTALLATION_BACKEND
 
     def get_scope(self):
         return {"user_scope": USER_SCOPE, "scope": BOT_SCOPE}
