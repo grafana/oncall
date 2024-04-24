@@ -14,7 +14,7 @@ def get_installation_link_from_chatops_proxy(request: Request) -> typing.Optiona
 
     try:
         link, _ = client.get_slack_oauth_link(
-            request.auth.organization.stack_id, request.user.user_id, request.user.organization.web_link
+            request.user.organization.stack_id, request.user.user_id, request.user.organization.web_link
         )
         return link
     except Exception as e:
