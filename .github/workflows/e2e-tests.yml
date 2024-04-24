@@ -155,6 +155,7 @@ jobs:
       - name: Clone other repos needed for cross-plugin e2e tests
         shell: bash
         run: |
+          cd ..
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
 
