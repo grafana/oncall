@@ -122,9 +122,6 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      - name: Install @octokit/auth-app
-        run: npm install octokit @octokit/auth-app
-
       # Go and Mage are required to run gops-labels
       - name: Install Go
         uses: actions/setup-go@v4
@@ -158,16 +155,6 @@ jobs:
           cd ..
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
-
-      # - name: Clone other repos needed for cross-plugin e2e tests
-      #   run: cd .. && node ./oncall/.github/actions/clone-other-repos.js
-      #   id: clone-other-repos
-      #   shell: bash
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     GH_APP_ID: ${{ env.GH_APP_ID }}
-      #     GH_APP_PRIVATE_KEY: ${{ env.GH_APP_PRIVATE_KEY }}
-      #     GH_APP_INSTALLATION_ID: ${{ env.GH_APP_INSTALLATION_ID }}
 
       - name: Tilt CI - standard E2E tests
         shell: bash
