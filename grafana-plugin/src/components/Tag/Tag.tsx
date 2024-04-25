@@ -29,16 +29,12 @@ export enum TagColor {
 }
 
 export const Tag: FC<TagProps> = (props) => {
-  const { color, children, text, className, onClick, size = 'medium' } = props;
+  const { color, children, className, onClick, size = 'medium' } = props;
 
   const styles = useStyles2(getStyles);
-  const style: React.CSSProperties = {
-    color: text,
-  };
 
   return (
     <span
-      style={style}
       className={cx(styles.root, bem(styles.root, size), getMatchingClass(), className)}
       onClick={onClick}
       ref={props.forwardedRef}
@@ -48,7 +44,13 @@ export const Tag: FC<TagProps> = (props) => {
   );
 
   function getMatchingClass() {
-    return styles[color] ? styles[color] : '';
+    return styles[color]
+      ? // Either pick a defined style already or create one on the spot with the passed bgColor
+        styles[color]
+      : css`
+          background-color: ${color};
+          color: text;
+        `;
   }
 
   function getStyles(theme: GrafanaTheme2) {
