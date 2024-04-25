@@ -99,12 +99,14 @@ def check_alert_group_personal_notifications_task(alert_group_id) -> None:
         alert_group_id=alert_group_id,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         notification_step=UserNotificationPolicy.Step.NOTIFY,
+        notification_policy__isnull=False,  # filter out deleted policies
         created_at__lte=timezone.now() - timezone.timedelta(minutes=5),
     ).count()
     completed = UserNotificationPolicyLogRecord.objects.filter(
         Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED)
         | Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS),
         alert_group_id=alert_group_id,
+        notification_policy__isnull=False,  # filter out deleted policies
         notification_step=UserNotificationPolicy.Step.NOTIFY,
     ).count()
 

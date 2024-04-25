@@ -2,13 +2,14 @@
 enabled = True
 title = "Alertmanager"
 slug = "alertmanager"
-short_description = "Prometheus"
+short_description = "Connect external Alertmanager or Grafana Alerting from other Grafana instance"
 is_displayed_on_web = True
-is_featured = False
+is_featured = True
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
 description = None
 based_on_alertmanager = True
+featured_tag_name = "Prometheus"
 
 
 # Behaviour
