@@ -157,23 +157,21 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
             </Text>
           )}
         </VerticalGroup>
-        {!connected && (
-          <Text type="secondary">
-            Grafana OnCall's use and transfer to any other app of information received from Google APIs will adhere
-            <br />
-            to{' '}
-            <a
-              target="_blank"
-              rel="noreferrer"
-              href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes"
-            >
-              <Text type="secondary" underline>
-                Google API Services User Data Policy
-              </Text>
-            </a>
-            , including the Limited Use requirements.
-          </Text>
-        )}
+        <Text type="secondary">
+          Grafana OnCall's use and transfer to any other app of information received from Google APIs will adhere
+          <br />
+          to{' '}
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes"
+          >
+            <Text type="secondary" underline>
+              Google API Services User Data Policy
+            </Text>
+          </a>
+          , including the Limited Use requirements.
+        </Text>
       </VerticalGroup>
     </HorizontalGroup>
   );
