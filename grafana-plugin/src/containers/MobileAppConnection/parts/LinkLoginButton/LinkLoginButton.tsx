@@ -25,7 +25,7 @@ export const LinkLoginButton: FC<Props> = (props: Props) => {
           window.open(mobileDeepLink, '_blank');
         }}
       >
-        Sign in
+        Connect Mobile App
       </Button>
     </VerticalGroup>
   );

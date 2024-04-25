@@ -6,6 +6,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
+import { INTEGRATION_SERVICENOW } from 'utils/consts';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
@@ -122,4 +123,4 @@ export const IntegrationHelper = {
 };
 
 export const getIsBidirectionalIntegration = ({ integration }: Partial<ApiSchemas['AlertReceiveChannel']>) =>
-  integration === ('servicenow' as ApiSchemas['AlertReceiveChannel']['integration']); // TODO: add service now in backend schema as valid value and remove casting
+  integration === INTEGRATION_SERVICENOW;

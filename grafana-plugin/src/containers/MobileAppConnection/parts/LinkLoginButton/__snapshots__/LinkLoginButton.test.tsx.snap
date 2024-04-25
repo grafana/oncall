@@ -34,7 +34,7 @@ exports[`LinkLoginButton it renders properly 1`] = `
         <span
           class="css-1riaxdn"
         >
-          Sign in
+          Connect Mobile App
         </span>
       </button>
     </div>
