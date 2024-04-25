@@ -41,8 +41,9 @@ class MetricsCacheManager:
 
     @staticmethod
     def update_integration_states_diff(metrics_dict, integration_id, service_name, previous_state=None, new_state=None):
-        state_per_service = {service_name: MetricsCacheManager.get_default_states_diff_dict()}
-        metrics_dict.setdefault(integration_id, state_per_service)
+        state_per_service = metrics_dict.setdefault(
+            integration_id, {service_name: MetricsCacheManager.get_default_states_diff_dict()}
+        )
         if previous_state:
             state_value = previous_state
             state_per_service[service_name]["previous_states"][state_value] += 1

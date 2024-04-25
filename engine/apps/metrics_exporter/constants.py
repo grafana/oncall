@@ -28,7 +28,6 @@ class AlertGroupsResponseTimeMetricsDict(typing.TypedDict):
     org_id: int
     slug: str
     id: int
-    response_time: list
     services: typing.Dict[str, list]
 
 
