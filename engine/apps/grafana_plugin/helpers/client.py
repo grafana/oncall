@@ -34,7 +34,7 @@ UserPermissionsDict = typing.Dict[str, typing.List[GrafanaAPIPermission]]
 
 
 class GCOMInstanceInfoConfigFeatureToggles(typing.TypedDict):
-    accessControlOnCall: str
+    accessControlOnCall: typing.NotRequired[str]
 
 
 class GCOMInstanceInfoConfig(typing.TypedDict):
