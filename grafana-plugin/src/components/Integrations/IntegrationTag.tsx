@@ -1,7 +1,6 @@
 import React, { FC } from 'react';
 
 import { css } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
 import { Tag, TagColor } from 'components/Tag/Tag';
@@ -23,7 +22,7 @@ export const IntegrationTag: FC<IntegrationTagProps> = ({ children }) => {
   );
 };
 
-export const getStyles = (theme: GrafanaTheme2) => ({
+export const getStyles = () => ({
   tag: css({
     height: '25px',
   }),
