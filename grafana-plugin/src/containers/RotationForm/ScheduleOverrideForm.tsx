@@ -23,7 +23,6 @@ import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
-import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 interface RotationFormProps {
   onHide: () => void;

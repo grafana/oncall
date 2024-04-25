@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
+import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
@@ -33,7 +34,6 @@ import { UserActions } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
 import { PolicyNote } from './PolicyNote';
-import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;

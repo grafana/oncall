@@ -55,12 +55,7 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       }
     >
       <div
-        className={cx(
-          styles.element,
-          styles[borderType],
-          { [bem(styles.element, 'padding')]: addPadding },
-          className
-        )}
+        className={cx(styles.element, styles[borderType], { [bem(styles.element, 'padding')]: addPadding }, className)}
         onMouseEnter={onHover}
         {...(testId ? { 'data-testid': testId } : {})}
       >

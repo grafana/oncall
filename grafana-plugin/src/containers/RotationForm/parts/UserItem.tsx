@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
 
+import { css } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { COLORS } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
@@ -9,9 +12,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
-import { css } from '@emotion/css';
-import { COLORS } from 'styles/utils.styles';
-import { useStyles2 } from '@grafana/ui';
 
 const cx = cn.bind(styles);
 

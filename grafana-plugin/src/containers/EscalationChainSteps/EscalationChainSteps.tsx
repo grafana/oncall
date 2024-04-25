@@ -6,6 +6,7 @@ import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 import { EscalationPolicy, EscalationPolicyProps } from 'components/Policy/EscalationPolicy';
 import { SortableList } from 'components/SortableList/SortableList';
@@ -17,7 +18,6 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './EscalationChainSteps.module.css';
-import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 const cx = cn.bind(styles);
 
@@ -76,8 +76,6 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
   const escalationPolicyIds = escalationPolicyStore.escalationChainToEscalationPolicy[id];
   const isSlackInstalled = Boolean(store.organizationStore.currentOrganization?.slack_team_identity);
   const { bgColor: successBgColor, textColor: successTextColor } = getLabelBackgroundTextColorObject('green', theme);
-
-  console.log('render');
 
   return (
     // @ts-ignore

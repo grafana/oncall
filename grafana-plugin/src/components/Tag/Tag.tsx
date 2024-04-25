@@ -4,7 +4,6 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { bem, getLabelCss } from 'styles/utils.styles';
-import tinycolor from 'tinycolor2';
 
 interface TagProps {
   color?: string | TagColor;
