@@ -28,12 +28,12 @@ import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
 import { PolicyNote } from './PolicyNote';
+import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;
@@ -80,12 +80,14 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       (escalationOption: EscalationPolicyOption) => escalationOption.value === step
     );
 
+    const { textColor: itemTextColor } = getLabelBackgroundTextColorObject('green', this.props.theme);
+
     return (
       <Timeline.Item
         key={id}
         contentClassName={cx(this.styles.root)}
         number={number}
-        textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+        textColor={isDisabled ? itemTextColor : undefined}
         backgroundClassName={backgroundClassName}
         backgroundHexNumber={backgroundHexNumber}
       >

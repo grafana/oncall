@@ -9,6 +9,9 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
+import { css } from '@emotion/css';
+import { COLORS } from 'styles/utils.styles';
+import { useStyles2 } from '@grafana/ui';
 
 const cx = cn.bind(styles);
 
@@ -23,6 +26,7 @@ const WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
 
 export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const { userStore } = useStore();
+  const styles = useStyles2(getStyles);
 
   useEffect(() => {
     if (!userStore.items[pk]) {
@@ -48,8 +52,16 @@ export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps
         />
       )}
       <div className={cx('user-title')}>
-        <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
+        <Text strong>{name}</Text> <Text className={styles.gray}>({desc})</Text>
       </div>
     </div>
   );
+};
+
+const getStyles = () => {
+  return {
+    gray: css`
+      color: ${COLORS.ALWAYS_GREY};
+    `,
+  };
 };

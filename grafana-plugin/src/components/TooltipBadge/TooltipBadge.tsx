@@ -57,7 +57,7 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       <div
         className={cx(
           styles.element,
-          { [bem(styles.element, `${borderType}`)]: true },
+          styles[borderType],
           { [bem(styles.element, 'padding')]: addPadding },
           className
         )}

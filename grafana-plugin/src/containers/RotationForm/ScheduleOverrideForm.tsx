@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { IconButton, VerticalGroup, HorizontalGroup, Field, Button } from '@grafana/ui';
+import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
@@ -15,7 +15,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, getVar, waitForElement } from 'utils/DOM';
+import { getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
@@ -23,6 +23,7 @@ import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
+import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 interface RotationFormProps {
   onHide: () => void;
@@ -48,10 +49,11 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     shiftId,
     shiftStart: propsShiftStart = dayjs().startOf('day').add(1, 'day'),
     shiftEnd: propsShiftEnd,
-    shiftColor = getVar('--tag-warning'),
+    shiftColor: shiftColorProp,
   } = props;
 
   const store = useStore();
+  const theme = useTheme2();
 
   const [rotationName, setRotationName] = useState<string>(shiftId === 'new' ? 'Override' : 'Update override');
 
@@ -63,6 +65,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+  const shiftColor = shiftColorProp || theme.colors.warning.main;
 
   const updateShiftStart = useCallback(
     (value) => {

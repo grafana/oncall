@@ -13,52 +13,12 @@ import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
-import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import styles from './Incident.module.scss';
 
 const cx = cn.bind(styles);
-
-export function getIncidentStatusTag(alert: ApiSchemas['AlertGroup']) {
-  switch (alert.status) {
-    case IncidentStatus.Firing:
-      return (
-        <Tag color={getVar('--tag-danger')} className={cx('status-tag')}>
-          <Text strong size="small">
-            Firing
-          </Text>
-        </Tag>
-      );
-    case IncidentStatus.Acknowledged:
-      return (
-        <Tag color={getVar('--tag-warning')} className={cx('status-tag')}>
-          <Text strong size="small">
-            Acknowledged
-          </Text>
-        </Tag>
-      );
-    case IncidentStatus.Resolved:
-      return (
-        <Tag color={getVar('--tag-primary')} className={cx('status-tag')}>
-          <Text strong size="small">
-            Resolved
-          </Text>
-        </Tag>
-      );
-    case IncidentStatus.Silenced:
-      return (
-        <Tag color={getVar('--tag-secondary')} className={cx('status-tag')}>
-          <Text strong size="small">
-            Silenced
-          </Text>
-        </Tag>
-      );
-    default:
-      return null;
-  }
-}
 
 export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = false) {
   const { related_users } = incident;

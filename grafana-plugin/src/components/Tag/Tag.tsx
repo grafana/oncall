@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
-import { bem } from 'styles/utils.styles';
+import { bem, getLabelCss } from 'styles/utils.styles';
 import tinycolor from 'tinycolor2';
 
 interface TagProps {
@@ -99,25 +99,5 @@ export const Tag: FC<TagProps> = (props) => {
       warningLabel: getLabelCss('orange', theme),
       errorLabel: getLabelCss('red', theme),
     };
-  }
-
-  function getLabelCss(color: string, theme: GrafanaTheme2) {
-    let sourceColor = theme.visualization.getColorByName(color);
-    let bgColor = '';
-    let textColor = '';
-  
-    if (theme.isDark) {
-      bgColor = tinycolor(sourceColor).setAlpha(0.25).toString();
-      textColor = tinycolor(sourceColor).lighten(15).toString();
-    } else {
-      bgColor = tinycolor(sourceColor).setAlpha(0.25).toString();
-      textColor = tinycolor(sourceColor).darken(20).toString();
-    }
-
-    return css`
-      border: 1px solid ${sourceColor};
-      background-color: ${bgColor};
-      color: ${textColor};
-    `
   }
 };
