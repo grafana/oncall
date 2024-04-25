@@ -293,12 +293,11 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
         # stack is in an inactive state, rely on org's previous state of is_rbac_permissions_enabled
         (False, False, False, False),
         (False, False, True, True),
-
         # stack is active, Grafana API tells us RBAC is not enabled
         (True, False, True, False),
         # stack is active, Grafana API tells us RBAC is enabled
         (True, True, False, True),
-    ]
+    ],
 )
 @patch("apps.user_management.sync.GcomAPIClient")
 @override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
