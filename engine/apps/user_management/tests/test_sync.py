@@ -351,21 +351,38 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
     assert organization.is_rbac_permissions_enabled == grafana_api_response
 
 
-@pytest.mark.parametrize("gcom_api_response", [False, True])
+@pytest.mark.parametrize(
+    "gcom_api_response,grafana_api_response,org_initial_value,org_is_rbac_permissions_enabled_expected_value",
+    [
+        # stack is in an inactive state, rely on org's previous state of is_rbac_permissions_enabled
+        (False, False, False, False),
+        (False, False, True, True),
+
+        # stack is active, Grafana API tells us RBAC is not enabled
+        (True, False, True, False),
+        # stack is active, Grafana API tells us RBAC is enabled
+        (True, True, False, True),
+    ]
+)
 @patch("apps.user_management.sync.GcomAPIClient")
+@patch("apps.user_management.sync.GrafanaAPIClient")
 @patch("common.utils.cache")
 @override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
-@override_settings(GRAFANA_COM_ADMIN_API_TOKEN="mockedToken")
 @pytest.mark.django_db
 def test_sync_organization_is_rbac_permissions_enabled_cloud(
-    mock_cache, mocked_gcom_client, make_organization, gcom_api_response
+    mock_cache,
+    mock_grafana_api_client,
+    mock_gcom_client,
+    make_organization,
+    gcom_api_response,
+    grafana_api_response,
+    org_initial_value,
+    org_is_rbac_permissions_enabled_expected_value,
 ):
     stack_id = 5
-    organization = make_organization(stack_id=stack_id)
+    organization = make_organization(stack_id=stack_id, is_rbac_permissions_enabled=org_initial_value)
 
-    api_check_token_call_status = {"connected": True}
-
-    mocked_gcom_client.return_value.is_rbac_enabled_for_stack.return_value = gcom_api_response
+    assert organization.is_rbac_permissions_enabled == org_initial_value
 
     api_users_response = (
         {
@@ -399,38 +416,39 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(
         },
     )
 
+    mock_gcom_client.return_value.is_stack_active.return_value = gcom_api_response
+
+    # TODO: we should refactor this so that's there not as much duplication on this patching across tests...
+    mock_grafana_api_client.return_value.get_users.return_value = api_users_response
+    mock_grafana_api_client.return_value.get_teams.return_value = (api_teams_response, None)
+    mock_grafana_api_client.return_value.get_team_members.return_value = (api_members_response, None)
+    mock_grafana_api_client.return_value.get_grafana_incident_plugin_settings.return_value = (
+        {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
+        None,
+    )
+    mock_grafana_api_client.return_value.get_grafana_labels_plugin_settings.return_value = (
+        {"enabled": True, "jsonData": {}},
+        None,
+    )
+    mock_grafana_api_client.return_value.check_token.return_value = (None, {"connected": True})
+    mock_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = grafana_api_response
+
     random_uuid = "random"
     with patch("apps.user_management.sync.uuid.uuid4", return_value=random_uuid):
-        with patch.object(GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)):
-            with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
-                with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
-                    with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
-                        with patch.object(
-                            GrafanaAPIClient,
-                            "get_grafana_incident_plugin_settings",
-                            return_value=(
-                                {"enabled": True, "jsonData": {"backendUrl": MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
-                                None,
-                            ),
-                        ):
-                            with patch.object(
-                                GrafanaAPIClient,
-                                "get_grafana_labels_plugin_settings",
-                                return_value=(
-                                    {"enabled": True, "jsonData": {}},
-                                    None,
-                                ),
-                            ):
-                                sync_organization(organization)
+        sync_organization(organization)
 
     organization.refresh_from_db()
 
     # lock is set and released
     mock_cache.add.assert_called_once_with(f"sync-organization-lock-{organization.id}", random_uuid, 60 * 10)
     mock_cache.delete.assert_called_once_with(f"sync-organization-lock-{organization.id}")
-    assert mocked_gcom_client.return_value.called_once_with("mockedToken")
-    assert mocked_gcom_client.return_value.is_rbac_enabled_for_stack.called_once_with(stack_id)
-    assert organization.is_rbac_permissions_enabled == gcom_api_response
+
+    assert organization.is_rbac_permissions_enabled == org_is_rbac_permissions_enabled_expected_value
+
+    mock_gcom_client.return_value.is_stack_active.assert_called_once_with(stack_id)
+
+    if gcom_api_response:
+        mock_grafana_api_client.return_value.is_rbac_enabled_for_organization.assert_called_once_with()
 
 
 @pytest.mark.django_db

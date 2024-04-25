@@ -356,6 +356,10 @@ class GcomAPIClient(APIClient):
 
     def _feature_toggle_is_enabled(self, instance_info: GCOMInstanceInfo, feature_name: str) -> bool:
         """
+        NOTE: there are some edge-cases to consider if you decide to use this method
+        1. If a feature flag is enabled outside of the Admin UI (ex. via deployment_tools), this endpoint
+        will not return the ACTUAL runtime value that the Grafana stack itself is using/respecting
+
         there are two ways that feature toggles can be enabled, this method takes into account both
         https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#enable
         """
@@ -385,15 +389,6 @@ class GcomAPIClient(APIClient):
             or feature_enabled_via_enable_key_comma_delimited
         )
 
-    def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
-        """
-        NOTE: must use an "Admin" GCOM token when calling this method
-        """
-        instance_info = self.get_instance_info(stack_id, True)
-        if not instance_info:
-            return False
-        return self._feature_toggle_is_enabled(instance_info, "accessControlOnCall")
-
     def get_instances(self, query: str, page_size=None):
         if not page_size:
             page, _ = self.api_get(query)
@@ -409,10 +404,17 @@ class GcomAPIClient(APIClient):
                 yield page
                 cursor = page["nextCursor"]
 
+    def _is_stack_in_certain_state(self, stack_id: str, state: str) -> bool:
+        instance_info = self.get_instance_info(stack_id)
+        if not instance_info:
+            return False
+        return instance_info.get("status") == state
+
     def is_stack_deleted(self, stack_id: str) -> bool:
-        url = f"instances?includeDeleted=true&id={stack_id}"
-        instance_infos, _ = self.api_get(url)
-        return instance_infos["items"] and instance_infos["items"][0].get("status") == self.STACK_STATUS_DELETED
+        return self._is_stack_in_certain_state(stack_id, self.STACK_STATUS_DELETED)
+
+    def is_stack_active(self, stack_id: str) -> bool:
+        return self._is_stack_in_certain_state(stack_id, self.STACK_STATUS_ACTIVE)
 
     def post_active_users(self, body) -> APIClientResponse:
         return self.api_post("app-active-users", body)

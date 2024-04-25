@@ -8,30 +8,8 @@ from apps.grafana_plugin.helpers.gcom import get_instance_ids
 from settings.base import CLOUD_LICENSE_NAME
 
 
-class TestIsRbacEnabledForStack:
-    TEST_FEATURE_TOGGLE = "helloWorld"
-
-    @pytest.mark.parametrize(
-        "gcom_api_response,expected",
-        [
-            (None, False),
-            ({}, False),
-            ({"config": {}}, False),
-            ({"config": {"feature_toggles": {}}}, False),
-            ({"config": {"feature_toggles": {"accessControlOnCall": "false"}}}, False),
-            ({"config": {"feature_toggles": {"accessControlOnCall": "true"}}}, True),
-        ],
-    )
-    @patch("apps.grafana_plugin.helpers.client.GcomAPIClient.api_get")
-    def test_it_returns_based_on_feature_toggle_value(
-        self, mocked_gcom_api_client_api_get, gcom_api_response, expected
-    ):
-        stack_id = 5
-        mocked_gcom_api_client_api_get.return_value = (gcom_api_response, {"status_code": 200})
-
-        api_client = GcomAPIClient("someFakeApiToken")
-        assert api_client.is_rbac_enabled_for_stack(stack_id) == expected
-        assert mocked_gcom_api_client_api_get.called_once_with(f"instances/{stack_id}?config=true")
+class TestIsFeatureToggleEnabledForStack:
+    TEST_FEATURE_TOGGLE_NAME = "helloWorld"
 
     @pytest.mark.parametrize(
         "instance_info_feature_toggles,delimiter,expected",
@@ -39,16 +17,16 @@ class TestIsRbacEnabledForStack:
             ({}, " ", False),
             ({"enable": "foo,bar,baz"}, " ", False),
             ({"enable": "foo,bar,baz"}, ",", False),
-            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE}"}, " ", False),
-            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE}"}, ",", False),
-            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE}abc"}, ",", False),
-            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE}"}, ",", True),
+            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE_NAME}"}, " ", False),
+            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE_NAME}"}, ",", False),
+            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE_NAME}abc"}, ",", False),
+            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE_NAME}"}, ",", True),
         ],
     )
     def test_feature_is_enabled_via_enable_key(self, instance_info_feature_toggles, delimiter, expected) -> None:
         assert (
             GcomAPIClient("someFakeApiToken")._feature_is_enabled_via_enable_key(
-                instance_info_feature_toggles, self.TEST_FEATURE_TOGGLE, delimiter
+                instance_info_feature_toggles, self.TEST_FEATURE_TOGGLE_NAME, delimiter
             )
             == expected
         )
@@ -60,19 +38,19 @@ class TestIsRbacEnabledForStack:
             ({"config": {}}, False),
             ({"config": {"feature_toggles": {}}}, False),
             ({"config": {"feature_toggles": {"enable": "foo,bar,baz"}}}, False),
-            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "false"}}}, False),
-            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE}baz"}}}, False),
-            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE},baz"}}}, True),
-            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE} baz"}}}, True),
-            ({"config": {"feature_toggles": {"enable": "foo bar baz", TEST_FEATURE_TOGGLE: "true"}}}, True),
-            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "true"}}}, True),
+            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE_NAME: "false"}}}, False),
+            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE_NAME}baz"}}}, False),
+            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE_NAME},baz"}}}, True),
+            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE_NAME} baz"}}}, True),
+            ({"config": {"feature_toggles": {"enable": "foo bar baz", TEST_FEATURE_TOGGLE_NAME: "true"}}}, True),
+            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE_NAME: "true"}}}, True),
             # this case will probably never happen, but lets account for it anyways
             (
                 {
                     "config": {
                         "feature_toggles": {
-                            "enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE}",
-                            TEST_FEATURE_TOGGLE: "false",
+                            "enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE_NAME}",
+                            TEST_FEATURE_TOGGLE_NAME: "false",
                         }
                     }
                 },
@@ -82,7 +60,7 @@ class TestIsRbacEnabledForStack:
     )
     def test_feature_toggle_is_enabled(self, instance_info, expected) -> None:
         assert (
-            GcomAPIClient("someFakeApiToken")._feature_toggle_is_enabled(instance_info, self.TEST_FEATURE_TOGGLE)
+            GcomAPIClient("someFakeApiToken")._feature_toggle_is_enabled(instance_info, self.TEST_FEATURE_TOGGLE_NAME)
             == expected
         )
 
@@ -181,5 +159,5 @@ def test_get_instance_ids_pagination(settings, query, expected_pages, expected_i
 )
 def test_cleanup_organization_deleted(status, is_deleted):
     client = GcomAPIClient("someToken")
-    with patch.object(GcomAPIClient, "api_get", return_value=({"items": [{"status": status}]}, None)):
+    with patch.object(GcomAPIClient, "api_get", return_value=({"status": status}, None)):
         assert client.is_stack_deleted("someStack") == is_deleted
