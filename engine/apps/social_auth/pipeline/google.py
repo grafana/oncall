@@ -56,9 +56,7 @@ def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user:
             if error_code not in error_codes_to_ignore:
                 raise e
             else:
-                logger.info(
-                    f"Google OAuth2 token for user {user_pk} is already invalid or revoked, ignoring error"
-                )
+                logger.info(f"Google OAuth2 token for user {user_pk} is already invalid or revoked, ignoring error")
 
     user.finish_google_oauth2_disconnection_flow()
 
