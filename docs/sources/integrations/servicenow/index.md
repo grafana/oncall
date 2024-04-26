@@ -70,10 +70,11 @@ Follow these steps to create a ServiceNow user for Grafana OnCall:
 Map ServiceNow incident states to OnCall alert group statuses.
 
 Example:
-     * `Firing -> New`
-     * `Acknowledged -> In Progress`
-     * `Resolved -> Resolved`
-     * `Silenced -> Not Selected`
+
+* `Firing -> New`
+* `Acknowledged -> In Progress`
+* `Resolved -> Resolved`
+* `Silenced -> Not Selected`
 
 ### Generate Business Rule script
 
