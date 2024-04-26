@@ -352,7 +352,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             value={value}
             onChange={this.getDateRangeFilterChangeHandler(filter.name)}
             hideTimeZone
-            clearable
+            clearable={false}
           />
         );
 
