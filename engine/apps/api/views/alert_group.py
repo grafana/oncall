@@ -37,6 +37,7 @@ from common.api_helpers.filters import (
 )
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import AlertGroupCursorPaginator
+from django.conf import settings
 
 
 def get_integration_queryset(request):
@@ -277,6 +278,11 @@ class AlertGroupView(
     pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = (
+        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
+        else []
+    )
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
