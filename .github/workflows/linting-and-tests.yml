@@ -1,4 +1,4 @@
-name: Linting and Unit/e2e Tests
+name: Linting and Tests
 
 "on":
   push:
