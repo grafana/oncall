@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - dev
   # allows manual run on github actions
   workflow_dispatch:
   schedule:
