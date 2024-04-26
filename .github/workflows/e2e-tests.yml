@@ -122,7 +122,7 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      # <---------- Expensive e2e tests steps start ----------->
+      # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
         if: inputs.run-expensive-tests
         uses: actions/setup-go@v4
@@ -177,7 +177,7 @@ jobs:
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
         run: cd ../ops-devenv && tilt ci gops-labels oncall
-      # <---------- Expensive e2e tests steps end ----------->
+      # ---------- Expensive e2e tests steps end -----------
 
       - name: Tilt CI - standard E2E tests
         shell: bash
