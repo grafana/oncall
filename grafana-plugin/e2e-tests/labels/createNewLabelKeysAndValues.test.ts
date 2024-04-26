@@ -3,7 +3,7 @@ import { clickButton, generateRandomValidLabel, openDropdown } from '../utils/fo
 import { openCreateIntegrationModal } from '../utils/integrations';
 import { goToOnCallPage } from '../utils/navigation';
 
-test('New label keys and labels can be created', async ({ adminRolePage }) => {
+test('New label keys and labels can be created @expensive', async ({ adminRolePage }) => {
   const { page } = adminRolePage;
   await goToOnCallPage(page, 'integrations');
   await openCreateIntegrationModal(page);
