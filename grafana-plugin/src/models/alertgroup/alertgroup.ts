@@ -1,6 +1,7 @@
 import { runInAction, makeAutoObservable } from 'mobx';
 import qs from 'query-string';
 
+import { normalizeFilters } from 'models/filters/filters.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -8,7 +9,7 @@ import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { LocationHelper } from 'utils/LocationHelper';
-import { GENERIC_ERROR } from 'utils/consts';
+import { GENERIC_ERROR, PAGE } from 'utils/consts';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { AlertGroupHelper } from './alertgroup.helpers';
@@ -53,12 +54,15 @@ export class AlertGroupStore {
     );
     const timestamp = new Date().getTime();
     this.latestFetchAlertGroupsTimestamp = timestamp;
+
+    const incidentFilters = normalizeFilters(this.incidentFilters, this.rootStore.filtersStore.options[PAGE.Incidents]);
+
     const {
       data: { results, next: nextRaw, previous: previousRaw, page_size },
     } = await onCallApi().GET('/alertgroups/', {
       params: {
         query: {
-          ...this.incidentFilters,
+          ...incidentFilters,
           search,
           perpage: this.alertsSearchResult?.page_size,
           cursor: this.incidentsCursor,
@@ -201,8 +205,10 @@ export class AlertGroupStore {
   }
 
   async fetchStats(status: IncidentStatus) {
+    const incidentFilters = normalizeFilters(this.incidentFilters, this.rootStore.filtersStore.options[PAGE.Incidents]);
+
     const { data } = await onCallApi().GET('/alertgroups/stats/', {
-      params: { query: { ...this.incidentFilters, status: [status] } },
+      params: { query: { ...incidentFilters, status: [status] } },
     });
 
     runInAction(() => {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { KeyValue, SelectableValue, TimeRange } from '@grafana/data';
+import { KeyValue, SelectableValue, TimeRange, rangeUtil } from '@grafana/data';
 import {
   InlineSwitch,
   MultiSelect,
@@ -29,6 +29,7 @@ import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
+import { convertRelativeToAbsoluteDate } from 'utils/datetime';
 import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
@@ -316,24 +317,42 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       case 'daterange':
         const dates = values[filter.name] ? values[filter.name].split('/') : undefined;
 
-        const value = {
-          from: dates ? moment(dates[0] + 'Z') : undefined,
-          to: dates ? moment(dates[1] + 'Z') : undefined,
-          raw: {
-            from: dates ? dates[0] : '',
-            to: dates ? dates[1] : '',
-          },
-        };
+        let value = { from: undefined, to: undefined, raw: { from: '', to: '' } };
+        if (dates) {
+          const [fromString, toString] = dates;
+          const isRelative = rangeUtil.isRelativeTimeRange({ from: fromString, to: toString });
+
+          if (isRelative) {
+            const absolute = convertRelativeToAbsoluteDate(values[filter.name]);
+            const [absoluteFrom, absoluteTo] = absolute.split('/');
+            value = {
+              from: moment(absoluteFrom + 'Z'),
+              to: moment(absoluteTo + 'Z'),
+              raw: {
+                from: fromString,
+                to: toString,
+              },
+            };
+          } else {
+            value = {
+              from: moment(fromString + 'Z'),
+              to: moment(toString + 'Z'),
+              raw: {
+                from: fromString,
+                to: toString,
+              },
+            };
+          }
+        }
 
         return (
           <TimeRangeInput
             timeZone={moment.tz.guess()}
-            autoFocus={autoFocus}
             // @ts-ignore
             value={value}
             onChange={this.getDateRangeFilterChangeHandler(filter.name)}
             hideTimeZone
-            clearable={false}
+            clearable
           />
         );
 
@@ -387,9 +406,15 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   getDateRangeFilterChangeHandler = (name: FilterOption['name']) => {
     return (timeRange: TimeRange) => {
-      const value =
-        timeRange.from.utc().format('YYYY-MM-DDTHH:mm:ss') + '/' + timeRange.to.utc().format('YYYY-MM-DDTHH:mm:ss');
+      const isRelative = rangeUtil.isRelativeTimeRange(timeRange.raw);
 
+      let value = '';
+      if (isRelative) {
+        value = timeRange.raw.from + '/' + timeRange.raw.to;
+      } else if (timeRange.from.isValid() && timeRange.to.isValid()) {
+        value =
+          timeRange.from.utc().format('YYYY-MM-DDTHH:mm:ss') + '/' + timeRange.to.utc().format('YYYY-MM-DDTHH:mm:ss');
+      }
       this.onFiltersValueChange(name, value);
     };
   };
