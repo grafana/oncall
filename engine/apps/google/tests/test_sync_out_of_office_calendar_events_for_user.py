@@ -325,6 +325,7 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
     }
 
     google_oauth2_user, schedule = test_setup(out_of_office_events)
+    google_oauth2_user_pk = google_oauth2_user.pk
     user = google_oauth2_user.user
 
     make_shift_swap_request(
@@ -334,7 +335,17 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
         swap_end=end_time,
     )
 
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    def _fetch_shift_swap_requests():
+        return ShiftSwapRequest.objects_with_deleted.filter(beneficiary=user, schedule=schedule)
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
 
     # should be 1 because we just created a shift swap request above via the fixture
-    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 1
+    ssrs = _fetch_shift_swap_requests()
+    assert ssrs.count() == 1
+
+    # lets delete the shift swap request and run the task again, it should recognize that there was already
+    # a shift swap request and shouldn't recreate a new one
+    ssrs.first().delete()
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
+    assert _fetch_shift_swap_requests().count() == 1
