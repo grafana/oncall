@@ -108,7 +108,7 @@ In Grafana OnCall, click **Proceed** to complete the integration setup.
 
 ## Connect other integrations
 
-You can link other integrations such as Alertmanager, Grafana Alerting, and others to your ServiceNow integration for a consolidated workflow.
+You can connect other integrations such as Alertmanager, Grafana Alerting, and others to your ServiceNow integration for a consolidated workflow.
 When connected, Grafana OnCall sends alerts from the connected integrations to ServiceNow and update alert groups on the connected integrations based on incident
 state changes in ServiceNow.
 Connected integrations utilize the same ServiceNow credentials and outgoing webhooks as the ServiceNow integration they are linked to.
