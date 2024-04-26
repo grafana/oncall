@@ -280,30 +280,34 @@ def test_get_notifiable_direct_paging_integrations(
     assert notifiable_direct_paging_integrations.count() == 1
 
 
-@pytest.mark.django_db
-def test_should_be_considered_for_rbac_permissioning(make_organization, settings):
-    NUM_ORGS = 5
-
-    def _make_orgs(is_rbac_permissions_enabled):
-        orgs = [make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled) for _ in range(NUM_ORGS)]
-        assert all(org.is_rbac_permissions_enabled is is_rbac_permissions_enabled for org in orgs)
-        return orgs
-
-    # env var is not set
-    orgs = _make_orgs(False)
-    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 0.0
-    assert all(org.should_be_considered_for_rbac_permissioning() is True for org in orgs)
-
-    # env var is set but is_rbac_permissions_enabled is already set for all orgs
-    orgs = _make_orgs(True)
-    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 0.001
-    assert all(org.should_be_considered_for_rbac_permissioning() is True for org in orgs)
-
+@pytest.mark.parametrize("is_rbac_permissions_enabled_initially,rollout_percentage,expected", [
+    # env var is not set, no orgs have is_rbac_permissions_enabled set
+    (False, 0.0, False),
+    # env var is not set but is_rbac_permissions_enabled is already set for all orgs
+    (True, 0.0, True),
     # env var is set, only some orgs should be considered
-    orgs = _make_orgs(False)
-    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 0.5
-    assert all(org.should_be_considered_for_rbac_permissioning() == (org.id <= 2) for org in orgs)
+    (False, 0.5, "partial"),
+    (False, 1.0, True),
+])
+@pytest.mark.django_db
+def test_should_be_considered_for_rbac_permissioning(
+    make_organization,
+    settings,
+    is_rbac_permissions_enabled_initially,
+    rollout_percentage,
+    expected,
+):
+    NUM_ORGS = 5
+    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = rollout_percentage
 
-    orgs = _make_orgs(False)
-    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 1.0
-    assert all(org.should_be_considered_for_rbac_permissioning() is True for org in orgs)
+    orgs = [make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled_initially) for _ in range(NUM_ORGS)]
+
+    assert all(org.is_rbac_permissions_enabled is is_rbac_permissions_enabled_initially for org in orgs)
+    for id_idx, org in enumerate(orgs):
+        # make sure the primary key autoincrementer is reset between each test
+        assert id_idx + 1 == org.id
+
+    if expected == "partial":
+        assert all(org.should_be_considered_for_rbac_permissioning() == (org.id <= NUM_ORGS * rollout_percentage) for org in orgs)
+    else:
+        assert all(org.should_be_considered_for_rbac_permissioning() is expected for org in orgs)

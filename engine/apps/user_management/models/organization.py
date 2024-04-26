@@ -354,12 +354,10 @@ class Organization(MaintainableObject):
         the permissions search endpoint, this will effectively turn on RBAC for all orgs.. soo instead lets
         slowly turn it on via the logic here
         """
-        cloud_rbac_rollout_percentage = settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE
-
         # if rbac permissions are already enabled for the org, they're "grandfathered" in
-        if not cloud_rbac_rollout_percentage or self.is_rbac_permissions_enabled:
+        if self.is_rbac_permissions_enabled:
             return True
-        return self.id <= math.floor(Organization.objects.count() * cloud_rbac_rollout_percentage)
+        return self.id <= math.floor(Organization.objects.count() * settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE)
 
     @property
     def web_link(self):
