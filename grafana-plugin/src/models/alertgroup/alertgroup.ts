@@ -53,17 +53,20 @@ export class AlertGroupStore {
     );
     const timestamp = new Date().getTime();
     this.latestFetchAlertGroupsTimestamp = timestamp;
+    const query = {
+      ...this.incidentFilters,
+      perpage: this.alertsSearchResult?.page_size,
+      cursor: this.incidentsCursor,
+      is_root: true
+    };
+    if (this.incidentFilters && !this.incidentFilters.search) {
+        query.search = search;
+    }
     const {
       data: { results, next: nextRaw, previous: previousRaw, page_size },
     } = await onCallApi().GET('/alertgroups/', {
       params: {
-        query: {
-          ...this.incidentFilters,
-          search,
-          perpage: this.alertsSearchResult?.page_size,
-          cursor: this.incidentsCursor,
-          is_root: true,
-        },
+        query: query,
       },
     });
 
