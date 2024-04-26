@@ -11,7 +11,7 @@ on:
 
 jobs:
   end-to-end-tests:
-    name: End to end tests
+    name: Expensive e2e tests
     strategy:
       matrix:
         grafana_version:
