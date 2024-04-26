@@ -278,3 +278,32 @@ def test_get_notifiable_direct_paging_integrations(
     make_channel_filter(arc, is_default=False)
     notifiable_direct_paging_integrations = _assert(org, arc)
     assert notifiable_direct_paging_integrations.count() == 1
+
+
+@pytest.mark.django_db
+def test_should_be_considered_for_rbac_permissioning(make_organization, settings):
+    NUM_ORGS = 5
+
+    def _make_orgs(is_rbac_permissions_enabled):
+        orgs = [make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled) for _ in range(NUM_ORGS)]
+        assert all(org.is_rbac_permissions_enabled is is_rbac_permissions_enabled for org in orgs)
+        return orgs
+
+    # env var is not set
+    orgs = _make_orgs(False)
+    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 0.0
+    assert all(org.should_be_considered_for_rbac_permissioning() is True for org in orgs)
+
+    # env var is set but is_rbac_permissions_enabled is already set for all orgs
+    orgs = _make_orgs(True)
+    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 0.001
+    assert all(org.should_be_considered_for_rbac_permissioning() is True for org in orgs)
+
+    # env var is set, only some orgs should be considered
+    orgs = _make_orgs(False)
+    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 0.5
+    assert all(org.should_be_considered_for_rbac_permissioning() == (org.id <= 2) for org in orgs)
+
+    orgs = _make_orgs(False)
+    settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = 1.0
+    assert all(org.should_be_considered_for_rbac_permissioning() is True for org in orgs)
