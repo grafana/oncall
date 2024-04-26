@@ -109,6 +109,7 @@ export const Text: TextInterface = (props) => {
           className={styles.iconButton}
           tooltip="Edit"
           tooltipPlacement="top"
+          data-emotion="iconButton"
           name="pen"
         />
       )}
@@ -124,6 +125,7 @@ export const Text: TextInterface = (props) => {
             className={styles.iconButton}
             tooltip="Copy to clipboard"
             tooltipPlacement="top"
+            data-emotion="iconButton"
             name="copy"
           />
         </CopyToClipboard>
