@@ -33,21 +33,10 @@ export const getIncidentDropdownStyles = (theme: GrafanaTheme2) => {
       display: flex;
       gap: 8px;
       flex-direction: row;
+      color: ${theme.colors.text.primary};
 
       &:hover {
         background: ${theme.colors.action.hover};
-      }
-
-      &--acknowledge {
-        color: ${theme.colors.warning.text};
-      }
-
-      &--firing {
-        color: ${theme.colors.error.text};
-      }
-
-      &--resolve {
-        color: ${theme.colors.success.text};
       }
     `,
 

@@ -99,7 +99,7 @@ export const IncidentDropdown: FC<{
           <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'firing'))}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve, IncidentStatus.Firing)}
               >
                 Firing{' '}
@@ -126,7 +126,7 @@ export const IncidentDropdown: FC<{
           <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'unacknowledge'))}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge, IncidentStatus.Firing)}
               >
                 Unacknowledge{' '}
@@ -139,7 +139,7 @@ export const IncidentDropdown: FC<{
             </WithPermissionControlTooltip>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'resolve'))}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve, IncidentStatus.Resolved)}
               >
                 Resolve{' '}
@@ -166,7 +166,7 @@ export const IncidentDropdown: FC<{
           <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'acknowledge'))}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge, IncidentStatus.Acknowledged)}
               >
                 Acknowledge{' '}
@@ -179,7 +179,7 @@ export const IncidentDropdown: FC<{
             </WithPermissionControlTooltip>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'resolve'))}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve, IncidentStatus.Resolved)}
               >
                 Resolve{' '}
@@ -238,7 +238,7 @@ export const IncidentDropdown: FC<{
           </WithPermissionControlTooltip>
           <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
-              className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'acknowledge'))}
+              className={cx(styles.incidentOptionItem)}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Acknowledged)}
             >
               Acknowledge{' '}
@@ -251,7 +251,7 @@ export const IncidentDropdown: FC<{
           </WithPermissionControlTooltip>
           <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
-              className={cx(styles.incidentOptionItem, bem(styles.incidentOptionItem, 'resolve'))}
+              className={cx(styles.incidentOptionItem)}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Resolved)}
             >
               Resolve{' '}

@@ -2,7 +2,7 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import tinycolor from 'tinycolor2';
 
-export const getUtilStyles = (_theme: GrafanaTheme2) => {
+export const getUtilStyles = (theme: GrafanaTheme2) => {
   return {
     width100: css`
       width: 100%;
@@ -14,7 +14,7 @@ export const getUtilStyles = (_theme: GrafanaTheme2) => {
 
     thinLineBreak: css`
       width: 100%;
-      border-top: 1px solid ${COLORS.ALWAYS_GREY};
+      border-top: 1px solid ${theme.colors.secondary.main};
       margin-top: 8px;
       opacity: 15%;
     `,
