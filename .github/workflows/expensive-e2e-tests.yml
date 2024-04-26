@@ -1,5 +1,9 @@
-name: Daily e2e tests
+name: Expensive e2e tests
 on:
+  push:
+    branches:
+      - main
+      - dev
   # allows manual run on github actions
   workflow_dispatch:
   schedule:
@@ -41,7 +45,7 @@ jobs:
   post-status-to-slack:
     runs-on: ubuntu-latest
     needs: end-to-end-tests
-    if: always()
+    if: failure
     steps:
       # Useful references
       # https://stackoverflow.com/questions/59073850/github-actions-get-url-of-test-build
