@@ -153,7 +153,6 @@ k8s_resource(
 )
 k8s_resource(
     workload="engine",
-    port_forwards=8080,
     resource_deps=["mariadb", "redis-master"],
     labels=["OnCallBackend"],
 )
