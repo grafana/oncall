@@ -66,7 +66,7 @@ export class AlertGroupStore {
       data: { results, next: nextRaw, previous: previousRaw, page_size },
     } = await onCallApi().GET('/alertgroups/', {
       params: {
-        query: query,
+        query,
       },
     });
 
