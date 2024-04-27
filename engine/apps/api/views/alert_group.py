@@ -1,6 +1,7 @@
 import typing
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
@@ -37,7 +38,6 @@ from common.api_helpers.filters import (
 )
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import AlertGroupCursorPaginator
-from django.conf import settings
 
 
 def get_integration_queryset(request):

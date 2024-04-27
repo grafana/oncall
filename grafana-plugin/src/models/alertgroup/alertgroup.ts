@@ -57,10 +57,10 @@ export class AlertGroupStore {
       ...this.incidentFilters,
       perpage: this.alertsSearchResult?.page_size,
       cursor: this.incidentsCursor,
-      is_root: true
+      is_root: true,
     };
     if (this.incidentFilters && !this.incidentFilters.search) {
-        query.search = search;
+      query.search = search;
     }
     const {
       data: { results, next: nextRaw, previous: previousRaw, page_size },
