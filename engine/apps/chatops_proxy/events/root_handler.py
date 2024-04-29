@@ -25,5 +25,5 @@ class ChatopsEventsHandler:
     def handle(self, event_data: Event):
         for h in self.HANDLERS:
             if h.match(event_data):
-                h.handle(event_data)
+                h.handle(event_data.get("data", {}))
                 break

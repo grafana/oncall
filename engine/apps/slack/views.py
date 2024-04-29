@@ -564,7 +564,7 @@ class ResetSlackView(APIView):
 
     def post(self, request):
         try:
-            uninstall_slack_integration(request.auth.organization, request.auth.user)
+            uninstall_slack_integration(request.user.organization, request.user)
         except SlackInstallationExc as e:
             return Response({"error": e.error_message}, status=400)
         return Response(status=200)
