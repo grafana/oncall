@@ -29,7 +29,7 @@ import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
-import { convertRelativeToAbsoluteDate } from 'utils/datetime';
+import { getValueForDateRangeFilterType } from 'utils/datetime';
 import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
@@ -315,35 +315,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         );
 
       case 'daterange':
-        const dates = values[filter.name] ? values[filter.name].split('/') : undefined;
-
-        let value = { from: undefined, to: undefined, raw: { from: '', to: '' } };
-        if (dates) {
-          const [fromString, toString] = dates;
-          const isRelative = rangeUtil.isRelativeTimeRange({ from: fromString, to: toString });
-
-          if (isRelative) {
-            const absolute = convertRelativeToAbsoluteDate(values[filter.name]);
-            const [absoluteFrom, absoluteTo] = absolute.split('/');
-            value = {
-              from: moment(absoluteFrom + 'Z'),
-              to: moment(absoluteTo + 'Z'),
-              raw: {
-                from: fromString,
-                to: toString,
-              },
-            };
-          } else {
-            value = {
-              from: moment(fromString + 'Z'),
-              to: moment(toString + 'Z'),
-              raw: {
-                from: fromString,
-                to: toString,
-              },
-            };
-          }
-        }
+        const value = getValueForDateRangeFilterType(values[filter.name]);
 
         return (
           <TimeRangeInput

@@ -1,7 +1,7 @@
 import { runInAction, makeAutoObservable } from 'mobx';
 import qs from 'query-string';
 
-import { normalizeFilters } from 'models/filters/filters.helpers';
+import { convertFiltersToBackendFormat } from 'models/filters/filters.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -55,7 +55,10 @@ export class AlertGroupStore {
     const timestamp = new Date().getTime();
     this.latestFetchAlertGroupsTimestamp = timestamp;
 
-    const incidentFilters = normalizeFilters(this.incidentFilters, this.rootStore.filtersStore.options[PAGE.Incidents]);
+    const incidentFilters = convertFiltersToBackendFormat(
+      this.incidentFilters,
+      this.rootStore.filtersStore.options[PAGE.Incidents]
+    );
 
     const {
       data: { results, next: nextRaw, previous: previousRaw, page_size },
@@ -205,7 +208,10 @@ export class AlertGroupStore {
   }
 
   async fetchStats(status: IncidentStatus) {
-    const incidentFilters = normalizeFilters(this.incidentFilters, this.rootStore.filtersStore.options[PAGE.Incidents]);
+    const incidentFilters = convertFiltersToBackendFormat(
+      this.incidentFilters,
+      this.rootStore.filtersStore.options[PAGE.Incidents]
+    );
 
     const { data } = await onCallApi().GET('/alertgroups/stats/', {
       params: { query: { ...incidentFilters, status: [status] } },

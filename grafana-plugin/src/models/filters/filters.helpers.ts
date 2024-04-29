@@ -12,12 +12,12 @@ export const getApiPathByPage = (page: string) => {
   );
 };
 
-export const normalizeFilters = (filters: FiltersValues, filterOptions: FilterOption[]) => {
-  const normalizeFilters = { ...filters };
+export const convertFiltersToBackendFormat = (filters: FiltersValues, filterOptions: FilterOption[]) => {
+  const newFilters = { ...filters };
   filterOptions.forEach((filterOption) => {
-    if (filterOption.type === 'daterange' && normalizeFilters[filterOption.name]) {
-      normalizeFilters[filterOption.name] = convertRelativeToAbsoluteDate(filters[filterOption.name]);
+    if (filterOption.type === 'daterange' && newFilters[filterOption.name]) {
+      newFilters[filterOption.name] = convertRelativeToAbsoluteDate(filters[filterOption.name]);
     }
   });
-  return normalizeFilters;
+  return newFilters;
 };
