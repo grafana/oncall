@@ -11,7 +11,7 @@ class Event(typing.TypedDict):
     data: dict
 
 
-class IntegrationInstalledData(Event):
+class IntegrationInstalledData(typing.TypedDict):
     oauth_installation_id: int
     provider_type: str
     stack_id: int
