@@ -118,6 +118,12 @@ def mock_cache_get_metrics_for_collector_mixed_versions(monkeypatch):
                             "acknowledged": 3,
                             "resolved": 5,
                         },
+                        "test_service": {
+                            "firing": 10,
+                            "silenced": 10,
+                            "acknowledged": 10,
+                            "resolved": 10,
+                        },
                     },
                 },
             },
@@ -138,9 +144,7 @@ def mock_cache_get_metrics_for_collector_mixed_versions(monkeypatch):
                     "org_id": 1,
                     "slug": "Test stack",
                     "id": 1,
-                    "services": {
-                        NO_SERVICE_VALUE: [2, 10, 200, 650],
-                    },
+                    "services": {NO_SERVICE_VALUE: [2, 10, 200, 650], "test_service": [4, 8, 12]},
                 },
             },
             USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
