@@ -11,6 +11,7 @@ from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_T
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackRenderer
 from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
 from apps.api.permissions import RBACPermission
+from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
@@ -338,11 +339,12 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                 "type": "plain_text",
                 "text": "Attach to Alert Group",
             },
-            "private_metadata": json.dumps(
+            "private_metadata": make_private_metadata(
                 {
                     "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
                     "alert_group_pk": alert_group.pk,
-                }
+                },
+                self.organization,
             ),
             "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
         }
@@ -397,9 +399,8 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         collected_options: typing.List[CompositionObjectOption] = []
         blocks: Block.AnyBlocks = []
 
-        alert_receive_channel_ids = AlertReceiveChannel.objects.filter(
-            organization=alert_group.channel.organization
-        ).values_list("id", flat=True)
+        org = alert_group.channel.organization
+        alert_receive_channel_ids = AlertReceiveChannel.objects.filter(organization=org).values_list("id", flat=True)
 
         alert_groups_queryset = (
             AlertGroup.objects.prefetch_related(
@@ -411,6 +412,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             .order_by("-pk")
         )
 
+        sf = SlackFormatter(org)
         for alert_group_to_attach in alert_groups_queryset[:ATTACH_TO_ALERT_GROUPS_LIMIT]:
             # long_verbose_name_without_formatting was removed from here because it increases queries count due to
             # alerts.first().
@@ -418,7 +420,6 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             # prefetch_related.
             first_alert = alert_group_to_attach.alerts.all()[0]
             templated_alert = AlertSlackRenderer(first_alert).templated_alert
-            sf = SlackFormatter(alert_group_to_attach.channel.organization)
             if is_string_with_visible_characters(templated_alert.title):
                 alert_name = templated_alert.title
                 alert_name = sf.format(alert_name)
@@ -433,7 +434,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             collected_options.append(
                 {
                     "text": {"type": "plain_text", "text": f"{alert_name}", "emoji": True},
-                    "value": str(alert_group_to_attach.pk),
+                    "value": make_value({root_ag_id_value_key: alert_group_to_attach.pk}, org),
                 }
             )
         if len(collected_options) > 0:
@@ -494,21 +495,43 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         if payload["type"] == PayloadType.VIEW_SUBMISSION:
             alert_group_pk = json.loads(payload["view"]["private_metadata"])["alert_group_pk"]
             alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-            root_alert_group_pk = payload["view"]["state"]["values"][SelectAttachGroupStep.routing_uid()][
-                AttachGroupStep.routing_uid()
-            ]["selected_option"]["value"]
+            root_alert_group_pk = _get_root_alert_group_id_from_value(
+                payload["view"]["state"]["values"][SelectAttachGroupStep.routing_uid()][AttachGroupStep.routing_uid()][
+                    "selected_option"
+                ]["value"]
+            )
             root_alert_group = AlertGroup.objects.get(pk=root_alert_group_pk)
         # old version of attach selection by dropdown
         else:
             try:
-                root_alert_group_pk = int(payload["actions"][0]["selected_options"][0]["value"])
+                root_alert_group_pk = int(
+                    _get_root_alert_group_id_from_value(payload["actions"][0]["selected_options"][0]["value"])
+                )
             except KeyError:
-                root_alert_group_pk = int(payload["actions"][0]["selected_option"]["value"])
+                root_alert_group_pk = int(
+                    _get_root_alert_group_id_from_value(payload["actions"][0]["selected_option"]["value"])
+                )
 
             root_alert_group = AlertGroup.objects.get(pk=root_alert_group_pk)
             alert_group = self.get_alert_group(slack_team_identity, payload)
 
         alert_group.attach_by_user(self.user, root_alert_group, action_source=ActionSource.SLACK)
+
+
+root_ag_id_value_key = "ag_id"
+
+
+def _get_root_alert_group_id_from_value(value: str) -> str:
+    """
+    Extract ag ID from value string.
+    It might be either JSON-encoded object or just a user ID.
+    Json encoded object introduced for Chatops-Proxy routing, plain string with user ID is legacy.
+    """
+    try:
+        data = json.loads(value)
+        return data[root_ag_id_value_key]
+    except json.JSONDecodeError:
+        return value
 
 
 class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):

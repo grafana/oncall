@@ -598,6 +598,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                         "avatar_full": user.avatar_full_url,
                         "important": important,
                         "teams": [{"pk": t.public_primary_key, "name": t.name} for t in user.teams.all()],
+                        "organization": user.organization,
                     }
                 else:
                     # user was unpaged at some point, remove them
