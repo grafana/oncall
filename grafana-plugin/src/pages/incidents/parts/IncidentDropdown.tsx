@@ -2,7 +2,7 @@ import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 
 import { cx } from '@emotion/css';
 import { Icon, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
-import { bem, getUtilStyles } from 'styles/utils.styles';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { Tag, TagColor } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
