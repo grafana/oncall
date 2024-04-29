@@ -32,9 +32,8 @@ interface SettingsPageState {
 class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
   constructor(props: SettingsPageProps) {
     super(props);
-    const {
-      query: { tab }, // eslint-disable-line
-    } = props;
+
+    const tab = LocationHelper.getQueryParam('tab');
 
     this.state = {
       activeTab: tab || SettingsPageTab.MainSettings.key,
@@ -51,7 +50,7 @@ class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
 
     const onTabChange = (tab: string) => {
       this.setState({ activeTab: tab });
-      LocationHelper.update({ tab: tab }, 'partial');
+      LocationHelper.update({ tab }, 'partial');
     };
 
     const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);

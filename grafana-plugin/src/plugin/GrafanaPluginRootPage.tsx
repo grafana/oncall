@@ -147,7 +147,7 @@ export const Root = observer((props: AppRootProps) => {
                 <OutgoingWebhooksPage query={query} />
               </Route>
               <Route path={getRoutesForPage('settings')} exact>
-                <SettingsPage query={query} />
+                <SettingsPage />
               </Route>
               <Route path={getRoutesForPage('chat-ops')} exact>
                 <ChatOpsPage query={query} />

@@ -36,9 +36,9 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   };
 
   componentDidMount() {
-    const { query } = this.props; // eslint-disable-line
+    const tab = LocationHelper.getQueryParam('chatOpsTab');
 
-    this.handleChatopsTabChange(query?.chatOpsTab || ChatOpsTab.Slack);
+    this.handleChatopsTabChange(tab || ChatOpsTab.Slack);
   }
 
   componentWillUnmount() {
