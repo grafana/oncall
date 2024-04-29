@@ -8,7 +8,9 @@ from apps.google import constants, tasks
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 
 
-def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: datetime.datetime):
+def _create_mock_google_calendar_event(
+    start_time: datetime.datetime, end_time: datetime.datetime, summary="Out of office"
+):
     return {
         "colorId": "4",
         "created": "2024-03-22T23:06:39.000Z",
@@ -50,7 +52,7 @@ def _create_mock_google_calendar_event(start_time: datetime.datetime, end_time: 
             "timeZone": "America/New_York",
         },
         "status": "confirmed",
-        "summary": "Out of office",
+        "summary": summary,
         "updated": "2024-03-22T23:06:44.299Z",
         "visibility": "public",
     }
@@ -156,11 +158,25 @@ def test_sync_out_of_office_calendar_events_for_user_no_ooo_events(mock_google_a
 
 
 @patch("apps.google.client.build")
+@pytest.mark.parametrize(
+    "out_of_office_event_title,should_create_ssr",
+    [
+        ("Out of office", True),
+        ("Out of office grafana-oncall-ignore", True),
+        ("Out of office #grafana-oncall-ignore", False),
+        ("Out of office #GRAFANA-ONCALL-IGNORE", False),
+    ],
+)
 @pytest.mark.django_db
-def test_sync_out_of_office_calendar_events_for_user_single_ooo_event(mock_google_api_client_build, test_setup):
+def test_sync_out_of_office_calendar_events_for_user_single_ooo_event(
+    mock_google_api_client_build,
+    test_setup,
+    out_of_office_event_title,
+    should_create_ssr,
+):
     start_time, end_time = _create_event_start_and_end_times()
     out_of_office_events = [
-        _create_mock_google_calendar_event(start_time, end_time),
+        _create_mock_google_calendar_event(start_time, end_time, out_of_office_event_title),
     ]
 
     mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.return_value = {
@@ -173,13 +189,17 @@ def test_sync_out_of_office_calendar_events_for_user_single_ooo_event(mock_googl
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
 
     ssrs = ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule)
-    ssr = ssrs.first()
 
-    assert ssrs.count() == 1
+    if should_create_ssr:
+        assert ssrs.count() == 1
 
-    assert ssr.swap_start == start_time
-    assert ssr.swap_end == end_time
-    assert ssr.description == f"{user.name} will be out of office during this time according to Google Calendar"
+        ssr = ssrs.first()
+
+        assert ssr.swap_start == start_time
+        assert ssr.swap_end == end_time
+        assert ssr.description == f"{user.name} will be out of office during this time according to Google Calendar"
+    else:
+        assert ssrs.count() == 0
 
 
 @patch("apps.google.client.build")
@@ -305,6 +325,7 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
     }
 
     google_oauth2_user, schedule = test_setup(out_of_office_events)
+    google_oauth2_user_pk = google_oauth2_user.pk
     user = google_oauth2_user.user
 
     make_shift_swap_request(
@@ -314,7 +335,17 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
         swap_end=end_time,
     )
 
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    def _fetch_shift_swap_requests():
+        return ShiftSwapRequest.objects_with_deleted.filter(beneficiary=user, schedule=schedule)
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
 
     # should be 1 because we just created a shift swap request above via the fixture
-    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 1
+    ssrs = _fetch_shift_swap_requests()
+    assert ssrs.count() == 1
+
+    # lets delete the shift swap request and run the task again, it should recognize that there was already
+    # a shift swap request and shouldn't recreate a new one
+    ssrs.first().delete()
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
+    assert _fetch_shift_swap_requests().count() == 1

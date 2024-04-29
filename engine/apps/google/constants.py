@@ -1,3 +1,5 @@
+EVENT_SUMMARY_IGNORE_KEYWORD = "#grafana-oncall-ignore"
+
 GOOGLE_CALENDAR_EVENT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 """
 https://stackoverflow.com/a/17159470/3902555

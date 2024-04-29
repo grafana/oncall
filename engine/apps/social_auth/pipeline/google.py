@@ -1,6 +1,7 @@
 import logging
 import typing
 
+import requests
 from rest_framework.response import Response
 from social_core.backends.base import BaseAuth
 
@@ -28,10 +29,35 @@ def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user:
 
     https://stackoverflow.com/a/18578660/3902555
     """
-    logger.info(f"Disconnecting user {user.pk} from Google OAuth2")
+    user_pk = user.pk
+    google_oauth2_user = user.google_oauth2_user
 
-    # 2nd argument, uid, is not needed for GoogleOauth2 backend
-    backend.revoke_token(user.google_oauth2_user.refresh_token, "")
+    logger.info(f"Disconnecting user {user_pk} from Google OAuth2")
+
+    try:
+        backend.revoke_token(google_oauth2_user.refresh_token, google_oauth2_user.google_user_id)
+    except requests.exceptions.HTTPError as e:
+        response = e.response
+
+        logger.error(f"There was an HTTP error when trying to revoke Google OAuth2 token for user={user_pk}")
+
+        if response.status_code == 400:
+            error_details = response.json()
+            error_code = error_details["error"]
+            error_description = error_details["error_description"]
+
+            logger.error(
+                f"There was an HTTP 400 error when trying to revoke Google OAuth2 token for user={user_pk} "
+                f"error_code={error_code} error_description={error_description}"
+            )
+
+            error_codes_to_ignore = ["invalid_token"]
+
+            if error_code not in error_codes_to_ignore:
+                raise e
+            else:
+                logger.info(f"Google OAuth2 token for user {user_pk} is already invalid or revoked, ignoring error")
+
     user.finish_google_oauth2_disconnection_flow()
 
     logger.info(f"Successfully disconnected user {user.pk} from Google OAuth2")
