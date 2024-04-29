@@ -46,10 +46,14 @@ class ApplicationMetricsCollector:
             "slug",
             "id",
         ]
-        self._integration_labels = [
-            "integration",
-            "team",
-        ] + self._stack_labels
+        self._integration_labels = (
+            [
+                "integration",
+                "team",
+            ]
+            + self._stack_labels
+            # + [SERVICE_LABEL]  # todo:metrics: uncomment when all metric cache is updated (~2 after release)
+        )
         self._integration_labels_with_state = self._integration_labels + ["state"]
         self._user_labels = ["username"] + self._stack_labels
 
@@ -96,8 +100,19 @@ class ApplicationMetricsCollector:
                     integration_data["id"],  # grafana instance id
                 ]
                 labels_values = list(map(str, labels_values))
-                for state in AlertGroupState:
-                    alert_groups_total.add_metric(labels_values + [state.value], integration_data[state.value])
+                # clause below is needed for compatibility with old metric cache during rollout metrics with services
+                if "services" in integration_data:
+                    for service_name in integration_data["services"]:
+                        for state in AlertGroupState:
+                            alert_groups_total.add_metric(
+                                labels_values + [state.value],
+                                # todo:metrics: replace [state.value] when all metric cache is updated
+                                # + [service_name, state.value],
+                                integration_data["services"][service_name][state.value],
+                            )
+                else:
+                    for state in AlertGroupState:
+                        alert_groups_total.add_metric(labels_values + [state.value], integration_data[state.value])
             org_id_from_key = RE_ALERT_GROUPS_TOTAL.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
         missing_org_ids = org_ids - processed_org_ids
@@ -126,12 +141,26 @@ class ApplicationMetricsCollector:
                 ]
                 labels_values = list(map(str, labels_values))
 
-                response_time_values = integration_data["response_time"]
-                if not response_time_values:
-                    continue
-                buckets, sum_value = self.get_buckets_with_sum(response_time_values)
-                buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
-                alert_groups_response_time_seconds.add_metric(labels_values, buckets=buckets, sum_value=sum_value)
+                # clause below is needed for compatibility with old metric cache during rollout metrics with services
+                if "services" in integration_data:
+                    # todo:metrics: for service_name, response_time
+                    for _, response_time in integration_data["services"].items():
+                        if not response_time:
+                            continue
+                        buckets, sum_value = self.get_buckets_with_sum(response_time)
+                        buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
+                        alert_groups_response_time_seconds.add_metric(
+                            labels_values,  # + [service_name]  todo:metrics: uncomment when all metric cache is updated
+                            buckets=buckets,
+                            sum_value=sum_value,
+                        )
+                else:
+                    response_time_values = integration_data["response_time"]
+                    if not response_time_values:
+                        continue
+                    buckets, sum_value = self.get_buckets_with_sum(response_time_values)
+                    buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
+                    alert_groups_response_time_seconds.add_metric(labels_values, buckets=buckets, sum_value=sum_value)
             org_id_from_key = RE_ALERT_GROUPS_RESPONSE_TIME.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
         missing_org_ids = org_ids - processed_org_ids
