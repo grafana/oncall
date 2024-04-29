@@ -122,16 +122,19 @@ jobs:
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      # Go and Mage are required to run gops-labels
+      # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
+        if: inputs.run-expensive-tests
         uses: actions/setup-go@v4
         with:
           go-version: "1.21.5"
 
       - name: Install Mage
+        if: inputs.run-expensive-tests
         run: go install github.com/magefile/mage@v1.15.0
 
       - name: Get Vault secrets
+        if: inputs.run-expensive-tests
         id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
@@ -141,6 +144,7 @@ jobs:
             GH_APP_PRIVATE_KEY=github-app:private-key
 
       - name: Generate Github App token
+        if: inputs.run-expensive-tests
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
@@ -150,21 +154,12 @@ jobs:
           repositories: "ops-devenv,gops-labels"
 
       - name: Clone other repos needed for cross-plugin e2e tests
+        if: inputs.run-expensive-tests
         shell: bash
         run: |
           cd ..
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
-
-      - name: Tilt CI - standard E2E tests
-        shell: bash
-        if: ${{ inputs.run-expensive-tests == false }}
-        env:
-          GRAFANA_VERSION: ${{ inputs.grafana_version }}
-          GRAFANA_ADMIN_USERNAME: "irm"
-          GRAFANA_ADMIN_PASSWORD: "irm"
-          BROWSERS: ${{ inputs.browsers }}
-        run: cd ../ops-devenv && tilt ci gops-labels oncall
 
       - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
@@ -182,6 +177,15 @@ jobs:
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
         run: cd ../ops-devenv && tilt ci gops-labels oncall
+      # ---------- Expensive e2e tests steps end -----------
+
+      - name: Tilt CI - standard E2E tests
+        shell: bash
+        if: ${{ inputs.run-expensive-tests == false }}
+        env:
+          GRAFANA_VERSION: ${{ inputs.grafana_version }}
+          BROWSERS: ${{ inputs.browsers }}
+        run: tilt ci
 
       - name: Setup Pages
         if: failure()
