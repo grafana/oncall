@@ -62,9 +62,13 @@ def test_application_metrics_collector_mixed_cache(
         if metric.name == ALERT_GROUPS_TOTAL:
             # integration with labels for each alert group state
             assert len(metric.samples) == len(AlertGroupState) * 2
+            # check that values from different services were combined to one sample
+            assert {2, 3, 4, 5, 12, 13, 14, 15} == set(sample.value for sample in metric.samples)
         elif metric.name == ALERT_GROUPS_RESPONSE_TIME:
             # integration with labels for each value in collector's bucket + _count and _sum histogram values
             assert len(metric.samples) == (len(collector._buckets) + 2) * 2
+            # check that values from different services were combined to one sample
+            assert 7.0 in set(sample.value for sample in metric.samples)
         elif metric.name == USER_WAS_NOTIFIED_OF_ALERT_GROUPS:
             # metric with labels for each notified user
             assert len(metric.samples) == 1
