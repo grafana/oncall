@@ -92,7 +92,7 @@ export interface Event {
   end: string;
   is_empty: boolean;
   is_gap: boolean;
-  missing_users: Array<{ display_name: ApiSchemas['User']['username']; pk: ApiSchemas['User']['pk'] }>;
+  missing_users: Array<ApiSchemas['User']['username']>;
   priority_level: number;
   shift: Pick<Shift, 'name' | 'type'> & { pk: string };
   source: string;
