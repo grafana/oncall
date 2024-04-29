@@ -91,8 +91,8 @@ export const Text: TextInterface = (props) => {
         styles.root,
         styles.text,
         { [styles.maxWidth]: Boolean(maxWidth) },
-        { [bem(styles.text, `${type}`)]: true },
-        { [bem(styles.text, `${size}`)]: true },
+        { [bem(styles.text, type)]: true },
+        { [bem(styles.text, size)]: true },
         { [bem(styles.text, `strong`)]: strong },
         { [bem(styles.text, `underline`)]: underline },
         { [bem(styles.text, 'clickable')]: clickable },
@@ -109,6 +109,7 @@ export const Text: TextInterface = (props) => {
           className={styles.iconButton}
           tooltip="Edit"
           tooltipPlacement="top"
+          data-emotion="iconButton"
           name="pen"
         />
       )}
@@ -124,6 +125,7 @@ export const Text: TextInterface = (props) => {
             className={styles.iconButton}
             tooltip="Copy to clipboard"
             tooltipPlacement="top"
+            data-emotion="iconButton"
             name="copy"
           />
         </CopyToClipboard>

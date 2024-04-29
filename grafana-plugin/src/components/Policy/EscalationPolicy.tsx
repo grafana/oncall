@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
+import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
@@ -28,7 +29,6 @@ import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
@@ -80,12 +80,14 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       (escalationOption: EscalationPolicyOption) => escalationOption.value === step
     );
 
+    const { textColor: itemTextColor } = getLabelBackgroundTextColorObject('green', this.props.theme);
+
     return (
       <Timeline.Item
         key={id}
         contentClassName={cx(this.styles.root)}
         number={number}
-        textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+        textColor={isDisabled ? itemTextColor : undefined}
         backgroundClassName={backgroundClassName}
         backgroundHexNumber={backgroundHexNumber}
       >
