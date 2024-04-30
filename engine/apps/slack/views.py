@@ -563,6 +563,12 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
+        # TODO: this check should be removed once Unified Slack App is release
+        if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
+            return Response(
+                "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+                status=400,
+            )
         try:
             uninstall_slack_integration(request.user.organization, request.user)
         except SlackInstallationExc as e:

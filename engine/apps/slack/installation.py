@@ -18,8 +18,6 @@ class SlackInstallationExc(Exception):
 
 
 def install_slack_integration(organization, user, oauth_response):
-    # TODO: previously this code checked SLACK_INTEGRATION_MAINTENANCE_ENABLED env.
-    # Since we are now installing via chatops-proxy it should be moved there
     from apps.slack.models import SlackTeamIdentity
 
     if organization.slack_team_identity is not None:
@@ -45,8 +43,6 @@ def install_slack_integration(organization, user, oauth_response):
 
 
 def uninstall_slack_integration(organization, user):
-    # TODO: previously this code checked SLACK_INTEGRATION_MAINTENANCE_ENABLED env.
-    # Since we are now installing via chatops-proxy it should be moved there
     slack_team_identity = organization.slack_team_identity
     if slack_team_identity is not None:
         clean_slack_integration_leftovers.apply_async((organization.pk,))

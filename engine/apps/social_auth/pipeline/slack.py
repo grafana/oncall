@@ -1,12 +1,15 @@
 import logging
 from urllib.parse import urljoin
 
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponse
 from rest_framework import status
 
+from apps.chatops_proxy.utils import can_link_slack_team, link_slack_team
 from apps.slack.installation import SlackInstallationExc, install_slack_integration
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
+from apps.social_auth.exceptions import InstallMultiRegionSlackException
 from common.constants.slack_auth import SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR, SLACK_AUTH_WRONG_WORKSPACE_ERROR
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
@@ -74,33 +77,17 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
     if backend.name != SLACK_INSTALLATION_BACKEND:
         return
 
+    slack_team_id = response["team"]["id"]
+    if settings.FEATURE_MULTIREGION_ENABLED and not settings.UNIFIED_SLACK_APP_ENABLED:
+        can_link = can_link_slack_team(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
+        if not can_link:
+            raise InstallMultiRegionSlackException
     try:
         install_slack_integration(organization, user, response)
     except SlackInstallationExc:
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-
-    # if organization.slack_team_identity is not None:
-    #     # means that organization already has Slack integration
-    #     return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-    #
-    # slack_team_id = response["team"]["id"]
-    # if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
-    #     can_link = can_link_slack_team_wrapper(str(organization.uuid), slack_team_id, settings.ONCALL_BACKEND_REGION)
-    #     if settings.FEATURE_MULTIREGION_ENABLED and not can_link:
-    #         raise InstallMultiRegionSlackException
-    #
-    # slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
-    #     slack_id=slack_team_id,
-    # )
-    # # update slack oauth fields by data from response
-    # slack_team_identity.update_oauth_fields(user, organization, response)
-    # if settings.FEATURE_MULTIREGION_ENABLED:
-    #     link_slack_team_wrapper(str(organization.uuid), slack_team_id)
-    # populate_slack_channels_for_team.apply_async((slack_team_identity.pk,))
-    # user.slack_user_identity.update_profile_info()
-    # # todo slack: do we need update info for all existing slack users in slack team?
-    # # populate_slack_user_identities.apply_async((organization.pk,))
-    # populate_slack_usergroups_for_team.apply_async((slack_team_identity.pk,), countdown=10)
+    if settings.FEATURE_MULTIREGION_ENABLED and not settings.UNIFIED_SLACK_APP_ENABLED:
+        link_slack_team(str(organization.uuid), slack_team_id)
 
 
 def delete_slack_auth_token(strategy, *args, **kwargs):
