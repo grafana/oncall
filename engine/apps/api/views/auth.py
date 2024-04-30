@@ -35,8 +35,7 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
             status=400,
         )
 
-    # TODO: add a feature flag here to control if installation should use chatops-proxy or not
-    if backend == SLACK_INSTALLATION_BACKEND:
+    if backend == SLACK_INSTALLATION_BACKEND and settings.UNIFIED_SLACK_APP_ENABLED:
         # if we are installing slack in Cloud - get link from chatops-proxy
         url_to_redirect_to = get_installation_link_from_chatops_proxy(request)
         if url_to_redirect_to is None:

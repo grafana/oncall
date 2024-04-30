@@ -58,8 +58,15 @@ if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/slack/", include("apps.slack.urls")),
-        path("slack/", include("apps.slack.urls")),
     ]
+    if settings.IS_OPEN_SOURCE:
+        urlpatterns += [
+            path("slack/", include("apps.slack.urls")),
+        ]
+    else:
+        urlpatterns += [
+            path("api/v3/webhook/slack/", include("apps.slack.urls")),
+        ]
 
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
