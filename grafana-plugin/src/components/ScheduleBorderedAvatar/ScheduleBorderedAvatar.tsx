@@ -79,6 +79,7 @@ const getStyles = () => {
   return {
     root: css`
       position: relative;
+      z-index: 1;
     `,
 
     avatar: css`
