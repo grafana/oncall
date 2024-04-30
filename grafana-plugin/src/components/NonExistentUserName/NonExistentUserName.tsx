@@ -10,9 +10,7 @@ interface NonExistentUserNameProps {
 const NonExistentUserName: FC<NonExistentUserNameProps> = ({ justify = 'space-between', userName }) => (
   <HorizontalGroup justify={justify}>
     <span>Missing user</span>
-    <Tooltip
-      content={<>{`${userName || 'User'} `} is not found or doesn't have permission to participate in the rotation</>}
-    >
+    <Tooltip content={`${userName || 'User'} } is not found or doesn't have permission to participate in the rotation`}>
       <Icon name="exclamation-triangle" />
     </Tooltip>
   </HorizontalGroup>
