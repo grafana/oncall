@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { AppRootProps } from '@grafana/data';
 import { Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -8,8 +9,9 @@ import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { MainSettings } from 'pages/settings/tabs/MainSettings/MainSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
-import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
+import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { LocationHelper } from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
@@ -21,18 +23,22 @@ import styles from './SettingsPage.module.css';
 
 const cx = cn.bind(styles);
 
-interface SettingsPageProps {
-  store: RootBaseStore;
-}
+interface SettingsPageProps extends AppRootProps, WithStoreProps {}
 interface SettingsPageState {
   activeTab: string;
 }
 
 @observer
 class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
-  state: SettingsPageState = {
-    activeTab: SettingsPageTab.MainSettings.key, // should read from route instead
-  };
+  constructor(props: SettingsPageProps) {
+    super(props);
+
+    const tab = LocationHelper.getQueryParam('tab');
+
+    this.state = {
+      activeTab: tab || SettingsPageTab.MainSettings.key,
+    };
+  }
 
   render() {
     return <div className={cx('root')}>{this.renderContent()}</div>;
@@ -44,6 +50,7 @@ class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
 
     const onTabChange = (tab: string) => {
       this.setState({ activeTab: tab });
+      LocationHelper.update({ tab }, 'partial');
     };
 
     const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
