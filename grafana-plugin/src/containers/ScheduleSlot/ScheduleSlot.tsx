@@ -6,6 +6,8 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
+import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
@@ -59,7 +61,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const currentMoment = useMemo(() => dayjs(), []);
 
-  const renderEvent = (event): React.ReactElement | React.ReactElement[] => {
+  const renderEvent = (event: Event): React.ReactElement | React.ReactElement[] => {
     if (event.shiftSwapId) {
       return <ShiftSwapEvent currentMoment={currentMoment} event={event} />;
     }
@@ -74,12 +76,31 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
     if (event.is_empty) {
       return (
-        <div
-          className={cx('root')}
-          style={{
-            backgroundColor: color,
-          }}
-        />
+        <RenderConditionally
+          shouldRender={event.missing_users.length > 0}
+          backupChildren={
+            <div
+              className={cx('root')}
+              style={{
+                backgroundColor: color,
+              }}
+            />
+          }
+        >
+          {event.missing_users.map((name) => (
+            <div
+              key={name}
+              className={cx('root')}
+              style={{
+                backgroundColor: color,
+              }}
+            >
+              <div className={cx('title')}>
+                <NonExistentUserName userName={name} />
+              </div>
+            </div>
+          ))}
+        </RenderConditionally>
       );
     }
 
