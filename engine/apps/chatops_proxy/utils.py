@@ -7,14 +7,13 @@ import typing
 from django.conf import settings
 from rest_framework.request import Request
 
-from common.oncall_gateway.tasks import (
+from .client import SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient
+from .tasks import (
     link_slack_team_async,
     register_oncall_tenant_async,
     unlink_slack_team_async,
     unregister_oncall_tenant_async,
 )
-
-from .client import SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +47,8 @@ def register_oncall_tenant(service_tenant_id: str, cluster_slug: str, stack_id: 
         )
     except Exception as e:
         logger.error(
-            f"create_oncall_connector: failed " f"oncall_org_id={service_tenant_id} backend={cluster_slug} exc={e}"
+            f"create_oncall_connector: failed "
+            f"oncall_org_id={service_tenant_id} backend={cluster_slug} stack_id={stack_id} exc={e}"
         )
         register_oncall_tenant_async.apply_async(
             kwargs={
