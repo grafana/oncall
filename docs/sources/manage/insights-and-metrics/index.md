@@ -65,6 +65,7 @@ This metric has the following labels:
 | `org_id`      | ID of Grafana organization                                                    |
 | `team`        | Team name                                                                     |
 | `integration` | OnCall Integration name                                                       |
+| `service_name`| Value of Alert group `service_name` label                                     |
 | `state`       | Alert groups state. May be `firing`, `acknowledged`, `resolved` and `silenced`|
 
 **Query example:**
@@ -86,6 +87,7 @@ This metric has the following labels:
 | `org_id`      | ID of Grafana organization                                                     |
 | `team`        | Team name                                                                      |
 | `integration` | OnCall Integration name                                                        |
+| `service_name`| Value of Alert group `service_name` label                                      |
 | `le`          | Histogram bucket value in seconds. May be `60`, `300`, `600`, `3600` and `+Inf`|
 
 **Query example:**
