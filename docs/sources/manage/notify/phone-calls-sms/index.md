@@ -60,4 +60,3 @@ There are cases when OnCall is not able to make phone calls or send SMS to certa
 We're working hard to fix such cases, but kindly asking to test your personal notification chain to make sure OnCall
 is able to notify you. Also we suggest to back up Phone Calls and SMS with other notification methods such as
 [Mobile app](ref:mobile-app).
-

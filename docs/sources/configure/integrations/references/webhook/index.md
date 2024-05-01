@@ -75,4 +75,3 @@ https://a-prod-us-central-0.grafana.net/integrations/v1/formatted_webhook/m12xmI
 
 To learn how to use custom alert templates for formatted webhooks, see
 [Configure alerts templates](ref:jinja2-templating).
-

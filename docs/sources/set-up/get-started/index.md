@@ -250,4 +250,3 @@ To integrate your on-call calendar with Grafana OnCall:
 3. Configure the rest of the schedule settings and click Create Schedule
 
 For more information about OnCall schedules, refer to [On-call schedules](ref:on-call-schedules).
-

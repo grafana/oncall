@@ -49,4 +49,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 3. Create "Webhook" notification channel.
 4. Set the following URL: **OnCall Integration URL**
 5. Check "Payload type" is JSON.
-

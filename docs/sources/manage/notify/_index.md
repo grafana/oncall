@@ -58,4 +58,3 @@ To configure a users notification policy:
 
 1. Click **Add notification step** and use the dropdowns to specify the notification method and frequency. Notification steps will be followed in the order they
 are listed.
-

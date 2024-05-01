@@ -206,4 +206,3 @@ or [data](ref:data_webhook_template) template it's needed to adjust them as well
 <img width="1646" alt="Screenshot 2023-12-14 at 1 14 21 PM" src="https://github.com/grafana/oncall/assets/85312870/7e281416-edbc-4384-8d15-7efaec2de311">
 
 <img width="1644" alt="Screenshot 2023-12-14 at 1 14 32 PM" src="https://github.com/grafana/oncall/assets/85312870/b62cfa1d-2ff6-4b46-9cec-459b14cd1996">
-

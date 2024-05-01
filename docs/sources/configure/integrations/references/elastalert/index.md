@@ -84,4 +84,3 @@ Add the following rule to ElastAlert
     alert_text: elastalert is still running
     alert_text_type: alert_text_only
 ```
-

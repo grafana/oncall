@@ -47,4 +47,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 1. Create a notification channel in Stackdriver by navigating to Workspace Settings -> WEBHOOKS -> Add Webhook **OnCall Integration URL**
 
 2. Create and alert in Stackdriver by navigating to Alerting -> Policies -> Add Policy -> Choose Notification Channel using the channel set up in step 1
-

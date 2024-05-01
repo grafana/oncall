@@ -50,4 +50,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 4. Enter URL: **OnCall Integration URL**
 5. Click Verify
 6. Choose "SEND IMPACT CHANGE ALERTS" and "ALSO SEND NON-FATAL ALERTS"
-

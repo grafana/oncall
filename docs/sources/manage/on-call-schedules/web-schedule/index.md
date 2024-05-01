@@ -95,4 +95,3 @@ A perfectly balanced schedule is considered ideal, so reducing this number will 
 
 Export on-call schedules from Grafana OnCall to your preferred calendar app with a one-time secret iCal URL. The
 schedule export allows you to view on-call shifts alongside the rest of your schedule.
-

@@ -16,9 +16,6 @@ aliases:
   - add-grafana-alerting/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/grafana-alerting
 refs:
-  data-webhook_template:
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
   trigger-webhook-template:
     - pattern: /docs/oncall/
       destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/
@@ -27,6 +24,8 @@ refs:
   data-webhook-template:
     - pattern: /docs/oncall/
       destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
 ---
 
 # Grafana Alerting integration for Grafana OnCall

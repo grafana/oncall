@@ -179,4 +179,3 @@ Consider modifying example templates to fit your use case (e.g. to include more 
 Refer to [outgoing webhooks documentation](ref:outgoing-webhooks) for more information on available template variables and webhook configuration.
 
 For more information on Zendesk API, refer to [Zendesk API documentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/).
-

@@ -583,4 +583,3 @@ Integrate with third-party services:
 - [JIRA](ref:jira)
 - [ServiceNow](ref:servicenow)
 - [Zendesk](ref:zendesk)
-

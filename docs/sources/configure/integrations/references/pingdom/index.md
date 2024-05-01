@@ -50,4 +50,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 4. Go to "Reports" -> "Uptime" -> "Edit Check".
 5. Select `Grafana OnCall` integration in the bottom.
 6. Click "Modify Check" to save.
-

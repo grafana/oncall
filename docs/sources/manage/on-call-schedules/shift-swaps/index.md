@@ -134,4 +134,3 @@ request, we will not attempt to regenerate a new shift swap request.
 application.
 2. Create a Client ID for your OAuth2 app and set the `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY` and `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`
 environment variables accordingly.
-

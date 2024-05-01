@@ -108,4 +108,3 @@ informing all users in the on-call schedule (except the initiator) about it.
 
 To enable or disable shift swap notifications and their follow-ups, use the **info notifications** section
 in the **Push notifications** settings.
-

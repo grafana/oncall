@@ -124,4 +124,3 @@ Grafana OnCall provides grouping and auto-resolve logic for the AppDynamics inte
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
 [this section](ref:complete-the-integration-configuration)
-

@@ -50,4 +50,3 @@ in Grafana OnCall.
 2. Open this topic, then create a new subscription
 3. Choose the protocol HTTPS
 4. Add the **OnCall Integration URL** to the Amazon SNS Endpoint
-

@@ -151,4 +151,3 @@ For more information, refer to [Notify people].
 
 > **Important:** Linked Integrations and Routes are displayed in the right panel. Any change in the Escalation Chain will
 affect all linked Integrations and Routes.
-

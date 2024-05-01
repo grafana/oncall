@@ -99,4 +99,3 @@ Navigate to the **Integrations** page and find the "Direct paging" integration f
 integration's detail page, you can customize its settings, link it to an escalation chain, and configure associated
 ChatOps channels. To confirm that the integration is functioning as intended, [create a new alert group](#page-a-team)
 and select the same team for a test run.
-

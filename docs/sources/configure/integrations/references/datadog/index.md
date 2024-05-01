@@ -51,4 +51,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 5. Navigate to the Events page from the sidebar to send the test alert
 6. Type @webhook-grafana-oncall-alerts test alert
 7. Click the post button
-

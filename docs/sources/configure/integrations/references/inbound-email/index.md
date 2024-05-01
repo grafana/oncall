@@ -58,4 +58,3 @@ Alerts from Inbound Email integration have the following payload:
    "sender": "<your_email_sender_address>"
 }
 ```
-

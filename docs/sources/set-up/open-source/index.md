@@ -352,4 +352,3 @@ To configure this feature as such:
 
 Additionally, if you prefer to disable this feature, you can set the `ESCALATION_AUDITOR_ENABLED` environment variable
 to `False`.
-

@@ -324,4 +324,3 @@ curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \
 **HTTP request**
 
 `DELETE {{API_URL}}/api/v1/integrations/<INTEGRATION_ID>/`
-

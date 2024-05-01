@@ -77,4 +77,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 1. Set URL to <http://devnull.oncall.io> or any other non-existent domain
 1. Click Checkbox next to OnCall Alert Contact (created in the previous step)
 1. Click Create Monitor
-

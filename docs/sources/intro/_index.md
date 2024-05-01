@@ -50,4 +50,3 @@ alert details. Additionally, enhance flexibility by incorporating regular expres
 To get started with Grafana OnCall, refer to [Get started](ref:get-started)
 
 To learn more about what you can do with Grafana OnCall, visit the [Grafana Cloud IRM product page](https://grafana.com/products/cloud/irm/).
-

@@ -87,4 +87,3 @@ for a couple of weeks). You can then create a shift swap request, which will let
 know about this as well as allowing them to volunteer and take your affected shifts for that period.
 
 For more information, refer to [Shift swap requests](ref:shift-swap-requests).
-

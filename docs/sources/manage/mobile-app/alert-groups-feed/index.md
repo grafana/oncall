@@ -47,4 +47,3 @@ Additionally, you can take action on the alert group directly from this page. Yo
 <img src="/static/img/oncall/mobile-app-alertgroups2.png" width="300px">
 <img src="/static/img/oncall/mobile-app-alertgroup2.png" width="300px">
 <img src="/static/img/oncall/mobile-app-timeline.png" width="300px">
-

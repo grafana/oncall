@@ -244,4 +244,3 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
-

@@ -67,4 +67,3 @@ To send an alert from Kapacitor, you can follow these steps:
 When the condition defined in the TICKscript is met, Kapacitor will trigger the alert and send
 a POST request to the specified webhook URL with the necessary information. Make sure your webhook
 endpoint is configured to receive and process the incoming alerts from Kapacitor.
-

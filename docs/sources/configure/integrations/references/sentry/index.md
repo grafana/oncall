@@ -69,4 +69,3 @@ level, event frequency, or specific tags.
 8. Save the alert rule.
 
 Once the alert conditions are met, Sentry will trigger the webhook action and send a request to the Grafana OnCall.
-

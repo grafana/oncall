@@ -208,4 +208,3 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 1. Hover over the message and select **More actions** from the menu options.
 1. Select **Add as resolution note**.
 1. The Grafana OnCall app will react to the message in Slack with the memo emoji and add the message to the alert group timeline.
-

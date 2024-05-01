@@ -301,4 +301,3 @@ Actions performed with slack chatops integration:
 ```logql
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
-
