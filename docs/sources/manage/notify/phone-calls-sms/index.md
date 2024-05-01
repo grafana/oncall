@@ -35,7 +35,8 @@ refs:
 
 # Phone calls and SMS notifications
 
-Grafana OnCall Cloud includes SMS and Phone notifications, OSS users can use the [Grafana OSS-Cloud Setup](ref:grafana-oss-cloud-setup) as a relay or configure other providers like Twilio.
+Grafana OnCall Cloud includes SMS and Phone notifications,
+OSS users can use the [Grafana OSS-Cloud Setup](ref:grafana-oss-cloud-setup) as a relay or configure other providers like Twilio.
 
 ## Are there additional costs for outgoing calls/sms?
 
