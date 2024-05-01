@@ -4,6 +4,13 @@ import typing
 from django.conf import settings
 
 
+class AlertGroupStateDict(typing.TypedDict):
+    firing: int
+    acknowledged: int
+    silenced: int
+    resolved: int
+
+
 class AlertGroupsTotalMetricsDict(typing.TypedDict):
     integration_name: str
     team_name: str
@@ -11,10 +18,7 @@ class AlertGroupsTotalMetricsDict(typing.TypedDict):
     org_id: int
     slug: str
     id: int
-    firing: int
-    acknowledged: int
-    silenced: int
-    resolved: int
+    services: typing.Dict[str, AlertGroupStateDict]
 
 
 class AlertGroupsResponseTimeMetricsDict(typing.TypedDict):
@@ -24,7 +28,7 @@ class AlertGroupsResponseTimeMetricsDict(typing.TypedDict):
     org_id: int
     slug: str
     id: int
-    response_time: list
+    services: typing.Dict[str, list]
 
 
 class UserWasNotifiedOfAlertGroupsMetricsDict(typing.TypedDict):
@@ -61,3 +65,6 @@ METRICS_RECALCULATION_CACHE_TIMEOUT_DISPERSE = (0, 3600)  # 1 hour
 
 METRICS_ORGANIZATIONS_IDS = "metrics_organizations_ids"
 METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT = 3600  # 1 hour
+
+SERVICE_LABEL = "service_name"
+NO_SERVICE_VALUE = "No service"

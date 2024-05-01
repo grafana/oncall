@@ -243,6 +243,16 @@ must match the structure of how the fields are nested in the data.
       "urgency": "3"
     }
   },
+  "alert_group_acknowledged_by": {
+    "id": "UVMX6YI9VY9PV",
+    "username": "admin",
+    "email": "admin@localhost"
+  },
+  "alert_group_resolved_by": {
+    "id": "UVMX6YI9VY9PV",
+    "username": "admin",
+    "email": "admin@localhost"
+  },
   "notified_users": [],
   "users_to_be_notified": [],
   "responses": {
@@ -334,6 +344,22 @@ consists of `id`,`username`,`email`. Array elements are ordered based on the ord
 first element being the user that will be notified next. Like `notified_users` depending on timing of notifications
 a user in this array may have already been notified by the time this data is being processed. Access as
 `{{ users_to_notify[0].username }}` for example.
+
+#### `alert_group_acknowledged_by`
+
+Information about the user who acknowledged the alert group
+
+- `{{ user.id }}` - [UID](#uid) of the user within Grafana OnCall
+- `{{ user.username }}` - Username in Grafana
+- `{{ user.email }}` - Email associated with user's Grafana account
+
+#### `alert_group_resolved_by`
+
+Information about the user who resolved the alert group
+
+- `{{ user.id }}` - [UID](#uid) of the user within Grafana OnCall
+- `{{ user.username }}` - Username in Grafana
+- `{{ user.email }}` - Email associated with user's Grafana account
 
 #### `responses`
 

@@ -31,7 +31,7 @@ export const getCardButtonStyles = (theme: GrafanaTheme2) => {
         top: 0;
         bottom: 0;
         width: 4px;
-        background-image: linear-gradient(270deg, #f55f3e 0%, #f83 100%);
+        background-image: ${theme.colors.gradients.brandVertical};
       }
     `,
   };

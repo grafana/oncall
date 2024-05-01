@@ -7,7 +7,7 @@ exports[`StatusMessageBlock It renders properly 1`] = `
       data-testid="status-message-block"
     >
       <span
-        class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
       >
         helloooo
       </span>
