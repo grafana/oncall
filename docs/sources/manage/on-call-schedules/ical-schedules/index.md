@@ -105,10 +105,9 @@ event duplication.
 ### Create overlapping schedules (optional)
 
 If you create schedules that overlap, you can prioritize a schedule by adding a level marker to the calendar event
-title. You can prioritize schedule overlaps using [L0] - [L9] prioritization. Overlapping calendar events that do not
+title. You can prioritize schedule overlaps using `[L0] - [L9]` prioritization. Overlapping calendar events that do not
 contain a level marker result in all overlapping users receiving notifications.
 
 For example, users AliceGrafana and BobGrafana have overlapping schedules but BobGrafana is the intended primary
 contact. The calendar events titles would be `[L1] BobGrafana` and `[L0] AliceGrafana` - In this case AliceGrafana
-maintains the default [L0] status, and would not receive notifications during the overlapping time with BobGrafana.
-
+maintains the default `[L0]` status, and would not receive notifications during the overlapping time with BobGrafana.
