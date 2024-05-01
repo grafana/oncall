@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { KeyValue, SelectableValue, TimeRange, rangeUtil } from '@grafana/data';
+import { KeyValue, SelectableValue, TimeRange } from '@grafana/data';
 import {
   InlineSwitch,
   MultiSelect,
@@ -29,7 +29,7 @@ import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
-import { getValueForDateRangeFilterType } from 'utils/datetime';
+import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'utils/datetime';
 import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
@@ -320,7 +320,6 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         return (
           <TimeRangeInput
             timeZone={moment.tz.guess()}
-            // @ts-ignore
             value={value}
             onChange={this.getDateRangeFilterChangeHandler(filter.name)}
             hideTimeZone
@@ -378,15 +377,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   getDateRangeFilterChangeHandler = (name: FilterOption['name']) => {
     return (timeRange: TimeRange) => {
-      const isRelative = rangeUtil.isRelativeTimeRange(timeRange.raw);
-
-      let value = '';
-      if (isRelative) {
-        value = timeRange.raw.from + '/' + timeRange.raw.to;
-      } else if (timeRange.from.isValid() && timeRange.to.isValid()) {
-        value =
-          timeRange.from.utc().format('YYYY-MM-DDTHH:mm:ss') + '/' + timeRange.to.utc().format('YYYY-MM-DDTHH:mm:ss');
-      }
+      const value = convertTimerangeToFilterValue(timeRange);
       this.onFiltersValueChange(name, value);
     };
   };
