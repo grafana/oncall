@@ -733,7 +733,7 @@ class AlertGroupView(
         now = timezone.now()
         week_ago = now - timedelta(days=7)
 
-        default_datetime_range = "{}/{}".format(
+        default_datetime_range = "{}_{}".format(
             week_ago.strftime(DateRangeFilterMixin.DATE_FORMAT),
             now.strftime(DateRangeFilterMixin.DATE_FORMAT),
         )
