@@ -22,6 +22,9 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, User
 
 
+PROXY_REQUESTS_TIMEOUT = 5
+
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -209,6 +212,7 @@ class MobileAppGatewayView(APIView):
                 data=request.body,
                 params=request.query_params.dict(),
                 headers=self._get_downstream_headers(request, downstream_backend, user),
+                timeout=PROXY_REQUESTS_TIMEOUT,  # set a timeout to prevent hanging
             )
 
             logger.info(f"Successfully proxied {log_msg_common}")
@@ -216,10 +220,13 @@ class MobileAppGatewayView(APIView):
         except (
             requests.exceptions.RequestException,
             requests.exceptions.JSONDecodeError,
+            requests.exceptions.Timeout,
             CloudAuthApiException,
         ) as e:
             if isinstance(e, requests.exceptions.JSONDecodeError):
                 final_status = status.HTTP_400_BAD_REQUEST
+            elif isinstance(e, requests.exceptions.Timeout):
+                final_status = status.HTTP_504_GATEWAY_TIMEOUT
             else:
                 final_status = status.HTTP_502_BAD_GATEWAY
 
