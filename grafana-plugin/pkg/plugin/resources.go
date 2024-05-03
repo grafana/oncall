@@ -2,13 +2,25 @@ package plugin
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"net/http"
 )
+
+// curl -X GET -H "Accept: application/json"  http://oncall:oncall@localhost:3000/api/plugins/grafana-oncall-app/resources/ping | jq
 
 // handlePing is an example HTTP GET resource that returns a {"message": "ok"} JSON response.
 func (a *App) handlePing(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
-	if _, err := w.Write([]byte(`{"message": "ok"}`)); err != nil {
+
+	cfg := backend.GrafanaConfigFromContext(req.Context())
+	saToken, err := cfg.PluginAppClientSecret()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	msg := fmt.Sprintf(`{"message":  "%s"}`, saToken)
+	if _, err := w.Write([]byte(msg)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
