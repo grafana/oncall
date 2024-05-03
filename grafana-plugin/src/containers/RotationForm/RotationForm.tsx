@@ -480,13 +480,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
 
-  useEffect(() => {
-    window.addEventListener('resize', onResize);
-    return () => {
-      window.removeEventListener('resize', onResize);
-    };
-  }, []);
-
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   const hasUpdatedShift = shift && shift.updated_shift;
@@ -764,10 +757,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
       )}
     </>
   );
-
-  function onResize() {
-    onHide();
-  }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
     if (!data) {
