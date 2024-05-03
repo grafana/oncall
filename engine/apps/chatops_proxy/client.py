@@ -133,10 +133,15 @@ class ChatopsProxyAPIClient:
         return response.json()["removed"], response
 
     def get_slack_oauth_link(
-        self, stack_id: int, grafana_user_id: int, app_redirect: str
+        self, stack_id: int, grafana_user_id: int, app_redirect: str, app_type: str
     ) -> tuple[str, requests.models.Response]:
         url = f"{self.api_base_url}/oauth2/start"
-        d = {"stack_id": stack_id, "grafana_user_id": grafana_user_id, "app_redirect": app_redirect}
+        d = {
+            "stack_id": stack_id,
+            "grafana_user_id": grafana_user_id,
+            "app_redirect": app_redirect,
+            "app_type": app_type,
+        }
         response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return response.json()["install_link"], response
