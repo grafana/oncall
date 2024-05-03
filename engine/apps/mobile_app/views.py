@@ -1,5 +1,6 @@
 import enum
 import logging
+import time
 import typing
 
 import requests
@@ -191,6 +192,7 @@ class MobileAppGatewayView(APIView):
         return f"{downstream_url}/{downstream_path}"
 
     def _proxy_request(self, request: Request, *args, **kwargs) -> Response:
+        request_start = time.perf_counter()
         downstream_backend = kwargs["downstream_backend"]
         downstream_path = kwargs["downstream_path"]
         method = request.method
@@ -214,7 +216,7 @@ class MobileAppGatewayView(APIView):
                 headers=self._get_downstream_headers(request, downstream_backend, user),
                 timeout=PROXY_REQUESTS_TIMEOUT,  # set a timeout to prevent hanging
             )
-
+            final_status = downstream_response.status_code
             logger.info(f"Successfully proxied {log_msg_common}")
             return Response(status=downstream_response.status_code, data=downstream_response.json())
         except (
@@ -242,6 +244,14 @@ class MobileAppGatewayView(APIView):
                 exc_info=True,
             )
             return Response(status=final_status)
+        finally:
+            request_end = time.perf_counter()
+            seconds = request_end - request_start
+            logging.info(
+                f"outbound latency={str(seconds)} status={final_status} "
+                f"method={method.upper()} url={downstream_url} "
+                f"slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
+            )
 
 
 """
