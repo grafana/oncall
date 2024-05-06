@@ -222,6 +222,7 @@ const ScheduleCommonFields = () => {
         render={({ field }) => (
           <Field label="Assign to team" invalid={!!errors.team} error={errors.team?.message}>
             <GSelect<GrafanaTeam>
+              showSearch
               items={grafanaTeamStore.items}
               fetchItemsFn={grafanaTeamStore.updateItems}
               fetchItemFn={grafanaTeamStore.fetchItemById}
