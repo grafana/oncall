@@ -133,6 +133,15 @@ cluster/up:  ## (beta) create a local development k8s cluster
 cluster/down: ## (beta) delete local development k8s cluster
 	ctlptl delete -f dev/kind-config.yaml
 
+.PHONY: build/plugin-backend
+build/plugin-backend:
+ifeq ("$(wildcard grafana-plugin/Magefile.go)","grafana-plugin/Magefile.go")
+	@cd grafana-plugin && go list -f '{{.Dir}}||{{.Name}}' github.com/grafana/grafana-plugin-sdk-go/build
+	@cd grafana-plugin && mage -v
+else
+	@echo "No Magefile.go found, skipping backend build"
+endif
+
 start:  ## start all of the docker containers
 	$(call run_docker_compose_command,up --remove-orphans -d)
 

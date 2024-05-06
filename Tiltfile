@@ -67,6 +67,14 @@ local_resource(
     allow_parallel=True,
 )
 
+# Build plugin backend
+if os.path.exists('grafana-plugin/Magefile.go'):
+    local_resource(
+        'build-plugin-backend',
+        cmd='make build/plugin-backend',
+        deps=['grafana-plugin/pkg/plugin']
+    )
+
 local_resource(
     "e2e-tests",
     labels=["E2eTests"],
@@ -141,11 +149,12 @@ if not running_under_parent_tiltfile:
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
-        deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "engine"],
+        deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "engine", "build-plugin-backend"],
         extra_env={
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",
             "GF_AUTH_ANONYMOUS_ENABLED": "false",
+            "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts"
         },
     )
 
