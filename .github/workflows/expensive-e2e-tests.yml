@@ -1,5 +1,8 @@
-name: Daily e2e tests
-"on":
+name: Expensive e2e tests
+on:
+  push:
+    branches:
+      - main
   # allows manual run on github actions
   workflow_dispatch:
   schedule:
@@ -7,10 +10,10 @@ name: Daily e2e tests
 
 jobs:
   end-to-end-tests:
-    name: End to end tests
+    name: Expensive e2e tests
     strategy:
       matrix:
-        grafana-image-tag:
+        grafana_version:
           # OnCall doesn't work on the following versions of Grafana
           # - 8.5.22
           # - 9.0.0
@@ -29,7 +32,7 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yml
     with:
-      grafana-image-tag: ${{ matrix.grafana-image-tag }}
+      grafana_version: ${{ matrix.grafana_version }}
       run-expensive-tests: true
       # TODO: fix issues with some tests on firefox and webkit
       # example CI build with firefox/webkit failing tests
@@ -41,7 +44,7 @@ jobs:
   post-status-to-slack:
     runs-on: ubuntu-latest
     needs: end-to-end-tests
-    if: always()
+    if: failure
     steps:
       # Useful references
       # https://stackoverflow.com/questions/59073850/github-actions-get-url-of-test-build
