@@ -3,8 +3,9 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"net/http"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
 // curl -X GET -H "Accept: application/json"  http://oncall:oncall@localhost:3000/api/plugins/grafana-oncall-app/resources/ping | jq
@@ -51,6 +52,6 @@ func (a *App) handleEcho(w http.ResponseWriter, req *http.Request) {
 
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/ping", a.handlePing)
-	mux.HandleFunc("/echo", a.handleEcho)
+	mux.HandleFunc("/", a.handlePing)
+	// mux.HandleFunc("/echo", a.handleEcho)
 }

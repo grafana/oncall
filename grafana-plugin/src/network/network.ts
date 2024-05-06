@@ -3,8 +3,7 @@ import qs from 'query-string';
 
 import { FaroHelper } from 'utils/faro';
 
-export const API_PROXY_PREFIX = 'api/plugin-proxy/grafana-oncall-app';
-export const API_PATH_PREFIX = '/api/internal/v1';
+export const API_PROXY_PREFIX = '/api/plugins/grafana-oncall-app/resources';
 
 const instance = axios.create();
 
@@ -41,7 +40,7 @@ export const isNetworkError = axios.isAxiosError;
 export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
   const { method = 'GET', params, data, validateStatus, headers } = config;
 
-  const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
+  const url = `${API_PROXY_PREFIX}${path}`;
   const otel = FaroHelper.faro?.api?.getOTEL();
 
   if (FaroHelper.faro && otel) {
