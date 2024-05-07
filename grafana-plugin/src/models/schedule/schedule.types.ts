@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { UserGroup } from 'models/user_group/user_group.types';
@@ -9,13 +7,6 @@ export enum ScheduleType {
   'Calendar',
   'Ical',
   'API',
-}
-
-export interface RotationFormLiveParams {
-  rotationStart: dayjs.Dayjs;
-  shiftStart: dayjs.Dayjs;
-  shiftEnd: dayjs.Dayjs;
-  focusElementName: string;
 }
 
 export interface Schedule {

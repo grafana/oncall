@@ -180,7 +180,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                                 layerIndex={layerIndex}
                                 rotationIndex={rotationIndex}
                                 transparent={isPreview}
-                                tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
                                 filters={filters}
                                 onSlotClick={onSlotClick}
                               />

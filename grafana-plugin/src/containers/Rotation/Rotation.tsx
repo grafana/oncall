@@ -9,10 +9,8 @@ import hash from 'object-hash';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
 import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
-import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-
-import { RotationTutorial } from './RotationTutorial';
 
 import styles from './Rotation.module.css';
 
@@ -30,7 +28,6 @@ interface RotationProps {
   onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
   days?: number;
   transparent?: boolean;
-  tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
   getColor?: (event: Event) => string;
@@ -48,7 +45,6 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     color: propsColor,
     days = 7,
     transparent = false,
-    tutorialParams,
     onClick,
     handleAddOverride,
     handleAddShiftSwap,
@@ -145,7 +141,6 @@ export const Rotation: FC<RotationProps> = observer((props) => {
   return (
     <div className={cx('root')} onClick={onClick && handleRotationClick}>
       <div className={cx('timeline')}>
-        {tutorialParams && <RotationTutorial {...tutorialParams} />}
         {events ? (
           events.length ? (
             <div

@@ -34,7 +34,6 @@ import {
   Event,
   Layer,
   ShiftEvents,
-  RotationFormLiveParams,
   ScheduleScoreQualityResponse,
   ShiftSwap,
 } from './schedule.types';
@@ -107,9 +106,6 @@ export class ScheduleStore extends BaseStore {
 
   @observable
   overridePreview?: { [fromString: string]: ShiftEvents[] };
-
-  @observable
-  rotationFormLiveParams: RotationFormLiveParams = undefined;
 
   @observable
   scheduleToScheduleEvents: {
@@ -277,10 +273,6 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  setRotationFormLiveParams(params: RotationFormLiveParams) {
-    this.rotationFormLiveParams = params;
-  }
-
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
@@ -356,7 +348,6 @@ export class ScheduleStore extends BaseStore {
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
     this.shiftSwapsPreview = undefined;
-    this.rotationFormLiveParams = undefined;
   }
 
   @action.bound
