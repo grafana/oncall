@@ -28,6 +28,13 @@
 
 .controls {
   width: 100%;
+  position: sticky;
+  top: 10px;
+  z-index: 2;
+  padding: 10px;
+  background: var(--background-secondary);
+  border: var(--border-weak);
+  border-radius: var(--border-radius);
 }
 
 .rotations {

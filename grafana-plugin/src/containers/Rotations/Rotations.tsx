@@ -8,6 +8,7 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
+import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
 import { RotationForm } from 'containers/RotationForm/RotationForm';
@@ -148,19 +149,17 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
           <div className={cx('rotations-plus-title')}>
             {layers && layers.length ? (
               <TransitionGroup className={cx('layers')}>
+                <TimelineMarks />
+                {!currentTimeHidden && (
+                  <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                )}
                 {layers.map((layer, layerIndex) => (
                   <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                    <div id={`layer${layer.priority}`} className={cx('layer')}>
-                      <div className={cx('layer-title')}>
-                        <HorizontalGroup spacing="sm" justify="center">
-                          <Text type="secondary">Layer {layer.priority}</Text>
-                        </HorizontalGroup>
-                      </div>
+                    <div id={`layer${layer.priority}`} className={cx('layer', { ['layer-first']: layerIndex === 0 })}>
+                      <Tag className={cx('layer-title')} color="secondary">
+                        <Text type="secondary"> Layer {layer.priority}</Text>
+                      </Tag>
                       <div className={cx('header-plus-content')}>
-                        <TimelineMarks />
-                        {!currentTimeHidden && (
-                          <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                        )}
                         <TransitionGroup className={cx('rotations')}>
                           {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                             <CSSTransition
@@ -226,7 +225,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                   this.handleAddLayer(nextPriority, store.timezoneStore.calendarStartDate);
                 }}
               >
-                <Text type={disabled ? 'disabled' : 'primary'}>+ Add new layer with rotation</Text>
+                <Text type={disabled ? 'disabled' : 'link'}>+ Add new layer with rotation</Text>
               </div>
             )}
           </div>

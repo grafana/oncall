@@ -82,7 +82,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
         <div className={cx('header-plus-content')}>
           {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
           <TimelineMarks />
-          <TransitionGroup className={cx('rotations')}>
+          <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
             {shifts && shifts.length ? (
               shifts.map(({ events }, index) => {
                 return (

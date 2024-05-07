@@ -73,11 +73,9 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
         return (
           <div key={i} className={cx('weekday' /* , { 'weekday--weekend': isWeekend } */)}>
             <div className={cx('weekday-title')}>
-              <Text type="secondary" strong={isCurrentDay}>
-                {m.moment.format('ddd D MMM')}
-              </Text>
+              <Text type={isCurrentDay ? 'primary' : 'secondary'}>{m.moment.format('ddd D MMM')}</Text>
             </div>
-            <div className={cx('weekday-times')}>
+            {/* <div className={cx('weekday-times')}>
               {m.moments.map((mm, j) => (
                 <div key={j} className={cx('weekday-time')}>
                   <div
@@ -89,7 +87,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
         );
       })}

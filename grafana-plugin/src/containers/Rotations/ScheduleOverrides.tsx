@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
+import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
 import { ScheduleOverrideForm } from 'containers/RotationForm/ScheduleOverrideForm';
@@ -150,7 +151,10 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
-            <TransitionGroup className={cx('rotations')}>
+            <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
+              <Tag className={cx('layer-title')} color="secondary">
+                <Text type="secondary">Swaps</Text>
+              </Tag>
               {shiftSwaps && shiftSwaps.length
                 ? shiftSwaps.map(({ isPreview, events }, index) => (
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
@@ -170,7 +174,10 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                   ))
                 : null}
             </TransitionGroup>
-            <TransitionGroup className={cx('rotations')}>
+            <TransitionGroup className={cx('rotations', 'layer')}>
+              <Tag className={cx('layer-title')} color="secondary">
+                <Text type="secondary">Overrides</Text>
+              </Tag>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, isPreview, events }, index) => (
                   <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
