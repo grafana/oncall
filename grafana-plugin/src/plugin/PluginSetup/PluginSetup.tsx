@@ -10,6 +10,8 @@ import logo from 'assets/img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { loadJs } from 'utils/loadJs';
+import { makeRequest } from 'network/network';
+import { PluginState } from 'state/plugin/plugin';
 
 export type PluginSetupProps = AppRootProps & {
   InitializedComponent: (props: AppRootProps) => JSX.Element;
@@ -40,6 +42,15 @@ export const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponen
   useEffect(() => {
     (async function () {
       // await setupPlugin();
+      const { onCallToken } = await makeRequest(`/plugin/self-hosted/install`, { method: 'POST' });
+      if (onCallToken) {
+        await PluginState.updateGrafanaPluginSettings({
+          secureJsonData: {
+            onCallApiToken: onCallToken,
+          },
+        });
+      }
+
       store.recaptchaSiteKey &&
         loadJs(`https://www.google.com/recaptcha/api.js?render=${store.recaptchaSiteKey}`, store.recaptchaSiteKey);
     })();

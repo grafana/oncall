@@ -22,11 +22,16 @@ var (
 // App is an example app backend plugin which can respond to data queries.
 type App struct {
 	backend.CallResourceHandler
+	settings backend.AppInstanceSettings
 }
 
 // NewApp creates a new example *App instance.
-func NewApp(_ context.Context, _ backend.AppInstanceSettings) (instancemgmt.Instance, error) {
+func NewApp(_ context.Context, instanceSettings backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	var app App
+
+	backend.Logger.Info("NewApp HERE")
+
+	app.settings = instanceSettings
 
 	// Use a httpadapter (provided by the SDK) for resource calls. This allows us
 	// to use a *http.ServeMux for resource calls, so we can map multiple routes
@@ -46,6 +51,7 @@ func (a *App) Dispose() {
 
 // CheckHealth handles health checks sent from Grafana to the plugin.
 func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	backend.Logger.Info("CheckHealth HERE")
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "ok",

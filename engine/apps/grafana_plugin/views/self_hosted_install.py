@@ -11,7 +11,7 @@ from common.api_helpers.mixins import GrafanaHeadersMixin
 
 
 class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
-    def post(self, _request: Request) -> Response:
+    def post(self, req: Request) -> Response:
         """
         We've already validated that settings.GRAFANA_API_URL is set (in apps.grafana_plugin.GrafanaPluginConfig)
         The user is now trying to finish plugin installation. We'll take the Grafana API url that they specified +
@@ -21,7 +21,13 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
         stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
         org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
         grafana_url = settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"]
+
+        print("REQ_HERE", req.headers)
+        print("INST_CONT", self.instance_context)
+
         grafana_api_token = self.instance_context["grafana_token"]
+
+        print("GRAFANA_TOKEN_HERE", grafana_api_token)
 
         provisioning_info = {"error": None}
 
@@ -31,6 +37,9 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
 
         grafana_api_client = GrafanaAPIClient(api_url=grafana_url, api_token=grafana_api_token)
         _, client_status = grafana_api_client.check_token()
+
+        print("client_status", client_status)
+
         status_code = client_status["status_code"]
 
         if status_code == status.HTTP_404_NOT_FOUND:

@@ -1,3 +1,5 @@
+import { config as GrafanaRuntimeConfig } from '@grafana/runtime';
+
 import axios from 'axios';
 import qs from 'query-string';
 
@@ -19,6 +21,17 @@ instance.interceptors.request.use(function (config) {
     return status >= 200 && status < 300; // default
   };
 
+  /**
+   * In short, this header will tell the Grafana plugin proxy, a Go service which use Go's HTTP Transport,
+   * to retry POST requests (and other non-idempotent requests). This doesn't necessarily make these requests
+   * idempotent, but it will make them retry-able from Go's (read: net/http) perspective.
+   *
+   * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
+   * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
+   */
+  config.headers.set('X-Idempotency-Key', `${Date.now()}-${Math.random()}`);
+  config.headers.set('X-Grafana-Context', `{"UserId": "${GrafanaRuntimeConfig.bootData.user.id}"}`);
+
   return {
     ...config,
   };
@@ -30,15 +43,12 @@ interface RequestConfig {
   data?: any;
   withCredentials?: boolean;
   validateStatus?: (status: number) => boolean;
-  headers?: {
-    [key: string]: string | number;
-  };
 }
 
 export const isNetworkError = axios.isAxiosError;
 
 export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
-  const { method = 'GET', params, data, validateStatus, headers } = config;
+  const { method = 'GET', params, data, validateStatus } = config;
 
   const url = `${API_PROXY_PREFIX}${path}`;
   const otel = FaroHelper.faro?.api?.getOTEL();
@@ -62,18 +72,6 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
           params,
           data,
           validateStatus,
-          headers: {
-            ...headers,
-            /**
-             * In short, this header will tell the Grafana plugin proxy, a Go service which use Go's HTTP Transport,
-             * to retry POST requests (and other non-idempotent requests). This doesn't necessarily make these requests
-             * idempotent, but it will make them retry-able from Go's (read: net/http) perspective.
-             *
-             * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
-             * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
-             */
-            'X-Idempotency-Key': `${Date.now()}-${Math.random()}`,
-          },
         });
         FaroHelper.faro.api.pushEvent('Request completed', { url });
         span.end();
@@ -94,7 +92,6 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
       params,
       data,
       validateStatus,
-      headers,
     });
 
     FaroHelper.faro?.api.pushEvent('Request completed', { url });

@@ -48,6 +48,7 @@ class ApiTokenAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         auth = get_authorization_header(request).decode("utf-8")
+        print("AUTH_HERE", auth)
         user, auth_token = self.authenticate_credentials(auth)
 
         if not user_is_authorized(user, [RBACPermission.Permissions.API_KEYS_WRITE]):
@@ -62,6 +63,7 @@ class ApiTokenAuthentication(BaseAuthentication):
         Due to the random nature of hashing a  value, this must inspect
         each auth_token individually to find the correct one.
         """
+        print("TOKEN_HERE", token)
         try:
             auth_token = self.model.validate_token_string(token)
         except InvalidToken:
@@ -109,6 +111,7 @@ class BasePluginAuthentication(BaseAuthentication):
 
         try:
             auth_token = check_token(token_string, context=context)
+            print("AUTH_TOKEN_HERE: ", token_string)
             if not auth_token.organization:
                 raise exceptions.AuthenticationFailed("No organization associated with token.")
         except InvalidToken:
@@ -158,6 +161,7 @@ class PluginAuthentication(BasePluginAuthentication):
             user_id = context["UserID"]
 
         try:
+            print("ORG_USERS_HERE", organization.users)
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")

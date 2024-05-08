@@ -126,17 +126,6 @@
           "content": "{{ .SecureJsonData.onCallApiToken }}"
         }
       ]
-    },
-    {
-      "path": "api/internal/v1/plugin/self-hosted/install",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/self-hosted/install",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
-        }
-      ]
     }
   ],
   "roles": [

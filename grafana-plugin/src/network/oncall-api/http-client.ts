@@ -1,3 +1,4 @@
+import { config as GrafanaRuntimeConfig } from '@grafana/runtime';
 import createClient from 'openapi-fetch';
 import qs from 'query-string';
 
@@ -32,6 +33,7 @@ export const getCustomFetchFn =
      */
     requestConfig.headers.set('X-Idempotency-Key', `${Date.now()}-${Math.random()}`);
     requestConfig.headers.set('Content-Type', 'application/json');
+    requestConfig.headers.set('X-Grafana-Context', `{"UserId": "${GrafanaRuntimeConfig.bootData.user.id}"}`);
 
     if (faro && otel) {
       const tracer = otel.trace.getTracer('default');

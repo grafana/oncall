@@ -785,7 +785,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_SLUG": os.environ.get("SELF_HOSTED_ORG_SLUG", "self_hosted_org"),
     "ORG_TITLE": os.environ.get("SELF_HOSTED_ORG_TITLE", "Self-Hosted Organization"),
     "REGION_SLUG": os.environ.get("SELF_HOSTED_REGION_SLUG", "self_hosted_region"),
-    "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
+    "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", "http://localhost:3000"),
     "CLUSTER_SLUG": os.environ.get("SELF_HOSTED_CLUSTER_SLUG", "self_hosted_cluster"),
 }
 
