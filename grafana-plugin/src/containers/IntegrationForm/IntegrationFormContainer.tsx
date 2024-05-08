@@ -32,7 +32,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
-  const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
+  const [showIntegrationsListDrawer, setshowIntegrationsListDrawer] = useState(id === 'new');
 
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
 
@@ -56,7 +56,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
 
   return (
     <>
-      {showIntegrarionsListDrawer && (
+      {showIntegrationsListDrawer && (
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
@@ -79,7 +79,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
           </div>
         </Drawer>
       )}
-      {(showNewIntegrationForm || !showIntegrarionsListDrawer) && (
+      {(showNewIntegrationForm || !showIntegrationsListDrawer) && (
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
@@ -100,13 +100,13 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
 
   function onBackClick(): void {
     setShowNewIntegrationForm(false);
-    setShowIntegrarionsListDrawer(true);
+    setshowIntegrationsListDrawer(true);
   }
 
   function onBlockClick(option: ApiSchemas['AlertReceiveChannelIntegrationOptions']): void {
     setSelectedOption(option);
     setShowNewIntegrationForm(true);
-    setShowIntegrarionsListDrawer(false);
+    setshowIntegrationsListDrawer(false);
   }
 
   function getTitle(): string {

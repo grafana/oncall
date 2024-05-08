@@ -30,7 +30,7 @@ class DateRangeFilterMixin:
         if not value:
             return None, None
 
-        date_entries = value.split("/")
+        date_entries = value.split("_")
 
         if len(date_entries) != 2:
             raise BadRequest(detail="Invalid range value")

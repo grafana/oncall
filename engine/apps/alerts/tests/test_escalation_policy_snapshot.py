@@ -488,6 +488,33 @@ def test_escalation_step_trigger_custom_webhook(
 
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
 @pytest.mark.django_db
+def test_escalation_step_trigger_disabled_custom_webhook(
+    mocked_execute_tasks,
+    escalation_step_test_setup,
+    make_custom_webhook,
+    make_escalation_policy,
+):
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+
+    custom_webhook = make_custom_webhook(organization=organization, is_webhook_enabled=False)
+
+    trigger_custom_webhook_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
+        custom_webhook=custom_webhook,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_webhook_step)
+    escalation_policy_snapshot.execute(alert_group, reason)
+    assert call([]) in mocked_execute_tasks.call_args_list
+
+    log_record = AlertGroupLogRecord.objects.get(
+        alert_group_id=alert_group.id, escalation_policy=trigger_custom_webhook_step
+    )
+    assert log_record.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED
+
+
+@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.django_db
 def test_escalation_step_repeat_escalation_n_times(
     mocked_execute_tasks,
     escalation_step_test_setup,

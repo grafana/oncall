@@ -472,24 +472,32 @@ class EscalationPolicySnapshot:
     def _escalation_step_trigger_custom_webhook(self, alert_group: "AlertGroup", _reason: str) -> None:
         tasks = []
         webhook = self.custom_webhook
+        failure_reason = None
         if webhook is not None:
-            custom_webhook_task = custom_webhook_result.signature(
-                (webhook.pk, alert_group.pk),
-                {
-                    "escalation_policy_pk": self.id,
-                },
-                immutable=True,
-            )
-            tasks.append(custom_webhook_task)
+            if webhook.is_webhook_enabled:
+                custom_webhook_task = custom_webhook_result.signature(
+                    (webhook.pk, alert_group.pk),
+                    {
+                        "escalation_policy_pk": self.id,
+                    },
+                    immutable=True,
+                )
+                tasks.append(custom_webhook_task)
+            else:
+                failure_reason = AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED
         else:
+            failure_reason = AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_STEP_IS_NOT_CONFIGURED
+
+        if failure_reason:
             log_record = AlertGroupLogRecord(
                 type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
                 alert_group=alert_group,
                 escalation_policy=self.escalation_policy,
-                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_STEP_IS_NOT_CONFIGURED,
+                escalation_error_code=failure_reason,
                 escalation_policy_step=self.step,
             )
             log_record.save()
+
         self._execute_tasks(tasks)
 
     def _escalation_step_repeat_escalation_n_times(
