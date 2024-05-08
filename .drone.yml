@@ -70,7 +70,7 @@ steps:
       - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
       - pip install uv
-      - uv pip install -r requirements.txt -r requirements-dev.txt
+      - uv pip install --system -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
@@ -386,6 +386,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 8126a07b03a6e64537216b6fd594a5687aa1792dd1889cfa77f6ac9aa6422a87
+hmac: a045d72f3f3510895da049f4bf8f5ae4ac21f3ffa3d24cda047152c286df5bc2
 
 ...
