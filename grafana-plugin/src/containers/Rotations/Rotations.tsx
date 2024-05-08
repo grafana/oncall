@@ -15,7 +15,7 @@ import { RotationForm } from 'containers/RotationForm/RotationForm';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleType, Shift, ShiftSwap, Event, Layer } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -30,8 +30,9 @@ const cx = cn.bind(styles);
 
 interface RotationsProps extends WithStoreProps {
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
+  layerPriorityToShowRotationForm?: Layer['priority'];
   scheduleId: Schedule['id'];
-  onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
+  onShowRotationForm: (shiftId: Shift['id'] | 'new', layerPriority?: Layer['priority']) => void;
   onClick: (id: Shift['id'] | 'new') => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
   onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
@@ -45,7 +46,6 @@ interface RotationsProps extends WithStoreProps {
 }
 
 interface RotationsState {
-  layerPriority?: Layer['priority'];
   shiftStartToShowRotationForm?: dayjs.Dayjs;
   shiftEndToShowRotationForm?: dayjs.Dayjs;
 }
@@ -53,7 +53,6 @@ interface RotationsState {
 @observer
 class _Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
-    layerPriority: undefined,
     shiftStartToShowRotationForm: undefined,
     shiftEndToShowRotationForm: undefined,
   };
@@ -70,8 +69,9 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       filters,
       onShowShiftSwapForm,
       onSlotClick,
+      layerPriorityToShowRotationForm,
     } = this.props;
-    const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
+    const { shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
@@ -101,7 +101,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     return (
       <>
-        <div className={cx('root')}>
+        <div id="rotations" className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
               <div className={cx('title')}>
@@ -191,16 +191,14 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                 ))}
               </TransitionGroup>
             ) : (
-              <div>
-                <div id={`layer1`} className={cx('layer')}>
-                  <div className={cx('layer-title')}>
-                    <HorizontalGroup spacing="sm" justify="center">
-                      <Text type="secondary">Layer 1</Text>
-                    </HorizontalGroup>
-                  </div>
+              <div className={cx('layers')}>
+                <TimelineMarks />
+                <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                <div id="layer1" className={cx('layer', 'layer-first')}>
+                  <Tag className={cx('layer-title')} color="secondary">
+                    <Text type="secondary"> Layer 1</Text>
+                  </Tag>
                   <div className={cx('header-plus-content')}>
-                    <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                    <TimelineMarks />
                     <div className={cx('rotations')}>
                       <Rotation
                         onClick={(shiftStart, shiftEnd) => {
@@ -235,7 +233,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             shiftId={shiftIdToShowRotationForm}
             shiftColor={findColor(shiftIdToShowRotationForm, layers)}
             scheduleId={scheduleId}
-            layerPriority={layerPriority}
+            layerPriority={layerPriorityToShowRotationForm}
             shiftStart={shiftStartToShowRotationForm}
             shiftEnd={shiftEndToShowRotationForm}
             onHide={() => {
@@ -284,12 +282,9 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       return;
     }
 
-    this.setState(
-      { layerPriority, shiftStartToShowRotationForm: shiftStart, shiftEndToShowRotationForm: shiftEnd },
-      () => {
-        this.onShowRotationForm('new');
-      }
-    );
+    this.setState({ shiftStartToShowRotationForm: shiftStart, shiftEndToShowRotationForm: shiftEnd }, () => {
+      this.onShowRotationForm('new', layerPriority);
+    });
   };
 
   handleAddRotation = (option: SelectableValue) => {
@@ -301,11 +296,10 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     this.setState(
       {
-        layerPriority: option.value,
         shiftStartToShowRotationForm: store.timezoneStore.calendarStartDate,
       },
       () => {
-        this.onShowRotationForm('new');
+        this.onShowRotationForm('new', option.value);
       }
     );
   };
@@ -313,20 +307,19 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
   hideRotationForm = () => {
     this.setState(
       {
-        layerPriority: undefined,
         shiftStartToShowRotationForm: undefined,
         shiftEndToShowRotationForm: undefined,
       },
       () => {
-        this.onShowRotationForm(undefined);
+        this.onShowRotationForm(undefined, undefined);
       }
     );
   };
 
-  onShowRotationForm = (shiftId: Shift['id']) => {
+  onShowRotationForm = (shiftId: Shift['id'], layerPriority?: Layer['priority']) => {
     const { onShowRotationForm } = this.props;
 
-    onShowRotationForm(shiftId);
+    onShowRotationForm(shiftId, layerPriority);
   };
 
   handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {

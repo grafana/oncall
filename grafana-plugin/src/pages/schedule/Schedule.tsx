@@ -1,6 +1,17 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  VerticalGroup,
+  IconButton,
+  ToolbarButton,
+  Icon,
+  Modal,
+  Dropdown,
+  Menu,
+  ButtonGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -15,6 +26,7 @@ import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { ShiftSwapForm } from 'containers/RotationForm/ShiftSwapForm';
 import { Rotations } from 'containers/Rotations/Rotations';
+import { findClosestUserEvent } from 'containers/Rotations/Rotations.helpers';
 import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
 import { ScheduleOverrides } from 'containers/Rotations/ScheduleOverrides';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
@@ -22,14 +34,15 @@ import { ScheduleICalSettings } from 'containers/ScheduleIcalLink/ScheduleIcalLi
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { getLayersFromStore } from 'models/schedule/schedule.helpers';
+import { Event, Layer, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { getStartOfWeekBasedOnCurrentDate } from './Schedule.helpers';
+import { getStartOfWeekBasedOnCurrentDate, getUTCString } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -41,6 +54,7 @@ interface SchedulePageState {
   schedulePeriodType: string;
   renderType: string;
   shiftIdToShowRotationForm?: Shift['id'];
+  layerPriorityToShowRotationForm: Layer['priority'];
   shiftIdToShowOverridesForm?: Shift['id'];
   shiftStartToShowOverrideForm?: dayjs.Dayjs;
   shiftEndToShowOverrideForm?: dayjs.Dayjs;
@@ -65,6 +79,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       schedulePeriodType: 'week',
       renderType: 'timeline',
       shiftIdToShowRotationForm: undefined,
+      layerPriorityToShowRotationForm: undefined,
       shiftIdToShowOverridesForm: undefined,
       isLoading: true,
       showEditForm: false,
@@ -104,6 +119,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const {
       shiftIdToShowRotationForm,
+      layerPriorityToShowRotationForm,
       shiftIdToShowOverridesForm,
       showEditForm,
       showScheduleICalSettings,
@@ -140,6 +156,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       !!shiftIdToShowOverridesForm ||
       shiftIdToShowRotationForm ||
       shiftSwapIdToShowForm;
+
+    const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
+    const nextPriority = layers && layers.length ? layers[layers.length - 1].priority + 1 : 1;
 
     return (
       <PageErrorHandlingWrapper
@@ -202,6 +221,60 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                 </Button>
                               </WithPermissionControlTooltip>
                             )}
+                            <Dropdown
+                              overlay={
+                                <Menu>
+                                  {layers?.map((layer, index) => (
+                                    <Menu.Item
+                                      key={index}
+                                      label={`L${layer.priority} rotation`}
+                                      onClick={() => {
+                                        document
+                                          .getElementById('rotations')
+                                          .scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                        this.handleShowRotationForm('new', layer.priority);
+                                      }}
+                                    />
+                                  ))}
+                                  <Menu.Item
+                                    label="New layer with rotation"
+                                    onClick={() => {
+                                      document
+                                        .getElementById('rotations')
+                                        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                      this.handleShowRotationForm('new', nextPriority);
+                                    }}
+                                  />
+                                  <Menu.Item
+                                    label="Shift swap request"
+                                    onClick={() => {
+                                      document
+                                        .getElementById('overrides-list')
+                                        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                      this.handleShowShiftSwapForm('new');
+                                    }}
+                                  />
+                                  <Menu.Item
+                                    label="Override"
+                                    onClick={() => {
+                                      document
+                                        .getElementById('overrides-list')
+                                        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                      this.handleShowOverridesForm('new');
+                                    }}
+                                  />
+                                </Menu>
+                              }
+                            >
+                              <ButtonGroup>
+                                <Button>Add</Button>
+                                <Button icon="angle-down" />
+                              </ButtonGroup>
+                            </Dropdown>
                           </HorizontalGroup>
                           <ToolbarButton
                             icon="cog"
@@ -282,6 +355,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                       onUpdate={this.refreshEventsAndClearPreview}
                       onDelete={this.refreshEventsAndClearPreview}
                       shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+                      layerPriorityToShowRotationForm={layerPriorityToShowRotationForm}
                       onShowRotationForm={this.handleShowRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
@@ -355,8 +429,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     store.setPageTitle(schedule?.name);
   };
 
-  handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
-    this.setState({ shiftIdToShowRotationForm: shiftId });
+  handleShowRotationForm = (shiftId: Shift['id'] | 'new', layerPriority?: Layer['priority']) => {
+    this.setState({ shiftIdToShowRotationForm: shiftId, layerPriorityToShowRotationForm: layerPriority });
   };
 
   handleShowOverridesForm = (shiftId: Shift['id'] | 'new', shiftStart?: dayjs.Dayjs, shiftEnd?: dayjs.Dayjs) => {
@@ -454,15 +528,37 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     history.replace(`${PLUGIN_ROOT}/schedules`);
   };
 
-  handleShowShiftSwapForm = (id: ShiftSwap['id'], params: Partial<ShiftSwap>) => {
-    const { filters } = this.state;
-
+  handleShowShiftSwapForm = (id: ShiftSwap['id'] | 'new') => {
     const {
-      store: { userStore },
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
     } = this.props;
 
-    if (!filters.users.includes(userStore.currentUserPk)) {
-      this.setState({ filters: { ...filters, users: [...this.state.filters.users, userStore.currentUserPk] } });
+    const {
+      userStore: { currentUserPk },
+      timezoneStore: { currentDateInSelectedTimezone },
+    } = store;
+
+    const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
+
+    const { filters } = this.state;
+
+    const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
+    const swapStart = closestEvent
+      ? dayjs(closestEvent.start)
+      : currentDateInSelectedTimezone.startOf('day').add(1, 'day');
+
+    const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
+
+    const params = {
+      swap_start: getUTCString(swapStart),
+      swap_end: getUTCString(swapEnd),
+    };
+
+    if (!filters.users.includes(currentUserPk)) {
+      this.setState({ filters: { ...filters, users: [...this.state.filters.users, currentUserPk] } });
       this.highlightMyShiftsWasToggled = true;
     }
 

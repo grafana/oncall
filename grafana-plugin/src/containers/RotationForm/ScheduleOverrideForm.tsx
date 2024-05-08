@@ -171,7 +171,9 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     } catch (err) {
       onError(err);
     } finally {
-      setIsOpen(true);
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 500);
     }
   };
 

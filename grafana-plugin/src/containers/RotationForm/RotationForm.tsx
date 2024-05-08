@@ -108,7 +108,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const [rotationName, setRotationName] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [offsetTop, setOffsetTop] = useState<number>(0);
+  const [offsetTop, setOffsetTop] = useState<number>(GRAFANA_HEADER_HEIGHT + 10);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
@@ -198,7 +198,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
     } catch (err) {
       onError(err);
     } finally {
-      setIsOpen(true);
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 1000);
     }
   };
 

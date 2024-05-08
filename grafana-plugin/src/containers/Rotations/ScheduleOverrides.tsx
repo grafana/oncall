@@ -14,20 +14,18 @@ import { ScheduleOverrideForm } from 'containers/RotationForm/ScheduleOverrideFo
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
-  getLayersFromStore,
   getOverrideColor,
   getOverridesFromStore,
   getShiftSwapsFromStore,
   SHIFT_SWAP_COLOR,
 } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedule.types';
-import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
-import { findClosestUserEvent, findColor } from './Rotations.helpers';
+import { findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
 
@@ -39,7 +37,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   scheduleId: Schedule['id'];
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
-  onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
+  onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new') => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -74,15 +72,10 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
       shiftEndToShowOverrideForm: propsShiftEndToShowOverrideForm,
       onShowShiftSwapForm,
       filters,
-      store: {
-        userStore: { currentUserPk },
-      },
     } = this.props;
     const { shiftStartToShowOverrideForm, shiftEndToShowOverrideForm } = this.state;
 
     const shifts = getOverridesFromStore(store, scheduleId, store.timezoneStore.calendarStartDate) as ShiftEvents[];
-
-    const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
 
     const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
 
@@ -115,17 +108,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                   variant="secondary"
                   disabled={disableShiftSwaps}
                   onClick={() => {
-                    const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
-                    const swapStart = closestEvent
-                      ? dayjs(closestEvent.start)
-                      : store.timezoneStore.currentDateInSelectedTimezone.startOf('day').add(1, 'day');
-
-                    const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
-
-                    onShowShiftSwapForm('new', {
-                      swap_start: getUTCString(swapStart),
-                      swap_end: getUTCString(swapEnd),
-                    });
+                    onShowShiftSwapForm('new');
                   }}
                 >
                   Request shift swap
@@ -151,30 +134,30 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
-            <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
-              <Tag className={cx('layer-title')} color="secondary">
-                <Text type="secondary">Swaps</Text>
-              </Tag>
-              {shiftSwaps && shiftSwaps.length
-                ? shiftSwaps.map(({ isPreview, events }, index) => (
-                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                      <Rotation
-                        events={events}
-                        color={SHIFT_SWAP_COLOR}
-                        onSlotClick={(event) => {
-                          if (event.is_gap) {
-                            return;
-                          }
-                          onShowShiftSwapForm(event.shiftSwapId);
-                        }}
-                        transparent={isPreview}
-                        filters={filters}
-                      />
-                    </CSSTransition>
-                  ))
-                : null}
-            </TransitionGroup>
-            <TransitionGroup className={cx('rotations', 'layer')}>
+            {shiftSwaps && shiftSwaps.length ? (
+              <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
+                <Tag className={cx('layer-title')} color="secondary">
+                  <Text type="secondary">Swaps</Text>
+                </Tag>
+                {shiftSwaps.map(({ isPreview, events }, index) => (
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <Rotation
+                      events={events}
+                      color={SHIFT_SWAP_COLOR}
+                      onSlotClick={(event) => {
+                        if (event.is_gap) {
+                          return;
+                        }
+                        onShowShiftSwapForm(event.shiftSwapId);
+                      }}
+                      transparent={isPreview}
+                      filters={filters}
+                    />
+                  </CSSTransition>
+                ))}
+              </TransitionGroup>
+            ) : null}
+            <TransitionGroup className={cx('rotations', 'layer', { 'layer-first': !shiftSwaps || !shiftSwaps.length })}>
               <Tag className={cx('layer-title')} color="secondary">
                 <Text type="secondary">Overrides</Text>
               </Tag>
