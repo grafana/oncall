@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
+from googleapiclient.errors import HttpError
 
 from apps.google import constants, tasks
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
@@ -138,6 +139,28 @@ def test_setup(
         return google_oauth2_user, schedule
 
     return _test_setup
+
+
+class MockResponse:
+    def __init__(self, reason=None, status=200) -> None:
+        self.reason = reason or ""
+        self.status = status
+
+
+@patch("apps.google.client.build")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_user_httperror(mock_google_api_client_build, test_setup):
+    mock_response = MockResponse(reason="forbidden", status=403)
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.side_effect = HttpError(
+        resp=mock_response, content=b"error"
+    )
+
+    google_oauth2_user, schedule = test_setup([])
+    user = google_oauth2_user.user
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+
+    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 0
 
 
 @patch("apps.google.client.build")
