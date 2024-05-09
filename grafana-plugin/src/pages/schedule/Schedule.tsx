@@ -11,6 +11,7 @@ import {
   Dropdown,
   Menu,
   ButtonGroup,
+  RadioButtonGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -34,8 +35,8 @@ import { ScheduleICalSettings } from 'containers/ScheduleIcalLink/ScheduleIcalLi
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getLayersFromStore } from 'models/schedule/schedule.helpers';
-import { Event, Layer, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
+import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -160,12 +161,10 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
     const nextPriority = layers && layers.length ? layers[layers.length - 1].priority + 1 : 1;
 
+    const { scheduleView } = scheduleStore;
+
     return (
-      <PageErrorHandlingWrapper
-        errorData={store.scheduleStore.refreshEventsError}
-        objectName="schedule"
-        pageName="schedules"
-      >
+      <PageErrorHandlingWrapper errorData={scheduleStore.refreshEventsError} objectName="schedule" pageName="schedules">
         {() => (
           <>
             <div className={cx('root')}>
@@ -322,11 +321,25 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
                           </Text.Title>
                         </HorizontalGroup>
-                        <ScheduleFilters
-                          value={filters}
-                          onChange={(value) => this.setState({ filters: value })}
-                          currentUserPk={store.userStore.currentUserPk}
-                        />
+                        <HorizontalGroup>
+                          <RadioButtonGroup
+                            options={[
+                              { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
+                              { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },
+                              { label: ScheduleView.OneMonth, value: ScheduleView.OneMonth },
+                            ]}
+                            value={scheduleView}
+                            onChange={(value) => {
+                              scheduleStore.setScheduleView(value);
+                              scheduleStore.refreshEvents(scheduleId);
+                            }}
+                          />
+                          <ScheduleFilters
+                            value={filters}
+                            onChange={(value) => this.setState({ filters: value })}
+                            currentUserPk={store.userStore.currentUserPk}
+                          />
+                        </HorizontalGroup>
                       </HorizontalGroup>
                     </div>
                     <ScheduleFinal
@@ -486,13 +499,19 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
   handleLeftClick = () => {
     const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.subtract(7, 'day'));
+    const { scheduleStore } = store;
+    store.timezoneStore.setCalendarStartDate(
+      store.timezoneStore.calendarStartDate.subtract(scheduleViewToDaysInOneRow[scheduleStore.scheduleView], 'day')
+    );
     this.handleDateRangeUpdate();
   };
 
   handleRightClick = () => {
     const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(store.timezoneStore.calendarStartDate.add(7, 'day'));
+    const { scheduleStore } = store;
+    store.timezoneStore.setCalendarStartDate(
+      store.timezoneStore.calendarStartDate.add(scheduleViewToDaysInOneRow[scheduleStore.scheduleView], 'day')
+    );
     this.handleDateRangeUpdate();
   };
 

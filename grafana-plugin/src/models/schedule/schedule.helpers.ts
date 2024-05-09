@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
 
-import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
+import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftEvents, ShiftSwap } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {
   return moment.format('YYYY-MM-DD');
@@ -61,6 +61,12 @@ export const fillGaps = (events: Event[]) => {
   }
 
   return newEvents;
+};
+
+export const scheduleViewToDaysInOneRow = {
+  [ScheduleView.OneWeek]: 7,
+  [ScheduleView.TwoWeeks]: 14,
+  [ScheduleView.OneMonth]: 7,
 };
 
 export const splitToShifts = (events: Event[]) => {

@@ -14,7 +14,7 @@ import { Rotation } from 'containers/Rotation/Rotation';
 import { RotationForm } from 'containers/RotationForm/RotationForm';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
+import { getColor, getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType, Shift, ShiftSwap, Event, Layer } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
@@ -71,9 +71,10 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       onSlotClick,
       layerPriorityToShowRotationForm,
     } = this.props;
+
     const { shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
-    const base = 7 * 24 * 60; // in minutes
+    const base = scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60; // in minutes
     const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
       store.timezoneStore.calendarStartDate,
       'minutes'

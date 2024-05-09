@@ -9,6 +9,7 @@ import hash from 'object-hash';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
 import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
+import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
@@ -26,7 +27,6 @@ interface RotationProps {
   handleAddShiftSwap?: (id: 'new', params: Partial<ShiftSwap>) => void;
   handleOpenSchedule?: (event: Event) => void;
   onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
-  days?: number;
   transparent?: boolean;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
@@ -39,11 +39,11 @@ interface RotationProps {
 export const Rotation: FC<RotationProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate, getDateInSelectedTimezone },
+    scheduleStore,
   } = useStore();
   const {
     events,
     color: propsColor,
-    days = 7,
     transparent = false,
     onClick,
     handleAddOverride,
@@ -58,6 +58,8 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     showScheduleNameAsSlotTitle,
   } = props;
 
+  const days = scheduleViewToDaysInOneRow[scheduleStore.scheduleView];
+
   const [animate, _setAnimate] = useState<boolean>(true);
 
   const handleRotationClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -65,7 +67,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     const x = event.clientX - rect.left; //x position within the element.
     const width = event.currentTarget.offsetWidth;
 
-    const dayOffset = Math.floor((x / width) * 7);
+    const dayOffset = Math.floor((x / width) * scheduleViewToDaysInOneRow[scheduleStore.scheduleView]);
 
     const shiftStart = calendarStartDate.add(dayOffset, 'day');
     const shiftEnd = shiftStart.add(1, 'day');

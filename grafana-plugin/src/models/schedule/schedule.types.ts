@@ -9,6 +9,12 @@ export enum ScheduleType {
   'API',
 }
 
+export enum ScheduleView {
+  'OneWeek' = 'Week',
+  'TwoWeeks' = '2 weeks',
+  'OneMonth' = 'Month',
+}
+
 export interface Schedule {
   id: string;
   ical_url_primary: string;

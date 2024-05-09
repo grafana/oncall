@@ -15,6 +15,7 @@ import {
   getLayersFromStore,
   getOverridesFromStore,
   getShiftsFromStore,
+  scheduleViewToDaysInOneRow,
 } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap, Event } from 'models/schedule/schedule.types';
 import { WithStoreProps } from 'state/types';
@@ -43,7 +44,8 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
       timezoneStore: { currentDateInSelectedTimezone, calendarStartDate, selectedTimezoneOffset },
       scheduleStore: { refreshEvents },
     } = store;
-    const base = 7 * 24 * 60; // in minutes
+
+    const base = scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60; // in minutes
     const diff = currentDateInSelectedTimezone.diff(calendarStartDate, 'minutes');
 
     const currentTimeX = diff / base;

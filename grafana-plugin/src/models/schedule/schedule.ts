@@ -21,6 +21,7 @@ import {
   fillGapsInShifts,
   flattenShiftEvents,
   getFromString,
+  scheduleViewToDaysInOneRow,
   splitToLayers,
   splitToShifts,
   unFlattenShiftEvents,
@@ -36,6 +37,7 @@ import {
   ShiftEvents,
   ScheduleScoreQualityResponse,
   ShiftSwap,
+  ScheduleView,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
@@ -121,12 +123,20 @@ export class ScheduleStore extends BaseStore {
     wrongTeamNoPermissions: false,
   };
 
+  @observable
+  scheduleView = ScheduleView.TwoWeeks;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
     makeObservable(this);
 
     this.path = '/schedules/';
+  }
+
+  @action.bound
+  setScheduleView(value: ScheduleView) {
+    this.scheduleView = value;
   }
 
   @action.bound
@@ -282,12 +292,14 @@ export class ScheduleStore extends BaseStore {
   ) {
     const type = isOverride ? 3 : 2;
 
+    const days = scheduleViewToDaysInOneRow[this.scheduleView];
+
     const fromString = getFromString(startMoment);
 
     const dayBefore = startMoment.subtract(1, 'day');
 
     const response = await makeRequest(`/oncall_shifts/preview/`, {
-      params: { date: getFromString(dayBefore), days: 8 },
+      params: { date: getFromString(dayBefore), days },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
     });
@@ -488,7 +500,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days = 9) {
+  async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days) {
     const dayBefore = startMoment.subtract(1, 'day');
 
     const response = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
@@ -525,6 +537,8 @@ export class ScheduleStore extends BaseStore {
     this.refreshEventsError = {};
     const startMoment = this.rootStore.timezoneStore.calendarStartDate;
 
+    const days = scheduleViewToDaysInOneRow[this.scheduleView];
+
     try {
       const schedule = await this.loadItem(scheduleId);
       this.rootStore.setPageTitle(schedule?.name);
@@ -536,10 +550,10 @@ export class ScheduleStore extends BaseStore {
 
     this.updateRelatedUsers(scheduleId); // to refresh related users
     await Promise.all([
-      this.updateEvents(scheduleId, startMoment, 'rotation'),
-      this.updateEvents(scheduleId, startMoment, 'override'),
-      this.updateEvents(scheduleId, startMoment, 'final'),
-      this.updateShiftSwaps(scheduleId, startMoment),
+      this.updateEvents(scheduleId, startMoment, 'rotation', days),
+      this.updateEvents(scheduleId, startMoment, 'override', days),
+      this.updateEvents(scheduleId, startMoment, 'final', days),
+      this.updateShiftSwaps(scheduleId, startMoment, days),
     ]);
   }
 
@@ -596,8 +610,10 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, days = 9) {
+  async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs) {
     const fromString = getFromString(startMoment);
+
+    const days = scheduleViewToDaysInOneRow[this.scheduleView];
 
     const dayBefore = startMoment.subtract(1, 'day');
 

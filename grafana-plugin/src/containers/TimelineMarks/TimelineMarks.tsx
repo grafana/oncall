@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
+import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from './TimelineMarks.module.scss';
@@ -18,8 +19,11 @@ const cx = cn.bind(styles);
 export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   const {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
+    scheduleStore,
   } = useStore();
   const { debug } = props;
+
+  const days = scheduleViewToDaysInOneRow[scheduleStore.scheduleView];
 
   const momentsToRender = useMemo(() => {
     const hoursToSplit = 12;
@@ -27,7 +31,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
     const momentsToRender = [];
     const jLimit = 24 / hoursToSplit;
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < days; i++) {
       const d = dayjs(calendarStartDate).add(i, 'days');
       const obj = { moment: d, moments: [] };
       for (let j = 0; j < jLimit; j++) {
@@ -37,15 +41,15 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
       momentsToRender.push(obj);
     }
     return momentsToRender;
-  }, [calendarStartDate]);
+  }, [calendarStartDate, days]);
 
   const cuts = useMemo(() => {
     const cuts = [];
-    for (let i = 0; i <= 24 * 7; i++) {
+    for (let i = 0; i <= 24 * days; i++) {
       cuts.push({});
     }
     return cuts;
-  }, []);
+  }, [days]);
 
   return (
     <div className={cx('root')}>
@@ -54,10 +58,10 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
           {cuts.map((_cut, index) => (
             <line
               key={index}
-              x1={`${(index * 100) / (24 * 7)}%`}
+              x1={`${(index * 100) / (24 * days)}%`}
               strokeWidth={1}
               y1="0"
-              x2={`${(index * 100) / (24 * 7)}%`}
+              x2={`${(index * 100) / (24 * days)}%`}
               y2="6px"
               stroke="rgba(204, 204, 220, 0.65)"
             />

@@ -17,6 +17,7 @@ import {
   getOverrideColor,
   getOverridesFromStore,
   getShiftSwapsFromStore,
+  scheduleViewToDaysInOneRow,
   SHIFT_SWAP_COLOR,
 } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedule.types';
@@ -79,7 +80,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
 
     const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
 
-    const base = 7 * 24 * 60; // in minutes
+    const base = scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60; // in minutes
     const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
       store.timezoneStore.calendarStartDate,
       'minutes'

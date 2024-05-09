@@ -11,7 +11,7 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
-import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
+import { getShiftName, scheduleViewToDaysInOneRow, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -34,11 +34,11 @@ interface ScheduleSlotProps {
 }
 
 const cx = cn.bind(styles);
-const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
 export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     timezoneStore: { getDateInSelectedTimezone },
+    scheduleStore,
   } = useStore();
   const {
     event,
@@ -57,7 +57,9 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const durationInSeconds = end.diff(start, 'seconds');
 
-  const width = Math.max(durationInSeconds / ONE_WEEK_IN_SECONDS, 0);
+  const rowInSeconds = scheduleViewToDaysInOneRow[scheduleStore.scheduleView] * 24 * 60 * 60;
+
+  const width = Math.max(durationInSeconds / rowInSeconds, 0);
 
   const currentMoment = useMemo(() => dayjs(), []);
 
