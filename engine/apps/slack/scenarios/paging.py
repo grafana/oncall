@@ -520,7 +520,7 @@ def _get_organization_select(
                     "text": f"{org.org_title} ({org.stack_slug})",
                     "emoji": True,
                 },
-                "value": f"{org.pk}",
+                "value": make_value({"id": org.pk}, org),
             }
         )
 
@@ -549,7 +549,7 @@ def _get_select_field_value(payload: EventPayload, prefix_id: str, routing_uid: 
         field = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_option"]
     except KeyError:
         return None
-    return field["value"] if field else None
+    return json.loads(field["value"])["id"] if field else None
 
 
 def _get_selected_org_from_payload(
@@ -618,7 +618,7 @@ def _get_team_select_blocks(
                     "text": team_name,
                     "emoji": True,
                 },
-                "value": str(team_pk),
+                "value": make_value({"id": team_pk}, organization),
             }
         )
 
@@ -679,7 +679,7 @@ def _create_user_option_groups(
                 "text": f"{user.name or user.username}",
                 "emoji": True,
             },
-            "value": make_value({"user_id": user.pk}, organization),
+            "value": make_value({"id": user.pk}, organization),
         }
         for user in users
     ]
