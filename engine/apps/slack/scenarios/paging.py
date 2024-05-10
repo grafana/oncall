@@ -328,9 +328,9 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
 class OnPagingItemActionChange(scenario_step.ScenarioStep):
     """Reload form with updated user details."""
 
-    def _parse_action(self, payload: EventPayload) -> typing.Tuple[Policy, str, str]:
-        value = payload["actions"][0]["selected_option"]["value"]
-        return value.split("|")
+    def _parse_action(self, payload: EventPayload) -> typing.Tuple[Policy, DataKey, str]:
+        value = json.loads(payload["actions"][0]["selected_option"]["value"])
+        return value["action"], value["key"], value["id"]
 
     def process_scenario(
         self,
@@ -735,7 +735,7 @@ def _get_user_select_blocks(
     # selected items
     if selected_users := get_current_items(payload, DataKey.USERS, organization.users):
         blocks += [DIVIDER]
-        blocks += _get_selected_entries_list(input_id_prefix, DataKey.USERS, selected_users)
+        blocks += _get_selected_entries_list(organization, input_id_prefix, DataKey.USERS, selected_users)
         blocks += [DIVIDER]
 
     return blocks
@@ -775,7 +775,7 @@ def _get_users_select(
 
 
 def _get_selected_entries_list(
-    input_id_prefix: str, key: DataKey, entries: typing.List[typing.Tuple[Model, Policy]]
+    organization: "Organization", input_id_prefix: str, key: DataKey, entries: typing.List[typing.Tuple[Model, Policy]]
 ) -> typing.List[Block.Section]:
     current_entries: typing.List[Block.Section] = []
     for entry, policy in entries:
@@ -795,7 +795,10 @@ def _get_selected_entries_list(
                 "accessory": {
                     "type": "overflow",
                     "options": [
-                        {"text": {"type": "plain_text", "text": f"{label}"}, "value": f"{action}|{key}|{entry.pk}"}
+                        {
+                            "text": {"type": "plain_text", "text": f"{label}"},
+                            "value": make_value({"action": action, "key": key, "id": str(entry.pk)}, organization),
+                        }
                         for (action, label) in ITEM_ACTIONS
                     ],
                     "action_id": OnPagingItemActionChange.routing_uid(),
