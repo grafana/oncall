@@ -1,3 +1,4 @@
+import typing
 from abc import ABC, abstractmethod
 
 from apps.slack.installation import install_slack_integration
@@ -27,7 +28,9 @@ class SlackInstallationHandler(Handler):
         )
 
     @classmethod
-    def handle(cls, data: IntegrationInstalledData) -> None:
+    def handle(cls, data: dict) -> None:
+        data = typing.cast(IntegrationInstalledData, data)
+
         stack_id = data.get("stack_id")
         user_id = data.get("grafana_user_id")
         payload = data.get("payload")

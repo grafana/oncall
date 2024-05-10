@@ -10,7 +10,7 @@ class ChatopsEventsHandler:
     handler to process it.
     """
 
-    HANDLERS: typing.List[Handler] = [SlackInstallationHandler]
+    HANDLERS: typing.List[typing.Type[Handler]] = [SlackInstallationHandler]
 
     def handle(self, event_data: Event):
         for h in self.HANDLERS:
