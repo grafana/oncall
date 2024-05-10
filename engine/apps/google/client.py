@@ -5,6 +5,7 @@ import typing
 from django.conf import settings
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 from apps.google import constants, utils
 from apps.google.types import GoogleCalendarEvent as GoogleCalendarEventType
@@ -21,6 +22,11 @@ class GoogleCalendarEvent:
 
         self.start_time_utc = self._start_time.astimezone(datetime.timezone.utc)
         self.end_time_utc = self._end_time.astimezone(datetime.timezone.utc)
+
+
+class GoogleCalendarHTTPError(Exception):
+    def __init__(self, http_error) -> None:
+        self.error = http_error
 
 
 class GoogleCalendarAPIClient:
@@ -68,17 +74,22 @@ class GoogleCalendarAPIClient:
             now + datetime.timedelta(days=constants.DAYS_IN_FUTURE_TO_CONSIDER_OUT_OF_OFFICE_EVENTS)
         )
 
-        events_result = (
-            self.service.events()
-            .list(
-                calendarId=self.CALENDAR_ID,
-                timeMin=time_min,
-                timeMax=time_max,
-                maxResults=self.MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH,
-                singleEvents=True,
-                orderBy="startTime",
-                eventTypes="outOfOffice",
+        try:
+            events_result = (
+                self.service.events()
+                .list(
+                    calendarId=self.CALENDAR_ID,
+                    timeMin=time_min,
+                    timeMax=time_max,
+                    maxResults=self.MAX_NUMBER_OF_CALENDAR_EVENTS_TO_FETCH,
+                    singleEvents=True,
+                    orderBy="startTime",
+                    eventTypes="outOfOffice",
+                )
+                .execute()
             )
-            .execute()
-        )
+        except HttpError as e:
+            logger.error(f"GoogleCalendarAPIClient - Error fetching out of office events: {e}")
+            raise GoogleCalendarHTTPError(e)
+
         return [GoogleCalendarEvent(event) for event in events_result.get("items", [])]

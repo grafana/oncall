@@ -264,7 +264,6 @@ const ScheduleNotificationSettingsFields = () => {
             error={errors.slack_channel_id?.message}
           >
             <GSelect<SlackChannel>
-              showSearch
               allowClear
               items={slackChannelStore.items}
               fetchItemsFn={slackChannelStore.updateItems}
@@ -291,7 +290,6 @@ const ScheduleNotificationSettingsFields = () => {
             error={errors.user_group?.message}
           >
             <GSelect<UserGroup[]>
-              showSearch
               allowClear
               items={userGroupStore.items}
               fetchItemsFn={userGroupStore.updateItems}

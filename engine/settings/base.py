@@ -352,7 +352,7 @@ if OTEL_TRACING_ENABLED:
     MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
-
+LOG_CELERY_TASK_ARGUMENTS = getenv_boolean("LOG_CELERY_TASK_ARGUMENTS", default=True)
 
 log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
 
