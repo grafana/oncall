@@ -2,6 +2,7 @@ import json
 import typing
 
 from apps.api.permissions import RBACPermission
+from apps.slack.chatops_proxy_routing import make_private_metadata
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
     Block,
@@ -63,7 +64,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
                 "type": "plain_text",
                 "text": "Refresh alert group",
             },
-            "private_metadata": json.dumps(private_metadata),
+            "private_metadata": make_private_metadata(private_metadata, alert_receive_channel.organization),
         }
 
         self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
