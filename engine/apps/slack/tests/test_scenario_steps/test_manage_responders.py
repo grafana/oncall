@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.scenarios.manage_responders import (
     ALERT_GROUP_DATA_KEY,
     DIRECT_PAGING_USER_SELECT_ID,
@@ -33,7 +34,7 @@ def make_slack_payload(user=None, actions=None):
                 "values": {
                     DIRECT_PAGING_USER_SELECT_ID: {
                         ManageRespondersUserChange.routing_uid(): {
-                            "selected_option": {"value": user.pk} if user else None
+                            "selected_option": {"value": json.dumps({"id": user.pk})} if user else None
                         }
                     },
                 }
@@ -125,7 +126,9 @@ def test_add_user_no_warning(manage_responders_setup, make_schedule, make_on_cal
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     # check there's a delete button for the user
-    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == str(user.pk)
+    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == make_value(
+        {"id": str(user.pk)}, organization
+    )
 
 
 @pytest.mark.django_db

@@ -166,7 +166,7 @@ def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False)
                         "type": "button",
                         "text": {"type": "plain_text", "text": "Remove", "emoji": True},
                         "action_id": ManageRespondersRemoveUser.routing_uid(),
-                        "value": make_value({"user_id": str(user["id"])}, alert_group.channel.organization),
+                        "value": make_value({"id": str(user["id"])}, alert_group.channel.organization),
                     },
                 },
             ),
@@ -208,7 +208,7 @@ def _get_selected_user_from_payload(payload: EventPayload) -> "User":
     from apps.user_management.models import User
 
     try:
-        selected_user_id = _get_user_id_from_value(payload["actions"][0]["value"])  # "remove" button
+        selected_user_id = json.loads(payload["actions"][0]["value"])["id"]  # "remove" button
     except KeyError:
         try:
             # "confirm" button on availability warnings modal
@@ -216,26 +216,11 @@ def _get_selected_user_from_payload(payload: EventPayload) -> "User":
         except KeyError:
             # user select dropdown
             input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
-            selected_user_id = _get_user_id_from_value(
-                _get_select_field_value(
-                    payload, input_id_prefix, ManageRespondersUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
-                )
+            selected_user_id = _get_select_field_value(
+                payload, input_id_prefix, ManageRespondersUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
             )
 
     return User.objects.get(pk=selected_user_id)
-
-
-def _get_user_id_from_value(value: str) -> str:
-    """
-    Extract user ID from value string.
-    It might be either JSON-encoded object or just a user ID.
-    Json encoded object introduced for Chatops-Proxy routing, plain string with user ID is legacy.
-    """
-    try:
-        data = json.loads(value)
-        return data["user_id"]
-    except json.JSONDecodeError:
-        return value
 
 
 def _get_alert_group_from_payload(payload: EventPayload) -> "AlertGroup":

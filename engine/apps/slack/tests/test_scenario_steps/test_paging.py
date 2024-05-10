@@ -43,13 +43,19 @@ def make_slack_payload(organization, team=None, user=None, current_users=None, a
             "state": {
                 "values": {
                     DIRECT_PAGING_ORG_SELECT_ID: {
-                        OnPagingOrgChange.routing_uid(): {"selected_option": {"value": organization.pk}}
+                        OnPagingOrgChange.routing_uid(): {
+                            "selected_option": {"value": json.dumps({"id": organization.pk})}
+                        }
                     },
                     DIRECT_PAGING_TEAM_SELECT_ID: {
-                        OnPagingTeamChange.routing_uid(): {"selected_option": {"value": team.pk if team else None}}
+                        OnPagingTeamChange.routing_uid(): {
+                            "selected_option": {"value": json.dumps({"id": team.pk if team else None})}
+                        }
                     },
                     DIRECT_PAGING_USER_SELECT_ID: {
-                        OnPagingUserChange.routing_uid(): {"selected_option": {"value": user.pk} if user else None}
+                        OnPagingUserChange.routing_uid(): {
+                            "selected_option": {"value": json.dumps({"id": user.pk})} if user else None
+                        }
                     },
                     DIRECT_PAGING_MESSAGE_INPUT_ID: {FinishDirectPaging.routing_uid(): {"value": "The Message"}},
                 }
