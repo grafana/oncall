@@ -6,6 +6,7 @@ import humanize
 from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, ScenarioRoute
@@ -143,7 +144,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                                     "text": "Accept",
                                     "emoji": True,
                                 },
-                                "value": json.dumps(value),
+                                "value": make_value(value, shift_swap_request.organization),
                                 "action_id": AcceptShiftSwapRequestStep.routing_uid(),
                             },
                         ],
