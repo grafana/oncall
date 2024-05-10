@@ -457,6 +457,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <WithPermissionControlTooltip key="notify_to_team_members" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<GrafanaTeam>
+          showSearch
           disabled={isDisabled}
           items={grafanaTeamStore.items}
           fetchItemsFn={grafanaTeamStore.updateItems}

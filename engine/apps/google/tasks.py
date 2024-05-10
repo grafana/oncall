@@ -3,7 +3,7 @@ import logging
 from celery.utils.log import get_task_logger
 
 from apps.google import constants
-from apps.google.client import GoogleCalendarAPIClient
+from apps.google.client import GoogleCalendarAPIClient, GoogleCalendarHTTPError
 from apps.google.models import GoogleOAuth2User
 from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -31,7 +31,13 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
     if oncall_schedules_to_consider_for_shift_swaps:
         users_schedules = users_schedules.filter(public_primary_key__in=oncall_schedules_to_consider_for_shift_swaps)
 
-    for out_of_office_event in google_api_client.fetch_out_of_office_events():
+    try:
+        out_of_office_events = google_api_client.fetch_out_of_office_events()
+    except GoogleCalendarHTTPError:
+        logger.info(f"Failed to fetch out of office events for user {user_id}")
+        return
+
+    for out_of_office_event in out_of_office_events:
         raw_event = out_of_office_event.raw_event
 
         event_title = raw_event["summary"]
