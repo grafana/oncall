@@ -1,17 +1,7 @@
 import typing
 
-from .handlers import SlackInstallationHandler
+from .handlers import Handler, SlackInstallationHandler
 from .types import Event
-
-
-class Handler(typing.Protocol):
-    @classmethod
-    def match(cls, event: Event) -> bool:
-        pass
-
-    @classmethod
-    def handle(cls, event_data: dict) -> None:
-        pass
 
 
 class ChatopsEventsHandler:
