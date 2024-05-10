@@ -58,6 +58,7 @@ func (a *App) handleEcho(w http.ResponseWriter, req *http.Request) {
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
 	proxyHandler := func(w http.ResponseWriter, r *http.Request) {
+		backend.Logger.Warn("TEEEST-WORKS0000000")
 		cfg := backend.GrafanaConfigFromContext(r.Context())
 		saToken, err := cfg.PluginAppClientSecret()
 

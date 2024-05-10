@@ -20,7 +20,7 @@ if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
         name="grafana-tilt-extensions",
-        ref="v1.2.0",
+        ref="v1.4.2",
         url="https://github.com/grafana/tilt-extensions",
     )
 v1alpha1.extension(
@@ -67,13 +67,23 @@ local_resource(
     allow_parallel=True,
 )
 
-# Build plugin backend
-if os.path.exists('grafana-plugin/Magefile.go'):
-    local_resource(
-        'build-plugin-backend',
-        cmd='make build/plugin-backend',
-        deps=['grafana-plugin/pkg/plugin']
-    )
+
+local_resource(
+    'build-plugin-backend',
+    labels=["pluginBackend"],
+    dir="./grafana-plugin",
+    cmd="mage buildAll",
+    deps=['grafana-plugin/pkg/plugin']
+)
+
+local_resource(
+    'restart-plugin-backend',
+    labels=["pluginBackend"],
+    dir="./dev/grafana",
+    cmd="chmod +x ./restart_backend_plugin.sh && ./restart_backend_plugin.sh",
+    resource_deps=["grafana", "build-plugin-backend"],
+    deps=['grafana-plugin/pkg/plugin']
+)
 
 local_resource(
     "e2e-tests",
@@ -149,13 +159,17 @@ if not running_under_parent_tiltfile:
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
-        deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "engine", "build-plugin-backend"],
+        # deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "engine", "build-plugin-backend"],
         extra_env={
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",
             "GF_AUTH_ANONYMOUS_ENABLED": "false",
-            "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts"
+            "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
+            "GF_DEFAULT_APP_MODE": "development"
         },
+        extra_grafana_ini={
+            "app_mode": "development"
+        }
     )
 
 k8s_resource(
