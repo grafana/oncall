@@ -386,6 +386,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <WithPermissionControlTooltip key="notify_to_group" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<UserGroup[]>
+          showSearch
+          allowClear
           disabled={isDisabled}
           items={userGroupStore.items}
           fetchItemsFn={userGroupStore.updateItems}
