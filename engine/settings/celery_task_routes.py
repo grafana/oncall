@@ -87,6 +87,10 @@ CELERY_TASK_ROUTES = {
     "common.oncall_gateway.tasks.unlink_slack_team_async": {"queue": "default"},
     "common.oncall_gateway.tasks.register_oncall_tenant_async": {"queue": "default"},
     "common.oncall_gateway.tasks.unregister_oncall_tenant_async": {"queue": "default"},
+    "apps.chatops_proxy.tasks.link_slack_team_async": {"queue": "default"},
+    "apps.chatops_proxy.tasks.unlink_slack_team_async": {"queue": "default"},
+    "apps.chatops_proxy.tasks.register_oncall_tenant_async": {"queue": "default"},
+    "apps.chatops_proxy.tasks.unregister_oncall_tenant_async": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
