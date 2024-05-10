@@ -739,8 +739,14 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
     ) -> None:
         from apps.alerts.models import AlertGroup
 
-        alert_group_id = payload["actions"][0]["value"].split("_")[1]
-        alert_group = AlertGroup.objects.get(pk=alert_group_id)
+        value = payload["actions"][0]["value"]
+        try:
+            alert_group_pk = json.loads(value)["alert_group_pk"]
+        except json.JSONDecodeError:
+            # Deprecated and kept for backward compatibility (so older Slack messages can still be processed)
+            alert_group_pk = value.split("_")[1]
+
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
         channel = payload["channel"]["id"]
         message_ts = payload["message_ts"]
 
@@ -798,10 +804,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                             "text": "Confirm",
                             "type": "button",
                             "style": "primary",
-                            "value": scenario_step.ScenarioStep.get_step(
-                                "distribute_alerts", "AcknowledgeConfirmationStep"
-                            ).routing_uid()
-                            + ("_" + str(alert_group.pk)),
+                            "value": make_value({"alert_group_pk": alert_group.pk}, alert_group.channel.organization),
                         },
                     ],
                 }
