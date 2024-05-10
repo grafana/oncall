@@ -466,7 +466,9 @@ def render_dialog(
         }
     )
 
-    return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
+    return _get_form_view(
+        submit_routing_uid, blocks, make_private_metadata(new_private_metadata, selected_organization)
+    )
 
 
 def _get_unauthorized_warning(error=False):
