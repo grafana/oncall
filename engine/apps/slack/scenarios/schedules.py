@@ -74,15 +74,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         schedule_id = private_metadata["schedule_id"]
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
         prev_state = schedule.insight_logs_serialized
-
-        value = json.loads(action["selected_option"]["value"])
-        try:
-            value = value["option"]
-        except TypeError:
-            # Deprecated and kept for backward compatibility (so older Slack messages can still be processed)
-            value = int(value)
-
-        setattr(schedule, action["block_id"], value)
+        setattr(schedule, action["block_id"], json.loads(action["selected_option"]["value"])["option"])
         schedule.save()
         new_state = schedule.insight_logs_serialized
         write_resource_insight_log(
