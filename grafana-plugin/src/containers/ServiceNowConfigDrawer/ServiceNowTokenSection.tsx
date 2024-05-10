@@ -11,6 +11,7 @@ import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
+import { DOCS_ROOT } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
@@ -42,13 +43,17 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
     <VerticalGroup>
       <HorizontalGroup spacing="xs" align="center">
         <Text type="primary" strong>
-          Generate ServiceNow script
+          Generate ServiceNow Business Rule
         </Text>
       </HorizontalGroup>
 
       <Text>
         Copy and paste the following script to ServiceNow to allow communication between ServiceNow and OnCall{' '}
-        <a href={'#'} target="_blank" rel="noreferrer">
+        <a
+          href={`${DOCS_ROOT}/integrations/servicenow/#generate-business-rule-script`}
+          target="_blank"
+          rel="noreferrer"
+        >
           <Text type="link">Read more</Text>
         </a>
       </Text>

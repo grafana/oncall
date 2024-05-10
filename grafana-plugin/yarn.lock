@@ -1219,10 +1219,10 @@
     "@opentelemetry/sdk-trace-web" "^1.18.1"
     "@opentelemetry/semantic-conventions" "^1.18.1"
 
-"@grafana/labels@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-1.5.0.tgz#e960df1248ba26b5ff06fe8fcde1824022061ce0"
-  integrity sha512-xcX1R0e0usKGLBy4XiOu2QcG1PVhn0uvrN4uvKLRVvbp5jJmSAKqhnHjSDTH/p14MUdsz4lBU1IAKgvGvRAVVQ==
+"@grafana/labels@~1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@grafana/labels/-/labels-1.5.1.tgz#fd77a796cae709d515c928ec672347eb4c32f231"
+  integrity sha512-dlIpsEbu9fW/66SoQ2SxmwOPAJoqwZ6mrMt9Rr/tOYiQbMdmemuPzr3igX21TIWi9mqo+Cu5Aau1nl+ObAo5ZA==
   dependencies:
     "@emotion/css" "^11.11.2"
     "@grafana/ui" "^10.0.0"
@@ -13835,7 +13835,7 @@ tiny-warning@^1.0.0, tiny-warning@^1.0.3:
   resolved "https://registry.yarnpkg.com/tiny-warning/-/tiny-warning-1.0.3.tgz#94a30db453df4c643d0fd566060d60a875d84754"
   integrity sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==
 
-tinycolor2@1.6.0:
+tinycolor2@1.6.0, tinycolor2@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/tinycolor2/-/tinycolor2-1.6.0.tgz#f98007460169b0263b97072c5ae92484ce02d09e"
   integrity sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==

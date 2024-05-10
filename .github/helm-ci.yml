@@ -1,0 +1,10 @@
+env:
+  - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+    value: "False"
+  - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+    value: "True"
+  # enabled to be able to test docker.host.internal in the webhook e2e tests
+  - name: DANGEROUS_WEBHOOKS_ENABLED
+    value: "True"
+  - name: FEATURE_LABELS_ENABLED_FOR_ALL
+    value: "True"

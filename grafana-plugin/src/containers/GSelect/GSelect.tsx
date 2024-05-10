@@ -19,7 +19,7 @@ interface GSelectProps<Item> {
   fetchItemsFn: (query?: string) => Promise<Item[] | void>;
   fetchItemFn: (id: string) => Promise<Item | void>;
   getSearchResult: (query?: string) => Item[] | { page_size: number; count: number; results: Item[] };
-  placeholder: string;
+  placeholder?: string;
   isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
@@ -30,7 +30,6 @@ interface GSelectProps<Item> {
   className?: string;
   displayField?: string;
   valueField?: string;
-  showSearch?: boolean;
   allowClear?: boolean;
   isMulti?: boolean;
   showWarningIfEmptyValue?: boolean;
@@ -49,7 +48,6 @@ interface GSelectProps<Item> {
 export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
   const {
     autoFocus,
-    showSearch = false,
     allowClear = false,
     isLoading,
     defaultOpen,
@@ -156,7 +154,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     <div className={cx('root', className)}>
       <Tag
         autoFocus={autoFocus}
-        isSearchable={showSearch}
+        isSearchable
         isClearable={allowClear}
         placeholder={placeholder}
         openMenuOnFocus={defaultOpen}

@@ -353,7 +353,7 @@ if OTEL_TRACING_ENABLED:
     MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
-
+LOG_CELERY_TASK_ARGUMENTS = getenv_boolean("LOG_CELERY_TASK_ARGUMENTS", default=True)
 
 log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
 
@@ -820,13 +820,12 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager",
-    "config_integrations.legacy_alertmanager",
-    "config_integrations.grafana",
+    # Featured
     "config_integrations.grafana_alerting",
-    "config_integrations.legacy_grafana_alerting",
-    "config_integrations.formatted_webhook",
     "config_integrations.webhook",
+    "config_integrations.alertmanager",
+    # Not featured
+    "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
     "config_integrations.heartbeat",
@@ -836,11 +835,19 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
+    # Actually it's Grafana 8 integration.
+    # users are confused and tries to use to send alerts from external Grafana.
+    # So move it closer to the end of the list
+    "config_integrations.grafana",
+    # Legacy are not shown, ordering isn't important
+    "config_integrations.legacy_alertmanager",
+    "config_integrations.legacy_grafana_alerting",
 ]
 
+ADVANCED_WEBHOOK_PRESET = "apps.webhooks.presets.advanced.AdvancedWebhookPreset"
 INSTALLED_WEBHOOK_PRESETS = [
     "apps.webhooks.presets.simple.SimpleWebhookPreset",
-    "apps.webhooks.presets.advanced.AdvancedWebhookPreset",
+    ADVANCED_WEBHOOK_PRESET,
 ]
 
 if IS_OPEN_SOURCE:

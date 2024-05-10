@@ -248,21 +248,21 @@ endef
 
 backend-bootstrap:
 	python3.11 -m venv $(VENV_DIR)
-	$(VENV_DIR)/bin/pip install -U pip wheel pip-tools
-	$(VENV_DIR)/bin/pip-sync $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
+	$(VENV_DIR)/bin/pip install -U pip wheel uv
+	$(VENV_DIR)/bin/uv pip sync $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
 	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
-		$(VENV_DIR)/bin/pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+		$(VENV_DIR)/bin/uv pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
 	fi
 
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
 
 backend-compile-deps:
-	pip-compile --strip-extras $(REQUIREMENTS_IN)
-	pip-compile --strip-extras $(REQUIREMENTS_DEV_IN)
+	uv pip compile --strip-extras $(REQUIREMENTS_IN)
+	uv pip compile --strip-extras $(REQUIREMENTS_DEV_IN)
 
 backend-upgrade-deps:
-	pip-compile --strip-extras --upgrade $(REQUIREMENTS_IN)
+	uv pip compile --strip-extras --upgrade $(REQUIREMENTS_IN)
 
 run-backend-server:
 	$(call backend_command,python manage.py runserver 0.0.0.0:8080)

@@ -671,3 +671,12 @@ def test_get_cached_oncall_users_for_multiple_schedules(
         _generate_cache_key(schedule2): [users[2].public_primary_key, users[3].public_primary_key],
         _generate_cache_key(schedule3): [users[4].public_primary_key, users[5].public_primary_key],
     }
+
+    # scenario: user is deleted but still in cache (all schedules are still in cache)
+    users[0].delete()
+    results = get_cached_oncall_users_for_multiple_schedules(schedules)
+    assert results == {
+        schedule1: [users[1]],
+        schedule2: [users[2], users[3]],
+        schedule3: [users[4], users[5]],
+    }
