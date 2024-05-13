@@ -12,11 +12,19 @@ type GlobalNotificationError = {
 /**
  * This one can be used to conditionally show inline banner in any place on UI.
  */
-type InlineBanner = {
+type InlineBannerError = {
   type: 'inline-banner';
   severity: 'error' | 'warning';
   title?: string;
   description: string;
+};
+
+/**
+ * This one can be used to redirect user to a specific URL.
+ */
+type RedirectError = {
+  type: 'redirect';
+  path: string;
 };
 
 /**
@@ -36,7 +44,7 @@ type ImplicitError = {
   message: string;
 };
 
-type OnCallError = GlobalNotificationError | InlineBanner | FormError | ImplicitError;
+type OnCallError = GlobalNotificationError | InlineBannerError | RedirectError | FormError | ImplicitError;
 
 /**
  * Unsuccessful HTTP response can be a mix of any of the errors above. For example you might want to
@@ -92,5 +100,18 @@ const MixedErrorExample: OnCallUnsuccessfulHttpResponse = [
       name: ['Ensure this field has no more than 100 characters.', 'Name cannot include special characters.'],
       url: ['This field is required'],
     },
+  },
+];
+
+const MixedErrorExample2: OnCallUnsuccessfulHttpResponse = [
+  {
+    type: 'redirect',
+    path: '/plugins/grafana-oncall-app/configure',
+  },
+  {
+    type: 'inline-banner',
+    severity: 'warning',
+    title: 'Invalid OnCall API URL',
+    description: 'Make sure your OnCall API URL is correct and retest connection.',
   },
 ];
