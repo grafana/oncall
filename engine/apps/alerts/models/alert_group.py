@@ -511,16 +511,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def telegram_permalink(self) -> typing.Optional[str]:
-        """
-        This property will attempt to access an attribute, `prefetched_telegram_messages`, representing a list of
-        prefetched telegram messages. If this attribute does not exist, it falls back to performing a query.
-
-        See `apps.public_api.serializers.incidents.IncidentSerializer.PREFETCH_RELATED` as an example.
-        """
         from apps.telegram.models.message import TelegramMessage
-
-        if hasattr(self, "prefetched_telegram_messages"):
-            return self.prefetched_telegram_messages[0].link if self.prefetched_telegram_messages else None
 
         main_telegram_message = self.telegram_messages.filter(
             chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE

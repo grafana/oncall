@@ -68,6 +68,10 @@ class SlackAPIMessageNotFoundError(SlackAPIError):
     errors = ("message_not_found",)
 
 
+class SlackAPICantUpdateMessageError(SlackAPIError):
+    errors = ("cant_update_message",)
+
+
 class SlackAPIUserNotFoundError(SlackAPIError):
     errors = ("user_not_found",)
 
