@@ -201,7 +201,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                       <HorizontalGroup spacing="lg">
                         {users && (
                           <HorizontalGroup>
-                            <Text type="secondary">Current timezone:</Text>
+                            <Text type="secondary">View in timezone:</Text>
                             <UserTimezoneSelect scheduleId={scheduleId} />
                           </HorizontalGroup>
                         )}
@@ -316,7 +316,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                               <Icon name="angle-right" />
                             </Button>
                           </HorizontalGroup>
-                          <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
+                          <Text.Title style={{ marginLeft: '8px', whiteSpace: 'nowrap' }} level={4} type="primary">
                             {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
                             {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
                           </Text.Title>

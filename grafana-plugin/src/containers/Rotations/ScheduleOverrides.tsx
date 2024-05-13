@@ -137,8 +137,10 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
             <TimelineMarks />
             {shiftSwaps && shiftSwaps.length ? (
               <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
-                <Tag className={cx('layer-title')} color="secondary">
-                  <Text type="secondary">Swaps</Text>
+                <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                  <Text type="primary" size="small">
+                    Swaps
+                  </Text>
                 </Tag>
                 {shiftSwaps.map(({ isPreview, events }, index) => (
                   <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
@@ -159,8 +161,10 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </TransitionGroup>
             ) : null}
             <TransitionGroup className={cx('rotations', 'layer', { 'layer-first': !shiftSwaps || !shiftSwaps.length })}>
-              <Tag className={cx('layer-title')} color="secondary">
-                <Text type="secondary">Overrides</Text>
+              <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                <Text type="primary" size="small">
+                  Overrides
+                </Text>
               </Tag>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, isPreview, events }, index) => (

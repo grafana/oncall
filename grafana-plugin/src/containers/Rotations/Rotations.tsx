@@ -157,8 +157,10 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                 {layers.map((layer, layerIndex) => (
                   <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                     <div id={`layer${layer.priority}`} className={cx('layer', { ['layer-first']: layerIndex === 0 })}>
-                      <Tag className={cx('layer-title')} color="secondary">
-                        <Text type="secondary"> Layer {layer.priority}</Text>
+                      <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                        <Text size="small" type="primary">
+                          Layer {layer.priority}
+                        </Text>
                       </Tag>
                       <div className={cx('header-plus-content')}>
                         <TransitionGroup className={cx('rotations')}>

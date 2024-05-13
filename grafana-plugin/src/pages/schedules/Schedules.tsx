@@ -80,7 +80,10 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={cx('schedules__actions')}>
-                <UserTimezoneSelect />
+                <HorizontalGroup>
+                  <Text type="secondary">View in timezone:</Text>
+                  <UserTimezoneSelect />
+                </HorizontalGroup>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule

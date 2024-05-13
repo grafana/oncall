@@ -40,7 +40,7 @@
 }
 
 .slots__animate {
-  transition: transform 500ms ease;
+  /* transition: transform 500ms ease; TODO either remove or uncomment */
 }
 
 .current-time {

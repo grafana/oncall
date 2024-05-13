@@ -29,7 +29,7 @@
 .controls {
   width: 100%;
   position: sticky;
-  top: 10px;
+  top: 0;
   z-index: 2;
   padding: 10px;
   background: var(--background-secondary);
