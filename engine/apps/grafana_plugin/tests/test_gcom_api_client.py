@@ -102,5 +102,5 @@ def test_get_instance_ids_pagination(settings, query, expected_pages, expected_i
 )
 def test_cleanup_organization_deleted(status, is_deleted):
     client = GcomAPIClient("someToken")
-    with patch.object(GcomAPIClient, "api_get", return_value=({"status": status}, None)):
+    with patch.object(GcomAPIClient, "api_get", return_value=({"items": [{"status": status}]}, None)):
         assert client.is_stack_deleted("someStack") == is_deleted
