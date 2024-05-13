@@ -342,7 +342,7 @@ class GcomAPIClient(APIClient):
         """
         NOTE: in order to use ?config=true, an "Admin" GCOM token must be used to make the API call
         """
-        url = f"instances/{stack_id}"
+        url = f"instances/{stack_id}?includeDeleted=true"
         if include_config_query_param:
             url += "?config=true"
 
@@ -370,13 +370,11 @@ class GcomAPIClient(APIClient):
             return False
         return instance_info.get("status") == state
 
+    def is_stack_deleted(self, stack_id: str) -> bool:
+        return self._is_stack_in_certain_state(stack_id, self.STACK_STATUS_DELETED)
+
     def is_stack_active(self, stack_id: str) -> bool:
         return self._is_stack_in_certain_state(stack_id, self.STACK_STATUS_ACTIVE)
-
-    def is_stack_deleted(self, stack_id: str) -> bool:
-        url = f"instances?includeDeleted=true&id={stack_id}"
-        instance_infos, _ = self.api_get(url)
-        return instance_infos["items"] and instance_infos["items"][0].get("status") == self.STACK_STATUS_DELETED
 
     def post_active_users(self, body) -> APIClientResponse:
         return self.api_post("app-active-users", body)
