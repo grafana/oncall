@@ -8,63 +8,6 @@ from apps.grafana_plugin.helpers.gcom import get_instance_ids
 from settings.base import CLOUD_LICENSE_NAME
 
 
-class TestIsFeatureToggleEnabledForStack:
-    TEST_FEATURE_TOGGLE_NAME = "helloWorld"
-
-    @pytest.mark.parametrize(
-        "instance_info_feature_toggles,delimiter,expected",
-        [
-            ({}, " ", False),
-            ({"enable": "foo,bar,baz"}, " ", False),
-            ({"enable": "foo,bar,baz"}, ",", False),
-            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE_NAME}"}, " ", False),
-            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE_NAME}"}, ",", False),
-            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE_NAME}abc"}, ",", False),
-            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE_NAME}"}, ",", True),
-        ],
-    )
-    def test_feature_is_enabled_via_enable_key(self, instance_info_feature_toggles, delimiter, expected) -> None:
-        assert (
-            GcomAPIClient("someFakeApiToken")._feature_is_enabled_via_enable_key(
-                instance_info_feature_toggles, self.TEST_FEATURE_TOGGLE_NAME, delimiter
-            )
-            == expected
-        )
-
-    @pytest.mark.parametrize(
-        "instance_info,expected",
-        [
-            ({}, False),
-            ({"config": {}}, False),
-            ({"config": {"feature_toggles": {}}}, False),
-            ({"config": {"feature_toggles": {"enable": "foo,bar,baz"}}}, False),
-            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE_NAME: "false"}}}, False),
-            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE_NAME}baz"}}}, False),
-            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE_NAME},baz"}}}, True),
-            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE_NAME} baz"}}}, True),
-            ({"config": {"feature_toggles": {"enable": "foo bar baz", TEST_FEATURE_TOGGLE_NAME: "true"}}}, True),
-            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE_NAME: "true"}}}, True),
-            # this case will probably never happen, but lets account for it anyways
-            (
-                {
-                    "config": {
-                        "feature_toggles": {
-                            "enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE_NAME}",
-                            TEST_FEATURE_TOGGLE_NAME: "false",
-                        }
-                    }
-                },
-                True,
-            ),
-        ],
-    )
-    def test_feature_toggle_is_enabled(self, instance_info, expected) -> None:
-        assert (
-            GcomAPIClient("someFakeApiToken")._feature_toggle_is_enabled(instance_info, self.TEST_FEATURE_TOGGLE_NAME)
-            == expected
-        )
-
-
 def build_paged_responses(page_size, pages, total_items):
     response = []
     remaining = total_items

@@ -349,46 +349,6 @@ class GcomAPIClient(APIClient):
         data, _ = self.api_get(url)
         return data
 
-    def _feature_is_enabled_via_enable_key(
-        self, instance_feature_toggles: GCOMInstanceInfoConfigFeatureToggles, feature_name: str, delimiter: str
-    ):
-        return feature_name in instance_feature_toggles.get("enable", "").split(delimiter)
-
-    def _feature_toggle_is_enabled(self, instance_info: GCOMInstanceInfo, feature_name: str) -> bool:
-        """
-        NOTE: there are some edge-cases to consider if you decide to use this method
-        1. If a feature flag is enabled outside of the Admin UI (ex. via deployment_tools), this endpoint
-        will not return the ACTUAL runtime value that the Grafana stack itself is using/respecting
-
-        there are two ways that feature toggles can be enabled, this method takes into account both
-        https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#enable
-        """
-        instance_info_config = instance_info.get("config", {})
-        if not instance_info_config:
-            return False
-
-        instance_feature_toggles = instance_info_config.get("feature_toggles", {})
-
-        if not instance_feature_toggles:
-            return False
-
-        # features enabled via enable key can be either space or comma delimited
-        # https://raintank-corp.slack.com/archives/C036J5B39/p1690183217162019
-
-        feature_enabled_via_enable_key_space_delimited = self._feature_is_enabled_via_enable_key(
-            instance_feature_toggles, feature_name, " "
-        )
-        feature_enabled_via_enable_key_comma_delimited = self._feature_is_enabled_via_enable_key(
-            instance_feature_toggles, feature_name, ","
-        )
-        feature_enabled_via_direct_key = instance_feature_toggles.get(feature_name, "false") == "true"
-
-        return (
-            feature_enabled_via_direct_key
-            or feature_enabled_via_enable_key_space_delimited
-            or feature_enabled_via_enable_key_comma_delimited
-        )
-
     def get_instances(self, query: str, page_size=None):
         if not page_size:
             page, _ = self.api_get(query)
@@ -410,11 +370,13 @@ class GcomAPIClient(APIClient):
             return False
         return instance_info.get("status") == state
 
-    def is_stack_deleted(self, stack_id: str) -> bool:
-        return self._is_stack_in_certain_state(stack_id, self.STACK_STATUS_DELETED)
-
     def is_stack_active(self, stack_id: str) -> bool:
         return self._is_stack_in_certain_state(stack_id, self.STACK_STATUS_ACTIVE)
+
+    def is_stack_deleted(self, stack_id: str) -> bool:
+        url = f"instances?includeDeleted=true&id={stack_id}"
+        instance_infos, _ = self.api_get(url)
+        return instance_infos["items"] and instance_infos["items"][0].get("status") == self.STACK_STATUS_DELETED
 
     def post_active_users(self, body) -> APIClientResponse:
         return self.api_post("app-active-users", body)
