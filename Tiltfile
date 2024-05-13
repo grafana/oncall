@@ -59,13 +59,27 @@ docker_build_sub(
     ],
 )
 
-# Build the plugin in the background
-local_resource(
-    "build-ui",
-    labels=["OnCallUI"],
-    serve_cmd="cd grafana-plugin && yarn watch",
-    allow_parallel=True,
-)
+# On CI dependencies are installed separately so we just build prod bundle to be consumed by Grafana dev server
+if is_ci:
+    local_resource(
+        "build-ui",
+        labels=["OnCallUI"],
+        dir="grafana-plugin",
+        cmd="yarn build",
+        allow_parallel=True,
+    )
+
+# Locally we install dependencies and we run watch mode
+if not is_ci:
+    local_resource(
+        "build-ui",
+        labels=["OnCallUI"],
+        dir="grafana-plugin",
+        cmd="yarn install",
+        serve_dir="grafana-plugin",
+        serve_cmd="yarn watch",
+        allow_parallel=True,
+    )
 
 local_resource(
     "e2e-tests",
@@ -130,7 +144,7 @@ configmap_create(
 k8s_resource(
     objects=["grafana-oncall-app-provisioning:configmap"],
     new_name="grafana-oncall-app-provisioning-configmap",
-    resource_deps=["build-ui", "engine"],
+    resource_deps=["build-ui"],
     labels=["Grafana"],
 )
 
@@ -141,7 +155,7 @@ if not running_under_parent_tiltfile:
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
-        deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "engine"],
+        deps=["grafana-oncall-app-provisioning-configmap", "build-ui"],
         extra_env={
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",

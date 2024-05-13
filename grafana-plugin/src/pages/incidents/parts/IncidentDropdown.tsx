@@ -1,33 +1,31 @@
 import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 
-import { Icon, LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Icon, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { getUtilStyles } from 'styles/utils.styles';
 
-import { Tag } from 'components/Tag/Tag';
+import { Tag, TagColor } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
-import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
+import { getIncidentDropdownStyles } from './IncidentDropdown.styles';
 import { SilenceSelect } from './SilenceSelect';
-
-const cx = cn.bind(styles);
 
 const getIncidentTagColor = (alert: ApiSchemas['AlertGroup']) => {
   if (alert.status === IncidentStatus.Resolved) {
-    return getVar('--tag-primary');
+    return TagColor.SUCCESS;
   }
   if (alert.status === IncidentStatus.Firing) {
-    return getVar('--tag-danger');
+    return TagColor.ERROR;
   }
   if (alert.status === IncidentStatus.Acknowledged) {
-    return getVar('--tag-warning');
+    return TagColor.WARNING;
   }
-  return getVar('--tag-secondary');
+  return TagColor.SECONDARY;
 };
 
 function IncidentStatusTag({
@@ -37,12 +35,13 @@ function IncidentStatusTag({
   alert: ApiSchemas['AlertGroup'];
   openMenu: React.MouseEventHandler<HTMLElement>;
 }) {
+  const styles = useStyles2(getIncidentDropdownStyles);
   const forwardedRef = useRef<HTMLSpanElement>();
 
   return (
     <Tag
       forwardedRef={forwardedRef}
-      className={cx('incident__tag')}
+      className={cx(styles.incidentTag)}
       color={getIncidentTagColor(alert)}
       onClick={() => {
         const boundingRect = forwardedRef.current.getBoundingClientRect();
@@ -50,10 +49,8 @@ function IncidentStatusTag({
         openMenu({ pageX: boundingRect.left + LEFT_MARGIN, pageY: boundingRect.top + boundingRect.height } as any);
       }}
     >
-      <Text strong size="small">
-        {IncidentStatus[alert.status]}
-      </Text>
-      <Icon className={cx('incident__icon')} name="angle-down" size="sm" />
+      <Text size="small">{IncidentStatus[alert.status]}</Text>
+      <Icon className={cx(styles.incidentIcon)} name="angle-down" size="sm" />
     </Tag>
   );
 }
@@ -70,6 +67,9 @@ export const IncidentDropdown: FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [currentLoadingAction, setCurrentActionLoading] = useState<IncidentStatus>(undefined);
   const [forcedOpenAction, setForcedOpenAction] = useState<string>(undefined);
+
+  const styles = useStyles2(getIncidentDropdownStyles);
+  const utilStyles = useStyles2(getUtilStyles);
 
   const onClickFn = async (
     ev: React.SyntheticEvent<HTMLDivElement>,
@@ -96,15 +96,15 @@ export const IncidentDropdown: FC<{
       <WithContextMenu
         forceIsOpen={forcedOpenAction === AlertAction.Resolve}
         renderMenuItems={() => (
-          <div className={cx('incident__options', { 'u-disabled': isLoading })}>
+          <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx('incident__option-item', 'incident__option-item--firing')}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve, IncidentStatus.Firing)}
               >
                 Firing{' '}
                 {currentLoadingAction === IncidentStatus.Firing && isLoading && (
-                  <span className={cx('incident__option-span')}>
+                  <span className={cx(styles.incidentOptionEl)}>
                     <LoadingPlaceholder text="" />
                   </span>
                 )}
@@ -123,15 +123,15 @@ export const IncidentDropdown: FC<{
       <WithContextMenu
         forceIsOpen={forcedOpenAction === AlertAction.Acknowledge}
         renderMenuItems={() => (
-          <div className={cx('incident__options', { 'u-disabled': isLoading })}>
+          <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx('incident__option-item', 'incident__option-item--unacknowledge')}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge, IncidentStatus.Firing)}
               >
                 Unacknowledge{' '}
                 {currentLoadingAction === IncidentStatus.Firing && isLoading && (
-                  <span className={cx('incident__option-span')}>
+                  <span className={cx(styles.incidentOptionEl)}>
                     <LoadingPlaceholder text="" />
                   </span>
                 )}
@@ -139,12 +139,12 @@ export const IncidentDropdown: FC<{
             </WithPermissionControlTooltip>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx('incident__option-item', 'incident__option-item--resolve')}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve, IncidentStatus.Resolved)}
               >
                 Resolve{' '}
                 {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
-                  <span className={cx('incident__option-span')}>
+                  <span className={cx(styles.incidentOptionEl)}>
                     <LoadingPlaceholder text="" />
                   </span>
                 )}
@@ -163,15 +163,15 @@ export const IncidentDropdown: FC<{
       <WithContextMenu
         forceIsOpen={forcedOpenAction === AlertAction.unResolve}
         renderMenuItems={() => (
-          <div className={cx('incident__options', { 'u-disabled': isLoading })}>
+          <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx('incident__option-item', 'incident__option-item--acknowledge')}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge, IncidentStatus.Acknowledged)}
               >
                 Acknowledge{' '}
                 {currentLoadingAction === IncidentStatus.Acknowledged && isLoading && (
-                  <span className={cx('incident__option-span')}>
+                  <span className={cx(styles.incidentOptionEl)}>
                     <LoadingPlaceholder text="" />
                   </span>
                 )}
@@ -179,19 +179,19 @@ export const IncidentDropdown: FC<{
             </WithPermissionControlTooltip>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
-                className={cx('incident__option-item', 'incident__option-item--resolve')}
+                className={cx(styles.incidentOptionItem)}
                 onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve, IncidentStatus.Resolved)}
               >
                 Resolve{' '}
                 {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
-                  <span className={cx('incident__option-span')}>
+                  <span className={cx(styles.incidentOptionEl)}>
                     <LoadingPlaceholder text="" />
                   </span>
                 )}
               </div>
             </WithPermissionControlTooltip>
 
-            <div className={cx('incident__option-item')}>
+            <div className={cx(styles.incidentOptionItem)}>
               <SilenceSelect
                 placeholder={
                   currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
@@ -222,15 +222,15 @@ export const IncidentDropdown: FC<{
     <WithContextMenu
       forceIsOpen={forcedOpenAction === AlertAction.Silence}
       renderMenuItems={() => (
-        <div className={cx('incident_options', { 'u-disabled': isLoading })}>
+        <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
           <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
-              className={cx('incident__option-item')}
+              className={cx(styles.incidentOptionItem)}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onUnsilence, IncidentStatus.Firing)}
             >
               Unsilence{' '}
               {currentLoadingAction === IncidentStatus.Firing && isLoading && (
-                <span className={cx('incident__option-span')}>
+                <span className={cx(styles.incidentOptionEl)}>
                   <LoadingPlaceholder text="" />
                 </span>
               )}
@@ -238,12 +238,12 @@ export const IncidentDropdown: FC<{
           </WithPermissionControlTooltip>
           <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
-              className={cx('incident__option-item', 'incident__option-item--acknowledge')}
+              className={cx(styles.incidentOptionItem)}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Acknowledged)}
             >
               Acknowledge{' '}
               {currentLoadingAction === IncidentStatus.Acknowledged && isLoading && (
-                <span className={cx('incident__option-span')}>
+                <span className={cx(styles.incidentOptionEl)}>
                   <LoadingPlaceholder text="" />
                 </span>
               )}
@@ -251,12 +251,12 @@ export const IncidentDropdown: FC<{
           </WithPermissionControlTooltip>
           <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
-              className={cx('incident__option-item', 'incident__option-item--resolve')}
+              className={cx(styles.incidentOptionItem)}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Resolved)}
             >
               Resolve{' '}
               {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
-                <span className={cx('incident__option-span')}>
+                <span className={cx(styles.incidentOptionEl)}>
                   <LoadingPlaceholder text="" />
                 </span>
               )}

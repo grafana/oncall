@@ -126,7 +126,6 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         >
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
             <GSelect<SlackChannel>
-              showSearch
               items={slackChannelStore.items}
               fetchItemsFn={slackChannelStore.updateItems}
               fetchItemFn={slackChannelStore.updateItem}
@@ -216,7 +215,6 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     return (
       <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
         <GSelect<SlackChannel>
-          showSearch
           className={cx('select', 'control')}
           items={slackChannelStore.items}
           fetchItemsFn={slackChannelStore.updateItems}
