@@ -90,7 +90,6 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                 <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                   <GSelect<Schedule>
                     isMulti
-                    showSearch
                     allowClear
                     disabled={false}
                     items={scheduleStore.items}
