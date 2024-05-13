@@ -13,6 +13,7 @@ from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertRece
 from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
@@ -947,6 +948,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 SlackAPIChannelArchivedError,
                 SlackAPIChannelInactiveError,
                 SlackAPIInvalidAuthError,
+                SlackAPICantUpdateMessageError,
             ):
                 pass
             else:

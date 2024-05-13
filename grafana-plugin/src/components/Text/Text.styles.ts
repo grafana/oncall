@@ -7,8 +7,8 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
     root: css`
       display: inline;
 
-      &:hover .icon-button {
-        display: inline-block;
+      &:hover [data-emotion='iconButton'] {
+        display: inline-flex;
       }
     `,
 

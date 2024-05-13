@@ -55,7 +55,6 @@ export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
         Post to Microsoft Teams channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect<MSTeamsChannel>
-            showSearch
             allowClear
             className={cx('select', 'control')}
             items={msteamsChannelStore.items}

@@ -9,6 +9,7 @@ from slack_sdk.web import SlackResponse
 from apps.slack.client import SlackClient, server_error_retry_handler
 from apps.slack.errors import (
     SlackAPICannotDMBotError,
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
@@ -116,6 +117,7 @@ def test_slack_client_generic_error(mock_request, monkeypatch, make_organization
     [
         ("account_inactive", SlackAPITokenError),
         ("cannot_dm_bot", SlackAPICannotDMBotError),
+        ("cant_update_message", SlackAPICantUpdateMessageError),
         ("channel_not_found", SlackAPIChannelNotFoundError),
         ("fatal_error", SlackAPIServerError),
         ("fetch_members_failed", SlackAPIFetchMembersFailedError),
