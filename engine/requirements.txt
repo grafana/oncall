@@ -440,7 +440,7 @@ toml==0.10.2
     # via django-migration-linter
 tornado==6.4
     # via python-telegram-bot
-tqdm==4.66.2
+tqdm==4.66.3
     # via django-mirage-field
 twilio==6.37.0
     # via -r requirements.in
