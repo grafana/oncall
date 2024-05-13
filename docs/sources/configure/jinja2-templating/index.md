@@ -219,9 +219,10 @@ Built-in functions:
 - `tojson` - dumps a structure to JSON
 - `tojson_pretty` - same as tojson, but prettified
 - `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
-- `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
+- `datetimeformat` - converts datetime to string according to strftime format codes (`%H:%M / %d-%m-%Y` by default)
 - `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default)
   - Usage example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
+- `datetimeparse` - converts string to datetime according to strftime format codes (`%H:%M / %d-%m-%Y` by default)
 - `regex_replace` - performs a regex find and replace
 - `regex_match` - performs a regex match, returns `True` or `False`
   - Usage example: `{{ payload.ruleName | regex_match(".*") }}`

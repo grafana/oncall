@@ -1,9 +1,17 @@
 import base64
 import json
 import re
+from datetime import datetime
 
 from django.utils.dateparse import parse_datetime
 from pytz import timezone
+
+
+def datetimeparse(value, format="%H:%M / %d-%m-%Y"):
+    try:
+        return datetime.strptime(value, format)
+    except (ValueError, AttributeError, TypeError):
+        return None
 
 
 def datetimeformat(value, format="%H:%M / %d-%m-%Y"):
