@@ -289,7 +289,7 @@ jobs:
           python-version: "3.11.4"
           cache: "pip"
           cache-dependency-path: tools/migrators/requirements.txt
-      - name: Unit Test PD Migrator
+      - name: Unit Test Migrators
         working-directory: tools/migrators
         run: |
           pip install uv
