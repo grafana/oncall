@@ -186,7 +186,6 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       <WithPermissionControlTooltip key="users-multiple" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<ApiSchemas['User']>
           isMulti
-          showSearch
           allowClear
           disabled={isDisabled}
           displayField="username"
@@ -348,7 +347,6 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <WithPermissionControlTooltip key="notify_schedule" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<Schedule>
-          showSearch
           allowClear
           disabled={isDisabled}
           items={scheduleStore.items}
@@ -386,6 +384,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <WithPermissionControlTooltip key="notify_to_group" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<UserGroup[]>
+          allowClear
           disabled={isDisabled}
           items={userGroupStore.items}
           fetchItemsFn={userGroupStore.updateItems}
@@ -415,7 +414,6 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <WithPermissionControlTooltip key="custom-webhook" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<ApiSchemas['Webhook']>
-          showSearch
           disabled={isDisabled}
           items={outgoingWebhookStore.items}
           fetchItemsFn={outgoingWebhookStore.updateItems}
@@ -457,7 +455,6 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <WithPermissionControlTooltip key="notify_to_team_members" userAction={UserActions.EscalationChainsWrite}>
         <GSelect<GrafanaTeam>
-          showSearch
           disabled={isDisabled}
           items={grafanaTeamStore.items}
           fetchItemsFn={grafanaTeamStore.updateItems}

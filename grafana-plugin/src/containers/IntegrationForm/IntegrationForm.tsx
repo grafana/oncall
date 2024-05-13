@@ -240,7 +240,6 @@ export const IntegrationForm = observer(
                     getSearchResult: grafanaTeamStore.getSearchResult,
                     displayField: 'name',
                     valueField: 'id',
-                    showSearch: true,
                     allowClear: true,
                   }}
                   onChange={(value) => {
