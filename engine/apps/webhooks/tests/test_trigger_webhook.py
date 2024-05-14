@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from unittest.mock import call, patch
 
 import httpretty
@@ -456,7 +457,11 @@ def test_execute_webhook_ok_forward_all(
     other_user = make_user_for_organization(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(
-        alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+        alert_receive_channel,
+        acknowledged_at=timezone.now(),
+        acknowledged=True,
+        acknowledged_by=user.pk,
+        acknowledged_by_user=user,
     )
     for _ in range(3):
         make_user_notification_policy_log_record(
@@ -518,6 +523,12 @@ def test_execute_webhook_ok_forward_all(
             "name": webhook.name,
             "labels": {},
         },
+        "alert_group_acknowledged_by": {
+            "id": user.public_primary_key,
+            "username": user.username,
+            "email": user.email,
+        },
+        "alert_group_resolved_by": None,
     }
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),
@@ -529,6 +540,118 @@ def test_execute_webhook_ok_forward_all(
     # check logs
     log = webhook.responses.all()[0]
     assert log.trigger_type == Webhook.TRIGGER_ACKNOWLEDGE
+    assert log.status_code == 200
+    assert log.content == json.dumps(mock_response.json())
+    assert json.loads(log.request_data) == expected_data
+    assert log.url == "https://something/{}/".format(alert_group.public_primary_key)
+
+
+@pytest.mark.django_db
+def test_execute_webhook_ok_forward_all_resolved(
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+    make_custom_webhook,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    notified_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        acknowledged_at=timezone.now(),
+        acknowledged=True,
+        acknowledged_by=user.pk,
+        acknowledged_by_user=user,
+        resolved=True,
+        resolved_at=timezone.now() + timedelta(hours=2),
+        resolved_by=user.pk,
+        resolved_by_user=user,
+    )
+    for _ in range(3):
+        make_user_notification_policy_log_record(
+            author=notified_user,
+            alert_group=alert_group,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        )
+    make_user_notification_policy_log_record(
+        author=other_user,
+        alert_group=alert_group,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+    )
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://something/{{ alert_group_id }}/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_RESOLVE,
+        forward_all=True,
+    )
+
+    mock_response = MockResponse()
+    with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
+        mock_gethostbyname.return_value = "8.8.8.8"
+        with patch("apps.webhooks.models.webhook.requests") as mock_requests:
+            mock_requests.post.return_value = mock_response
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None, trigger_type=Webhook.TRIGGER_RESOLVE)
+
+    assert mock_requests.post.called
+    expected_data = {
+        "event": {
+            "type": "resolve",
+            "time": alert_group.resolved_at.isoformat(),
+        },
+        "user": {
+            "id": user.public_primary_key,
+            "username": user.username,
+            "email": user.email,
+        },
+        "integration": {
+            "id": alert_receive_channel.public_primary_key,
+            "type": alert_receive_channel.integration,
+            "name": alert_receive_channel.short_name,
+            "team": None,
+            "labels": {},
+        },
+        "notified_users": [
+            {
+                "id": notified_user.public_primary_key,
+                "username": notified_user.username,
+                "email": notified_user.email,
+            }
+        ],
+        "alert_group": {**IncidentSerializer(alert_group).data, "labels": {}},
+        "alert_group_id": alert_group.public_primary_key,
+        "alert_payload": "",
+        "users_to_be_notified": [],
+        "webhook": {
+            "id": webhook.public_primary_key,
+            "name": webhook.name,
+            "labels": {},
+        },
+        "alert_group_acknowledged_by": {
+            "id": user.public_primary_key,
+            "username": user.username,
+            "email": user.email,
+        },
+        "alert_group_resolved_by": {
+            "id": user.public_primary_key,
+            "username": user.username,
+            "email": user.email,
+        },
+    }
+    expected_call = call(
+        "https://something/{}/".format(alert_group.public_primary_key),
+        timeout=TIMEOUT,
+        headers={},
+        json=expected_data,
+    )
+    assert mock_requests.post.call_args == expected_call
+    # check logs
+    log = webhook.responses.all()[0]
+    assert log.trigger_type == Webhook.TRIGGER_RESOLVE
     assert log.status_code == 200
     assert log.content == json.dumps(mock_response.json())
     assert json.loads(log.request_data) == expected_data

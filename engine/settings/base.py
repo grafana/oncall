@@ -7,7 +7,7 @@ from random import randrange
 from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
-from common.utils import getenv_boolean, getenv_integer, getenv_list
+from common.utils import getenv_boolean, getenv_float, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -352,7 +352,7 @@ if OTEL_TRACING_ENABLED:
     MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
-
+LOG_CELERY_TASK_ARGUMENTS = getenv_boolean("LOG_CELERY_TASK_ARGUMENTS", default=True)
 
 log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
 
@@ -819,13 +819,12 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager",
-    "config_integrations.legacy_alertmanager",
-    "config_integrations.grafana",
+    # Featured
     "config_integrations.grafana_alerting",
-    "config_integrations.legacy_grafana_alerting",
-    "config_integrations.formatted_webhook",
     "config_integrations.webhook",
+    "config_integrations.alertmanager",
+    # Not featured
+    "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
     "config_integrations.heartbeat",
@@ -835,11 +834,19 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
+    # Actually it's Grafana 8 integration.
+    # users are confused and tries to use to send alerts from external Grafana.
+    # So move it closer to the end of the list
+    "config_integrations.grafana",
+    # Legacy are not shown, ordering isn't important
+    "config_integrations.legacy_alertmanager",
+    "config_integrations.legacy_grafana_alerting",
 ]
 
+ADVANCED_WEBHOOK_PRESET = "apps.webhooks.presets.advanced.AdvancedWebhookPreset"
 INSTALLED_WEBHOOK_PRESETS = [
     "apps.webhooks.presets.simple.SimpleWebhookPreset",
-    "apps.webhooks.presets.advanced.AdvancedWebhookPreset",
+    ADVANCED_WEBHOOK_PRESET,
 ]
 
 if IS_OPEN_SOURCE:
@@ -907,3 +914,5 @@ ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
+
+CLOUD_RBAC_ROLLOUT_PERCENTAGE = getenv_float("CLOUD_RBAC_ROLLOUT_PERCENTAGE", default=0.0)

@@ -47,7 +47,6 @@ export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) =
         Post to telegram channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect<TelegramChannel>
-            showSearch
             allowClear
             className={cx('select', 'control')}
             items={telegramChannelStore.items}

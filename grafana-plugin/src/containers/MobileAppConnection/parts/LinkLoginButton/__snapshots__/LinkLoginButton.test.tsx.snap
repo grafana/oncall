@@ -10,7 +10,7 @@ exports[`LinkLoginButton it renders properly 1`] = `
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
-        class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1d6rs0l"
+        class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
       >
         Sign in via deeplink
       </span>
@@ -19,7 +19,7 @@ exports[`LinkLoginButton it renders properly 1`] = `
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
-        class="css-77ouhj--primary css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
       >
         Make sure to have the app installed
       </span>
@@ -34,7 +34,7 @@ exports[`LinkLoginButton it renders properly 1`] = `
         <span
           class="css-1riaxdn"
         >
-          Sign in
+          Connect Mobile App
         </span>
       </button>
     </div>

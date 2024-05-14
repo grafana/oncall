@@ -275,6 +275,7 @@
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.notifications:read" },
+          { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.user-settings:write" }
         ]
       },

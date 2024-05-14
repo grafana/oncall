@@ -8,12 +8,15 @@ from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     METRICS_ORGANIZATIONS_IDS,
     METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT,
+    NO_SERVICE_VALUE,
+    SERVICE_LABEL,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
     RecalculateOrgMetricsDict,
     UserWasNotifiedOfAlertGroupsMetricsDict,
 )
 from apps.metrics_exporter.helpers import (
+    get_default_states_dict,
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
     get_metric_calculation_started_key,
@@ -111,37 +114,80 @@ def calculate_and_cache_metrics(organization_id, force=False):
     }
 
     for integration in integrations:
-        # calculate states
-        for state, alert_group_filter in states.items():
-            metric_alert_group_total.setdefault(
-                integration.id,
-                {
-                    "integration_name": integration.emojized_verbal_name,
-                    "team_name": integration.team_name,
-                    "team_id": integration.team_id_or_no_team,
-                    "org_id": instance_org_id,
-                    "slug": instance_slug,
-                    "id": instance_id,
-                },
-            )[state] = integration.alert_groups.filter(alert_group_filter).count()
-
-        # get response time
-        all_response_time = integration.alert_groups.filter(
-            started_at__gte=response_time_period,
-            response_time__isnull=False,
-        ).values_list("response_time", flat=True)
-
-        all_response_time_seconds = [int(response_time.total_seconds()) for response_time in all_response_time]
-
-        metric_alert_group_response_time[integration.id] = {
+        metric_alert_group_total_data = {
             "integration_name": integration.emojized_verbal_name,
             "team_name": integration.team_name,
             "team_id": integration.team_id_or_no_team,
             "org_id": instance_org_id,
             "slug": instance_slug,
             "id": instance_id,
-            "response_time": all_response_time_seconds,
+            "services": {
+                NO_SERVICE_VALUE: get_default_states_dict(),
+            },
         }
+        # calculate states
+        for state, alert_group_filter in states.items():
+            # count alert groups with `service_name` label group by label value
+            alert_group_count_by_service = (
+                integration.alert_groups.filter(
+                    alert_group_filter,
+                    labels__organization=organization,
+                    labels__key_name=SERVICE_LABEL,
+                )
+                .values("labels__value_name")
+                .annotate(count=Count("id"))
+            )
+
+            for value in alert_group_count_by_service:
+                metric_alert_group_total_data["services"].setdefault(
+                    value["labels__value_name"],
+                    get_default_states_dict(),
+                )[state] += value["count"]
+            # count alert groups without `service_name` label
+            alert_groups_count_without_service = integration.alert_groups.filter(
+                alert_group_filter,
+                ~Q(labels__key_name=SERVICE_LABEL),
+            ).count()
+            metric_alert_group_total_data["services"][NO_SERVICE_VALUE][state] += alert_groups_count_without_service
+        metric_alert_group_total[integration.id] = metric_alert_group_total_data
+
+        # calculate response time metric
+        metric_response_time_data = {
+            "integration_name": integration.emojized_verbal_name,
+            "team_name": integration.team_name,
+            "team_id": integration.team_id_or_no_team,
+            "org_id": instance_org_id,
+            "slug": instance_slug,
+            "id": instance_id,
+            "services": {NO_SERVICE_VALUE: []},
+        }
+
+        # filter response time by services
+        response_time_by_service = integration.alert_groups.filter(
+            started_at__gte=response_time_period,
+            response_time__isnull=False,
+            labels__organization=organization,
+            labels__key_name=SERVICE_LABEL,
+        ).values_list("id", "labels__value_name", "response_time")
+        for _, service_name, response_time in response_time_by_service:
+            metric_response_time_data["services"].setdefault(service_name, [])
+            metric_response_time_data["services"][service_name].append(response_time.total_seconds())
+
+        no_service_response_time = (
+            integration.alert_groups.filter(
+                started_at__gte=response_time_period,
+                response_time__isnull=False,
+            )
+            .exclude(id__in=[i[0] for i in response_time_by_service])
+            .values_list("response_time", flat=True)
+        )
+
+        no_service_response_time_seconds = [
+            int(response_time.total_seconds()) for response_time in no_service_response_time
+        ]
+        metric_response_time_data["services"][NO_SERVICE_VALUE] = no_service_response_time_seconds
+
+        metric_alert_group_response_time[integration.id] = metric_response_time_data
 
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
@@ -223,6 +269,8 @@ def update_metrics_for_alert_group(alert_group_id, organization_id, previous_sta
     if previous_state != AlertGroupState.FIRING or alert_group.restarted_at:
         # only consider response time from the first action
         updated_response_time = None
+    service_label = alert_group.labels.filter(key_name=SERVICE_LABEL).first()
+    service_name = service_label.value_name if service_label else NO_SERVICE_VALUE
     MetricsCacheManager.metrics_update_cache_for_alert_group(
         integration_id=alert_group.channel_id,
         organization_id=organization_id,
@@ -230,6 +278,7 @@ def update_metrics_for_alert_group(alert_group_id, organization_id, previous_sta
         new_state=new_state,
         response_time=updated_response_time,
         started_at=alert_group.started_at,
+        service_name=service_name,
     )
 
 
