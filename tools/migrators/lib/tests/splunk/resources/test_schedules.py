@@ -720,10 +720,7 @@ def test_migrate_schedule(
         ("schedules", expected_oncall_schedule_create_call)
     )
 
-    print(mock_oncall_client.create.call_args_list)
-
     for expected_call_args in expected_oncall_api_create_calls_args:
-        print(expected_call_args)
         mock_oncall_client.create.assert_any_call(*expected_call_args)
 
 

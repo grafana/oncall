@@ -24,13 +24,13 @@ ERROR_SIGN = "❌"
 grafana_client = GrafanaAPIClient(GRAFANA_URL, GRAFANA_USERNAME, GRAFANA_PASSWORD)
 
 
-def list_pagerduty_users():
+def migrate_pagerduty_users():
     session = APISession(PAGERDUTY_API_TOKEN)
     for user in session.list_all("users"):
         create_grafana_user(user["name"], user["email"])
 
 
-def list_splunk_users():
+def migrate_splunk_users():
     client = SplunkOnCallAPIClient(SPLUNK_API_ID, SPLUNK_API_KEY)
     for user in client.fetch_users(include_paging_policies=False):
         create_grafana_user(f"{user['firstName']} {user['lastName']}", user["email"])
@@ -51,8 +51,8 @@ def create_grafana_user(name: str, email: str):
 
 if __name__ == "__main__":
     if MIGRATING_FROM == PAGERDUTY:
-        list_pagerduty_users()
+        migrate_pagerduty_users()
     elif MIGRATING_FROM == SPLUNK:
-        list_splunk_users()
+        migrate_splunk_users()
     else:
         raise ValueError("Invalid value for MIGRATING_FROM")

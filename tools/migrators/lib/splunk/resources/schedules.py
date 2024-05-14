@@ -57,8 +57,7 @@ def _splunk_datetime_to_dt(text: str) -> datetime.datetime:
     """
     Convert a Splunk datetime string to a datetime object.
     """
-    dt = datetime.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ")
-    return dt.replace(tzinfo=datetime.timezone.utc)
+    return datetime.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ")
 
 
 @dataclass
