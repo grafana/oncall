@@ -211,7 +211,7 @@ class GrafanaAPIClient(APIClient):
     def check_token(self) -> APIClientResponse:
         return self.api_head("api/org")
 
-    def get_users_permissions(self, rbac_is_enabled_for_org: bool) -> UserPermissionsDict:
+    def get_users_permissions(self) -> typing.Optional[UserPermissionsDict]:
         """
         It is possible that this endpoint may not be available for certain Grafana orgs.
         Ex: for Grafana Cloud orgs whom have pinned their Grafana version to an earlier version
@@ -229,13 +229,9 @@ class GrafanaAPIClient(APIClient):
             }
         }
         """
-        if not rbac_is_enabled_for_org:
-            return {}
         response, _ = self.api_get(self.USER_PERMISSION_ENDPOINT)
-        if response is None:
-            return {}
-        elif isinstance(response, list):
-            return {}
+        if response is None or isinstance(response, list):
+            return None
 
         data: typing.Dict[str, typing.Dict[str, typing.List[str]]] = response
 
@@ -259,7 +255,13 @@ class GrafanaAPIClient(APIClient):
 
         users: GrafanaUsersWithPermissions = users_response
 
-        user_permissions = self.get_users_permissions(rbac_is_enabled_for_org)
+        user_permissions = {}
+        if rbac_is_enabled_for_org:
+            user_permissions = self.get_users_permissions(rbac_is_enabled_for_org)
+            if user_permissions is None:
+                # If we cannot fetch permissions when RBAC is enabled (ex. HTTP 500), we should not return any users
+                # to avoid potentially wiping-out OnCall's copy of permissions for all users
+                return []
 
         # merge the users permissions response into the org users response
         for user in users:
