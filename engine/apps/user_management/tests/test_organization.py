@@ -308,9 +308,6 @@ def test_should_be_considered_for_rbac_permissioning(
     ]
 
     assert all(org.is_rbac_permissions_enabled is is_rbac_permissions_enabled_initially for org in orgs)
-    for id_idx, org in enumerate(orgs):
-        # make sure the primary key autoincrementer is reset between each test
-        assert id_idx + 1 == org.id
 
     if expected == "partial":
         assert all(

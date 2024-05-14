@@ -9,7 +9,6 @@ API_TOKEN = "dfjkfdjkfd"
 
 
 class TestGetUsersPermissions:
-
     @pytest.mark.parametrize("api_response_data", [None, []])
     @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
     def test_api_call_returns_none_or_list(self, mocked_grafana_api_client_api_get, api_response_data):
@@ -36,69 +35,67 @@ class TestGetUsersPermissions:
 
 
 class TestGetUsers:
-
-    @pytest.mark.parametrize("rbac_is_enabled,api_get_return_value,get_users_permissions_return_value,expected", [
-        # RBAC is enabled - permissions are returned
-        (
-            True,
-            [
-                {"userId": 1, "foo": "bar"},
-                {"userId": 2, "foo": "baz"},
-            ],
-            {
-                "1": [
-                    {"action": "grafana-oncall-app.alert-groups:read"},
-                    {"action": "grafana-oncall-app.alert-groups:write"},
+    @pytest.mark.parametrize(
+        "rbac_is_enabled,api_get_return_value,get_users_permissions_return_value,expected",
+        [
+            # RBAC is enabled - permissions are returned
+            (
+                True,
+                [
+                    {"userId": 1, "foo": "bar"},
+                    {"userId": 2, "foo": "baz"},
                 ],
-            },
-            [
                 {
-                    "userId": 1,
-                    "foo": "bar",
-                    "permissions": [
+                    "1": [
                         {"action": "grafana-oncall-app.alert-groups:read"},
                         {"action": "grafana-oncall-app.alert-groups:write"},
-                    ]
+                    ],
                 },
-                {
-                    "userId": 2,
-                    "foo": "baz",
-                    "permissions": [],
-                },
-            ],
-        ),
-        # RBAC is enabled - permissions endpoint returns no permissions (ex. HTTP 500)
-        (
-            True,
-            [
-                {"userId": 1, "foo": "bar"},
-                {"userId": 2, "foo": "baz"},
-            ],
-            None,
-            [],
-        ),
-        # RBAC is not enabled - we don't fetch permissions (hence don't care about its response)
-        (
-            False,
-            [
-                {"userId": 1, "foo": "bar"},
-                {"userId": 2, "foo": "baz"},
-            ],
-            None,
-            [
-                {
-                    "userId": 1,
-                    "foo": "bar",
-                    "permissions": []
-                },
-                {
-                    "userId": 2,
-                    "foo": "baz",
-                    "permissions": [],
-                },
-            ],
-        ),
-    ])
+                [
+                    {
+                        "userId": 1,
+                        "foo": "bar",
+                        "permissions": [
+                            {"action": "grafana-oncall-app.alert-groups:read"},
+                            {"action": "grafana-oncall-app.alert-groups:write"},
+                        ],
+                    },
+                    {
+                        "userId": 2,
+                        "foo": "baz",
+                        "permissions": [],
+                    },
+                ],
+            ),
+            # RBAC is enabled - permissions endpoint returns no permissions (ex. HTTP 500)
+            (
+                True,
+                [
+                    {"userId": 1, "foo": "bar"},
+                    {"userId": 2, "foo": "baz"},
+                ],
+                None,
+                [],
+            ),
+            # RBAC is not enabled - we don't fetch permissions (hence don't care about its response)
+            (
+                False,
+                [
+                    {"userId": 1, "foo": "bar"},
+                    {"userId": 2, "foo": "baz"},
+                ],
+                None,
+                [
+                    {"userId": 1, "foo": "bar", "permissions": []},
+                    {
+                        "userId": 2,
+                        "foo": "baz",
+                        "permissions": [],
+                    },
+                ],
+            ),
+        ],
+    )
     @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
     @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.get_users_permissions")
     def test_it_returns_none_if_permissions_call_returns_none(
