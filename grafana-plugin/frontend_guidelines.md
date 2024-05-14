@@ -91,6 +91,7 @@ e.g. [container].helper.ts, [container].config.ts
 - Leverage components composition, use many small components, render list items in dedicated component
 and dereference values late
 - Keep components small and flat
+- Use dedicated components over render functions in case a there's a risk that a single component grows too much
 - Static values (especially non-primitive) that don’t depend on local state, props or store should be extracted out of component
 - Don’t create unnecessary local state that duplicates parts of global store
 - Leverage custom hooks to extract repetitive logic
@@ -102,7 +103,6 @@ and dereference values late
 
 - Don’t interact with backend directly from components
 - Don’t interact with 3rd party (faro, web storage etc) directly but rather through service
-- In most cases the architecture should look like that:
 
 ## Frontend-backend communication
 
