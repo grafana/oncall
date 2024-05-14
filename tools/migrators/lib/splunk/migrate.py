@@ -1,5 +1,3 @@
-import json
-
 from lib.common.report import TAB, WARNING_SIGN
 from lib.common.resources.users import match_user
 from lib.oncall.api_client import OnCallAPIClient
@@ -86,8 +84,6 @@ def migrate():
         match_schedule(
             splunk_schedule, oncall_schedules, splunk_username_to_oncall_user_id_map
         )
-
-    print(json.dumps(splunk_schedules, indent=2))
 
     for splunk_escalation_policy in splunk_escalation_policies:
         match_escalation_policy(splunk_escalation_policy, oncall_escalation_chains)
