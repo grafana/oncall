@@ -31,7 +31,7 @@ def test_application_metrics_collector(
         for metric in test_metrics_registry.collect():
             if metric.name == ALERT_GROUPS_TOTAL:
                 # integration with labels for each alert group state
-                assert len(metric.samples) == len(AlertGroupState)
+                assert len(metric.samples) == len(AlertGroupState) * 2
             elif metric.name == ALERT_GROUPS_RESPONSE_TIME:
                 # integration with labels for each value in collector's bucket + _count and _sum histogram values
                 assert len(metric.samples) == len(collector._buckets) + 2
