@@ -110,7 +110,7 @@ def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_he
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
-        url + "?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
+        url + "?started_at=1970-01-01T00:00:00_2099-01-01T23:59:59",
         format="json",
         **make_user_auth_headers(user, token),
     )
@@ -126,7 +126,7 @@ def test_get_filter_resolved_at_alertgroup_empty_result(alert_group_internal_api
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
-        url + "?resolved_at=1970-01-01T00:00:00/1970-01-01T23:59:59",
+        url + "?resolved_at=1970-01-01T00:00:00_1970-01-01T23:59:59",
         format="json",
         **make_user_auth_headers(user, token),
     )
@@ -153,7 +153,7 @@ def test_get_filter_resolved_at(alert_group_internal_api_setup, make_user_auth_h
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
-        url + "?resolved_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
+        url + "?resolved_at=1970-01-01T00:00:00_2099-01-01T23:59:59",
         format="json",
         **make_user_auth_headers(user, token),
     )

@@ -123,7 +123,7 @@ Have a question, comment or feedback? Don't be afraid to [open an issue](https:/
 
 ## Further Reading
 
-- _Migration from PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
+- _Automated migration from other on-call tools_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/migrators)
 - _Documentation_ - [Grafana OnCall](https://grafana.com/docs/oncall/latest/)
 - _Overview Webinar_ - [YouTube](https://www.youtube.com/watch?v=7uSe1pulgs8)
 - _How To Add Integration_ - [How to Add Integration](https://github.com/grafana/oncall/tree/dev/engine/config_integrations/README.md)

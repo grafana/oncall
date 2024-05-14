@@ -1,0 +1,71 @@
+name: Expensive e2e tests
+on:
+  push:
+    branches:
+      - main
+  # allows manual run on github actions
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1-5"
+
+jobs:
+  end-to-end-tests:
+    name: Expensive e2e tests
+    strategy:
+      matrix:
+        grafana_version:
+          # OnCall doesn't work on the following versions of Grafana
+          # - 8.5.22
+          # - 9.0.0
+          # - 9.1.0
+
+          # 10.0.11 is the earliest version where things work
+          # - 9.2.20
+          # - 9.3.16
+          # - 9.4.13
+          # - 9.5.7
+          - 10.0.11
+          - 10.1.7
+          # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
+          # - 10.2.4
+          # - latest
+      fail-fast: false
+    uses: ./.github/workflows/e2e-tests.yml
+    with:
+      grafana_version: ${{ matrix.grafana_version }}
+      run-expensive-tests: true
+      # TODO: fix issues with some tests on firefox and webkit
+      # example CI build with firefox/webkit failing tests
+      # https://github.com/grafana/oncall/actions/runs/8022194346/job/21915964672#step:19:905
+      # browsers: "chromium firefox webkit"
+      browsers: "chromium"
+    secrets: inherit
+
+  post-status-to-slack:
+    runs-on: ubuntu-latest
+    needs: end-to-end-tests
+    if: failure
+    steps:
+      # Useful references
+      # https://stackoverflow.com/questions/59073850/github-actions-get-url-of-test-build
+      # https://github.com/orgs/community/discussions/26822#discussioncomment-3305794
+      #
+      - uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: gops-oncall-dev
+          # yamllint disable rule:line-length
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Daily e2e tests build result: ${{ needs.end-to-end-tests.result == 'success' && ':check:' || ':alert:' }}\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
+          # yamllint enable rule:line-length
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_DAILY_E2E_TESTS_BOT_TOKEN }}

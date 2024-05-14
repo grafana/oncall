@@ -203,10 +203,10 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
             </Block>
           )}
           <Block shadowed bordered withBackground className={cx('container__box')}>
-            <DownloadIcons />
+            {content}
           </Block>
           <Block shadowed bordered withBackground className={cx('container__box')}>
-            {content}
+            <DownloadIcons />
           </Block>
         </div>
         {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (

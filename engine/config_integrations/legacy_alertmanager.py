@@ -1,9 +1,13 @@
 # Main
+# It's a Deprecated Alertmanager integration which was processing one alert at once instead of processing a group.
+# All such integrations are migrated.
+from settings.base import IS_OPEN_SOURCE
+
 enabled = True
 title = "(Legacy) AlertManager"
 slug = "legacy_alertmanager"
 short_description = "Prometheus"
-is_displayed_on_web = True
+is_displayed_on_web = IS_OPEN_SOURCE  # Display this integration in web only in OSS, where they were not migrated
 is_featured = False
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True

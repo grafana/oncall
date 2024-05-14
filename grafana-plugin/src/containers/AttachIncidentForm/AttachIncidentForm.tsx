@@ -75,7 +75,6 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
           <GSelect<ApiSchemas['AlertGroup']>
-            showSearch
             items={Object.fromEntries(alertGroupStore.alerts)}
             fetchItemsFn={async (query: string) => {
               await alertGroupStore.fetchAlertGroups(false, query);

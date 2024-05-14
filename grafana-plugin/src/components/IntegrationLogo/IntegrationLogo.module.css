@@ -23,7 +23,11 @@
   background-size: 100% !important;
 }
 
-.bg_Grafana,
+.bg_GrafanaLegacyAlerting {
+  background: url(../../assets/img/grafana-legacy-alerting-icon.svg);
+  background-size: 100% !important;
+}
+
 .bg_GrafanaAlerting {
   background: url(../../assets/img/grafana_icon.svg);
   background-size: 100% !important;

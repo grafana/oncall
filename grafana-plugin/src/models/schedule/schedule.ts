@@ -522,7 +522,7 @@ export class ScheduleStore extends BaseStore {
           ...this.events[scheduleId],
           [type]: {
             ...this.events[scheduleId]?.[type],
-            [fromString]: layers ? layers : shifts,
+            [fromString]: layers || shifts,
           },
         },
       };
