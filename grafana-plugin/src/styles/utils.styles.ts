@@ -26,6 +26,16 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
     cursorDefault: css`
       cursor: default;
     `,
+
+    timelineIconBackground: css`
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(${theme.isDark ? '70, 76, 84, 1' : '70, 76, 84, 0'});
+    `,
   };
 };
 
@@ -74,4 +84,5 @@ export enum COLORS {
   GRAY_8 = '#595959',
   GRAY_9 = '#434343',
   GREEN_5 = '#6ccf8e',
+  BORDER = 'rgba(204, 204, 220, 0.25)',
 }
