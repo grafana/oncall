@@ -64,7 +64,7 @@ observables and then components should consume observables to reflect data updat
 
 - Store files in appropriate places (components, containers, models etc)
 - Helpers and configs should be stored in the same folder with the appropriate name
-e.g. <container>.helper.ts, <container>.config.ts
+e.g. [container].helper.ts, [container].config.ts
 - Project-wide utilities should be placed in the “utils” folder`
 - Use named exports for all code you want to export from a file.
 - Export only the code that is meant to be used outside the module.
@@ -88,7 +88,8 @@ e.g. <container>.helper.ts, <container>.config.ts
 ### Keep components functional and small
 
 - Use functional components for new features
-- Leverage components composition, use many small components, render list items in dedicated component and dereference values late
+- Leverage components composition, use many small components, render list items in dedicated component
+and dereference values late
 - Keep components small and flat
 - Static values (especially non-primitive) that don’t depend on local state, props or store should be extracted out of component
 - Don’t create unnecessary local state that duplicates parts of global store
