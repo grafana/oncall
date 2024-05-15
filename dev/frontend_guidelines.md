@@ -16,7 +16,8 @@ Anything that is either not covered by the materials above or we decided to do d
   - There is at least 1 approval from the frontend team and no opened remarks from reviewers other than the approver
   - All comments are replied, answered, addressed or discussed separately
   - We make use of builtin GH PR reviews
-  - Minor comments that don’t need to be addressed right away and are not a blocker for a merge are marked with “Minor: “ prefix
+  - Minor comments that don’t need to be addressed right away and are not a blocker for a merge
+are marked with “Minor: “ prefix
   - *Unless there is some important hotfix to make and no frontend mates are available*
 
 ## Technical conventions
@@ -27,7 +28,8 @@ Anything that is either not covered by the materials above or we decided to do d
 
 ### Use auto generated types for new features
 
-- For new features and endpoints that are covered by OpenApi schemas, we should use auto generated types and typed http client
+- For new features and endpoints that are covered by OpenApi schemas, we should use auto generated types and
+typed http client
 
 ### Naming conventions on most used variables such as handlers, booleans etc
 
@@ -101,7 +103,8 @@ and dereference values late
 <https://mobx.js.org/react-optimizations.html>
 - Keep components small and flat
 - Use dedicated components over render functions in case a there's a risk that a single component grows too much
-- Static values (especially non-primitive) that don’t depend on local state, props or store should be extracted out of component
+- Static values (especially non-primitive) that don’t depend on local state, props or store should be extracted
+out of component
 - Don’t create unnecessary local state that duplicates parts of global store
 - Leverage custom hooks to extract repetitive logic
 - Don’t use useMemo / useCallback by default
