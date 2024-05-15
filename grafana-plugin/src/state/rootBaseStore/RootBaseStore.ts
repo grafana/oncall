@@ -178,10 +178,6 @@ export class RootBaseStore {
     this.onCallApiUrl = getOnCallApiUrl(meta);
     this.insightsDatasource = meta.jsonData?.insightsDatasource || 'grafanacloud-usage';
 
-    if (!FaroHelper.faro) {
-      FaroHelper.initializeFaro(this.onCallApiUrl);
-    }
-
     if (!this.onCallApiUrl) {
       // plugin is not provisioned
       return this.setupPluginError('🚫 Plugin has not been initialized');

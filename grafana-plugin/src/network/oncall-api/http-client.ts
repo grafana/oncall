@@ -57,7 +57,7 @@ export const getCustomFetchFn =
           } else {
             const errorData = await res.json();
             faro.api.pushEvent('Request failed', { url });
-            faro.api.pushError(errorData);
+            FaroHelper.pushFetchNetworkError(res, errorData);
             span.end();
             if (withGlobalErrorHandler) {
               showApiError(res.status, errorData);
@@ -74,7 +74,7 @@ export const getCustomFetchFn =
       } else {
         const errorData = await res.clone().json();
         faro?.api.pushEvent('Request failed', { url });
-        faro?.api.pushError(errorData);
+        FaroHelper.pushFetchNetworkError(res, errorData);
         if (withGlobalErrorHandler) {
           showApiError(res.status, errorData);
         }

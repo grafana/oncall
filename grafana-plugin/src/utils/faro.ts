@@ -68,6 +68,19 @@ class BaseFaroHelper {
 
     return this.faro;
   }
+
+  pushFetchNetworkError = (res: Response, errorData: unknown) => {
+    this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
+      type: 'network',
+      context: {
+        url: res.url,
+        data: JSON.stringify(errorData),
+        status: `${res.status}`,
+        statusText: `${res.statusText}`,
+        timestamp: new Date().toUTCString(),
+      },
+    });
+  };
 }
 
 export const FaroHelper = new BaseFaroHelper();

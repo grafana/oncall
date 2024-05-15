@@ -81,7 +81,7 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
         return response.data as RT;
       } catch (ex) {
         FaroHelper.faro.api.pushEvent('Request failed', { url });
-        FaroHelper.faro.api.pushError(ex);
+        FaroHelper.faro.api.pushError(ex, { type: 'network' });
         span.end();
         throw ex;
       }
@@ -102,7 +102,7 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
     return response.data as RT;
   } catch (ex) {
     FaroHelper.faro?.api.pushEvent('Request failed', { url });
-    FaroHelper.faro?.api.pushError(ex);
+    FaroHelper.faro?.api.pushError(ex, { type: 'network' });
     throw ex;
   }
 };
