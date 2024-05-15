@@ -3,8 +3,6 @@ import typing
 INTEGRATION_INSTALLED_EVENT_TYPE = "integration_installed"
 INTEGRATION_UNINSTALLED_EVENT_TYPE = "integration_uninstalled"
 
-PROVIDER_TYPE_SLACK = "slack"
-
 
 class Event(typing.TypedDict):
     event_type: str

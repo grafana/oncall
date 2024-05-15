@@ -1,10 +1,11 @@
 import typing
 from abc import ABC, abstractmethod
 
+from apps.chatops_proxy.client import PROVIDER_TYPE_SLACK
 from apps.slack.installation import install_slack_integration
 from apps.user_management.models import Organization
 
-from .types import INTEGRATION_INSTALLED_EVENT_TYPE, PROVIDER_TYPE_SLACK, Event, IntegrationInstalledData
+from .types import INTEGRATION_INSTALLED_EVENT_TYPE, Event, IntegrationInstalledData
 
 
 class Handler(ABC):

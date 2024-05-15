@@ -5,9 +5,8 @@ import logging
 import typing
 
 from django.conf import settings
-from rest_framework.request import Request
 
-from .client import SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient
+from .client import PROVIDER_TYPE_SLACK, SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient, ChatopsProxyAPIException
 from .tasks import (
     link_slack_team_async,
     register_oncall_tenant_async,
@@ -18,20 +17,35 @@ from .tasks import (
 logger = logging.getLogger(__name__)
 
 
-def get_installation_link_from_chatops_proxy(request: Request) -> typing.Optional[str]:
+def get_installation_link_from_chatops_proxy(user) -> typing.Optional[str]:
+    """
+    get_installation_link_from_chatops_proxy fetches slack installation link from chatops proxy.
+    If there is no existing slack installation - if returns link, If slack already installed, it returns None.
+    """
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
-
+    org = user.organization
     try:
         link, _ = client.get_slack_oauth_link(
-            request.user.organization.stack_id,
-            request.user.user_id,
-            request.user.organization.web_link,
+            org.stack_id,
+            user.user_id,
+            org.web_link,
             SERVICE_TYPE_ONCALL,
         )
         return link
-    except Exception as e:
-        logger.exception("Error while getting installation link from chatops proxy: error=%s", e)
-        return None
+    except ChatopsProxyAPIException as api_exc:
+        if api_exc.status == 409:
+            return None
+        logger.exception(
+            "Error while getting installation link from chatops proxy: " "error=%s",
+            api_exc,
+        )
+        raise api_exc
+
+
+def get_slack_oauth_response_from_chatops_proxy(stack_id) -> dict:
+    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    slack_installation, _ = client.get_oauth_installation(stack_id, PROVIDER_TYPE_SLACK)
+    return slack_installation.oauth_response
 
 
 def register_oncall_tenant(service_tenant_id: str, cluster_slug: str, stack_id: int):

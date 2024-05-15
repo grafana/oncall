@@ -1,3 +1,5 @@
+import logging
+
 from apps.slack.tasks import (
     clean_slack_integration_leftovers,
     populate_slack_channels_for_team,
@@ -5,6 +7,8 @@ from apps.slack.tasks import (
     unpopulate_slack_user_identities,
 )
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
+
+logger = logging.getLogger(__name__)
 
 
 class SlackInstallationExc(Exception):

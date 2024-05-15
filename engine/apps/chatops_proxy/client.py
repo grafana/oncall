@@ -7,6 +7,7 @@ import requests
 from django.conf import settings
 
 SERVICE_TYPE_ONCALL = "oncall"
+PROVIDER_TYPE_SLACK = "slack"
 
 
 @dataclass
@@ -30,6 +31,15 @@ class Tenant:
     cluster_slug: str
     slack_links: List[SlackLink] = field(default_factory=list)
     msteams_links: List[MSTeamsLink] = field(default_factory=list)
+
+
+@dataclass
+class OauthInstallation:
+    id: str
+    oauth_response: dict
+    stack_id: int
+    provider_type: str
+    provider_id: str
 
 
 class ChatopsProxyAPIException(Exception):
@@ -145,6 +155,20 @@ class ChatopsProxyAPIClient:
         response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return response.json()["install_link"], response
+
+    def get_oauth_installation(
+        self,
+        stack_id: int,
+        provider_type: str,
+    ) -> tuple[OauthInstallation, requests.models.Response]:
+        url = f"{self.api_base_url}/oauth_installations/get"
+        d = {
+            "stack_id": stack_id,
+            "provider_type": provider_type,
+        }
+        response = requests.post(url=url, json=d, headers=self._headers)
+        self._check_response(response)
+        return OauthInstallation(**response.json()["oauth_installation"]), response
 
     def _check_response(self, response: requests.models.Response):
         """
