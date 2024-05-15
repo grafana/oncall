@@ -27,14 +27,27 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       cursor: default;
     `,
 
-    timelineIconBackground: css`
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(${theme.isDark ? '70, 76, 84, 1' : '70, 76, 84, 0'});
+    overflowChild: css`
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      white-space: initial;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+
+      &--line-1 {
+        -webkit-line-clamp: 1;
+      }
+    `,
+
+    flex: css`
+      display: flex !important;
+      flex-direction: row;
+    `,
+
+    // TODO: auto-generate these incrementally instead (XS, MD, LG etc)
+    flexGapXS: css`
+      gap: 4px;
     `,
   };
 };

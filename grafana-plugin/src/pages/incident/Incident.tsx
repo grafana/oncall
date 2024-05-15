@@ -26,7 +26,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
-import { COLORS, getLabelBackgroundTextColorObject, getUtilStyles } from 'styles/utils.styles';
+import { COLORS, getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
@@ -503,10 +503,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
       match: {
         params: { id },
       },
+      theme,
     } = this.props;
 
-    const styles = getStyles(this.props.theme);
-    const utilStyles = getUtilStyles(this.props.theme);
+    const styles = getStyles(theme);
     const incident = store.alertGroupStore.alerts.get(id);
 
     if (!incident.render_after_resolve_report_json) {
@@ -537,7 +537,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
             <li key={idx} className={cx(styles.timelineItem)}>
               <HorizontalGroup align="flex-start">
                 <div
-                  className={cx(utilStyles.timelineIconBackground, {
+                  className={cx(styles.timelineIconBackground, {
                     blue: item.realm === TimeLineRealm.ResolutionNote,
                   })}
                 >
@@ -905,6 +905,16 @@ const getStyles = (theme: GrafanaTheme2) => {
     content: css`
       margin-top: 5px;
       display: flex;
+    `,
+
+    timelineIconBackground: css`
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(${theme.isDark ? '70, 76, 84, 1' : '70, 76, 84, 0'});
     `,
 
     message: css`
