@@ -32,8 +32,8 @@ Anything that is either not covered by the materials above or we decided to do d
 ### Naming conventions on most used variables such as handlers, booleans etc
 
 - Use descriptive naming (such as the use of is) that follows natural convention such as `isFormVerified`
-or `isAuthenticated` instead of _verified_, _authenticated_ etc
-- Use descriptive naming for event handlers such as `onIconClick` or `onInputChange` rather than _handleChange_
+or `isAuthenticated` instead of *verified*, *authenticated* etc
+- Use descriptive naming for event handlers such as `onIconClick` or `onInputChange` rather than *handleChange*
 - Include the **verb** part in the functions’ names
 - For **3 or more** function arguments use object destructuring
 <https://github.com/ryanmcdermott/clean-code-javascript?tab=readme-ov-file#function-arguments-2-or-fewer-ideally>
