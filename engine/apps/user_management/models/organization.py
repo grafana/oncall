@@ -1,4 +1,5 @@
 import logging
+import math
 import typing
 import uuid
 from urllib.parse import urljoin
@@ -343,6 +344,20 @@ class Organization(MaintainableObject):
             )
             .distinct()
         )
+
+    def should_be_considered_for_rbac_permissioning(self) -> bool:
+        """
+        this is sort of a hacky workaround to address a cloud issue we introduced with the accessControlOncall
+        feature flag. The flag is technically enabled for all stacks, but the way in which OnCall used to be
+        reading it (via GCOM config.feature_flags for the stack) made it such that RBAC wasn't actually being
+        enabled for most stacks from the oncall backend perspective. Once we change things to start HEADing
+        the permissions search endpoint, this will effectively turn on RBAC for all orgs.. soo instead lets
+        slowly turn it on via the logic here
+        """
+        # if rbac permissions are already enabled for the org, they're "grandfathered" in
+        if self.is_rbac_permissions_enabled:
+            return True
+        return self.id <= math.floor(Organization.objects.last().id * settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE)
 
     @property
     def web_link(self):
