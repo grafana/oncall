@@ -97,6 +97,7 @@ e.g. [container].helper.ts, [container].config.ts
 - Use functional components for new features
 - Leverage components composition, use many small components, render list items in dedicated component
 and dereference values late
+https://mobx.js.org/react-optimizations.html
 - Keep components small and flat
 - Use dedicated components over render functions in case a there's a risk that a single component grows too much
 - Static values (especially non-primitive) that don’t depend on local state, props or store should be extracted out of component
