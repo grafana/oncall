@@ -1,8 +1,9 @@
 # OnCall Frontend Guidelines
 
 The base guidelines we decided to follow are:
-- https://github.com/ryanmcdermott/clean-code-javascript
-- https://github.com/grafana/grafana/tree/main/contribute/style-guides
+
+- <https://github.com/ryanmcdermott/clean-code-javascript>
+- <https://github.com/grafana/grafana/tree/main/contribute/style-guides>
 
 Anything that is either not covered by the materials above or we decided to do differently is stated in this document.
 
@@ -49,7 +50,7 @@ observables and then components should consume observables to reflect data updat
 
 ### Leverage small global stores over local state passed as props over multiple levels
 
-- Create small specialized store in MobX even for small feature 
+- Create small specialized store in MobX even for small feature
 instead of relying on local state that is passed down the React tree over multiple levels
 e.g.:
   alert_receive_channel_connected_channels.ts
@@ -97,7 +98,7 @@ e.g. [container].helper.ts, [container].config.ts
 - Use functional components for new features
 - Leverage components composition, use many small components, render list items in dedicated component
 and dereference values late
-https://mobx.js.org/react-optimizations.html
+<https://mobx.js.org/react-optimizations.html>
 - Keep components small and flat
 - Use dedicated components over render functions in case a there's a risk that a single component grows too much
 - Static values (especially non-primitive) that don’t depend on local state, props or store should be extracted out of component
