@@ -31,15 +31,15 @@ Anything that is either not covered by the materials above or we decided to do d
 
 ### Naming conventions on most used variables such as handlers, booleans etc
 
-- Use descriptive naming (such as the use of is) that follows natural convention such as isFormVerified
-or isAuthenticated instead of authenticated or other forms
-- Use descriptive naming for event handlers such as onIconClick or onInputChange rather than handleChange or other namings
-- Include the verb part in the functions’ names
-- For 3 or more function arguments use object destructuring
+- Use descriptive naming (such as the use of is) that follows natural convention such as `isFormVerified`
+or `isAuthenticated` instead of _verified_, _authenticated_ etc
+- Use descriptive naming for event handlers such as `onIconClick` or `onInputChange` rather than _handleChange_
+- Include the **verb** part in the functions’ names
+- For **3 or more** function arguments use object destructuring
 <https://github.com/ryanmcdermott/clean-code-javascript?tab=readme-ov-file#function-arguments-2-or-fewer-ideally>
 - For functions that return other functions getBlaBlaHandler (in case of handlers) or getBlaBlaFn
 (if it’s not handler that is returned)
-- Don’t use higher-ordered functions without clear the need
+- Don’t use higher-ordered functions without clear need
 
 ## State management
 
@@ -59,11 +59,11 @@ e.g.:
 ### Use global decorators / custom hooks / utilities consistently
 
 - For example:
-  - @WithGlobalNotification to set successful / failing notification based on MobX action’s result
-  - @AutoLoadingState to manage loading statuses of async actions
-  - useIsLoading to consume loading state
-  - useDrawer to manage drawers
-  - useConfirmModal to manage confirm modal
+  - `@WithGlobalNotification` to set successful / failing notification based on MobX action’s result
+  - `@AutoLoadingState` to manage loading statuses of async actions
+  - `useIsLoading` to consume loading state
+  - `useDrawer` to manage drawers
+  - `useConfirmModal` to manage confirm modal
   - Global helpers
 
 ## Code organization
@@ -73,7 +73,7 @@ e.g.:
 - Store files in appropriate places (components, containers, models etc)
 - Helpers and configs should be stored in the same folder with the appropriate name
 e.g. [container].helper.ts, [container].config.ts
-- Project-wide utilities should be placed in the “utils” folder`
+- Project-wide utilities should be placed in the **utils** folder`
 - Use named exports for all code you want to export from a file.
 - Export only the code that is meant to be used outside the module.
 
