@@ -1,4 +1,6 @@
 import { Faro, initializeFaro, LogLevel, InternalLoggerLevel, getWebInstrumentations } from '@grafana/faro-web-sdk';
+import { TracingInstrumentation } from '@grafana/faro-web-tracing';
+import { AxiosResponse } from 'axios';
 
 import plugin from '../../package.json'; // eslint-disable-line
 import {
@@ -9,6 +11,7 @@ import {
   ONCALL_OPS,
   ONCALL_PROD,
 } from './consts';
+import { safeJSONStringify } from './string';
 
 export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
   const baseName = 'grafana-oncall';
@@ -69,12 +72,48 @@ class BaseFaroHelper {
     return this.faro;
   }
 
-  pushFetchNetworkError = (res: Response, errorData: unknown) => {
+  pushNetworkRequestEvent = (config: { method: string; url: string; body: string }) => {
+    this.faro?.api.pushEvent('Request sent', config);
+  };
+
+  pushFetchNetworkResponseEvent = ({ name, res, method }: { name: string; res: Response; method: string }) => {
+    this.faro?.api.pushEvent(name, {
+      method,
+      url: res.url,
+      status: `${res.status}`,
+      statusText: `${res.statusText}`,
+    });
+  };
+
+  pushFetchNetworkError = ({ res, responseData, method }: { res: Response; responseData: unknown; method: string }) => {
     this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
       type: 'network',
       context: {
+        method,
         url: res.url,
-        data: JSON.stringify(errorData),
+        data: `${safeJSONStringify(responseData)}`,
+        status: `${res.status}`,
+        statusText: `${res.statusText}`,
+        timestamp: new Date().toUTCString(),
+      },
+    });
+  };
+
+  pushAxiosNetworkResponseEvent = ({ name, res }: { name: string; res: AxiosResponse }) => {
+    this.faro?.api.pushEvent(name, {
+      url: res.config.url,
+      status: `${res.status}`,
+      statusText: `${res.statusText}`,
+      method: res.config.method.toUpperCase(),
+    });
+  };
+
+  pushAxiosNetworkError = (res: AxiosResponse) => {
+    this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
+      type: 'network',
+      context: {
+        url: res.config.url,
+        data: `${safeJSONStringify(res.data)}`,
         status: `${res.status}`,
         statusText: `${res.statusText}`,
         timestamp: new Date().toUTCString(),
