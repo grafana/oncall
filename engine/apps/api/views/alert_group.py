@@ -1,9 +1,7 @@
 import typing
-from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
-from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
