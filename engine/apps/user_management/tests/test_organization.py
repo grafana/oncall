@@ -303,8 +303,11 @@ def test_should_be_considered_for_rbac_permissioning(
     NUM_ORGS = 5
     settings.CLOUD_RBAC_ROLLOUT_PERCENTAGE = rollout_percentage
 
+    # make sure there are no other orgs around
+    Organization.objects.all().delete()
     orgs = [
-        make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled_initially) for _ in range(NUM_ORGS)
+        make_organization(id=(i + 1), is_rbac_permissions_enabled=is_rbac_permissions_enabled_initially)
+        for i in range(NUM_ORGS)
     ]
 
     assert all(org.is_rbac_permissions_enabled is is_rbac_permissions_enabled_initially for org in orgs)
