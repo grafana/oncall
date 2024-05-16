@@ -729,14 +729,9 @@ class AlertGroupView(
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
         api_root = "/api/internal/v1/"
+        default_day_range = 30
 
-        now = timezone.now()
-        week_ago = now - timedelta(days=7)
-
-        default_datetime_range = "{}_{}".format(
-            week_ago.strftime(DateRangeFilterMixin.DATE_FORMAT),
-            now.strftime(DateRangeFilterMixin.DATE_FORMAT),
-        )
+        default_datetime_range = f"now-{default_day_range}d_now"
 
         filter_options = [
             {
