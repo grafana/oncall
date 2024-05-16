@@ -20,6 +20,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFilters } from 'components/ScheduleFilters/ScheduleFilters';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
@@ -35,7 +36,7 @@ import { ScheduleICalSettings } from 'containers/ScheduleIcalLink/ScheduleIcalLi
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
+import { getLayersFromStore, getTotalDaysToDisplay } from 'models/schedule/schedule.helpers';
 import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -43,7 +44,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { getStartOfWeekBasedOnCurrentDate, getUTCString } from './Schedule.helpers';
+import { getCalendarStartDate, getNewCalendarStartDate, getUTCString } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -133,7 +134,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const { isNotFoundError } = store.scheduleStore.refreshEventsError;
 
-    const { scheduleStore } = store;
+    const { scheduleStore, timezoneStore } = store;
 
     const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
@@ -230,7 +231,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                       onClick={() => {
                                         document
                                           .getElementById('rotations')
-                                          .scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                          .scrollIntoView({ behavior: 'instant', block: 'center' });
 
                                         this.handleShowRotationForm('new', layer.priority);
                                       }}
@@ -241,7 +242,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                     onClick={() => {
                                       document
                                         .getElementById('rotations')
-                                        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        .scrollIntoView({ behavior: 'instant', block: 'center' });
 
                                       this.handleShowRotationForm('new', nextPriority);
                                     }}
@@ -251,7 +252,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                     onClick={() => {
                                       document
                                         .getElementById('overrides-list')
-                                        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        .scrollIntoView({ behavior: 'instant', block: 'center' });
 
                                       this.handleShowShiftSwapForm('new');
                                     }}
@@ -261,7 +262,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                     onClick={() => {
                                       document
                                         .getElementById('overrides-list')
-                                        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        .scrollIntoView({ behavior: 'instant', block: 'center' });
 
                                       this.handleShowOverridesForm('new');
                                     }}
@@ -318,7 +319,12 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                           </HorizontalGroup>
                           <Text.Title style={{ marginLeft: '8px', whiteSpace: 'nowrap' }} level={4} type="primary">
                             {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
-                            {store.timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
+                            {store.timezoneStore.calendarStartDate
+                              .add(
+                                getTotalDaysToDisplay(scheduleStore.scheduleView, timezoneStore.calendarStartDate) - 1,
+                                'day'
+                              )
+                              .format('DD MMM')}
                           </Text.Title>
                         </HorizontalGroup>
                         <HorizontalGroup>
@@ -331,6 +337,15 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             value={scheduleView}
                             onChange={(value) => {
                               scheduleStore.setScheduleView(value);
+                              if (value === ScheduleView.OneMonth) {
+                                timezoneStore.setCalendarStartDate(
+                                  getCalendarStartDate(
+                                    timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
+                                    value
+                                  )
+                                );
+                              }
+
                               scheduleStore.refreshEvents(scheduleId);
                             }}
                           />
@@ -362,34 +377,38 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             }
                       }
                     />
-                    <Rotations
-                      scheduleId={scheduleId}
-                      onCreate={this.refreshEventsAndClearPreview}
-                      onUpdate={this.refreshEventsAndClearPreview}
-                      onDelete={this.refreshEventsAndClearPreview}
-                      shiftIdToShowRotationForm={shiftIdToShowRotationForm}
-                      layerPriorityToShowRotationForm={layerPriorityToShowRotationForm}
-                      onShowRotationForm={this.handleShowRotationForm}
-                      onShowOverrideForm={this.handleShowOverridesForm}
-                      disabled={disabledRotationForm}
-                      filters={filters}
-                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
-                      onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
-                    />
-                    <ScheduleOverrides
-                      scheduleId={scheduleId}
-                      onCreate={this.refreshEventsAndClearPreview}
-                      onUpdate={this.refreshEventsAndClearPreview}
-                      onDelete={this.refreshEventsAndClearPreview}
-                      shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
-                      onShowRotationForm={this.handleShowOverridesForm}
-                      disabled={disabledOverrideForm}
-                      disableShiftSwaps={disabledShiftSwaps}
-                      shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
-                      shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
-                      onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
-                      filters={filters}
-                    />
+                    <RenderConditionally shouldRender={scheduleView !== ScheduleView.OneMonth}>
+                      <Rotations
+                        scheduleId={scheduleId}
+                        onCreate={this.refreshEventsAndClearPreview}
+                        onUpdate={this.refreshEventsAndClearPreview}
+                        onDelete={this.refreshEventsAndClearPreview}
+                        shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+                        layerPriorityToShowRotationForm={layerPriorityToShowRotationForm}
+                        onShowRotationForm={this.handleShowRotationForm}
+                        onShowOverrideForm={this.handleShowOverridesForm}
+                        disabled={disabledRotationForm}
+                        filters={filters}
+                        onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
+                        onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
+                      />
+                    </RenderConditionally>
+                    <RenderConditionally shouldRender={scheduleView !== ScheduleView.OneMonth}>
+                      <ScheduleOverrides
+                        scheduleId={scheduleId}
+                        onCreate={this.refreshEventsAndClearPreview}
+                        onUpdate={this.refreshEventsAndClearPreview}
+                        onDelete={this.refreshEventsAndClearPreview}
+                        shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
+                        onShowRotationForm={this.handleShowOverridesForm}
+                        disabled={disabledOverrideForm}
+                        disableShiftSwaps={disabledShiftSwaps}
+                        shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
+                        shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
+                        onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
+                        filters={filters}
+                      />
+                    </RenderConditionally>
                   </div>
                 </VerticalGroup>
               )}
@@ -492,26 +511,35 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   handleTodayClick = () => {
     const { store } = this.props;
     store.timezoneStore.setCalendarStartDate(
-      getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone)
+      getCalendarStartDate(store.timezoneStore.currentDateInSelectedTimezone, store.scheduleStore.scheduleView)
     );
     this.handleDateRangeUpdate();
   };
 
   handleLeftClick = () => {
     const { store } = this.props;
-    const { scheduleStore } = store;
-    store.timezoneStore.setCalendarStartDate(
-      store.timezoneStore.calendarStartDate.subtract(scheduleViewToDaysInOneRow[scheduleStore.scheduleView], 'day')
+    const { scheduleStore, timezoneStore } = store;
+
+    const newCalendarStartDate = getNewCalendarStartDate(
+      timezoneStore.calendarStartDate,
+      scheduleStore.scheduleView,
+      'prev'
     );
+
+    store.timezoneStore.setCalendarStartDate(newCalendarStartDate);
     this.handleDateRangeUpdate();
   };
 
   handleRightClick = () => {
     const { store } = this.props;
-    const { scheduleStore } = store;
-    store.timezoneStore.setCalendarStartDate(
-      store.timezoneStore.calendarStartDate.add(scheduleViewToDaysInOneRow[scheduleStore.scheduleView], 'day')
+    const { scheduleStore, timezoneStore } = store;
+    const newCalendarStartDate = getNewCalendarStartDate(
+      timezoneStore.calendarStartDate,
+      scheduleStore.scheduleView,
+      'next'
     );
+
+    store.timezoneStore.setCalendarStartDate(newCalendarStartDate);
     this.handleDateRangeUpdate();
   };
 

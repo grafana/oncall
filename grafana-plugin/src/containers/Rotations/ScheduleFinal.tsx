@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -15,9 +15,11 @@ import {
   getLayersFromStore,
   getOverridesFromStore,
   getShiftsFromStore,
+  getTotalDaysToDisplay,
   scheduleViewToDaysInOneRow,
 } from 'models/schedule/schedule.helpers';
-import { Schedule, ShiftSwap, Event } from 'models/schedule/schedule.types';
+import { Event, Schedule, ShiftSwap } from 'models/schedule/schedule.types';
+import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -45,18 +47,11 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
       scheduleStore: { refreshEvents },
     } = store;
 
-    const base = scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60; // in minutes
-    const diff = currentDateInSelectedTimezone.diff(calendarStartDate, 'minutes');
-
-    const currentTimeX = diff / base;
-
     const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, calendarStartDate));
 
     const layers = getLayersFromStore(store, scheduleId, calendarStartDate);
 
     const overrides = getOverridesFromStore(store, scheduleId, calendarStartDate);
-
-    const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
     const getColor = (event: Event) => findColor(event.shift?.pk, layers, overrides);
 
@@ -67,6 +62,17 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     useEffect(() => {
       refreshEvents(scheduleId);
     }, [selectedTimezoneOffset]);
+
+    const rows = useMemo(() => {
+      const totalDays = getTotalDaysToDisplay(store.scheduleStore.scheduleView, calendarStartDate);
+      const rows = [];
+      for (let i = 0; i < totalDays / scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView]; i++) {
+        rows.push({
+          startDate: calendarStartDate.add(scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * i, 'days'),
+        });
+      }
+      return rows;
+    }, [calendarStartDate, store.scheduleStore.scheduleView]);
 
     return (
       <div className={cx('root')}>
@@ -82,33 +88,47 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
           </div>
         )}
         <div className={cx('header-plus-content')}>
-          {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-          <TimelineMarks />
-          <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
-            {shifts && shifts.length ? (
-              shifts.map(({ events }, index) => {
-                return (
-                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                    <Rotation
-                      key={index}
-                      events={events}
-                      handleAddOverride={handleShowOverrideForm}
-                      handleAddShiftSwap={onShowShiftSwapForm}
-                      onShiftSwapClick={onShowShiftSwapForm}
-                      simplified={simplified}
-                      filters={filters}
-                      getColor={getColor}
-                      onSlotClick={onSlotClick}
-                    />
-                  </CSSTransition>
-                );
-              })
-            ) : (
-              <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                <Rotation events={[]} />
-              </CSSTransition>
-            )}
-          </TransitionGroup>
+          {rows.map(({ startDate }, index) => (
+            <TransitionGroup key={index} className={cx('rotations', 'layer', 'layer-first')}>
+              <TimelineMarks startDate={startDate} />
+              <div
+                className={cx('current-time', 'CURRENT_TIME')}
+                style={{
+                  left: `${
+                    getCurrentTimeX(
+                      currentDateInSelectedTimezone,
+                      startDate,
+                      scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60
+                    ) * 100
+                  }%`,
+                }}
+              />
+              {shifts?.length ? (
+                shifts.map(({ events }, index) => {
+                  return (
+                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                      <Rotation
+                        startDate={startDate}
+                        key={index}
+                        events={events}
+                        handleAddOverride={handleShowOverrideForm}
+                        handleAddShiftSwap={onShowShiftSwapForm}
+                        onShiftSwapClick={onShowShiftSwapForm}
+                        simplified={simplified}
+                        filters={filters}
+                        getColor={getColor}
+                        onSlotClick={onSlotClick}
+                      />
+                    </CSSTransition>
+                  );
+                })
+              ) : (
+                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                  <Rotation startDate={calendarStartDate} events={[]} />
+                </CSSTransition>
+              )}
+            </TransitionGroup>
+          ))}
         </div>
       </div>
     );

@@ -69,6 +69,26 @@ export const scheduleViewToDaysInOneRow = {
   [ScheduleView.OneMonth]: 7,
 };
 
+export const getTotalDaysToDisplay = (scheduleView: ScheduleView, calendarStartDate: dayjs.Dayjs) => {
+  switch (scheduleView) {
+    case ScheduleView.OneWeek:
+      return 7;
+    case ScheduleView.TwoWeeks:
+      return 14;
+    case ScheduleView.OneMonth:
+      const firstDayOfCurrentMonth =
+        calendarStartDate.date() === 1 ? calendarStartDate : calendarStartDate.add(1, 'month').startOf('month');
+
+      const lastDayOfCurrentMonth = firstDayOfCurrentMonth.endOf('month');
+
+      const lastDayOfLastWeek = lastDayOfCurrentMonth.endOf('isoWeek');
+
+      const totalDays = lastDayOfLastWeek.diff(calendarStartDate, 'days') + 1;
+
+      return totalDays;
+  }
+};
+
 export const splitToShifts = (events: Event[]) => {
   const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
 

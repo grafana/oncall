@@ -12,6 +12,7 @@ import styles from './TimelineMarks.module.scss';
 
 interface TimelineMarksProps {
   debug?: boolean;
+  startDate?: dayjs.Dayjs;
 }
 
 const cx = cn.bind(styles);
@@ -21,7 +22,9 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
     scheduleStore,
   } = useStore();
-  const { debug } = props;
+  const { debug, startDate: propsStartDate } = props;
+
+  const startDate = propsStartDate || calendarStartDate;
 
   const days = scheduleViewToDaysInOneRow[scheduleStore.scheduleView];
 
@@ -32,7 +35,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
     const jLimit = 24 / hoursToSplit;
 
     for (let i = 0; i < days; i++) {
-      const d = dayjs(calendarStartDate).add(i, 'days');
+      const d = dayjs(startDate).add(i, 'days');
       const obj = { moment: d, moments: [] };
       for (let j = 0; j < jLimit; j++) {
         const m = dayjs(d).add(j * hoursToSplit, 'hour');
@@ -41,7 +44,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
       momentsToRender.push(obj);
     }
     return momentsToRender;
-  }, [calendarStartDate, days]);
+  }, [startDate, days]);
 
   const cuts = useMemo(() => {
     const cuts = [];
@@ -77,7 +80,9 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
         return (
           <div key={i} className={cx('weekday' /* , { 'weekday--weekend': isWeekend } */)}>
             <div className={cx('weekday-title')}>
-              <Text type={isCurrentDay ? 'primary' : 'secondary'}>{m.moment.format('ddd D MMM')}</Text>
+              <Text type={isCurrentDay ? 'primary' : 'secondary'}>
+                {m.moment.date() === 1 ? m.moment.format('ddd D MMM') : m.moment.format('ddd D')}
+              </Text>
             </div>
             {/* <div className={cx('weekday-times')}>
               {m.moments.map((mm, j) => (

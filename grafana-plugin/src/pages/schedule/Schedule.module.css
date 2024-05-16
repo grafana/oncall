@@ -31,10 +31,8 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 10px;
-  background: var(--background-secondary);
-  border: var(--border-weak);
-  border-radius: var(--border-radius);
+  padding: 16px 0;
+  background: var(--background-primary);
 }
 
 .rotations {

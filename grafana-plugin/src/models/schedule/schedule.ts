@@ -21,7 +21,7 @@ import {
   fillGapsInShifts,
   flattenShiftEvents,
   getFromString,
-  scheduleViewToDaysInOneRow,
+  getTotalDaysToDisplay,
   splitToLayers,
   splitToShifts,
   unFlattenShiftEvents,
@@ -124,7 +124,7 @@ export class ScheduleStore extends BaseStore {
   };
 
   @observable
-  scheduleView = ScheduleView.TwoWeeks;
+  scheduleView = ScheduleView.OneWeek;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -292,7 +292,7 @@ export class ScheduleStore extends BaseStore {
   ) {
     const type = isOverride ? 3 : 2;
 
-    const days = scheduleViewToDaysInOneRow[this.scheduleView];
+    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate);
 
     const fromString = getFromString(startMoment);
 
@@ -537,7 +537,7 @@ export class ScheduleStore extends BaseStore {
     this.refreshEventsError = {};
     const startMoment = this.rootStore.timezoneStore.calendarStartDate;
 
-    const days = scheduleViewToDaysInOneRow[this.scheduleView];
+    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 1;
 
     try {
       const schedule = await this.loadItem(scheduleId);
@@ -553,7 +553,7 @@ export class ScheduleStore extends BaseStore {
       this.updateEvents(scheduleId, startMoment, 'rotation', days),
       this.updateEvents(scheduleId, startMoment, 'override', days),
       this.updateEvents(scheduleId, startMoment, 'final', days),
-      this.updateShiftSwaps(scheduleId, startMoment, days),
+      this.updateShiftSwaps(scheduleId, startMoment),
     ]);
   }
 
@@ -613,7 +613,7 @@ export class ScheduleStore extends BaseStore {
   async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs) {
     const fromString = getFromString(startMoment);
 
-    const days = scheduleViewToDaysInOneRow[this.scheduleView];
+    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 1;
 
     const dayBefore = startMoment.subtract(1, 'day');
 

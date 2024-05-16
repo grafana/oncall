@@ -34,6 +34,7 @@ interface RotationProps {
   onSlotClick?: (event: Event) => void;
   emptyText?: string;
   showScheduleNameAsSlotTitle?: boolean;
+  startDate?: dayjs.Dayjs;
 }
 
 export const Rotation: FC<RotationProps> = observer((props) => {
@@ -56,7 +57,10 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     onSlotClick,
     emptyText,
     showScheduleNameAsSlotTitle,
+    startDate: propsStartDate,
   } = props;
+
+  const startDate = propsStartDate || calendarStartDate;
 
   const days = scheduleViewToDaysInOneRow[scheduleStore.scheduleView];
 
@@ -69,7 +73,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
 
     const dayOffset = Math.floor((x / width) * scheduleViewToDaysInOneRow[scheduleStore.scheduleView]);
 
-    const shiftStart = calendarStartDate.add(dayOffset, 'day');
+    const shiftStart = startDate.add(dayOffset, 'day');
     const shiftEnd = shiftStart.add(1, 'day');
 
     onClick(shiftStart, shiftEnd);
@@ -132,13 +136,13 @@ export const Rotation: FC<RotationProps> = observer((props) => {
 
     const firstShift = events[0];
     const firstShiftOffset = getDateInSelectedTimezone(firstShift.start).diff(
-      getDateInSelectedTimezone(calendarStartDate),
+      getDateInSelectedTimezone(startDate),
       'seconds'
     );
     const base = 60 * 60 * 24 * days;
 
     return firstShiftOffset / base;
-  }, [events, calendarStartDate]);
+  }, [events, startDate]);
 
   return (
     <div className={cx('root')} onClick={onClick && handleRotationClick}>
