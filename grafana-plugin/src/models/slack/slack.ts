@@ -88,7 +88,7 @@ export class SlackStore extends BaseStore {
 
       if (response.status === 201) {
         this.rootStore.organizationStore.loadCurrentOrganization();
-      } else {
+      } else if (response.status === 200) {
         window.location = response.data;
       }
     } catch (ex) {
