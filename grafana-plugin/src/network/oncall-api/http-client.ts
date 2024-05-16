@@ -40,11 +40,11 @@ export const getCustomFetchFn =
     });
 
     const res = await fetch(url, requestConfig);
-    const responseData = await res.clone().json();
     if (res.ok) {
       FaroHelper.pushFetchNetworkResponseEvent({ name: 'Request succeeded', res, method: requestConfig.method });
       return res;
     } else {
+      const responseData = await res.clone().json();
       FaroHelper.pushFetchNetworkResponseEvent({ name: 'Request failed', res, method: requestConfig.method });
       FaroHelper.pushFetchNetworkError({ res, responseData, method: requestConfig.method });
       if (withGlobalErrorHandler) {
