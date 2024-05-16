@@ -42,7 +42,6 @@ import {
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
 } from 'utils/consts';
-import { FaroHelper } from 'utils/faro';
 
 // ------ Dashboard ------ //
 

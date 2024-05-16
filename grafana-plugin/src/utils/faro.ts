@@ -1,5 +1,4 @@
 import { Faro, initializeFaro, LogLevel, InternalLoggerLevel, getWebInstrumentations } from '@grafana/faro-web-sdk';
-import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 import { AxiosResponse } from 'axios';
 
 import plugin from '../../package.json'; // eslint-disable-line
