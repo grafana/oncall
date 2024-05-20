@@ -1,4 +1,4 @@
-import { Faro, initializeFaro, LogLevel, InternalLoggerLevel, getWebInstrumentations } from '@grafana/faro-web-sdk';
+import { Faro, initializeFaro, LogLevel, getWebInstrumentations, BrowserConfig } from '@grafana/faro-web-sdk';
 import { AxiosResponse } from 'axios';
 
 import plugin from '../../package.json'; // eslint-disable-line
@@ -38,7 +38,7 @@ class BaseFaroHelper {
     try {
       const { appName, url } = getAppNameUrlPair(onCallApiUrl);
 
-      const faroOptions = {
+      const faroOptions: BrowserConfig = {
         url: url,
         isolate: true,
         instrumentations: [
@@ -46,7 +46,6 @@ class BaseFaroHelper {
             captureConsoleDisabledLevels: [LogLevel.TRACE, LogLevel.ERROR],
           }),
         ],
-        internalLoggerLevel: InternalLoggerLevel.VERBOSE,
         app: {
           name: appName,
           version: plugin?.version,
