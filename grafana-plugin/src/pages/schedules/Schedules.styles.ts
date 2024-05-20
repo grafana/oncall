@@ -20,6 +20,10 @@ export const getSchedulesStyles = () => {
       padding-right: 10px;
     `,
 
+    rotations: css`
+      position: relative;
+    `,
+
     schedulesFiltersContainer: css`
       display: flex;
       flex-direction: row;

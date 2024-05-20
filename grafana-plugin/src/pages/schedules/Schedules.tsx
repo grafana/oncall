@@ -35,7 +35,6 @@ import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import { getSchedulesStyles } from './Schedules.styles';
 
-
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {
   theme: GrafanaTheme2;
 }
@@ -182,14 +181,17 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   refreshExpandedSchedules = () => {
     const { expandedRowKeys } = this.state;
     expandedRowKeys.forEach(this.props.store.scheduleStore.refreshEvents);
-
   };
 
-  renderSchedule = (data: Schedule) => (
-    <div className={cx('schedule')}>
-      <TimelineMarks />
-      <div className={cx('rotations')}>
-        <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
+  renderSchedule = (data: Schedule) => {
+    const styles = getSchedulesStyles();
+
+    return (
+      <div className={cx(styles.schedule)}>
+        <TimelineMarks />
+        <div className={cx(styles.rotations)}>
+          <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
+        </div>
       </div>
     );
   };
