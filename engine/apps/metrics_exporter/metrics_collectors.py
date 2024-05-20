@@ -156,8 +156,11 @@ class ApplicationMetricsCollector:
                         response_time_values.extend(response_time)
                 else:
                     response_time_values = integration_data["response_time"]
-                    if not response_time_values:
-                        continue
+
+                if not response_time_values:
+                    # ignore empty response_time_values
+                    continue
+
                 # todo:metrics: with enabling service_name label move "add_metric" under
                 #  "for service_name, response_time..." iteration
                 buckets, sum_value = self.get_buckets_with_sum(response_time_values)
