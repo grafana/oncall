@@ -6,3 +6,4 @@ registry: ctlptl-registry
 kindV1Alpha4Cluster:
   nodes:
     - role: control-plane
+      image: kindest/node:v1.27.3
