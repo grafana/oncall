@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class SlackInstallationExc(Exception):
     """
-    SlackInstallationExc represents some exception happened while installing Slack integration.
+    SlackInstallationExc represents some exception happened while managing Slack integration.
     """
 
     def __init__(self, error_message=None):
@@ -22,11 +22,15 @@ class SlackInstallationExc(Exception):
 
 
 def install_slack_integration(organization, user, oauth_response):
+    """
+    Installs Slack integration for the organization.
+    Raises:
+         SlackInstallationExc if organization already has Slack integration.
+    """
     from apps.slack.models import SlackTeamIdentity
 
     if organization.slack_team_identity is not None:
-        # means that organization already has Slack integration
-        raise SlackInstallationExc("Failed to install Slack integration: Organization already has Slack integration")
+        raise SlackInstallationExc("Organization already has Slack integration")
 
     slack_team_id = oauth_response["team"]["id"]
     slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
@@ -47,6 +51,11 @@ def install_slack_integration(organization, user, oauth_response):
 
 
 def uninstall_slack_integration(organization, user):
+    """
+    Uninstalls Slack integration for the organization.
+    Raises:
+         SlackInstallationExc if organization has no Slack integration.
+    """
     slack_team_identity = organization.slack_team_identity
     if slack_team_identity is not None:
         clean_slack_integration_leftovers.apply_async((organization.pk,))
@@ -57,4 +66,4 @@ def uninstall_slack_integration(organization, user):
         )
         unpopulate_slack_user_identities(organization.pk, True)
     else:
-        raise SlackInstallationExc("Failed to uninstall Slack integration. Organization has no Slack integration.")
+        raise SlackInstallationExc("Organization has no Slack integration.")

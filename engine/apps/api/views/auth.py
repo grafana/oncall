@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 @never_cache
 @psa("social:complete")
 def overridden_login_social_auth(request: Request, backend: str) -> Response:
+    """
+    overridden_login_social_auth starts the installation of integration which uses OAuth flow.
+    """
+
     # We can't just redirect frontend here because we need to make a API call and pass tokens to this view from JS.
     # So frontend can't follow our redirect.
     # So wrapping and returning URL to redirect as a string.
