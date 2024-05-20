@@ -20,7 +20,7 @@ if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
         name="grafana-tilt-extensions",
-        ref="v1.2.0",
+        ref="v1.4.2",
         url="https://github.com/grafana/tilt-extensions",
     )
 v1alpha1.extension(
@@ -63,7 +63,7 @@ docker_build_sub(
 if is_ci:
     local_resource(
         "build-ui",
-        labels=["OnCallUI"],
+        labels=["OnCallPluginUI"],
         dir="grafana-plugin",
         cmd="yarn build",
         allow_parallel=True,
@@ -80,6 +80,23 @@ if not is_ci:
         serve_cmd="yarn watch",
         allow_parallel=True,
     )
+
+local_resource(
+    'build-plugin-backend',
+    labels=["OnCallPluginBackend"],
+    dir="./grafana-plugin",
+    cmd="mage buildAll",
+    deps=['grafana-plugin/pkg/plugin']
+)
+
+local_resource(
+    'restart-plugin-backend',
+    labels=["OnCallPluginBackend"],
+    dir="./dev/scripts",
+    cmd="chmod +x ./restart_backend_plugin.sh && ./restart_backend_plugin.sh",
+    resource_deps=["grafana", "build-plugin-backend"],
+    deps=['grafana-plugin/pkg/plugin']
+)
 
 local_resource(
     "e2e-tests",
@@ -160,6 +177,7 @@ if not running_under_parent_tiltfile:
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",
             "GF_AUTH_ANONYMOUS_ENABLED": "false",
+            "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
         },
     )
 

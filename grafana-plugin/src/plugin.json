@@ -4,6 +4,8 @@
   "name": "Grafana OnCall",
   "id": "grafana-oncall-app",
   "preload": true,
+  "backend": true,
+  "executable": "gpx_grafana_oncall_app",
   "info": {
     "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others.",
     "author": {
@@ -589,6 +591,42 @@
       "grants": []
     }
   ],
+  "iam": {
+    "permissions": [
+      {
+        "action": "dashboards:create",
+        "scope": "folders:uid:*"
+      },
+      {
+        "action": "dashboards:read",
+        "scope": "folders:uid:*"
+      },
+      {
+        "action": "dashboards:write",
+        "scope": "folders:uid:*"
+      },
+      {
+        "action": "folders:read",
+        "scope": "folders:uid:*"
+      },
+      {
+        "action": "folders:write",
+        "scope": "folders:uid:*"
+      },
+      {
+        "action": "org.users:read",
+        "scope": "users:*"
+      },
+      {
+        "action": "teams:read",
+        "scope": "teams:*"
+      },
+      {
+        "action": "teams.permissions:read",
+        "scope": "teams:*"
+      }
+    ]
+  },
   "dependencies": {
     "grafanaDependency": ">=9.2.0",
     "plugins": []

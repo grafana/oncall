@@ -8,6 +8,9 @@ export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.ver
 
 export const APP_VERSION = `${plugin?.version}`;
 
+// This flag will be eventually removed once new OnCall initialization is implemented
+const USE_BACKEND_PLUGIN = true;
+
 export const CLOUD_VERSION_REGEX = new RegExp('r[\\d]+-v[\\d]+.[\\d]+.[\\d]+');
 
 // License
@@ -44,6 +47,11 @@ export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   }
   return undefined;
 };
+
+export const getOnCallApiPath = (subpath = '') =>
+  USE_BACKEND_PLUGIN
+    ? `/api/plugins/grafana-oncall-app/resources${subpath}`
+    : `api/plugin-proxy/grafana-oncall-app/api/internal/v1${subpath}`;
 
 // If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
 export const hasPluginBeenConfigured = (meta?: OnCallAppPluginMeta) => Boolean(meta?.jsonData?.onCallApiUrl);
