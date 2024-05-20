@@ -109,7 +109,6 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       match: {
         params: { id: scheduleId },
       },
-      theme,
     } = this.props;
 
     const {
@@ -131,7 +130,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
 
-    const styles = getScheduleStyles(theme);
+    const styles = getScheduleStyles();
 
     const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
@@ -161,7 +160,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       >
         {() => (
           <>
-            <div className={cx(styles.root)}>
+            <div>
               {isNotFoundError ? (
                 <div className={cx(styles.notFound)}>
                   <VerticalGroup spacing="lg" align="center">
@@ -180,7 +179,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                     <HorizontalGroup justify="space-between">
                       <div className={cx(styles.title)}>
                         <PluginLink query={{ page: 'schedules', ...query }}>
-                          <IconButton className="button-back" aria-label="Go Back" name="arrow-left" size="xl" />
+                          <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
                           editable={false}

@@ -1,0 +1,40 @@
+import { css } from '@emotion/css';
+
+export const getSchedulesStyles = () => {
+  return {
+    schedule: css`
+      position: relative;
+      margin: 20px 0;
+    `,
+
+    schedulePersonal: css`
+      position: relative;
+      margin: 20px 0;
+    `,
+
+    title: css`
+      margin-bottom: 16px;
+    `,
+
+    buttons: css`
+      padding-right: 10px;
+    `,
+
+    schedulesFiltersContainer: css`
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      row-gap: 4px;
+      column-gap: 8px;
+      width: 100%;
+      margin-bottom: 20px;
+    `,
+
+    schedulesActions: css`
+      display: flex;
+      justify-content: flex-end;
+      flex-grow: 1;
+      gap: 8px;
+    `,
+  };
+};

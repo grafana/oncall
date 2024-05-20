@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
-import { SelectableValue } from '@grafana/data';
-import { ValuePicker, HorizontalGroup, Button, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { ValuePicker, HorizontalGroup, Button, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -22,10 +22,9 @@ import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
+import { getRotationsStyles } from './Rotations.styles';
 
-import styles from './Rotations.module.css';
-
-const cx = cn.bind(styles);
+import animationStyles from './Rotations.module.css';
 
 interface RotationsProps extends WithStoreProps {
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
@@ -41,6 +40,7 @@ interface RotationsProps extends WithStoreProps {
   disabled: boolean;
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;
+  theme: GrafanaTheme2;
 }
 
 interface RotationsState {
@@ -69,6 +69,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       filters,
       onShowShiftSwapForm,
       onSlotClick,
+      theme,
     } = this.props;
     const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
@@ -97,13 +98,14 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     const isTypeReadOnly =
       schedule && (schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar);
+    const styles = getRotationsStyles(theme);
 
     return (
       <>
-        <div className={cx('root')}>
-          <div className={cx('header')}>
+        <div className={cx(styles.root)}>
+          <div className={cx(styles.header)}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>
+              <div className={cx(styles.title)}>
                 <Text.Title level={4} type="primary">
                   Rotations
                 </Text.Title>
@@ -145,28 +147,32 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <div className={cx('rotations-plus-title')}>
+          <div className={cx(styles.rotationsPlusTitle)}>
             {layers && layers.length ? (
-              <TransitionGroup className={cx('layers')}>
+              <TransitionGroup>
                 {layers.map((layer, layerIndex) => (
-                  <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                    <div id={`layer${layer.priority}`} className={cx('layer')}>
-                      <div className={cx('layer-title')}>
+                  <CSSTransition
+                    key={layerIndex}
+                    timeout={DEFAULT_TRANSITION_TIMEOUT}
+                    classNames={{ ...animationStyles }}
+                  >
+                    <div id={`layer${layer.priority}`} className={cx(styles.layer)}>
+                      <div className={cx(styles.layerTitle)}>
                         <HorizontalGroup spacing="sm" justify="center">
                           <Text type="secondary">Layer {layer.priority}</Text>
                         </HorizontalGroup>
                       </div>
-                      <div className={cx('header-plus-content')}>
+                      <div className={cx(styles.headerPlusContent)}>
                         <TimelineMarks />
                         {!currentTimeHidden && (
-                          <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                          <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />
                         )}
-                        <TransitionGroup className={cx('rotations')}>
+                        <TransitionGroup className={cx(styles.rotations)}>
                           {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                             <CSSTransition
                               key={rotationIndex}
                               timeout={DEFAULT_TRANSITION_TIMEOUT}
-                              classNames={{ ...styles }}
+                              classNames={{ ...animationStyles }}
                             >
                               <Rotation
                                 onClick={(shiftStart, shiftEnd) => {
@@ -194,16 +200,16 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
               </TransitionGroup>
             ) : (
               <div>
-                <div id={`layer1`} className={cx('layer')}>
-                  <div className={cx('layer-title')}>
+                <div id={`layer1`} className={cx(styles.layer)}>
+                  <div className={cx(styles.layerTitle)}>
                     <HorizontalGroup spacing="sm" justify="center">
                       <Text type="secondary">Layer 1</Text>
                     </HorizontalGroup>
                   </div>
-                  <div className={cx('header-plus-content')}>
-                    <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                  <div className={cx(styles.headerPlusContent)}>
+                    <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />
                     <TimelineMarks />
-                    <div className={cx('rotations')}>
+                    <div className={cx(styles.rotations)}>
                       <Rotation
                         onClick={(shiftStart, shiftEnd) => {
                           this.handleAddLayer(nextPriority, shiftStart, shiftEnd);
@@ -219,7 +225,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             )}
             {nextPriority > 1 && (
               <div
-                className={cx('add-rotations-layer')}
+                className={cx(styles.addRotationsLayer)}
                 onClick={() => {
                   if (disabled) {
                     return;
@@ -232,6 +238,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             )}
           </div>
         </div>
+
         {shiftIdToShowRotationForm && (
           <RotationForm
             shiftId={shiftIdToShowRotationForm}
@@ -338,4 +345,4 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
   };
 }
 
-export const Rotations = withMobXProviderContext(_Rotations);
+export const Rotations = withMobXProviderContext(withTheme2(_Rotations));

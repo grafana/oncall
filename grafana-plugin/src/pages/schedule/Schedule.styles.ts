@@ -2,12 +2,6 @@ import { css } from '@emotion/css';
 
 export const getScheduleStyles = () => {
   return {
-    // TODO: These values need to be reflected in the child styles
-    root: css`
-      --rotations-border: var(--border-weak);
-      --rotations-background: var(--background-secondary);
-    `,
-
     title: css`
       display: flex;
       flex-wrap: wrap;
@@ -19,7 +13,7 @@ export const getScheduleStyles = () => {
     `,
 
     header: css`
-      position: sticky; /* TODO check */
+      position: sticky;
       width: 100%;
     `,
 

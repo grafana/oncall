@@ -107,7 +107,6 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       match: {
         params: { id },
       },
-      theme,
     } = this.props;
     const { outgoingWebhookId, outgoingWebhookAction, errorData, confirmationModal } = this.state;
 
@@ -171,7 +170,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       },
     ];
 
-    const styles = getStyles(theme);
+    const styles = getStyles();
 
     return (
       <PageErrorHandlingWrapper
@@ -244,7 +243,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   renderOutgoingWebhooksFilters() {
-    const { query, store, theme } = this.props;
+    const { query, store } = this.props;
 
     return (
       <div>

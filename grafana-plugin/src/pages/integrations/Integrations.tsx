@@ -398,9 +398,9 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     alertReceiveChannelStore: AlertReceiveChannelStore
   ) => {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
+
     let routesCounter = item.routes_count;
     let connectedEscalationsChainsCount = item.connected_escalations_chains_count;
-    const styles = getIntegrationsStyles(theme);
 
     return (
       <HorizontalGroup spacing="xs">
