@@ -6,8 +6,7 @@ from .types import Event
 
 class ChatopsEventsHandler:
     """
-    ChatopsEventsHandler is a root hander which receive incoming event from Chatops-Proxy and choose the right
-    handler to process it.
+    ChatopsEventsHandler is a root handler which receives event from Chatops-Proxy and chooses the handler to process it.
     """
 
     HANDLERS: typing.List[typing.Type[Handler]] = [SlackInstallationHandler]
