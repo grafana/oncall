@@ -1,9 +1,11 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { Collapse } from 'components/Collapse/Collapse';
 import { Block } from 'components/GBlock/Block';
@@ -30,11 +32,11 @@ import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
-import styles from './EscalationChains.module.css';
+import { getEscalationChainStyles } from './EscalationChains.styles';
 
-const cx = cn.bind(styles);
-
-interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  theme: GrafanaTheme2;
+}
 
 interface EscalationChainsPageState extends PageBaseState {
   modeToShowEscalationChainForm?: EscalationChainFormMode;
@@ -129,6 +131,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       match: {
         params: { id },
       },
+      theme,
     } = this.props;
 
     const { extraEscalationChains } = this.state;
@@ -143,6 +146,9 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       data = [...extraEscalationChains, ...searchResult];
     }
 
+    const styles = getEscalationChainStyles(theme);
+    const utilStyles = getUtilStyles(theme);
+
     return (
       <PageErrorHandlingWrapper
         errorData={errorData}
@@ -152,23 +158,23 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       >
         {() => (
           <>
-            <div className={cx('root')}>
+            <div>
               {this.renderFilters()}
               {!data || data.length ? (
-                <div className={cx('escalations')}>
-                  <div className={cx('left-column')}>
+                <div className={cx(styles.escalations)}>
+                  <div className={cx(styles.leftColumn)}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ modeToShowEscalationChainForm: EscalationChainFormMode.Create });
                         }}
                         icon="plus"
-                        className={cx('new-escalation-chain')}
+                        className={cx(styles.newEscalationChain)}
                       >
                         New escalation chain
                       </Button>
                     </WithPermissionControlTooltip>
-                    <div className={cx('escalations-list')} data-testid="escalation-chains-list">
+                    <div className={cx(styles.escalationsList)} data-testid="escalation-chains-list">
                       {data ? (
                         <GList
                           autoScroll
@@ -181,14 +187,14 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                         </GList>
                       ) : (
                         <VerticalGroup>
-                          <Text type="primary" className={cx('loadingPlaceholder')}>
+                          <Text type="primary" className={cx(utilStyles.loadingPlaceholder)}>
                             Loading...
                           </Text>
                         </VerticalGroup>
                       )}
                     </div>
                   </div>
-                  <div className={cx('escalation')}>{this.renderEscalation()}</div>
+                  <div className={cx(styles.escalation)}>{this.renderEscalation()}</div>
                 </div>
               ) : (
                 <Tutorial
@@ -234,9 +240,11 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   }
 
   renderFilters() {
-    const { query, store } = this.props;
+    const { query, store, theme } = this.props;
+    const styles = getEscalationChainStyles(theme);
+
     return (
-      <div className={cx('filters')}>
+      <div className={cx(styles.filters)}>
         <RemoteFilters
           query={query}
           page={PAGE.Escalations}
@@ -286,7 +294,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 
   renderEscalation = () => {
-    const { store } = this.props;
+    const { store, theme } = this.props;
     const { selectedEscalationChain } = this.state;
 
     const { escalationChainStore } = store;
@@ -297,14 +305,15 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
     const escalationChain = escalationChainStore.items[selectedEscalationChain];
     const escalationChainDetails = escalationChainStore.details[selectedEscalationChain];
+    const styles = getEscalationChainStyles(theme);
 
     return (
       <>
-        <Block withBackground className={cx('header')}>
+        <Block withBackground className={cx(styles.header)}>
           <Text size="large" onTextChange={this.handleEscalationChainNameChange} data-testid="escalation-chain-name">
             {escalationChain.name}
           </Text>
-          <div className={cx('buttons')}>
+          <div className={cx(styles.buttons)}>
             <HorizontalGroup>
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
@@ -359,14 +368,14 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
             isOpen
           >
             {escalationChainDetails.length ? (
-              <ul className={cx('list')}>
+              <ul className={cx(styles.list)}>
                 {escalationChainDetails.map((alertReceiveChannel) => (
                   <li key={alertReceiveChannel.id}>
                     <HorizontalGroup align="flex-start">
                       <PluginLink query={{ page: 'integrations', id: alertReceiveChannel.id }}>
                         {alertReceiveChannel.display_name}
                       </PluginLink>
-                      <ul className={cx('list')}>
+                      <ul className={cx(styles.list)}>
                         {alertReceiveChannel.channel_filters.map((channelFilter) => (
                           <li key={channelFilter.id}>
                             <Icon name="arrow-right" />
@@ -472,4 +481,4 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 }
 
-export const EscalationChainsPage = withRouter(withMobXProviderContext(_EscalationChainsPage));
+export const EscalationChainsPage = withRouter(withMobXProviderContext(withTheme2(_EscalationChainsPage)));

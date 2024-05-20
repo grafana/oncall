@@ -9,7 +9,6 @@ import {
   Icon,
   LoadingPlaceholder,
   RadioButtonGroup,
-  Themeable2,
   Tooltip,
   VerticalGroup,
   withTheme2,
@@ -49,8 +48,9 @@ import {
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { IncidentRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
@@ -202,8 +202,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
-    const { theme } = this.props;
+  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store: RootStore, theme: GrafanaTheme2) {
     const { values } = filtersState;
     const { stats } = store.alertGroupStore;
 
@@ -322,7 +321,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
           extraFilters={(...args) => {
-            return this.renderCards(...args, store);
+            return this.renderCards(...args, store, theme);
           }}
           grafanaTeamStore={store.grafanaTeamStore}
           defaultFilters={{
@@ -595,7 +594,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderId(record: ApiSchemas['AlertGroup']) {
+  renderId = (record: ApiSchemas['AlertGroup']) => {
     const styles = getUtilStyles(this.props.theme);
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
@@ -604,10 +603,10 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         </Text>
       </TextEllipsisTooltip>
     );
-  }
+  };
 
   renderTitle = (record: ApiSchemas['AlertGroup']) => {
-    const { store, query, theme } = this.props;
+    const { store, query } = this.props;
     const { start } = this.state.pagination || {};
     const { incidentsCursor } = store.alertGroupStore;
 
@@ -846,7 +845,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       Users: {
         title: 'Users',
         key: 'users',
-        render: renderRelatedUsers,
+        render: (item: ApiSchemas['AlertGroup'], isFull: boolean) => (
+          <IncidentRelatedUsers incident={item} isFull={isFull} />
+        ),
         grow: 1.5,
       },
     };

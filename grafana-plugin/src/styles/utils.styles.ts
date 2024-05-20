@@ -8,6 +8,11 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       width: 100%;
     `,
 
+    loadingPlaceholder: css`
+      margin-bottom: 0;
+      margin-right: 4px;
+    `,
+
     disabled: css`
       opacity: 0.5;
     `,
@@ -38,6 +43,14 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       &--line-1 {
         -webkit-line-clamp: 1;
       }
+
+      &--line-3 {
+        -webkit-line-clamp: 3;
+      }
+    `,
+
+    wordBreakAll: css`
+      word-break: break-all;
     `,
 
     flex: css`
