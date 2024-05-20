@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 @api_view(["GET"])
 @authentication_classes([PluginAuthentication])
 @never_cache
-@psa("social:begin")
+@psa("social:complete")
 def overridden_login_social_auth(request: Request, backend: str) -> Response:
     # We can't just redirect frontend here because we need to make a API call and pass tokens to this view from JS.
     # So frontend can't follow our redirect.
