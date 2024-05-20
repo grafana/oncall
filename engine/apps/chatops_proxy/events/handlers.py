@@ -1,11 +1,14 @@
+import logging
 import typing
 from abc import ABC, abstractmethod
 
 from apps.chatops_proxy.client import PROVIDER_TYPE_SLACK
-from apps.slack.installation import install_slack_integration
+from apps.slack.installation import SlackInstallationExc, install_slack_integration
 from apps.user_management.models import Organization
 
 from .types import INTEGRATION_INSTALLED_EVENT_TYPE, Event, IntegrationInstalledData
+
+logger = logging.getLogger(__name__)
 
 
 class Handler(ABC):
@@ -38,4 +41,10 @@ class SlackInstallationHandler(Handler):
 
         organization = Organization.objects.get(stack_id=stack_id)
         user = organization.users.get(user_id=user_id)
-        install_slack_integration(organization, user, payload)
+        try:
+            install_slack_integration(organization, user, payload)
+        except SlackInstallationExc as e:
+            logger.exception(
+                f'msg="SlackInstallationHandler: Failed to install Slack integration: %s" org_id={organization.id} stack_id={stack_id}',
+                e,
+            )
