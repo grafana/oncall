@@ -79,20 +79,18 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
         {!simplified && (
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>
-                <Text.Title level={4} type="primary">
-                  Final schedule
-                </Text.Title>
-              </div>
+              <Text.Title level={5} type="primary">
+                Final schedule
+              </Text.Title>
             </HorizontalGroup>
           </div>
         )}
         <div className={cx('header-plus-content')}>
           {rows.map(({ startDate }, index) => (
-            <TransitionGroup key={index} className={cx('rotations', 'layer', 'layer-first')}>
-              <TimelineMarks startDate={startDate} />
+            <TransitionGroup key={index} className={cx('u-position-relative', 'layer', 'layer-first')}>
+              <TimelineMarks startDate={startDate} withBorderBottom={index !== rows.length - 1} />
               <div
-                className={cx('current-time', 'CURRENT_TIME')}
+                className={cx('current-time')}
                 style={{
                   left: `${
                     getCurrentTimeX(

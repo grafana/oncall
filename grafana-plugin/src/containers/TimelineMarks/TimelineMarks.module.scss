@@ -1,7 +1,6 @@
 .root {
   position: absolute;
   display: flex;
-  z-index: 1;
   width: 100%;
   top: 0;
   bottom: 0;
@@ -9,6 +8,10 @@
   font-size: 12px;
   line-height: 16px;
   pointer-events: none;
+}
+
+.root--borderBottom {
+  border-bottom: var(--border-medium);
 }
 
 .weekday {
@@ -28,15 +31,19 @@
   }
 }
 
+.weekday:not(:last-child) {
+  border-right: var(--border-medium);
+}
+
+.weekday--weekEnd {
+  background: var(--background-disabled);
+}
+
 .weekday-title {
   width: 100%;
   text-align: center;
   padding-top: 4px;
   flex-grow: 1;
-}
-
-.weekday:not(:last-child) .weekday-title {
-  border-right: var(--border-medium);
 }
 
 .weekday-times {

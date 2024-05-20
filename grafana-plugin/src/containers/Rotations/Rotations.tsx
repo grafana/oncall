@@ -17,6 +17,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { getColor, getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType, Shift, ShiftSwap, Event, Layer } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -74,13 +75,11 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     const { shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
-    const base = scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60; // in minutes
-    const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
+    const currentTimeX = getCurrentTimeX(
+      store.timezoneStore.currentDateInSelectedTimezone,
       store.timezoneStore.calendarStartDate,
-      'minutes'
+      scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60
     );
-
-    const currentTimeX = diff / base;
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
@@ -105,24 +104,22 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
         <div id="rotations" className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>
-                <Text.Title level={4} type="primary">
-                  Rotations
-                </Text.Title>
-              </div>
+              <Text.Title level={5} type="primary">
+                Rotations
+              </Text.Title>
               <HorizontalGroup>
                 {disabled ? (
                   isTypeReadOnly ? (
                     <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
                       <div>
-                        <Button variant="primary" icon="plus" disabled>
+                        <Button variant="secondary" icon="plus" disabled>
                           Add rotation
                         </Button>
                       </div>
                     </Tooltip>
                   ) : (
                     <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                      <Button variant="primary" icon="plus" disabled>
+                      <Button variant="secondary" icon="plus" disabled>
                         Add rotation
                       </Button>
                     </WithPermissionControlTooltip>
@@ -132,12 +129,12 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                     label="Add rotation"
                     options={options}
                     onChange={this.handleAddRotation}
-                    variant="primary"
+                    variant="secondary"
                     size="md"
                   />
                 ) : (
                   <Button
-                    variant="primary"
+                    variant="secondary"
                     icon="plus"
                     onClick={() => this.handleAddLayer(nextPriority, store.timezoneStore.calendarStartDate)}
                   >
@@ -149,10 +146,15 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
           </div>
           <div className={cx('rotations-plus-title')}>
             {layers && layers.length ? (
-              <TransitionGroup className={cx('layers')}>
+              <TransitionGroup className={'u-position-relative'}>
                 <TimelineMarks />
                 {!currentTimeHidden && (
-                  <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                  <div
+                    className={cx('current-time')}
+                    style={{
+                      left: `${currentTimeX * 100}%`,
+                    }}
+                  />
                 )}
                 {layers.map((layer, layerIndex) => (
                   <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
@@ -163,7 +165,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                         </Text>
                       </Tag>
                       <div className={cx('header-plus-content')}>
-                        <TransitionGroup className={cx('rotations')}>
+                        <TransitionGroup className={'u-position-relative'}>
                           {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                             <CSSTransition
                               key={rotationIndex}
@@ -194,24 +196,24 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                 ))}
               </TransitionGroup>
             ) : (
-              <div className={cx('layers')}>
+              <div className="u-position-relative">
                 <TimelineMarks />
                 <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
                 <div id="layer1" className={cx('layer', 'layer-first')}>
-                  <Tag className={cx('layer-title')} color="secondary">
-                    <Text type="secondary"> Layer 1</Text>
+                  <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                    <Text size="small" type="primary">
+                      Layer 1
+                    </Text>
                   </Tag>
                   <div className={cx('header-plus-content')}>
-                    <div className={cx('rotations')}>
-                      <Rotation
-                        onClick={(shiftStart, shiftEnd) => {
-                          this.handleAddLayer(nextPriority, shiftStart, shiftEnd);
-                        }}
-                        events={[]}
-                        layerIndex={0}
-                        rotationIndex={0}
-                      />
-                    </div>
+                    <Rotation
+                      onClick={(shiftStart, shiftEnd) => {
+                        this.handleAddLayer(nextPriority, shiftStart, shiftEnd);
+                      }}
+                      events={[]}
+                      layerIndex={0}
+                      rotationIndex={0}
+                    />
                   </div>
                 </div>
               </div>

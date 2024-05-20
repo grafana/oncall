@@ -6,6 +6,10 @@
   border-radius: var(--border-radius);
 }
 
+.header {
+  padding: 12px;
+}
+
 .current-time {
   position: absolute;
   width: 1px;
@@ -16,34 +20,16 @@
   transition: left 500ms ease;
 }
 
-.header {
-  padding: 0 10px;
-}
-
-.title {
-  margin: 16px 0;
-}
-
-.layers {
-  position: relative;
-}
-
 .layer {
-  display: block;
-  margin: 10px 0;
+  padding-bottom: 10px;
 }
 
 .layer-first {
-  padding-top: 30px;
-}
-
-.rotations {
-  position: relative;
+  padding-top: 32px;
 }
 
 .layer-title {
-  margin-left: 10px;
-  margin-bottom: 10px;
+  margin: 8px;
 }
 
 .rotations-plus-title {
@@ -52,23 +38,6 @@
 }
 
 .header-plus-content {
-  position: relative;
-}
-
-.layer-header {
-  padding: 12px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.layer-header-title {
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-  color: rgba(204, 204, 220, 0.65);
-}
-
-.layer-content {
   position: relative;
 }
 

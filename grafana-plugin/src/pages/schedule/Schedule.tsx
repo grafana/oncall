@@ -41,6 +41,7 @@ import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftSwap } 
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { scrollToElement } from 'utils/DOM';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -229,9 +230,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                       key={index}
                                       label={`L${layer.priority} rotation`}
                                       onClick={() => {
-                                        document
-                                          .getElementById('rotations')
-                                          .scrollIntoView({ behavior: 'instant', block: 'center' });
+                                        scrollToElement(document.getElementById('rotations'));
 
                                         this.handleShowRotationForm('new', layer.priority);
                                       }}
@@ -240,9 +239,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="New layer with rotation"
                                     onClick={() => {
-                                      document
-                                        .getElementById('rotations')
-                                        .scrollIntoView({ behavior: 'instant', block: 'center' });
+                                      scrollToElement(document.getElementById('rotations'));
 
                                       this.handleShowRotationForm('new', nextPriority);
                                     }}
@@ -250,19 +247,13 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="Shift swap request"
                                     onClick={() => {
-                                      document
-                                        .getElementById('overrides-list')
-                                        .scrollIntoView({ behavior: 'instant', block: 'center' });
-
                                       this.handleShowShiftSwapForm('new');
                                     }}
                                   />
                                   <Menu.Item
                                     label="Override"
                                     onClick={() => {
-                                      document
-                                        .getElementById('overrides-list')
-                                        .scrollIntoView({ behavior: 'instant', block: 'center' });
+                                      scrollToElement(document.getElementById('overrides-list'));
 
                                       this.handleShowOverridesForm('new');
                                     }}

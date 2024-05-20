@@ -18,6 +18,10 @@ export const waitForElement = (selector: string) => {
   });
 };
 
+export const scrollToElement = (element: Element, behavior: ScrollBehavior = 'instant' as ScrollBehavior) => {
+  document.getElementById('rotations').scrollIntoView({ behavior, block: 'center' });
+};
+
 export const getCoords = (elem) => {
   // crossbrowser version
   const box = elem.getBoundingClientRect();

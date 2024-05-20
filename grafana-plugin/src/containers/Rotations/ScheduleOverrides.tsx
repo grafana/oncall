@@ -21,6 +21,7 @@ import {
   SHIFT_SWAP_COLOR,
 } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedule.types';
+import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -80,13 +81,11 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
 
     const shiftSwaps = getShiftSwapsFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
 
-    const base = scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60; // in minutes
-    const diff = store.timezoneStore.currentDateInSelectedTimezone.diff(
+    const currentTimeX = getCurrentTimeX(
+      store.timezoneStore.currentDateInSelectedTimezone,
       store.timezoneStore.calendarStartDate,
-      'minutes'
+      scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60
     );
-
-    const currentTimeX = diff / base;
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
@@ -99,11 +98,9 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
         <div id="overrides-list" className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>
-                <Text.Title level={4} type="primary">
-                  Overrides and swaps
-                </Text.Title>
-              </div>
+              <Text.Title level={5} type="primary">
+                Overrides and swaps
+              </Text.Title>
               <HorizontalGroup>
                 <Button
                   variant="secondary"
@@ -132,11 +129,11 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <div className={cx('header-plus-content')}>
+          <div className="u-position-relative">
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
             {shiftSwaps && shiftSwaps.length ? (
-              <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
+              <TransitionGroup className={cx('layer', 'layer-first')}>
                 <Tag className={cx('layer-title')} color="var(--background-canvas)">
                   <Text type="primary" size="small">
                     Swaps
@@ -160,7 +157,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                 ))}
               </TransitionGroup>
             ) : null}
-            <TransitionGroup className={cx('rotations', 'layer', { 'layer-first': !shiftSwaps || !shiftSwaps.length })}>
+            <TransitionGroup className={cx('layer', { 'layer-first': !shiftSwaps || !shiftSwaps.length })}>
               <Tag className={cx('layer-title')} color="var(--background-canvas)">
                 <Text type="primary" size="small">
                   Overrides

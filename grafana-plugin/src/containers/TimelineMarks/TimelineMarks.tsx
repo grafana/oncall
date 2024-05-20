@@ -13,6 +13,7 @@ import styles from './TimelineMarks.module.scss';
 interface TimelineMarksProps {
   debug?: boolean;
   startDate?: dayjs.Dayjs;
+  withBorderBottom?: boolean;
 }
 
 const cx = cn.bind(styles);
@@ -22,7 +23,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
     scheduleStore,
   } = useStore();
-  const { debug, startDate: propsStartDate } = props;
+  const { debug, startDate: propsStartDate, withBorderBottom = false } = props;
 
   const startDate = propsStartDate || calendarStartDate;
 
@@ -55,7 +56,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   }, [days]);
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root', { 'root--borderBottom': withBorderBottom })}>
       {debug && (
         <svg version="1.1" width="100%" height="6px" xmlns="http://www.w3.org/2000/svg" className={cx('debug-scale')}>
           {cuts.map((_cut, index) => (
@@ -75,10 +76,10 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
       {momentsToRender.map((m, i) => {
         const isCurrentDay = currentDateInSelectedTimezone.isSame(m.moment, 'day');
 
-        // const isWeekend = m.moment.day() == 0 || m.moment.day() === 6;
+        const isWeekend = m.moment.day() === 0 || m.moment.day() === 6;
 
         return (
-          <div key={i} className={cx('weekday' /* , { 'weekday--weekend': isWeekend } */)}>
+          <div key={i} className={cx('weekday', { 'weekday--weekEnd': isWeekend })}>
             <div className={cx('weekday-title')}>
               <Text type={isCurrentDay ? 'primary' : 'secondary'}>
                 {m.moment.date() === 1 ? m.moment.format('ddd D MMM') : m.moment.format('ddd D')}
