@@ -93,7 +93,7 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Build and Push Engine Docker Image Backend to GCR
-    image: plugins/docker
+    image: plugins/docker:20.17.4
     environment:
       # force docker to use buildkit feature, this will skip build stages that aren't required in
       # the final image (ie. dev & dev-enterprise)
@@ -116,7 +116,7 @@ steps:
       - Image Tag
 
   - name: Build and Push Engine Docker Image Backend to Dockerhub
-    image: plugins/docker
+    image: plugins/docker:20.17.4
     environment:
       # force docker to use buildkit feature, this will skip build stages that aren't required in
       # the final image (ie. dev & dev-enterprise)
@@ -386,6 +386,4 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: a045d72f3f3510895da049f4bf8f5ae4ac21f3ffa3d24cda047152c286df5bc2
-
-...
+hmac: 7bf9c1d378bf2a93cb758436de78878f9a49a8501b5d1b199c412198439d3593

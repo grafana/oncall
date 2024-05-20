@@ -195,7 +195,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         {users && (
                           <HorizontalGroup>
                             <Text type="secondary">Current timezone:</Text>
-                            <UserTimezoneSelect scheduleId={scheduleId} />
+                            <UserTimezoneSelect scheduleId={scheduleId} onChange={this.handleDateRangeUpdate} />
                           </HorizontalGroup>
                         )}
                         <HorizontalGroup>

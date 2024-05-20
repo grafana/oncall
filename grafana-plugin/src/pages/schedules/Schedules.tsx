@@ -84,7 +84,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={cx(styles.schedulesActions)}>
-                <UserTimezoneSelect />
+                <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
@@ -175,20 +175,21 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
       const index = expandedRowKeys.indexOf(data.id);
       const newExpandedRowKeys = [...expandedRowKeys];
       newExpandedRowKeys.splice(index, 1);
-      this.setState({ expandedRowKeys: newExpandedRowKeys }, () => {
-        this.props.store.scheduleStore.refreshEvents(data.id);
-      });
+      this.setState({ expandedRowKeys: newExpandedRowKeys });
     }
   };
 
-  renderSchedule = (data: Schedule) => {
-    const styles = getSchedulesStyles();
-    return (
-      <div className={cx(styles.schedule)}>
-        <TimelineMarks />
-        <div>
-          <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
-        </div>
+  refreshExpandedSchedules = () => {
+    const { expandedRowKeys } = this.state;
+    expandedRowKeys.forEach(this.props.store.scheduleStore.refreshEvents);
+
+  };
+
+  renderSchedule = (data: Schedule) => (
+    <div className={cx('schedule')}>
+      <TimelineMarks />
+      <div className={cx('rotations')}>
+        <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
       </div>
     );
   };
