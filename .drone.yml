@@ -189,6 +189,8 @@ steps:
       # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
+      - mage -v test
+      - mage
       - ls ./
 
   - name: sign and package plugin
@@ -389,6 +391,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 79daf372bdd6166ff25b6731a3ebd79f1c172b1ef98bd71846375a76924d8ba5
+hmac: ffad68b712dfc08e893814ef68fcc13b8fc8017dad1e90444217b5a6f1391378
 
 ...
