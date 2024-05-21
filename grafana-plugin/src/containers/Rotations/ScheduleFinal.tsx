@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { HorizontalGroup, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -22,10 +22,9 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
+import { getRotationsStyles } from './Rotations.styles';
 
-import styles from './Rotations.module.css';
-
-const cx = cn.bind(styles);
+import animationStyles from './Rotations.module.css';
 
 interface ScheduleFinalProps extends WithStoreProps {
   scheduleId: Schedule['id'];
@@ -45,6 +44,8 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     const base = 7 * 24 * 60; // in minutes
     const diff = currentDateInSelectedTimezone.diff(calendarStartDate, 'minutes');
 
+    const styles = useStyles2(getRotationsStyles);
+
     const currentTimeX = diff / base;
 
     const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, calendarStartDate));
@@ -62,11 +63,11 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     };
 
     return (
-      <div className={cx('root')}>
+      <div className={cx(styles.root)}>
         {!simplified && (
-          <div className={cx('header')}>
+          <div className={cx(styles.header)}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>
+              <div className={cx(styles.title)}>
                 <Text.Title level={4} type="primary">
                   Final schedule
                 </Text.Title>
@@ -74,14 +75,14 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
             </HorizontalGroup>
           </div>
         )}
-        <div className={cx('header-plus-content')}>
-          {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
+        <div className={cx(styles.headerPlusContent)}>
+          {!currentTimeHidden && <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />}
           <TimelineMarks />
-          <TransitionGroup className={cx('rotations')}>
+          <TransitionGroup className={cx(styles.rotations)}>
             {shifts && shifts.length ? (
               shifts.map(({ events }, index) => {
                 return (
-                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                     <Rotation
                       key={index}
                       events={events}
@@ -97,7 +98,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
                 );
               })
             ) : (
-              <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+              <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                 <Rotation events={[]} />
               </CSSTransition>
             )}
