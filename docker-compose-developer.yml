@@ -326,6 +326,7 @@ services:
       GF_SECURITY_ADMIN_USER: oncall
       GF_SECURITY_ADMIN_PASSWORD: oncall
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+      GF_FEATURE_TOGGLES_ENABLE: externalServiceAccounts
     env_file:
       - ./dev/.env.${DB}.dev
     ports:
