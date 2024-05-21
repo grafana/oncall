@@ -162,7 +162,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
           <>
             <div>
               {isNotFoundError ? (
-                <div className={cx(styles.notFound)}>
+                <div className={styles.notFound}>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>
                     <Text.Title level={4}>Schedule not found</Text.Title>
@@ -175,9 +175,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                 </div>
               ) : (
                 <VerticalGroup spacing="lg">
-                  <div className={cx(styles.header)}>
+                  <div className={styles.header}>
                     <HorizontalGroup justify="space-between">
-                      <div className={cx(styles.title)}>
+                      <div className={styles.title}>
                         <PluginLink query={{ page: 'schedules', ...query }}>
                           <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
                         </PluginLink>
@@ -228,7 +228,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                       </HorizontalGroup>
                     </HorizontalGroup>
                   </div>
-                  <div className={cx(styles.usersTimezone)}>
+                  <div className={styles.usersTimezone}>
                     <UsersTimezones
                       scheduleId={scheduleId}
                       onCallNow={schedule?.on_call_now || []}
@@ -240,8 +240,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                     />
                   </div>
 
-                  <div className={cx(styles.rotations)}>
-                    <div className={cx(styles.controls)}>
+                  <div className={styles.rotations}>
+                    <div className={styles.controls}>
                       <HorizontalGroup justify="space-between">
                         <HorizontalGroup>
                           <Button variant="secondary" onClick={this.handleTodayClick}>

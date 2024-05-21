@@ -43,7 +43,7 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
           <Text type="secondary" className={cx(utilStyles.overflowChild)}>
             <Avatar size="small" src={user.avatar} />{' '}
             <span className={cx(utilStyles.wordBreakAll, 'u-margin-right-xs')}>{user.username}</span>
-            <span className={cx(styles.userBadge)}>{badge}</span>
+            <span className={styles.userBadge}>{badge}</span>
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>

@@ -16,9 +16,9 @@ export const Unauthorized: FC<Props> = ({ requiredUserAction: { permission, fall
   const styles = useStyles2(getStyles);
 
   return (
-    <div className={cx(styles.notFound)}>
+    <div className={styles.notFound}>
       <VerticalGroup spacing="lg" align="center">
-        <Text.Title level={1} className={cx(styles.errorCode)}>
+        <Text.Title level={1} className={styles.errorCode}>
           403
         </Text.Title>
         <Text.Title level={4}>

@@ -191,7 +191,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 }
               />
             )}
-            <div className={cx(styles.newWebhookButton)}>
+            <div className={styles.newWebhookButton}>
               <PluginLink
                 query={{ page: 'outgoing_webhooks', id: 'new' }}
                 disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
@@ -209,8 +209,8 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
-                  <div className={cx(styles.header)}>
-                    <div className={cx(styles.headerTitle)}>
+                  <div className={styles.header}>
+                    <div className={styles.headerTitle}>
                       <LegacyNavHeading>
                         <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       </LegacyNavHeading>

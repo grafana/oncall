@@ -161,20 +161,20 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
             <div>
               {this.renderFilters()}
               {!data || data.length ? (
-                <div className={cx(styles.escalations)}>
-                  <div className={cx(styles.leftColumn)}>
+                <div className={styles.escalations}>
+                  <div className={styles.leftColumn}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ modeToShowEscalationChainForm: EscalationChainFormMode.Create });
                         }}
                         icon="plus"
-                        className={cx(styles.newEscalationChain)}
+                        className={styles.newEscalationChain}
                       >
                         New escalation chain
                       </Button>
                     </WithPermissionControlTooltip>
-                    <div className={cx(styles.escalationsList)} data-testid="escalation-chains-list">
+                    <div className={styles.escalationsList} data-testid="escalation-chains-list">
                       {data ? (
                         <GList
                           autoScroll
@@ -194,7 +194,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                       )}
                     </div>
                   </div>
-                  <div className={cx(styles.escalation)}>{this.renderEscalation()}</div>
+                  <div className={styles.escalation}>{this.renderEscalation()}</div>
                 </div>
               ) : (
                 <Tutorial
@@ -244,7 +244,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
     const styles = getEscalationChainStyles(theme);
 
     return (
-      <div className={cx(styles.filters)}>
+      <div className={styles.filters}>
         <RemoteFilters
           query={query}
           page={PAGE.Escalations}
@@ -309,11 +309,11 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
     return (
       <>
-        <Block withBackground className={cx(styles.header)}>
+        <Block withBackground className={styles.header}>
           <Text size="large" onTextChange={this.handleEscalationChainNameChange} data-testid="escalation-chain-name">
             {escalationChain.name}
           </Text>
-          <div className={cx(styles.buttons)}>
+          <div className={styles.buttons}>
             <HorizontalGroup>
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
@@ -368,14 +368,14 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
             isOpen
           >
             {escalationChainDetails.length ? (
-              <ul className={cx(styles.list)}>
+              <ul className={styles.list}>
                 {escalationChainDetails.map((alertReceiveChannel) => (
                   <li key={alertReceiveChannel.id}>
                     <HorizontalGroup align="flex-start">
                       <PluginLink query={{ page: 'integrations', id: alertReceiveChannel.id }}>
                         {alertReceiveChannel.display_name}
                       </PluginLink>
-                      <ul className={cx(styles.list)}>
+                      <ul className={styles.list}>
                         {alertReceiveChannel.channel_filters.map((channelFilter) => (
                           <li key={channelFilter.id}>
                             <Icon name="arrow-right" />

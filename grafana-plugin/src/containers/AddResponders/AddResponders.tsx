@@ -33,7 +33,7 @@ const LearnMoreAboutNotificationPoliciesLink: React.FC = () => {
   const styles = useStyles2(getAddRespondersStyles);
   return (
     <a
-      className={cx(styles.learnMoreLink)}
+      className={styles.learnMoreLink}
       href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
       target="_blank"
       rel="noreferrer"
@@ -110,7 +110,7 @@ export const AddResponders = observer(
 
     return (
       <>
-        <div className={cx(styles.content)}>
+        <div className={styles.content}>
           <Block bordered>
             <HorizontalGroup justify="space-between">
               <Text.Title type="primary" level={4}>
@@ -132,7 +132,7 @@ export const AddResponders = observer(
             </HorizontalGroup>
             {(selectedTeamResponder || existingPagedUsers.length > 0 || selectedUserResponders.length > 0) && (
               <>
-                <ul className={cx(styles.respondersList)}>
+                <ul className={styles.respondersList}>
                   {selectedTeamResponder && (
                     <TeamResponder team={selectedTeamResponder} handleDelete={directPagingStore.resetSelectedTeam} />
                   )}
@@ -187,7 +187,7 @@ export const AddResponders = observer(
             isOpen
             title="Confirm Participant Invitation"
             onDismiss={closeUserConfirmationModal}
-            className={cx(styles.confirmParticipantInvitationModal)}
+            className={styles.confirmParticipantInvitationModal}
           >
             <VerticalGroup spacing="md">
               {!isCreateMode && (
@@ -197,7 +197,7 @@ export const AddResponders = observer(
                     {currentMoment.tz(UserHelper.getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be
                     notified using
                   </Text>
-                  <div className={cx(styles.confirmParticipantInvitationModalSelect)}>
+                  <div className={styles.confirmParticipantInvitationModalSelect}>
                     <NotificationPoliciesSelect
                       important={Boolean(currentlyConsideredUserNotificationPolicy)}
                       onChange={onChangeCurrentlyConsideredUserNotificationPolicy}

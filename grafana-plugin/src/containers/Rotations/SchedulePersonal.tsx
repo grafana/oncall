@@ -80,9 +80,9 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   const styles = useStyles2(getRotationsStyles);
 
   return (
-    <div className={cx(styles.root)}>
-      <div className={cx(styles.header)}>
-        <div className={cx(styles.title)}>
+    <div className={styles.root}>
+      <div className={styles.header}>
+        <div className={styles.title}>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup>
               <Text type="secondary">
@@ -117,10 +117,10 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
           </HorizontalGroup>
         </div>
       </div>
-      <div className={cx(styles.headerPlusContent)}>
-        {!currentTimeHidden && <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />}
+      <div className={styles.headerPlusContent}>
+        {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
         <TimelineMarks />
-        <TransitionGroup className={cx(styles.rotations)}>
+        <TransitionGroup className={styles.rotations}>
           {shifts?.length ? (
             shifts.map(({ events }, index) => {
               return (

@@ -81,7 +81,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           shouldRender={event.missing_users.length > 0}
           backupChildren={
             <div
-              className={cx(styles.root)}
+              className={styles.root}
               style={{
                 backgroundColor: color,
               }}
@@ -91,12 +91,12 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           {event.missing_users.map((name) => (
             <div
               key={name}
-              className={cx(styles.root)}
+              className={styles.root}
               style={{
                 backgroundColor: color,
               }}
             >
-              <div className={cx(styles.title)}>
+              <div className={styles.title}>
                 <NonExistentUserName userName={name} />
               </div>
             </div>
@@ -123,7 +123,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   };
 
   return (
-    <div className={cx(styles.stack)} style={{ width: `${width * 100}%` }} onClick={onClick}>
+    <div className={styles.stack} style={{ width: `${width * 100}%` }} onClick={onClick}>
       {renderEvent(event)}
     </div>
   );
@@ -168,7 +168,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
           {benefactor ? (
             <Avatar size="xs" src={benefactor.avatar_full} />
           ) : (
-            <div className={cx(styles.noUser)}>
+            <div className={styles.noUser}>
               <Text size="xs" type="primary">
                 ?
               </Text>
@@ -280,14 +280,14 @@ const RegularEvent = (props: RegularEventProps) => {
           >
             {storeUser && (!swap_request || swap_request.user) && (
               <WorkingHours
-                className={cx(styles.workingHours)}
+                className={styles.workingHours}
                 timezone={storeUser.timezone}
                 workingHours={storeUser.working_hours}
                 startMoment={start}
                 duration={duration}
               />
             )}
-            <div className={cx(styles.title)}>
+            <div className={styles.title}>
               {swap_request && !swap_request.user ? <Icon name="user-arrows" /> : userTitle}
             </div>
           </div>
@@ -395,47 +395,47 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
   // const isOncall = Boolean(storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk));
 
   return (
-    <div className={cx(styles.details)}>
+    <div className={styles.details}>
       <VerticalGroup>
         <HorizontalGroup>
-          <div className={cx(styles.detailsIcon)}>
-            <div className={cx(styles.badge)} style={{ backgroundColor: color }} />
+          <div className={styles.detailsIcon}>
+            <div className={styles.badge} style={{ backgroundColor: color }} />
           </div>
           <Text type="primary" maxWidth="222px">
             {title}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
-          <div className={cx(styles.detailsIcon)}>
-            <Icon className={cx(styles.icon)} name={isShiftSwap ? 'user-arrows' : 'user'} />
+          <div className={styles.detailsIcon}>
+            <Icon className={styles.icon} name={isShiftSwap ? 'user-arrows' : 'user'} />
           </div>
           {isShiftSwap ? (
             <VerticalGroup spacing="xs">
               <Text type="primary">Swap pair</Text>
-              <Text type="primary" className={cx(styles.username)}>
+              <Text type="primary" className={styles.username}>
                 {beneficiaryName} <Text type="secondary"> (requested by)</Text>
               </Text>
               {benefactorName ? (
-                <Text type="primary" className={cx(styles.username)}>
+                <Text type="primary" className={styles.username}>
                   {benefactorName} <Text type="secondary"> (accepted by)</Text>
                 </Text>
               ) : (
-                <Text type="secondary" className={cx(styles.username)}>
+                <Text type="secondary" className={styles.username}>
                   Not accepted yet
                 </Text>
               )}
             </VerticalGroup>
           ) : (
-            <Text type="primary" className={cx(styles.username)}>
+            <Text type="primary" className={styles.username}>
               {user?.username}
             </Text>
           )}
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
-          <div className={cx(styles.detailsIcon)}>
-            <Icon className={cx(styles.icon)} name="clock-nine" />
+          <div className={styles.detailsIcon}>
+            <Icon className={styles.icon} name="clock-nine" />
           </div>
-          <Text type="primary" className={cx(styles.secondColumn)} data-testid="schedule-slot-user-local-time">
+          <Text type="primary" className={styles.secondColumn} data-testid="schedule-slot-user-local-time">
             User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
@@ -449,10 +449,10 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
-          <div className={cx(styles.detailsIcon)}>
-            <Icon className={cx(styles.icon)} name="arrows-h" />
+          <div className={styles.detailsIcon}>
+            <Icon className={styles.icon} name="arrows-h" />
           </div>
-          <Text type="primary" className={cx(styles.secondColumn)}>
+          <Text type="primary" className={styles.secondColumn}>
             This shift
             <br />
             {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}

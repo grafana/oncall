@@ -35,7 +35,7 @@ export const ScheduleFilters = (props: SchedulesFiltersProps) => {
   );
 
   return (
-    <div className={cx(styles.root)}>
+    <div className={styles.root}>
       <InlineSwitch
         showLabel
         label="Highlight my shifts"

@@ -133,7 +133,7 @@ const TabsContent = (props: TabsContentProps) => {
   const styles = useStyles2(getStyles);
 
   return (
-    <div className={cx(styles.tabsContent)}>
+    <div className={styles.tabsContent}>
       {activeTab === SettingsPageTab.MainSettings.key && (
         <div>
           <MainSettings />

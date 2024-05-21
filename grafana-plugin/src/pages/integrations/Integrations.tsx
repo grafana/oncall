@@ -221,7 +221,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     return (
       <>
         <div>
-          <div className={cx(styles.title)}>
+          <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <VerticalGroup>
                 <Text.Title level={3}>Integrations</Text.Title>
@@ -235,7 +235,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                     this.setState({ alertReceiveChannelId: 'new' });
                   }}
                   icon="plus"
-                  className={cx(styles.newIntegrationButton)}
+                  className={styles.newIntegrationButton}
                 >
                   New integration
                 </Button>
@@ -243,7 +243,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
             </HorizontalGroup>
           </div>
           <div>
-            <TabsBar className={cx(styles.tabsBar)}>
+            <TabsBar className={styles.tabsBar}>
               {TABS.map(({ label, value }) => (
                 <Tab
                   key={value}
@@ -266,7 +266,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
               />
               {isDirectPagingSelectedOnMonitoringSystemsTab && (
                 <Alert
-                  className={cx(styles.goToDirectPagingAlert)}
+                  className={styles.goToDirectPagingAlert}
                   severity="info"
                   title="Direct Paging integrations have been moved."
                 >
@@ -285,8 +285,8 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                 rowKey="id"
                 data={results}
                 columns={this.getTableColumns(store.hasFeature)}
-                className={cx(styles.integrationsTable)}
-                rowClassName={cx(styles.integrationsTableRow)}
+                className={styles.integrationsTable}
+                rowClassName={styles.integrationsTableRow}
                 pagination={{
                   page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
                   total: results ? Math.ceil((count || 0) / page_size) : 0,
@@ -461,7 +461,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
           <TooltipBadge
             testId="heartbeat-badge"
             text={undefined}
-            className={cx(styles.heartbeatBadge)}
+            className={styles.heartbeatBadge}
             placement="top"
             borderType={heartbeatStatus ? 'success' : 'danger'}
             customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
@@ -512,23 +512,23 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     return (
       <WithContextMenu
         renderMenuItems={() => (
-          <div className={cx(styles.integrationsActionsList)}>
+          <div className={styles.integrationsActionsList}>
             <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-              <div className={cx(styles.integrationsActionItem)} onClick={() => this.onIntegrationEditClick(item.id)}>
+              <div className={styles.integrationsActionItem} onClick={() => this.onIntegrationEditClick(item.id)}>
                 <Text type="primary">Integration settings</Text>
               </div>
             </WithPermissionControlTooltip>
 
             {store.hasFeature(AppFeature.Labels) && (
               <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx(styles.integrationsActionItem)} onClick={() => this.onLabelsEditClick(item.id)}>
+                <div className={styles.integrationsActionItem} onClick={() => this.onLabelsEditClick(item.id)}>
                   <Text type="primary">Alert group labeling</Text>
                 </div>
               </WithPermissionControlTooltip>
             )}
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
-              <div className={cx(styles.integrationsActionItem)}>
+              <div className={styles.integrationsActionItem}>
                 <HorizontalGroup spacing={'xs'}>
                   <Icon name="copy" />
 
@@ -539,7 +539,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
             <RenderConditionally shouldRender={item.allow_delete}>
               <div className={cx(utilStyles.thinLineBreak)} />
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx(styles.integrationsActionItem)}>
+                <div className={styles.integrationsActionItem}>
                   <div
                     onClick={() => {
                       this.setState({
@@ -635,7 +635,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         width: '50px',
         key: 'buttons',
         render: (item: ApiSchemas['AlertReceiveChannel']) => this.renderButtons(item),
-        className: cx(styles.buttons),
+        className: styles.buttons,
       },
     ];
 

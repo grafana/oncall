@@ -20,10 +20,10 @@ export const TeamResponder: FC<Props> = ({ team: { avatar_url, name }, handleDel
     <li>
       <HorizontalGroup justify="space-between">
         <HorizontalGroup>
-          <div className={cx(styles.timelineIconBackground)}>
+          <div className={styles.timelineIconBackground}>
             <Avatar size="medium" src={avatar_url} />
           </div>
-          <Text className={cx(styles.responderName)}>{name}</Text>
+          <Text className={styles.responderName}>{name}</Text>
         </HorizontalGroup>
         <IconButton
           data-testid="team-responder-delete-icon"

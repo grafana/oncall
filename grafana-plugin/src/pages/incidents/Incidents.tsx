@@ -174,7 +174,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (
       <>
         <div>
-          <div className={cx(styles.title)}>
+          <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
@@ -211,7 +211,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <div className={cx(styles.cards, styles.row)}>
-        <div key="new" className={cx(styles.col)}>
+        <div key="new" className={styles.col}>
           <CardButton
             icon={<Icon name="bell" size="xxl" />}
             description="Firing"
@@ -225,7 +225,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             )}
           />
         </div>
-        <div key="acknowledged" className={cx(styles.col)}>
+        <div key="acknowledged" className={styles.col}>
           <CardButton
             icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
@@ -239,7 +239,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             )}
           />
         </div>
-        <div key="resolved" className={cx(styles.col)}>
+        <div key="resolved" className={styles.col}>
           <CardButton
             icon={<Icon name="check" size="xxl" />}
             description="Resolved"
@@ -253,7 +253,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             )}
           />
         </div>
-        <div key="silenced" className={cx(styles.col)}>
+        <div key="silenced" className={styles.col}>
           <CardButton
             icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
@@ -315,7 +315,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const defaultEnd = moment().add(1, 'days');
     const styles = getStyles(theme);
     return (
-      <div className={cx(styles.filters)}>
+      <div className={styles.filters}>
         <RemoteFilters
           query={query}
           page={PAGE.Incidents}
@@ -448,9 +448,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const styles = getStyles(theme);
 
     return (
-      <div className={cx(styles.aboveIncidentsTable)}>
-        <div className={cx(styles.bulkActionsContainer)}>
-          <div className={cx(styles.bulkActionsList)}>
+      <div className={styles.aboveIncidentsTable}>
+        <div className={styles.bulkActionsContainer}>
+          <div className={styles.bulkActionsList}>
             {'resolve' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
@@ -499,18 +499,18 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             </Text>
           </div>
 
-          <div className={cx(styles.fieldsDropdown)}>
+          <div className={styles.fieldsDropdown}>
             <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
               <HorizontalGroup spacing="xs">
                 <Text type="secondary">Results out of date</Text>
-                <Button className={cx(styles.btnResults)} variant="primary" onClick={this.onIncidentsUpdateClick}>
+                <Button className={styles.btnResults} variant="primary" onClick={this.onIncidentsUpdateClick}>
                   Refresh
                 </Button>
               </HorizontalGroup>
             </RenderConditionally>
 
             <RenderConditionally shouldRender={isLoading}>
-              <LoadingPlaceholder text="Loading..." className={cx(styles.loadingPlaceholder)} />
+              <LoadingPlaceholder text="Loading..." className={styles.loadingPlaceholder} />
             </RenderConditionally>
 
             <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
@@ -578,7 +578,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           scroll={{ x: isHorizontalScrolling ? 'max-content' : undefined }}
         />
         {this.shouldShowPagination() && (
-          <div className={cx(styles.pagination)}>
+          <div className={styles.pagination}>
             <CursorPagination
               current={`${pagination.start}-${pagination.end}`}
               itemsPerPage={alertGroupStore.alertsSearchResult?.page_size}

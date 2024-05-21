@@ -148,8 +148,8 @@ class Users extends React.Component<UsersProps, UsersState> {
       >
         {() => (
           <div>
-            <div className={cx(styles.usersHeader)}>
-              <div className={cx(styles.usersHeaderLeft)}>
+            <div className={styles.usersHeader}>
+              <div className={styles.usersHeaderLeft}>
                 <div>
                   <LegacyNavHeading>
                     <Text.Title level={3}>Users</Text.Title>
@@ -204,9 +204,9 @@ class Users extends React.Component<UsersProps, UsersState> {
       <>
         {authorizedToViewUsers ? (
           <>
-            <div className={cx(styles.userFiltersContainer)} data-testid="users-filters">
+            <div className={styles.userFiltersContainer} data-testid="users-filters">
               <UsersFilters
-                className={cx(styles.usersFilters)}
+                className={styles.usersFilters}
                 value={usersFilters}
                 isLoading={results === undefined}
                 onChange={this.handleUsersFiltersChange}
@@ -260,7 +260,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     return (
       <HorizontalGroup>
-        <Avatar className={cx(styles.userAvatar)} size="large" src={user.avatar} />
+        <Avatar className={styles.userAvatar} size="large" src={user.avatar} />
         <div
           className={cx({
             'current-user': isCurrent,

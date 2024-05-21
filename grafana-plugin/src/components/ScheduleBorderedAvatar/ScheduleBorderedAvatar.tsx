@@ -20,13 +20,13 @@ export const ScheduleBorderedAvatar = function ({
 }: ScheduleBorderedAvatarProps) {
   const styles = useStyles2(getStyles);
 
-  return <div className={cx(styles.root)}>{renderSVG()}</div>;
+  return <div className={styles.root}>{renderSVG()}</div>;
 
   function renderAvatarIcon() {
     return (
       <>
-        <div className={cx(styles.avatar)}>{renderAvatar()}</div>
-        <div className={cx(styles.icon)}>{renderIcon()}</div>
+        <div className={styles.avatar}>{renderAvatar()}</div>
+        <div className={styles.icon}>{renderIcon()}</div>
       </>
     );
   }

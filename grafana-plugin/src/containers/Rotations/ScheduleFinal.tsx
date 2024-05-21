@@ -63,11 +63,11 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     };
 
     return (
-      <div className={cx(styles.root)}>
+      <div className={styles.root}>
         {!simplified && (
-          <div className={cx(styles.header)}>
+          <div className={styles.header}>
             <HorizontalGroup justify="space-between">
-              <div className={cx(styles.title)}>
+              <div className={styles.title}>
                 <Text.Title level={4} type="primary">
                   Final schedule
                 </Text.Title>
@@ -75,10 +75,10 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
             </HorizontalGroup>
           </div>
         )}
-        <div className={cx(styles.headerPlusContent)}>
-          {!currentTimeHidden && <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />}
+        <div className={styles.headerPlusContent}>
+          {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
           <TimelineMarks />
-          <TransitionGroup className={cx(styles.rotations)}>
+          <TransitionGroup className={styles.rotations}>
             {shifts && shifts.length ? (
               shifts.map(({ events }, index) => {
                 return (

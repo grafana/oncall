@@ -102,10 +102,10 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     return (
       <>
-        <div className={cx(styles.root)}>
-          <div className={cx(styles.header)}>
+        <div className={styles.root}>
+          <div className={styles.header}>
             <HorizontalGroup justify="space-between">
-              <div className={cx(styles.title)}>
+              <div className={styles.title}>
                 <Text.Title level={4} type="primary">
                   Rotations
                 </Text.Title>
@@ -147,7 +147,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <div className={cx(styles.rotationsPlusTitle)}>
+          <div className={styles.rotationsPlusTitle}>
             {layers && layers.length ? (
               <TransitionGroup>
                 {layers.map((layer, layerIndex) => (
@@ -156,18 +156,18 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                     timeout={DEFAULT_TRANSITION_TIMEOUT}
                     classNames={{ ...animationStyles }}
                   >
-                    <div id={`layer${layer.priority}`} className={cx(styles.layer)}>
-                      <div className={cx(styles.layerTitle)}>
+                    <div id={`layer${layer.priority}`} className={styles.layer}>
+                      <div className={styles.layerTitle}>
                         <HorizontalGroup spacing="sm" justify="center">
                           <Text type="secondary">Layer {layer.priority}</Text>
                         </HorizontalGroup>
                       </div>
-                      <div className={cx(styles.headerPlusContent)}>
+                      <div className={styles.headerPlusContent}>
                         <TimelineMarks />
                         {!currentTimeHidden && (
-                          <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />
+                          <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />
                         )}
-                        <TransitionGroup className={cx(styles.rotations)}>
+                        <TransitionGroup className={styles.rotations}>
                           {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                             <CSSTransition
                               key={rotationIndex}
@@ -200,16 +200,16 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
               </TransitionGroup>
             ) : (
               <div>
-                <div id={`layer1`} className={cx(styles.layer)}>
-                  <div className={cx(styles.layerTitle)}>
+                <div id={`layer1`} className={styles.layer}>
+                  <div className={styles.layerTitle}>
                     <HorizontalGroup spacing="sm" justify="center">
                       <Text type="secondary">Layer 1</Text>
                     </HorizontalGroup>
                   </div>
-                  <div className={cx(styles.headerPlusContent)}>
-                    <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />
+                  <div className={styles.headerPlusContent}>
+                    <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />
                     <TimelineMarks />
-                    <div className={cx(styles.rotations)}>
+                    <div className={styles.rotations}>
                       <Rotation
                         onClick={(shiftStart, shiftEnd) => {
                           this.handleAddLayer(nextPriority, shiftStart, shiftEnd);
@@ -225,7 +225,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             )}
             {nextPriority > 1 && (
               <div
-                className={cx(styles.addRotationsLayer)}
+                className={styles.addRotationsLayer}
                 onClick={() => {
                   if (disabled) {
                     return;

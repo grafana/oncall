@@ -79,10 +79,10 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     return (
       <>
         <div>
-          <div className={cx(styles.title)}>
+          <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
-              <div className={cx(styles.schedulesActions)}>
+              <div className={styles.schedulesActions}>
                 <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
@@ -95,7 +95,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
           <div className={cx(styles.schedule, styles.schedulePersonal)}>
             <SchedulePersonal userPk={store.userStore.currentUserPk} />
           </div>
-          <div className={cx(styles.schedulesFiltersContainer)}>
+          <div className={styles.schedulesFiltersContainer}>
             <RemoteFilters
               query={query}
               page={PAGE.Schedules}
@@ -187,9 +187,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const styles = getSchedulesStyles();
 
     return (
-      <div className={cx(styles.schedule)}>
+      <div className={styles.schedule}>
         <TimelineMarks />
-        <div className={cx(styles.rotations)}>
+        <div className={styles.rotations}>
           <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
         </div>
       </div>
@@ -448,7 +448,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
         width: '50px',
         key: 'buttons',
         render: this.renderButtons,
-        className: cx(styles.buttons),
+        className: styles.buttons,
       },
     ];
   };

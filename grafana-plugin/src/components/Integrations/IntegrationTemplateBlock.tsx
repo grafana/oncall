@@ -41,11 +41,11 @@ export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> =
   }
 
   return (
-    <div className={cx(styles.container)}>
+    <div className={styles.container}>
       <InlineLabel width={20} {...inlineLabelProps}>
         {label}
       </InlineLabel>
-      <div className={cx(styles.item)}>
+      <div className={styles.item}>
         {renderInput()}
         {isTemplateEditable && (
           <>

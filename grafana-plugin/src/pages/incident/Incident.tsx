@@ -170,7 +170,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
         {() => (
           <div>
             {errorData.isNotFoundError ? (
-              <div className={cx(styles.notFound)}>
+              <div className={styles.notFound}>
                 <VerticalGroup spacing="lg" align="center">
                   <Text.Title level={1}>404</Text.Title>
                   <Text.Title level={4}>Alert group not found</Text.Title>
@@ -184,8 +184,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
             ) : (
               <>
                 {this.renderHeader()}
-                <div className={cx(styles.content)}>
-                  <div className={cx(styles.column)}>
+                <div className={styles.content}>
+                  <div className={styles.column}>
                     <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
                     <GroupedIncidentsList
                       id={incident.pk}
@@ -193,7 +193,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  <div className={cx(styles.column)}>
+                  <div className={styles.column}>
                     <VerticalGroup style={{ display: 'block' }}>
                       {(!incident.resolved || incident?.paged_users?.length > 0) && (
                         <AddResponders
@@ -289,7 +289,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const isServiceNow = Boolean(incident?.external_urls?.find((el) => el.integration_type === INTEGRATION_SERVICENOW));
 
     return (
-      <Block className={cx(styles.block)}>
+      <Block className={styles.block}>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup>
@@ -324,11 +324,11 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     name="code-branch"
                     onClick={this.showAttachIncidentForm}
                     tooltip="Attach to another Alert Group"
-                    className={cx(styles.titleIcon)}
+                    className={styles.titleIcon}
                   />
                 )}
                 <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
-                  <IconButton name="slack" tooltip="View in Slack" className={cx(styles.titleIcon)} />
+                  <IconButton name="slack" tooltip="View in Slack" className={styles.titleIcon} />
                 </a>
                 <CopyToClipboard
                   text={window.location.href}
@@ -336,14 +336,14 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     openNotification('Link copied');
                   }}
                 >
-                  <IconButton name="copy" tooltip="Copy link" className={cx(styles.titleIcon)} />
+                  <IconButton name="copy" tooltip="Copy link" className={styles.titleIcon} />
                 </CopyToClipboard>
               </Text>
             </HorizontalGroup>
           </HorizontalGroup>
-          <div className={cx(styles.infoRow)}>
+          <div className={styles.infoRow}>
             <HorizontalGroup>
-              <div className={cx(styles.statusTagContainer)}>
+              <div className={styles.statusTagContainer}>
                 <IncidentDropdown
                   alert={incident}
                   onResolve={this.getOnActionButtonClick(incident.pk, AlertAction.Resolve)}
@@ -382,7 +382,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       variant="secondary"
                       fill="outline"
                       size="sm"
-                      className={cx(styles.labelButton)}
+                      className={styles.labelButton}
                     >
                       <Tooltip
                         placement="top"
@@ -393,17 +393,17 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                         }
                       >
                         <div className={cx(styles.labelButtonText, styles.sourceName)}>
-                          <div className={cx(styles.integrationLogo)}>
+                          <div className={styles.integrationLogo}>
                             <IntegrationLogo integration={integration} scale={0.08} />
                           </div>
-                          <div className={cx(styles.labelButtonText)}>{integrationNameWithEmojies}</div>
+                          <div className={styles.labelButtonText}>{integrationNameWithEmojies}</div>
                         </div>
                       </Tooltip>
                     </Button>
                   </PluginLink>
 
                   {isServiceNow && (
-                    <Button variant="secondary" fill="outline" size="sm" className={cx(styles.labelButton)}>
+                    <Button variant="secondary" fill="outline" size="sm" className={styles.labelButton}>
                       <HorizontalGroup spacing="xs">
                         <Icon name="exchange-alt" />
                         <span>Service Now</span>
@@ -427,7 +427,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                         fill="outline"
                         size="sm"
                         disabled={sourceLink === null || parseURL(sourceLink) === ''}
-                        className={cx(styles.labelButton)}
+                        className={styles.labelButton}
                         icon="external-link-alt"
                       >
                         Source
@@ -438,7 +438,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               )}
             </HorizontalGroup>
           </div>
-          <HorizontalGroup justify="space-between" className={cx(styles.buttonsRow)}>
+          <HorizontalGroup justify="space-between" className={styles.buttonsRow}>
             <HorizontalGroup>
               {getActionButtons(incident, {
                 onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
@@ -518,11 +518,11 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
       <Block bordered>
-        <Text.Title type="primary" level={4} className={cx(styles.timelineTitle)}>
+        <Text.Title type="primary" level={4} className={styles.timelineTitle}>
           Timeline
         </Text.Title>
         <RadioButtonGroup
-          className={cx(styles.timelineFilter)}
+          className={styles.timelineFilter}
           options={[
             { label: 'Show full timeline', value: 'all' },
             { label: 'Resolution notes only', value: TimeLineRealm.ResolutionNote },
@@ -532,9 +532,9 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
             this.setState({ timelineFilter: value });
           }}
         />
-        <ul className={cx(styles.timeline)} data-testid="incident-timeline-list">
+        <ul className={styles.timeline} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
-            <li key={idx} className={cx(styles.timelineItem)}>
+            <li key={idx} className={styles.timelineItem}>
               <HorizontalGroup align="flex-start">
                 <div
                   className={cx(styles.timelineIconBackground, {
@@ -680,14 +680,14 @@ function Incident({ incident }: { incident: ApiSchemas['AlertGroup']; datetimeRe
   return (
     <div key={incident.pk}>
       <div
-        className={cx(styles.message)}
+        className={styles.message}
         dangerouslySetInnerHTML={{
           __html: sanitize(incident.render_for_web.message),
         }}
         data-testid="incident-message"
       />
       {incident.render_for_web.image_url && (
-        <img className={cx(styles.image)} src={incident.render_for_web.image_url} />
+        <img className={styles.image} src={incident.render_for_web.image_url} />
       )}
     </div>
   );
@@ -715,7 +715,7 @@ function GroupedIncidentsList({
   return (
     <Collapse
       headerWithBackground
-      className={cx(styles.collapse)}
+      className={styles.collapse}
       isOpen={false}
       label={
         <HorizontalGroup wrap>
@@ -724,7 +724,7 @@ function GroupedIncidentsList({
           <Text type="secondary">{latestAlertMoment.format('MMM DD, YYYY HH:mm:ss Z').toString()}</Text>
         </HorizontalGroup>
       }
-      contentClassName={cx(styles.incidentsContent)}
+      contentClassName={styles.incidentsContent}
     >
       {alerts.map((alert) => (
         <GroupedIncident key={alert.id} incident={alert} datetimeReference={getIncidentDatetimeReference(alert)} />
@@ -743,7 +743,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
     <>
       {isModalOpen && (
         <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={isModalOpen} title="Alert Payload">
-          <div className={cx(styles.payloadSubtitle)}>
+          <div className={styles.payloadSubtitle}>
             <HorizontalGroup>
               <Text type="secondary">
                 {incident.render_for_web.title} - {datetimeReference}
@@ -769,8 +769,8 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
       )}
 
       <div key={incident.id}>
-        <div className={cx(styles.incidentRow)}>
-          <div className={cx(styles.incidentRowLeftSide)}>
+        <div className={styles.incidentRow}>
+          <div className={styles.incidentRowLeftSide}>
             <HorizontalGroup wrap justify={'flex-start'}>
               <Text.Title type="secondary" level={4}>
                 {incident.render_for_web.title}
@@ -788,14 +788,14 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
         </div>
         <Text type="secondary">
           <div
-            className={cx(styles.message)}
+            className={styles.message}
             dangerouslySetInnerHTML={{
               __html: sanitize(incident.render_for_web.message),
             }}
           />
         </Text>
         {incident.render_for_web.image_url && (
-          <img className={cx(styles.image)} src={incident.render_for_web.image_url} />
+          <img className={styles.image} src={incident.render_for_web.image_url} />
         )}
       </div>
     </>
@@ -828,10 +828,10 @@ function AttachedIncidentsList({
   return (
     <Collapse
       headerWithBackground
-      className={cx(styles.collapse)}
+      className={styles.collapse}
       isOpen
       label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</HorizontalGroup>}
-      contentClassName={cx(styles.incidentsContent)}
+      contentClassName={styles.incidentsContent}
     >
       {alerts.map((incident) => {
         return (
@@ -854,7 +854,7 @@ function AttachedIncidentsList({
 const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   const styles = useStyles2(getStyles);
   return (
-    <div className={cx(styles.alertGroupStub)}>
+    <div className={styles.alertGroupStub}>
       <VerticalGroup align="center" spacing="md">
         <img src={errorSVG} alt="" />
         <Text.Title level={3}>An unexpected error happened</Text.Title>
@@ -862,7 +862,7 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
           OnCall is not able to receive any information about the current Alert Group. It's unknown if it's firing,
           acknowledged, silenced, or resolved.
         </Text>
-        <div className={cx(styles.alertGroupStubDivider)}>
+        <div className={styles.alertGroupStubDivider}>
           <Divider />
         </div>
         <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>

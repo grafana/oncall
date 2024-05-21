@@ -32,7 +32,7 @@ export const UserResponder: FC<Props> = ({
           <div className={cx(styles.timelineIconBackground, { 'timeline-icon-background--green': true })}>
             <Avatar size="medium" src={avatar} />
           </div>
-          <Text className={cx(styles.responderName)}>{username}</Text>
+          <Text className={styles.responderName}>{username}</Text>
         </HorizontalGroup>
         <HorizontalGroup>
           <NotificationPoliciesSelect

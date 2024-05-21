@@ -105,10 +105,10 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
 
     return (
       <>
-        <div id="overrides-list" className={cx(styles.root)}>
-          <div className={cx(styles.header)}>
+        <div id="overrides-list" className={styles.root}>
+          <div className={styles.header}>
             <HorizontalGroup justify="space-between">
-              <div className={cx(styles.title)}>
+              <div className={styles.title}>
                 <Text.Title level={4} type="primary">
                   Overrides and swaps
                 </Text.Title>
@@ -151,12 +151,12 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <div className={cx(styles.headerPlusContent)}>
+          <div className={styles.headerPlusContent}>
             {!currentTimeHidden && (
-              <div className={cx(styles.currentTime)} style={{ left: `${currentTimeX * 100}%` }} />
+              <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />
             )}
             <TimelineMarks />
-            <TransitionGroup className={cx(styles.rotations)}>
+            <TransitionGroup className={styles.rotations}>
               {shiftSwaps && shiftSwaps.length
                 ? shiftSwaps.map(({ isPreview, events }, index) => (
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
@@ -176,7 +176,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                   ))
                 : null}
             </TransitionGroup>
-            <TransitionGroup className={cx(styles.rotations)}>
+            <TransitionGroup className={styles.rotations}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, isPreview, events }, index) => (
                   <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
