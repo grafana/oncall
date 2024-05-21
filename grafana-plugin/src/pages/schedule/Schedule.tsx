@@ -308,7 +308,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                               <Icon name="angle-right" />
                             </Button>
                           </HorizontalGroup>
-                          <Text.Title style={{ marginLeft: '8px', whiteSpace: 'nowrap' }} level={4} type="primary">
+                          <Text.Title style={{ marginLeft: '8px', whiteSpace: 'nowrap' }} level={5} type="primary">
                             {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
                             {store.timezoneStore.calendarStartDate
                               .add(

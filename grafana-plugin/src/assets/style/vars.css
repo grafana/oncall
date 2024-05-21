@@ -34,7 +34,7 @@
   --background-canvas: #f4f5f5;
   --background-primary: #fff;
   --background-secondary: #f4f5f5;
-  --background-disabled: rgba(204, 204, 220, 0.04);
+  --background-disabled: rgba(204, 204, 220, 0.11);
   --border-medium-color: rgba(36, 41, 46, 0.3);
   --border-medium: 1px solid rgba(36, 41, 46, 0.3);
   --border-strong: 1px solid rgba(36, 41, 46, 0.4);
