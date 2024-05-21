@@ -1,8 +1,9 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import qs from 'query-string';
 
 import { getOnCallApiPath } from 'utils/consts';
 import { FaroHelper } from 'utils/faro';
+import { safeJSONStringify } from 'utils/string';
 
 const instance = axios.create();
 
@@ -38,54 +39,11 @@ export const isNetworkError = axios.isAxiosError;
 
 export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
   const { method = 'GET', params, data, validateStatus, headers } = config;
+
   const url = getOnCallApiPath(path);
-  const otel = FaroHelper.faro?.api?.getOTEL();
-
-  if (FaroHelper.faro && otel) {
-    const tracer = otel.trace.getTracer('default');
-    let span = otel.trace.getActiveSpan();
-
-    if (!span) {
-      span = tracer.startSpan('http-request');
-      span.setAttribute('page_url', document.URL.split('//')[1]);
-    }
-
-    return otel.context.with(otel.trace.setSpan(otel.context.active(), span), async () => {
-      FaroHelper.faro.api.pushEvent('Sending request', { url });
-
-      try {
-        const response = await instance({
-          method,
-          url,
-          params,
-          data,
-          validateStatus,
-          headers: {
-            ...headers,
-            /**
-             * In short, this header will tell the Grafana plugin proxy, a Go service which use Go's HTTP Transport,
-             * to retry POST requests (and other non-idempotent requests). This doesn't necessarily make these requests
-             * idempotent, but it will make them retry-able from Go's (read: net/http) perspective.
-             *
-             * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
-             * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
-             */
-            'X-Idempotency-Key': `${Date.now()}-${Math.random()}`,
-          },
-        });
-        FaroHelper.faro.api.pushEvent('Request completed', { url });
-        span.end();
-        return response.data as RT;
-      } catch (ex) {
-        FaroHelper.faro.api.pushEvent('Request failed', { url });
-        FaroHelper.faro.api.pushError(ex);
-        span.end();
-        throw ex;
-      }
-    });
-  }
 
   try {
+    FaroHelper.pushNetworkRequestEvent({ method, url, body: `${safeJSONStringify(data)}` });
     const response = await instance({
       method,
       url,
@@ -95,11 +53,12 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
       headers,
     });
 
-    FaroHelper.faro?.api.pushEvent('Request completed', { url });
+    FaroHelper.pushAxiosNetworkResponseEvent({ name: 'Request succeeded', res: response });
     return response.data as RT;
   } catch (ex) {
-    FaroHelper.faro?.api.pushEvent('Request failed', { url });
-    FaroHelper.faro?.api.pushError(ex);
+    const error = ex as AxiosError;
+    FaroHelper.pushAxiosNetworkResponseEvent({ name: 'Request failed', res: error.response });
+    FaroHelper.pushAxiosNetworkError(error.response);
     throw ex;
   }
 };
