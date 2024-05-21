@@ -1,5 +1,8 @@
 import logging
 
+from django.conf import settings
+
+from apps.chatops_proxy.utils import unlink_slack_team
 from apps.slack.tasks import (
     clean_slack_integration_leftovers,
     populate_slack_channels_for_team,
@@ -59,6 +62,8 @@ def uninstall_slack_integration(organization, user):
     slack_team_identity = organization.slack_team_identity
     if slack_team_identity is not None:
         clean_slack_integration_leftovers.apply_async((organization.pk,))
+        if settings.FEATURE_MULTIREGION_ENABLED and not settings.UNIFIED_SLACK_APP_ENABLED:
+            unlink_slack_team(str(organization.uuid), slack_team_identity.slack_id)
         write_chatops_insight_log(
             author=user,
             event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,

@@ -106,7 +106,7 @@ class Organization(MaintainableObject):
     def delete(self):
         if settings.FEATURE_MULTIREGION_ENABLED:
             unregister_oncall_tenant(str(self.uuid), settings.ONCALL_BACKEND_REGION)
-            if self.slack_team_identity:
+            if self.slack_team_identity and not settings.UNIFIED_SLACK_APP_ENABLED:
                 unlink_slack_team(str(self.uuid), self.slack_team_identity.slack_id)
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
