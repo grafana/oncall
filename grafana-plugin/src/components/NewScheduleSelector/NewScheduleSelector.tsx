@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup, useStyles2 } from '@grafana/ui';
 
 import { Block } from 'components/GBlock/Block';

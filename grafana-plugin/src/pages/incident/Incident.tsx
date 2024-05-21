@@ -686,9 +686,7 @@ function Incident({ incident }: { incident: ApiSchemas['AlertGroup']; datetimeRe
         }}
         data-testid="incident-message"
       />
-      {incident.render_for_web.image_url && (
-        <img className={styles.image} src={incident.render_for_web.image_url} />
-      )}
+      {incident.render_for_web.image_url && <img className={styles.image} src={incident.render_for_web.image_url} />}
     </div>
   );
 }
@@ -794,9 +792,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
             }}
           />
         </Text>
-        {incident.render_for_web.image_url && (
-          <img className={styles.image} src={incident.render_for_web.image_url} />
-        )}
+        {incident.render_for_web.image_url && <img className={styles.image} src={incident.render_for_web.image_url} />}
       </div>
     </>
   );

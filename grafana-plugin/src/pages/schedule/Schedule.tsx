@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import {
   Button,

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { AppRootProps } from '@grafana/data';
 import { Tab, TabsBar, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';

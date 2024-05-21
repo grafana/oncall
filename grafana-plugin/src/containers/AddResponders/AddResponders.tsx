@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
 
-import { cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { HorizontalGroup, Button, Modal, Alert, VerticalGroup, Icon, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';

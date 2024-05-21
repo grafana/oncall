@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
 
-import { cx } from '@emotion/css';
 import { HorizontalGroup, IconButton, useStyles2 } from '@grafana/ui';
 
 import { Avatar } from 'components/Avatar/Avatar';

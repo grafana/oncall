@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
 
-import { cx } from '@emotion/css';
 import { HorizontalGroup, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';

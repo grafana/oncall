@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 
-import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { ValuePicker, HorizontalGroup, Button, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';

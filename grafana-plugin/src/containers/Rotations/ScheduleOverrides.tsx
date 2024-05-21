@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 
-import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
@@ -152,9 +151,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
             </HorizontalGroup>
           </div>
           <div className={styles.headerPlusContent}>
-            {!currentTimeHidden && (
-              <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />
-            )}
+            {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
             <TransitionGroup className={styles.rotations}>
               {shiftSwaps && shiftSwaps.length

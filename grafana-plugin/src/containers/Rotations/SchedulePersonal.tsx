@@ -1,6 +1,5 @@
 import React, { FC, useEffect } from 'react';
 
-import { cx } from '@emotion/css';
 import { Badge, Button, HorizontalGroup, Icon, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
