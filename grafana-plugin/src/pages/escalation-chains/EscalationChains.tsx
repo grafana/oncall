@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -187,7 +186,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                         </GList>
                       ) : (
                         <VerticalGroup>
-                          <Text type="primary" className={cx(utilStyles.loadingPlaceholder)}>
+                          <Text type="primary" className={utilStyles.loadingPlaceholder}>
                             Loading...
                           </Text>
                         </VerticalGroup>

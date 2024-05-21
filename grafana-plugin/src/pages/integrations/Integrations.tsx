@@ -480,7 +480,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
     if (maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance) {
       return (
-        <div className={cx(utilStyles.flex)}>
+        <div className={utilStyles.flex}>
           <TooltipBadge
             borderType="primary"
             icon="pause"
@@ -537,7 +537,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
               </div>
             </CopyToClipboard>
             <RenderConditionally shouldRender={item.allow_delete}>
-              <div className={cx(utilStyles.thinLineBreak)} />
+              <div className={utilStyles.thinLineBreak} />
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={styles.integrationsActionItem}>
                   <div

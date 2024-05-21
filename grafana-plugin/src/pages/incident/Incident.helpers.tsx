@@ -40,7 +40,7 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
     return (
       <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false}>
         <TextEllipsisTooltip placement="top" content={user.username}>
-          <Text type="secondary" className={cx(utilStyles.overflowChild)}>
+          <Text type="secondary" className={utilStyles.overflowChild}>
             <Avatar size="small" src={user.avatar} />{' '}
             <span className={cx(utilStyles.wordBreakAll, 'u-margin-right-xs')}>{user.username}</span>
             <span className={styles.userBadge}>{badge}</span>
