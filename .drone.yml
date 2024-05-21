@@ -189,9 +189,17 @@ steps:
       # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
+      - ls ./
+
+  - name: build plugin backend
+    image: grafana/grafana-plugin-ci-e2e:latest
+    commands:
+      - cd oncall/grafana-plugin/
       - mage -v test
       - mage
-      - ls ./
+      - ls ./dist
+    depends_on:
+      - build plugin
 
   - name: sign and package plugin
     image: node:18.16.0-buster
@@ -199,7 +207,7 @@ steps:
       GRAFANA_ACCESS_POLICY_TOKEN:
         from_secret: cloud_access_policy_token
     depends_on:
-      - build plugin
+      - build plugin backend
     commands:
       - apt-get update
       - apt-get install zip
@@ -391,6 +399,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: ffad68b712dfc08e893814ef68fcc13b8fc8017dad1e90444217b5a6f1391378
+hmac: 45f510b617946720320c29c2b9e08d8da31b3a9499b7d8266dc5a5d871130c93
 
 ...
