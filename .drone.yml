@@ -20,7 +20,7 @@ steps:
   - name: Build Plugin Backend
     image: grafana/grafana-plugin-ci-e2e:latest
     commands:
-      - cd oncall/grafana-plugin/
+      - cd grafana-plugin/
       - mage -v test
       - mage
       - ls ./dist
@@ -409,6 +409,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 1e2ee3f394a4b59efbe46b146ab40f581b5b4be3ebc19fe46b63c832a2c65531
+hmac: f52c56e39962ed8207451bde40c12b98d190f957183c09e5b3c4b048eee0bf86
 
 ...
