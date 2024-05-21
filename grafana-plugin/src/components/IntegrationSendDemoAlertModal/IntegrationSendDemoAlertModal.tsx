@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 
 import { Button, HorizontalGroup, Icon, Modal, Tooltip, VerticalGroup, Field, Switch } from '@grafana/ui';
 import cn from 'classnames/bind';
