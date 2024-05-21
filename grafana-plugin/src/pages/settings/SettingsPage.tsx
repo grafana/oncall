@@ -19,7 +19,6 @@ import { CloudPage } from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
 import { TeamsSettings } from './tabs/TeamsSettings/TeamsSettings';
 
-
 interface SettingsPageProps extends AppRootProps, WithStoreProps {}
 interface SettingsPageState {
   activeTab: string;
