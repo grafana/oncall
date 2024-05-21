@@ -118,3 +118,12 @@ function isFieldEmpty(value: any): boolean {
 export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
 
 export const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+export const getProcessEnvVarSafely = (name: string) => {
+  try {
+    return process.env[name];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};

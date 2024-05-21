@@ -2,14 +2,12 @@ import { OnCallAppPluginMeta } from 'types';
 
 //@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
+import { getProcessEnvVarSafely } from './utils';
 
 // Navbar
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
 
 export const APP_VERSION = `${plugin?.version}`;
-
-// This flag will be eventually removed once new OnCall initialization is implemented
-const USE_BACKEND_PLUGIN = false;
 
 export const CLOUD_VERSION_REGEX = new RegExp('r[\\d]+-v[\\d]+.[\\d]+.[\\d]+');
 
@@ -43,13 +41,14 @@ export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   if (meta?.jsonData?.onCallApiUrl) {
     return meta?.jsonData?.onCallApiUrl;
   } else if (typeof window === 'undefined') {
-    return process.env.ONCALL_API_URL;
+    return getProcessEnvVarSafely('ONCALL_API_URL');
   }
   return undefined;
 };
 
 export const getOnCallApiPath = (subpath = '') =>
-  USE_BACKEND_PLUGIN
+  // This flag will be eventually removed once new OnCall initialization is implemented
+  getProcessEnvVarSafely('USE_BACKEND_PLUGIN') === 'true'
     ? `/api/plugins/grafana-oncall-app/resources${subpath}`
     : `api/plugin-proxy/grafana-oncall-app/api/internal/v1${subpath}`;
 

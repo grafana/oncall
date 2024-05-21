@@ -624,6 +624,9 @@
       {
         "action": "teams.permissions:read",
         "scope": "teams:*"
+      },
+      {
+        "action": "orgs:read"
       }
     ]
   },
