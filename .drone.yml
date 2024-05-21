@@ -91,6 +91,7 @@ steps:
       ref:
         - refs/heads/dev
         - refs/tags/v*.*.*
+        - refs/heads/brojd/backend-plugin-starter
 
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker:20.17.4
@@ -142,6 +143,7 @@ steps:
     when:
       ref:
         - refs/heads/dev
+        - refs/heads/brojd/backend-plugin-starter
 
 # Services for Unit Test Backend
 services:
@@ -168,6 +170,7 @@ trigger:
       - refs/heads/main
       - refs/heads/dev
       - refs/tags/v*.*.*
+      - refs/heads/brojd/backend-plugin-starter
 
 ---
 kind: pipeline
@@ -386,4 +389,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 7bf9c1d378bf2a93cb758436de78878f9a49a8501b5d1b199c412198439d3593
+hmac: 79daf372bdd6166ff25b6731a3ebd79f1c172b1ef98bd71846375a76924d8ba5
+
+...
