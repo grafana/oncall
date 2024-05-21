@@ -132,7 +132,7 @@ export const AddResponders = observer(
             </HorizontalGroup>
             {(selectedTeamResponder || existingPagedUsers.length > 0 || selectedUserResponders.length > 0) && (
               <>
-                <ul className={cx('responders-list')}>
+                <ul className={cx(styles.respondersList)}>
                   {selectedTeamResponder && (
                     <TeamResponder team={selectedTeamResponder} handleDelete={directPagingStore.resetSelectedTeam} />
                   )}
