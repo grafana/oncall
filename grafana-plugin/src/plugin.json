@@ -618,15 +618,15 @@
         "scope": "users:*"
       },
       {
+        "action": "orgs:read"
+      },
+      {
         "action": "teams:read",
         "scope": "teams:*"
       },
       {
         "action": "teams.permissions:read",
         "scope": "teams:*"
-      },
-      {
-        "action": "orgs:read"
       }
     ]
   },
