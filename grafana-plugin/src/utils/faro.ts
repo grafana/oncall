@@ -85,9 +85,9 @@ class BaseFaroHelper {
 
   pushFetchNetworkError = ({ res, responseData, method }: { res: Response; responseData: unknown; method: string }) => {
     this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
-      type: 'network',
       context: {
         method,
+        type: 'network',
         url: res.url,
         data: `${safeJSONStringify(responseData)}`,
         status: `${res.status}`,
@@ -108,9 +108,9 @@ class BaseFaroHelper {
 
   pushAxiosNetworkError = (res: AxiosResponse) => {
     this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
-      type: 'network',
       context: {
         url: res.config.url,
+        type: 'network',
         data: `${safeJSONStringify(res.data)}`,
         status: `${res.status}`,
         statusText: `${res.statusText}`,

@@ -50,7 +50,7 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
     <ErrorBoundary
       onError={(error) => {
-        FaroHelper.faro.api.pushError(error, { context: { type: 'React' } });
+        FaroHelper.faro.api.pushError(error, { context: { type: 'react' } });
       }}
     >
       {() => (
