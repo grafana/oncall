@@ -23,9 +23,10 @@ interface TimezoneOption {
 
 interface UserTimezoneSelectProps {
   scheduleId?: string;
+  onChange: (value: number) => void;
 }
 
-export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
+export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId, onChange }) => {
   const store = useStore();
   const users = UserHelper.getSearchResult(store.userStore).results || [];
 
@@ -107,9 +108,6 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
             description: '',
           },
         ]);
-
-        store.timezoneStore.setSelectedTimezoneOffset(utcOffset);
-        store.scheduleStore.refreshEvents(scheduleId);
       }
     },
     [options]
@@ -119,7 +117,11 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
     <div className={cx('root')} data-testid="timezone-select">
       <Select
         value={selectedOption}
-        onChange={(option) => store.timezoneStore.setSelectedTimezoneOffset(option.value)}
+        onChange={(option) => {
+          store.timezoneStore.setSelectedTimezoneOffset(option.value);
+
+          onChange(option.value);
+        }}
         width={30}
         options={options}
         filterOption={filterOption}

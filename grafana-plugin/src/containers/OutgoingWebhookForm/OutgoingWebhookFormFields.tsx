@@ -83,7 +83,6 @@ export const OutgoingWebhookFormFields = ({
             error={errors.team?.message}
           >
             <GSelect<GrafanaTeam>
-              showSearch
               allowClear
               items={grafanaTeamStore.items}
               fetchItemsFn={grafanaTeamStore.updateItems}
@@ -147,7 +146,6 @@ export const OutgoingWebhookFormFields = ({
           >
             <GSelect<ApiSchemas['AlertReceiveChannel']>
               isMulti
-              showSearch
               placeholder="Choose (Optional)"
               items={alertReceiveChannelStore.items}
               fetchItemsFn={alertReceiveChannelStore.fetchItems}

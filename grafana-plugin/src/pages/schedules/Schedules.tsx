@@ -82,7 +82,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               <div className={cx('schedules__actions')}>
                 <HorizontalGroup>
                   <Text type="secondary">View in timezone:</Text>
-                  <UserTimezoneSelect />
+                  <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
                 </HorizontalGroup>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
@@ -174,10 +174,14 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
       const index = expandedRowKeys.indexOf(data.id);
       const newExpandedRowKeys = [...expandedRowKeys];
       newExpandedRowKeys.splice(index, 1);
-      this.setState({ expandedRowKeys: newExpandedRowKeys }, () => {
-        this.props.store.scheduleStore.refreshEvents(data.id);
-      });
+      this.setState({ expandedRowKeys: newExpandedRowKeys });
     }
+  };
+
+  refreshExpandedSchedules = () => {
+    const { expandedRowKeys } = this.state;
+
+    expandedRowKeys.forEach(this.props.store.scheduleStore.refreshEvents);
   };
 
   renderSchedule = (data: Schedule) => (

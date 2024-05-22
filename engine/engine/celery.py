@@ -104,8 +104,8 @@ if settings.LOG_CELERY_TASK_ARGUMENTS:
 
     @celery.signals.task_prerun.connect
     def log_started_task_arguments(sender=None, task_id=None, task=None, args=None, kwargs=None, **extras):
-        logger.info(f"task started args={args} kwargs={kwargs}")
+        logger.info(f"task started args={args}")
 
     @celery.signals.task_postrun.connect
     def log_finished_task_arguments(sender=None, task_id=None, task=None, args=None, kwargs=None, **extras):
-        logger.info(f"task finished args={args} kwargs={kwargs}")
+        logger.info(f"task finished args={args}")

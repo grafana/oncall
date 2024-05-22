@@ -16,4 +16,12 @@ export const formatSourceCodeJsonString = (data: string) => {
   }
 };
 
+export const safeJSONStringify = (value: unknown) => {
+  try {
+    return JSON.stringify(value);
+  } catch (_err) {
+    return value;
+  }
+};
+
 export const VALID_URL_PATTERN = /(http|https)\:\/\/.+?\..+/;

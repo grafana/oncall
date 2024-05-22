@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -43,8 +43,7 @@ interface ScheduleFinalProps extends WithStoreProps {
 const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
   ({ store, simplified, scheduleId, filters, onShowShiftSwapForm, onShowOverrideForm, onSlotClick }) => {
     const {
-      timezoneStore: { currentDateInSelectedTimezone, calendarStartDate, selectedTimezoneOffset },
-      scheduleStore: { refreshEvents },
+      timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
     } = store;
 
     const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, calendarStartDate));
@@ -58,10 +57,6 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     const handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
       onShowOverrideForm('new', shiftStart, shiftEnd);
     };
-
-    useEffect(() => {
-      refreshEvents(scheduleId);
-    }, [selectedTimezoneOffset]);
 
     const rows = useMemo(() => {
       const totalDays = getTotalDaysToDisplay(store.scheduleStore.scheduleView, calendarStartDate);

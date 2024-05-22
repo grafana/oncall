@@ -1,5 +1,6 @@
 import base64
 import json
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -44,6 +45,14 @@ def test_apply_jinja_template_datetimeformat():
         "{{ payload.naive | iso8601_to_time | datetimeformat('%Y-%m-%dT%H:%M:%S%z') }}",
         payload,
     ) == parse_datetime(payload["naive"]).strftime("%Y-%m-%dT%H:%M:%S%z")
+    assert apply_jinja_template(
+        "{{ payload.aware | datetimeparse('%Y-%m-%d %H:%M:%S%z') | datetimeformat('%Y-%m-%dT%H:%M:%S%z') }}",
+        payload,
+    ) == datetime.strptime(payload["aware"], "%Y-%m-%d %H:%M:%S%z").strftime("%Y-%m-%dT%H:%M:%S%z")
+    assert apply_jinja_template(
+        "{{ payload.naive | datetimeparse('%Y-%m-%d %H:%M:%S') | datetimeformat('%Y-%m-%dT%H:%M:%S%z') }}",
+        payload,
+    ) == datetime.strptime(payload["naive"], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
 def test_apply_jinja_template_datetimeformat_as_timezone():
@@ -57,12 +66,46 @@ def test_apply_jinja_template_datetimeformat_as_timezone():
         "{{ payload.naive | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}",
         payload,
     ) == parse_datetime(payload["naive"]).astimezone(timezone("America/Chicago")).strftime("%Y-%m-%dT%H:%M:%S%z")
+    assert (
+        apply_jinja_template(
+            """{{ payload.aware | datetimeparse('%Y-%m-%d %H:%M:%S%z') | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z',
+        'America/Chicago') }}""",
+            payload,
+        )
+        == parse_datetime(payload["aware"]).astimezone(timezone("America/Chicago")).strftime("%Y-%m-%dT%H:%M:%S%z")
+    )
+    assert (
+        apply_jinja_template(
+            """{{ payload.naive | datetimeparse('%Y-%m-%d %H:%M:%S') | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z',
+        'America/Chicago') }}""",
+            payload,
+        )
+        == parse_datetime(payload["naive"]).astimezone(timezone("America/Chicago")).strftime("%Y-%m-%dT%H:%M:%S%z")
+    )
 
     with pytest.raises(JinjaTemplateWarning):
         apply_jinja_template(
             "{{ payload.aware | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'potato') }}",
             payload,
         )
+        apply_jinja_template(
+            """{{ payload.aware | datetimeparse('%Y-%m-%d %H:%M:%S%z') |
+            datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'potato') }}""",
+            payload,
+        )
+
+
+def test_apply_jinja_template_datetimeparse():
+    payload = {"aware": "15 05 2024 07:52:11 -0600", "naive": "2024-05-15T07:52:11"}
+
+    assert apply_jinja_template(
+        "{{ payload.aware | datetimeparse('%d %m %Y %H:%M:%S %z') }}",
+        payload,
+    ) == str(datetime.strptime(payload["aware"], "%d %m %Y %H:%M:%S %z"))
+    assert apply_jinja_template(
+        "{{ payload.naive | datetimeparse('%Y-%m-%dT%H:%M:%S') }}",
+        payload,
+    ) == str(datetime.strptime(payload["naive"], "%Y-%m-%dT%H:%M:%S"))
 
 
 def test_apply_jinja_template_b64decode():
