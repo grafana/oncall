@@ -225,7 +225,7 @@ export const IntegrationContactPoint: React.FC<{
         ) : (
           <Input
             value={selectedContactPoint}
-            placeholder="Choose Contact Point"
+            placeholder="Enter New Contact Point Name"
             onChange={({ target }) => {
               const value = (target as HTMLInputElement).value;
               setState({ selectedContactPoint: value });
