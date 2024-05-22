@@ -44,9 +44,9 @@ def test_application_metrics_collector(
         test_metrics_registry.register(collector)
         for metric in test_metrics_registry.collect():
             if metric.name == ALERT_GROUPS_TOTAL:
-                # integration with labels for each alert group state per service
-                assert len(metric.samples) == len(AlertGroupState) * 2
-                assert {2, 3, 4, 5, 12, 13, 14, 15} == set(sample.value for sample in metric.samples)
+                # 2 integrations with labels for each alert group state per service
+                assert len(metric.samples) == len(AlertGroupState) * 3  # 2 from 1st integration and 1 from 2nd
+                assert {0, 2, 3, 4, 5, 12, 13, 14, 15} == set(sample.value for sample in metric.samples)
                 # check that labels were set correctly
                 expected_labels_no_service = get_expected_labels(state="firing")
                 expected_labels_test_service = get_expected_labels(METRICS_TEST_SERVICE_NAME, state="firing")
@@ -54,8 +54,10 @@ def test_application_metrics_collector(
                 for expected_labels in [expected_labels_no_service, expected_labels_test_service]:
                     assert expected_labels in metric_labels
             elif metric.name == ALERT_GROUPS_RESPONSE_TIME:
-                # integration with labels for each value in collector's bucket + _count and _sum histogram values
-                assert len(metric.samples) == (len(collector._buckets) + 2) * 2
+                # integration with labels for each of 2 service_name values in collector's bucket + _count and _sum
+                # histogram values
+                # ignore integration without response_time data
+                assert len(metric.samples) == (len(collector._buckets) + 2) * 2  # 2 from 1st integration, ignore 2nd
                 # check that `_sum` values for both services are presented
                 assert {36, 862}.issubset(set(sample.value for sample in metric.samples))
                 # check that labels were set correctly
