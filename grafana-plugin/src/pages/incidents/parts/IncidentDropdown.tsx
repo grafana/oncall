@@ -13,6 +13,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { getIncidentDropdownStyles } from './IncidentDropdown.styles';
+import { IncidentSilenceModal } from './IncidentSilenceModal';
 import { SilenceSelect } from './SilenceSelect';
 
 const getIncidentTagColor = (alert: ApiSchemas['AlertGroup']) => {
@@ -55,6 +56,8 @@ function IncidentStatusTag({
   );
 }
 
+const CUSTOM_VALUE_NUM = -100;
+
 export const IncidentDropdown: FC<{
   alert: ApiSchemas['AlertGroup'];
   onResolve: (e: SyntheticEvent) => Promise<void>;
@@ -67,6 +70,7 @@ export const IncidentDropdown: FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [currentLoadingAction, setCurrentActionLoading] = useState<IncidentStatus>(undefined);
   const [forcedOpenAction, setForcedOpenAction] = useState<string>(undefined);
+  const [isSilenceModalOpen, setIsSilenceModalOpen] = useState(false);
 
   const styles = useStyles2(getIncidentDropdownStyles);
   const utilStyles = useStyles2(getUtilStyles);
@@ -160,60 +164,79 @@ export const IncidentDropdown: FC<{
 
   if (alert.status === IncidentStatus.Firing) {
     return (
-      <WithContextMenu
-        forceIsOpen={forcedOpenAction === AlertAction.unResolve}
-        renderMenuItems={() => (
-          <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
-            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-              <div
-                className={cx(styles.incidentOptionItem)}
-                onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge, IncidentStatus.Acknowledged)}
-              >
-                Acknowledge{' '}
-                {currentLoadingAction === IncidentStatus.Acknowledged && isLoading && (
-                  <span className={cx(styles.incidentOptionEl)}>
-                    <LoadingPlaceholder text="" />
-                  </span>
-                )}
+      <>
+        <WithContextMenu
+          forceIsOpen={forcedOpenAction === AlertAction.unResolve}
+          renderMenuItems={() => (
+            <div className={cx(styles.incidentOptions, { [utilStyles.disabled]: isLoading })}>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+                <div
+                  className={cx(styles.incidentOptionItem)}
+                  onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge, IncidentStatus.Acknowledged)}
+                >
+                  Acknowledge{' '}
+                  {currentLoadingAction === IncidentStatus.Acknowledged && isLoading && (
+                    <span className={cx(styles.incidentOptionEl)}>
+                      <LoadingPlaceholder text="" />
+                    </span>
+                  )}
+                </div>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+                <div
+                  className={cx(styles.incidentOptionItem)}
+                  onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve, IncidentStatus.Resolved)}
+                >
+                  Resolve{' '}
+                  {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
+                    <span className={cx(styles.incidentOptionEl)}>
+                      <LoadingPlaceholder text="" />
+                    </span>
+                  )}
+                </div>
+              </WithPermissionControlTooltip>
+
+              <div className={cx(styles.incidentOptionItem)}>
+                <SilenceSelect
+                  customValueNum={CUSTOM_VALUE_NUM}
+                  placeholder={
+                    currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
+                  }
+                  onSelect={async (value) => {
+                    if (value === CUSTOM_VALUE_NUM) {
+                      return setIsSilenceModalOpen(true);
+                    }
+
+                    setIsLoading(true);
+                    setForcedOpenAction(AlertAction.unResolve);
+                    setCurrentActionLoading(IncidentStatus.Silenced);
+
+                    await onSilence(value);
+
+                    setIsLoading(false);
+                    setForcedOpenAction(undefined);
+                    setCurrentActionLoading(undefined);
+                  }}
+                />
               </div>
-            </WithPermissionControlTooltip>
-            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-              <div
-                className={cx(styles.incidentOptionItem)}
-                onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve, IncidentStatus.Resolved)}
-              >
-                Resolve{' '}
-                {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
-                  <span className={cx(styles.incidentOptionEl)}>
-                    <LoadingPlaceholder text="" />
-                  </span>
-                )}
-              </div>
-            </WithPermissionControlTooltip>
-
-            <div className={cx(styles.incidentOptionItem)}>
-              <SilenceSelect
-                placeholder={
-                  currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
-                }
-                onSelect={async (value) => {
-                  setIsLoading(true);
-                  setForcedOpenAction(AlertAction.unResolve);
-                  setCurrentActionLoading(IncidentStatus.Silenced);
-
-                  await onSilence(value);
-
-                  setIsLoading(false);
-                  setForcedOpenAction(undefined);
-                  setCurrentActionLoading(undefined);
-                }}
-              />
             </div>
-          </div>
-        )}
-      >
-        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
-      </WithContextMenu>
+          )}
+        >
+          {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
+        </WithContextMenu>
+        <IncidentSilenceModal
+          alertGroupID={alert.pk}
+          alertGroupName={alert.render_for_web?.title}
+          isOpen={isSilenceModalOpen}
+          onDismiss={() => setIsSilenceModalOpen(false)}
+          onSave={async (value) => {
+            setIsSilenceModalOpen(false);
+            setIsLoading(true);
+            await onSilence(value);
+            setIsLoading(false);
+          }}
+        />
+      </>
     );
   }
 

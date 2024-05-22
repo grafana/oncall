@@ -184,6 +184,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           {this.renderIncidentFilters()}
           {this.renderTable()}
         </div>
+
         {showAddAlertGroupForm && (
           <ManualAlertGroup
             onHide={() => {

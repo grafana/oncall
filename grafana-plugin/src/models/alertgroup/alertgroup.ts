@@ -24,7 +24,7 @@ export class AlertGroupStore {
   rootStore: RootStore;
   alerts = new Map<string, ApiSchemas['AlertGroup']>();
   bulkActions: any = [];
-  silenceOptions: any;
+  silenceOptions: Array<{ value: number; display_name: string }>;
   searchResult: { [key: string]: Array<ApiSchemas['AlertGroup']['pk']> } = {};
   incidentFilters: any;
   initialQuery = qs.parse(window.location.search);
