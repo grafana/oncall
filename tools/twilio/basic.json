@@ -1,0 +1,198 @@
+{
+  "description": "Basic SMS and Call escalation",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "send_alert_from_sms",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "describe_alert_from_call",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "send_alert_from_sms",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "send_alert_from_sms_success",
+          "event": "success"
+        },
+        {
+          "next": "send_alert_from_sms_fail",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -180,
+          "y": 250
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"from\":\"{{trigger.message.From}}\",\"message\":\"{{trigger.message.Body}}\"}",
+        "url": "<YOUR_INTEGRATION_URL>"
+      }
+    },
+    {
+      "name": "send_alert_from_sms_success",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -410,
+          "y": 590
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "to": "{{contact.channel.address}}",
+        "body": "Alert sent successfully"
+      }
+    },
+    {
+      "name": "send_alert_from_sms_fail",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -60,
+          "y": 590
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "to": "{{contact.channel.address}}",
+        "body": "Failed to send alert: Status({{widgets.send_escalation.status_code}})"
+      }
+    },
+    {
+      "name": "describe_alert_from_call",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "send_alert_from_call",
+          "event": "speech"
+        },
+        {
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 350,
+          "y": 240
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "Describe the alert to send. Press pound when finished.",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 60
+      }
+    },
+    {
+      "name": "send_alert_from_call",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "send_alert_from_call_success",
+          "event": "success"
+        },
+        {
+          "next": "send_alert_from_call_fail",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 360,
+          "y": 590
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"from\":\"{{trigger.call.From}}\", \"message\":\"{{widgets.describe_alert_from_call.SpeechResult}} \"}",
+        "url": "<YOUR_INTEGRATION_URL>"
+      }
+    },
+    {
+      "name": "send_alert_from_call_success",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 90,
+          "y": 900
+        },
+        "loop": 1,
+        "say": "Alert sent successfully"
+      }
+    },
+    {
+      "name": "send_alert_from_call_fail",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 520,
+          "y": 900
+        },
+        "loop": 1,
+        "say": "Failed to send alert: Status   ({{widgets.send_alert_from_call.status_code}})"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
