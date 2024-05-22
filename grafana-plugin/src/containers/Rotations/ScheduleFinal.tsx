@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -40,8 +40,7 @@ interface ScheduleFinalProps extends WithStoreProps {
 const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
   ({ store, simplified, scheduleId, filters, onShowShiftSwapForm, onShowOverrideForm, onSlotClick }) => {
     const {
-      timezoneStore: { currentDateInSelectedTimezone, calendarStartDate, selectedTimezoneOffset },
-      scheduleStore: { refreshEvents },
+      timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
     } = store;
     const base = 7 * 24 * 60; // in minutes
     const diff = currentDateInSelectedTimezone.diff(calendarStartDate, 'minutes');
@@ -61,10 +60,6 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     const handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
       onShowOverrideForm('new', shiftStart, shiftEnd);
     };
-
-    useEffect(() => {
-      refreshEvents(scheduleId);
-    }, [selectedTimezoneOffset]);
 
     return (
       <div className={cx('root')}>
