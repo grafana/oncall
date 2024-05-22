@@ -28,15 +28,15 @@ Before you begin, ensure you have the following:
 Grafana OnCall user with administrator privileges.
 Twilio account: [Sign up for Twilio](https://www.twilio.com/try-twilio).
 
-## Basic setup
+## Basic set up
 
-In the basic setup, you'll create an integration in OnCall and configure a phone number in Twilio.
-This setup allows you to receive alerts from SMS messages or phone calls made to your Twilio phone number.
+In the basic set up, you'll create an integration in OnCall and configure a phone number in Twilio.
+This set up allows you to receive alerts from SMS messages or phone calls made to your Twilio phone number.
 We’ll expand this setup as we go.
 
 <!--- [Visual diagram to represent the OnCall/Twilio flow] --->
 
-### Grafana OnCall setup
+### Grafana OnCall set up
 
 To complete the Grafana OnCall portion of the configuration, ensure you have:
 
@@ -45,7 +45,7 @@ To complete the Grafana OnCall portion of the configuration, ensure you have:
 
 If you need to set these up first, refer to the Grafana OnCall documentation.
 
-#### Setup webhook integration
+#### Set up webhook integration
 
 Create a new integration to establish an endpoint for receiving alerts and connecting them to routes and escalation chains.
 The [generic webhook integration](/docs/grafana-cloud/alerting-and-irm/oncall/integrations/webhook/)
@@ -63,7 +63,7 @@ To create the integration:
 
 An escalation chain defines a sequence of notifications and other actions once an alert has been received in OnCall.
 
-Create a simple escalation chain to directly notify your user for testing during the setup process:
+Create a simple escalation chain to directly notify your user for testing during the set up process:
 
 1. Go to **Alerts & IRM** -> **OnCall** -> **Escalation chains**.
 2. Click **+ New Escalation chain**.
@@ -74,7 +74,7 @@ Later, you can customize the escalation chain as needed.
 
 #### Connect and test the Escalation Chain
 
-Connect the escalation chain to the newly created integration and then test that the setup is working correctly.
+Connect the escalation chain to the newly created integration and then test that the set up is working correctly.
 
 1. Return to the Webhook integration.
 1. In the integration details, under Routes, assign the new escalation chain as the Default route using the dropdown.
@@ -83,7 +83,7 @@ Connect the escalation chain to the newly created integration and then test that
 
 Next, switch to Twilio to set up the other side of the integration.
 
-### Twilio setup
+### Twilio set up
 
 A Twilio account is required to complete the steps in this section. (Sign-up).
 
@@ -128,12 +128,12 @@ Some countries and regions may require additional information to purchase a phon
 
 #### Configure the phone number
 
-Configure your Twilio phone number to use the Studio Flow created earlier.
+Configure your Twilio phone number to use the Studio Flow you created.
 
 1. In **Develop** -> **Phone Numbers** -> **Manage** -> **Active Numbers**, select the purchased number.
-1. Configure Voice: Set the dropdown `A call comes in` to `Studio Flow`. Then select the flow we created.
-1. Configure Messaging: Set the dropdown `A message comes in` to `Studio Flow`. Then select the flow we created.
-1. Save the configuration.
+2. Configure Voice: Set the dropdown `A call comes in` to `Studio Flow`. Then select the flow we created.
+3. Configure Messaging: Set the dropdown `A message comes in` to `Studio Flow`. Then select the flow we created.
+4. Save the configuration.
 
 #### Test and troubleshoot
 
@@ -160,5 +160,88 @@ Verify if an alert group was created in OnCall. If not, the alert didn’t make 
 ### Basic setup complete
 
 You've completed the basic setup to receive alerts via SMS and phone calls in Grafana OnCall.
+Explore the advanced configuration section to learn how to further enhance your set up by routing alerts to different escalation chains.
 
-Explore the advanced configuration section to learn how to further enhance your setup by routing alerts to different escalation chains.
+## Advanced SMS & call routing configuration
+
+With the basic set up in place, you can add more optionality and automation by configuring SMS and voice calls to present a list of options to select from.
+The selected option then determines which route an alert is sent to in Grafana OnCall.
+
+To accomplish this, you’ll configure an additional route and escalation chain attached to your Twilio Webhook integration in Grafana OnCall.
+Then, in Twilio, expand the Studio Flow to present options to the caller.  This set up can be easily expanded upon to handle more routes.
+
+<!--- [Visual or diagram to simplify this?] --->
+
+### Create an additional Escalation Chain
+
+To create an escalation chain:
+
+1. Go to **Alerts & IRM** -> **OnCall** -> **Escalation chains**.
+1. Click **+ New Escalation chain**.
+1. Provide a name and click **Create Escalation Chain**.
+1. For step 1, choose Notify users and select your user as the recipient.
+You can mark this one **Important** to differ from the previous one.
+
+Later you can edit the escalation chain to match your on-call process.
+
+### Add a Route
+
+A route in Grafana OnCall is a configurable part of an integration that enables you to specify how an alert is handled depending on it’s payload.
+It involves sequentially matched rules defined as Jinja2.
+The first rule that evaluates to true for an incoming alert payload determines how the alert is routed.
+
+In our set up, we'll maintain the existing escalation chain from the Basic Setup as our default route and add our newly created escalation chain to a new route.
+
+To create a route and route alerts to the newly created escalation chain:
+
+1. Return to the Twilio Webhook integration and select **Add Route**.
+1. Click **Edit template** to open the template editor.
+1. Enter `{{ "abc" in payload.target.lower()}}` to define custom logic for selecting the escalation chain based on alert content, then click **Save**.
+1. Select the newly created escalation chain from the drop-down at step 3.
+
+This template indicates that if the alert payload sent from Twilio contains the target field with a value of `abc`, this route will be selected.
+Later, you can customize this logic to suit your specific routing needs, such as by team, service, or region.
+
+Now Grafana OnCall can route alerts from Twilio to different escalation chains based on their content.
+
+### Add a Studio Flow in Twilio
+
+Similar to the Studio Flow created in the Basic setup, you’ll create a more complex Flow in Twilio to present options to the caller.
+
+Create a new Flow for more complex handling:
+
+1. In Twilio, navigate to **Develop** -> **Studio** -> **Flows**.
+If Studio isn’t visible, select **Explore Products** and navigate to Studio under the **Developer Tools** section.
+1. Select **Create new Flow**, enter a Flow name, and click **Next**.
+1. Select **Import from JSON** and click **Next**.
+1. Import the provided JSON, replacing `<YOUR_INTEGRATION_URL>` (Lines 54 and 156) with the webhook integration URL from Grafana OnCall.
+1. After adding your webhook URL, click **Next**.
+1. Review the flow and click **Publish** to make the flow available for use.
+
+#### Understand your flow
+
+This flow maintains the same two paths from the Basic set up while incorporating additional steps to prompt the user to specify the target for the alert and
+include validation checks to ensure the accuracy of provided values.
+
+- SMS Path: Accepts incoming messages and forwards their contents to Grafana OnCall via the Webhook URL, including the sender's phone number.
+- Voice Path: Converts voice calls to text and sends them to the Webhook integration in Grafana OnCall.
+
+<!--- Screenshot of Twilio flow --->
+
+### Reconfigure the Twilio phone number
+
+Update your Twilio phone number configuration to use the more complex Flow created in the previous step:
+
+1. In **Develop** -> **Phone Numbers** -> **Manage** -> **Active Numbers**, select the purchased number.
+1. Configure Voice: Set the dropdown `A call comes in` to `Studio Flow`. Then select the new flow.
+1. Configure Messaging: Set the dropdown `A message comes in` to `Studio Flow`. Then select the new flow.
+1. Save the configuration.
+
+### Test and troubleshoot
+
+Test the SMS and voice call paths to verify proper routing and that you receive notifications from OnCall.
+
+### Next steps
+
+Now that you've completed the initial set up, you can customize your Grafana OnCall routes and escalation chains to meet your specific routing requirements.
+Utilize the graphical editor available in Twilio Studio Flow to fine-tune your alert routing.
