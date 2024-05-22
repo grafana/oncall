@@ -17,13 +17,23 @@ steps:
       - yarn build
       - ls ./
 
+  - name: Build Plugin Backend
+    image: grafana/grafana-plugin-ci-e2e:latest
+    commands:
+      - cd grafana-plugin/
+      - mage -v test
+      - mage
+      - ls ./dist
+    depends_on:
+      - Build Plugin
+
   - name: Sign and Package Plugin
     image: node:18.16.0-buster
     environment:
       GRAFANA_ACCESS_POLICY_TOKEN:
         from_secret: cloud_access_policy_token
     depends_on:
-      - Build Plugin
+      - Build Plugin Backend
     commands:
       - apt-get update
       - apt-get install zip
@@ -91,6 +101,7 @@ steps:
       ref:
         - refs/heads/dev
         - refs/tags/v*.*.*
+        - refs/heads/brojd/backend-plugin-starter
 
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker:20.17.4
@@ -142,6 +153,7 @@ steps:
     when:
       ref:
         - refs/heads/dev
+        - refs/heads/brojd/backend-plugin-starter
 
 # Services for Unit Test Backend
 services:
@@ -168,6 +180,7 @@ trigger:
       - refs/heads/main
       - refs/heads/dev
       - refs/tags/v*.*.*
+      - refs/heads/brojd/backend-plugin-starter
 
 ---
 kind: pipeline
@@ -188,13 +201,23 @@ steps:
       - yarn build
       - ls ./
 
+  - name: build plugin backend
+    image: grafana/grafana-plugin-ci-e2e:latest
+    commands:
+      - cd oncall/grafana-plugin/
+      - mage -v test
+      - mage
+      - ls ./dist
+    depends_on:
+      - build plugin
+
   - name: sign and package plugin
     image: node:18.16.0-buster
     environment:
       GRAFANA_ACCESS_POLICY_TOKEN:
         from_secret: cloud_access_policy_token
     depends_on:
-      - build plugin
+      - build plugin backend
     commands:
       - apt-get update
       - apt-get install zip
@@ -386,4 +409,6 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 7bf9c1d378bf2a93cb758436de78878f9a49a8501b5d1b199c412198439d3593
+hmac: f52c56e39962ed8207451bde40c12b98d190f957183c09e5b3c4b048eee0bf86
+
+...
