@@ -21,10 +21,9 @@ from apps.metrics_exporter.tests.conftest import (
     METRICS_TEST_INSTANCE_SLUG,
     METRICS_TEST_INTEGRATION_NAME,
     METRICS_TEST_ORG_ID,
+    METRICS_TEST_SERVICE_NAME,
     METRICS_TEST_USER_USERNAME,
 )
-
-TEST_SERVICE_VALUE = "Test_service"
 
 
 @pytest.fixture
@@ -159,23 +158,23 @@ def test_update_metric_alert_groups_total_cache_on_action(
         alert_group.un_silence_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        # create alert group with service label and check metric cache is updated properly
+        # set state values to default
         expected_result_metric_alert_groups_total[alert_receive_channel.id]["services"][NO_SERVICE_VALUE].update(
             default_state
         )
-
+        # create alert group with service label and check metric cache is updated properly
         alert_group_with_service = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group_with_service, raw_request_data={})
         make_alert_group_label_association(
-            organization, alert_group_with_service, key_name=SERVICE_LABEL, value_name=TEST_SERVICE_VALUE
+            organization, alert_group_with_service, key_name=SERVICE_LABEL, value_name=METRICS_TEST_SERVICE_NAME
         )
         alert_group_created_signal.send(sender=alert_group_with_service.__class__, alert_group=alert_group_with_service)
 
         # check alert_groups_total metric cache, get called args
-        arg_idx = get_called_arg_index_and_compare_results(expected_result_firing, TEST_SERVICE_VALUE)
+        arg_idx = get_called_arg_index_and_compare_results(expected_result_firing, METRICS_TEST_SERVICE_NAME)
 
         alert_group_with_service.resolve_by_user_or_backsync(user)
-        get_called_arg_index_and_compare_results(expected_result_resolved, TEST_SERVICE_VALUE)
+        get_called_arg_index_and_compare_results(expected_result_resolved, METRICS_TEST_SERVICE_NAME)
 
 
 @patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
@@ -282,11 +281,11 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
         alert_group_with_service = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group_with_service, raw_request_data={})
         make_alert_group_label_association(
-            organization, alert_group_with_service, key_name=SERVICE_LABEL, value_name=TEST_SERVICE_VALUE
+            organization, alert_group_with_service, key_name=SERVICE_LABEL, value_name=METRICS_TEST_SERVICE_NAME
         )
         assert_cache_was_not_changed_by_response_time_metric()
         alert_group_with_service.acknowledge_by_user_or_backsync(user)
-        get_called_arg_index_and_compare_results(TEST_SERVICE_VALUE)
+        get_called_arg_index_and_compare_results(METRICS_TEST_SERVICE_NAME)
 
 
 @pytest.mark.django_db
@@ -676,169 +675,3 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
         alert_receive_channel1.id: _expected_alert_groups_response_time(alert_receive_channel1),
         alert_receive_channel2.id: _expected_alert_groups_response_time(alert_receive_channel2, response_time=[12]),
     }
-
-
-# todo:metrics: remove later when all cache is updated
-@patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
-@patch("apps.alerts.tasks.send_alert_group_signal.alert_group_action_triggered_signal.send")
-@pytest.mark.django_db
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
-def test_update_metric_alert_groups_total_cache_on_action_backward_compatability(
-    mocked_send_log_signal,
-    mocked_action_signal_send,
-    mock_apply_async,
-    make_organization,
-    make_user_for_organization,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-    make_metrics_cache_params_old_version,
-    monkeypatch,
-):
-    """Test update metric cache works properly with previous version of cache"""
-    organization = make_organization(
-        org_id=METRICS_TEST_ORG_ID,
-        stack_slug=METRICS_TEST_INSTANCE_SLUG,
-        stack_id=METRICS_TEST_INSTANCE_ID,
-    )
-    user = make_user_for_organization(organization)
-    alert_receive_channel = make_alert_receive_channel(organization, verbal_name=METRICS_TEST_INTEGRATION_NAME)
-
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization.id)
-
-    expected_result_metric_alert_groups_total = {
-        alert_receive_channel.id: {
-            "integration_name": alert_receive_channel.verbal_name,
-            "team_name": "No team",
-            "team_id": "no_team",
-            "org_id": organization.org_id,
-            "slug": organization.stack_slug,
-            "id": organization.stack_id,
-            "firing": 0,
-            "silenced": 0,
-            "acknowledged": 0,
-            "resolved": 0,
-        }
-    }
-
-    expected_result_firing = {
-        "firing": 1,
-        "silenced": 0,
-        "acknowledged": 0,
-        "resolved": 0,
-    }
-
-    expected_result_acked = {
-        "firing": 0,
-        "silenced": 0,
-        "acknowledged": 1,
-        "resolved": 0,
-    }
-
-    expected_result_resolved = {
-        "firing": 0,
-        "silenced": 0,
-        "acknowledged": 0,
-        "resolved": 1,
-    }
-
-    metrics_cache = make_metrics_cache_params_old_version(alert_receive_channel.id, organization.id)
-    monkeypatch.setattr(cache, "get", metrics_cache)
-
-    def get_called_arg_index_and_compare_results(update_expected_result):
-        """find index for the metric argument, that was set in cache"""
-        for idx, called_arg in enumerate(mock_cache_set_called_args):
-            if idx >= arg_idx and called_arg.args[0] == metric_alert_groups_total_key:
-                expected_result_metric_alert_groups_total[alert_receive_channel.id].update(update_expected_result)
-                assert called_arg.args[1] == expected_result_metric_alert_groups_total
-                return idx + 1
-        raise AssertionError
-
-    with patch("apps.metrics_exporter.tasks.cache.set") as mock_cache_set:
-        arg_idx = 0
-        alert_group = make_alert_group(alert_receive_channel)
-        make_alert(alert_group=alert_group, raw_request_data={})
-        # this signal is normally called in get_or_create_grouping on create alert
-        alert_group_created_signal.send(sender=alert_group.__class__, alert_group=alert_group)
-
-        # check alert_groups_total metric cache, get called args
-        mock_cache_set_called_args = mock_cache_set.call_args_list
-        arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
-
-        alert_group.acknowledge_by_user_or_backsync(user)
-        arg_idx = get_called_arg_index_and_compare_results(expected_result_acked)
-
-        alert_group.resolve_by_user_or_backsync(user)
-        arg_idx = get_called_arg_index_and_compare_results(expected_result_resolved)
-
-        alert_group.un_resolve_by_user_or_backsync(user)
-        arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
-
-
-# todo:metrics: remove later when all cache is updated
-@patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
-@patch("apps.alerts.tasks.send_alert_group_signal.alert_group_action_triggered_signal.send")
-@pytest.mark.django_db
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
-def test_update_metric_alert_groups_response_time_cache_on_action_backward_compatability(
-    mocked_send_log_signal,
-    mocked_action_signal_send,
-    mock_apply_async,
-    make_organization,
-    make_user_for_organization,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-    monkeypatch,
-    make_metrics_cache_params_old_version,
-):
-    """Test update metric cache works properly with previous version of cache"""
-    organization = make_organization(
-        org_id=METRICS_TEST_ORG_ID,
-        stack_slug=METRICS_TEST_INSTANCE_SLUG,
-        stack_id=METRICS_TEST_INSTANCE_ID,
-    )
-    user = make_user_for_organization(organization)
-    alert_receive_channel = make_alert_receive_channel(organization, verbal_name=METRICS_TEST_INTEGRATION_NAME)
-
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization.id)
-
-    expected_result_metric_alert_groups_response_time = {
-        alert_receive_channel.id: {
-            "integration_name": alert_receive_channel.verbal_name,
-            "team_name": "No team",
-            "team_id": "no_team",
-            "org_id": organization.org_id,
-            "slug": organization.stack_slug,
-            "id": organization.stack_id,
-            "response_time": [],
-        }
-    }
-
-    metrics_cache = make_metrics_cache_params_old_version(alert_receive_channel.id, organization.id)
-    monkeypatch.setattr(cache, "get", metrics_cache)
-
-    def get_called_arg_index_and_compare_results():
-        """find index for related to the metric argument, that was set in cache"""
-        for idx, called_arg in enumerate(mock_cache_set_called_args):
-            if idx >= arg_idx and called_arg.args[0] == metric_alert_groups_response_time_key:
-                response_time_values = called_arg.args[1][alert_receive_channel.id]["response_time"]
-                expected_result_metric_alert_groups_response_time[alert_receive_channel.id].update(
-                    {"response_time": response_time_values}
-                )
-                # response time values len always will be 1 here since cache is mocked and refreshed on every call
-                assert len(response_time_values) == 1
-                assert called_arg.args[1] == expected_result_metric_alert_groups_response_time
-                return idx + 1
-        raise AssertionError
-
-    with patch("apps.metrics_exporter.tasks.cache.set") as mock_cache_set:
-        arg_idx = 0
-        alert_group = make_alert_group(alert_receive_channel)
-        make_alert(alert_group=alert_group, raw_request_data={})
-
-        # check alert_groups_response_time metric cache, get called args
-        mock_cache_set_called_args = mock_cache_set.call_args_list
-
-        alert_group.acknowledge_by_user_or_backsync(user)
-        arg_idx = get_called_arg_index_and_compare_results()

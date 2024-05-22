@@ -126,7 +126,7 @@ class ScheduleView(
         if slack_team_identity is None:
             return False
 
-        user_group = slack_team_identity.usergroups.first()
+        user_group = slack_team_identity.usergroups.filter(is_active=True).first()
         if user_group is None:
             return False
 
