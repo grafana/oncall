@@ -1,7 +1,9 @@
 import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 
 import { cx } from '@emotion/css';
-import { Icon, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { intervalToAbbreviatedDurationString } from '@grafana/data';
+import { Icon, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
+import { toJS } from 'mobx';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Tag, TagColor } from 'components/Tag/Tag';
@@ -288,7 +290,20 @@ export const IncidentDropdown: FC<{
         </div>
       )}
     >
-      {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
+      {({ openMenu }) => (
+        <Tooltip content={`Silence ends in ${getSilencedUntilInDuration(alert.silenced_until)}`} placement={'bottom'}>
+          <span>
+            <IncidentStatusTag alert={alert} openMenu={openMenu} />
+          </span>
+        </Tooltip>
+      )}
     </WithContextMenu>
   );
 };
+
+function getSilencedUntilInDuration(date: string) {
+  return intervalToAbbreviatedDurationString({
+    start: new Date(),
+    end: new Date(date),
+  });
+}

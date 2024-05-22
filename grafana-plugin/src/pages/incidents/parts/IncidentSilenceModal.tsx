@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, DateTimePicker, Field, HorizontalGroup, Input, Modal, useStyles2 } from '@grafana/ui';
+
+import { css } from '@emotion/css';
 import {
   DateTime,
   addDurationToDate,
@@ -9,7 +10,8 @@ import {
   isValidDuration,
   parseDuration,
 } from '@grafana/data';
-import { css } from '@emotion/css';
+import { Button, DateTimePicker, Field, HorizontalGroup, Input, Modal, useStyles2 } from '@grafana/ui';
+
 import { useDebouncedCallback } from 'utils/hooks';
 
 interface IncidentSilenceModalProps {
