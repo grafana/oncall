@@ -3,7 +3,6 @@ import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 import { cx } from '@emotion/css';
 import { intervalToAbbreviatedDurationString } from '@grafana/data';
 import { Icon, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
-import { toJS } from 'mobx';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Tag, TagColor } from 'components/Tag/Tag';
@@ -302,7 +301,9 @@ export const IncidentDropdown: FC<{
 };
 
 function getSilencedTooltip(alert: ApiSchemas['AlertGroup']) {
-  if (alert.silenced_until === null) return `Silenced forever`;
+  if (alert.silenced_until === null) {
+    return `Silenced forever`;
+  }
   return `Silence ends in ${getSilencedUntilInDuration(alert.silenced_until)}`;
 }
 
