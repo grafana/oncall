@@ -291,7 +291,7 @@ export const IncidentDropdown: FC<{
       )}
     >
       {({ openMenu }) => (
-        <Tooltip content={`Silence ends in ${getSilencedUntilInDuration(alert.silenced_until)}`} placement={'bottom'}>
+        <Tooltip content={getSilencedTooltip(alert)} placement={'bottom'}>
           <span>
             <IncidentStatusTag alert={alert} openMenu={openMenu} />
           </span>
@@ -300,6 +300,11 @@ export const IncidentDropdown: FC<{
     </WithContextMenu>
   );
 };
+
+function getSilencedTooltip(alert: ApiSchemas['AlertGroup']) {
+  if (alert.silenced_until === null) return `Silenced forever`;
+  return `Silence ends in ${getSilencedUntilInDuration(alert.silenced_until)}`;
+}
 
 function getSilencedUntilInDuration(date: string) {
   return intervalToAbbreviatedDurationString({
