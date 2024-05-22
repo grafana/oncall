@@ -18,7 +18,7 @@ import {
   getTotalDaysToDisplay,
   scheduleViewToDaysInOneRow,
 } from 'models/schedule/schedule.helpers';
-import { Event, Schedule, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, Schedule, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -38,13 +38,26 @@ interface ScheduleFinalProps extends WithStoreProps {
   disabled?: boolean;
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;
+  scheduleView?: ScheduleView;
 }
 
 const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
-  ({ store, simplified, scheduleId, filters, onShowShiftSwapForm, onShowOverrideForm, onSlotClick }) => {
+  ({
+    store,
+    simplified,
+    scheduleId,
+    filters,
+    onShowShiftSwapForm,
+    onShowOverrideForm,
+    onSlotClick,
+    scheduleView: propsScheduleView,
+  }) => {
     const {
       timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
+      scheduleStore: { scheduleView: storeScheduleView },
     } = store;
+
+    const scheduleView = propsScheduleView || storeScheduleView;
 
     const shifts = flattenShiftEvents(getShiftsFromStore(store, scheduleId, calendarStartDate));
 
@@ -59,15 +72,15 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     };
 
     const rows = useMemo(() => {
-      const totalDays = getTotalDaysToDisplay(store.scheduleStore.scheduleView, calendarStartDate);
+      const totalDays = getTotalDaysToDisplay(scheduleView, calendarStartDate);
       const rows = [];
-      for (let i = 0; i < totalDays / scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView]; i++) {
+      for (let i = 0; i < totalDays / scheduleViewToDaysInOneRow[scheduleView]; i++) {
         rows.push({
-          startDate: calendarStartDate.add(scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * i, 'days'),
+          startDate: calendarStartDate.add(scheduleViewToDaysInOneRow[scheduleView] * i, 'days'),
         });
       }
       return rows;
-    }, [calendarStartDate, store.scheduleStore.scheduleView]);
+    }, [calendarStartDate, scheduleView]);
 
     return (
       <div className={cx('root')}>
@@ -91,7 +104,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
                     getCurrentTimeX(
                       currentDateInSelectedTimezone,
                       startDate,
-                      scheduleViewToDaysInOneRow[store.scheduleStore.scheduleView] * 24 * 60
+                      scheduleViewToDaysInOneRow[scheduleView] * 24 * 60
                     ) * 100
                   }%`,
                 }}

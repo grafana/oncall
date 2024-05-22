@@ -654,13 +654,10 @@ export class ScheduleStore extends BaseStore {
 
   @AutoLoadingState(ActionKey.UPDATE_PERSONAL_EVENTS)
   @action.bound
-  async updatePersonalEvents(
-    userPk: ApiSchemas['User']['pk'],
-    startMoment: dayjs.Dayjs,
-    days = 9,
-    isUpdateOnCallNow = false
-  ) {
+  async updatePersonalEvents(userPk: ApiSchemas['User']['pk'], startMoment: dayjs.Dayjs, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
+
+    const days = getTotalDaysToDisplay(ScheduleView.OneWeek, this.rootStore.timezoneStore.calendarStartDate) + 1;
 
     const dayBefore = startMoment.subtract(1, 'day');
 

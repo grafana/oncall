@@ -23,7 +23,7 @@ import { TeamName } from 'containers/TeamName/TeamName';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Schedule } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleView } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -188,7 +188,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     <div className={cx('schedule')}>
       <TimelineMarks />
       <div className={cx('rotations')}>
-        <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
+        <ScheduleFinal
+          scheduleView={ScheduleView.OneWeek}
+          simplified
+          scheduleId={data.id}
+          onSlotClick={this.getScheduleClickHandler(data.id)}
+        />
       </div>
     </div>
   );

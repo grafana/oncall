@@ -198,9 +198,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
     } catch (err) {
       onError(err);
     } finally {
+      // wait until a scroll to the "Rotations" happened
       setTimeout(() => {
         setIsOpen(true);
-      }, 1000);
+      }, 100);
     }
   };
 

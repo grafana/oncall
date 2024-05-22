@@ -11,10 +11,15 @@ import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { ActionKey } from 'models/loader/action-keys';
-import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Event } from 'models/schedule/schedule.types';
+import {
+  getColorForSchedule,
+  getPersonalShiftsFromStore,
+  getTotalDaysToDisplay,
+  scheduleViewToDaysInOneRow,
+} from 'models/schedule/schedule.helpers';
+import { Event, ScheduleView } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
+import { getCurrentTimeX, getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
@@ -40,7 +45,7 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   }, [timezoneStore.selectedTimezoneOffset]);
 
   const updatePersonalEvents = () => {
-    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate, 9, true);
+    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate, true);
   };
 
   const handleTodayClick = () => {
@@ -48,12 +53,22 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   };
 
   const handleLeftClick = () => {
-    timezoneStore.setCalendarStartDate(timezoneStore.calendarStartDate.subtract(7, 'day'));
+    timezoneStore.setCalendarStartDate(
+      timezoneStore.calendarStartDate.subtract(
+        getTotalDaysToDisplay(ScheduleView.OneWeek, store.timezoneStore.calendarStartDate),
+        'day'
+      )
+    );
     scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate);
   };
 
   const handleRightClick = () => {
-    timezoneStore.setCalendarStartDate(timezoneStore.calendarStartDate.add(7, 'day'));
+    timezoneStore.setCalendarStartDate(
+      timezoneStore.calendarStartDate.add(
+        getTotalDaysToDisplay(ScheduleView.OneWeek, store.timezoneStore.calendarStartDate),
+        'day'
+      )
+    );
     scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate);
   };
 
@@ -61,10 +76,11 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
     history.push(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
   };
 
-  const base = 7 * 24 * 60; // in minutes
-  const diff = timezoneStore.currentDateInSelectedTimezone.diff(timezoneStore.calendarStartDate, 'minutes');
-
-  const currentTimeX = diff / base;
+  const currentTimeX = getCurrentTimeX(
+    timezoneStore.currentDateInSelectedTimezone,
+    timezoneStore.calendarStartDate,
+    scheduleViewToDaysInOneRow[ScheduleView.OneWeek] * 24 * 60
+  );
 
   const shifts = getPersonalShiftsFromStore(store, userPk, timezoneStore.calendarStartDate);
 

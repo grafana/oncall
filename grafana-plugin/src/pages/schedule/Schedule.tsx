@@ -20,7 +20,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFilters } from 'components/ScheduleFilters/ScheduleFilters';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
@@ -247,6 +246,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="Shift swap request"
                                     onClick={() => {
+                                      scrollToElement(document.getElementById('overrides-list'));
+
                                       this.handleShowShiftSwapForm('new');
                                     }}
                                   />
@@ -368,7 +369,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             }
                       }
                     />
-                    <RenderConditionally shouldRender={scheduleView !== ScheduleView.OneMonth}>
+                    {/* we need to render to allow Rotations show rotaion modal form */}
+                    <div style={{ display: scheduleView === ScheduleView.OneMonth ? 'none' : 'block' }}>
                       <Rotations
                         scheduleId={scheduleId}
                         onCreate={this.refreshEventsAndClearPreview}
@@ -383,8 +385,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                         onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
                       />
-                    </RenderConditionally>
-                    <RenderConditionally shouldRender={scheduleView !== ScheduleView.OneMonth}>
+                    </div>
+                    {/* we need to render to allow ScheduleOverrides show overrides modal form */}
+                    <div style={{ display: scheduleView === ScheduleView.OneMonth ? 'none' : 'block' }}>
                       <ScheduleOverrides
                         scheduleId={scheduleId}
                         onCreate={this.refreshEventsAndClearPreview}
@@ -399,7 +402,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                         filters={filters}
                       />
-                    </RenderConditionally>
+                    </div>
                   </div>
                 </VerticalGroup>
               )}

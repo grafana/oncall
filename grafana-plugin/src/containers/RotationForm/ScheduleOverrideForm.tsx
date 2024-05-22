@@ -171,9 +171,10 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     } catch (err) {
       onError(err);
     } finally {
+      // wait until a scroll to the "Overrides and swaps" happened
       setTimeout(() => {
         setIsOpen(true);
-      }, 500);
+      }, 100);
     }
   };
 
