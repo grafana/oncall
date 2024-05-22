@@ -98,7 +98,7 @@ class SlackMessage(models.Model):
 
     @property
     def deep_link(self) -> str:
-        return f"slack://channel?team={self.slack_team_identity.slack_id}&id={self.channel_id}&message={self.slack_id}"
+        return f"https://slack.com/app_redirect?channel={self.channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
     def send_slack_notification(self, user, alert_group, notification_policy):
         from apps.base.models import UserNotificationPolicyLogRecord

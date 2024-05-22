@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework.views import APIView
 
-from apps.mobile_app.views import MobileAppGatewayView
+from apps.mobile_app.views import PROXY_REQUESTS_TIMEOUT, MobileAppGatewayView
 from common.cloud_auth_api.client import CloudAuthApiClient, CloudAuthApiException
 
 DOWNSTREAM_BACKEND = "incident"
@@ -64,6 +64,7 @@ def test_mobile_app_gateway_properly_proxies_paths(
         data=b"",
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
+        timeout=PROXY_REQUESTS_TIMEOUT,
     )
 
 
@@ -118,6 +119,7 @@ def test_mobile_app_gateway_proxies_query_params(
         data=b"",
         params={"foo": "bar", "baz": "hello"},
         headers=MOCK_DOWNSTREAM_HEADERS,
+        timeout=PROXY_REQUESTS_TIMEOUT,
     )
 
 
@@ -161,6 +163,7 @@ def test_mobile_app_gateway_properly_proxies_request_body(
         data=data.encode("utf-8"),
         params={},
         headers=MOCK_DOWNSTREAM_HEADERS,
+        timeout=PROXY_REQUESTS_TIMEOUT,
     )
 
 
@@ -206,7 +209,7 @@ def test_mobile_app_gateway_supported_downstream_backends(
         (requests.exceptions.ConnectionError, (), status.HTTP_502_BAD_GATEWAY),
         (requests.exceptions.HTTPError, (), status.HTTP_502_BAD_GATEWAY),
         (requests.exceptions.TooManyRedirects, (), status.HTTP_502_BAD_GATEWAY),
-        (requests.exceptions.Timeout, (), status.HTTP_502_BAD_GATEWAY),
+        (requests.exceptions.Timeout, (), status.HTTP_504_GATEWAY_TIMEOUT),
         (requests.exceptions.JSONDecodeError, ("", "", 5), status.HTTP_400_BAD_REQUEST),
         (CloudAuthApiException, (403, "http://example.com"), status.HTTP_502_BAD_GATEWAY),
     ],
@@ -317,6 +320,7 @@ def test_mobile_app_gateway_proxies_headers(
             "Authorization": f"Bearer {MOCK_AUTH_TOKEN}",
             "Content-Type": content_type_header,
         },
+        timeout=PROXY_REQUESTS_TIMEOUT,
     )
 
 

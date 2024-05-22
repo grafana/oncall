@@ -54,6 +54,22 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                         },
                     },
                 },
+                2: {
+                    "integration_name": "Empty integration",
+                    "team_name": "Test team",
+                    "team_id": 1,
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 2,
+                    "services": {
+                        NO_SERVICE_VALUE: {
+                            "firing": 0,
+                            "silenced": 0,
+                            "acknowledged": 0,
+                            "resolved": 0,
+                        },
+                    },
+                },
             },
             ALERT_GROUPS_RESPONSE_TIME: {
                 1: {
@@ -64,7 +80,19 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                     "slug": "Test stack",
                     "id": 1,
                     "services": {NO_SERVICE_VALUE: [2, 10, 200, 650], METRICS_TEST_SERVICE_NAME: [4, 12, 20]},
-                }
+                },
+                2: {
+                    "integration_name": "Empty integration",
+                    "team_name": "Test team",
+                    "team_id": 1,
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 2,
+                    "services": {
+                        # if there are no response times available, this integration will be ignored
+                        NO_SERVICE_VALUE: [],
+                    },
+                },
             },
             USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
                 1: {

@@ -7,7 +7,7 @@ from random import randrange
 from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
-from common.utils import getenv_boolean, getenv_integer, getenv_list
+from common.utils import getenv_boolean, getenv_float, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -352,7 +352,7 @@ if OTEL_TRACING_ENABLED:
     MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
-
+LOG_CELERY_TASK_ARGUMENTS = getenv_boolean("LOG_CELERY_TASK_ARGUMENTS", default=True)
 
 log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
 
@@ -914,3 +914,5 @@ ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
+
+CLOUD_RBAC_ROLLOUT_PERCENTAGE = getenv_float("CLOUD_RBAC_ROLLOUT_PERCENTAGE", default=0.0)

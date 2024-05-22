@@ -230,9 +230,9 @@ def mock_is_labels_feature_enabled_for_org(settings):
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        return OrganizationFactory(
-            **kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED, is_grafana_labels_enabled=True
-        )
+        if "is_rbac_permissions_enabled" not in kwargs:
+            kwargs["is_rbac_permissions_enabled"] = IS_RBAC_ENABLED
+        return OrganizationFactory(**kwargs, is_grafana_labels_enabled=True)
 
     return _make_organization
 
