@@ -18,6 +18,8 @@ import { UserAction } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
+import { toJS } from 'mobx';
+import { isNumber } from 'lodash-es';
 
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
@@ -185,6 +187,13 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { data, waitDelays = [], userAction } = this.props;
     const { wait_delay } = data;
 
+    const onCreateWaitDelay = (value: string) => {
+      if (!isNumber(+value)) return;
+
+      const numValue = parseFloat(value);
+      this._getOnChangeHandler('wait_delay')({ value: numValue * 60, display_name: value });
+    };
+
     return (
       <WithPermissionControlTooltip userAction={userAction}>
         <Select
@@ -199,6 +208,8 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             label: waitDelay.display_name,
             value: waitDelay.value,
           }))}
+          allowCustomValue
+          onCreateOption={onCreateWaitDelay}
         />
       </WithPermissionControlTooltip>
     );
