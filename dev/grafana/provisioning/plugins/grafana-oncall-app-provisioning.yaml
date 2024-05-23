@@ -5,5 +5,5 @@ apps:
     jsonData:
       stackId: 5
       orgId: 100
-      onCallApiUrl: orgId
+      onCallApiUrl: http://oncall-dev-engine:8080
       useBackendPlugin: false
