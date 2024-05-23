@@ -8,7 +8,7 @@ from apps.mobile_app.backend import MobileAppBackend
 
 MAX_ALERT_TITLE_LENGTH = 200
 
-# this is a dirty hack to get around EXTRA_MESSAGING_BACKENDS being set in settings/ci-test.py
+# this is a dirty hack to get around EXTRA_MESSAGING_BACKENDS being set in settings/ci_test.py
 # we can't simply change the value because 100s of tests fail as they rely on the value being set to a specific value 🫠
 # see where this value is used in the unitest.mock.patch calls down below for more context
 backend = MobileAppBackend(notification_channel_id=5)
