@@ -10,7 +10,7 @@ export function getMTTRAverage({ datasource, stack }: InsightsConfig) {
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration"}))[$__range:])`,
+        expr: `avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"}) / sum($alert_groups_response_time_seconds_count{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"}))[$__range:])`,
         instant: true,
         legendFormat: '__auto',
         range: false,
