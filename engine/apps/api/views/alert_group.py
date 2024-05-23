@@ -638,6 +638,7 @@ class AlertGroupView(
                     choices=[display_name for _, display_name in AlertGroup.SILENCE_DELAY_OPTIONS]
                 ),
             },
+            many=True,
         )
     )
     @action(methods=["get"], detail=False)
