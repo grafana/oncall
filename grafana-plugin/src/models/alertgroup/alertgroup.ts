@@ -24,7 +24,7 @@ export class AlertGroupStore {
   rootStore: RootStore;
   alerts = new Map<string, ApiSchemas['AlertGroup']>();
   bulkActions: any = [];
-  silenceOptions: Array<{ value: number; display_name: string }>;
+  silenceOptions: ApiSchemas['AlertGroupSilenceOptions'][];
   searchResult: { [key: string]: Array<ApiSchemas['AlertGroup']['pk']> } = {};
   incidentFilters: any;
   initialQuery = qs.parse(window.location.search);
@@ -130,6 +130,8 @@ export class AlertGroupStore {
     const { data } = await onCallApi().GET('/alertgroups/silence_options/', undefined);
 
     runInAction(() => {
+      // @ts-ignore
+      // Correct type is ApiSchemas['AlertGroupSilenceOptions'][], but backend does not pass it as an array
       this.silenceOptions = data;
     });
   }
