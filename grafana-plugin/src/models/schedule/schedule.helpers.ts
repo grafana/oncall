@@ -427,9 +427,9 @@ const L2_COLORS = ['#517A00', '#3F6833', '#84362A', '#521913'];
 
 const L3_COLORS = ['#377277', '#638282', '#364E4E', '#423220'];
 
-const OVERRIDE_COLORS = ['#C69B06'];
+const OVERRIDE_COLORS = ['#EF9C48'];
 
-export const SHIFT_SWAP_COLOR = '#D66310';
+export const SHIFT_SWAP_COLOR = '#DC7532';
 
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
 

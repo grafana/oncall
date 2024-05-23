@@ -12,6 +12,7 @@ import {
   Menu,
   ButtonGroup,
   RadioButtonGroup,
+  DatePicker,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -67,6 +68,7 @@ interface SchedulePageState {
   filters: ScheduleFiltersType;
   shiftSwapIdToShowForm?: ShiftSwap['id'] | 'new';
   shiftSwapParamsToShowForm?: Partial<ShiftSwap>;
+  calendarStartDatePickerIsOpen: boolean;
 }
 
 @observer
@@ -88,6 +90,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       showScheduleICalSettings: false,
       lastUpdated: 0,
       filters: { users: [] },
+      calendarStartDatePickerIsOpen: false,
     };
   }
 
@@ -130,6 +133,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       filters,
       shiftSwapIdToShowForm,
       shiftSwapParamsToShowForm,
+      calendarStartDatePickerIsOpen,
     } = this.state;
 
     const { isNotFoundError } = store.scheduleStore.refreshEventsError;
@@ -318,6 +322,24 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                               )
                               .format('DD MMM')}
                           </Text.Title>
+                          <IconButton
+                            aria-label="Set calendar start date"
+                            name="angle-down"
+                            onClick={() => {
+                              this.setState({ calendarStartDatePickerIsOpen: !calendarStartDatePickerIsOpen });
+                            }}
+                          />
+                          <DatePicker
+                            isOpen={calendarStartDatePickerIsOpen}
+                            value={store.timezoneStore.calendarStartDate.toDate()}
+                            onChange={(newDate) => {
+                              store.timezoneStore.setCalendarStartDate(
+                                getCalendarStartDate(dayjs(newDate), scheduleView)
+                              );
+                              this.handleDateRangeUpdate();
+                            }}
+                            onClose={() => this.setState({ calendarStartDatePickerIsOpen: false })}
+                          />
                         </HorizontalGroup>
                         <HorizontalGroup>
                           <RadioButtonGroup
