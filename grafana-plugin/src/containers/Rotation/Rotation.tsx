@@ -10,7 +10,7 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import { Text } from 'components/Text/Text';
 import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
 import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
-import { Event, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
 import styles from './Rotation.module.css';
@@ -35,12 +35,13 @@ interface RotationProps {
   emptyText?: string;
   showScheduleNameAsSlotTitle?: boolean;
   startDate?: dayjs.Dayjs;
+  scheduleView?: ScheduleView;
 }
 
 export const Rotation: FC<RotationProps> = observer((props) => {
   const {
     timezoneStore: { calendarStartDate, getDateInSelectedTimezone },
-    scheduleStore,
+    scheduleStore: { scheduleView: storeScheduleView },
   } = useStore();
   const {
     events,
@@ -58,11 +59,14 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     emptyText,
     showScheduleNameAsSlotTitle,
     startDate: propsStartDate,
+    scheduleView: propsScheduleView,
   } = props;
+
+  const scheduleView = propsScheduleView || storeScheduleView;
 
   const startDate = propsStartDate || calendarStartDate;
 
-  const days = scheduleViewToDaysInOneRow[scheduleStore.scheduleView];
+  const days = scheduleViewToDaysInOneRow[scheduleView];
 
   const [animate, _setAnimate] = useState<boolean>(true);
 
@@ -71,7 +75,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     const x = event.clientX - rect.left; //x position within the element.
     const width = event.currentTarget.offsetWidth;
 
-    const dayOffset = Math.floor((x / width) * scheduleViewToDaysInOneRow[scheduleStore.scheduleView]);
+    const dayOffset = Math.floor((x / width) * scheduleViewToDaysInOneRow[scheduleView]);
 
     const shiftStart = startDate.add(dayOffset, 'day');
     const shiftEnd = shiftStart.add(1, 'day');
@@ -156,6 +160,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
               {events.map((event) => {
                 return (
                   <ScheduleSlot
+                    scheduleView={scheduleView}
                     key={hash(event)}
                     event={event}
                     color={propsColor || getColor(event)}

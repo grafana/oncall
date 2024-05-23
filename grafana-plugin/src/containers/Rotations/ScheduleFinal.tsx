@@ -96,7 +96,11 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
         <div className={cx('header-plus-content')}>
           {rows.map(({ startDate }, index) => (
             <TransitionGroup key={index} className={cx('u-position-relative', 'layer', 'layer-first')}>
-              <TimelineMarks startDate={startDate} withBorderBottom={index !== rows.length - 1} />
+              <TimelineMarks
+                scheduleView={scheduleView}
+                startDate={startDate}
+                withBorderBottom={index !== rows.length - 1}
+              />
               <div
                 className={cx('current-time')}
                 style={{
@@ -114,6 +118,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
                   return (
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                       <Rotation
+                        scheduleView={scheduleView}
                         startDate={startDate}
                         key={index}
                         events={events}
@@ -130,7 +135,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
                 })
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                  <Rotation startDate={calendarStartDate} events={[]} />
+                  <Rotation scheduleView={scheduleView} startDate={calendarStartDate} events={[]} />
                 </CSSTransition>
               )}
             </TransitionGroup>

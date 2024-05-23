@@ -134,13 +134,14 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
       </div>
       <div className={cx('header-plus-content')}>
         {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-        <TimelineMarks />
+        <TimelineMarks scheduleView={ScheduleView.OneWeek} />
         <TransitionGroup className={cx('rotations', 'layer', 'layer-first')}>
           {shifts?.length ? (
             shifts.map(({ events }, index) => {
               return (
                 <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                   <Rotation
+                    scheduleView={ScheduleView.OneWeek}
                     simplified
                     key={index}
                     events={events}

@@ -12,7 +12,7 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
 import { getShiftName, scheduleViewToDaysInOneRow, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
-import { Event, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
@@ -31,6 +31,7 @@ interface ScheduleSlotProps {
   filters?: ScheduleFiltersType;
   onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
   showScheduleNameAsSlotTitle?: boolean;
+  scheduleView?: ScheduleView;
 }
 
 const cx = cn.bind(styles);
@@ -38,7 +39,7 @@ const cx = cn.bind(styles);
 export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     timezoneStore: { getDateInSelectedTimezone },
-    scheduleStore,
+    scheduleStore: { scheduleView: storeScheduleView },
   } = useStore();
   const {
     event,
@@ -50,14 +51,17 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     filters,
     onClick,
     showScheduleNameAsSlotTitle,
+    scheduleView: propsScheduleView,
   } = props;
+
+  const scheduleView = propsScheduleView || storeScheduleView;
 
   const start = getDateInSelectedTimezone(event.start);
   const end = getDateInSelectedTimezone(event.end);
 
   const durationInSeconds = end.diff(start, 'seconds');
 
-  const rowInSeconds = scheduleViewToDaysInOneRow[scheduleStore.scheduleView] * 24 * 60 * 60;
+  const rowInSeconds = scheduleViewToDaysInOneRow[scheduleView] * 24 * 60 * 60;
 
   const width = Math.max(durationInSeconds / rowInSeconds, 0);
 

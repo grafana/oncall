@@ -20,7 +20,6 @@ import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
 import { SchedulePersonal } from 'containers/Rotations/SchedulePersonal';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleView } from 'models/schedule/schedule.types';
@@ -186,15 +185,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
   renderSchedule = (data: Schedule) => (
     <div className={cx('schedule')}>
-      <TimelineMarks />
-      <div className={cx('rotations')}>
-        <ScheduleFinal
-          scheduleView={ScheduleView.OneWeek}
-          simplified
-          scheduleId={data.id}
-          onSlotClick={this.getScheduleClickHandler(data.id)}
-        />
-      </div>
+      <ScheduleFinal
+        scheduleView={ScheduleView.OneWeek}
+        simplified
+        scheduleId={data.id}
+        onSlotClick={this.getScheduleClickHandler(data.id)}
+      />
     </div>
   );
 

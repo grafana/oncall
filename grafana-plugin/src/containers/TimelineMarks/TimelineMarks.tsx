@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
+import { ScheduleView } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
 import styles from './TimelineMarks.module.scss';
@@ -14,6 +15,7 @@ interface TimelineMarksProps {
   debug?: boolean;
   startDate?: dayjs.Dayjs;
   withBorderBottom?: boolean;
+  scheduleView?: ScheduleView;
 }
 
 const cx = cn.bind(styles);
@@ -21,13 +23,14 @@ const cx = cn.bind(styles);
 export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   const {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
-    scheduleStore,
+    scheduleStore: { scheduleView: storeScheduleView },
   } = useStore();
-  const { debug, startDate: propsStartDate, withBorderBottom = false } = props;
+  const { debug, startDate: propsStartDate, withBorderBottom = false, scheduleView: propsScheduleView } = props;
 
   const startDate = propsStartDate || calendarStartDate;
+  const scheduleView = propsScheduleView || storeScheduleView;
 
-  const days = scheduleViewToDaysInOneRow[scheduleStore.scheduleView];
+  const days = scheduleViewToDaysInOneRow[scheduleView];
 
   const momentsToRender = useMemo(() => {
     const hoursToSplit = 12;
@@ -79,7 +82,7 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
         const isWeekend = m.moment.day() === 0 || m.moment.day() === 6;
 
         return (
-          <div key={i} className={cx('weekday', { 'weekday--weekEnd': isWeekend })}>
+          <div key={i} className={cx('weekday', { 'weekday--weekEnd': isWeekend })} style={{ width: `${100 / days}%` }}>
             <div className={cx('weekday-title')}>
               <Text type={isCurrentDay ? 'primary' : 'secondary'}>
                 {m.moment.date() === 1 ? m.moment.format('ddd D MMM') : m.moment.format('ddd D')}

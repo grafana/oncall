@@ -423,13 +423,13 @@ export const enrichOverrides = (
 
 const L1_COLORS = ['#3D71D9', '#6D609C', '#4D3B72', '#8214A0'];
 
-const L2_COLORS = ['#3CB979', '#188343', '#84362A', '#521913'];
+const L2_COLORS = ['#517A00', '#3F6833', '#84362A', '#521913'];
 
 const L3_COLORS = ['#377277', '#638282', '#364E4E', '#423220'];
 
-const OVERRIDE_COLORS = ['#C69B06', '#C2C837'];
+const OVERRIDE_COLORS = ['#C69B06'];
 
-export const SHIFT_SWAP_COLOR = '#C69B06';
+export const SHIFT_SWAP_COLOR = '#D66310';
 
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
 
