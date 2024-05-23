@@ -22,4 +22,5 @@ class ChatopsEventsHandler:
                     f"msg=\"ChatopsEventsHandler: Found matching handler {h.__name__}\" event_type={event_data.get('event_type')}"
                 )
                 h.handle(event_data.get("data", {}))
-                break
+                return
+        logger.error(f"msg=\"ChatopsEventsHandler: No handler found\" event_type={event_data.get('event_type')}")
