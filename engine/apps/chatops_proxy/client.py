@@ -34,7 +34,7 @@ class Tenant:
 
 
 @dataclass
-class OauthInstallation:
+class OAuthInstallation:
     id: str
     oauth_response: dict
     stack_id: int
@@ -160,7 +160,7 @@ class ChatopsProxyAPIClient:
         self,
         stack_id: int,
         provider_type: str,
-    ) -> tuple[OauthInstallation, requests.models.Response]:
+    ) -> tuple[OAuthInstallation, requests.models.Response]:
         url = f"{self.api_base_url}/oauth_installations/get"
         d = {
             "stack_id": stack_id,
@@ -168,7 +168,7 @@ class ChatopsProxyAPIClient:
         }
         response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
-        return OauthInstallation(**response.json()["oauth_installation"]), response
+        return OAuthInstallation(**response.json()["oauth_installation"]), response
 
     def _check_response(self, response: requests.models.Response):
         """
