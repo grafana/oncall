@@ -35,8 +35,8 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           install-dependencies: "false"
-      - name: Setup Node
-        uses: ./.github/actions/setup-node
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
       - uses: pre-commit/action@v3.0.0
 
   lint-test-and-build-frontend:
@@ -45,8 +45,8 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
-      - name: Setup Node
-        uses: ./.github/actions/setup-node
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
       - name: Build, lint and test frontend
         working-directory: grafana-plugin
         run: yarn lint && yarn test && yarn build

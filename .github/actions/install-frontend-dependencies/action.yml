@@ -1,5 +1,5 @@
-name: "Setup Node"
-description: "Setup Node + install dependencies"
+name: "Install frontend dependencies"
+description: "Setup node + install frontend dependencies"
 runs:
   using: "composite"
   steps:
