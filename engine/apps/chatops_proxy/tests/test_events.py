@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -43,9 +44,10 @@ invalid_schema_event = {
     ],
 )
 @pytest.mark.django_db
-def test_event_handler(payload, expected_status, mock_exec):
+@override_settings(UNIFIED_SLACK_APP_ENABLED=True)
+def test_event_handler(mock_exec, payload, expected_status):
     client = APIClient()
 
-    url = reverse("chatops-proxy:events")
+    url = reverse("chatops_proxy:events")
     response = client.post(url, format="json", data=payload)
     assert response.status_code == expected_status
