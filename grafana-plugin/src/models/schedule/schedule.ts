@@ -124,7 +124,7 @@ export class ScheduleStore extends BaseStore {
   };
 
   @observable
-  scheduleView = ScheduleView.TwoWeeks;
+  scheduleView = ScheduleView.OneWeek;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
