@@ -15,13 +15,15 @@ runs:
   using: "composite"
   steps:
     - name: Setup Python
+      id: setup-python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11.4"
         cache: "pip"
         cache-dependency-path: ${{ inputs.python-requirements-paths }}
     - name: Install Python dependencies
-      if: ${{ inputs.install-dependencies == 'true' }}
+      # only install dependencies if the cache was not hit and the user wants to install dependencies
+      if: ${{ inputs.install-dependencies == 'true' && ! steps.setup-python.outputs.cache-hit }}
       shell: bash
       run: |
         pip install uv
