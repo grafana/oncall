@@ -6,6 +6,7 @@ export type OnCallPluginMetaJSONData = {
   onCallApiUrl: string;
   insightsDatasource?: string;
   license: string;
+  useBackendPlugin?: boolean;
 };
 
 export type OnCallPluginMetaSecureJSONData = {
@@ -35,6 +36,7 @@ declare global {
         unifiedAlerting: { minInterval: string };
       };
     };
+    pluginMeta: OnCallAppPluginMeta;
     RECAPTCHA_SITE_KEY: string;
     grecaptcha: any;
     dataLayer: any;

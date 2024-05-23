@@ -68,6 +68,9 @@ export const Root = observer((props: AppRootProps) => {
   const location = useLocation();
 
   useEffect(() => {
+    // TODO: remove once backend plugin is enabled by default
+    window.pluginMeta = props.meta;
+
     loadBasicData();
     // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
     const timeout = setTimeout(() => {
