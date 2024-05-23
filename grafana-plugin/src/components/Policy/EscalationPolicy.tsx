@@ -1,8 +1,9 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { Button, Input, Select, IconButton, withTheme2, Themeable2, useStyles2 } from '@grafana/ui';
+import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
+import { isNumber } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
@@ -34,7 +35,6 @@ import { UserActions } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
 import { PolicyNote } from './PolicyNote';
-import { isNumber } from 'lodash-es';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;
@@ -42,7 +42,7 @@ interface ElementSortableProps extends WithStoreProps {
 
 export interface EscalationPolicyProps extends ElementSortableProps, Themeable2 {
   data: EscalationPolicyType;
-  waitDelays?: { value: number; display_name: string }[];
+  waitDelays?: Array<{ value: number; display_name: string }>;
   isDisabled?: boolean;
   numMinutesInWindowOptions: SelectOption[];
   channels?: any[];
@@ -267,7 +267,9 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps> {
     const styles = getEscalationPolicyStyles(theme);
 
     const onCreateWaitDelay = (value: string) => {
-      if (!isNumber(+value)) return;
+      if (!isNumber(+value)) {
+        return;
+      }
 
       const numValue = parseFloat(value);
       this.getOnSelectChangeHandler('wait_delay')({ value: numValue * 60, display_name: value });

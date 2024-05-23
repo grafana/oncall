@@ -3,6 +3,7 @@ import React from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, IconButton, Select, Themeable2, withTheme2 } from '@grafana/ui';
+import { isNumber } from 'lodash-es';
 import { SortableElement } from 'react-sortable-hoc';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -18,8 +19,6 @@ import { UserAction } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
-import { toJS } from 'mobx';
-import { isNumber } from 'lodash-es';
 
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
@@ -188,7 +187,9 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { wait_delay } = data;
 
     const onCreateWaitDelay = (value: string) => {
-      if (!isNumber(+value)) return;
+      if (!isNumber(+value)) {
+        return;
+      }
 
       const numValue = parseFloat(value);
       this._getOnChangeHandler('wait_delay')({ value: numValue * 60, display_name: value });
