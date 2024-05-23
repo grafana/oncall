@@ -1,9 +1,7 @@
 import typing
-from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
-from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
@@ -729,14 +727,9 @@ class AlertGroupView(
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
         api_root = "/api/internal/v1/"
+        default_day_range = 30
 
-        now = timezone.now()
-        week_ago = now - timedelta(days=7)
-
-        default_datetime_range = "{}_{}".format(
-            week_ago.strftime(DateRangeFilterMixin.DATE_FORMAT),
-            now.strftime(DateRangeFilterMixin.DATE_FORMAT),
-        )
+        default_datetime_range = f"now-{default_day_range}d_now"
 
         filter_options = [
             {
