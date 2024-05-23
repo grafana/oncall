@@ -23,8 +23,10 @@ jobs:
     name: "Lint entire project"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "false"
       # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
@@ -49,7 +51,8 @@ jobs:
     name: "Lint, test, and build frontend"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout project
+        uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 18.16.0
@@ -110,8 +113,10 @@ jobs:
         ports:
           - 3306:3306
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
@@ -127,7 +132,8 @@ jobs:
     name: "Helm Chart Unit Tests"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout project
+        uses: actions/checkout@v3
       - uses: azure/setup-helm@v3
         with:
           version: v3.8.0
@@ -164,8 +170,10 @@ jobs:
         ports:
           - 3306:3306
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
@@ -210,8 +218,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
@@ -243,8 +253,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
@@ -258,8 +270,10 @@ jobs:
     name: "Unit tests - Migrators"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "true"
           python-requirements-paths: tools/migrators/requirements.txt
@@ -271,8 +285,10 @@ jobs:
     name: "mypy"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-python
+      - name: Checkout project
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
           install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
