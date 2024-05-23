@@ -1,4 +1,4 @@
-import { OnCallAppPluginMeta, OnCallPluginMetaJSONData } from 'types';
+import { OnCallAppPluginMeta } from 'types';
 
 //@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
