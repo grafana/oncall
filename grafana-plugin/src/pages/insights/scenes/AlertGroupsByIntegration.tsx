@@ -10,7 +10,7 @@ export function getAlertGroupsByIntegrationScene({ datasource, stack }: Insights
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `sort_desc(sum by (integration)(round(delta($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}[$__range]))) >= 0)`,
+        expr: `sort_desc(round(delta(sum by (integration)($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"})[$__range:])) >= 0)`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',

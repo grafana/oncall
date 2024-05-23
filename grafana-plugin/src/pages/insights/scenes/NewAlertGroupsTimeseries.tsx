@@ -13,7 +13,7 @@ export function getNewAlertGroupsTimeseriesScene({ datasource, stack }: Insights
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: `sum by (integration)(round(delta($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}[$__interval:]))) >= 0`,
+        expr: `round(delta(sum by (integration)($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"})[$__interval:])) >= 0`,
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',

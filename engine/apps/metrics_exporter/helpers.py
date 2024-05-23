@@ -287,14 +287,7 @@ def metrics_update_alert_groups_state_cache(states_diff: dict, organization_id: 
         if not integration_alert_groups:
             continue
         for service_name, service_state_diff in service_data.items():
-            if "services" in integration_alert_groups:
-                states_to_update = integration_alert_groups["services"].setdefault(
-                    service_name, get_default_states_dict()
-                )
-            else:
-                # support version of metrics cache without service name. This clause can be removed when all metrics
-                # cache is updated on prod (~2 days after release)
-                states_to_update = integration_alert_groups
+            states_to_update = integration_alert_groups["services"].setdefault(service_name, get_default_states_dict())
             for previous_state, counter in service_state_diff["previous_states"].items():
                 if states_to_update[previous_state] - counter > 0:
                     states_to_update[previous_state] -= counter
@@ -329,13 +322,8 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time: 
         if not integration_response_time_metrics:
             continue
         for service_name, response_time_values in service_data.items():
-            if "services" in integration_response_time_metrics:
-                integration_response_time_metrics["services"].setdefault(service_name, [])
-                integration_response_time_metrics["services"][service_name].extend(response_time_values)
-            else:
-                # support version of metrics cache without service name. This clause can be removed when all metrics
-                # cache is updated on prod (~2 days after release)
-                integration_response_time_metrics["response_time"].extend(response_time_values)
+            integration_response_time_metrics["services"].setdefault(service_name, [])
+            integration_response_time_metrics["services"][service_name].extend(response_time_values)
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 
 
