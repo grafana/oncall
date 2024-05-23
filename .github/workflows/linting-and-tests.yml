@@ -29,22 +29,8 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           install-dependencies: "false"
-      # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
       - uses: pre-commit/action@v3.0.0
 
   lint-test-and-build-frontend:

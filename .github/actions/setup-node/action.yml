@@ -1,0 +1,21 @@
+name: "Setup Node"
+description: "Setup Node + install dependencies"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18.16.0
+        cache: "yarn"
+        cache-dependency-path: grafana-plugin/yarn.lock
+    - name: Use cached frontend dependencies
+      id: cache-frontend-dependencies
+      uses: actions/cache@v3
+      with:
+        path: grafana-plugin/node_modules
+        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+    - name: Install frontend dependencies
+      if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: grafana-plugin
+      run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
