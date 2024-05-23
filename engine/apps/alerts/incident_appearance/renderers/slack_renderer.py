@@ -437,7 +437,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
 
         data = {
             "organization_id": self.alert_group.channel.organization_id,
-            # eventually replace using alert_group_pk with alert_group_public_pk in slack payload
             "alert_group_ppk": self.alert_group.public_primary_key,
             **kwargs,
         }
