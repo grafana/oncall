@@ -1,8 +1,8 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
+import { Button, Input, Select, IconButton, withTheme2, Themeable2, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
@@ -34,6 +34,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
 import { PolicyNote } from './PolicyNote';
+import { isNumber } from 'lodash-es';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;
@@ -41,7 +42,7 @@ interface ElementSortableProps extends WithStoreProps {
 
 export interface EscalationPolicyProps extends ElementSortableProps, Themeable2 {
   data: EscalationPolicyType;
-  waitDelays?: any[];
+  waitDelays?: { value: number; display_name: string }[];
   isDisabled?: boolean;
   numMinutesInWindowOptions: SelectOption[];
   channels?: any[];
@@ -56,25 +57,17 @@ export interface EscalationPolicyProps extends ElementSortableProps, Themeable2 
 }
 
 @observer
-class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
+class _EscalationPolicy extends React.Component<EscalationPolicyProps> {
   private styles: ReturnType<typeof getEscalationPolicyStyles>;
 
   constructor(props: EscalationPolicyProps) {
     super(props);
-    this.styles = getEscalationPolicyStyles(props.theme);
-  }
-
-  componentDidUpdate(prevProps: Readonly<EscalationPolicyProps>): void {
-    if (prevProps.theme !== this.props.theme) {
-      // fetch new styles whenever the theme changes
-      this.styles = getEscalationPolicyStyles(this.props.theme);
-      this.forceUpdate();
-    }
   }
 
   render() {
-    const { data, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
+    const { data, theme, escalationChoices, number, isDisabled, backgroundClassName, backgroundHexNumber } = this.props;
     const { id, step, is_final } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     const escalationOption = escalationChoices.find(
       (escalationOption: EscalationPolicyOption) => escalationOption.value === step
@@ -85,7 +78,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <Timeline.Item
         key={id}
-        contentClassName={cx(this.styles.root)}
+        contentClassName={cx(styles.root)}
         number={number}
         textColor={isDisabled ? itemTextColor : undefined}
         backgroundClassName={backgroundClassName}
@@ -100,13 +93,10 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           reactStringReplace(escalationOption.display_name, /\{\{([^}]+)\}\}/g, this.replacePlaceholder)}
         {this.renderNote()}
         {is_final || isDisabled ? null : (
-          <WithPermissionControlTooltip
-            className={cx(this.styles.delete)}
-            userAction={UserActions.EscalationChainsWrite}
-          >
+          <WithPermissionControlTooltip className={cx(styles.delete)} userAction={UserActions.EscalationChainsWrite}>
             <IconButton
               name="trash-alt"
-              className={cx(this.styles.delete, this.styles.control)}
+              className={cx(styles.delete, styles.control)}
               onClick={this.handleDelete}
               size="sm"
               tooltip="Delete"
@@ -179,8 +169,10 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       data,
       isDisabled,
       store: { userStore },
+      theme,
     } = this.props;
     const { notify_to_users_queue } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="users-multiple" userAction={UserActions.EscalationChainsWrite}>
@@ -191,7 +183,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           displayField="username"
           valueField="pk"
           placeholder="Select Users"
-          className={cx(this.styles.select, this.styles.control, this.styles.multiSelect)}
+          className={cx(styles.select, styles.control, styles.multiSelect)}
           value={notify_to_users_queue}
           onChange={this.getOnChangeHandler('notify_to_users_queue')}
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
@@ -206,14 +198,15 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderImportance() {
-    const { data, isDisabled } = this.props;
+    const { data, isDisabled, theme } = this.props;
     const { important } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="importance" userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
-          className={cx(this.styles.select, this.styles.control)}
+          className={cx(styles.select, styles.control)}
           disabled={isDisabled}
           value={Number(important)}
           // @ts-ignore
@@ -251,7 +244,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderTimeRange() {
-    const { data, isDisabled } = this.props;
+    const { data, isDisabled, theme } = this.props;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="time-range" userAction={UserActions.EscalationChainsWrite}>
@@ -260,15 +254,24 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           to={data.to_time}
           disabled={isDisabled}
           onChange={this.getOnTimeRangeChangeHandler()}
-          className={cx(this.styles.select, this.styles.control)}
+          className={cx(styles.select, styles.control)}
         />
       </WithPermissionControlTooltip>
     );
   }
 
   renderWaitDelays() {
-    const { data, isDisabled, waitDelays = [] } = this.props;
+    // EscalationPolicyType, boolean, { value, display_name }
+    const { data, isDisabled, waitDelays = [], theme } = this.props;
     const { wait_delay } = data;
+    const styles = getEscalationPolicyStyles(theme);
+
+    const onCreateWaitDelay = (value: string) => {
+      if (!isNumber(+value)) return;
+
+      const numValue = parseFloat(value);
+      this.getOnSelectChangeHandler('wait_delay')({ value: numValue * 60, display_name: value });
+    };
 
     return (
       <WithPermissionControlTooltip key="wait-delay" userAction={UserActions.EscalationChainsWrite}>
@@ -276,14 +279,15 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           menuShouldPortal
           disabled={isDisabled}
           placeholder="Select Wait Delay"
-          className={cx(this.styles.select, this.styles.control)}
-          // @ts-ignore
+          className={cx(styles.select, styles.control)}
           value={wait_delay}
           onChange={this.getOnSelectChangeHandler('wait_delay')}
           options={waitDelays.map((waitDelay: SelectOption) => ({
             value: waitDelay.value,
             label: waitDelay.display_name,
           }))}
+          allowCustomValue
+          onCreateOption={onCreateWaitDelay}
           width={'auto'}
         />
       </WithPermissionControlTooltip>
@@ -291,15 +295,16 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderNumAlertsInWindow() {
-    const { data, isDisabled } = this.props;
+    const { data, isDisabled, theme } = this.props;
     const { num_alerts_in_window } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="num_alerts_in_window" userAction={UserActions.EscalationChainsWrite}>
         <Input
           placeholder="Count"
           disabled={isDisabled}
-          className={cx(this.styles.control)}
+          className={cx(styles.control)}
           value={num_alerts_in_window}
           onChange={this.getOnInputChangeHandler('num_alerts_in_window')}
           ref={(node) => {
@@ -314,8 +319,9 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderNumMinutesInWindowOptions() {
-    const { data, isDisabled, numMinutesInWindowOptions = [] } = this.props;
+    const { theme, data, isDisabled, numMinutesInWindowOptions = [] } = this.props;
     const { num_minutes_in_window } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="num_minutes_in_window" userAction={UserActions.EscalationChainsWrite}>
@@ -323,7 +329,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           menuShouldPortal
           disabled={isDisabled}
           placeholder="Period"
-          className={cx(this.styles.select, this.styles.control)}
+          className={cx(styles.select, styles.control)}
           // @ts-ignore
           value={num_minutes_in_window}
           onChange={this.getOnSelectChangeHandler('num_minutes_in_window')}
@@ -339,10 +345,12 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   renderNotifySchedule() {
     const {
       data,
+      theme,
       isDisabled,
       store: { grafanaTeamStore, scheduleStore },
     } = this.props;
     const { notify_schedule } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="notify_schedule" userAction={UserActions.EscalationChainsWrite}>
@@ -356,7 +364,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           displayField="name"
           valueField="id"
           placeholder="Select Schedule"
-          className={cx(this.styles.select, this.styles.control)}
+          className={cx(styles.select, styles.control)}
           value={notify_schedule}
           onChange={this.getOnChangeHandler('notify_schedule')}
           getOptionLabel={(item: SelectableValue) => {
@@ -378,8 +386,10 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       data,
       isDisabled,
       store: { userGroupStore },
+      theme,
     } = this.props;
     const { notify_to_group } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="notify_to_group" userAction={UserActions.EscalationChainsWrite}>
@@ -394,7 +404,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           displayField="name"
           valueField="id"
           placeholder="Select User Group"
-          className={cx(this.styles.select, this.styles.control)}
+          className={cx(styles.select, styles.control)}
           value={notify_to_group}
           onChange={this.getOnChangeHandler('notify_to_group')}
           width={'auto'}
@@ -406,10 +416,12 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   renderTriggerCustomWebhook() {
     const {
       data,
+      theme,
       isDisabled,
       store: { grafanaTeamStore, outgoingWebhookStore },
     } = this.props;
     const { custom_webhook } = data;
+    const styles = getEscalationPolicyStyles(theme);
 
     return (
       <WithPermissionControlTooltip key="custom-webhook" userAction={UserActions.EscalationChainsWrite}>
@@ -422,7 +434,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           displayField="name"
           valueField="id"
           placeholder="Select Webhook"
-          className={cx(this.styles.select, this.styles.control)}
+          className={cx(styles.select, styles.control)}
           value={custom_webhook}
           onChange={this.getOnChangeHandler('custom_webhook')}
           getOptionLabel={(item: SelectableValue) => {
@@ -474,6 +486,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
 
   getOnSelectChangeHandler = (field: string) => {
     return (option: SelectableValue) => {
+      console.log({ field, option });
+
       const { data, onChange = () => {} } = this.props;
       const { id } = data;
 

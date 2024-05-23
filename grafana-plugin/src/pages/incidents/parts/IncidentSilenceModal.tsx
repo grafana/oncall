@@ -89,7 +89,7 @@ const IncidentSilenceModal: React.FC<IncidentSilenceModalProps> = ({
   }
 
   function onSubmit() {
-    onSave(durationToMilliseconds(parseDuration(duration)) / 100);
+    onSave(durationToMilliseconds(parseDuration(duration)) / 1000);
   }
 };
 
