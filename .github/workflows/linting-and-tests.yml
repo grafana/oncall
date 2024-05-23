@@ -11,6 +11,12 @@ name: Linting and Tests
   # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
   merge_group:
 
+env:
+  DJANGO_SETTINGS_MODULE: settings.ci-test
+  DATABASE_HOST: localhost
+  RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
+  SLACK_CLIENT_OAUTH_ID: 1
+
 concurrency:
   # Cancel any running workflow for the same branch when new commits are pushed.
   # We group both by ref_name (available when CI is triggered by a push to a branch/tag)
@@ -39,21 +45,8 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
       - name: Build, lint and test frontend
         working-directory: grafana-plugin
         run: yarn lint && yarn test && yarn build
@@ -78,11 +71,6 @@ jobs:
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
     runs-on: ubuntu-latest
-    env:
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
     services:
       rabbit_test:
         image: rabbitmq:3.12.0
@@ -103,9 +91,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Python
         uses: ./.github/actions/setup-python
-        with:
-          install-dependencies: "true"
-          python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: Lint migrations
         working-directory: engine
         # makemigrations --check = Exit with a non-zero status if model changes are missing migrations
@@ -135,10 +120,6 @@ jobs:
       matrix:
         rbac_enabled: ["True", "False"]
     env:
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      SLACK_CLIENT_OAUTH_ID: 1
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
@@ -160,9 +141,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Python
         uses: ./.github/actions/setup-python
-        with:
-          install-dependencies: "true"
-          python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: Unit Test Backend
         working-directory: engine
         run: |
@@ -177,10 +155,6 @@ jobs:
         rbac_enabled: ["True", "False"]
     env:
       DATABASE_TYPE: postgresql
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
@@ -208,9 +182,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Python
         uses: ./.github/actions/setup-python
-        with:
-          install-dependencies: "true"
-          python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: Unit Test Backend
         working-directory: engine
         run: pytest -x
@@ -225,8 +196,6 @@ jobs:
       DATABASE_TYPE: sqlite3
       BROKER_TYPE: redis
       REDIS_URI: redis://localhost:6379
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       redis_test:
@@ -244,7 +213,6 @@ jobs:
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
-          install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: Unit Test Backend
         working-directory: engine
@@ -261,7 +229,6 @@ jobs:
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
-          install-dependencies: "true"
           python-requirements-paths: tools/migrators/requirements.txt
       - name: Unit Test Migrators
         working-directory: tools/migrators
@@ -276,7 +243,6 @@ jobs:
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
-          install-dependencies: "true"
           python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: mypy Static Type Checking
         working-directory: engine
