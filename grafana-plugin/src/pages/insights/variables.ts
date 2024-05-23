@@ -54,6 +54,21 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
     },
     refresh: 2,
   }),
+  service_name: new QueryVariable({
+    ...DEFAULT_VARIABLE_CONFIG,
+    name: 'service_name',
+    label: 'Service name',
+    text: ['All'],
+    value: ['$__all'],
+    allValue: '($^)|(.+)',
+    datasource,
+    definition: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
+    query: {
+      query: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
+      refId: 'PrometheusVariableQueryEditor-VariableQuery',
+    },
+    refresh: 2,
+  }),
 
   // Non-selectable
   alertGroupsTotal: new QueryVariable({
