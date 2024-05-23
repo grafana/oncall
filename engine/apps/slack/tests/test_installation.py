@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.slack.client import SlackClient
-from apps.slack.installation import SlackInstallationExc, install_slack_integration
+from apps.slack.installation import SlackInstallationExc, install_slack_integration, uninstall_slack_integration
 
 oauth_response = {
     "ok": True,
@@ -93,13 +93,54 @@ def test_install_slack_integration(
     assert mock_populate_slack_usergroups_for_team.called
 
 
+@pytest.mark.django_db
 def test_install_slack_integration_raises_exception_for_existing_integration(
     make_organization_and_user, make_slack_team_identity
 ):
-    team_identity = make_slack_team_identity()
+    slack_team_identity = make_slack_team_identity()
     organization, user = make_organization_and_user()
-    organization.slack_team_identity = team_identity
+    organization.slack_team_identity = slack_team_identity
     organization.save()
 
     with pytest.raises(SlackInstallationExc):
         install_slack_integration(organization, user, oauth_response)
+
+
+@patch("apps.slack.tasks.clean_slack_integration_leftovers.apply_async", return_value=None)
+@pytest.mark.django_db
+def test_uninstall_slack_integration(
+    mock_clean_slack_integration_leftovers,
+    make_organization_and_user,
+    make_slack_team_identity,
+    make_slack_user_identity,
+):
+    slack_team_identity = make_slack_team_identity()
+    organization, user = make_organization_and_user()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+    organization.refresh_from_db()
+
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    user.slack_user_identity = slack_user_identity
+    user.save()
+    user.refresh_from_db()
+
+    uninstall_slack_integration(organization, user)
+
+    organization.refresh_from_db()
+    user.refresh_from_db()
+    assert organization.slack_team_identity is None
+    assert user.slack_user_identity is None
+
+    # assert that we ran task for fetching data from slack
+    assert mock_clean_slack_integration_leftovers.called
+
+
+@pytest.mark.django_db
+def test_uninstall_slack_integration_raises_exception_for_non_existing_integration(
+    make_organization_and_user,
+):
+    organization, user = make_organization_and_user()
+
+    with pytest.raises(SlackInstallationExc):
+        uninstall_slack_integration(organization, user)
