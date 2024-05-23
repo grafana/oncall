@@ -9,5 +9,7 @@ handler = ChatopsEventsHandler()
 class ChatopsEventsView(APIView):
     # TODO: check signature to verify requests
     def post(self, request):
-        handler.handle(request.data)
+        found = handler.handle(request.data)
+        if not found:
+            return Response(status=400)
         return Response(status=200)

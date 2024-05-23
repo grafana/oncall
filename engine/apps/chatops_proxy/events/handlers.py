@@ -28,7 +28,7 @@ class SlackInstallationHandler(Handler):
     def match(cls, event: Event) -> bool:
         return (
             event.get("event_type") == INTEGRATION_INSTALLED_EVENT_TYPE
-            and event.get("data").get("provider_type") == PROVIDER_TYPE_SLACK
+            and event.get("data", {}).get("provider_type") == PROVIDER_TYPE_SLACK
         )
 
     @classmethod
