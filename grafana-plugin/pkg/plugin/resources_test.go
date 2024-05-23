@@ -3,10 +3,9 @@ package plugin
 import (
 	"bytes"
 	"context"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"net/http"
 	"testing"
-
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
 // mockCallResourceResponseSender implements backend.CallResourceResponseSender
@@ -55,12 +54,24 @@ func TestCallResource(t *testing.T) {
 			expStatus: http.StatusOK,
 		},
 		{
+			name:      "get echo 405",
+			method:    http.MethodGet,
+			path:      "echo",
+			expStatus: http.StatusMethodNotAllowed,
+		},
+		{
 			name:      "post echo 200",
 			method:    http.MethodPost,
 			path:      "echo",
 			body:      []byte(`{"message":"ok"}`),
 			expStatus: http.StatusOK,
 			expBody:   []byte(`{"message":"ok"}`),
+		},
+		{
+			name:      "get non existing handler 404",
+			method:    http.MethodGet,
+			path:      "not_found",
+			expStatus: http.StatusNotFound,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

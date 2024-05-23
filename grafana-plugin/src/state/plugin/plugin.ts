@@ -246,7 +246,7 @@ export class PluginState {
 
     // Step 1. Try provisioning the plugin w/ the Grafana API
     try {
-      await this.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl: onCallApiUrl } });
+      await this.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl: onCallApiUrl, useBackendPlugin: true } });
     } catch (e) {
       return this.getHumanReadableErrorFromGrafanaProvisioningError(
         e,
@@ -283,6 +283,7 @@ export class PluginState {
       await this.updateGrafanaPluginSettings({
         jsonData: {
           ...jsonData,
+          useBackendPlugin: true,
           onCallApiUrl,
         },
         secureJsonData: {
@@ -327,6 +328,7 @@ export class PluginState {
       onCallApiUrl: null,
       insightsDatasource: undefined,
       license: null,
+      useBackendPlugin: true,
     };
     const secureJsonData: OnCallPluginMetaSecureJSONData = {
       grafanaToken: null,
