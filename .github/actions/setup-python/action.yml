@@ -22,8 +22,7 @@ runs:
         cache: "pip"
         cache-dependency-path: ${{ inputs.python-requirements-paths }}
     - name: Install Python dependencies
-      # only install dependencies if the cache was not hit and the user wants to install dependencies
-      if: ${{ inputs.install-dependencies == 'true' && ! steps.setup-python.outputs.cache-hit }}
+      if: ${{ inputs.install-dependencies == 'true' }}
       shell: bash
       run: |
         pip install uv
