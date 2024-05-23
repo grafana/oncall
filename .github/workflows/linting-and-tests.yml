@@ -212,8 +212,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Python
         uses: ./.github/actions/setup-python
-        with:
-          python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: Unit Test Backend
         working-directory: engine
         run: |
@@ -242,8 +240,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Python
         uses: ./.github/actions/setup-python
-        with:
-          python-requirements-paths: "engine/requirements.txt engine/requirements-dev.txt"
       - name: mypy Static Type Checking
         working-directory: engine
         run: mypy .
