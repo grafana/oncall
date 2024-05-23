@@ -17,7 +17,6 @@ import {
   Divider,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
