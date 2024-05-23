@@ -186,7 +186,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
             }}
             channelFilterId={channelFilterIdForEdit}
             onUpdateTemplates={this.onUpdateTemplatesCallback}
-            onUpdateRoute={this.onUpdateRoutesCallback}
+            onUpdateRoute={(values, channelFilterId) => this.onUpdateRoutesCallback(values, channelFilterId, 1)}
             template={selectedTemplate}
             templateBody={
               selectedTemplate?.name === 'route_template'
