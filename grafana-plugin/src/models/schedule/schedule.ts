@@ -124,7 +124,7 @@ export class ScheduleStore extends BaseStore {
   };
 
   @observable
-  scheduleView = ScheduleView.OneWeek;
+  scheduleView = ScheduleView.TwoWeeks;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -533,11 +533,12 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async refreshEvents(scheduleId: string) {
+  async refreshEvents(scheduleId: string, scheduleView?: ScheduleView) {
     this.refreshEventsError = {};
     const startMoment = this.rootStore.timezoneStore.calendarStartDate;
 
-    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 1;
+    const days =
+      getTotalDaysToDisplay(scheduleView || this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 1;
 
     try {
       const schedule = await this.loadItem(scheduleId);

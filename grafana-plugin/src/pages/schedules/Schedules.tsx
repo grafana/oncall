@@ -167,7 +167,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
     if (expanded && !expandedRowKeys.includes(data.id)) {
       this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, () => {
-        this.props.store.scheduleStore.refreshEvents(data.id);
+        this.props.store.scheduleStore.refreshEvents(data.id, ScheduleView.OneWeek);
       });
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
@@ -180,7 +180,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   refreshExpandedSchedules = () => {
     const { expandedRowKeys } = this.state;
 
-    expandedRowKeys.forEach(this.props.store.scheduleStore.refreshEvents);
+    expandedRowKeys.forEach((key: Schedule['id']) => {
+      this.props.store.scheduleStore.refreshEvents(key, ScheduleView.OneWeek);
+    });
   };
 
   renderSchedule = (data: Schedule) => (
@@ -369,13 +371,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   update = () => {
     const { store } = this.props;
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
-
-    store.scheduleStore.updatePersonalEvents(
-      store.userStore.currentUserPk,
-      store.timezoneStore.calendarStartDate,
-      9,
-      true
-    );
 
     // For removal we need to check if count is 1, which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();
