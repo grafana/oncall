@@ -82,7 +82,7 @@ if not is_ci:
     )
 
 local_resource(
-    'build-plugin-backend',
+    'build-oncall-plugin-backend',
     labels=["OnCallPluginBackend"],
     dir="./grafana-plugin",
     cmd="mage buildAll",
@@ -90,7 +90,7 @@ local_resource(
 )
 
 local_resource(
-    'restart-plugin-backend',
+    'restart-oncall-plugin-backend',
     labels=["OnCallPluginBackend"],
     dir="./dev/scripts",
     cmd="chmod +x ./restart_backend_plugin.sh && ./restart_backend_plugin.sh",

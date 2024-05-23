@@ -321,19 +321,14 @@ export class PluginState {
   };
 
   static resetPlugin = (): Promise<void> => {
-    /**
-     * mark both of these objects as Required.. this will ensure that we are resetting every attribute back to null
-     * and throw a type error in the event that OnCallPluginMetaJSONData or OnCallPluginMetaSecureJSONData is updated
-     * but we forget to add the attribute here
-     */
-    const jsonData: Required<OnCallPluginMetaJSONData> = {
+    const jsonData: OnCallPluginMetaJSONData = {
       stackId: null,
       orgId: null,
       onCallApiUrl: null,
       insightsDatasource: undefined,
       license: null,
     };
-    const secureJsonData: Required<OnCallPluginMetaSecureJSONData> = {
+    const secureJsonData: OnCallPluginMetaSecureJSONData = {
       grafanaToken: null,
       onCallApiToken: null,
     };

@@ -6,3 +6,4 @@ apps:
       stackId: 5
       orgId: 100
       onCallApiUrl: http://oncall-dev-engine:8080
+      useBackendPlugin: false
