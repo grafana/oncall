@@ -268,8 +268,13 @@ const RegularEvent = (props: RegularEventProps) => {
         const title = isShiftSwap ? 'Shift swap' : showScheduleNameAsSlotTitle ? schedule?.name : getShiftName(shift);
 
         let backgroundColor = color;
+        let border = undefined;
         if (isShiftSwap) {
           backgroundColor = SHIFT_SWAP_COLOR;
+          if (!swap_request.user) {
+            backgroundColor = 'transparent';
+            border = `1px solid ${SHIFT_SWAP_COLOR}`;
+          }
         }
 
         const scheduleSlotContent = (
@@ -277,6 +282,7 @@ const RegularEvent = (props: RegularEventProps) => {
             className={cx('root', { root__inactive: inactive })}
             style={{
               backgroundColor,
+              border,
             }}
             onClick={swap_request ? getShiftSwapClickHandler(swap_request.pk) : undefined}
             data-testid="schedule-slot"
@@ -291,7 +297,13 @@ const RegularEvent = (props: RegularEventProps) => {
               />
             )}
             <div className={cx('title')}>
-              {swap_request && !swap_request.user ? <Icon name="user-arrows" /> : userTitle}
+              {swap_request ? (
+                <HorizontalGroup>
+                  {swap_request.user ? swap_request.user.display_name + ' → ' + userTitle : userTitle + ' → ?'}
+                </HorizontalGroup>
+              ) : (
+                userTitle
+              )}
             </div>
           </div>
         );
