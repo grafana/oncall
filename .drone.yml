@@ -53,7 +53,7 @@ steps:
   - name: Lint Backend
     image: python:3.11.4
     environment:
-      DJANGO_SETTINGS_MODULE: settings.ci-test
+      DJANGO_SETTINGS_MODULE: settings.ci_test
     commands:
       - pip install $(grep "pre-commit==" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
@@ -64,7 +64,7 @@ steps:
     image: python:3.11.4
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
+      DJANGO_SETTINGS_MODULE: settings.ci_test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
       - apt-get update && apt-get install -y netcat-traditional

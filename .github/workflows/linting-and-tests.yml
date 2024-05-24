@@ -12,7 +12,7 @@ name: Linting and Tests
   merge_group:
 
 env:
-  DJANGO_SETTINGS_MODULE: settings.ci-test
+  DJANGO_SETTINGS_MODULE: settings.ci_test
   DATABASE_HOST: localhost
   RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
   SLACK_CLIENT_OAUTH_ID: 1
