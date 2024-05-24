@@ -11,7 +11,7 @@ export class UserGroupStore extends BaseStore {
   searchResult: { [key: string]: Array<UserGroup['id']> } = {};
 
   @observable.shallow
-  items?: { [id: string]: UserGroup[] } = {};
+  items?: { [id: string]: UserGroup } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -42,6 +42,21 @@ export class UserGroupStore extends BaseStore {
       this.searchResult = {
         ...(this.searchResult || {}),
         [query]: result.map((item: UserGroup) => item.id),
+      };
+    });
+  }
+
+  @action.bound
+  async fetchItemById(id: string) {
+    const response: UserGroup[] = (await makeRequest(`${this.path}`, {
+      params: { id },
+    })) as UserGroup[];
+
+    runInAction(() => {
+      this.items = {
+        ...this.items,
+        // backend returns an array
+        [id]: Array.isArray(response) ? (response.length > 0 ? response[0] : undefined) : response,
       };
     });
   }
