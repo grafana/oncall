@@ -149,6 +149,27 @@ def test_create_escalation_policy(
 
 
 @pytest.mark.django_db
+def test_create_empty_escalation_policy(
+    make_organization_and_user_with_token,
+    escalation_policies_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+
+    data_for_create = {
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "type": None,
+    }
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["type"][0] == "This field may not be null."
+
+
+@pytest.mark.django_db
 def test_create_escalation_policy_manual_order_duplicated_position(
     make_organization_and_user_with_token,
     escalation_policies_setup,

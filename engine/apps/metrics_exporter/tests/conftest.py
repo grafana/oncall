@@ -18,6 +18,7 @@ METRICS_TEST_ORG_ID = 123  # random number
 METRICS_TEST_INSTANCE_SLUG = "test_instance"
 METRICS_TEST_INSTANCE_ID = 292  # random number
 METRICS_TEST_USER_USERNAME = "Alex"
+METRICS_TEST_SERVICE_NAME = "test_service"
 
 
 @pytest.fixture()
@@ -44,6 +45,12 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                             "silenced": 4,
                             "acknowledged": 3,
                             "resolved": 5,
+                        },
+                        METRICS_TEST_SERVICE_NAME: {
+                            "firing": 12,
+                            "silenced": 14,
+                            "acknowledged": 13,
+                            "resolved": 15,
                         },
                     },
                 },
@@ -72,9 +79,7 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                     "org_id": 1,
                     "slug": "Test stack",
                     "id": 1,
-                    "services": {
-                        NO_SERVICE_VALUE: [2, 10, 200, 650],
-                    },
+                    "services": {NO_SERVICE_VALUE: [2, 10, 200, 650], METRICS_TEST_SERVICE_NAME: [4, 12, 20]},
                 },
                 2: {
                     "integration_name": "Empty integration",
@@ -87,92 +92,6 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                         # if there are no response times available, this integration will be ignored
                         NO_SERVICE_VALUE: [],
                     },
-                },
-            },
-            USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
-                1: {
-                    "org_id": 1,
-                    "slug": "Test stack",
-                    "id": 1,
-                    "user_username": "Alex",
-                    "counter": 4,
-                }
-            },
-        }
-        return test_metrics.get(key)
-
-    def _mock_cache_get_many(keys, *args, **kwargs):
-        return {key: _mock_cache_get(key) for key in keys if _mock_cache_get(key)}
-
-    monkeypatch.setattr(cache, "get", _mock_cache_get)
-    monkeypatch.setattr(cache, "get_many", _mock_cache_get_many)
-
-
-# todo:metrics: remove later when all cache is updated
-@pytest.fixture()  # used for test backwards compatibility with old version of metrics
-def mock_cache_get_metrics_for_collector_mixed_versions(monkeypatch):
-    def _mock_cache_get(key, *args, **kwargs):
-        if ALERT_GROUPS_TOTAL in key:
-            key = ALERT_GROUPS_TOTAL
-        elif ALERT_GROUPS_RESPONSE_TIME in key:
-            key = ALERT_GROUPS_RESPONSE_TIME
-        elif USER_WAS_NOTIFIED_OF_ALERT_GROUPS in key:
-            key = USER_WAS_NOTIFIED_OF_ALERT_GROUPS
-        test_metrics = {
-            ALERT_GROUPS_TOTAL: {
-                1: {
-                    "integration_name": "Test metrics integration",
-                    "team_name": "Test team",
-                    "team_id": 1,
-                    "org_id": 1,
-                    "slug": "Test stack",
-                    "id": 1,
-                    "firing": 2,
-                    "acknowledged": 3,
-                    "silenced": 4,
-                    "resolved": 5,
-                },
-                2: {
-                    "integration_name": "Test metrics integration 2",
-                    "team_name": "Test team",
-                    "team_id": 1,
-                    "org_id": 1,
-                    "slug": "Test stack",
-                    "id": 1,
-                    "services": {
-                        NO_SERVICE_VALUE: {
-                            "firing": 2,
-                            "silenced": 4,
-                            "acknowledged": 3,
-                            "resolved": 5,
-                        },
-                        "test_service": {
-                            "firing": 10,
-                            "silenced": 10,
-                            "acknowledged": 10,
-                            "resolved": 10,
-                        },
-                    },
-                },
-            },
-            ALERT_GROUPS_RESPONSE_TIME: {
-                1: {
-                    "integration_name": "Test metrics integration",
-                    "team_name": "Test team",
-                    "team_id": 1,
-                    "org_id": 1,
-                    "slug": "Test stack",
-                    "id": 1,
-                    "response_time": [2, 10, 200, 650],
-                },
-                2: {
-                    "integration_name": "Test metrics integration 2",
-                    "team_name": "Test team",
-                    "team_id": 1,
-                    "org_id": 1,
-                    "slug": "Test stack",
-                    "id": 1,
-                    "services": {NO_SERVICE_VALUE: [2, 10, 200, 650], "test_service": [4, 8, 12]},
                 },
             },
             USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
@@ -245,50 +164,6 @@ def make_metrics_cache_params(monkeypatch):
                                 "resolved": 0,
                             },
                         },
-                    }
-                },
-            }
-            return metrics_data.get(key, {})
-
-        return cache_get
-
-    return _make_cache_params
-
-
-# todo:metrics: remove later when all cache is updated
-@pytest.fixture
-def make_metrics_cache_params_old_version(monkeypatch):
-    def _make_cache_params(integration_id, organization_id, team_name=None, team_id=None):
-        team_name = team_name or "No team"
-        team_id = team_id or "no_team"
-        metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
-        metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
-
-        def cache_get(key, *args, **kwargs):
-            metrics_data = {
-                metric_alert_groups_response_time_key: {
-                    integration_id: {
-                        "integration_name": METRICS_TEST_INTEGRATION_NAME,
-                        "team_name": team_name,
-                        "team_id": team_id,
-                        "org_id": METRICS_TEST_ORG_ID,
-                        "slug": METRICS_TEST_INSTANCE_SLUG,
-                        "id": METRICS_TEST_INSTANCE_ID,
-                        "response_time": [],
-                    }
-                },
-                metric_alert_groups_total_key: {
-                    integration_id: {
-                        "integration_name": METRICS_TEST_INTEGRATION_NAME,
-                        "team_name": team_name,
-                        "team_id": team_id,
-                        "org_id": METRICS_TEST_ORG_ID,
-                        "slug": METRICS_TEST_INSTANCE_SLUG,
-                        "id": METRICS_TEST_INSTANCE_ID,
-                        "firing": 0,
-                        "acknowledged": 0,
-                        "silenced": 0,
-                        "resolved": 0,
                     }
                 },
             }

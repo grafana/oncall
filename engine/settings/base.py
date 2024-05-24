@@ -7,7 +7,7 @@ from random import randrange
 from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
-from common.utils import getenv_boolean, getenv_float, getenv_integer, getenv_list
+from common.utils import getenv_boolean, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -915,5 +915,3 @@ ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
-
-CLOUD_RBAC_ROLLOUT_PERCENTAGE = getenv_float("CLOUD_RBAC_ROLLOUT_PERCENTAGE", default=0.0)
