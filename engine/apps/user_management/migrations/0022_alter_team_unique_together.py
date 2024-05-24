@@ -2,7 +2,7 @@
 import logging
 
 from django.db import migrations, models
-from django.utils import timezone
+import django_migration_linter as linter
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +49,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(), # removing duplicated teams is ok, no way to revert this
         migrations.RunPython(clean_up_duplicated_teams, migrations.RunPython.noop),
         migrations.AlterUniqueTogether(
             name='team',
