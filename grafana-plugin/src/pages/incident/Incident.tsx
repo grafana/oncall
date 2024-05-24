@@ -50,7 +50,7 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { CUSTOM_SILENCE_VALUE, IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { IncidentSilenceModal } from 'pages/incidents/parts/IncidentSilenceModal';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -656,8 +656,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   getSilenceClickHandler = (incident: ApiSchemas['AlertGroup']) => {
     const { store } = this.props;
 
-    return (value: number) => {
-      if (value === -100) {
+    return (value: number): Promise<void> => {
+      if (value === CUSTOM_SILENCE_VALUE) {
         this.setState({ silenceModalData: { incident } });
         return Promise.resolve(); // awaited by other component
       }

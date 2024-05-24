@@ -14,7 +14,7 @@ export const RenderConditionally: FC<RenderConditionallyProps> = ({
   backupChildren = null,
 }) => {
   if (render) {
-    return shouldRender ? <>{render()}</> : null;
+    return shouldRender ? <>{render()}</> : <>{backupChildren}</>;
   }
 
   return shouldRender ? <>{children}</> : <>{backupChildren}</>;

@@ -8,6 +8,8 @@ import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
+import { CUSTOM_SILENCE_VALUE } from './IncidentDropdown';
+
 interface SilenceButtonCascaderProps {
   className?: string;
   disabled?: boolean;
@@ -45,7 +47,7 @@ export const SilenceButtonCascader = observer((props: SilenceButtonCascaderProps
         label: silenceOption.display_name,
       }))
       .concat({
-        value: -100,
+        value: CUSTOM_SILENCE_VALUE,
         label: 'Custom',
       }) as CascaderOption[];
   }

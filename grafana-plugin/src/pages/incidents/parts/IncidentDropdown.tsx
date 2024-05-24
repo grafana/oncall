@@ -57,7 +57,7 @@ function IncidentStatusTag({
   );
 }
 
-const CUSTOM_VALUE_NUM = -100;
+export const CUSTOM_SILENCE_VALUE = -100;
 
 export const IncidentDropdown: FC<{
   alert: ApiSchemas['AlertGroup'];
@@ -199,12 +199,12 @@ export const IncidentDropdown: FC<{
 
               <div className={cx(styles.incidentOptionItem)}>
                 <SilenceSelect
-                  customValueNum={CUSTOM_VALUE_NUM}
+                  customValueNum={CUSTOM_SILENCE_VALUE}
                   placeholder={
                     currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
                   }
                   onSelect={async (value) => {
-                    if (value === CUSTOM_VALUE_NUM) {
+                    if (value === CUSTOM_SILENCE_VALUE) {
                       return setIsSilenceModalOpen(true);
                     }
 
