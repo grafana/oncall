@@ -10,12 +10,13 @@ import { UserActions } from 'utils/authorization/authorization';
 
 interface SilenceSelectProps {
   placeholder?: string;
+  customValueNum: number;
 
   onSelect: (value: number) => void;
 }
 
 export const SilenceSelect = observer((props: SilenceSelectProps) => {
-  const { placeholder = 'Silence for', onSelect } = props;
+  const { customValueNum, placeholder = 'Silence for', onSelect } = props;
 
   const store = useStore();
 
@@ -24,21 +25,31 @@ export const SilenceSelect = observer((props: SilenceSelectProps) => {
   const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
-    <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
-      <Select
-        menuShouldPortal
-        placeholder={placeholder}
-        value={undefined}
-        onChange={({ value }) => onSelect(Number(value))}
-        options={getOptions()}
-      />
-    </WithPermissionControlTooltip>
+    <>
+      {' '}
+      <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
+        <Select
+          menuShouldPortal
+          placeholder={placeholder}
+          value={undefined}
+          onChange={({ value }) => {
+            onSelect(Number(value));
+          }}
+          options={getOptions()}
+        />
+      </WithPermissionControlTooltip>
+    </>
   );
 
   function getOptions() {
-    return silenceOptions.map((silenceOption: SelectOption) => ({
-      value: silenceOption.value,
-      label: silenceOption.display_name,
-    }));
+    return silenceOptions
+      .map((silenceOption: SelectOption) => ({
+        value: silenceOption.value,
+        label: silenceOption.display_name,
+      }))
+      .concat({
+        value: customValueNum,
+        label: 'Custom',
+      });
   }
 });
