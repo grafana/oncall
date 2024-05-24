@@ -22,7 +22,7 @@ def clean_up_duplicated_teams(apps, schema_editor):
             team_id=team_id,
         ).order_by("id").first()
 
-        # delete duplicated entries
+        # migrate resources associated to duplicated entries
         duplicated_teams = Team.objects.filter(
             organization_id=organization_id,
             team_id=team_id,
@@ -30,11 +30,13 @@ def clean_up_duplicated_teams(apps, schema_editor):
 
         for team in duplicated_teams:
             # if there is anything to migrate, do it here
+            team.escalation_chains.update(team=first_team)
+            team.alert_receive_channels.exclude(integration="direct_paging").update(team=first_team)
             team.custom_on_call_shifts.update(team=first_team)
             team.oncall_schedules.update(team=first_team)
             team.webhooks.update(team=first_team)
-            team.alert_receive_channels.exclude(integration="direct_paging").update(team=first_team)
 
+        # delete duplicated teams
         num_deleted, _ = duplicated_teams.delete()
         logger.info(
             f"Deleted {num_deleted} duplicate teams for ({organization_id}, {team_id}), "
