@@ -5,18 +5,7 @@ import pytest
 
 from apps.slack.client import SlackClient
 from apps.slack.installation import SlackInstallationExc, install_slack_integration, uninstall_slack_integration
-
-oauth_response = {
-    "ok": True,
-    "access_token": "xoxb-17653672481-19874698323-pdFZKVeTuE8sk7oOcBrzbqgy",
-    "token_type": "bot",
-    "scope": "commands,incoming-webhook",
-    "bot_user_id": "U0KRQLJ9H",
-    "app_id": "A0KRD7HC3",
-    "team": {"name": "Slack Softball Team", "id": "T9TK3CUKW"},
-    "enterprise": {"name": "slack-sports", "id": "E12345678"},
-    "authed_user": {"id": "U1234", "scope": "chat:write", "access_token": "xoxp-1234", "token_type": "user"},
-}
+from common.constants.slack_auth import SLACK_OAUTH_ACCESS_RESPONSE
 
 users_profile_get_response = {
     "ok": True,
@@ -72,18 +61,18 @@ def test_install_slack_integration(
     make_organization_and_user,
 ):
     organization, user = make_organization_and_user()
-    install_slack_integration(organization, user, oauth_response)
+    install_slack_integration(organization, user, SLACK_OAUTH_ACCESS_RESPONSE)
 
     assert organization.slack_team_identity is not None
     # test that two most important fields are set: id of slack workspace and api acess token
-    assert organization.slack_team_identity.slack_id == oauth_response["team"]["id"]
-    assert organization.slack_team_identity.bot_access_token == oauth_response["access_token"]
+    assert organization.slack_team_identity.slack_id == SLACK_OAUTH_ACCESS_RESPONSE["team"]["id"]
+    assert organization.slack_team_identity.bot_access_token == SLACK_OAUTH_ACCESS_RESPONSE["access_token"]
 
     # install_slack_integration links instgallers's slack profile to OnCall
     assert user.slack_user_identity is not None
 
     # assert that installer slack profile is linked to OnCall user
-    assert user.slack_user_identity.slack_id == oauth_response["authed_user"]["id"]
+    assert user.slack_user_identity.slack_id == SLACK_OAUTH_ACCESS_RESPONSE["authed_user"]["id"]
 
     # assert that we populated user's profile info
     assert user.slack_user_identity.cached_slack_login == users_profile_get_response["user"]["name"]
@@ -103,7 +92,7 @@ def test_install_slack_integration_raises_exception_for_existing_integration(
     organization.save()
 
     with pytest.raises(SlackInstallationExc):
-        install_slack_integration(organization, user, oauth_response)
+        install_slack_integration(organization, user, SLACK_OAUTH_ACCESS_RESPONSE)
 
 
 @patch("apps.slack.tasks.clean_slack_integration_leftovers.apply_async", return_value=None)
