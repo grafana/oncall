@@ -14,8 +14,7 @@ installation_event = {
         "grafana_user_id": "grafana_user_id",
         "payload": {
             # It's not actual payload we are getting from slack, just a placeholder
-            "slack_id"
-            "some_slack_id"
+            "slack_id": "some_slack_id"
         },
     },
 }
