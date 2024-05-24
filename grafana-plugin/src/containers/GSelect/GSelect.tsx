@@ -125,7 +125,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     } else if (propItems[value as string]) {
       const label = get(propItems[value as string], displayField)
         ? get(propItems[value as string], displayField)
-        : 'hidden aaa';
+        : 'hidden';
 
       return {
         value,
