@@ -134,7 +134,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
             <TimelineMarks />
             {shiftSwaps && shiftSwaps.length ? (
               <TransitionGroup className={cx('layer', 'layer-first')}>
-                <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                <Tag className={cx('layer-title')}>
                   <Text type="primary" size="small">
                     Swaps
                   </Text>
@@ -158,7 +158,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </TransitionGroup>
             ) : null}
             <TransitionGroup className={cx('layer', { 'layer-first': !shiftSwaps || !shiftSwaps.length })}>
-              <Tag className={cx('layer-title')} color="var(--background-canvas)">
+              <Tag className={cx('layer-title')}>
                 <Text type="primary" size="small">
                   Overrides
                 </Text>

@@ -29,6 +29,8 @@
 
 .layer-title {
   margin: 8px;
+  border: var(--border-weak);
+  background-color: var(--background-canvas);
 }
 
 .rotations-plus-title {

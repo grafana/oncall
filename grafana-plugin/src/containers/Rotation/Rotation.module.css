@@ -39,10 +39,6 @@
   opacity: 0.5;
 }
 
-.slots__animate {
-  /*  transition: transform 500ms ease; */
-}
-
 .current-time {
   position: absolute;
   left: 450px;

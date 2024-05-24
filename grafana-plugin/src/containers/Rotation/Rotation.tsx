@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -67,8 +67,6 @@ export const Rotation: FC<RotationProps> = observer((props) => {
   const startDate = propsStartDate || calendarStartDate;
 
   const days = scheduleViewToDaysInOneRow[scheduleView];
-
-  const [animate, _setAnimate] = useState<boolean>(true);
 
   const handleRotationClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -154,7 +152,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
         {events ? (
           events.length ? (
             <div
-              className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
+              className={cx('slots', { slots__transparent: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
             >
               {events.map((event) => {

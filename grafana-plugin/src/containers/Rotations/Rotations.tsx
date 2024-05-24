@@ -159,7 +159,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                 {layers.map((layer, layerIndex) => (
                   <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                     <div id={`layer${layer.priority}`} className={cx('layer', { ['layer-first']: layerIndex === 0 })}>
-                      <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                      <Tag className={cx('layer-title')}>
                         <Text size="small" type="primary">
                           Layer {layer.priority}
                         </Text>
@@ -200,7 +200,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                 <TimelineMarks />
                 <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
                 <div id="layer1" className={cx('layer', 'layer-first')}>
-                  <Tag className={cx('layer-title')} color="var(--background-canvas)">
+                  <Tag className={cx('layer-title')}>
                     <Text size="small" type="primary">
                       Layer 1
                     </Text>
