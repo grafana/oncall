@@ -15,13 +15,18 @@ const DEFAULT_VARIABLE_CONFIG: Partial<ConstructorParameters<typeof QueryVariabl
   type: 'query',
 };
 
-const getVariables = ({ datasource, stack }: InsightsConfig) => ({
-  datasource: new DataSourceVariable({
-    name: 'datasource',
-    label: 'Data source',
-    pluginId: 'prometheus',
-    value: 'grafanacloud-usage',
-  }),
+const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
+  // Selectable
+  ...(isOpenSource
+    ? {
+        datasource: new DataSourceVariable({
+          name: 'datasource',
+          label: 'Data source',
+          pluginId: 'prometheus',
+          value: 'grafanacloud-usage',
+        }),
+      }
+    : {}),
   team: new QueryVariable({
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'team',
