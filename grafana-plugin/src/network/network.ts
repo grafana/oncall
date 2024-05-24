@@ -44,7 +44,6 @@ export const makeRequestRaw = async (path: string, config: RequestConfig) => {
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
 
-
   try {
     FaroHelper.pushNetworkRequestEvent({ method, url, body: `${safeJSONStringify(data)}` });
     const response = await instance({
