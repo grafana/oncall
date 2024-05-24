@@ -5,7 +5,6 @@ import uuid
 
 from django.db import models
 
-from apps.base.models import UserNotificationPolicy
 from apps.slack.client import SlackClient
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
@@ -140,25 +139,13 @@ class SlackMessage(models.Model):
         channel_id = slack_message.channel_id
 
         try:
-            if (
-                slack_user_identity
-                and notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK_DM
-            ):
-                channel_id = slack_user_identity.im_channel_id
-                result = sc.chat_postMessage(
-                    channel=channel_id,
-                    text=text,
-                    blocks=blocks,
-                    unfurl_links=True,
-                )
-            else:
-                result = sc.chat_postMessage(
-                    channel=channel_id,
-                    text=text,
-                    blocks=blocks,
-                    thread_ts=slack_message.slack_id,
-                    unfurl_links=True,
-                )
+            result = sc.chat_postMessage(
+                channel=channel_id,
+                text=text,
+                blocks=blocks,
+                thread_ts=slack_message.slack_id,
+                unfurl_links=True,
+            )
         except SlackAPITokenError:
             UserNotificationPolicyLogRecord(
                 author=user,
@@ -209,8 +196,16 @@ class SlackMessage(models.Model):
                 except SlackAPIFetchMembersFailedError:
                     pass
 
+                time.sleep(5)  # 2 messages in the same moment are ratelimited by Slack. Dirty hack.
                 if slack_user_identity.slack_id not in channel_members:
-                    time.sleep(5)  # 2 messages in the same moment are ratelimited by Slack. Dirty hack.
                     slack_user_identity.send_link_to_slack_message(slack_message)
+                else:
+                    channel_id = slack_user_identity.im_channel_id
+                    result = sc.chat_postMessage(
+                        channel=channel_id,
+                        text=text,
+                        blocks=blocks,
+                        unfurl_links=True,
+                    )
         except (SlackAPITokenError, SlackAPIMethodNotSupportedForChannelTypeError):
             pass

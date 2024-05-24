@@ -186,56 +186,18 @@ def test_notify_user_error_if_viewer(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "reason_to_skip_escalation,error_code,notify_by",
+    "reason_to_skip_escalation,error_code",
     [
-        (
-            AlertGroup.RATE_LIMITED,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT,
-            UserNotificationPolicy.NotificationChannel.SLACK,
-        ),
-        (
-            AlertGroup.CHANNEL_ARCHIVED,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_CHANNEL_IS_ARCHIVED,
-            UserNotificationPolicy.NotificationChannel.SLACK,
-        ),
-        (
-            AlertGroup.ACCOUNT_INACTIVE,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR,
-            UserNotificationPolicy.NotificationChannel.SLACK,
-        ),
-        (
-            AlertGroup.RESTRICTED_ACTION,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK,
-            UserNotificationPolicy.NotificationChannel.SLACK,
-        ),
-        (AlertGroup.NO_REASON, None, UserNotificationPolicy.NotificationChannel.SLACK),
-        (
-            AlertGroup.RATE_LIMITED,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT,
-            UserNotificationPolicy.NotificationChannel.SLACK_DM,
-        ),
-        (
-            AlertGroup.CHANNEL_ARCHIVED,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_CHANNEL_IS_ARCHIVED,
-            UserNotificationPolicy.NotificationChannel.SLACK_DM,
-        ),
-        (
-            AlertGroup.ACCOUNT_INACTIVE,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR,
-            UserNotificationPolicy.NotificationChannel.SLACK_DM,
-        ),
-        (
-            AlertGroup.RESTRICTED_ACTION,
-            UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK,
-            UserNotificationPolicy.NotificationChannel.SLACK_DM,
-        ),
-        (AlertGroup.NO_REASON, None, UserNotificationPolicy.NotificationChannel.SLACK_DM),
+        (AlertGroup.RATE_LIMITED, UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT),
+        (AlertGroup.CHANNEL_ARCHIVED, UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_CHANNEL_IS_ARCHIVED),
+        (AlertGroup.ACCOUNT_INACTIVE, UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR),
+        (AlertGroup.RESTRICTED_ACTION, UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK),
+        (AlertGroup.NO_REASON, None),
     ],
 )
 def test_perform_notification_reason_to_skip_escalation_in_slack(
     reason_to_skip_escalation,
     error_code,
-    notify_by,
     make_organization,
     make_slack_team_identity,
     make_user,
@@ -253,7 +215,7 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
     user_notification_policy = make_user_notification_policy(
         user=user,
         step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=notify_by,
+        notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
@@ -283,15 +245,7 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "notify_by",
-    [
-        UserNotificationPolicy.NotificationChannel.SLACK,
-        UserNotificationPolicy.NotificationChannel.SLACK_DM,
-    ],
-)
 def test_perform_notification_slack_prevent_posting(
-    notify_by,
     make_organization,
     make_slack_team_identity,
     make_user,
@@ -309,7 +263,7 @@ def test_perform_notification_slack_prevent_posting(
     user_notification_policy = make_user_notification_policy(
         user=user,
         step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=notify_by,
+        notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
     )
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)

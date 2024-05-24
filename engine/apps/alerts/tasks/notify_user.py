@@ -156,7 +156,6 @@ def notify_user_task(
             elif notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
                 user_to_be_notified_in_slack = (
                     notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK
-                    or notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK_DM
                 )
                 if user_to_be_notified_in_slack and alert_group.notify_in_slack_enabled is False:
                     log_record = UserNotificationPolicyLogRecord(
@@ -301,10 +300,7 @@ def perform_notification(log_record_pk):
             countdown = getattr(e, "retry_after", 3)
             raise perform_notification.retry((log_record_pk,), countdown=countdown, exc=e)
 
-    elif (
-        notification_channel == UserNotificationPolicy.NotificationChannel.SLACK
-        or notification_channel == UserNotificationPolicy.NotificationChannel.SLACK_DM
-    ):
+    elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack
         # Code below is not consistent.
         # We check various slack reasons to skip escalation in this task, in send_slack_notification,

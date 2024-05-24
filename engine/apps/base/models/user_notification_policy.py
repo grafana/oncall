@@ -35,7 +35,6 @@ BUILT_IN_BACKENDS = (
     ("SMS", 1),
     ("PHONE_CALL", 2),
     ("TELEGRAM", 3),
-    ("SLACK_DM", 12),
 )
 
 
@@ -191,7 +190,6 @@ class NotificationChannelOptions:
 
     AVAILABLE_FOR_USE = [
         UserNotificationPolicy.NotificationChannel.SLACK,
-        UserNotificationPolicy.NotificationChannel.SLACK_DM,
         UserNotificationPolicy.NotificationChannel.SMS,
         UserNotificationPolicy.NotificationChannel.PHONE_CALL,
         UserNotificationPolicy.NotificationChannel.TELEGRAM,
@@ -210,7 +208,6 @@ class NotificationChannelOptions:
 class NotificationChannelAPIOptions(NotificationChannelOptions):
     LABELS = {
         UserNotificationPolicy.NotificationChannel.SLACK: "Slack mentions",
-        UserNotificationPolicy.NotificationChannel.SLACK_DM: "Slack Direct Message",
         UserNotificationPolicy.NotificationChannel.SMS: "SMS \U00002709\U0001F4F2",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "Phone call \U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram \U0001F916",
@@ -224,7 +221,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
 
     SHORT_LABELS = {
         UserNotificationPolicy.NotificationChannel.SLACK: "Slack",
-        UserNotificationPolicy.NotificationChannel.SLACK_DM: "Slack DM",
         UserNotificationPolicy.NotificationChannel.SMS: "SMS",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "\U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram",
@@ -240,7 +236,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
 class NotificationChannelPublicAPIOptions(NotificationChannelAPIOptions):
     LABELS = {
         UserNotificationPolicy.NotificationChannel.SLACK: "notify_by_slack",
-        UserNotificationPolicy.NotificationChannel.SLACK_DM: "notify_by_slack_dm",
         UserNotificationPolicy.NotificationChannel.SMS: "notify_by_sms",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "notify_by_phone_call",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "notify_by_telegram",
