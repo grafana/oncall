@@ -93,5 +93,5 @@ if settings.DRF_SPECTACULAR_ENABLED:
 
 if settings.UNIFIED_SLACK_APP_ENABLED:
     urlpatterns += [
-        path("api/chatops/", include("apps.chatops_proxy.urls", namespace="chatops_proxy")),
+        path("api/chatops/", include("apps.chatops_proxy.urls")),
     ]

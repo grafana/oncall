@@ -2,9 +2,6 @@ from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
 
 from apps.chatops_proxy.events import ChatopsEventsHandler
 from apps.chatops_proxy.events.handlers import SlackInstallationHandler
@@ -41,26 +38,22 @@ invalid_schema_event = {
 
 @patch.object(ChatopsEventsHandler, "_exec", return_value=None)
 @pytest.mark.parametrize(
-    "payload,expected_status",
+    "payload,is_handled",
     [
-        (installation_event, status.HTTP_200_OK),
-        (unknown_event, status.HTTP_400_BAD_REQUEST),
-        (invalid_schema_event, status.HTTP_400_BAD_REQUEST),
+        (installation_event, True),
+        (unknown_event, False),
+        (invalid_schema_event, False),
     ],
 )
 @pytest.mark.django_db
 @override_settings(UNIFIED_SLACK_APP_ENABLED=True)
-def test_root_event_handler(mock_exec, payload, expected_status):
-    client = APIClient()
-
-    url = reverse("chatops_proxy:events")
-    response = client.post(url, format="json", data=payload)
-    assert response.status_code == expected_status
+def test_root_event_handler(mock_exec, payload, is_handled):
+    h = ChatopsEventsHandler()
+    assert h.handle(payload) is is_handled
 
 
 @patch("apps.chatops_proxy.events.handlers.install_slack_integration", return_value=None)
 @pytest.mark.django_db
-@override_settings(UNIFIED_SLACK_APP_ENABLED=True)
 def test_slack_installation_handler(mock_install_slack_integration, make_organization_and_user):
     organization, user = make_organization_and_user()
 
