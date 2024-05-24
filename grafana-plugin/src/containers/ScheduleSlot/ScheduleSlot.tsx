@@ -269,11 +269,13 @@ const RegularEvent = (props: RegularEventProps) => {
 
         let backgroundColor = color;
         let border = undefined;
+        let textColor = '#fff';
         if (isShiftSwap) {
           backgroundColor = SHIFT_SWAP_COLOR;
           if (!swap_request.user) {
             backgroundColor = 'transparent';
             border = `1px solid ${SHIFT_SWAP_COLOR}`;
+            textColor = SHIFT_SWAP_COLOR;
           }
         }
 
@@ -283,6 +285,7 @@ const RegularEvent = (props: RegularEventProps) => {
             style={{
               backgroundColor,
               border,
+              color: textColor,
             }}
             onClick={swap_request ? getShiftSwapClickHandler(swap_request.pk) : undefined}
             data-testid="schedule-slot"
@@ -296,15 +299,7 @@ const RegularEvent = (props: RegularEventProps) => {
                 duration={duration}
               />
             )}
-            <div className={cx('title')}>
-              {swap_request ? (
-                <HorizontalGroup>
-                  {swap_request.user ? swap_request.user.display_name + ' → ' + userTitle : userTitle + ' → ?'}
-                </HorizontalGroup>
-              ) : (
-                userTitle
-              )}
-            </div>
+            <div className={cx('title')}>{swap_request && !swap_request.user ? userTitle + ' → ?' : userTitle}</div>
           </div>
         );
 
