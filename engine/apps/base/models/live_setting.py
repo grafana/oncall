@@ -71,7 +71,7 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_STATUS",
         "ZVONOK_POSTBACK_USER_CHOICE",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK",
-        "ZVONOK_VERIFICATION_TEMPLATE",
+        "ZVONOK_VERIFICATION_CAMPAIGN_ID",
     )
 
     DESCRIPTIONS = {
@@ -170,7 +170,7 @@ class LiveSetting(models.Model):
         "ZVONOK_POSTBACK_STATUS": "'Postback' status (ct_status) query parameter name to validate a postback request.",
         "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional).",
         "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional).",
-        "ZVONOK_VERIFICATION_TEMPLATE": "The message template used for phone number verification (optional).",
+        "ZVONOK_VERIFICATION_CAMPAIGN_ID": "The phone number verification campaign ID. You can get it after verification campaign creation.",
     }
 
     SECRET_SETTING_NAMES = (
