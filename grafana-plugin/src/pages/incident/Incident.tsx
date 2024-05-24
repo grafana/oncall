@@ -36,6 +36,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
@@ -49,7 +50,8 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { CUSTOM_SILENCE_VALUE, IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { IncidentSilenceModal } from 'pages/incidents/parts/IncidentSilenceModal';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -73,6 +75,7 @@ interface IncidentPageState extends PageBaseState {
   showAttachIncidentForm?: boolean;
   timelineFilter: string;
   resolutionNoteText: string;
+  silenceModalData: { incident: ApiSchemas['AlertGroup'] };
 }
 
 @observer
@@ -81,6 +84,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     timelineFilter: 'all',
     resolutionNoteText: '',
     errorData: initErrorDataState(),
+    silenceModalData: undefined,
   };
 
   componentDidMount() {
@@ -127,7 +131,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
       },
     } = this.props;
 
-    const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
+    const { errorData, showIntegrationSettings, showAttachIncidentForm, silenceModalData } = this.state;
     const { isNotFoundError, isWrongTeamError, isUnknownError } = errorData;
     const { alerts } = store.alertGroupStore;
 
@@ -143,7 +147,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               onUnacknowledge: this.getOnActionButtonClick(id, AlertAction.unAcknowledge),
               onUnresolve: this.getOnActionButtonClick(id, AlertAction.unResolve),
               onAcknowledge: this.getOnActionButtonClick(id, AlertAction.Acknowledge),
-              onSilence: this.getSilenceClickHandler(id),
+              onSilence: this.getSilenceClickHandler(incident),
               onUnsilence: this.getUnsilenceClickHandler(id),
             },
             true
@@ -241,6 +245,23 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 )}
               </>
             )}
+
+            {/* Modal where users can input their custom duration for silencing an alert group */}
+            <RenderConditionally
+              shouldRender={Boolean(silenceModalData?.incident)}
+              render={() => (
+                <IncidentSilenceModal
+                  alertGroupID={silenceModalData.incident.pk}
+                  alertGroupName={silenceModalData.incident.render_for_web?.title}
+                  isOpen
+                  onDismiss={() => this.setState({ silenceModalData: undefined })}
+                  onSave={(duration: number) => {
+                    this.setState({ silenceModalData: undefined });
+                    store.alertGroupStore.doIncidentAction(silenceModalData.incident.pk, AlertAction.Silence, duration);
+                  }}
+                />
+              )}
+            />
           </div>
         )}
       </PageErrorHandlingWrapper>
@@ -342,7 +363,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                   onUnacknowledge={this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge)}
                   onUnresolve={this.getOnActionButtonClick(incident.pk, AlertAction.unResolve)}
                   onAcknowledge={this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge)}
-                  onSilence={this.getSilenceClickHandler(incident.pk)}
+                  onSilence={this.getSilenceClickHandler(incident)}
                   onUnsilence={this.getUnsilenceClickHandler(incident.pk)}
                 />
               </div>
@@ -437,7 +458,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
                 onUnresolve: this.getOnActionButtonClick(incident.pk, AlertAction.unResolve),
                 onAcknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge),
-                onSilence: this.getSilenceClickHandler(incident.pk),
+                onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident.pk),
               })}
               <ExtensionLinkDropdown
@@ -632,11 +653,15 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     };
   };
 
-  getSilenceClickHandler = (incidentId: ApiSchemas['AlertGroup']['pk']) => {
+  getSilenceClickHandler = (incident: ApiSchemas['AlertGroup']) => {
     const { store } = this.props;
 
-    return (value: number) => {
-      return store.alertGroupStore.doIncidentAction(incidentId, AlertAction.Silence, value);
+    return (value: number): Promise<void> => {
+      if (value === CUSTOM_SILENCE_VALUE) {
+        this.setState({ silenceModalData: { incident } });
+        return Promise.resolve(); // awaited by other component
+      }
+      return store.alertGroupStore.doIncidentAction(incident.pk, AlertAction.Silence, value);
     };
   };
 
