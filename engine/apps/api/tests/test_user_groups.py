@@ -72,3 +72,30 @@ def test_usergroup_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_get_usergroup(
+    make_slack_team_identity,
+    make_slack_user_group,
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    team_identity = make_slack_team_identity()
+    user_group = make_slack_user_group(
+        slack_team_identity=team_identity, name="Test User Group", handle="test-user-group"
+    )
+
+    organization = make_organization(slack_team_identity=team_identity)
+    _, token = make_token_for_organization(organization=organization)
+    user = make_user_for_organization(organization=organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user_group-detail", kwargs={"pk": user_group.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    expected_data = {"id": user_group.public_primary_key, "name": "Test User Group", "handle": "test-user-group"}
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_data
