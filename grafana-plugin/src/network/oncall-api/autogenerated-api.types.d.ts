@@ -823,7 +823,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Retrieve a list of valid silence options */
-    get: operations['alertgroups_silence_options_retrieve'];
+    get: operations['alertgroups_silence_options_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -3765,7 +3765,7 @@ export interface operations {
       };
     };
   };
-  alertgroups_silence_options_retrieve: {
+  alertgroups_silence_options_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -3779,7 +3779,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroupSilenceOptions'];
+          'application/json': components['schemas']['AlertGroupSilenceOptions'][];
         };
       };
     };
