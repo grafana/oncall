@@ -123,3 +123,6 @@ class Team(models.Model):
     # If is_sharing_resources_to_all is False only team members and admins can access it and it's resources
     # if it's True every oncall organization user can access it
     is_sharing_resources_to_all = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("organization", "team_id")
