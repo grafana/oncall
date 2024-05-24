@@ -20,11 +20,16 @@ type XInstanceContextJSONData struct {
 }
 
 type XGrafanaContextJSONData struct {
+	ID          int    `json:"UserID"`
 	IsAnonymous bool   `json:"IsAnonymous"`
 	Name        string `json:"Name"`
 	Login       string `json:"Login"`
 	Email       string `json:"Email"`
 	Role        string `json:"Role"`
+}
+
+type UserIDJSONData struct {
+	ID int `json:"intField"`
 }
 
 func SetXInstanceContextHeader(settings OnCallPluginSettings, req *http.Request) error {
@@ -41,7 +46,7 @@ func SetXInstanceContextHeader(settings OnCallPluginSettings, req *http.Request)
 	return nil
 }
 
-func SetXGrafanaContextHeader(user *backend.User, req *http.Request) error {
+func SetXGrafanaContextHeader(user *backend.User, userID int, req *http.Request) error {
 	var xGrafanaContext XGrafanaContextJSONData
 	if user == nil {
 		xGrafanaContext = XGrafanaContextJSONData{
@@ -49,6 +54,7 @@ func SetXGrafanaContextHeader(user *backend.User, req *http.Request) error {
 		}
 	} else {
 		xGrafanaContext = XGrafanaContextJSONData{
+			ID:          userID,
 			IsAnonymous: false,
 			Name:        user.Name,
 			Login:       user.Login,
@@ -68,6 +74,86 @@ func SetAuthorizationHeader(settings OnCallPluginSettings, req *http.Request) {
 	req.Header.Set("Authorization", settings.OnCallToken)
 }
 
+func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int, error) {
+	reqURL, err := url.Parse(settings.GrafanaURL)
+	if err != nil {
+		return 0, err
+	}
+
+	reqURL.Path += "api/users"
+	q := reqURL.Query()
+	q.Set("login", user.Login)
+	reqURL.RawQuery = q.Encode()
+
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
+	if err != nil {
+		return 0, err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
+
+	res, err := a.httpClient.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	log.DefaultLogger.Info(fmt.Sprintf("User Response %s %s %s", reqURL.String(), res.Status, body))
+
+	var result []map[string]interface{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		err = fmt.Errorf("Error unmarshalling JSON: %+v", err)
+		log.DefaultLogger.Error(err.Error())
+		return 0, err
+	}
+
+	if len(result) > 0 {
+		id, ok := result[0]["id"].(float64)
+		if !ok {
+			err = fmt.Errorf("Error no id field in object: %+v", err)
+			return 0, err
+		}
+		return int(id), nil
+	}
+
+	return 0, fmt.Errorf("User %s not found", user.Login)
+}
+
+func (a *App) SetPermissionsHeader(userID int, settings OnCallPluginSettings, req *http.Request) error {
+	permissionsURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/access-control/users/%d/permissions", userID))
+	if err != nil {
+		return err
+	}
+
+	permissionsReq, err := http.NewRequest("GET", permissionsURL, nil)
+	if err != nil {
+		return err
+	}
+
+	permissionsReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
+
+	res, err := a.httpClient.Do(permissionsReq)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	log.DefaultLogger.Info(fmt.Sprintf("Permissions %s %s %s", permissionsURL, res.Status, body))
+	req.Header.Set("X-Grafana-Permissions", string(body))
+	return nil
+}
+
 func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 	proxyMethod := req.Method
 	var proxyBody string
@@ -81,7 +167,13 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 	log.DefaultLogger.Info(fmt.Sprintf("OnCallSettings %+v", onCallPluginSettings))
 
 	user := httpadapter.UserFromContext(req.Context())
-	log.DefaultLogger.Info(fmt.Sprintf("User %+v", user))
+	userID, err := a.GetUserID(user, onCallPluginSettings)
+	if err != nil {
+		log.DefaultLogger.Error("Error getting user id: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.DefaultLogger.Info(fmt.Sprintf("User %+v, UserID = %s", user, strconv.Itoa(userID)))
 
 	reqURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "api/internal/v1/", req.URL.Path)
 	if err != nil {
@@ -103,7 +195,13 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = SetXGrafanaContextHeader(user, proxyReq)
+	err = SetXGrafanaContextHeader(user, userID, proxyReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = a.SetPermissionsHeader(userID, onCallPluginSettings, proxyReq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

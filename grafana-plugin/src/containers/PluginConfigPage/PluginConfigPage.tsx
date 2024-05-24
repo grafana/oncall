@@ -10,7 +10,7 @@ import {
   getOnCallApiPath,
   getOnCallApiUrl,
   GRAFANA_LICENSE_OSS,
-  hasPluginBeenConfigured
+  hasPluginBeenConfigured,
 } from 'utils/consts';
 
 import { ConfigurationForm } from './parts/ConfigurationForm/ConfigurationForm';
@@ -239,25 +239,21 @@ export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   }
 
   return (
-      <>
-        <Legend>Configure Grafana OnCall</Legend>
-        <StatusMessageBlock
-            text={JSON.stringify(meta?.jsonData, null, 2)}
-        />
-        <StatusMessageBlock text={window?.pluginMeta?.jsonData?.useBackendPlugin.toString()}/>
-        <StatusMessageBlock
-            text={getOnCallApiPath()}
-        />
-        {pluginIsConnected ? (
-            <>
-              <StatusMessageBlock
-                  text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}
-              />
-            </>
-        ) : (
-            <p>This page will help you configure the OnCall plugin 👋</p>
-        )}
-        {content}
-      </>
+    <>
+      <Legend>Configure Grafana OnCall</Legend>
+      <StatusMessageBlock text={JSON.stringify(meta?.jsonData, null, 2)} />
+      <StatusMessageBlock text={window?.pluginMeta?.jsonData?.useBackendPlugin.toString()} />
+      <StatusMessageBlock text={getOnCallApiPath()} />
+      {pluginIsConnected ? (
+        <>
+          <StatusMessageBlock
+            text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}
+          />
+        </>
+      ) : (
+        <p>This page will help you configure the OnCall plugin 👋</p>
+      )}
+      {content}
+    </>
   );
 };
