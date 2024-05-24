@@ -5,6 +5,7 @@ from django.test import override_settings
 
 from apps.chatops_proxy.events import ChatopsEventsHandler
 from apps.chatops_proxy.events.handlers import SlackInstallationHandler
+from common.constants.slack_auth import SLACK_OAUTH_ACCESS_RESPONSE
 
 installation_event = {
     "event_type": "integration_installed",
@@ -12,10 +13,7 @@ installation_event = {
         "provider_type": "slack",
         "stack_id": "stack_id",
         "grafana_user_id": "grafana_user_id",
-        "payload": {
-            # It's not actual payload we are getting from slack, just a placeholder
-            "slack_id": "some_slack_id"
-        },
+        "payload": SLACK_OAUTH_ACCESS_RESPONSE,
     },
 }
 
