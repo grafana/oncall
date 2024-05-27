@@ -4,6 +4,10 @@ import tinycolor from 'tinycolor2';
 
 export const getUtilStyles = (theme: GrafanaTheme2) => {
   return {
+    flex: css`
+      display: flex;
+    `,
+
     width100: css`
       width: 100%;
     `,

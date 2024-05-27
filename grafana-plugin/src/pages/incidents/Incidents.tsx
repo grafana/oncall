@@ -187,6 +187,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           {this.renderIncidentFilters()}
           {this.renderTable()}
         </div>
+
         {showAddAlertGroupForm && (
           <ManualAlertGroup
             onHide={() => {
@@ -311,9 +312,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderIncidentFilters() {
     const { query, store, theme } = this.props;
-    const defaultStart = moment().subtract(7, 'days');
-    const defaultEnd = moment().add(1, 'days');
     const styles = getStyles(theme);
+
     return (
       <div className={styles.filters}>
         <RemoteFilters
@@ -328,7 +328,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             team: [],
             status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
             mine: false,
-            started_at: `${defaultStart.format('YYYY-MM-DDTHH:mm:ss')}_${defaultEnd.format('YYYY-MM-DDTHH:mm:ss')}`,
+            started_at: 'now-30d_now',
           }}
         />
       </div>

@@ -1,7 +1,8 @@
 import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 
 import { cx } from '@emotion/css';
-import { Icon, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { intervalToAbbreviatedDurationString } from '@grafana/data';
+import { Icon, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Tag, TagColor } from 'components/Tag/Tag';
@@ -13,6 +14,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { getIncidentDropdownStyles } from './IncidentDropdown.styles';
+import { IncidentSilenceModal } from './IncidentSilenceModal';
 import { SilenceSelect } from './SilenceSelect';
 
 const getIncidentTagColor = (alert: ApiSchemas['AlertGroup']) => {
@@ -55,6 +57,8 @@ function IncidentStatusTag({
   );
 }
 
+export const CUSTOM_SILENCE_VALUE = -100;
+
 export const IncidentDropdown: FC<{
   alert: ApiSchemas['AlertGroup'];
   onResolve: (e: SyntheticEvent) => Promise<void>;
@@ -67,6 +71,7 @@ export const IncidentDropdown: FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [currentLoadingAction, setCurrentActionLoading] = useState<IncidentStatus>(undefined);
   const [forcedOpenAction, setForcedOpenAction] = useState<string>(undefined);
+  const [isSilenceModalOpen, setIsSilenceModalOpen] = useState(false);
 
   const styles = useStyles2(getIncidentDropdownStyles);
   const utilStyles = useStyles2(getUtilStyles);
@@ -197,23 +202,40 @@ export const IncidentDropdown: FC<{
                   currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
                 }
                 onSelect={async (value) => {
-                  setIsLoading(true);
-                  setForcedOpenAction(AlertAction.unResolve);
-                  setCurrentActionLoading(IncidentStatus.Silenced);
+                    if (value === CUSTOM_SILENCE_VALUE) {
+                      return setIsSilenceModalOpen(true);
+                    }
 
-                  await onSilence(value);
+                    setIsLoading(true);
+                    setForcedOpenAction(AlertAction.unResolve);
+                    setCurrentActionLoading(IncidentStatus.Silenced);
 
-                  setIsLoading(false);
-                  setForcedOpenAction(undefined);
-                  setCurrentActionLoading(undefined);
-                }}
-              />
+                    await onSilence(value);
+
+                    setIsLoading(false);
+                    setForcedOpenAction(undefined);
+                    setCurrentActionLoading(undefined);
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        )}
-      >
-        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
-      </WithContextMenu>
+          )}
+        >
+          {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
+        </WithContextMenu>
+        <IncidentSilenceModal
+          alertGroupID={alert.pk}
+          alertGroupName={alert.render_for_web?.title}
+          isOpen={isSilenceModalOpen}
+          onDismiss={() => setIsSilenceModalOpen(false)}
+          onSave={async (value) => {
+            setIsSilenceModalOpen(false);
+            setIsLoading(true);
+            await onSilence(value);
+            setIsLoading(false);
+          }}
+        />
+      </>
     );
   }
 
@@ -265,7 +287,27 @@ export const IncidentDropdown: FC<{
         </div>
       )}
     >
-      {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
+      {({ openMenu }) => (
+        <Tooltip content={getSilencedTooltip(alert)} placement={'bottom'}>
+          <span>
+            <IncidentStatusTag alert={alert} openMenu={openMenu} />
+          </span>
+        </Tooltip>
+      )}
     </WithContextMenu>
   );
 };
+
+function getSilencedTooltip(alert: ApiSchemas['AlertGroup']) {
+  if (alert.silenced_until === null) {
+    return `Silenced forever`;
+  }
+  return `Silence ends in ${getSilencedUntilInDuration(alert.silenced_until)}`;
+}
+
+function getSilencedUntilInDuration(date: string) {
+  return intervalToAbbreviatedDurationString({
+    start: new Date(),
+    end: new Date(date),
+  });
+}
