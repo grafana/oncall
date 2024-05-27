@@ -8,17 +8,21 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Determine yarn.lock location
+      id: determine-yarn-lock-location
+      shell: bash
+      run: echo "::set-output name=yarn-lock-location::${{ inputs.working-directory }}/grafana-plugin/yarn.lock"
     - uses: actions/setup-node@v3
       with:
         node-version: 18.16.0
         cache: "yarn"
-        cache-dependency-path: ${{ inputs.working-directory }}/grafana-plugin/yarn.lock
+        cache-dependency-path: ${{ steps.determine-yarn-lock-location.outputs.yarn-lock-location }}
     - name: Use cached frontend dependencies
       id: cache-frontend-dependencies
       uses: actions/cache@v3
       with:
         path: ${{ inputs.working-directory }}/grafana-plugin/node_modules
-        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles(inputs.working-directory + '/grafana-plugin/yarn.lock') }}
+        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles(steps.determine-yarn-lock-location.outputs.yarn-lock-location) }}
     - name: Install frontend dependencies
       if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
       shell: bash
