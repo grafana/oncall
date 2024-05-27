@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 
 from apps.auth_token.auth import BasePluginAuthentication
 from apps.base.models import DynamicSetting
-from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
+
+# from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
@@ -64,14 +65,14 @@ class StatusView(GrafanaHeadersMixin, APIView):
             )[0].boolean_value
 
         # If user is not present in OnCall database, set token_ok to False, which will trigger reinstall
-        if not request.user:
-            logger.info(f"Status - user not found org={organization.pk} " f"setting token_status to PENDING")
-            token_ok = False
-            organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
-            organization.save(update_fields=["api_token_status"])
+        # if not request.user:
+        #     logger.info(f"Status - user not found org={organization.pk} " f"setting token_status to PENDING")
+        #     token_ok = False
+        #     organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
+        #     organization.save(update_fields=["api_token_status"])
 
-        # Start task to refresh organization data in OnCall database with Grafana
-        plugin_sync_organization_async.apply_async((organization.pk,))
+        # # Start task to refresh organization data in OnCall database with Grafana
+        # plugin_sync_organization_async.apply_async((organization.pk,))
 
         return Response(
             data={

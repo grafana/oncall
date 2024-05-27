@@ -14,6 +14,7 @@ from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from apps.user_management.sync import sync_user_from_request
 from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -138,12 +139,12 @@ class BasePluginAuthentication(BaseAuthentication):
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
-            raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+            raise
 
     def _get_user_or_none(self, request: Request, organization: Organization) -> User:
         try:
             user = self._get_user_or_raise(request, organization)
-        except exceptions.AuthenticationFailed:
+        except (exceptions.AuthenticationFailed, User.DoesNotExist):
             user = None
         return user
 
@@ -153,8 +154,14 @@ class BasePluginAuthentication(BaseAuthentication):
 
 class PluginAuthentication(BasePluginAuthentication):
     def _get_user(self, request: Request, organization: Organization) -> User:
-        # TODO: update or create user instead
-        return self._get_user_or_raise(request, organization)
+        try:
+            user = self._get_user_or_raise(request, organization)
+        except User.DoesNotExist:
+            try:
+                user = sync_user_from_request(organization, request)
+            except ValueError:
+                raise exceptions.AuthenticationFailed("Could not get user from request.")
+        return user
 
 
 class PluginAuthenticationSchema(OpenApiAuthenticationExtension):
