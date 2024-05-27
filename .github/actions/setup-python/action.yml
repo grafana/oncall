@@ -1,6 +1,5 @@
 name: "Setup Python"
 description: "Setup Python + optionally install dependencies from a set of requirements file(s)"
-
 inputs:
   install-dependencies:
     description: "Whether to install dependencies from the Python requirements file(s)"
@@ -10,7 +9,6 @@ inputs:
     description: "The path(s) to the Python requirements file(s) to install"
     required: false
     default: "engine/requirements.txt engine/requirements-dev.txt"
-
 runs:
   using: "composite"
   steps:
