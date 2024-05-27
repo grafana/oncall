@@ -108,6 +108,7 @@ class BasePluginAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("Invalid instance context.")
 
         try:
+            # validate token and update or create organization in DB
             auth_token = check_token(token_string, context=context)
             if not auth_token.organization:
                 raise exceptions.AuthenticationFailed("No organization associated with token.")
@@ -117,39 +118,15 @@ class BasePluginAuthentication(BaseAuthentication):
         user = self._get_user(request, auth_token.organization)
         return user, auth_token
 
-    @staticmethod
-    def _get_user(request: Request, organization: Organization) -> User:
+    def _get_user_or_raise(self, request: Request, organization: Organization) -> User:
         try:
             context = dict(json.loads(request.headers.get("X-Grafana-Context")))
         except (ValueError, TypeError):
             logger.info("auth request user not found - missing valid X-Grafana-Context")
-            return None
-
-        if "UserId" not in context and "UserID" not in context:
-            logger.info("auth request user not found - X-Grafana-Context missing UserID")
-            return None
-
-        try:
-            user_id = context["UserId"]
-        except KeyError:
-            user_id = context["UserID"]
-
-        try:
-            return organization.users.get(user_id=user_id)
-        except User.DoesNotExist:
-            logger.info(f"auth request user not found - user_id={user_id}")
-            return None
-
-
-class PluginAuthentication(BasePluginAuthentication):
-    @staticmethod
-    def _get_user(request: Request, organization: Organization) -> User:
-        try:
-            context = dict(json.loads(request.headers.get("X-Grafana-Context")))
-        except (ValueError, TypeError):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
 
         if "UserId" not in context and "UserID" not in context:
+            logger.info("auth request user not found - X-Grafana-Context missing UserID")
             raise exceptions.AuthenticationFailed("Invalid Grafana context.")
 
         try:
@@ -162,6 +139,22 @@ class PluginAuthentication(BasePluginAuthentication):
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+
+    def _get_user_or_none(self, request: Request, organization: Organization) -> User:
+        try:
+            user = self._get_user_or_raise(request, organization)
+        except exceptions.AuthenticationFailed:
+            user = None
+        return user
+
+    def _get_user(self, request: Request, organization: Organization) -> User:
+        return self._get_user_or_none(request, organization)
+
+
+class PluginAuthentication(BasePluginAuthentication):
+    def _get_user(self, request: Request, organization: Organization) -> User:
+        # TODO: update or create user instead
+        return self._get_user_or_raise(request, organization)
 
 
 class PluginAuthenticationSchema(OpenApiAuthenticationExtension):
