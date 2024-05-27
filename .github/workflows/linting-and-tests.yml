@@ -12,7 +12,7 @@ name: Linting and Tests
   merge_group:
 
 env:
-  DJANGO_SETTINGS_MODULE: settings.ci-test
+  DJANGO_SETTINGS_MODULE: settings.ci_test
   DATABASE_HOST: localhost
   RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
   SLACK_CLIENT_OAUTH_ID: 1
@@ -143,9 +143,7 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Unit Test Backend
         working-directory: engine
-        run: |
-          apt-get update && apt-get install -y netcat-traditional
-          ./wait_for_test_mysql_start.sh && pytest -x
+        run: ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -214,9 +212,7 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Unit Test Backend
         working-directory: engine
-        run: |
-          apt-get update && apt-get install -y netcat-traditional
-          pytest -x
+        run: pytest -x
 
   unit-test-migrators:
     name: "Unit tests - Migrators"
