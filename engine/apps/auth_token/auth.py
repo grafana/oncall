@@ -150,11 +150,8 @@ class PluginAuthentication(BasePluginAuthentication):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
 
         try:
-            if "UserId" in context or "UserID" in context:
-                try:
-                    user_id = context["UserId"]
-                except KeyError:
-                    user_id = context["UserID"]
+            user_id = context.get("UserId", context.get("UserID"))
+            if user_id is not None:
                 return organization.users.get(user_id=user_id)
             elif "Login" in context:
                 return organization.users.get(username=context["Login"])

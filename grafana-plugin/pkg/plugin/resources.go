@@ -113,7 +113,7 @@ func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int,
 		return 0, err
 	}
 
-	if len(result) > 0 {
+	if len(result) > 0 && res.StatusCode == 200 {
 		id, ok := result[0]["id"].(float64)
 		if !ok {
 			err = fmt.Errorf("Error no id field in object: %+v", err)
@@ -150,7 +150,40 @@ func (a *App) SetPermissionsHeader(userID int, settings OnCallPluginSettings, re
 	}
 
 	log.DefaultLogger.Info(fmt.Sprintf("Permissions %s %s %s", permissionsURL, res.Status, body))
-	req.Header.Set("X-Grafana-Permissions", string(body))
+	if len(body) > 0 && res.StatusCode == 200 {
+		req.Header.Set("X-Grafana-User-Permissions", string(body))
+	}
+	return nil
+}
+
+func (a *App) SetTeamsHeader(userID int, settings OnCallPluginSettings, req *http.Request) error {
+	permissionsURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/users/%d/teams", userID))
+	if err != nil {
+		return err
+	}
+
+	permissionsReq, err := http.NewRequest("GET", permissionsURL, nil)
+	if err != nil {
+		return err
+	}
+
+	permissionsReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
+
+	res, err := a.httpClient.Do(permissionsReq)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	log.DefaultLogger.Info(fmt.Sprintf("Teams %s %s %s", permissionsURL, res.Status, body))
+	if len(body) > 0 && res.StatusCode == 200 {
+		req.Header.Set("X-Grafana-User-Teams", string(body))
+	}
 	return nil
 }
 
@@ -207,11 +240,19 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if proxyMethod == "POST" || proxyMethod == "PUT" {
+	err = a.SetTeamsHeader(userID, onCallPluginSettings, proxyReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if proxyMethod == "POST" || proxyMethod == "PUT" || proxyMethod == "PATCH" {
 		proxyReq.Header.Set("Content-Type", "application/json")
 	}
+	log.DefaultLogger.Info(fmt.Sprintf("Making request to oncall = %+v", onCallPluginSettings))
 	res, err := a.httpClient.Do(proxyReq)
 	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error request to oncall = %+v", err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
