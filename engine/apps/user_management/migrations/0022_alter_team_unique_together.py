@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 def clean_up_duplicated_teams(apps, schema_editor):
     Team = apps.get_model("user_management", "Team")
+    User = apps.get_model("user_management", "User")
 
     # get (organization_id, team_id) pairs for duplicated teams
     duplicate_rows = Team.objects.values_list(
@@ -35,6 +36,7 @@ def clean_up_duplicated_teams(apps, schema_editor):
             team.custom_on_call_shifts.update(team=first_team)
             team.oncall_schedules.update(team=first_team)
             team.webhooks.update(team=first_team)
+            User.objects.filter(organization_id=organization_id, current_team=team).update(current_team=first_team)
 
         # delete duplicated teams
         num_deleted, _ = duplicated_teams.delete()
