@@ -18,7 +18,7 @@ runs:
       uses: actions/cache@v3
       with:
         path: ${{ inputs.working-directory }}/grafana-plugin/node_modules
-        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles(inputs.working-directory + '/grafana-plugin/yarn.lock') }}
     - name: Install frontend dependencies
       if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
       shell: bash
