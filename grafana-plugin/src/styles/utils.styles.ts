@@ -4,12 +4,13 @@ import tinycolor from 'tinycolor2';
 
 export const getUtilStyles = (theme: GrafanaTheme2) => {
   return {
-    flex: css`
-      display: flex;
-    `,
-
     width100: css`
       width: 100%;
+    `,
+
+    loadingPlaceholder: css`
+      margin-bottom: 0;
+      margin-right: 4px;
     `,
 
     disabled: css`
@@ -29,6 +30,48 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
 
     cursorDefault: css`
       cursor: default;
+    `,
+
+    wordBreakAll: css`
+      word-break: break-all;
+    `,
+
+    ...getCommonFlexStyles(),
+    ...getCommonOverflowStyles(),
+  };
+};
+
+const getCommonOverflowStyles = () => {
+  return {
+    overflowChild: css`
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      white-space: initial;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+
+      ${[1, 2, 3].map(
+        (num) => `
+        &--line-${num} {
+          -webkit-line-clamp: ${num} !important;
+        }
+      `
+      )}
+    `,
+  };
+};
+
+const getCommonFlexStyles = () => {
+  return {
+    flex: css`
+      display: flex;
+      flex-direction: row;
+    `,
+
+    // TODO: auto-generate these incrementally instead (XS, MD, LG etc, simillar to overflow)
+    flexGapXS: css`
+      gap: 4px;
     `,
   };
 };
@@ -78,4 +121,5 @@ export enum COLORS {
   GRAY_8 = '#595959',
   GRAY_9 = '#434343',
   GREEN_5 = '#6ccf8e',
+  BORDER = 'rgba(204, 204, 220, 0.25)',
 }

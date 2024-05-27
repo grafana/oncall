@@ -26,10 +26,10 @@ export const Tutorial: FC<TutorialProps> = (props) => {
   const styles = useStyles2(getStyles);
 
   return (
-    <Block className={cx(styles.root)} bordered>
-      <div className={cx(styles.title)}>{title}</div>
-      <div className={cx(styles.steps)}>
-        <div className={cx(styles.step)}>
+    <Block className={styles.root} bordered>
+      <div className={styles.title}>{title}</div>
+      <div className={styles.steps}>
+        <div className={styles.step}>
           <PluginLink query={{ page: 'integrations' }}>
             <div className={cx(styles.icon, { [bem(styles.icon, 'active')]: step === TutorialStep.Integrations })}>
               <img src={integrationsIcon} />
@@ -38,7 +38,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
           <Text type="secondary">Add integration with a monitoring system</Text>
         </div>
         <Arrow />
-        <div className={cx(styles.step)}>
+        <div className={styles.step}>
           <PluginLink query={{ page: 'escalations' }}>
             <div className={cx(styles.icon, { [bem(styles.icon, 'active')]: step === TutorialStep.Escalations })}>
               <img src={escalationIcon} />
@@ -47,7 +47,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
           <Text type="secondary">Setup escalation chain to handle notifications</Text>
         </div>
         <Arrow />
-        <div className={cx(styles.step)}>
+        <div className={styles.step}>
           <PluginLink query={{ page: 'chat-ops' }}>
             <div className={cx(styles.icon, { [bem(styles.icon, 'active')]: step === TutorialStep.Slack })}>
               <img src={chatIcon} />
@@ -56,7 +56,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
           <Text type="secondary">Connect to your chat workspace</Text>
         </div>
         <Arrow />
-        <div className={cx(styles.step)}>
+        <div className={styles.step}>
           <PluginLink query={{ page: 'schedules' }}>
             <div className={cx(styles.icon, { [bem(styles.icon, 'active')]: step === TutorialStep.Schedules })}>
               <img src={scheduleIcon} />
@@ -65,7 +65,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
           <Text type="secondary">Add your team calendar to define an on-call rotation.</Text>
         </div>
         <Arrow />
-        <div className={cx(styles.step)}>
+        <div className={styles.step}>
           <PluginLink query={{ page: 'alert-groups' }}>
             <div className={cx('icon', { [bem(styles.icon, 'active')]: step === TutorialStep.Incidents })}>
               <img src={bellIcon} />
@@ -81,7 +81,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
 const Arrow = () => {
   const styles = useStyles2(getStyles);
   return (
-    <div className={cx(styles.arrow)}>
+    <div className={styles.arrow}>
       <svg width="41" height="16" viewBox="0 0 41 16" xmlns="http://www.w3.org/2000/svg">
         <path d="M40.7071 8.70711C41.0976 8.31658 41.0976 7.68342 40.7071 7.29289L34.3431 0.928932C33.9526 0.538408 33.3195 0.538408 32.9289 0.928932C32.5384 1.31946 32.5384 1.95262 32.9289 2.34315L38.5858 8L32.9289 13.6569C32.5384 14.0474 32.5384 14.6805 32.9289 15.0711C33.3195 15.4616 33.9526 15.4616 34.3431 15.0711L40.7071 8.70711ZM0 9H40V7H0V9Z" />
       </svg>

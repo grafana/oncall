@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { VerticalGroup, useStyles2 } from '@grafana/ui';
 
@@ -52,9 +52,9 @@ export const PageErrorHandlingWrapper = function ({
   const { wrongTeamNoPermissions } = errorData;
 
   return (
-    <div className={cx(styles.notFound)}>
+    <div className={styles.notFound}>
       <VerticalGroup spacing="lg" align="center">
-        <Text.Title level={1} className={cx(styles.errorCode)}>
+        <Text.Title level={1} className={styles.errorCode}>
           403
         </Text.Title>
         {wrongTeamNoPermissions && (
