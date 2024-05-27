@@ -32,6 +32,10 @@ export const getAddRespondersStyles = (theme: GrafanaTheme2) => {
       }
     `,
 
+    alert: css`
+      padding-top: 4px;
+    `,
+
     timelineIconBackground: css`
       width: 28px;
       height: 28px;

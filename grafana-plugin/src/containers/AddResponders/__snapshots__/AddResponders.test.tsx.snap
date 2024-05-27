@@ -239,7 +239,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         </div>
       </div>
       <ul
-        class="css-1l4x7lp"
+        class="css-xp2upo"
       >
         <li>
           <div
@@ -639,7 +639,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         </li>
         <div
           aria-label="[object Object]"
-          class="css-10yjoiw"
+          class="css-10yjoiw css-182y09v"
           data-testid="data-testid Alert info"
           role="status"
         >

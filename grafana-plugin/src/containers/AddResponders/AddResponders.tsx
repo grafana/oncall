@@ -158,6 +158,7 @@ export const AddResponders = observer(
                   {selectedUserResponders.length > 0 && (
                     <Alert
                       severity="info"
+                      className={styles.alert}
                       title={
                         (
                           <Text type="primary">
