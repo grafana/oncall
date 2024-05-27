@@ -15,7 +15,9 @@ runs:
     - name: Determine yarn.lock location
       id: yarn-lock-location
       shell: bash
+      # yamllint disable rule:line-length
       run: echo "yarn-lock-location=${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}/yarn.lock" >> $GITHUB_OUTPUT
+      # yamllint enable rule:line-length
     - uses: actions/setup-node@v3
       with:
         node-version: 18.16.0
