@@ -4,10 +4,6 @@ import tinycolor from 'tinycolor2';
 
 export const getUtilStyles = (theme: GrafanaTheme2) => {
   return {
-    flex: css`
-      display: flex;
-    `,
-
     width100: css`
       width: 100%;
     `,
@@ -36,6 +32,17 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       cursor: default;
     `,
 
+    wordBreakAll: css`
+      word-break: break-all;
+    `,
+
+    ...getCommonFlexStyles(),
+    ...getCommonOverflowStyles(),
+  };
+};
+
+const getCommonOverflowStyles = () => {
+  return {
     overflowChild: css`
       overflow: hidden;
       text-overflow: ellipsis;
@@ -44,25 +51,25 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
 
-      &--line-1 {
-        -webkit-line-clamp: 1;
-      }
-
-      &--line-3 {
-        -webkit-line-clamp: 3;
-      }
+      ${[1, 2, 3].map(
+        (num) => `
+        &--line-${num} {
+          -webkit-line-clamp: ${num} !important;
+        }
+      `
+      )}
     `,
+  };
+};
 
-    wordBreakAll: css`
-      word-break: break-all;
-    `,
-
+const getCommonFlexStyles = () => {
+  return {
     flex: css`
-      display: flex !important;
+      display: flex;
       flex-direction: row;
     `,
 
-    // TODO: auto-generate these incrementally instead (XS, MD, LG etc)
+    // TODO: auto-generate these incrementally instead (XS, MD, LG etc, simillar to overflow)
     flexGapXS: css`
       gap: 4px;
     `,

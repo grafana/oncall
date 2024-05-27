@@ -9,6 +9,7 @@ export const getAddRespondersStyles = (theme: GrafanaTheme2) => {
     `,
 
     respondersList: css`
+      padding-top: 8px;
       list-style-type: none;
       margin-bottom: 20px;
       width: 100%;

@@ -18,7 +18,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { bem, getUtilStyles } from 'styles/utils.styles';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { CardButton } from 'components/CardButton/CardButton';
 import { CursorPagination } from 'components/CursorPagination/CursorPagination';
@@ -598,7 +598,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const styles = getUtilStyles(this.props.theme);
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
-        <Text type="secondary" className={cx(styles.overflowChild, bem(styles.overflowChild, 'line-1'))}>
+        <Text type="secondary" className={cx(styles.overflowChild)}>
           #{record.inside_organization_number}
         </Text>
       </TextEllipsisTooltip>
@@ -1017,6 +1017,16 @@ const getStyles = (theme: GrafanaTheme2) => {
   return {
     select: css`
       width: 400px;
+    `,
+
+    bau: css`
+      ${[1, 2, 3].map(
+        (num) => `
+      $--line-${num} {
+        -webkit-line-clamp: ${num}
+      }
+    `
+      )}
     `,
 
     actionButtons: css`
