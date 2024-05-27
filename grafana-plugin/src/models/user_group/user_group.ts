@@ -48,15 +48,12 @@ export class UserGroupStore extends BaseStore {
 
   @action.bound
   async fetchItemById(id: string) {
-    const response: UserGroup[] = (await makeRequest(`${this.path}`, {
-      params: { id },
-    })) as UserGroup[];
+    const item: UserGroup = await this.getById(id);
 
     runInAction(() => {
       this.items = {
         ...this.items,
-        // backend returns an array
-        [id]: Array.isArray(response) ? (response.length > 0 ? response[0] : undefined) : response,
+        [id]: item,
       };
     });
   }
