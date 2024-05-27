@@ -22,7 +22,9 @@ runs:
       uses: actions/cache@v3
       with:
         path: ${{ inputs.working-directory }}/grafana-plugin/node_modules
+        # yamllint disable rule:line-length
         key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles(steps.determine-yarn-lock-location.outputs.yarn-lock-location) }}
+        # yamllint enable rule:line-length
     - name: Install frontend dependencies
       if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
       shell: bash
