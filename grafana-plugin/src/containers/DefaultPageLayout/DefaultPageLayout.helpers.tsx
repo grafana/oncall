@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Organization } from 'models/organization/organization.types';
 
 import { SlackError } from './DefaultPageLayout.types';
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 
 export function getSlackMessage(slackError: SlackError, organization: Organization, hasLiveSettingsFeature: boolean) {
   if (slackError === SlackError.WRONG_WORKSPACE) {
