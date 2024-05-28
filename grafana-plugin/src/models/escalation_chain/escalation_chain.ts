@@ -86,7 +86,7 @@ export class EscalationChainStore extends BaseStore {
     try {
       escalationChain = await this.getById(id, skipErrorHandling);
     } catch (error) {
-      if (error.response.data.error_code === 'wrong_team') {
+      if (error.response.data?.error_code === 'wrong_team') {
         escalationChain = {
           id,
           name: '🔒 Private escalation chain',

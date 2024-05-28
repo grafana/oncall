@@ -367,7 +367,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       warnings.push('Phone not verified');
     }
 
-    if (organizationStore.currentOrganization.slack_team_identity && !user.slack_user_identity) {
+    if (organizationStore.currentOrganization?.slack_team_identity && !user.slack_user_identity) {
       warnings.push('Slack profile is not connected');
     }
 

@@ -118,7 +118,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       <div className={cx('root')}>
         <Legend>Slack App settings</Legend>
         <InlineField label="Slack Workspace" grow disabled>
-          <Input value={currentOrganization.slack_team_identity?.cached_name} />
+          <Input value={currentOrganization?.slack_team_identity?.cached_name} />
         </InlineField>
         <InlineField
           label="Default channel for Slack notifications"
@@ -201,11 +201,6 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         </InlineField>
       </div>
     );
-  };
-
-  renderSlackWorkspace = () => {
-    const { store } = this.props;
-    return <Text>{store.organizationStore.currentOrganization.slack_team_identity?.cached_name}</Text>;
   };
 
   renderSlackChannels = () => {

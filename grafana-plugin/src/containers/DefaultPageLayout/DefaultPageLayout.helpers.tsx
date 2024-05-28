@@ -4,18 +4,22 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Organization } from 'models/organization/organization.types';
 
 import { SlackError } from './DefaultPageLayout.types';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 
 export function getSlackMessage(slackError: SlackError, organization: Organization, hasLiveSettingsFeature: boolean) {
   if (slackError === SlackError.WRONG_WORKSPACE) {
     return (
       <>
         Couldn't connect Slack.
-        {Boolean(organization?.slack_team_identity) && (
-          <>
-            {' '}
-            Select <b>{organization.slack_team_identity.cached_name}</b> workspace when connecting please
-          </>
-        )}
+        <RenderConditionally
+          shouldRender={Boolean(organization?.slack_team_identity)}
+          render={() => (
+            <>
+              {' '}
+              Select <b>{organization.slack_team_identity.cached_name}</b> workspace when connecting please
+            </>
+          )}
+        />
       </>
     );
   }
