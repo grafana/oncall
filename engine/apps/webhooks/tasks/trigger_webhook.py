@@ -138,7 +138,7 @@ def mask_authorization_header(
 
 
 def make_request(
-    webhook: Webhook, alert_group: AlertGroup, data: typing.Dict[str, typing.Any]
+    webhook: Webhook, alert_group: AlertGroup, data: typing.Dict[str, typing.Any], is_demo: bool = False
 ) -> typing.Tuple[bool, WebhookRequestStatus, typing.Optional[str], typing.Optional[Exception]]:
     status: WebhookRequestStatus = {
         "url": None,
@@ -162,7 +162,7 @@ def make_request(
                 preset.override_parameters_at_runtime(webhook)
                 masked_header_keys.extend(preset.get_masked_headers())
 
-        if not webhook.check_integration_filter(alert_group):
+        if not is_demo and not webhook.check_integration_filter(alert_group):
             status["request_trigger"] = NOT_FROM_SELECTED_INTEGRATION
             return False, status, None, None
 
@@ -300,3 +300,24 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
             logger.warning(f"Exhausted execute_webhook retries for {msg_details}")
     elif exception:
         raise exception
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else EXECUTE_WEBHOOK_RETRIES
+)
+def execute_test_webhook(webhook_pk, payload):
+    from apps.webhooks.models import Webhook
+
+    webhook = None
+    try:
+        webhook = Webhook.objects.get(pk=webhook_pk)
+    except Webhook.DoesNotExist:
+        logger.warning(f"Webhook {webhook_pk} does not exist")
+        return
+
+    triggered, _, error, exception = make_request(webhook, None, payload, True)
+
+    if not triggered:
+        logger.warning(f"Test Webhook {webhook_pk} trigger failed error={error}, exception={exception}")
+    else:
+        logger.debug(f"Test Webhook {webhook_pk} triggered successfully")

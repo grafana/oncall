@@ -180,6 +180,7 @@ CELERY_TASK_ROUTES = {
     # WEBHOOK
     "apps.alerts.tasks.custom_webhook_result.custom_webhook_result": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.execute_webhook": {"queue": "webhook"},
+    "apps.webhooks.tasks.trigger_webhook.execute_test_webhook": {"queue": "webhook"},
     "apps.webhooks.tasks.trigger_webhook.send_webhook_event": {"queue": "webhook"},
     "apps.webhooks.tasks.alert_group_status.alert_group_created": {"queue": "webhook"},
     "apps.webhooks.tasks.alert_group_status.alert_group_status_change": {"queue": "webhook"},

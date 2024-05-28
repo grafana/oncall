@@ -194,6 +194,9 @@ class RBACPermission(permissions.BasePermission):
         OUTGOING_WEBHOOKS_READ = LegacyAccessControlCompatiblePermission(
             Resources.OUTGOING_WEBHOOKS, Actions.READ, LegacyAccessControlRole.VIEWER
         )
+        OUTGOING_WEBHOOKS_TEST = LegacyAccessControlCompatiblePermission(
+            Resources.OUTGOING_WEBHOOKS, Actions.TEST, LegacyAccessControlRole.EDITOR
+        )
         OUTGOING_WEBHOOKS_WRITE = LegacyAccessControlCompatiblePermission(
             Resources.OUTGOING_WEBHOOKS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )

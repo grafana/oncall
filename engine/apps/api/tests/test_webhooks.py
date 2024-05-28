@@ -1079,3 +1079,50 @@ def test_team_not_updated_if_not_in_data(
 
     webhook.refresh_from_db()
     assert webhook.team == team
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_webhook_test_webhook_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_custom_webhook,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    webhook = make_custom_webhook(organization=organization)
+    client = APIClient()
+
+    url = reverse("api-internal:webhooks-test-webhook", kwargs={"pk": webhook.public_primary_key})
+    data = {}
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_webhook_test_webhook_incorrect_payload(
+    make_organization_and_user_with_plugin_token,
+    make_custom_webhook,
+    make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    webhook = make_custom_webhook(organization=organization)
+    client = APIClient()
+
+    url = reverse("api-internal:webhooks-test-webhook", kwargs={"pk": webhook.public_primary_key})
+    data = {
+        "webhook_test_payload": "teste"
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['detail'] == 'Payload for test webhook must be a valid json object'
