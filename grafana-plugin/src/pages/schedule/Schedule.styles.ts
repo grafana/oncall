@@ -1,6 +1,7 @@
 import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 
-export const getScheduleStyles = () => {
+export const getScheduleStyles = (theme: GrafanaTheme2) => {
   return {
     title: css`
       display: flex;
@@ -27,6 +28,11 @@ export const getScheduleStyles = () => {
 
     controls: css`
       width: 100%;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 16px 0;
+      background-color: ${theme.colors.background.primary};
     `,
 
     rotations: css`

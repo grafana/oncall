@@ -24,10 +24,6 @@
   position: relative;
 }
 
-.root:last-child .timeline {
-  padding-bottom: 0;
-}
-
 .slots {
   width: 100%;
   display: flex;

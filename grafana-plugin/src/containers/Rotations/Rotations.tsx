@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
-import { SelectableValue } from '@grafana/data';
-import { ValuePicker, HorizontalGroup, Button, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { ValuePicker, HorizontalGroup, Button, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -24,10 +24,9 @@ import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
+import { getRotationsStyles } from './Rotations.styles';
 
-import styles from './Rotations.module.css';
-
-const cx = cn.bind(styles);
+import animationStyles from './Rotations.module.css';
 
 interface RotationsProps extends WithStoreProps {
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
@@ -44,6 +43,7 @@ interface RotationsProps extends WithStoreProps {
   disabled: boolean;
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;
+  theme: GrafanaTheme2;
 }
 
 interface RotationsState {
@@ -71,6 +71,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       onShowShiftSwapForm,
       onSlotClick,
       layerPriorityToShowRotationForm,
+      theme,
     } = this.props;
 
     const { shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
@@ -99,10 +100,12 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
     const isTypeReadOnly =
       schedule && (schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar);
 
+    const styles = getRotationsStyles(theme);
+
     return (
       <>
-        <div id="rotations" className={cx('root')}>
-          <div className={cx('header')}>
+        <div id="rotations" className={styles.root}>
+          <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">
                 Rotations
@@ -144,33 +147,40 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <div className={cx('rotations-plus-title')}>
+          <div className={styles.rotationsPlusTitle}>
             {layers && layers.length ? (
               <TransitionGroup className={'u-position-relative'}>
                 <TimelineMarks />
                 {!currentTimeHidden && (
                   <div
-                    className={cx('current-time')}
+                    className={styles.currentTime}
                     style={{
                       left: `${currentTimeX * 100}%`,
                     }}
                   />
                 )}
                 {layers.map((layer, layerIndex) => (
-                  <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                    <div id={`layer${layer.priority}`} className={cx('layer', { ['layer-first']: layerIndex === 0 })}>
-                      <Tag className={cx('layer-title')}>
+                  <CSSTransition
+                    key={layerIndex}
+                    timeout={DEFAULT_TRANSITION_TIMEOUT}
+                    classNames={{ ...animationStyles }}
+                  >
+                    <div
+                      id={`layer${layer.priority}`}
+                      className={cx(styles.layer, { [styles.layerFirst]: layerIndex === 0 })}
+                    >
+                      <Tag className={styles.layerTitle}>
                         <Text size="small" type="primary">
                           Layer {layer.priority}
                         </Text>
                       </Tag>
-                      <div className={cx('header-plus-content')}>
+                      <div className={'u-position-relative'}>
                         <TransitionGroup className={'u-position-relative'}>
                           {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                             <CSSTransition
                               key={rotationIndex}
                               timeout={DEFAULT_TRANSITION_TIMEOUT}
-                              classNames={{ ...styles }}
+                              classNames={{ ...animationStyles }}
                             >
                               <Rotation
                                 onClick={(shiftStart, shiftEnd) => {
@@ -198,14 +208,14 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             ) : (
               <div className="u-position-relative">
                 <TimelineMarks />
-                <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                <div id="layer1" className={cx('layer', 'layer-first')}>
-                  <Tag className={cx('layer-title')}>
+                <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />
+                <div id="layer1" className={cx(styles.layer, styles.layerFirst)}>
+                  <Tag className={styles.layerTitle}>
                     <Text size="small" type="primary">
                       Layer 1
                     </Text>
                   </Tag>
-                  <div className={cx('header-plus-content')}>
+                  <div className="u-position-relative">
                     <Rotation
                       onClick={(shiftStart, shiftEnd) => {
                         this.handleAddLayer(nextPriority, shiftStart, shiftEnd);
@@ -220,7 +230,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             )}
             {nextPriority > 1 && (
               <div
-                className={cx('add-rotations-layer')}
+                className={styles.addRotationsLayer}
                 onClick={() => {
                   if (disabled) {
                     return;
@@ -334,4 +344,4 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
   };
 }
 
-export const Rotations = withMobXProviderContext(_Rotations);
+export const Rotations = withMobXProviderContext(withTheme2(_Rotations));

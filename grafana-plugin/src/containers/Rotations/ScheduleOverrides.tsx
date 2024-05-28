@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 
-import { Button, HorizontalGroup, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, HorizontalGroup, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -28,10 +29,9 @@ import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
+import { getRotationsStyles } from './Rotations.styles';
 
-import styles from './Rotations.module.css';
-
-const cx = cn.bind(styles);
+import animationStyles from './Rotations.module.css';
 
 interface ScheduleOverridesProps extends WithStoreProps {
   shiftStartToShowOverrideForm: dayjs.Dayjs;
@@ -46,6 +46,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   disabled: boolean;
   disableShiftSwaps: boolean;
   filters: ScheduleFiltersType;
+  theme: GrafanaTheme2;
 }
 
 interface ScheduleOverridesState {
@@ -74,6 +75,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
       shiftEndToShowOverrideForm: propsShiftEndToShowOverrideForm,
       onShowShiftSwapForm,
       filters,
+      theme,
     } = this.props;
     const { shiftStartToShowOverrideForm, shiftEndToShowOverrideForm } = this.state;
 
@@ -93,10 +95,12 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
 
     const isTypeReadOnly = !schedule?.enable_web_overrides;
 
+    const styles = getRotationsStyles(theme);
+
     return (
       <>
-        <div id="overrides-list" className={cx('root')}>
-          <div className={cx('header')}>
+        <div id="overrides-list" className={styles.root}>
+          <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">
                 Overrides and swaps
@@ -130,17 +134,17 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
             </HorizontalGroup>
           </div>
           <div className="u-position-relative">
-            {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
+            {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
             {shiftSwaps && shiftSwaps.length ? (
-              <TransitionGroup className={cx('layer', 'layer-first')}>
-                <Tag className={cx('layer-title')}>
+              <TransitionGroup className={cx(styles.layer, styles.layerFirst)}>
+                <Tag className={styles.layerTitle}>
                   <Text type="primary" size="small">
                     Swaps
                   </Text>
                 </Tag>
                 {shiftSwaps.map(({ isPreview, events }, index) => (
-                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                     <Rotation
                       events={events}
                       color={SHIFT_SWAP_COLOR}
@@ -157,15 +161,15 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                 ))}
               </TransitionGroup>
             ) : null}
-            <TransitionGroup className={cx('layer', { 'layer-first': !shiftSwaps || !shiftSwaps.length })}>
-              <Tag className={cx('layer-title')}>
+            <TransitionGroup className={cx(styles.layer, { [styles.layerFirst]: !shiftSwaps || !shiftSwaps.length })}>
+              <Tag className={styles.layerTitle}>
                 <Text type="primary" size="small">
                   Overrides
                 </Text>
               </Tag>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, isPreview, events }, index) => (
-                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                     <Rotation
                       events={events}
                       color={getOverrideColor(index)}
@@ -178,7 +182,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                   </CSSTransition>
                 ))
               ) : (
-                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                   <Rotation
                     key={0}
                     events={[]}
@@ -265,4 +269,4 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
   };
 }
 
-export const ScheduleOverrides = withMobXProviderContext(_ScheduleOverrides);
+export const ScheduleOverrides = withMobXProviderContext(withTheme2(_ScheduleOverrides));

@@ -120,6 +120,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       match: {
         params: { id: scheduleId },
       },
+      theme,
     } = this.props;
 
     const {
@@ -143,7 +144,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
 
-    const styles = getScheduleStyles();
+    const styles = getScheduleStyles(theme);
 
     const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||

@@ -1,10 +1,12 @@
 import React, { FC, useMemo } from 'react';
 
-import { HorizontalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { HorizontalGroup, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { bem } from 'styles/utils.styles';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
@@ -25,10 +27,9 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
+import { getRotationsStyles } from './Rotations.styles';
 
-import styles from './Rotations.module.css';
-
-const cx = cn.bind(styles);
+import animationStyles from './Rotations.module.css';
 
 interface ScheduleFinalProps extends WithStoreProps {
   scheduleId: Schedule['id'];
@@ -39,6 +40,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;
   scheduleView?: ScheduleView;
+  theme: GrafanaTheme2;
 }
 
 const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
@@ -56,6 +58,8 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
       timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
       scheduleStore: { scheduleView: storeScheduleView },
     } = store;
+
+    const styles = useStyles2(getRotationsStyles);
 
     const scheduleView = propsScheduleView || storeScheduleView;
 
@@ -83,9 +87,9 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     }, [calendarStartDate, scheduleView]);
 
     return (
-      <div className={cx('root')}>
+      <div className={cx(styles.root, { [bem(styles.root, 'withNoBackgroundAndBorder')]: simplified })}>
         {!simplified && (
-          <div className={cx('header')}>
+          <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">
                 Final schedule
@@ -93,16 +97,16 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
             </HorizontalGroup>
           </div>
         )}
-        <div className={cx('header-plus-content')}>
+        <div className="u-position-relative">
           {rows.map(({ startDate }, index) => (
-            <TransitionGroup key={index} className={cx('u-position-relative', 'layer', 'layer-first')}>
+            <TransitionGroup key={index} className={cx('u-position-relative', styles.layer, styles.layerFirst)}>
               <TimelineMarks
                 scheduleView={scheduleView}
                 startDate={startDate}
                 withBorderBottom={index !== rows.length - 1}
               />
               <div
-                className={cx('current-time')}
+                className={styles.currentTime}
                 style={{
                   left: `${
                     getCurrentTimeX(
@@ -116,7 +120,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
               {shifts?.length ? (
                 shifts.map(({ events }, index) => {
                   return (
-                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                       <Rotation
                         scheduleView={scheduleView}
                         startDate={startDate}
@@ -134,7 +138,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
                   );
                 })
               ) : (
-                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                   <Rotation scheduleView={scheduleView} startDate={calendarStartDate} events={[]} />
                 </CSSTransition>
               )}
@@ -146,4 +150,4 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
   }
 );
 
-export const ScheduleFinal = withMobXProviderContext(_ScheduleFinal);
+export const ScheduleFinal = withMobXProviderContext(withTheme2(_ScheduleFinal));

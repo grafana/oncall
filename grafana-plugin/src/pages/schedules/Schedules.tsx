@@ -190,14 +190,16 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   renderSchedule = (data: Schedule) => {
     const styles = getSchedulesStyles();
 
-    <div className={styles.schedule}>
-      <ScheduleFinal
-        scheduleView={ScheduleView.OneWeek}
-        simplified
-        scheduleId={data.id}
-        onSlotClick={this.getScheduleClickHandler(data.id)}
-      />
-    </div>;
+    return (
+      <div className={styles.schedule}>
+        <ScheduleFinal
+          scheduleView={ScheduleView.OneWeek}
+          simplified
+          scheduleId={data.id}
+          onSlotClick={this.getScheduleClickHandler(data.id)}
+        />
+      </div>
+    );
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {

@@ -535,7 +535,7 @@ const getStyles = (theme: GrafanaTheme2) => {
       position: relative;
       display: flex;
       overflow: hidden;
-      margin: 0 1px;
+      margin-right: 1px;
       padding: 4px;
       align-items: center;
       transition: opacity 0.2s ease;
@@ -566,9 +566,7 @@ const getStyles = (theme: GrafanaTheme2) => {
 
     // TODO: Same here
     swap: css`
-      border-radius: 10px;
-      background: #ff99002e;
-      height: 20px;
+      background: rgba(255, 153, 0, 0.18);
     `,
 
     noUser: css`
