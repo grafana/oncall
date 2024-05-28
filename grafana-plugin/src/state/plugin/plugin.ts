@@ -229,7 +229,7 @@ export class PluginState {
     // const { key: grafanaToken } = await this.createGrafanaToken();
     // console.log(grafanaToken);
     // await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
-    const grafanaToken = ""
+    const grafanaToken = '';
     const onCallAPIResponse = await makeRequest<RT>(
       `${this.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`,
       {
@@ -243,7 +243,7 @@ export class PluginState {
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar: boolean
   ): Promise<string | null> => {
-    let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
+    // let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
     const errorMsgVerb: InstallationVerb = 'install';
 
     // Step 1. Try provisioning the plugin w/ the Grafana API
@@ -265,7 +265,7 @@ export class PluginState {
      * - configure the plugin in OnCall's backend
      */
     try {
-      pluginInstallationOnCallResponse = await this.installPlugin<SelfHostedProvisioningConfigResponse>(true);
+      await this.installPlugin<SelfHostedProvisioningConfigResponse>(true);
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(
         e,
