@@ -41,7 +41,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
 
   return (
     <>
-      <div className={cx(styles.root)} data-testid="schedule-quality">
+      <div className={styles.root} data-testid="schedule-quality">
         {relatedScheduleEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
           <TooltipBadge
             borderType="success"
@@ -88,7 +88,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
           content={<ScheduleQualityDetails quality={quality} getScheduleQualityString={getScheduleQualityString} />}
         >
           <div className={cx(utils.cursorDefault)}>
-            <Tag className={cx(styles.tag)} color={getTagSeverity()}>
+            <Tag className={styles.tag} color={getTagSeverity()}>
               Quality: <strong>{getScheduleQualityString(quality.total_score)}</strong>
             </Tag>
           </div>

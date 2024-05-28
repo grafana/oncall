@@ -189,7 +189,7 @@ export class ScheduleStore extends BaseStore {
       try {
         schedule = await this.getById(id, true, fromOrganization);
       } catch (error) {
-        if (error.response.data.error_code === 'wrong_team') {
+        if (error.response.data?.error_code === 'wrong_team') {
           schedule = {
             id,
             name: '🔒 Private schedule',

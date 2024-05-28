@@ -5,6 +5,7 @@ import { InsightsConfig } from './Insights.types';
 const DEFAULT_VARIABLE_CONFIG: Partial<ConstructorParameters<typeof QueryVariable>[0]> = {
   hide: 0,
   includeAll: true,
+  allValue: `.+`,
   isMulti: true,
   options: [],
   refresh: 1,
@@ -50,6 +51,21 @@ const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
     definition: `label_values(\${alert_groups_total}{team=~"$team",slug=~"${stack}"},integration)`,
     query: {
       query: `label_values(\${alert_groups_total}{team=~"$team",slug=~"${stack}"},integration)`,
+      refId: 'PrometheusVariableQueryEditor-VariableQuery',
+    },
+    refresh: 2,
+  }),
+  service_name: new QueryVariable({
+    ...DEFAULT_VARIABLE_CONFIG,
+    name: 'service_name',
+    label: 'Service name',
+    text: ['All'],
+    value: ['$__all'],
+    allValue: '($^)|(.+)',
+    datasource,
+    definition: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
+    query: {
+      query: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
     refresh: 2,

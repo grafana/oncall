@@ -30,7 +30,7 @@ export const VerticalTabsBar = (props: VerticalTabsBarProps) => {
   };
 
   return (
-    <div className={cx(styles.root)}>
+    <div className={styles.root}>
       {React.Children.toArray(children)
         .filter(Boolean)
         .map((child: React.ReactElement, idx) => (

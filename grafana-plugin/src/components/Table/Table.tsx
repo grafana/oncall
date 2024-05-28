@@ -48,7 +48,7 @@ export const GTable: FC<Props> = (props) => {
               </div>
             );
           },
-          expandedRowClassName: (_record, index) => (index % 2 === 0 ? cx(styles.rowEven) : ''),
+          expandedRowClassName: (_record, index) => (index % 2 === 0 ? styles.rowEven : ''),
         }
       : null;
   }, [expandable]);
@@ -61,11 +61,11 @@ export const GTable: FC<Props> = (props) => {
         columns={columns}
         data={data}
         expandable={expandableFn}
-        rowClassName={(_record, index) => (index % 2 === 0 ? cx(styles.rowEven) : '')}
+        rowClassName={(_record, index) => (index % 2 === 0 ? styles.rowEven : '')}
         {...restProps}
       />
       {pagination && (
-        <div className={cx(styles.pagination)}>
+        <div className={styles.pagination}>
           <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
         </div>
       )}

@@ -21,9 +21,9 @@ export const Header = observer(() => {
     <>
       <div>
         <div className={cx('page-header__inner', { [styles.headerTopNavbar]: isTopNavbar() })}>
-          <div className={cx(styles.navbarLeft)}>
+          <div className={styles.navbarLeft}>
             <span className={cx('page-header__logo', styles.logoContainer)}>
-              <img className={cx(styles.pageHeaderImage)} src={logo} alt="Grafana OnCall" />
+              <img className={styles.pageHeaderImage} src={logo} alt="Grafana OnCall" />
             </span>
             <div className={cx('page-header__info-block')}>{renderHeading()}</div>
           </div>
@@ -37,18 +37,18 @@ export const Header = observer(() => {
     if (store.isOpenSource) {
       return (
         <div className={cx('heading')}>
-          <h1 className={cx(styles.pageHeaderTitle)}>Grafana OnCall</h1>
-          <div className={cx(styles.navbarHeadingContainer)}>
+          <h1 className={styles.pageHeaderTitle}>Grafana OnCall</h1>
+          <div className={styles.navbarHeadingContainer}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
 
-            <Card heading={undefined} className={cx(styles.navbarHeading)}>
+            <Card heading={undefined} className={styles.navbarHeading}>
               <a
                 href="https://github.com/grafana/oncall"
-                className={cx(styles.navbarLink)}
+                className={styles.navbarLink}
                 target="_blank"
                 rel="noreferrer"
               >
-                <img src={gitHubStarSVG} className={cx(styles.navbarStarIcon)} alt="" /> Star us on GitHub
+                <img src={gitHubStarSVG} className={styles.navbarStarIcon} alt="" /> Star us on GitHub
               </a>
             </Card>
           </div>
@@ -59,7 +59,7 @@ export const Header = observer(() => {
     return (
       <>
         <HorizontalGroup>
-          <h1 className={cx(styles.pageHeaderTitle)}>Grafana OnCall</h1>
+          <h1 className={styles.pageHeaderTitle}>Grafana OnCall</h1>
         </HorizontalGroup>
         <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
       </>
@@ -70,7 +70,7 @@ export const Header = observer(() => {
 const Banners: React.FC = () => {
   const styles = useStyles2(getHeaderStyles);
   return (
-    <div className={cx(styles.banners)}>
+    <div className={styles.banners}>
       <Alerts />
     </div>
   );

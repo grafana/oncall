@@ -74,7 +74,7 @@ function prepareDataForEdit(
 
 function prepareForSave(rawData: Partial<ApiSchemas['Webhook']>, selectedPreset: OutgoingWebhookPreset) {
   const data = { ...rawData };
-  selectedPreset.controlled_fields.forEach((field) => {
+  selectedPreset?.controlled_fields.forEach((field) => {
     delete data[field];
   });
 
