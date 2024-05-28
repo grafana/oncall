@@ -167,7 +167,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       shiftSwapIdToShowForm;
 
     const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
-    const nextPriority = layers && layers.length ? layers[layers.length - 1].priority + 1 : 1;
+    const nextPriority = layers?.length ? layers.at(-1).priority + 1 : 1;
 
     const { scheduleView } = scheduleStore;
 
