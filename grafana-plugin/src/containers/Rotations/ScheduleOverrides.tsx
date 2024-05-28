@@ -99,7 +99,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
 
     return (
       <>
-        <div id="overrides-list" className={styles.root}>
+        <div id="oncall-overrides-and-swaps" className={styles.root}>
           <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">

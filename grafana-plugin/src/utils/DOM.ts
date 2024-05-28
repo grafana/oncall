@@ -19,7 +19,7 @@ export const waitForElement = (selector: string) => {
 };
 
 export const scrollToElement = (element: Element, behavior: ScrollBehavior = 'instant' as ScrollBehavior) => {
-  document.getElementById('rotations').scrollIntoView({ behavior, block: 'center' });
+  element.scrollIntoView({ behavior, block: 'center' });
 };
 
 export const getCoords = (elem) => {
@@ -40,3 +40,8 @@ export const getCoords = (elem) => {
 
   return { top: Math.round(top), left: Math.round(left) };
 };
+
+export const HTML_ID = {
+  ROTATIONS: 'oncall-rotations',
+  OVERRIDES_AND_SWAPS: 'oncall-overrides-and-swaps',
+} as const;

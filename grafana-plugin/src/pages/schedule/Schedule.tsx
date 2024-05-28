@@ -42,7 +42,7 @@ import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftSwap } 
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { scrollToElement } from 'utils/DOM';
+import { HTML_ID, scrollToElement } from 'utils/DOM';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -236,7 +236,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                       key={index}
                                       label={`L${layer.priority} rotation`}
                                       onClick={() => {
-                                        scrollToElement(document.getElementById('rotations'));
+                                        scrollToElement(document.getElementById(HTML_ID.ROTATIONS));
 
                                         this.handleShowRotationForm('new', layer.priority);
                                       }}
@@ -245,7 +245,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="New layer with rotation"
                                     onClick={() => {
-                                      scrollToElement(document.getElementById('rotations'));
+                                      scrollToElement(document.getElementById(HTML_ID.ROTATIONS));
 
                                       this.handleShowRotationForm('new', nextPriority);
                                     }}
@@ -253,7 +253,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="Shift swap request"
                                     onClick={() => {
-                                      scrollToElement(document.getElementById('overrides-list'));
+                                      scrollToElement(document.getElementById(HTML_ID.OVERRIDES_AND_SWAPS));
 
                                       this.handleShowShiftSwapForm('new');
                                     }}
@@ -261,7 +261,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="Override"
                                     onClick={() => {
-                                      scrollToElement(document.getElementById('overrides-list'));
+                                      scrollToElement(document.getElementById(HTML_ID.OVERRIDES_AND_SWAPS));
 
                                       this.handleShowOverridesForm('new');
                                     }}

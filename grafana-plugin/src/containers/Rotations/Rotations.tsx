@@ -104,7 +104,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     return (
       <>
-        <div id="rotations" className={styles.root}>
+        <div id="oncall-rotations" className={styles.root}>
           <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">
