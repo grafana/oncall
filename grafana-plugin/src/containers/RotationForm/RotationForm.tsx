@@ -202,9 +202,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   };
 
-  const onError = useCallback((error) => {
-    setErrors(error.response.data);
-  }, []);
+  const onError = (error) => {
+    if (error.response?.data) {
+      setErrors(error.response.data);
+    }
+  };
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
