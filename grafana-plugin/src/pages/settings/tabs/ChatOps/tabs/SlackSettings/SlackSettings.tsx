@@ -203,29 +203,6 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     );
   };
 
-  renderSlackChannels = () => {
-    const {
-      store: { organizationStore, slackChannelStore },
-    } = this.props;
-    return (
-      <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-        <GSelect<SlackChannel>
-          className={cx('select', 'control')}
-          items={slackChannelStore.items}
-          fetchItemsFn={slackChannelStore.updateItems}
-          fetchItemFn={slackChannelStore.updateItem}
-          getSearchResult={slackChannelStore.getSearchResult}
-          displayField="display_name"
-          valueField="id"
-          placeholder="Select Slack Channel"
-          value={organizationStore.currentOrganization?.slack_channel?.id}
-          onChange={this.handleSlackChannelChange}
-          nullItemName={PRIVATE_CHANNEL_NAME}
-        />
-      </WithPermissionControlTooltip>
-    );
-  };
-
   removeSlackIntegration = async () => {
     const { store } = this.props;
     try {
