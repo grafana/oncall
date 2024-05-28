@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -13,14 +14,14 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization/authorization';
-import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
-import styles from './Incident.module.scss';
+export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']; isFull: boolean }) => {
+  const { incident, isFull } = props;
 
-const cx = cn.bind(styles);
-
-export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = false) {
   const { related_users } = incident;
+
+  const styles = useStyles2(getStyles);
+  const utilStyles = useStyles2(getUtilStyles);
 
   let users = [...related_users];
 
@@ -39,10 +40,10 @@ export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = 
     return (
       <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false}>
         <TextEllipsisTooltip placement="top" content={user.username}>
-          <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
+          <Text type="secondary" className={utilStyles.overflowChild}>
             <Avatar size="small" src={user.avatar} />{' '}
-            <span className={cx('break-word', 'u-margin-right-xs')}>{user.username}</span>
-            <span className={cx('user-badge')}>{badge}</span>
+            <span className={cx(utilStyles.wordBreakAll, 'u-margin-right-xs')}>{user.username}</span>
+            <span className={styles.userBadge}>{badge}</span>
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>
@@ -67,12 +68,16 @@ export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = 
   const otherUsers = isFull ? [] : users.slice(2);
 
   if (isFull) {
-    return visibleUsers.map((user, index) => (
+    return (
       <>
-        {index ? ', ' : ''}
-        {renderUser(user)}
+        {visibleUsers.map((user, index) => (
+          <>
+            {index ? ', ' : ''}
+            {renderUser(user)}
+          </>
+        ))}
       </>
-    ));
+    );
   }
 
   return (
@@ -101,7 +106,7 @@ export function renderRelatedUsers(incident: ApiSchemas['AlertGroup'], isFull = 
       )}
     </VerticalGroup>
   );
-}
+};
 
 export function getActionButtons(
   incident: ApiSchemas['AlertGroup'],
@@ -183,3 +188,11 @@ export function getActionButtons(
 
   return <HorizontalGroup justify="flex-end">{buttons}</HorizontalGroup>;
 }
+
+const getStyles = () => {
+  return {
+    userBadge: css`
+      vertical-align: middle;
+    `,
+  };
+};

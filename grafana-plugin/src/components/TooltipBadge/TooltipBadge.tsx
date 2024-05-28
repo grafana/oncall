@@ -46,7 +46,7 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       placement={placement || 'bottom-start'}
       interactive
       content={
-        <div className={cx(styles.tooltip)}>
+        <div className={styles.tooltip}>
           <VerticalGroup spacing="xs">
             <Text type="primary">{tooltipTitle}</Text>
             {tooltipContent && <Text type="secondary">{tooltipContent}</Text>}

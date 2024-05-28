@@ -52,7 +52,8 @@ class TeamManager(models.Manager["Team"]):
             for team in grafana_teams.values()
             if team["id"] not in existing_team_ids
         )
-        organization.teams.bulk_create(teams_to_create, batch_size=5000)
+        # create entries, ignore failed insertions if team_id already exists in the organization
+        organization.teams.bulk_create(teams_to_create, batch_size=5000, ignore_conflicts=True)
 
         # create missing direct paging integrations
         AlertReceiveChannel.objects.create_missing_direct_paging_integrations(organization)
@@ -123,3 +124,6 @@ class Team(models.Model):
     # If is_sharing_resources_to_all is False only team members and admins can access it and it's resources
     # if it's True every oncall organization user can access it
     is_sharing_resources_to_all = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("organization", "team_id")

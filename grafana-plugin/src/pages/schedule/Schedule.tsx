@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { GrafanaTheme2 } from '@grafana/data';
 import {
   Button,
   HorizontalGroup,
@@ -8,13 +9,13 @@ import {
   ToolbarButton,
   Icon,
   Modal,
+  withTheme2,
   Dropdown,
   Menu,
   ButtonGroup,
   RadioButtonGroup,
   DatePicker,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -46,12 +47,11 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getCalendarStartDate, getNewCalendarStartDate, getUTCString } from './Schedule.helpers';
+import { getScheduleStyles } from './Schedule.styles';
 
-import styles from './Schedule.module.css';
-
-const cx = cn.bind(styles);
-
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+  theme: GrafanaTheme2;
+}
 
 interface SchedulePageState {
   schedulePeriodType: string;
@@ -143,6 +143,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const users = UserHelper.getSearchResult(store.userStore).results;
     const schedule = scheduleStore.items[scheduleId];
 
+    const styles = getScheduleStyles();
+
     const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
@@ -172,9 +174,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       <PageErrorHandlingWrapper errorData={scheduleStore.refreshEventsError} objectName="schedule" pageName="schedules">
         {() => (
           <>
-            <div className={cx('root')}>
+            <div>
               {isNotFoundError ? (
-                <div className={cx('not-found')}>
+                <div className={styles.notFound}>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>
                     <Text.Title level={4}>Schedule not found</Text.Title>
@@ -187,11 +189,11 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                 </div>
               ) : (
                 <VerticalGroup spacing="lg">
-                  <div className={cx('header')}>
+                  <div className={styles.header}>
                     <HorizontalGroup justify="space-between">
-                      <div className={cx('title')}>
+                      <div className={styles.title}>
                         <PluginLink query={{ page: 'schedules', ...query }}>
-                          <IconButton className="button-back" aria-label="Go Back" name="arrow-left" size="xl" />
+                          <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
                           editable={false}
@@ -286,7 +288,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                       </HorizontalGroup>
                     </HorizontalGroup>
                   </div>
-                  <div className={cx('users-timezones')}>
+                  <div className={styles.usersTimezone}>
                     <UsersTimezones
                       scheduleId={scheduleId}
                       onCallNow={schedule?.on_call_now || []}
@@ -298,8 +300,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                     />
                   </div>
 
-                  <div className={cx('rotations')}>
-                    <div className={cx('controls')}>
+                  <div className={styles.rotations}>
+                    <div className={styles.controls}>
                       <HorizontalGroup justify="space-between">
                         <HorizontalGroup>
                           <Button variant="secondary" onClick={this.handleTodayClick}>
@@ -660,4 +662,4 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   };
 }
 
-export const SchedulePage = withRouter(withMobXProviderContext(_SchedulePage));
+export const SchedulePage = withRouter(withMobXProviderContext(withTheme2(_SchedulePage)));

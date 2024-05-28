@@ -1,10 +1,12 @@
 import React, { SyntheticEvent } from 'react';
 
-import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { NewScheduleSelector } from 'components/NewScheduleSelector/NewScheduleSelector';
@@ -30,11 +32,11 @@ import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
-import styles from './Schedules.module.css';
+import { getSchedulesStyles } from './Schedules.styles';
 
-const cx = cn.bind(styles);
-
-interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {
+  theme: GrafanaTheme2;
+}
 
 interface SchedulesPageState {
   filters: RemoteFiltersType;
@@ -71,14 +73,15 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const { results, count, page_size } = store.scheduleStore.getSearchResult();
 
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
+    const styles = getSchedulesStyles();
 
     return (
       <>
-        <div className={cx('root')}>
-          <div className={cx('title')}>
+        <div>
+          <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
-              <div className={cx('schedules__actions')}>
+              <div className={styles.schedulesActions}>
                 <HorizontalGroup>
                   <Text type="secondary">View in timezone:</Text>
                   <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
@@ -91,10 +94,10 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               </div>
             </HorizontalGroup>
           </div>
-          <div className={cx('schedule', 'schedule-personal')}>
+          <div className={cx(styles.schedule, styles.schedulePersonal)}>
             <SchedulePersonal userPk={store.userStore.currentUserPk} />
           </div>
-          <div className={cx('schedules__filters-container')}>
+          <div className={styles.schedulesFiltersContainer}>
             <RemoteFilters
               query={query}
               page={PAGE.Schedules}
@@ -146,7 +149,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
   renderNotFound() {
     return (
-      <div className={cx('loader')}>
+      <div>
         <Text type="secondary">Not found</Text>
       </div>
     );
@@ -179,22 +182,23 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
   refreshExpandedSchedules = () => {
     const { expandedRowKeys } = this.state;
-
     expandedRowKeys.forEach((key: Schedule['id']) => {
       this.props.store.scheduleStore.refreshEvents(key, ScheduleView.OneWeek);
     });
   };
 
-  renderSchedule = (data: Schedule) => (
-    <div className={cx('schedule')}>
+  renderSchedule = (data: Schedule) => {
+    const styles = getSchedulesStyles();
+
+    <div className={styles.schedule}>
       <ScheduleFinal
         scheduleView={ScheduleView.OneWeek}
         simplified
         scheduleId={data.id}
         onSlotClick={this.getScheduleClickHandler(data.id)}
       />
-    </div>
-  );
+    </div>;
+  };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
     const { history, query } = this.props;
@@ -275,6 +279,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   };
 
   renderOncallNow = (item: Schedule, _index: number) => {
+    const { theme } = this.props;
+    const utilsStyles = getUtilStyles(theme);
+
     if (item.on_call_now?.length > 0) {
       return (
         <div className="table__email-column">
@@ -286,7 +293,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
                     <TextEllipsisTooltip placement="top" content={user.username}>
                       <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
                         <Avatar size="small" src={user.avatar} />{' '}
-                        <span className={cx('break-word')}>{user.username}</span>
+                        <span className={cx(utilsStyles.wordBreakAll)}>{user.username}</span>
                       </Text>
                     </TextEllipsisTooltip>
                   </HorizontalGroup>
@@ -392,6 +399,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
   getTableColumns = () => {
     const { grafanaTeamStore } = this.props.store;
+    const styles = getSchedulesStyles();
 
     return [
       {
@@ -437,10 +445,10 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
         width: '50px',
         key: 'buttons',
         render: this.renderButtons,
-        className: cx('buttons'),
+        className: styles.buttons,
       },
     ];
   };
 }
 
-export const SchedulesPage = withRouter(withMobXProviderContext(_SchedulesPage));
+export const SchedulesPage = withRouter(withMobXProviderContext(withTheme2(_SchedulesPage)));

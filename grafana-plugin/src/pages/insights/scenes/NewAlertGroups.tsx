@@ -12,7 +12,7 @@ export function getNewAlertGroupsScene({ datasource, stack }: InsightsConfig) {
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: `sum(round(delta($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration"}[$__range]))) >= 0`,
+        expr: `round(delta(sum($alert_groups_total{slug=~"${stack}", team=~"$team", integration=~"$integration", service_name=~"$service_name"})[$__range:])) >= 0`,
         format: 'time_series',
         fullMetaSearch: false,
         includeNullMetadata: true,
