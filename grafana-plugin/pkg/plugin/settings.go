@@ -11,9 +11,23 @@ import (
 )
 
 type OnCallPluginSettingsJSONData struct {
-	OnCallAPIURL string `json:"onCallApiUrl"`
-	StackID      int    `json:"stackId,omitempty"`
-	OrgID        int    `json:"orgId,omitempty"`
+	OnCallAPIURL     string `json:"onCallApiUrl"`
+	StackID          int    `json:"stackId,omitempty"`
+	OrgID            int    `json:"orgId,omitempty"`
+	License          string `json:"license"`
+	UseBackendPlugin bool   `json:"useBackendPlugin"`
+}
+
+type OnCallPluginSettingsSecureJSONData struct {
+	OnCallToken  string `json:"onCallApiToken"`
+	GrafanaToken string `json:"grafanaToken,omitempty"`
+}
+
+type OnCallPluginJSONData struct {
+	JSONData       OnCallPluginSettingsJSONData       `json:"jsonData"`
+	SecureJSONData OnCallPluginSettingsSecureJSONData `json:"secureJsonData"`
+	Enabled        bool                               `json:"enabled"`
+	Pinned         bool                               `json:"pinned"`
 }
 
 type OnCallPluginSettings struct {
@@ -23,6 +37,7 @@ type OnCallPluginSettings struct {
 	GrafanaToken string
 	OnCallToken  string
 	GrafanaURL   string
+	License      string
 }
 
 func OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettings, error) {
@@ -46,6 +61,7 @@ func OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettings, error
 	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
 		settings.GrafanaToken, err = cfg.PluginAppClientSecret()
 		if err != nil {
+
 			return settings, err
 		}
 	} else {

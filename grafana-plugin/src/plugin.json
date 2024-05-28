@@ -621,6 +621,10 @@
         "action": "orgs:read"
       },
       {
+        "action": "plugins:write",
+        "scope": "plugins:id:grafana-oncall-app"
+      },
+      {
         "action": "roles:read",
         "scope": "roles:*"
       },

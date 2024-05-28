@@ -28,8 +28,46 @@ type XGrafanaContextJSONData struct {
 	Role        string `json:"Role"`
 }
 
+type OnCallProvisioningJSONData struct {
+	Error       string `json:"error,omitempty"`
+	StackId     int    `json:"stackId,omitempty"`
+	OrgId       int    `json:"orgId,omitempty"`
+	OnCallToken string `json:"onCallToken,omitempty"`
+	License     string `json:"license,omitempty"`
+}
+
 type UserIDJSONData struct {
 	ID int `json:"intField"`
+}
+
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+	body       bytes.Buffer
+}
+
+func (rw *responseWriter) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	if rw.statusCode == 0 {
+		rw.WriteHeader(http.StatusOK)
+	}
+	n, err := rw.body.Write(b)
+	if err != nil {
+		return n, err
+	}
+	return rw.ResponseWriter.Write(b)
+}
+
+func afterRequest(handler http.Handler, afterFunc func(*responseWriter, *http.Request)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wrappedWriter := &responseWriter{ResponseWriter: w}
+		handler.ServeHTTP(wrappedWriter, r)
+		afterFunc(wrappedWriter, r)
+	})
 }
 
 func SetXInstanceContextHeader(settings OnCallPluginSettings, req *http.Request) error {
@@ -74,119 +112,6 @@ func SetAuthorizationHeader(settings OnCallPluginSettings, req *http.Request) {
 	req.Header.Set("Authorization", settings.OnCallToken)
 }
 
-func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int, error) {
-	reqURL, err := url.Parse(settings.GrafanaURL)
-	if err != nil {
-		return 0, err
-	}
-
-	reqURL.Path += "api/users"
-	q := reqURL.Query()
-	q.Set("login", user.Login)
-	reqURL.RawQuery = q.Encode()
-
-	req, err := http.NewRequest("GET", reqURL.String(), nil)
-	if err != nil {
-		return 0, err
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
-
-	res, err := a.httpClient.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return 0, err
-	}
-
-	log.DefaultLogger.Info(fmt.Sprintf("User Response %s %s %s", reqURL.String(), res.Status, body))
-
-	var result []map[string]interface{}
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		err = fmt.Errorf("Error unmarshalling JSON: %+v", err)
-		log.DefaultLogger.Error(err.Error())
-		return 0, err
-	}
-
-	if len(result) > 0 && res.StatusCode == 200 {
-		id, ok := result[0]["id"].(float64)
-		if !ok {
-			err = fmt.Errorf("Error no id field in object: %+v", err)
-			return 0, err
-		}
-		return int(id), nil
-	}
-
-	return 0, fmt.Errorf("User %s not found", user.Login)
-}
-
-func (a *App) SetPermissionsHeader(userID int, settings OnCallPluginSettings, req *http.Request) error {
-	permissionsURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/access-control/users/%d/permissions", userID))
-	if err != nil {
-		return err
-	}
-
-	permissionsReq, err := http.NewRequest("GET", permissionsURL, nil)
-	if err != nil {
-		return err
-	}
-
-	permissionsReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
-
-	res, err := a.httpClient.Do(permissionsReq)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	log.DefaultLogger.Info(fmt.Sprintf("Permissions %s %s %s", permissionsURL, res.Status, body))
-	if len(body) > 0 && res.StatusCode == 200 {
-		req.Header.Set("X-Grafana-User-Permissions", string(body))
-	}
-	return nil
-}
-
-func (a *App) SetTeamsHeader(userID int, settings OnCallPluginSettings, req *http.Request) error {
-	permissionsURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/users/%d/teams", userID))
-	if err != nil {
-		return err
-	}
-
-	permissionsReq, err := http.NewRequest("GET", permissionsURL, nil)
-	if err != nil {
-		return err
-	}
-
-	permissionsReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
-
-	res, err := a.httpClient.Do(permissionsReq)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	log.DefaultLogger.Info(fmt.Sprintf("Teams %s %s %s", permissionsURL, res.Status, body))
-	if len(body) > 0 && res.StatusCode == 200 {
-		req.Header.Set("X-Grafana-User-Teams", string(body))
-	}
-	return nil
-}
-
 func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 	proxyMethod := req.Method
 	var proxyBody string
@@ -207,6 +132,8 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	log.DefaultLogger.Info(fmt.Sprintf("User %+v, UserID = %s", user, strconv.Itoa(userID)))
+
+	log.DefaultLogger.Info(fmt.Sprintf("Request -> %s", req.URL.Path))
 
 	reqURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "api/internal/v1/", req.URL.Path)
 	if err != nil {
@@ -267,7 +194,41 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 	io.Copy(w, res.Body)
 }
 
+func (a *App) handleInstall(w *responseWriter, req *http.Request) {
+	var provisioningData OnCallProvisioningJSONData
+	err := json.Unmarshal(w.body.Bytes(), &provisioningData)
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error unmarshalling OnCallProvisioningJSONData = %+v", err))
+		return
+	}
+
+	onCallPluginSettings, err := OnCallSettingsFromContext(req.Context())
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting settings from context = %+v", err))
+		return
+	}
+
+	log.DefaultLogger.Info(fmt.Sprintf("Settings = %+v", onCallPluginSettings))
+	log.DefaultLogger.Info(fmt.Sprintf("Provisioning data = %+v", provisioningData))
+
+	if provisioningData.Error != "" {
+		log.DefaultLogger.Error(fmt.Sprintf("Error installing OnCall = %s", provisioningData.Error))
+		return
+	}
+	onCallPluginSettings.License = provisioningData.License
+	onCallPluginSettings.OrgID = provisioningData.OrgId
+	onCallPluginSettings.StackID = provisioningData.StackId
+	onCallPluginSettings.OnCallToken = provisioningData.OnCallToken
+
+	err = a.SaveOnCallSettings(onCallPluginSettings)
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error saving settings = %+v", err))
+		return
+	}
+}
+
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
+	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleOnCall), a.handleInstall))
 	mux.HandleFunc("/", a.handleOnCall)
 }

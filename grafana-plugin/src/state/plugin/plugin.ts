@@ -226,8 +226,10 @@ export class PluginState {
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(
     selfHosted = false
   ): Promise<InstallPluginResponse<RT>> => {
-    const { key: grafanaToken } = await this.createGrafanaToken();
-    await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
+    // const { key: grafanaToken } = await this.createGrafanaToken();
+    // console.log(grafanaToken);
+    // await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
+    const grafanaToken = ""
     const onCallAPIResponse = await makeRequest<RT>(
       `${this.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`,
       {
@@ -274,31 +276,31 @@ export class PluginState {
     }
 
     // Step 3. reprovision the Grafana plugin settings, storing information that we get back from OnCall's backend
-    try {
-      const {
-        grafanaToken,
-        onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
-      } = pluginInstallationOnCallResponse;
-
-      await this.updateGrafanaPluginSettings({
-        jsonData: {
-          ...jsonData,
-          useBackendPlugin: true,
-          onCallApiUrl,
-        },
-        secureJsonData: {
-          grafanaToken,
-          onCallApiToken,
-        },
-      });
-    } catch (e) {
-      return this.getHumanReadableErrorFromGrafanaProvisioningError(
-        e,
-        onCallApiUrl,
-        errorMsgVerb,
-        onCallApiUrlIsConfiguredThroughEnvVar
-      );
-    }
+    // try {
+    //   const {
+    //     grafanaToken,
+    //     onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
+    //   } = pluginInstallationOnCallResponse;
+    //
+    //   await this.updateGrafanaPluginSettings({
+    //     jsonData: {
+    //       ...jsonData,
+    //       useBackendPlugin: true,
+    //       onCallApiUrl,
+    //     },
+    //     secureJsonData: {
+    //       grafanaToken,
+    //       onCallApiToken,
+    //     },
+    //   });
+    // } catch (e) {
+    //   return this.getHumanReadableErrorFromGrafanaProvisioningError(
+    //     e,
+    //     onCallApiUrl,
+    //     errorMsgVerb,
+    //     onCallApiUrlIsConfiguredThroughEnvVar
+    //   );
+    // }
 
     return null;
   };
