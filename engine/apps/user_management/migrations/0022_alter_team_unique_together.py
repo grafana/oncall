@@ -32,7 +32,9 @@ def clean_up_duplicated_teams(apps, schema_editor):
         for team in duplicated_teams:
             # if there is anything to migrate, do it here
             team.escalation_chains.update(team=first_team)
-            team.alert_receive_channels.exclude(integration="direct_paging").update(team=first_team)
+            # remove direct paging integrations before removing teams
+            team.alert_receive_channels.filter(integration="direct_paging").delete()
+            team.alert_receive_channels.update(team=first_team)
             team.custom_on_call_shifts.update(team=first_team)
             team.oncall_schedules.update(team=first_team)
             team.webhooks.update(team=first_team)
