@@ -149,16 +149,14 @@ class PluginAuthentication(BasePluginAuthentication):
         except (ValueError, TypeError):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
 
-        if "UserId" not in context and "UserID" not in context:
-            raise exceptions.AuthenticationFailed("Invalid Grafana context.")
-
         try:
-            user_id = context["UserId"]
-        except KeyError:
-            user_id = context["UserID"]
-
-        try:
-            return organization.users.get(user_id=user_id)
+            user_id = context.get("UserId", context.get("UserID"))
+            if user_id is not None:
+                return organization.users.get(user_id=user_id)
+            elif "Login" in context:
+                return organization.users.get(username=context["Login"])
+            else:
+                raise exceptions.AuthenticationFailed("Grafana context must specify a User or UserID.")
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")

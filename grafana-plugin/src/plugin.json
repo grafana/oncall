@@ -595,23 +595,23 @@
     "permissions": [
       {
         "action": "dashboards:create",
-        "scope": "folders:uid:*"
+        "scope": "folders:*"
       },
       {
         "action": "dashboards:read",
-        "scope": "folders:uid:*"
+        "scope": "dashboards:*"
       },
       {
         "action": "dashboards:write",
-        "scope": "folders:uid:*"
+        "scope": "dashboards:*"
       },
       {
         "action": "folders:read",
-        "scope": "folders:uid:*"
+        "scope": "folders:*"
       },
       {
         "action": "folders:write",
-        "scope": "folders:uid:*"
+        "scope": "folders:*"
       },
       {
         "action": "org.users:read",
@@ -621,12 +621,63 @@
         "action": "orgs:read"
       },
       {
+        "action": "plugins:write",
+        "scope": "plugins:id:grafana-oncall-app"
+      },
+      {
+        "action": "roles:read",
+        "scope": "roles:*"
+      },
+      {
+        "action": "status:accesscontrol",
+        "scope": "services:accesscontrol"
+      },
+      {
+        "action": "serviceaccounts:create"
+      },
+      {
+        "action": "serviceaccounts:delete",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:permissions:read",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:permissions:write",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:read",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:write",
+        "scope": "serviceaccounts:*"
+      },
+      {
         "action": "teams:read",
         "scope": "teams:*"
       },
       {
         "action": "teams.permissions:read",
         "scope": "teams:*"
+      },
+      {
+        "action": "teams.roles:read",
+        "scope": "teams:*"
+      },
+      {
+        "action": "users:read",
+        "scope": "global.users:*"
+      },
+      {
+        "action": "users.permissions:read",
+        "scope": "users:id:*"
+      },
+      {
+        "action": "users.roles:read",
+        "scope": "users:*"
       }
     ]
   },

@@ -5,7 +5,13 @@ import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
 import { PluginState, PluginStatusResponseBase } from 'state/plugin/plugin';
-import { FALLBACK_LICENSE, getOnCallApiUrl, GRAFANA_LICENSE_OSS, hasPluginBeenConfigured } from 'utils/consts';
+import {
+  FALLBACK_LICENSE,
+  getOnCallApiPath,
+  getOnCallApiUrl,
+  GRAFANA_LICENSE_OSS,
+  hasPluginBeenConfigured,
+} from 'utils/consts';
 
 import { ConfigurationForm } from './parts/ConfigurationForm/ConfigurationForm';
 import { RemoveCurrentConfigurationButton } from './parts/RemoveCurrentConfigurationButton/RemoveCurrentConfigurationButton';
@@ -235,6 +241,9 @@ export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   return (
     <>
       <Legend>Configure Grafana OnCall</Legend>
+      <StatusMessageBlock text={JSON.stringify(meta?.jsonData, null, 2)} />
+      <StatusMessageBlock text={window?.pluginMeta?.jsonData?.useBackendPlugin.toString()} />
+      <StatusMessageBlock text={getOnCallApiPath()} />
       {pluginIsConnected ? (
         <>
           <StatusMessageBlock

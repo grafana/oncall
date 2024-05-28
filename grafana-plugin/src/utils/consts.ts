@@ -56,9 +56,10 @@ export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
 
 export const getOnCallApiPath = (subpath = '') => {
   // TODO: remove flag check once backend plugin is enabled by default
-  return window?.pluginMeta?.jsonData?.useBackendPlugin
-    ? `/api/plugins/grafana-oncall-app/resources${subpath}`
-    : `api/plugin-proxy/grafana-oncall-app/api/internal/v1${subpath}`;
+  // return window?.pluginMeta?.jsonData?.useBackendPlugin
+  //   ? `/api/plugins/grafana-oncall-app/resources${subpath}`
+  //   : `api/plugin-proxy/grafana-oncall-app/api/internal/v1${subpath}`;
+  return `/api/plugins/grafana-oncall-app/resources${subpath}`;
 };
 
 // If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData

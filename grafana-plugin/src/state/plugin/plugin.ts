@@ -226,8 +226,10 @@ export class PluginState {
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(
     selfHosted = false
   ): Promise<InstallPluginResponse<RT>> => {
-    const { key: grafanaToken } = await this.createGrafanaToken();
-    await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
+    // const { key: grafanaToken } = await this.createGrafanaToken();
+    // console.log(grafanaToken);
+    // await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
+    const grafanaToken = '';
     const onCallAPIResponse = await makeRequest<RT>(
       `${this.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`,
       {
@@ -241,12 +243,12 @@ export class PluginState {
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar: boolean
   ): Promise<string | null> => {
-    let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
+    // let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
     const errorMsgVerb: InstallationVerb = 'install';
 
     // Step 1. Try provisioning the plugin w/ the Grafana API
     try {
-      await this.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl: onCallApiUrl } });
+      await this.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl: onCallApiUrl, useBackendPlugin: true } });
     } catch (e) {
       return this.getHumanReadableErrorFromGrafanaProvisioningError(
         e,
@@ -263,7 +265,7 @@ export class PluginState {
      * - configure the plugin in OnCall's backend
      */
     try {
-      pluginInstallationOnCallResponse = await this.installPlugin<SelfHostedProvisioningConfigResponse>(true);
+      await this.installPlugin<SelfHostedProvisioningConfigResponse>(true);
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(
         e,
@@ -274,30 +276,31 @@ export class PluginState {
     }
 
     // Step 3. reprovision the Grafana plugin settings, storing information that we get back from OnCall's backend
-    try {
-      const {
-        grafanaToken,
-        onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
-      } = pluginInstallationOnCallResponse;
-
-      await this.updateGrafanaPluginSettings({
-        jsonData: {
-          ...jsonData,
-          onCallApiUrl,
-        },
-        secureJsonData: {
-          grafanaToken,
-          onCallApiToken,
-        },
-      });
-    } catch (e) {
-      return this.getHumanReadableErrorFromGrafanaProvisioningError(
-        e,
-        onCallApiUrl,
-        errorMsgVerb,
-        onCallApiUrlIsConfiguredThroughEnvVar
-      );
-    }
+    // try {
+    //   const {
+    //     grafanaToken,
+    //     onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
+    //   } = pluginInstallationOnCallResponse;
+    //
+    //   await this.updateGrafanaPluginSettings({
+    //     jsonData: {
+    //       ...jsonData,
+    //       useBackendPlugin: true,
+    //       onCallApiUrl,
+    //     },
+    //     secureJsonData: {
+    //       grafanaToken,
+    //       onCallApiToken,
+    //     },
+    //   });
+    // } catch (e) {
+    //   return this.getHumanReadableErrorFromGrafanaProvisioningError(
+    //     e,
+    //     onCallApiUrl,
+    //     errorMsgVerb,
+    //     onCallApiUrlIsConfiguredThroughEnvVar
+    //   );
+    // }
 
     return null;
   };
@@ -327,6 +330,7 @@ export class PluginState {
       onCallApiUrl: null,
       insightsDatasource: undefined,
       license: null,
+      useBackendPlugin: true,
     };
     const secureJsonData: OnCallPluginMetaSecureJSONData = {
       grafanaToken: null,
