@@ -53,6 +53,12 @@ def generate_public_primary_key_for_webhook():
     return new_public_primary_key
 
 
+class WebhookSession(requests.Session):
+    def send(self, request, **kwargs):
+        parse_url(request.url)  # validate URL on every redirect
+        return super().send(request, **kwargs)
+
+
 class WebhookQueryset(models.QuerySet):
     def delete(self):
         self.update(deleted_at=timezone.now(), name=F("name") + "_deleted_" + F("public_primary_key"))
@@ -276,21 +282,15 @@ class Webhook(models.Model):
             raise InvalidWebhookTrigger(e.fallback_message)
 
     def make_request(self, url, request_kwargs):
-        if self.http_method == "GET":
-            r = requests.get(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "POST":
-            r = requests.post(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "PUT":
-            r = requests.put(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "DELETE":
-            r = requests.delete(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "OPTIONS":
-            r = requests.options(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "PATCH":
-            r = requests.patch(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        else:
+        if self.http_method not in ("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"):
             raise ValueError(f"Unsupported http method: {self.http_method}")
-        return r
+
+        with WebhookSession() as session:
+            response = session.request(
+                self.http_method, url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs
+            )
+
+        return response
 
     # Insight logs
     @property
