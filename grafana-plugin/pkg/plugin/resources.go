@@ -114,8 +114,18 @@ func SetAuthorizationHeader(settings OnCallPluginSettings, req *http.Request) {
 
 func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 	proxyMethod := req.Method
-	var proxyBody string
-	bodyReader := bytes.NewReader([]byte(proxyBody))
+	var bodyReader io.Reader
+	if req.Body != nil {
+		proxyBody, err := io.ReadAll(req.Body)
+		if err != nil {
+			log.DefaultLogger.Error("Error reading original request: %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if proxyBody != nil {
+			bodyReader = bytes.NewReader(proxyBody)
+		}
+	}
 
 	onCallPluginSettings, err := OnCallSettingsFromContext(req.Context())
 	if err != nil {
