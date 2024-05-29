@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { COLORS, getLabelCss } from 'styles/utils.styles';
 
-import { Avatar } from 'components/Avatar/Avatar';
 import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
@@ -18,8 +17,9 @@ import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { truncateTitle } from 'utils/string';
 
-import { getTitle } from './ScheduleSlot.helpers';
+import { getScheduleSlotStyleParams, getTitle } from './ScheduleSlot.helpers';
 
 interface ScheduleSlotProps {
   event: Event;
@@ -165,21 +165,26 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
   const beneficiaryStoreUser = store.userStore.items[shiftSwap?.beneficiary?.pk];
   const benefactorStoreUser = store.userStore.items[shiftSwap?.benefactor?.pk];
 
+  const { backgroundColor, border, textColor } = getScheduleSlotStyleParams(
+    SHIFT_SWAP_COLOR,
+    true,
+    Boolean(shiftSwap?.benefactor)
+  );
+
   const scheduleSlotContent = (
-    <div className={cx(styles.root, styles.swap)} data-testid="schedule-slot">
+    <div
+      className={cx(styles.root)}
+      style={{
+        backgroundColor,
+        border,
+        color: textColor,
+      }}
+      data-testid="schedule-slot"
+    >
       {shiftSwap && (
-        <HorizontalGroup spacing="xs">
-          {beneficiary && <Avatar size="xs" src={beneficiary.avatar_full} />}
-          {benefactor ? (
-            <Avatar size="xs" src={benefactor.avatar_full} />
-          ) : (
-            <div className={styles.noUser}>
-              <Text size="xs" type="primary">
-                ?
-              </Text>
-            </div>
-          )}
-        </HorizontalGroup>
+        <div className={styles.title}>
+          {truncateTitle(beneficiary.display_name, 9)} → {benefactor ? truncateTitle(benefactor.display_name, 9) : '?'}
+        </div>
       )}
     </div>
   );
@@ -228,7 +233,7 @@ const RegularEvent = (props: RegularEventProps) => {
     event,
     onShiftSwapClick,
     filters,
-    color,
+    color: propsColor,
     start,
     duration,
     handleAddOverride,
@@ -267,19 +272,17 @@ const RegularEvent = (props: RegularEventProps) => {
 
         const isShiftSwap = Boolean(swap_request);
 
-        const title = isShiftSwap ? 'Shift swap' : showScheduleNameAsSlotTitle ? schedule?.name : getShiftName(shift);
+        const title = isShiftSwap
+          ? `Shift swap to ${getShiftName(shift)}`
+          : showScheduleNameAsSlotTitle
+          ? schedule?.name
+          : getShiftName(shift);
 
-        let backgroundColor = color;
-        let border = undefined;
-        let textColor = '#fff';
-        if (isShiftSwap) {
-          backgroundColor = SHIFT_SWAP_COLOR;
-          if (!swap_request.user) {
-            backgroundColor = 'transparent';
-            border = `1px solid ${SHIFT_SWAP_COLOR}`;
-            textColor = SHIFT_SWAP_COLOR;
-          }
-        }
+        const { color, backgroundColor, border, textColor } = getScheduleSlotStyleParams(
+          propsColor,
+          Boolean(swap_request),
+          Boolean(swap_request?.user)
+        );
 
         const scheduleSlotContent = (
           <div
@@ -301,7 +304,9 @@ const RegularEvent = (props: RegularEventProps) => {
                 duration={duration}
               />
             )}
-            <div className={styles.title}>{swap_request && !swap_request.user ? userTitle + ' → ?' : userTitle}</div>
+            <div className={styles.title}>
+              {swap_request && !swap_request.user ? truncateTitle(userTitle, 9) + ' → ?' : userTitle}
+            </div>
           </div>
         );
 
@@ -334,7 +339,7 @@ const RegularEvent = (props: RegularEventProps) => {
                     : handleAddShiftSwap
                 }
                 handleOpenSchedule={handleOpenSchedule}
-                color={backgroundColor}
+                color={color}
                 currentMoment={currentMoment}
               />
             }
@@ -564,11 +569,6 @@ const getStyles = (theme: GrafanaTheme2) => {
       visibility: hidden;
     `,
 
-    // TODO: Same here
-    swap: css`
-      background: rgba(255, 153, 0, 0.18);
-    `,
-
     noUser: css`
       width: 12px;
       height: 12px;
@@ -584,7 +584,6 @@ const getStyles = (theme: GrafanaTheme2) => {
 
     title: css`
       z-index: 1;
-      color: #fff;
       font-size: 12px;
       width: 100%;
       font-weight: 500;

@@ -19,7 +19,7 @@ export const getRotationsStyles = (theme: GrafanaTheme2) => {
     currentTime: css`
       position: absolute;
       width: 1px;
-      background: ${theme.colors.gradients.brandVertical}
+      background: ${theme.colors.gradients.brandVertical};
       top: 0;
       bottom: 0;
       z-index: 1;

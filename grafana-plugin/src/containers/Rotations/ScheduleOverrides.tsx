@@ -162,11 +162,15 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </TransitionGroup>
             ) : null}
             <TransitionGroup className={cx(styles.layer, { [styles.layerFirst]: !shiftSwaps || !shiftSwaps.length })}>
-              <Tag className={styles.layerTitle}>
-                <Text type="primary" size="small">
-                  Overrides
-                </Text>
-              </Tag>
+              {shifts && shifts.length ? (
+                <CSSTransition key={-1} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
+                  <Tag className={styles.layerTitle}>
+                    <Text type="primary" size="small">
+                      Overrides
+                    </Text>
+                  </Tag>
+                </CSSTransition>
+              ) : null}
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, isPreview, events }, index) => (
                   <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>

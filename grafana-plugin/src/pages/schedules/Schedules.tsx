@@ -107,6 +107,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
           </div>
           <div data-testid="schedules-table">
             <GTable
+              className={styles.table}
               columns={this.getTableColumns()}
               data={results}
               pagination={{

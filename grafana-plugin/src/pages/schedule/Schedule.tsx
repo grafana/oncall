@@ -111,6 +111,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const { store } = this.props;
     store.scheduleStore.clearPreview();
     store.setPageTitle(undefined);
+    store.scheduleStore.setScheduleView(ScheduleView.OneWeek);
   }
 
   render() {
@@ -340,6 +341,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                 getCalendarStartDate(dayjs(newDate), scheduleView)
                               );
                               this.handleDateRangeUpdate();
+                              this.setState({ calendarStartDatePickerIsOpen: false });
                             }}
                             onClose={() => this.setState({ calendarStartDatePickerIsOpen: false })}
                           />
