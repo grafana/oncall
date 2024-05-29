@@ -1,4 +1,3 @@
-import time
 from datetime import timedelta
 
 from rest_framework import serializers
@@ -38,12 +37,21 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
 }
 
 
+# TODO: FloatField is used for backward-compatibility, change to IntegerField in a future release
 class DurationSecondsField(serializers.FloatField):
     def to_internal_value(self, data):
         return timedelta(seconds=int(super().to_internal_value(data)))
 
     def to_representation(self, value):
         return int(value.total_seconds())
+
+
+class DurationMinutesField(serializers.IntegerField):
+    def to_internal_value(self, data):
+        return timedelta(minutes=int(super().to_internal_value(data)))
+
+    def to_representation(self, value):
+        return value.total_seconds() // 60
 
 
 class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer):
@@ -56,11 +64,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         required=False,
     )
     wait_delay = DurationSecondsField(required=False, allow_null=True)
-    num_minutes_in_window = serializers.ChoiceField(
-        required=False,
-        choices=EscalationPolicy.WEB_DURATION_CHOICES_MINUTES,
-        allow_null=True,
-    )
+    num_minutes_in_window = DurationMinutesField(required=False, allow_null=True)
     notify_schedule = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=OnCallSchedule.objects,
         required=False,
