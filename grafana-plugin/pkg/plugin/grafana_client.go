@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int, error) {
@@ -130,7 +131,6 @@ func (a *App) SaveOnCallSettings(settings OnCallPluginSettings) error {
 			OnCallAPIURL:     settings.OnCallAPIURL,
 			StackID:          settings.StackID,
 			OrgID:            settings.OrgID,
-			UseBackendPlugin: true,
 			License:          settings.License,
 		},
 		SecureJSONData: OnCallPluginSettingsSecureJSONData{

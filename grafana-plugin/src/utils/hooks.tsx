@@ -11,6 +11,7 @@ import { useStore } from 'state/useStore';
 
 import { LocationHelper } from './LocationHelper';
 import { getCommonStyles } from './styles';
+import { IS_OPEN_SOURCE } from '../../e2e-tests/utils/constants';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -145,7 +146,7 @@ export const useInitializePlugin = ({ meta }: AppRootProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const initializePlugin = async () => {
     if (!meta?.secureJsonFields?.onCallApiToken) {
-      await makeRequest(`/plugin/self-hosted/install`, {
+      await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
         method: 'POST',
       });
     }
