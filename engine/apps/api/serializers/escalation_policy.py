@@ -38,6 +38,14 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
 }
 
 
+class DurationSecondsField(serializers.FloatField):
+    def to_internal_value(self, data):
+        return timedelta(seconds=int(super().to_internal_value(data)))
+
+    def to_representation(self, value):
+        return int(value.total_seconds())
+
+
 class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     escalation_chain = OrganizationFilteredPrimaryKeyRelatedField(queryset=EscalationChain.objects)
@@ -47,11 +55,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         queryset=User.objects,
         required=False,
     )
-    wait_delay = serializers.ChoiceField(
-        required=False,
-        choices=EscalationPolicy.WEB_DURATION_CHOICES,
-        allow_null=True,
-    )
+    wait_delay = DurationSecondsField(required=False, allow_null=True)
     num_minutes_in_window = serializers.ChoiceField(
         required=False,
         choices=EscalationPolicy.WEB_DURATION_CHOICES_MINUTES,
@@ -151,28 +155,11 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             raise serializers.ValidationError("Invalid escalation step type: step is Slack-specific")
         return step_type
 
-    def to_internal_value(self, data):
-        data = self._wait_delay_to_internal_value(data)
-        return super().to_internal_value(data)
-
     def to_representation(self, instance):
         step = instance.step
         result = super().to_representation(instance)
         result = EscalationPolicySerializer._get_important_field(step, result)
         return result
-
-    @staticmethod
-    def _wait_delay_to_internal_value(data):
-        if data.get(WAIT_DELAY, None):
-            try:
-                time.strptime(data[WAIT_DELAY], "%H:%M:%S")
-            except ValueError:
-                try:
-                    data[WAIT_DELAY] = str(timedelta(seconds=float(data[WAIT_DELAY])))
-                except ValueError:
-                    raise serializers.ValidationError("Invalid wait delay format")
-
-        return data
 
     @staticmethod
     def _get_important_field(step, result):
