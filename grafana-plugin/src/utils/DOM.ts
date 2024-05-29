@@ -42,6 +42,7 @@ export const getCoords = (elem) => {
 };
 
 export const HTML_ID = {
-  ROTATIONS: 'oncall-rotations',
-  OVERRIDES_AND_SWAPS: 'oncall-overrides-and-swaps',
+  SCHEDULE_FINAL: 'oncall-schedule-final',
+  SCHEDULE_ROTATIONS: 'oncall-schedule-rotations',
+  SCHEDULE_OVERRIDES_AND_SWAPS: 'oncall-schedule-overrides-and-swaps',
 } as const;

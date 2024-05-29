@@ -24,6 +24,7 @@ import { Event, Schedule, ScheduleView, ShiftSwap } from 'models/schedule/schedu
 import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { HTML_ID } from 'utils/DOM';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
@@ -87,7 +88,10 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     }, [calendarStartDate, scheduleView]);
 
     return (
-      <div className={cx(styles.root, { [bem(styles.root, 'withNoBackgroundAndBorder')]: simplified })}>
+      <div
+        id={HTML_ID.SCHEDULE_FINAL}
+        className={cx(styles.root, { [bem(styles.root, 'withNoBackgroundAndBorder')]: simplified })}
+      >
         {!simplified && (
           <div className={styles.header}>
             <HorizontalGroup justify="space-between">

@@ -20,6 +20,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { HTML_ID } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
@@ -104,7 +105,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
 
     return (
       <>
-        <div id="oncall-rotations" className={styles.root}>
+        <div id={HTML_ID.SCHEDULE_ROTATIONS} className={styles.root}>
           <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">

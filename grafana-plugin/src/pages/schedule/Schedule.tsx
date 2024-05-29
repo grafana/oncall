@@ -237,7 +237,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                       key={index}
                                       label={`L${layer.priority} rotation`}
                                       onClick={() => {
-                                        scrollToElement(document.getElementById(HTML_ID.ROTATIONS));
+                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
                                         this.handleShowRotationForm('new', layer.priority);
                                       }}
@@ -246,7 +246,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="New layer with rotation"
                                     onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.ROTATIONS));
+                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
                                       this.handleShowRotationForm('new', nextPriority);
                                     }}
@@ -254,7 +254,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="Shift swap request"
                                     onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.OVERRIDES_AND_SWAPS));
+                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
 
                                       this.handleShowShiftSwapForm('new');
                                     }}
@@ -262,7 +262,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                   <Menu.Item
                                     label="Override"
                                     onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.OVERRIDES_AND_SWAPS));
+                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
 
                                       this.handleShowOverridesForm('new');
                                     }}
@@ -348,6 +348,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         </HorizontalGroup>
                         <HorizontalGroup>
                           <RadioButtonGroup
+                            className="scheduleViewToogler"
                             options={[
                               { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
                               { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },

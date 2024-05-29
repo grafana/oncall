@@ -82,7 +82,11 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
         const isWeekend = m.moment.day() === 0 || m.moment.day() === 6;
 
         return (
-          <div key={i} className={cx('weekday', { 'weekday--weekEnd': isWeekend })} style={{ width: `${100 / days}%` }}>
+          <div
+            key={i}
+            className={cx('weekday', 'TEST_weekday', { 'weekday--weekEnd': isWeekend })}
+            style={{ width: `${100 / days}%` }}
+          >
             <div className={cx('weekday-title')}>
               <Text type={isCurrentDay ? 'primary' : 'secondary'}>
                 {m.moment.date() === 1 ? m.moment.format('ddd D MMM') : m.moment.format('ddd D')}

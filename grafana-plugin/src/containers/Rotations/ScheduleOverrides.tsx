@@ -25,6 +25,7 @@ import { Schedule, Shift, ShiftEvents, ShiftSwap } from 'models/schedule/schedul
 import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { HTML_ID } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
@@ -99,7 +100,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
 
     return (
       <>
-        <div id="oncall-overrides-and-swaps" className={styles.root}>
+        <div id={HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS} className={styles.root}>
           <div className={styles.header}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={5} type="primary">
