@@ -6,7 +6,6 @@ export type OnCallPluginMetaJSONData = {
   onCallApiUrl: string;
   insightsDatasource?: string;
   license: string;
-  useBackendPlugin?: boolean;
 };
 
 export type OnCallPluginMetaSecureJSONData = {
