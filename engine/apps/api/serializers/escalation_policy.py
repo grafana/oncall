@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from rest_framework import serializers
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
@@ -8,6 +6,8 @@ from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
+    DurationMinutesField,
+    DurationSecondsField,
     OrganizationFilteredPrimaryKeyRelatedField,
     UsersFilteredByOrganizationField,
 )
@@ -35,23 +35,6 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: [CUSTOM_WEBHOOK_TRIGGER],
 }
-
-
-# TODO: FloatField is used for backward-compatibility, change to IntegerField in a future release
-class DurationSecondsField(serializers.FloatField):
-    def to_internal_value(self, data):
-        return timedelta(seconds=int(super().to_internal_value(data)))
-
-    def to_representation(self, value):
-        return int(value.total_seconds())
-
-
-class DurationMinutesField(serializers.IntegerField):
-    def to_internal_value(self, data):
-        return timedelta(minutes=int(super().to_internal_value(data)))
-
-    def to_representation(self, value):
-        return value.total_seconds() // 60
 
 
 class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer):
