@@ -18,6 +18,8 @@ import { UserAction } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
+import { toJS } from 'mobx';
+import { isNumber } from 'lodash';
 
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
@@ -185,21 +187,38 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { data, waitDelays = [], userAction } = this.props;
     const { wait_delay } = data;
 
+    const optionsList = waitDelays.map((waitDelay: SelectOption) => ({
+      label: waitDelay.display_name,
+      value: waitDelay.value,
+    }));
+
+    const valueNum = parseFloat(wait_delay);
+    const optionValue = optionsList.find((delay) => delay.value === wait_delay) || {
+      value: wait_delay,
+      label: `${valueNum / 60} minutes`,
+    };
+
     return (
       <WithPermissionControlTooltip userAction={userAction}>
-        <Select
-          key="wait-delay"
-          placeholder="Wait Delay"
-          className={cx(this.styles.select, this.styles.control)}
-          // @ts-ignore
-          value={wait_delay}
-          disabled={disabled}
-          onChange={this._getOnChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: SelectOption) => ({
-            label: waitDelay.display_name,
-            value: waitDelay.value,
-          }))}
-        />
+        <div className={this.styles.container}>
+          <Select
+            key="wait-delay"
+            placeholder="Wait Delay"
+            className={cx(this.styles.delay, this.styles.control)}
+            value={wait_delay ? optionValue : undefined}
+            disabled={disabled}
+            onChange={this._getOnChangeHandler('wait_delay')}
+            options={optionsList}
+            allowCustomValue
+            formatCreateLabel={(value) => `${value} min`}
+            onCreateOption={(option: string) => {
+              if (!isNumber(+option)) return;
+              const num = parseFloat(option);
+              this._getOnChangeHandler('wait_delay')({ value: `${num * 60}` });
+            }}
+          />
+          minutes
+        </div>
       </WithPermissionControlTooltip>
     );
   }
@@ -297,6 +316,17 @@ const getStyles = (_theme: GrafanaTheme2) => {
     select: css`
       width: 200px !important;
       flex-shrink: 0;
+    `,
+
+    delay: css`
+      width: 100px !important;
+    `,
+
+    container: css`
+      width: 200px;
+      display: flex;
+      align-items: center;
+      margin-right: 12px;
     `,
   };
 };
