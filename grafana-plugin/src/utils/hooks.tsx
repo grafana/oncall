@@ -145,12 +145,11 @@ export const useOnMount = (callback: () => void) => {
 export const useInitializePlugin = ({ meta }: AppRootProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const initializePlugin = async () => {
-    // TODO: if we don't call install every time, e2e tests fail when new user is created
-    // if (!meta?.secureJsonFields?.onCallApiToken) {
-    await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
-      method: 'POST',
-    });
-    // }
+    if (!meta?.secureJsonFields?.onCallApiToken) {
+      await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
+        method: 'POST',
+      });
+    }
     setIsInitialized(true);
   };
 
