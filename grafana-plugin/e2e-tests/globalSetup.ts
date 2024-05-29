@@ -1,14 +1,10 @@
 import {
   test as setup,
   chromium,
-  expect,
-  type Page,
   type BrowserContext,
   type FullConfig,
   type APIRequestContext,
 } from '@playwright/test';
-
-import { getOnCallApiUrl } from 'utils/consts';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -23,8 +19,6 @@ import {
   IS_CLOUD,
   IS_OPEN_SOURCE,
 } from './utils/constants';
-import { clickButton, getInputByName } from './utils/forms';
-import { goToGrafanaPage } from './utils/navigation';
 
 enum OrgRole {
   None = 'None',
@@ -79,7 +73,7 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     GRAFANA_ADMIN_PASSWORD,
     ADMIN_USER_STORAGE_STATE
   );
-  const adminPage = await adminBrowserContext.newPage();
+  await adminBrowserContext.newPage();
   const { request: adminAuthedRequest } = adminBrowserContext;
 
   await generateLoginStorageStateAndOptionallCreateUser(
