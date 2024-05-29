@@ -2,9 +2,11 @@ import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 
 import { ConfirmModal, useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
+import { AppRootProps } from 'types';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
+import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 
 import { LocationHelper } from './LocationHelper';
@@ -137,4 +139,22 @@ export const useOnMount = (callback: () => void) => {
   useEffect(() => {
     callback();
   }, []);
+};
+
+export const useInitializePlugin = ({ meta }: AppRootProps) => {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const initializePlugin = async () => {
+    if (!meta?.secureJsonFields?.onCallApiToken) {
+      await makeRequest(`/plugin/self-hosted/install`, {
+        method: 'POST',
+      });
+    }
+    setIsInitialized(true);
+  };
+
+  useOnMount(() => {
+    initializePlugin();
+  });
+
+  return { isInitialized };
 };

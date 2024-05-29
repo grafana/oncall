@@ -36,7 +36,6 @@ declare global {
         unifiedAlerting: { minInterval: string };
       };
     };
-    pluginMeta: OnCallAppPluginMeta;
     RECAPTCHA_SITE_KEY: string;
     grecaptcha: any;
     dataLayer: any;
