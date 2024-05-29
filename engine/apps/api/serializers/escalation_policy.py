@@ -6,7 +6,6 @@ from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
-    DurationMinutesField,
     DurationSecondsField,
     OrganizationFilteredPrimaryKeyRelatedField,
     UsersFilteredByOrganizationField,
@@ -47,7 +46,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         required=False,
     )
     wait_delay = DurationSecondsField(required=False, allow_null=True)
-    num_minutes_in_window = DurationMinutesField(required=False, allow_null=True)
+    num_minutes_in_window = serializers.IntegerField(required=False, allow_null=True)
     notify_schedule = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=OnCallSchedule.objects,
         required=False,

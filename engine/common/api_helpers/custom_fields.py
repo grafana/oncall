@@ -216,11 +216,3 @@ class DurationSecondsField(serializers.FloatField):
 
     def to_representation(self, value):
         return int(value.total_seconds())
-
-
-class DurationMinutesField(serializers.IntegerField):
-    def to_internal_value(self, data):
-        return timedelta(minutes=int(super().to_internal_value(data)))
-
-    def to_representation(self, value):
-        return value.total_seconds() // 60
