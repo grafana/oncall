@@ -15,12 +15,12 @@ test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage 
   // ScheduleView.OneWeek is selected by default
   expect(await page.getByLabel(ScheduleView.OneWeek, { exact: true }).isChecked()).toBe(true);
 
-  const count = await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count();
-  expect(count).toStrictEqual(scheduleViewToDaysInOneRow[ScheduleView.OneWeek]);
+  expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toStrictEqual(
+    scheduleViewToDaysInOneRow[ScheduleView.OneWeek]
+  );
 
-  /* 
-    for some reason loop isn't working
-  [ScheduleView.TwoWeeks, ScheduleView.OneMonth, ScheduleView.OneWeek].forEach(async (scheduleView) => {
+  // for some reason loop isn't working
+  /* [ScheduleView.TwoWeeks, ScheduleView.OneMonth, ScheduleView.OneWeek].forEach(async (scheduleView) => {
     await page.locator('.scheduleViewToogler').getByLabel(scheduleView, { exact: true }).click();
     expect(await page.getByLabel(scheduleView, { exact: true }).isChecked()).toBe(true);
   }); */
