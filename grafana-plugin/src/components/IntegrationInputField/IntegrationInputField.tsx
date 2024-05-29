@@ -35,7 +35,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
 
   return (
     <div className={cx(styles.root, { [className]: !!className })}>
-      <div className={cx(styles.inputContainer)}>{renderInputField()}</div>
+      <div className={styles.inputContainer}>{renderInputField()}</div>
 
       <div className={cx(styles.icons, iconsClassName)}>
         <HorizontalGroup spacing={'xs'}>
