@@ -10,6 +10,7 @@ from apps.api.permissions import RBACPermission
 from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE, DIVIDER
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
@@ -44,6 +45,7 @@ logger.setLevel(logging.DEBUG)
 RESOLUTION_NOTE_EXCEPTIONS = (
     SlackAPIChannelNotFoundError,
     SlackAPIMessageNotFoundError,
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIInvalidAuthError,
     SlackAPITokenError,

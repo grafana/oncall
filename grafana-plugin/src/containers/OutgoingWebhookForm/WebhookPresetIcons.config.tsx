@@ -10,7 +10,7 @@ export const additionalWebhookPresetIcons: { [id: string]: () => React.ReactElem
 };
 
 export const getWebhookPresetIcons = (features: Record<string, boolean>) => {
-  if (features[AppFeature.MsTeams]) {
+  if (features?.[AppFeature.MsTeams]) {
     return { ...commonWebhookPresetIconsConfig, ...additionalWebhookPresetIcons };
   }
 

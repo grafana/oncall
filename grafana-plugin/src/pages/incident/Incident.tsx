@@ -1,5 +1,7 @@
 import React, { useState, SyntheticEvent } from 'react';
 
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
   Button,
@@ -15,14 +17,16 @@ import {
   Modal,
   Tooltip,
   Divider,
+  withTheme2,
+  useStyles2,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
+import { COLORS, getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
@@ -63,12 +67,12 @@ import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
-import styles from './Incident.module.scss';
 
-const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
-interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  theme: GrafanaTheme2;
+}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -134,6 +138,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const { errorData, showIntegrationSettings, showAttachIncidentForm, silenceModalData } = this.state;
     const { isNotFoundError, isWrongTeamError, isUnknownError } = errorData;
     const { alerts } = store.alertGroupStore;
+    const styles = getStyles(this.props.theme);
 
     const incident = alerts.get(id);
 
@@ -158,7 +163,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 
     if (!incident && !isNotFoundError && !isWrongTeamError) {
       return (
-        <div className={cx('root')}>
+        <div>
           <LoadingPlaceholder text="Loading Alert Group..." />
         </div>
       );
@@ -167,9 +172,9 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
         {() => (
-          <div className={cx('root')}>
+          <div>
             {errorData.isNotFoundError ? (
-              <div className={cx('not-found')}>
+              <div className={styles.notFound}>
                 <VerticalGroup spacing="lg" align="center">
                   <Text.Title level={1}>404</Text.Title>
                   <Text.Title level={4}>Alert group not found</Text.Title>
@@ -183,8 +188,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
             ) : (
               <>
                 {this.renderHeader()}
-                <div className={cx('content')}>
-                  <div className={cx('column')}>
+                <div className={styles.content}>
+                  <div className={styles.column}>
                     <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
                     <GroupedIncidentsList
                       id={incident.pk}
@@ -192,7 +197,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  <div className={cx('column')}>
+                  <div className={styles.column}>
                     <VerticalGroup style={{ display: 'block' }}>
                       {(!incident.resolved || incident?.paged_users?.length > 0) && (
                         <AddResponders
@@ -291,21 +296,24 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
       },
     } = this.props;
     const { alerts } = store.alertGroupStore;
+    const styles = getStyles(this.props.theme);
+
     const incident = alerts.get(id);
     const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
       store.alertReceiveChannelStore,
       incident.alert_receive_channel
     );
+
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
     const sourceLink = incident?.render_for_web?.source_link;
     const isServiceNow = Boolean(incident?.external_urls?.find((el) => el.integration_type === INTEGRATION_SERVICENOW));
 
     return (
-      <Block className={cx('block')}>
+      <Block className={styles.block}>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
-            <HorizontalGroup className={cx('title')}>
+            <HorizontalGroup>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
                 <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
@@ -337,11 +345,11 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     name="code-branch"
                     onClick={this.showAttachIncidentForm}
                     tooltip="Attach to another Alert Group"
-                    className={cx('title-icon')}
+                    className={styles.titleIcon}
                   />
                 )}
                 <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
-                  <IconButton name="slack" tooltip="View in Slack" className={cx('title-icon')} />
+                  <IconButton name="slack" tooltip="View in Slack" className={styles.titleIcon} />
                 </a>
                 <CopyToClipboard
                   text={window.location.href}
@@ -349,14 +357,14 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     openNotification('Link copied');
                   }}
                 >
-                  <IconButton name="copy" tooltip="Copy link" className={cx('title-icon')} />
+                  <IconButton name="copy" tooltip="Copy link" className={styles.titleIcon} />
                 </CopyToClipboard>
               </Text>
             </HorizontalGroup>
           </HorizontalGroup>
-          <div className={cx('info-row')}>
+          <div className={styles.infoRow}>
             <HorizontalGroup>
-              <div className={cx('status-tag-container')}>
+              <div className={styles.statusTagContainer}>
                 <IncidentDropdown
                   alert={incident}
                   onResolve={this.getOnActionButtonClick(incident.pk, AlertAction.Resolve)}
@@ -395,7 +403,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       variant="secondary"
                       fill="outline"
                       size="sm"
-                      className={cx('label-button')}
+                      className={styles.labelButton}
                     >
                       <Tooltip
                         placement="top"
@@ -405,18 +413,18 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                             : 'Go to Integration'
                         }
                       >
-                        <div className={cx('label-button-text', 'source-name')}>
-                          <div className={cx('integration-logo')}>
+                        <div className={cx(styles.labelButtonText, styles.sourceName)}>
+                          <div className={styles.integrationLogo}>
                             <IntegrationLogo integration={integration} scale={0.08} />
                           </div>
-                          <div className={cx('label-button-text')}>{integrationNameWithEmojies}</div>
+                          <div className={styles.labelButtonText}>{integrationNameWithEmojies}</div>
                         </div>
                       </Tooltip>
                     </Button>
                   </PluginLink>
 
                   {isServiceNow && (
-                    <Button variant="secondary" fill="outline" size="sm" className={cx('label-button')}>
+                    <Button variant="secondary" fill="outline" size="sm" className={styles.labelButton}>
                       <HorizontalGroup spacing="xs">
                         <Icon name="exchange-alt" />
                         <span>Service Now</span>
@@ -440,7 +448,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                         fill="outline"
                         size="sm"
                         disabled={sourceLink === null || parseURL(sourceLink) === ''}
-                        className={cx('label-button')}
+                        className={styles.labelButton}
                         icon="external-link-alt"
                       >
                         Source
@@ -451,7 +459,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               )}
             </HorizontalGroup>
           </div>
-          <HorizontalGroup justify="space-between" className={cx('buttons-row')}>
+          <HorizontalGroup justify="space-between" className={styles.buttonsRow}>
             <HorizontalGroup>
               {getActionButtons(incident, {
                 onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
@@ -516,8 +524,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
       match: {
         params: { id },
       },
+      theme,
     } = this.props;
 
+    const styles = getStyles(theme);
     const incident = store.alertGroupStore.alerts.get(id);
 
     if (!incident.render_after_resolve_report_json) {
@@ -529,11 +539,11 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
       <Block bordered>
-        <Text.Title type="primary" level={4} className={cx('timeline-title')}>
+        <Text.Title type="primary" level={4} className={styles.timelineTitle}>
           Timeline
         </Text.Title>
         <RadioButtonGroup
-          className={cx('timeline-filter')}
+          className={styles.timelineFilter}
           options={[
             { label: 'Show full timeline', value: 'all' },
             { label: 'Resolution notes only', value: TimeLineRealm.ResolutionNote },
@@ -543,11 +553,15 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
             this.setState({ timelineFilter: value });
           }}
         />
-        <ul className={cx('timeline')} data-testid="incident-timeline-list">
+        <ul className={styles.timeline} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
-            <li key={idx} className={cx('timeline-item')}>
+            <li key={idx} className={styles.timelineItem}>
               <HorizontalGroup align="flex-start">
-                <div className={cx('timeline-icon-background', { blue: item.realm === TimeLineRealm.ResolutionNote })}>
+                <div
+                  className={cx(styles.timelineIconBackground, {
+                    blue: item.realm === TimeLineRealm.ResolutionNote,
+                  })}
+                >
                   {this.renderTimelineItemIcon(item.realm)}
                 </div>
                 <VerticalGroup spacing="none">
@@ -687,16 +701,17 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 }
 
 function Incident({ incident }: { incident: ApiSchemas['AlertGroup']; datetimeReference: string }) {
+  const styles = useStyles2(getStyles);
   return (
-    <div key={incident.pk} className={cx('incident')}>
+    <div key={incident.pk}>
       <div
-        className={cx('message')}
+        className={styles.message}
         dangerouslySetInnerHTML={{
           __html: sanitize(incident.render_for_web.message),
         }}
         data-testid="incident-message"
       />
-      {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
+      {incident.render_for_web.image_url && <img className={styles.image} src={incident.render_for_web.image_url} />}
     </div>
   );
 }
@@ -710,6 +725,7 @@ function GroupedIncidentsList({
 }) {
   const store = useStore();
   const incident = store.alertGroupStore.alerts.get(id);
+  const styles = useStyles2(getStyles);
 
   const alerts = incident.alerts;
   if (!alerts) {
@@ -722,7 +738,7 @@ function GroupedIncidentsList({
   return (
     <Collapse
       headerWithBackground
-      className={cx('collapse')}
+      className={styles.collapse}
       isOpen={false}
       label={
         <HorizontalGroup wrap>
@@ -731,7 +747,7 @@ function GroupedIncidentsList({
           <Text type="secondary">{latestAlertMoment.format('MMM DD, YYYY HH:mm:ss Z').toString()}</Text>
         </HorizontalGroup>
       }
-      contentClassName={cx('incidents-content')}
+      contentClassName={styles.incidentsContent}
     >
       {alerts.map((alert) => (
         <GroupedIncident key={alert.id} incident={alert} datetimeReference={getIncidentDatetimeReference(alert)} />
@@ -744,12 +760,13 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const payloadJSON = isModalOpen ? JSON.stringify(incidentRawResponse.raw_request_data, null, 4) : undefined;
+  const styles = useStyles2(getStyles);
 
   return (
     <>
       {isModalOpen && (
         <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={isModalOpen} title="Alert Payload">
-          <div className={cx('payload-subtitle')}>
+          <div className={styles.payloadSubtitle}>
             <HorizontalGroup>
               <Text type="secondary">
                 {incident.render_for_web.title} - {datetimeReference}
@@ -765,7 +782,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
                   openNotification('Copied!');
                 }}
               >
-                <Button className={cx('button')} variant="primary" icon="copy">
+                <Button variant="primary" icon="copy">
                   Copy to Clipboard
                 </Button>
               </CopyToClipboard>
@@ -775,8 +792,8 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
       )}
 
       <div key={incident.id}>
-        <div className={cx('incident-row')}>
-          <div className={cx('incident-row-left')}>
+        <div className={styles.incidentRow}>
+          <div className={styles.incidentRowLeftSide}>
             <HorizontalGroup wrap justify={'flex-start'}>
               <Text.Title type="secondary" level={4}>
                 {incident.render_for_web.title}
@@ -784,7 +801,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
               <Text type="secondary">{datetimeReference}</Text>
             </HorizontalGroup>
           </div>
-          <div className={cx('incident-row-right')}>
+          <div>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
                 <IconButton aria-label="Alert Payload" name="arrow" onClick={() => openIncidentResponse(incident)} />
@@ -794,13 +811,13 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
         </div>
         <Text type="secondary">
           <div
-            className={cx('message')}
+            className={styles.message}
             dangerouslySetInnerHTML={{
               __html: sanitize(incident.render_for_web.message),
             }}
           />
         </Text>
-        {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
+        {incident.render_for_web.image_url && <img className={styles.image} src={incident.render_for_web.image_url} />}
       </div>
     </>
   );
@@ -820,6 +837,7 @@ function AttachedIncidentsList({
   getUnattachClickHandler(pk: string): void;
 }) {
   const store = useStore();
+  const styles = useStyles2(getStyles);
   const incident = store.alertGroupStore.alerts.get(id);
 
   if (!incident.dependent_alert_groups.length) {
@@ -831,10 +849,10 @@ function AttachedIncidentsList({
   return (
     <Collapse
       headerWithBackground
-      className={cx('collapse')}
+      className={styles.collapse}
       isOpen
       label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</HorizontalGroup>}
-      contentClassName={cx('incidents-content')}
+      contentClassName={styles.incidentsContent}
     >
       {alerts.map((incident) => {
         return (
@@ -855,8 +873,9 @@ function AttachedIncidentsList({
 }
 
 const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
+  const styles = useStyles2(getStyles);
   return (
-    <div className={cx('alert-group-stub')}>
+    <div className={styles.alertGroupStub}>
       <VerticalGroup align="center" spacing="md">
         <img src={errorSVG} alt="" />
         <Text.Title level={3}>An unexpected error happened</Text.Title>
@@ -864,7 +883,7 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
           OnCall is not able to receive any information about the current Alert Group. It's unknown if it's firing,
           acknowledged, silenced, or resolved.
         </Text>
-        <div className={cx('alert-group-stub-divider')}>
+        <div className={styles.alertGroupStubDivider}>
           <Divider />
         </div>
         <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>
@@ -876,4 +895,221 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   );
 };
 
-export const IncidentPage = withRouter(withMobXProviderContext(_IncidentPage));
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    incidentRow: css`
+      display: flex;
+    `,
+
+    incidentRowLeftSide: css`
+      flex-grow: 1;
+    `,
+
+    block: css`
+      padding: 0 0 20px 0;
+    `,
+
+    payloadSubtitle: css`
+      margin-bottom: 16px;
+    `,
+
+    infoRow: css`
+      width: 100%;
+      border-bottom: 1px solid ${theme.colors.border.medium};
+      padding-bottom: 20px;
+    `,
+
+    buttonsRow: css`
+      margin-top: 20px;
+    `,
+
+    content: css`
+      margin-top: 5px;
+      display: flex;
+    `,
+
+    timelineIconBackground: css`
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(${theme.isDark ? '70, 76, 84, 1' : '70, 76, 84, 0'});
+    `,
+
+    message: css`
+      margin-top: 16px;
+      word-wrap: break-word;
+
+      a {
+        word-break: break-all;
+      }
+
+      ul {
+        margin-left: 24px;
+      }
+
+      p {
+        margin-bottom: 0;
+      }
+
+      code {
+        white-space: break-spaces;
+      }
+    `,
+
+    image: css`
+      margin-top: 16px;
+      max-width: 100%;
+    `,
+
+    collapse: css`
+      margin-top: 16px;
+      position: relative;
+    `,
+
+    column: css`
+      width: 50%;
+      padding-right: 24px;
+
+      &:not(:first-child) {
+        padding-left: 24px;
+      }
+    `,
+
+    incidentsContent: css`
+      > div:not(:last-child) {
+        border-bottom: 1px solid ${COLORS.BORDER};
+        padding-bottom: 16px;
+      }
+
+      > div:not(:first-child) {
+        padding-top: 16px;
+      }
+    `,
+
+    timeline: css`
+      list-style-type: none;
+      margin: 0 0 24px 12px;
+    `,
+
+    timelineItem: css`
+      margin-top: 12px;
+    `,
+
+    notFound: css`
+      margin: 50px auto;
+      text-align: center;
+    `,
+
+    alertGroupStub: css`
+      margin: 24px auto;
+      width: 520px;
+      text-align: center;
+    `,
+
+    alertGroupStubDivider: css`
+      width: 520px;
+    `,
+
+    blue: css`
+      background: ${getLabelBackgroundTextColorObject('blue', theme).sourceColor};
+    `,
+
+    timelineTitle: css`
+      margin-bottom: 24px;
+    `,
+
+    timelineFilter: css`
+      margin-bottom: 24px;
+    `,
+
+    titleIcon: css`
+      color: ${theme.colors.secondary.text};
+      margin-left: 4px;
+    `,
+
+    integrationLogo: css`
+      margin-right: 8px;
+    `,
+
+    labelButton: css`
+      padding: 0 8px;
+      font-weight: 400;
+
+      &:disabled {
+        border: 1px solid ${theme.colors.border.strong};
+      }
+    `,
+
+    labelButtonText: css`
+      max-width: 160px;
+      overflow: hidden;
+      position: relative;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    `,
+
+    sourceName: css`
+      display: flex;
+      align-items: center;
+    `,
+
+    statusTagContainer: css`
+      margin-right: 8px;
+      display: inherit;
+    `,
+
+    statusTag: css`
+      height: 24px;
+      padding: 5px 8px;
+      border-radius: 2px;
+    `,
+
+    pagedUsers: css`
+      width: 100%;
+    `,
+
+    // TODO: Where are trash-button/hover-button coming from?
+    pagedUsersList: css`
+      list-style-type: none;
+      margin-bottom: 20px;
+      width: 100%;
+
+      & > li .trash-button {
+        display: none;
+      }
+
+      & > li:hover .trash-button {
+        display: block;
+      }
+
+      & > li {
+        padding: 8px 12px;
+        width: 100%;
+
+        & .hover-button {
+          display: none;
+        }
+      }
+
+      & > li:hover {
+        background: ${theme.colors.background.secondary};
+
+        & .hover-button {
+          display: inline-flex;
+        }
+      }
+    `,
+
+    userBadge: css`
+      vertical-align: middle;
+    `,
+  };
+};
+
+export const IncidentPage = withRouter(withMobXProviderContext(withTheme2(_IncidentPage)));

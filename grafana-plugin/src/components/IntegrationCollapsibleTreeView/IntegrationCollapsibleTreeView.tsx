@@ -120,7 +120,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   return (
     <div className={cx(styles.group, { [bem(styles.group, 'hidden')]: item.isHidden }, 'group')} data-emotion="group">
       <div
-        className={cx(styles.icon)}
+        className={styles.icon}
         style={{
           transform: `translateY(${item.startingElemPosition || 0})`,
         }}
@@ -139,7 +139,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   function renderIcon() {
     if (item.isTextIcon && elementPosition) {
       return (
-        <Text type="primary" customTag="h6" className={cx(styles.numberIcon)}>
+        <Text type="primary" customTag="h6" className={styles.numberIcon}>
           {elementPosition}
         </Text>
       );

@@ -1,9 +1,11 @@
 import React, { FC, useCallback, useEffect, useMemo } from 'react';
 
-import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, HorizontalGroup, Icon, Tooltip, useStyles2, VerticalGroup } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
+import { COLORS, getLabelCss } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
@@ -19,8 +21,6 @@ import { useStore } from 'state/useStore';
 
 import { getTitle } from './ScheduleSlot.helpers';
 
-import styles from './ScheduleSlot.module.css';
-
 interface ScheduleSlotProps {
   event: Event;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -33,13 +33,14 @@ interface ScheduleSlotProps {
   showScheduleNameAsSlotTitle?: boolean;
 }
 
-const cx = cn.bind(styles);
 const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
 export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const {
     timezoneStore: { getDateInSelectedTimezone },
   } = useStore();
+  const styles = useStyles2(getStyles);
+
   const {
     event,
     color,
@@ -69,7 +70,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     if (event.is_gap) {
       return (
         <Tooltip content={<ScheduleGapDetails event={event} />}>
-          <div className={cx('root', 'root__type_gap')} />
+          <div className={cx(styles.root, styles.gap)} />
         </Tooltip>
       );
     }
@@ -80,7 +81,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           shouldRender={event.missing_users.length > 0}
           backupChildren={
             <div
-              className={cx('root')}
+              className={styles.root}
               style={{
                 backgroundColor: color,
               }}
@@ -90,12 +91,12 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           {event.missing_users.map((name) => (
             <div
               key={name}
-              className={cx('root')}
+              className={styles.root}
               style={{
                 backgroundColor: color,
               }}
             >
-              <div className={cx('title')}>
+              <div className={styles.title}>
                 <NonExistentUserName userName={name} />
               </div>
             </div>
@@ -122,7 +123,7 @@ export const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   };
 
   return (
-    <div className={cx('stack')} style={{ width: `${width * 100}%` }} onClick={onClick}>
+    <div className={styles.stack} style={{ width: `${width * 100}%` }} onClick={onClick}>
       {renderEvent(event)}
     </div>
   );
@@ -137,6 +138,7 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
   const { event, currentMoment } = props;
 
   const store = useStore();
+  const styles = useStyles2(getStyles);
 
   const shiftSwap = store.scheduleStore.shiftSwaps[event.shiftSwapId];
 
@@ -159,14 +161,14 @@ const ShiftSwapEvent = (props: ShiftSwapEventProps) => {
   const benefactorStoreUser = store.userStore.items[shiftSwap?.benefactor?.pk];
 
   const scheduleSlotContent = (
-    <div className={cx('root', { 'root__type_shift-swap': true })} data-testid="schedule-slot">
+    <div className={cx(styles.root, styles.swap)} data-testid="schedule-slot">
       {shiftSwap && (
         <HorizontalGroup spacing="xs">
           {beneficiary && <Avatar size="xs" src={beneficiary.avatar_full} />}
           {benefactor ? (
             <Avatar size="xs" src={benefactor.avatar_full} />
           ) : (
-            <div className={cx('no-user')}>
+            <div className={styles.noUser}>
               <Text size="xs" type="primary">
                 ?
               </Text>
@@ -231,6 +233,7 @@ const RegularEvent = (props: RegularEventProps) => {
     showScheduleNameAsSlotTitle,
   } = props;
   const store = useStore();
+  const styles = useStyles2(getStyles);
 
   const { users } = event;
 
@@ -268,7 +271,7 @@ const RegularEvent = (props: RegularEventProps) => {
 
         const scheduleSlotContent = (
           <div
-            className={cx('root', { root__inactive: inactive })}
+            className={cx(styles.root, { [styles.inactive]: inactive })}
             style={{
               backgroundColor,
             }}
@@ -277,14 +280,14 @@ const RegularEvent = (props: RegularEventProps) => {
           >
             {storeUser && (!swap_request || swap_request.user) && (
               <WorkingHours
-                className={cx('working-hours')}
+                className={styles.workingHours}
                 timezone={storeUser.timezone}
                 workingHours={storeUser.working_hours}
                 startMoment={start}
                 duration={duration}
               />
             )}
-            <div className={cx('title')}>
+            <div className={styles.title}>
               {swap_request && !swap_request.user ? <Icon name="user-arrows" /> : userTitle}
             </div>
           </div>
@@ -374,6 +377,8 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
 
   const enableWebOverrides = schedule?.enable_web_overrides;
 
+  const styles = useStyles2(getStyles);
+
   useEffect(() => {
     if (shiftId && !scheduleStore.shifts[shiftId]) {
       scheduleStore.updateOncallShift(shiftId);
@@ -390,47 +395,47 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
   // const isOncall = Boolean(storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk));
 
   return (
-    <div className={cx('details')}>
+    <div className={styles.details}>
       <VerticalGroup>
         <HorizontalGroup>
-          <div className={cx('details-icon')}>
-            <div className={cx('badge')} style={{ backgroundColor: color }} />
+          <div className={styles.detailsIcon}>
+            <div className={styles.badge} style={{ backgroundColor: color }} />
           </div>
           <Text type="primary" maxWidth="222px">
             {title}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
-          <div className={cx('details-icon')}>
-            <Icon className={cx('icon')} name={isShiftSwap ? 'user-arrows' : 'user'} />
+          <div className={styles.detailsIcon}>
+            <Icon className={styles.icon} name={isShiftSwap ? 'user-arrows' : 'user'} />
           </div>
           {isShiftSwap ? (
             <VerticalGroup spacing="xs">
               <Text type="primary">Swap pair</Text>
-              <Text type="primary" className={cx('username')}>
+              <Text type="primary" className={styles.username}>
                 {beneficiaryName} <Text type="secondary"> (requested by)</Text>
               </Text>
               {benefactorName ? (
-                <Text type="primary" className={cx('username')}>
+                <Text type="primary" className={styles.username}>
                   {benefactorName} <Text type="secondary"> (accepted by)</Text>
                 </Text>
               ) : (
-                <Text type="secondary" className={cx('username')}>
+                <Text type="secondary" className={styles.username}>
                   Not accepted yet
                 </Text>
               )}
             </VerticalGroup>
           ) : (
-            <Text type="primary" className={cx('username')}>
+            <Text type="primary" className={styles.username}>
               {user?.username}
             </Text>
           )}
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
-          <div className={cx('details-icon')}>
-            <Icon className={cx('icon')} name="clock-nine" />
+          <div className={styles.detailsIcon}>
+            <Icon className={styles.icon} name="clock-nine" />
           </div>
-          <Text type="primary" className={cx('second-column')} data-testid="schedule-slot-user-local-time">
+          <Text type="primary" className={styles.secondColumn} data-testid="schedule-slot-user-local-time">
             User's local time
             <br />
             {currentMoment.tz(user?.timezone).format('DD MMM, HH:mm')}
@@ -444,10 +449,10 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
-          <div className={cx('details-icon')}>
-            <Icon className={cx('icon')} name="arrows-h" />
+          <div className={styles.detailsIcon}>
+            <Icon className={styles.icon} name="arrows-h" />
           </div>
-          <Text type="primary" className={cx('second-column')}>
+          <Text type="primary" className={styles.secondColumn}>
             This shift
             <br />
             {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}
@@ -488,13 +493,14 @@ interface ScheduleGapDetailsProps {
 }
 
 const ScheduleGapDetails = observer((props: ScheduleGapDetailsProps) => {
+  const styles = useStyles2(getStyles);
   const {
     timezoneStore: { selectedTimezoneLabel, getDateInSelectedTimezone },
   } = useStore();
   const { event } = props;
 
   return (
-    <div className={cx('details')}>
+    <div className={styles.details}>
       <VerticalGroup>
         <HorizontalGroup spacing="sm">
           <VerticalGroup spacing="none">
@@ -507,3 +513,138 @@ const ScheduleGapDetails = observer((props: ScheduleGapDetailsProps) => {
     </div>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      height: 28px;
+      background: ${COLORS.GRAY_8};
+      border-radius: 2px;
+      position: relative;
+      display: flex;
+      overflow: hidden;
+      margin: 0 1px;
+      padding: 4px;
+      align-items: center;
+      transition: opacity 0.2s ease;
+      cursor: pointer;
+    `,
+
+    workingHours: css`
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    `,
+
+    stack: css`
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      flex-shrink: 0;
+    `,
+
+    // TODO: What would be a matching value from theme for background?
+    gap: css`
+      background: rgba(209, 14, 92, 0.2);
+      border: 1px dashed ${theme.colors.error.text};
+      color: rgba(209, 14, 92, 0.5);
+      visibility: hidden;
+    `,
+
+    // TODO: Same here
+    swap: css`
+      border-radius: 10px;
+      background: #ff99002e;
+      height: 20px;
+    `,
+
+    noUser: css`
+      width: 12px;
+      height: 12px;
+      background: ${getLabelCss('blue', theme)};
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+    `,
+
+    inactive: css`
+      opacity: 0.3;
+    `,
+
+    title: css`
+      z-index: 1;
+      color: #fff;
+      font-size: 12px;
+      width: 100%;
+      font-weight: 500;
+      white-space: nowrap;
+    `,
+
+    label: css`
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 2px;
+      display: inline-block;
+      padding: 2px 4px;
+      line-height: 16px;
+      z-index: 1;
+      font-size: 10px;
+      font-weight: bold;
+      margin-right: 5px;
+      flex-shrink: 0;
+    `,
+
+    details: css`
+      width: 300px;
+      padding: 5px 0;
+    `,
+
+    detailsUserStatus: css`
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+
+      &--success {
+        background-color: ${theme.colors.success.text};
+      }
+    `,
+
+    time: css`
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background-color: white;
+      z-index: 2;
+    `,
+
+    isOnCallIcon: css`
+      color: ${theme.isDark ? '#181b1f' : '#fff'};
+      vertical-align: middle;
+    `,
+
+    detailsIcon: css`
+      width: 16px;
+      margin-right: 4px;
+    `,
+
+    badge: css`
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin: 0 auto;
+    `,
+
+    username: css`
+      word-break: break-word;
+    `,
+
+    secondColumn: css`
+      width: 120px;
+    `,
+
+    icon: css`
+      color: ${theme.colors.secondary.text};
+    `,
+  };
+};

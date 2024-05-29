@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { GTable } from 'components/GTable/GTable';
 import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
@@ -33,15 +35,11 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
-import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
 
-const cx = cn.bind(styles);
-
-interface OutgoingWebhooksProps
-  extends WithStoreProps,
-    PageProps,
-    RouteComponentProps<{ id: string; action: string }> {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string; action: string }> {
+  theme: GrafanaTheme2;
+}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookAction?: WebhookFormActionType;
@@ -172,6 +170,8 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       },
     ];
 
+    const styles = getStyles();
+
     return (
       <PageErrorHandlingWrapper
         errorData={errorData}
@@ -191,7 +191,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 }
               />
             )}
-            <div className={cx('newWebhookButton')}>
+            <div className={styles.newWebhookButton}>
               <PluginLink
                 query={{ page: 'outgoing_webhooks', id: 'new' }}
                 disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
@@ -204,13 +204,13 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               </PluginLink>
             </div>
 
-            <div className={cx('root')} data-testid="outgoing-webhooks-table">
+            <div data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
-                  <div className={cx('header')}>
-                    <div className="header__title">
+                  <div className={styles.header}>
+                    <div className={styles.headerTitle}>
                       <LegacyNavHeading>
                         <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       </LegacyNavHeading>
@@ -244,8 +244,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   renderOutgoingWebhooksFilters() {
     const { query, store } = this.props;
+
     return (
-      <div className={cx('filters')}>
+      <div>
         <RemoteFilters
           query={query}
           page={PAGE.Webhooks}
@@ -342,13 +343,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  renderUrl(url: string) {
+  renderUrl = (url: string) => {
+    const { theme } = this.props;
+    const utilStyles = getUtilStyles(theme);
+
     return (
       <TextEllipsisTooltip content={url} placement="top">
-        <Text className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>{url}</Text>
+        <Text className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-3'))}>{url}</Text>
       </TextEllipsisTooltip>
     );
-  }
+  };
 
   onDeleteClick = async (id: ApiSchemas['Webhook']['id']): Promise<void> => {
     const { store } = this.props;
@@ -433,4 +437,26 @@ function convertWebhookUrlToAction(urlAction: string) {
 
 export { OutgoingWebhooks };
 
-export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(OutgoingWebhooks));
+const getStyles = () => {
+  return {
+    header: css`
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding-top: 12px;
+    `,
+
+    headerTitle: css`
+      display: flex;
+      align-items: baseline;
+    `,
+
+    newWebhookButton: css`
+      position: absolute;
+      right: 0;
+      top: -48px;
+    `,
+  };
+};
+
+export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(withTheme2(OutgoingWebhooks)));

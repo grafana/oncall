@@ -43,7 +43,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
 
   const { organizationStore } = store;
   const slackWorkspaceName =
-    organizationStore.currentOrganization.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
+    organizationStore.currentOrganization?.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
 
   return (
     <div className={cx('root')} data-testid="schedule-user-details">
