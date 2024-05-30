@@ -348,7 +348,6 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         </HorizontalGroup>
                         <HorizontalGroup>
                           <RadioButtonGroup
-                            className="scheduleViewToogler"
                             options={[
                               { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
                               { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },

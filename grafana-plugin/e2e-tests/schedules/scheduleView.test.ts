@@ -19,19 +19,13 @@ test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage 
     scheduleViewToDaysInOneRow[ScheduleView.OneWeek]
   );
 
-  // for some reason loop isn't working
-  /* [ScheduleView.TwoWeeks, ScheduleView.OneMonth, ScheduleView.OneWeek].forEach(async (scheduleView) => {
-    await page.locator('.scheduleViewToogler').getByLabel(scheduleView, { exact: true }).click();
-    expect(await page.getByLabel(scheduleView, { exact: true }).isChecked()).toBe(true);
-  }); */
-
-  await page.locator('.scheduleViewToogler').getByLabel(ScheduleView.TwoWeeks, { exact: true }).click();
+  await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).click();
   expect(await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).isChecked()).toBe(true);
   expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toStrictEqual(
     scheduleViewToDaysInOneRow[ScheduleView.TwoWeeks]
   );
 
-  await page.locator('.scheduleViewToogler').getByLabel(ScheduleView.OneMonth, { exact: true }).click();
+  await page.getByLabel(ScheduleView.OneMonth, { exact: true }).click();
   expect(await page.getByLabel(ScheduleView.OneMonth, { exact: true }).isChecked()).toBe(true);
   expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toBeGreaterThanOrEqual(28);
 });
