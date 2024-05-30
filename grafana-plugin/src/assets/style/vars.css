@@ -27,6 +27,7 @@
   --hover-selected: #f4f5f5;
   --background-canvas: #f4f5f5;
   --background-secondary: #f4f5f5;
+  --background-disabled: rgba(204, 204, 220, 0.11);
   --border-medium-color: rgba(36, 41, 46, 0.3);
   --border-medium: 1px solid rgba(36, 41, 46, 0.3);
   --border-strong: 1px solid rgba(36, 41, 46, 0.4);
@@ -61,6 +62,7 @@
   --oncall-icon-stroke-color: #181b1f;
   --background-canvas: #111217;
   --background-secondary: #22252b;
+  --background-disabled: rgba(204, 204, 220, 0.04);
   --border-medium-color: rgba(204, 204, 220, 0.15);
   --border-medium: 1px solid rgba(204, 204, 220, 0.15);
   --border-strong: 1px solid rgba(204, 204, 220, 0.25);
