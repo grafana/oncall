@@ -4,7 +4,13 @@ export const getSchedulesStyles = () => {
   return {
     schedule: css`
       position: relative;
-      margin: 20px 0;
+    `,
+
+    table: css`
+      td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+      }
     `,
 
     schedulePersonal: css`

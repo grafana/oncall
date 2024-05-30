@@ -2,8 +2,13 @@ import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 
 import { findColor } from 'containers/Rotations/Rotations.helpers';
-import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Event, Layer } from 'models/schedule/schedule.types';
+import {
+  getLayersFromStore,
+  getOverridesFromStore,
+  getShiftsFromStore,
+  getTotalDaysToDisplay,
+} from 'models/schedule/schedule.helpers';
+import { Event, Layer, ScheduleView } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
@@ -33,6 +38,35 @@ export const getStartOfWeek = (tz: Timezone) => {
 
 export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
   return date.startOf('isoWeek'); // it's Monday always
+};
+
+export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView) => {
+  switch (scheduleView) {
+    case ScheduleView.OneMonth:
+      const startOfMonth = date.startOf('month');
+      return startOfMonth.startOf('isoWeek');
+    default:
+      return date.startOf('isoWeek');
+  }
+};
+
+export const getNewCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView, direction: 'prev' | 'next') => {
+  switch (scheduleView) {
+    case ScheduleView.OneMonth:
+      return direction === 'prev'
+        ? date.subtract(1, 'day').startOf('month').startOf('isoWeek')
+        : date.add(10, 'days').endOf('month').add(1, 'day').startOf('month').startOf('isoWeek');
+    default:
+      return direction === 'prev'
+        ? date.subtract(getTotalDaysToDisplay(scheduleView, date), 'days')
+        : date.add(getTotalDaysToDisplay(scheduleView, date), 'days');
+  }
+};
+
+export const getCurrentTimeX = (currentDate: dayjs.Dayjs, startDate: dayjs.Dayjs, baseInMinutes: number) => {
+  const diff = currentDate.diff(startDate, 'minutes');
+
+  return diff / baseInMinutes;
 };
 
 export const getUTCString = (moment: dayjs.Dayjs) => {

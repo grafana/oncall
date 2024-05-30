@@ -18,6 +18,10 @@ export const waitForElement = (selector: string) => {
   });
 };
 
+export const scrollToElement = (element: Element, behavior: ScrollBehavior = 'instant' as ScrollBehavior) => {
+  element.scrollIntoView({ behavior, block: 'center' });
+};
+
 export const getCoords = (elem) => {
   // crossbrowser version
   const box = elem.getBoundingClientRect();
@@ -36,3 +40,9 @@ export const getCoords = (elem) => {
 
   return { top: Math.round(top), left: Math.round(left) };
 };
+
+export const HTML_ID = {
+  SCHEDULE_FINAL: 'oncall-schedule-final',
+  SCHEDULE_ROTATIONS: 'oncall-schedule-rotations',
+  SCHEDULE_OVERRIDES_AND_SWAPS: 'oncall-schedule-overrides-and-swaps',
+} as const;
