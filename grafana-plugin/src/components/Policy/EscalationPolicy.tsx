@@ -36,6 +36,7 @@ import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
 import { PolicyNote } from './PolicyNote';
 import { isNumber } from 'lodash-es';
 import { toJS } from 'mobx';
+import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;
@@ -264,25 +265,13 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { wait_delay } = data;
     const styles = getEscalationPolicyStyles(theme);
 
-    const silenceOptions: SelectableValue[] = store.escalationPolicyStore.silenceOptions.map((v) => ({
-      value: v.sec_value,
-      label: v.display_name,
-    }));
+    const silenceOptions: SelectableValue[] = [...POLICY_DURATION_LIST_SECONDS];
 
     const waitDelayNum = wait_delay ? parseFloat(wait_delay) : 0;
     const waitDelayOptionValue = silenceOptions.find((opt) => opt.value === waitDelayNum) || {
       value: wait_delay,
       label: waitDelayNum / 60,
     }; // either find it in the list or initialize it to show in the dropdown
-
-    const onCreateOption = (option: string) => {
-      if (!isNumber(+option)) {
-        return;
-      }
-
-      // TODO: Change once we have backend
-      this.getOnSelectChangeHandler('wait_delay')({ value: `${parseFloat(option) * 60}` });
-    };
 
     return (
       <WithPermissionControlTooltip key="wait-delay" userAction={UserActions.EscalationChainsWrite}>
@@ -296,7 +285,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           options={silenceOptions}
           width={'auto'}
           allowCustomValue
-          onCreateOption={onCreateOption}
+          onCreateOption={(option) => this.onCreateOption('wait_delay', option, true)}
         />
       </WithPermissionControlTooltip>
     );
@@ -331,23 +320,12 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     const { num_minutes_in_window } = data;
     const styles = getEscalationPolicyStyles(theme);
 
-    const options: SelectableValue[] = store.escalationPolicyStore.numMinutesInWindowOptions.map((v) => ({
-      value: parseFloat(v.display_name) * 60,
-      label: v.display_name,
-    }));
+    const options: SelectableValue[] = [...POLICY_DURATION_LIST_MINUTES];
 
     const optionValue = options.find((opt) => opt.value === num_minutes_in_window) || {
       value: num_minutes_in_window,
       label: num_minutes_in_window,
     }; // either find it in the list or initialize it to show in the dropdown
-
-    const onCreateOption = (option: string) => {
-      if (!isNumber(+option)) {
-        return;
-      }
-
-      this.getOnSelectChangeHandler('num_minutes_in_window')({ value: parseFloat(option) });
-    };
 
     return (
       <WithPermissionControlTooltip key="num_minutes_in_window" userAction={UserActions.EscalationChainsWrite}>
@@ -359,7 +337,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           value={num_minutes_in_window ? optionValue : undefined}
           onChange={this.getOnSelectChangeHandler('num_minutes_in_window')}
           allowCustomValue
-          onCreateOption={onCreateOption}
+          onCreateOption={(option) => this.onCreateOption('num_minutes_in_window', option)}
           options={numMinutesInWindowOptions.map((waitDelay: SelectOption) => ({
             value: waitDelay.value,
             label: waitDelay.display_name,
@@ -511,6 +489,14 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       </WithPermissionControlTooltip>
     );
   }
+
+  onCreateOption = (fieldName: string, option: string, parseToSeconds: boolean = false) => {
+    if (!isNumber(+option)) {
+      return;
+    }
+
+    this.getOnSelectChangeHandler(fieldName)({ value: parseFloat(option) * (parseToSeconds ? 60 : 1) });
+  };
 
   getOnSelectChangeHandler = (field: string) => {
     return (option: SelectableValue) => {

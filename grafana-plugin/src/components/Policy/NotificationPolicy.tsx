@@ -20,6 +20,7 @@ import { DragHandle } from './DragHandle';
 import { PolicyNote } from './PolicyNote';
 import { toJS } from 'mobx';
 import { isNumber } from 'lodash';
+import { POLICY_DURATION_LIST_SECONDS, PolicyDuration } from './Policy.consts';
 
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
@@ -184,18 +185,14 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   }
 
   private _renderWaitDelays(disabled: boolean) {
-    const { data, waitDelays = [], userAction } = this.props;
+    const { data, userAction } = this.props;
     const { wait_delay } = data;
 
-    const optionsList = waitDelays.map((waitDelay: SelectOption) => ({
-      label: waitDelay.display_name,
-      value: waitDelay.value,
-    }));
-
     const valueNum = parseFloat(wait_delay);
-    const optionValue = optionsList.find((delay) => delay.value === wait_delay) || {
-      value: wait_delay,
-      label: `${valueNum / 60} minutes`,
+    const optionsList = [...POLICY_DURATION_LIST_SECONDS];
+    const optionValue = POLICY_DURATION_LIST_SECONDS.find((delay) => delay.duration === valueNum) || {
+      value: valueNum,
+      label: valueNum / 60,
     };
 
     return (
@@ -210,14 +207,13 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             onChange={this._getOnChangeHandler('wait_delay')}
             options={optionsList}
             allowCustomValue
-            formatCreateLabel={(value) => `${value} min`}
             onCreateOption={(option: string) => {
               if (!isNumber(+option)) return;
               const num = parseFloat(option);
-              this._getOnChangeHandler('wait_delay')({ value: `${num * 60}` });
+              this._getOnChangeHandler('wait_delay')({ value: num * 60 });
             }}
           />
-          minutes
+          minute(s)
         </div>
       </WithPermissionControlTooltip>
     );
