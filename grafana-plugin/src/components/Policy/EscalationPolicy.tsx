@@ -76,7 +76,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     return (
       <Timeline.Item
         key={id}
-        contentClassName={cx(styles.root)}
+        contentClassName={styles.root}
         number={number}
         textColor={isDisabled ? itemTextColor : undefined}
         backgroundClassName={backgroundClassName}
@@ -91,7 +91,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           reactStringReplace(escalationOption.display_name, /\{\{([^}]+)\}\}/g, this.replacePlaceholder)}
         {this.renderNote()}
         {is_final || isDisabled ? null : (
-          <WithPermissionControlTooltip className={cx(styles.delete)} userAction={UserActions.EscalationChainsWrite}>
+          <WithPermissionControlTooltip className={styles.delete} userAction={UserActions.EscalationChainsWrite}>
             <IconButton
               name="trash-alt"
               className={cx(styles.delete, styles.control)}
@@ -299,7 +299,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         <Input
           placeholder="Count"
           disabled={isDisabled}
-          className={cx(styles.control)}
+          className={styles.control}
           value={num_alerts_in_window}
           onChange={this.getOnInputChangeHandler('num_alerts_in_window')}
           ref={(node) => {

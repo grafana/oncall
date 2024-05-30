@@ -7,12 +7,6 @@ import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
 
-interface SilenceOption {
-  value: string;
-  sec_value: string;
-  display_name: string;
-}
-
 export class EscalationPolicyStore extends BaseStore {
   @observable.shallow
   items: { [id: string]: EscalationPolicy } = {};
