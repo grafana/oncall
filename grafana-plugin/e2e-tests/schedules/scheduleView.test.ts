@@ -19,13 +19,13 @@ test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage 
     scheduleViewToDaysInOneRow[ScheduleView.OneWeek]
   );
 
-  await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).click();
+  await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).locator('..').click();
   expect(await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).isChecked()).toBe(true);
   expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toStrictEqual(
     scheduleViewToDaysInOneRow[ScheduleView.TwoWeeks]
   );
 
-  await page.getByLabel(ScheduleView.OneMonth, { exact: true }).click();
+  await page.getByLabel(ScheduleView.OneMonth, { exact: true }).locator('..').click();
   expect(await page.getByLabel(ScheduleView.OneMonth, { exact: true }).isChecked()).toBe(true);
   expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toBeGreaterThanOrEqual(28);
 });
