@@ -386,6 +386,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const { results } = store.scheduleStore.getSearchResult();
     const newPage = results.length === 1 ? Math.max(page - 1, 1) : page;
 
+    store.scheduleStore.updatePersonalEvents(
+      store.userStore.currentUserPk,
+      store.timezoneStore.calendarStartDate,
+      true
+    );
+
     this.handlePageChange(newPage);
   };
 
