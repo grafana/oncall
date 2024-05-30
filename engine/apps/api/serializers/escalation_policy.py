@@ -1,6 +1,3 @@
-import time
-from datetime import timedelta
-
 from rest_framework import serializers
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
@@ -9,6 +6,7 @@ from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
+    DurationSecondsField,
     OrganizationFilteredPrimaryKeyRelatedField,
     UsersFilteredByOrganizationField,
 )
@@ -47,16 +45,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         queryset=User.objects,
         required=False,
     )
-    wait_delay = serializers.ChoiceField(
-        required=False,
-        choices=EscalationPolicy.WEB_DURATION_CHOICES,
-        allow_null=True,
-    )
-    num_minutes_in_window = serializers.ChoiceField(
-        required=False,
-        choices=EscalationPolicy.WEB_DURATION_CHOICES_MINUTES,
-        allow_null=True,
-    )
+    wait_delay = DurationSecondsField(required=False, allow_null=True)
+    num_minutes_in_window = serializers.IntegerField(required=False, allow_null=True)
     notify_schedule = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=OnCallSchedule.objects,
         required=False,
@@ -151,28 +141,11 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             raise serializers.ValidationError("Invalid escalation step type: step is Slack-specific")
         return step_type
 
-    def to_internal_value(self, data):
-        data = self._wait_delay_to_internal_value(data)
-        return super().to_internal_value(data)
-
     def to_representation(self, instance):
         step = instance.step
         result = super().to_representation(instance)
         result = EscalationPolicySerializer._get_important_field(step, result)
         return result
-
-    @staticmethod
-    def _wait_delay_to_internal_value(data):
-        if data.get(WAIT_DELAY, None):
-            try:
-                time.strptime(data[WAIT_DELAY], "%H:%M:%S")
-            except ValueError:
-                try:
-                    data[WAIT_DELAY] = str(timedelta(seconds=float(data[WAIT_DELAY])))
-                except ValueError:
-                    raise serializers.ValidationError("Invalid wait delay format")
-
-        return data
 
     @staticmethod
     def _get_important_field(step, result):
