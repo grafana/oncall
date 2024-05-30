@@ -79,7 +79,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        const elm = await waitForElement(`#${HTML_ID.OVERRIDES_AND_SWAPS}`);
+        const elm = await waitForElement(`#${HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS}`);
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
         const coords = getCoords(elm);
         const offsetTop = Math.min(
