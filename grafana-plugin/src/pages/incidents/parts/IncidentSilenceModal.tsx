@@ -10,12 +10,12 @@ import {
   isValidDuration,
   parseDuration,
 } from '@grafana/data';
-import { Button, DateTimePicker, Field, HorizontalGroup, Input, Modal, useStyles2, useTheme2 } from '@grafana/ui';
-
-import { useDebouncedCallback } from 'utils/hooks';
-import { bem, getUtilStyles } from 'styles/utils.styles';
-import { Text } from 'components/Text/Text';
+import { Button, DateTimePicker, Field, HorizontalGroup, Input, Modal, useStyles2 } from '@grafana/ui';
 import { Controller, useForm } from 'react-hook-form';
+import { bem, getUtilStyles } from 'styles/utils.styles';
+
+import { Text } from 'components/Text/Text';
+import { useDebouncedCallback } from 'utils/hooks';
 import { openWarningNotification } from 'utils/utils';
 
 interface IncidentSilenceModalProps {

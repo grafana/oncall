@@ -3,10 +3,9 @@ import React from 'react';
 import { ButtonCascader, CascaderOption, ComponentSize } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
+import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserActions } from 'utils/authorization/authorization';
-
-import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 
 interface SilenceButtonCascaderProps {
   className?: string;

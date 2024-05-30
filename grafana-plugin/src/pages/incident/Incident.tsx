@@ -40,6 +40,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
@@ -67,7 +68,6 @@ import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
-import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
 
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
