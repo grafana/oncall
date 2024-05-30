@@ -5,7 +5,6 @@ import { observer } from 'mobx-react';
 
 import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 interface SilenceSelectProps {
@@ -16,8 +15,6 @@ interface SilenceSelectProps {
 
 export const SilenceSelect = observer((props: SilenceSelectProps) => {
   const { placeholder = 'Silence for', onSelect } = props;
-
-  const store = useStore();
 
   return (
     <>

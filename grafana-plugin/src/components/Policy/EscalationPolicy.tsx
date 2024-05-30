@@ -260,7 +260,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderWaitDelays() {
-    const { data, isDisabled, store, theme } = this.props;
+    const { data, isDisabled, theme } = this.props;
     const { wait_delay } = data;
     const styles = getEscalationPolicyStyles(theme);
 
@@ -315,7 +315,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderNumMinutesInWindowOptions() {
-    const { data, isDisabled, numMinutesInWindowOptions = [], store, theme } = this.props;
+    const { data, isDisabled, numMinutesInWindowOptions = [], theme } = this.props;
     const { num_minutes_in_window } = data;
     const styles = getEscalationPolicyStyles(theme);
 
