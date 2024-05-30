@@ -26,12 +26,6 @@ export class EscalationPolicyStore extends BaseStore {
   escalationChoices: any = [];
 
   @observable
-  silenceOptions: SilenceOption[] = [];
-
-  @observable
-  numMinutesInWindowOptions: SilenceOption[] = [];
-
-  @observable
   webEscalationChoices: any = [];
 
   constructor(rootStore: RootStore) {
@@ -48,28 +42,6 @@ export class EscalationPolicyStore extends BaseStore {
 
     runInAction(() => {
       this.webEscalationChoices = response;
-    });
-  }
-
-  @action.bound
-  async fetchEscalationPolicySilenceOptions() {
-    const response = await makeRequest('/escalation_policies/delay_options', {
-      method: 'GET',
-    });
-
-    runInAction(() => {
-      this.silenceOptions = response;
-    });
-  }
-
-  @action.bound
-  async fetchEscalationPolicyNumMinutesInWindowOptions() {
-    const response = await makeRequest('/escalation_policies/num_minutes_in_window_options', {
-      method: 'GET',
-    });
-
-    runInAction(() => {
-      this.numMinutesInWindowOptions = response;
     });
   }
 

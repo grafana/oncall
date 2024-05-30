@@ -28,7 +28,7 @@ import { Schedule } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { SelectOption, WithStoreProps } from 'state/types';
+import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 
@@ -44,7 +44,6 @@ interface ElementSortableProps extends WithStoreProps {
 interface EscalationPolicyBaseProps {
   data: EscalationPolicyType;
   isDisabled?: boolean;
-  numMinutesInWindowOptions: SelectOption[];
   channels?: any[];
   onChange: (id: EscalationPolicyType['id'], value: Partial<EscalationPolicyType>) => void;
   onDelete: (data: EscalationPolicyType) => void;
@@ -315,7 +314,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   }
 
   renderNumMinutesInWindowOptions() {
-    const { data, isDisabled, numMinutesInWindowOptions = [], theme } = this.props;
+    const { data, isDisabled, theme } = this.props;
     const { num_minutes_in_window } = data;
     const styles = getEscalationPolicyStyles(theme);
 
@@ -337,10 +336,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           onChange={this.getOnSelectChangeHandler('num_minutes_in_window')}
           allowCustomValue
           onCreateOption={(option) => this.onCreateOption('num_minutes_in_window', option)}
-          options={numMinutesInWindowOptions.map((waitDelay: SelectOption) => ({
-            value: waitDelay.value,
-            label: waitDelay.display_name,
-          }))}
+          options={options}
         />
       </WithPermissionControlTooltip>
     );

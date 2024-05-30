@@ -50,8 +50,6 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   useEffect(() => {
     escalationPolicyStore.updateWebEscalationPolicyOptions();
-    escalationPolicyStore.fetchEscalationPolicySilenceOptions();
-    escalationPolicyStore.fetchEscalationPolicyNumMinutesInWindowOptions();
   }, []);
 
   const handleSortEnd = useCallback(
@@ -106,7 +104,6 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
               data={escalationPolicy}
               number={index + offset + 1}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
-              numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
               onChange={escalationPolicyStore.saveEscalationPolicy.bind(escalationPolicyStore)}
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
