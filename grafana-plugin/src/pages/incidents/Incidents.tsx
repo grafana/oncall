@@ -148,7 +148,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { alertGroupStore } = store;
 
     alertGroupStore.fetchBulkActions();
-    alertGroupStore.fetchSilenceOptions();
 
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();

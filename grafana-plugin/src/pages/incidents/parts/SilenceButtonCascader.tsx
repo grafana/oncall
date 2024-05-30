@@ -3,12 +3,9 @@ import React from 'react';
 import { ButtonCascader, CascaderOption, ComponentSize } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
+import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { SelectOption } from 'state/types';
-import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-
-import { CUSTOM_SILENCE_VALUE } from './IncidentDropdown';
 
 interface SilenceButtonCascaderProps {
   className?: string;
@@ -20,9 +17,6 @@ interface SilenceButtonCascaderProps {
 
 export const SilenceButtonCascader = observer((props: SilenceButtonCascaderProps) => {
   const { onSelect, className, disabled = false, buttonSize } = props;
-  const { alertGroupStore } = useStore();
-
-  const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
     <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
@@ -41,14 +35,6 @@ export const SilenceButtonCascader = observer((props: SilenceButtonCascaderProps
   );
 
   function getOptions(): CascaderOption[] {
-    return silenceOptions
-      .map((silenceOption: SelectOption) => ({
-        value: silenceOption.value,
-        label: silenceOption.display_name,
-      }))
-      .concat({
-        value: CUSTOM_SILENCE_VALUE,
-        label: 'Custom',
-      }) as CascaderOption[];
+    return [...SILENCE_DURATION_LIST] as CascaderOption[];
   }
 });

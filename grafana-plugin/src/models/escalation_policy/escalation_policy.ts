@@ -1,4 +1,3 @@
-import { get } from 'lodash-es';
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
@@ -7,7 +6,12 @@ import { EscalationPolicy } from 'models/escalation_policy/escalation_policy.typ
 import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
-import { SelectOption } from 'state/types';
+
+interface SilenceOption {
+  value: string;
+  sec_value: string;
+  display_name: string;
+}
 
 export class EscalationPolicyStore extends BaseStore {
   @observable.shallow
@@ -22,7 +26,10 @@ export class EscalationPolicyStore extends BaseStore {
   escalationChoices: any = [];
 
   @observable
-  numMinutesInWindowOptions: SelectOption[] = [];
+  silenceOptions: SilenceOption[] = [];
+
+  @observable
+  numMinutesInWindowOptions: SilenceOption[] = [];
 
   @observable
   webEscalationChoices: any = [];
@@ -45,19 +52,21 @@ export class EscalationPolicyStore extends BaseStore {
   }
 
   @action.bound
-  async updateEscalationPolicyOptions() {
-    const response = await makeRequest('/escalation_policies/', {
-      method: 'OPTIONS',
+  async fetchEscalationPolicySilenceOptions() {
+    const response = await makeRequest('/escalation_policies/delay_options', {
+      method: 'GET',
     });
 
     runInAction(() => {
-      this.escalationChoices = get(response, 'actions.POST', []);
+      this.silenceOptions = response;
     });
   }
 
   @action.bound
-  async updateNumMinutesInWindowOptions() {
-    const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/', {});
+  async fetchEscalationPolicyNumMinutesInWindowOptions() {
+    const response = await makeRequest('/escalation_policies/num_minutes_in_window_options', {
+      method: 'GET',
+    });
 
     runInAction(() => {
       this.numMinutesInWindowOptions = response;
