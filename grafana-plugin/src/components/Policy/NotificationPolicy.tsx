@@ -3,6 +3,7 @@ import React from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, IconButton, Select, Themeable2, withTheme2 } from '@grafana/ui';
+import { isNumber } from 'lodash';
 import { SortableElement } from 'react-sortable-hoc';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -17,10 +18,8 @@ import { SelectOption } from 'state/types';
 import { UserAction } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
+import { POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
 import { PolicyNote } from './PolicyNote';
-import { toJS } from 'mobx';
-import { isNumber } from 'lodash';
-import { POLICY_DURATION_LIST_SECONDS, PolicyDuration } from './Policy.consts';
 
 export interface NotificationPolicyProps extends Themeable2 {
   data: NotificationPolicyType;
@@ -208,7 +207,9 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             options={optionsList}
             allowCustomValue
             onCreateOption={(option: string) => {
-              if (!isNumber(+option)) return;
+              if (!isNumber(+option)) {
+                return;
+              }
               const num = parseFloat(option);
               this._getOnChangeHandler('wait_delay')({ value: num * 60 });
             }}

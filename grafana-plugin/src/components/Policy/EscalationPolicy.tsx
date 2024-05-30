@@ -1,8 +1,9 @@
 import React, { ChangeEvent } from 'react';
 
 import { cx } from '@emotion/css';
-import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { Button, Input, Select, IconButton, withTheme2, Themeable2, SelectOptions } from '@grafana/ui';
+import { SelectableValue } from '@grafana/data';
+import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
+import { isNumber } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
@@ -33,10 +34,8 @@ import { UserActions } from 'utils/authorization/authorization';
 
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
-import { PolicyNote } from './PolicyNote';
-import { isNumber } from 'lodash-es';
-import { toJS } from 'mobx';
 import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
+import { PolicyNote } from './PolicyNote';
 
 interface ElementSortableProps extends WithStoreProps {
   index: number;
@@ -490,7 +489,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     );
   }
 
-  onCreateOption = (fieldName: string, option: string, parseToSeconds: boolean = false) => {
+  onCreateOption = (fieldName: string, option: string, parseToSeconds = false) => {
     if (!isNumber(+option)) {
       return;
     }

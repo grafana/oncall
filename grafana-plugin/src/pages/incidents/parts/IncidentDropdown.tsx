@@ -16,6 +16,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { getIncidentDropdownStyles } from './IncidentDropdown.styles';
 import { IncidentSilenceModal } from './IncidentSilenceModal';
 import { SilenceSelect } from './SilenceSelect';
+import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
 
 const getIncidentTagColor = (alert: ApiSchemas['AlertGroup']) => {
   if (alert.status === IncidentStatus.Resolved) {
@@ -56,8 +57,6 @@ function IncidentStatusTag({
     </Tag>
   );
 }
-
-export const CUSTOM_SILENCE_VALUE = -100;
 
 export const IncidentDropdown: FC<{
   alert: ApiSchemas['AlertGroup'];
@@ -199,7 +198,6 @@ export const IncidentDropdown: FC<{
 
               <div className={styles.incidentOptionItem}>
                 <SilenceSelect
-                  customValueNum={CUSTOM_SILENCE_VALUE}
                   placeholder={
                     currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
                   }
@@ -226,7 +224,7 @@ export const IncidentDropdown: FC<{
           {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
         </WithContextMenu>
         <IncidentSilenceModal
-          alertGroupID={alert.pk}
+          alertGroupID={alert.inside_organization_number}
           alertGroupName={alert.render_for_web?.title}
           isOpen={isSilenceModalOpen}
           onDismiss={() => setIsSilenceModalOpen(false)}

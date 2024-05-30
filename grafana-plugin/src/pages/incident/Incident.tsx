@@ -54,7 +54,7 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { CUSTOM_SILENCE_VALUE, IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { IncidentSilenceModal } from 'pages/incidents/parts/IncidentSilenceModal';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -67,6 +67,7 @@ import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
+import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
 
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
@@ -92,11 +93,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   };
 
   componentDidMount() {
-    const { store } = this.props;
-
     this.update();
-
-    store.alertGroupStore.fetchSilenceOptions();
   }
 
   componentWillUnmount(): void {
@@ -256,7 +253,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               shouldRender={Boolean(silenceModalData?.incident)}
               render={() => (
                 <IncidentSilenceModal
-                  alertGroupID={silenceModalData.incident.pk}
+                  alertGroupID={silenceModalData.incident.inside_organization_number}
                   alertGroupName={silenceModalData.incident.render_for_web?.title}
                   isOpen
                   onDismiss={() => this.setState({ silenceModalData: undefined })}

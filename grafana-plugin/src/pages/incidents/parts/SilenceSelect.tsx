@@ -7,22 +7,18 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 
 interface SilenceSelectProps {
   placeholder?: string;
-  customValueNum: number;
 
   onSelect: (value: number) => void;
 }
 
 export const SilenceSelect = observer((props: SilenceSelectProps) => {
-  const { customValueNum, placeholder = 'Silence for', onSelect } = props;
+  const { placeholder = 'Silence for', onSelect } = props;
 
   const store = useStore();
-
-  const { alertGroupStore } = store;
-
-  const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
     <>
@@ -42,14 +38,6 @@ export const SilenceSelect = observer((props: SilenceSelectProps) => {
   );
 
   function getOptions() {
-    return silenceOptions
-      .map((silenceOption: SelectOption) => ({
-        value: silenceOption.value,
-        label: silenceOption.display_name,
-      }))
-      .concat({
-        value: customValueNum,
-        label: 'Custom',
-      });
+    return [...SILENCE_DURATION_LIST];
   }
 });

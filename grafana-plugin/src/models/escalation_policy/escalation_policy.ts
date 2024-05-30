@@ -1,4 +1,3 @@
-import { get } from 'lodash-es';
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
@@ -7,7 +6,6 @@ import { EscalationPolicy } from 'models/escalation_policy/escalation_policy.typ
 import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
-import { SelectOption } from 'state/types';
 
 interface SilenceOption {
   value: string;
