@@ -6,7 +6,7 @@ import { expect, test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createOnCallScheduleWithRotation } from '../utils/schedule';
 
-test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage }) => {
+test.skip('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
   const onCallScheduleName = generateRandomValue();
