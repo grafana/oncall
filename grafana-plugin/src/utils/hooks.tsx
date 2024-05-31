@@ -10,6 +10,7 @@ import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 
 import { LocationHelper } from './LocationHelper';
+import { GRAFANA_LICENSE_OSS } from './consts';
 import { getCommonStyles } from './styles';
 
 export function useForceUpdate() {
@@ -142,10 +143,10 @@ export const useOnMount = (callback: () => void) => {
 };
 
 export const useInitializePlugin = ({ meta }: AppRootProps) => {
-  const IS_OPEN_SOURCE = true; // TODO: fix condition to handle cloud
+  const IS_OPEN_SOURCE = meta?.jsonData?.license === GRAFANA_LICENSE_OSS;
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // used to create oncall api token and save in plugin settings
+  // create oncall api token and save in plugin settings
   const install = async () => {
     await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
       method: 'POST',
@@ -157,7 +158,7 @@ export const useInitializePlugin = ({ meta }: AppRootProps) => {
       await install();
     }
 
-    // used to trigger users sync
+    // trigger users sync
     try {
       await makeRequest(`/plugin/status`, {
         method: 'POST',
