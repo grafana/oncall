@@ -142,19 +142,30 @@ export const useOnMount = (callback: () => void) => {
 };
 
 export const useInitializePlugin = ({ meta }: AppRootProps) => {
+  const IS_OPEN_SOURCE = true; // TODO: fix condition to handle cloud
   const [isInitialized, setIsInitialized] = useState(false);
-  const initializePlugin = async () => {
-    const IS_OPEN_SOURCE = true; // TODO: fix condition to handle cloud
-    if (!meta?.secureJsonFields?.onCallApiToken) {
-      // used to create oncall api token and save in plugin settings
-      await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
-        method: 'POST',
-      });
-    }
-    // used to trigger users sync
-    await makeRequest(`/plugin/status`, {
+
+  // used to create oncall api token and save in plugin settings
+  const install = async () => {
+    await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
       method: 'POST',
     });
+  };
+
+  const initializePlugin = async () => {
+    if (!meta?.secureJsonFields?.onCallApiToken) {
+      await install();
+    }
+
+    // used to trigger users sync
+    try {
+      await makeRequest(`/plugin/status`, {
+        method: 'POST',
+      });
+    } catch (_err) {
+      await install();
+    }
+
     setIsInitialized(true);
   };
 
