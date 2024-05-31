@@ -3,6 +3,7 @@ import React from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, IconButton, Select, Themeable2, withTheme2 } from '@grafana/ui';
+import { isNumber } from 'lodash';
 import { SortableElement } from 'react-sortable-hoc';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -15,8 +16,10 @@ import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { UserAction } from 'utils/authorization/authorization';
+import { openWarningNotification } from 'utils/utils';
 
 import { DragHandle } from './DragHandle';
+import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
 import { PolicyNote } from './PolicyNote';
 
 export interface NotificationPolicyProps extends Themeable2 {
@@ -182,24 +185,51 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   }
 
   private _renderWaitDelays(disabled: boolean) {
-    const { data, waitDelays = [], userAction } = this.props;
+    const { data, userAction } = this.props;
     const { wait_delay } = data;
+
+    const optionsList = [...POLICY_DURATION_LIST_MINUTES];
+
+    const waitDelayInSeconds = parseFloat(wait_delay);
+    const waitDelayInMinutes = waitDelayInSeconds / 60;
+
+    const optionValue = POLICY_DURATION_LIST_SECONDS.find((delay) => delay.duration === waitDelayInMinutes) || {
+      value: waitDelayInMinutes,
+      label: waitDelayInMinutes,
+    };
 
     return (
       <WithPermissionControlTooltip userAction={userAction}>
-        <Select
-          key="wait-delay"
-          placeholder="Wait Delay"
-          className={cx(this.styles.select, this.styles.control)}
-          // @ts-ignore
-          value={wait_delay}
-          disabled={disabled}
-          onChange={this._getOnChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: SelectOption) => ({
-            label: waitDelay.display_name,
-            value: waitDelay.value,
-          }))}
-        />
+        <div className={this.styles.container}>
+          <Select
+            key="wait-delay"
+            placeholder="Wait Delay"
+            className={cx(this.styles.delay, this.styles.control)}
+            value={wait_delay ? optionValue : undefined}
+            disabled={disabled}
+            onChange={(option: SelectableValue) => this._getOnChangeHandler('wait_delay')({ value: option.value * 60 })}
+            options={optionsList}
+            allowCustomValue
+            onCreateOption={(option: string) => {
+              if (!isNumber(+option)) {
+                return;
+              }
+
+              const num = parseFloat(option);
+
+              if (!Number.isInteger(+option)) {
+                return openWarningNotification('Given number must be an integer');
+              }
+
+              if (num < 1 || num > 24 * 60) {
+                return openWarningNotification('Given number must be in the range of 1 minute and 24 hours');
+              }
+
+              this._getOnChangeHandler('wait_delay')({ value: num * 60 });
+            }}
+          />
+          minute(s)
+        </div>
       </WithPermissionControlTooltip>
     );
   }
@@ -297,6 +327,17 @@ const getStyles = (_theme: GrafanaTheme2) => {
     select: css`
       width: 200px !important;
       flex-shrink: 0;
+    `,
+
+    delay: css`
+      width: 100px !important;
+    `,
+
+    container: css`
+      width: 200px;
+      display: flex;
+      align-items: center;
+      margin-right: 12px;
     `,
   };
 };
