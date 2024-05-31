@@ -3,7 +3,7 @@ import React, { ChangeEvent } from 'react';
 import { cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
-import { isNumber } from 'lodash-es';
+import { isInteger, isNumber } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
@@ -496,6 +496,11 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
     }
 
     const num = parseFloat(option);
+
+    if (!Number.isInteger(+option)) {
+      return openWarningNotification('Given number must be an integer');
+    }
+
     if (num < 1 || num > 24 * 60) {
       return openWarningNotification('Given number must be in the range of 1 minute and 24 hours');
     }

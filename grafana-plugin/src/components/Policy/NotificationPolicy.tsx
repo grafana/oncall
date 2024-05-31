@@ -216,6 +216,11 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
               }
 
               const num = parseFloat(option);
+
+              if (!Number.isInteger(+option)) {
+                return openWarningNotification('Given number must be an integer');
+              }
+
               if (num < 1 || num > 24 * 60) {
                 return openWarningNotification('Given number must be in the range of 1 minute and 24 hours');
               }
