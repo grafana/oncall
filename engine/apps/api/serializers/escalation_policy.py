@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
@@ -45,8 +47,18 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         queryset=User.objects,
         required=False,
     )
-    wait_delay = DurationSecondsField(required=False, allow_null=True)
-    num_minutes_in_window = serializers.IntegerField(required=False, allow_null=True)
+    wait_delay = DurationSecondsField(
+        required=False,
+        allow_null=True,
+        min_value=timedelta(minutes=1),
+        max_value=timedelta(hours=24),
+    )
+    num_minutes_in_window = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        min_value=1,  # 1 minute
+        max_value=24 * 60,  # 24 hours
+    )
     notify_schedule = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=OnCallSchedule.objects,
         required=False,

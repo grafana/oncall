@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 
 from apps.base.models import UserNotificationPolicy
@@ -23,7 +25,12 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
         default=UserNotificationPolicy.Step.NOTIFY,
         choices=UserNotificationPolicy.Step.choices,
     )
-    wait_delay = DurationSecondsField(required=False, allow_null=True)
+    wait_delay = DurationSecondsField(
+        required=False,
+        allow_null=True,
+        min_value=timedelta(minutes=1),
+        max_value=timedelta(hours=24),
+    )
 
     SELECT_RELATED = [
         "user",
