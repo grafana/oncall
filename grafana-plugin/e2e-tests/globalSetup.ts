@@ -19,6 +19,7 @@ import {
   IS_CLOUD,
   IS_OPEN_SOURCE,
 } from './utils/constants';
+import { goToOnCallPage } from './utils/navigation';
 
 enum OrgRole {
   None = 'None',
@@ -73,7 +74,7 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     GRAFANA_ADMIN_PASSWORD,
     ADMIN_USER_STORAGE_STATE
   );
-  await adminBrowserContext.newPage();
+  const page = await adminBrowserContext.newPage();
   const { request: adminAuthedRequest } = adminBrowserContext;
 
   await generateLoginStorageStateAndOptionallCreateUser(
@@ -112,6 +113,9 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
    */
   const currentGrafanaVersion = await grafanaApiClient.getGrafanaVersion(adminAuthedRequest);
   process.env.CURRENT_GRAFANA_VERSION = currentGrafanaVersion;
+
+  await page.waitForTimeout(10000);
+  await goToOnCallPage(page, 'alert-groups');
 
   await adminBrowserContext.close();
 });
