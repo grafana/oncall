@@ -3,7 +3,7 @@ import React, { ChangeEvent } from 'react';
 import { cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
-import { isInteger, isNumber } from 'lodash-es';
+import { isNumber } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';

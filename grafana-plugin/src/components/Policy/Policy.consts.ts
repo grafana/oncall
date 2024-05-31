@@ -36,11 +36,11 @@ export const CUSTOM_SILENCE_VALUE = -100;
 
 export const SILENCE_DURATION_LIST: SelectableValue[] = [
   { value: CUSTOM_SILENCE_VALUE, label: 'Custom' },
-  { value: 30*60, label: '30 minutes' },
-  { value: 1*60*60, label: '1 hour' },
-  { value: 2*60*60, label: '2 hours' },
-  { value: 6*60*60, label: '6 hours' },
-  { value: 12*60*60, label: '12 hours' },
-  { value: 24*60*60, label: '24 hours' },
+  { value: 30 * 60, label: '30 minutes' },
+  { value: 1 * 60 * 60, label: '1 hour' },
+  { value: 2 * 60 * 60, label: '2 hours' },
+  { value: 6 * 60 * 60, label: '6 hours' },
+  { value: 12 * 60 * 60, label: '12 hours' },
+  { value: 24 * 60 * 60, label: '24 hours' },
   { value: -1, label: 'Forever' },
 ];
