@@ -16,9 +16,10 @@ import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { UserAction } from 'utils/authorization/authorization';
+import { openWarningNotification } from 'utils/utils';
 
 import { DragHandle } from './DragHandle';
-import { POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
+import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
 import { PolicyNote } from './PolicyNote';
 
 export interface NotificationPolicyProps extends Themeable2 {
@@ -187,11 +188,14 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { data, userAction } = this.props;
     const { wait_delay } = data;
 
-    const valueNum = parseFloat(wait_delay);
-    const optionsList = [...POLICY_DURATION_LIST_SECONDS];
-    const optionValue = POLICY_DURATION_LIST_SECONDS.find((delay) => delay.duration === valueNum) || {
-      value: valueNum,
-      label: valueNum / 60,
+    const optionsList = [...POLICY_DURATION_LIST_MINUTES];
+
+    const waitDelayInSeconds = parseFloat(wait_delay);
+    const waitDelayInMinutes = waitDelayInSeconds / 60;
+
+    const optionValue = POLICY_DURATION_LIST_SECONDS.find((delay) => delay.duration === waitDelayInMinutes) || {
+      value: waitDelayInMinutes,
+      label: waitDelayInMinutes,
     };
 
     return (
@@ -203,14 +207,19 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             className={cx(this.styles.delay, this.styles.control)}
             value={wait_delay ? optionValue : undefined}
             disabled={disabled}
-            onChange={this._getOnChangeHandler('wait_delay')}
+            onChange={(option: SelectableValue) => this._getOnChangeHandler('wait_delay')({ value: option.value * 60 })}
             options={optionsList}
             allowCustomValue
             onCreateOption={(option: string) => {
               if (!isNumber(+option)) {
                 return;
               }
+
               const num = parseFloat(option);
+              if (num < 1 || num > 24 * 60) {
+                return openWarningNotification('Given number must be in the range of 1 minute and 24 hours');
+              }
+
               this._getOnChangeHandler('wait_delay')({ value: num * 60 });
             }}
           />

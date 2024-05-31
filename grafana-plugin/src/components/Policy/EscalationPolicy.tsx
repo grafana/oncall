@@ -31,10 +31,11 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { openWarningNotification } from 'utils/utils';
 
 import { DragHandle } from './DragHandle';
 import { getEscalationPolicyStyles } from './EscalationPolicy.styles';
-import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
+import { POLICY_DURATION_LIST_MINUTES } from './Policy.consts';
 import { PolicyNote } from './PolicyNote';
 
 interface ElementSortableProps extends WithStoreProps {
@@ -261,14 +262,16 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   renderWaitDelays() {
     const { data, isDisabled, theme } = this.props;
     const { wait_delay } = data;
+
     const styles = getEscalationPolicyStyles(theme);
+    const silenceOptions: SelectableValue[] = [...POLICY_DURATION_LIST_MINUTES];
 
-    const silenceOptions: SelectableValue[] = [...POLICY_DURATION_LIST_SECONDS];
+    const waitDelayInSeconds = wait_delay ? parseFloat(wait_delay) : 0;
+    const waitDelayInMinutes = waitDelayInSeconds / 60;
 
-    const waitDelayNum = wait_delay ? parseFloat(wait_delay) : 0;
-    const waitDelayOptionValue = silenceOptions.find((opt) => opt.value === waitDelayNum) || {
-      value: wait_delay,
-      label: waitDelayNum / 60,
+    const waitDelayOptionItem = silenceOptions.find((opt) => opt.value === waitDelayInMinutes) || {
+      value: waitDelayInMinutes,
+      label: waitDelayInMinutes,
     }; // either find it in the list or initialize it to show in the dropdown
 
     return (
@@ -278,8 +281,10 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           disabled={isDisabled}
           placeholder="Select Wait Delay"
           className={cx(styles.select, styles.control)}
-          value={waitDelayNum ? waitDelayOptionValue : undefined}
-          onChange={this.getOnSelectChangeHandler('wait_delay')}
+          value={waitDelayInSeconds ? waitDelayOptionItem : undefined}
+          onChange={(option: SelectableValue) =>
+            this.getOnSelectChangeHandler('wait_delay')({ value: option.value * 60 })
+          }
           options={silenceOptions}
           width={'auto'}
           allowCustomValue
@@ -490,7 +495,12 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       return;
     }
 
-    this.getOnSelectChangeHandler(fieldName)({ value: parseFloat(option) * (parseToSeconds ? 60 : 1) });
+    const num = parseFloat(option);
+    if (num < 1 || num > 24 * 60) {
+      return openWarningNotification('Given number must be in the range of 1 minute and 24 hours');
+    }
+
+    this.getOnSelectChangeHandler(fieldName)({ value: num * (parseToSeconds ? 60 : 1) });
   };
 
   getOnSelectChangeHandler = (field: string) => {

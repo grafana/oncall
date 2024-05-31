@@ -17,6 +17,10 @@ const POLICY_DURATION_LIST: SelectableValue[] = [
     value: 30,
     label: '30',
   },
+  {
+    value: 60,
+    label: '60',
+  },
 ];
 
 // SECONDS
