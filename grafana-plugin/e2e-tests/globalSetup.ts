@@ -114,8 +114,5 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
   const currentGrafanaVersion = await grafanaApiClient.getGrafanaVersion(adminAuthedRequest);
   process.env.CURRENT_GRAFANA_VERSION = currentGrafanaVersion;
 
-  await page.waitForTimeout(10000);
-  await goToOnCallPage(page, 'alert-groups');
-
   await adminBrowserContext.close();
 });
