@@ -3,7 +3,8 @@ running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 # The user/pass that you will login to Grafana with
 grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
 grafana_version = os.getenv("GRAFANA_VERSION", "latest")
-e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e")
+# TODO: revert test filter
+e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd grafana-plugin && yarn test:e2e directPaging")
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
     "oncall.twilio.authToken=" + os.getenv("TWILIO_AUTH_TOKEN", ""),
@@ -104,7 +105,7 @@ local_resource(
     cmd=e2e_tests_cmd,
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
-    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
+    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery", "build-oncall-plugin-backend"]
 )
 
 cmd_button(

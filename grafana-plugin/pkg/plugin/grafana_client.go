@@ -41,7 +41,7 @@ func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int,
 		return 0, err
 	}
 
-	log.DefaultLogger.Info(fmt.Sprintf("HERE2 User Response %s %s %s", reqURL.String(), res.Status, body))
+	log.DefaultLogger.Info(fmt.Sprintf("User Response %s %s %s", reqURL.String(), res.Status, body))
 
 	var result map[string]interface{}
 	err = json.Unmarshal(body, &result)
