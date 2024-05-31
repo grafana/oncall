@@ -538,7 +538,7 @@ export class ScheduleStore extends BaseStore {
     const startMoment = this.rootStore.timezoneStore.calendarStartDate;
 
     const days =
-      getTotalDaysToDisplay(scheduleView || this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 1;
+      getTotalDaysToDisplay(scheduleView || this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 2;
 
     try {
       const schedule = await this.loadItem(scheduleId);
@@ -614,7 +614,7 @@ export class ScheduleStore extends BaseStore {
   async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs) {
     const fromString = getFromString(startMoment);
 
-    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 1;
+    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 2;
 
     const dayBefore = startMoment.subtract(1, 'day');
 
@@ -658,7 +658,7 @@ export class ScheduleStore extends BaseStore {
   async updatePersonalEvents(userPk: ApiSchemas['User']['pk'], startMoment: dayjs.Dayjs, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
 
-    const days = getTotalDaysToDisplay(ScheduleView.OneWeek, this.rootStore.timezoneStore.calendarStartDate) + 1;
+    const days = getTotalDaysToDisplay(ScheduleView.OneWeek, this.rootStore.timezoneStore.calendarStartDate) + 2;
 
     const dayBefore = startMoment.subtract(1, 'day');
 
