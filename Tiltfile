@@ -173,7 +173,7 @@ if not running_under_parent_tiltfile:
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
-        deps=["grafana-oncall-app-provisioning-configmap", "build-ui"],
+        deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
         extra_env={
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",
