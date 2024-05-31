@@ -146,10 +146,15 @@ export const useInitializePlugin = ({ meta }: AppRootProps) => {
   const initializePlugin = async () => {
     const IS_OPEN_SOURCE = true; // TODO: fix condition to handle cloud
     if (!meta?.secureJsonFields?.onCallApiToken) {
+      // used to create oncall api token and save in plugin settings
       await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
         method: 'POST',
       });
     }
+    // used to trigger users sync
+    await makeRequest(`/plugin/status`, {
+      method: 'POST',
+    });
     setIsInitialized(true);
   };
 
