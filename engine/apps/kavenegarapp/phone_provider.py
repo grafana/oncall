@@ -22,24 +22,21 @@ class KaveNegarPhoneProvider(PhoneProvider):
     """Custom phone provider class that uses kavenegar."""
     
     def __init__(self):
-        
-        # setting api key and sms template
-        self.api=KavenegarAPI(
-        live_settings.KAVENEGAR_API_KEY
-        )
-        
-        self.verification_sms_template=live_settings.KAVENEGAR_VERIFICATION_SMS_TEMPLATE
+        self.api = KavenegarAPI(live_settings.KAVENEGAR_API_KEY)
+        self.sender = live_settings.KAVENEGAR_SENDER_NUMBER
+        self.verification_sms_template = live_settings.KAVENEGAR_VERIFICATION_SMS_TEMPLATE
         
     def make_notification_call(self, number: str, text: str):
         params = {
             "receptor": number,
             "message": text,
         }
+        if self.sender:
+            params["sender"] = self.sender
+
         try:
             response = self.api.call_maketts(params)
             logger.info(f"KaveNegarPhoneProvider.make_call: {response}")
-
-        
         except Exception as e:
             logger.error(f"KaveNegarPhoneProvider.make_call: failed {e}")
             raise FailedToMakeCall
