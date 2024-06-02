@@ -213,6 +213,23 @@ To connect to Grafana Cloud OnCall, refer to the **Cloud** page in your OSS Graf
 
 ## Supported Phone Providers
 
+### Exotel
+
+Grafana OnCall supports Exotel phone call notifications delivery. To configure phone call notifications using Exotel,
+complete the following steps:
+
+1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
+2. Change `PHONE_PROVIDER` value to `exotel`.
+3. `EXOTEL_ACCOUNT_SID` can be found under DEVELOPER SETTINGS->API Settings
+4. `EXOTEL_API_KEY` and `EXOTEL_API_TOKEN` can also be found under DEVELOPER SETTINGS->API Settings
+5. `EXOTEL_APP_ID` is the identiﬁer of the flow (or applet) which can be found under MANAGE->App Bazaar (Installed apps)
+6. `EXOTEL_CALLER_ID` is the Exophone / Exotel virtual number.
+7. `EXOTEL_SMS_SENDER_ID` is the SMS Sender ID to use for sending verification SMS, which can be found under
+   SMS SETTINGS->Sender ID.
+8. `EXOTEL_SMS_VERIFICATION_TEMPLATE` is the SMS text template to be used for sending verification SMS, add
+   $verification_code as a placeholder.
+9. `EXOTEL_SMS_DLT_ENTITY_ID` is the DLT Entity ID registered with TRAI.
+
 ### Twilio
 
 Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you prefer to configure SMS and phone call
