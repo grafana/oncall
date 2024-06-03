@@ -25,6 +25,7 @@ from apps.slack.types import (
     Block,
     BlockActionType,
     EventPayload,
+    EventType,
     InteractiveMessageActionType,
     PayloadType,
     ScenarioRoute,
@@ -705,6 +706,36 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         )
 
 
+class ResolutionNoteEmojiAdded(scenario_step.ScenarioStep):
+    EMOJI = "memo"
+
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
+        from apps.slack.models import SlackMessage
+
+        if payload["event"]["reaction"] != self.EMOJI:
+            return
+
+        channel = payload["event"]["item"]["channel"]
+        ts = payload["event"]["item"]["ts"]
+
+        result = self._slack_client.conversations_replies(channel=channel, ts=ts)
+        thread_ts = result["messages"][0]["thread_ts"]
+
+        # TODO
+        slack_message = SlackMessage.objects.get(
+            channel_id=channel,
+            slack_id=thread_ts,
+            _slack_team_identity=slack_team_identity,
+        )
+
+        print(slack_message.alert_group.public_primary_key)
+
+
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
@@ -734,5 +765,10 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "payload_type": PayloadType.MESSAGE_ACTION,
         "message_action_callback_id": AddToResolutionNoteStep.callback_id,
         "step": AddToResolutionNoteStep,
+    },
+    {
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.REACTION_ADDED,
+        "step": ResolutionNoteEmojiAdded,
     },
 ]

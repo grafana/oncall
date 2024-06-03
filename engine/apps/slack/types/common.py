@@ -30,6 +30,13 @@ class EventType(enum.StrEnum):
     probably be re-investgated and/or deleted?
     """
 
+    REACTION_ADDED = "reaction_added"
+    """
+    A member has added an emoji reaction to an item
+
+    [Documentation](https://api.slack.com/events/reaction_added)
+    """
+
     USER_CHANGE = "user_change"
     """
     NOTE: This is deprecated in favour of `user_profile_changed`. Kept for legacy reasons.
