@@ -35,13 +35,11 @@ from apps.slack.scenarios.shift_swap_requests import STEPS_ROUTING as SHIFT_SWAP
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
 from apps.slack.scenarios.slack_channel_integration import STEPS_ROUTING as SLACK_CHANNEL_INTEGRATION_ROUTING
 from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROUP_UPDATE_ROUTING
-from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
-from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import unlink_slack_team_wrapper
 
 from .errors import SlackAPITokenError
+from .installation import SlackInstallationExc, uninstall_slack_integration
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
 SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
@@ -565,25 +563,14 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
+        # TODO: this check should be removed once Unified Slack App is release
         if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
-            response = Response(
+            return Response(
                 "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
                 status=400,
             )
-        else:
-            organization = request.auth.organization
-            slack_team_identity = organization.slack_team_identity
-            if slack_team_identity is not None:
-                clean_slack_integration_leftovers.apply_async((organization.pk,))
-                if settings.FEATURE_MULTIREGION_ENABLED:
-                    unlink_slack_team_wrapper(str(organization.uuid), slack_team_identity.slack_id)
-                write_chatops_insight_log(
-                    author=request.user,
-                    event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
-                    chatops_type=ChatOpsTypePlug.SLACK.value,
-                )
-                unpopulate_slack_user_identities(organization.pk, True)
-                response = Response(status=200)
-            else:
-                response = Response(status=400)
-        return response
+        try:
+            uninstall_slack_integration(request.user.organization, request.user)
+        except SlackInstallationExc as e:
+            return Response({"error": e.error_message}, status=400)
+        return Response(status=200)

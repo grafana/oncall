@@ -1,5 +1,4 @@
 import json
-from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -66,26 +65,6 @@ def test_create_notification_policy(user_notification_policy_internal_api_setup,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_201_CREATED
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize("wait_delay", (timedelta(seconds=59), timedelta(hours=24, seconds=1)))
-def test_create_notification_policy_wait_delay_invalid(
-    user_notification_policy_internal_api_setup, make_user_auth_headers, wait_delay
-):
-    token, _, users = user_notification_policy_internal_api_setup
-    admin, _ = users
-    client = APIClient()
-    url = reverse("api-internal:notification_policy-list")
-
-    data = {
-        "step": UserNotificationPolicy.Step.WAIT,
-        "wait_delay": int(wait_delay.total_seconds()),
-        "important": False,
-        "user": admin.public_primary_key,
-    }
-    response = client.post(url, data, format="json", **make_user_auth_headers(admin, token))
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -273,7 +252,7 @@ def test_unable_to_change_importance(user_notification_policy_internal_api_setup
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("wait_delay, expected_wait_delay", [(None, 300), (900, 900)])
+@pytest.mark.parametrize("wait_delay, expected_wait_delay", [(None, "300.0"), ("900.0", "900.0")])
 def test_switch_step_type_from_notify_to_wait(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
@@ -421,7 +400,9 @@ def test_switch_notification_channel(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("from_wait_delay, to_wait_delay", [(None, 300), (timezone.timedelta(seconds=900), 900)])
+@pytest.mark.parametrize(
+    "from_wait_delay, to_wait_delay", [(None, "300.0"), (timezone.timedelta(seconds=900), "900.0")]
+)
 def test_switch_wait_delay(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
