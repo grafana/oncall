@@ -24,7 +24,6 @@ export class AlertGroupStore {
   rootStore: RootStore;
   alerts = new Map<string, ApiSchemas['AlertGroup']>();
   bulkActions: any = [];
-  silenceOptions: Array<ApiSchemas['AlertGroupSilenceOptions']>;
   searchResult: { [key: string]: Array<ApiSchemas['AlertGroup']['pk']> } = {};
   incidentFilters: any;
   initialQuery = qs.parse(window.location.search);
@@ -124,14 +123,6 @@ export class AlertGroupStore {
       this.fetchAlertGroups(isPollingJob),
     ]);
     this.setLiveUpdatesPaused(false);
-  }
-
-  async fetchSilenceOptions() {
-    const { data } = await onCallApi().GET('/alertgroups/silence_options/', undefined);
-
-    runInAction(() => {
-      this.silenceOptions = data;
-    });
   }
 
   @AutoLoadingState(ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)
