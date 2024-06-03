@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
 import { css, cx } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
 import { Pagination, Checkbox, Icon, useStyles2 } from '@grafana/ui';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
