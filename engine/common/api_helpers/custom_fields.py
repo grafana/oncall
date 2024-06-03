@@ -209,10 +209,9 @@ class TimeZoneAwareDatetimeField(serializers.DateTimeField):
         )
 
 
-# TODO: FloatField is used for backward-compatibility, change to IntegerField in a future release
 class DurationSecondsField(serializers.FloatField):
     def to_internal_value(self, data):
         return timedelta(seconds=int(super().to_internal_value(data)))
 
     def to_representation(self, value):
-        return int(value.total_seconds())
+        return str(value.total_seconds())
