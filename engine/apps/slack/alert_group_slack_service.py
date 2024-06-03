@@ -3,6 +3,7 @@ import typing
 
 from apps.slack.client import SlackClient
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
@@ -56,6 +57,7 @@ class AlertGroupSlackService:
                 raise
         except (
             SlackAPIMessageNotFoundError,
+            SlackAPICantUpdateMessageError,
             SlackAPIChannelInactiveError,
             SlackAPITokenError,
             SlackAPIChannelNotFoundError,

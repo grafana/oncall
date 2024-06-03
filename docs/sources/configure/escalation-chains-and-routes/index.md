@@ -83,8 +83,10 @@ from an on-call schedule.
 * `Notify all users from a team` - send a notification to all users in a team.
 * `Resolve incident automatically` - resolve the alert group right now with status
 `Resolved automatically`.
-* `Notify whole slack channel` - send a notification to the users in the slack channel.
-* `Notify Slack User Group` - send a notification to each member of a slack user group.
+* `Notify whole slack channel` - send a notification to the users in the slack channel. These users will be notified
+via the method configured in their user profile.
+* `Notify Slack User Group` - send a notification to each member of a slack user group. These users will be notified
+via the method configured in their user profile.
 * `Trigger outgoing webhook` - trigger an [outgoing webhook].
 * `Notify users one by one (round robin)` - each notification will be sent to a group of
 users one by one, in sequential order in [round robin fashion](https://en.wikipedia.org/wiki/Round-robin_item_allocation).

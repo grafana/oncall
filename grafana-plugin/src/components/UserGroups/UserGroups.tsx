@@ -95,14 +95,14 @@ export const UserGroups = (props: UserGroupsProps) => {
   };
 
   const renderItem = (item: Item, index: number) => (
-    <li className={cx(styles.user)}>
+    <li className={styles.user}>
       {renderUser(item.data)}
       {!disabled && (
-        <div className={cx(styles.userButtons)}>
+        <div className={styles.userButtons}>
           <HorizontalGroup>
             <IconButton
               aria-label="Remove"
-              className={cx(styles.icon)}
+              className={styles.icon}
               name="trash-alt"
               onClick={getDeleteItemHandler(index)}
             />
@@ -114,7 +114,7 @@ export const UserGroups = (props: UserGroupsProps) => {
   );
 
   return (
-    <div className={cx(styles.root)}>
+    <div className={styles.root}>
       <VerticalGroup>
         {!disabled && (
           <RemoteSelect
@@ -133,7 +133,7 @@ export const UserGroups = (props: UserGroupsProps) => {
           renderItem={renderItem}
           axis="y"
           lockAxis="y"
-          helperClass={cx(styles.sortable)}
+          helperClass={styles.sortable}
           items={items}
           onSortEnd={onSortEnd}
           handleAddGroup={handleAddUserGroup}
@@ -178,7 +178,7 @@ export const SortableList = SortableContainer<SortableListProps>(
     }, [items]);
 
     return (
-      <ul className={cx(styles.groups)} ref={listRef}>
+      <ul className={styles.groups} ref={listRef}>
         {items.map((item, index) =>
           item.type === 'item' ? (
             <SortableItem key={item.key} index={index}>
@@ -186,7 +186,7 @@ export const SortableList = SortableContainer<SortableListProps>(
             </SortableItem>
           ) : isMultipleGroups ? (
             <SortableItem key={item.key} index={index}>
-              <li className={cx(styles.separator)}>
+              <li className={styles.separator}>
                 <Text type="secondary">{item.data.name}</Text>
               </li>
             </SortableItem>

@@ -1,5 +1,6 @@
 from unittest.mock import call, patch
 
+import httpretty
 import pytest
 from django.conf import settings
 from requests.auth import HTTPBasicAuth
@@ -225,18 +226,30 @@ def test_check_trigger_template_ok(make_organization, make_custom_webhook):
 def test_make_request(make_organization, make_custom_webhook):
     organization = make_organization()
 
-    with patch("apps.webhooks.models.webhook.requests") as mock_requests:
+    with patch("apps.webhooks.models.webhook.WebhookSession.request") as mock_request:
         for method in ("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"):
             webhook = make_custom_webhook(organization=organization, http_method=method)
             webhook.make_request("url", {"foo": "bar"})
-            expected_call = getattr(mock_requests, method.lower())
-            assert expected_call.called
-            assert expected_call.call_args == call("url", timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
+            assert mock_request.call_args == call(method, "url", timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, foo="bar")
 
     # invalid
     webhook = make_custom_webhook(organization=organization, http_method="NOT")
     with pytest.raises(ValueError):
         webhook.make_request("url", {"foo": "bar"})
+
+
+@httpretty.activate(verbose=True, allow_net_connect=False)
+@pytest.mark.django_db
+def test_make_request_bad_redirect(make_organization, make_custom_webhook):
+    organization = make_organization()
+    webhook = make_custom_webhook(organization=organization, http_method="POST")
+
+    url = "http://example.com"
+    response = httpretty.Response(body="Redirect", status=302, location="127.0.0.1")
+    httpretty.register_uri(httpretty.POST, url, responses=[response])
+
+    with pytest.raises(InvalidWebhookUrl):
+        webhook.make_request(url, {})
 
 
 @pytest.mark.django_db

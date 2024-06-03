@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { InlineSwitch, useStyles2 } from '@grafana/ui';
 
@@ -35,7 +35,7 @@ export const ScheduleFilters = (props: SchedulesFiltersProps) => {
   );
 
   return (
-    <div className={cx(styles.root)}>
+    <div className={styles.root}>
       <InlineSwitch
         showLabel
         label="Highlight my shifts"

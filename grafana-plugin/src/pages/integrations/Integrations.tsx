@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import {
   HorizontalGroup,
   Button,
@@ -11,13 +13,14 @@ import {
   TabsBar,
   TabContent,
   Alert,
+  withTheme2,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { GTable } from 'components/GTable/GTable';
 import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
@@ -54,7 +57,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
-import styles from './Integrations.module.scss';
+import { getIntegrationsStyles } from './Integrations.styles';
 
 enum TabType {
   MonitoringSystems = 'monitoring-systems',
@@ -74,7 +77,6 @@ const TABS = [
   },
 ];
 
-const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 
 interface IntegrationsState extends PageBaseState {
@@ -94,7 +96,9 @@ interface IntegrationsState extends PageBaseState {
   activeTab: TabType;
 }
 
-interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  theme: GrafanaTheme2;
+}
 
 @observer
 class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsState> {
@@ -198,7 +202,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
   };
 
   render() {
-    const { store, query } = this.props;
+    const { store, query, theme } = this.props;
     const {
       alertReceiveChannelId,
       alertReceiveChannelIdToShowLabels,
@@ -206,15 +210,18 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       activeTab,
       integrationsFilters,
     } = this.state;
+
     const { alertReceiveChannelStore } = store;
     const { count, results, page_size } = AlertReceiveChannelHelper.getPaginatedSearchResult(alertReceiveChannelStore);
     const isDirectPagingSelectedOnMonitoringSystemsTab =
       activeTab === TabType.MonitoringSystems && integrationsFilters.integration?.includes('direct_paging');
 
+    const styles = getIntegrationsStyles(theme);
+
     return (
       <>
-        <div className={cx('root')}>
-          <div className={cx('title')}>
+        <div>
+          <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <VerticalGroup>
                 <Text.Title level={3}>Integrations</Text.Title>
@@ -228,7 +235,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                     this.setState({ alertReceiveChannelId: 'new' });
                   }}
                   icon="plus"
-                  className={cx('newIntegrationButton')}
+                  className={styles.newIntegrationButton}
                 >
                   New integration
                 </Button>
@@ -236,7 +243,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
             </HorizontalGroup>
           </div>
           <div>
-            <TabsBar className={cx('tabsBar')}>
+            <TabsBar className={styles.tabsBar}>
               {TABS.map(({ label, value }) => (
                 <Tab
                   key={value}
@@ -259,7 +266,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
               />
               {isDirectPagingSelectedOnMonitoringSystemsTab && (
                 <Alert
-                  className={cx('goToDirectPagingAlert')}
+                  className={styles.goToDirectPagingAlert}
                   severity="info"
                   title="Direct Paging integrations have been moved."
                 >
@@ -278,8 +285,8 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                 rowKey="id"
                 data={results}
                 columns={this.getTableColumns(store.hasFeature)}
-                className={cx('integrations-table')}
-                rowClassName={cx('integrations-table-row')}
+                className={styles.integrationsTable}
+                rowClassName={styles.integrationsTableRow}
                 pagination={{
                   page: store.filtersStore.currentTablePageNum[PAGE.Integrations],
                   total: results ? Math.ceil((count || 0) / page_size) : 0,
@@ -386,15 +393,19 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     );
   }
 
-  renderIntegrationStatus(item: ApiSchemas['AlertReceiveChannel'], alertReceiveChannelStore: AlertReceiveChannelStore) {
+  renderIntegrationStatus = (
+    item: ApiSchemas['AlertReceiveChannel'],
+    alertReceiveChannelStore: AlertReceiveChannelStore
+  ) => {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
+
     let routesCounter = item.routes_count;
     let connectedEscalationsChainsCount = item.connected_escalations_chains_count;
 
     return (
       <HorizontalGroup spacing="xs">
         {alertReceiveChannelCounter && (
-          <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
+          <PluginLink query={{ page: 'incidents', integration: item.id }}>
             <TooltipBadge
               borderType="primary"
               placement="top"
@@ -431,10 +442,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         )}
       </HorizontalGroup>
     );
-  }
+  };
 
-  renderHeartbeat(item: ApiSchemas['AlertReceiveChannel']) {
-    const { store } = this.props;
+  renderHeartbeat = (item: ApiSchemas['AlertReceiveChannel']) => {
+    const { store, theme } = this.props;
     const { alertReceiveChannelStore, heartbeatStore } = store;
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
 
@@ -442,13 +453,15 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     const heartbeat = heartbeatStore.items[heartbeatId];
 
     const heartbeatStatus = Boolean(heartbeat?.status);
+    const styles = getIntegrationsStyles(theme);
+
     return (
       <div>
         {alertReceiveChannel.is_available_for_integration_heartbeat && heartbeat?.last_heartbeat_time_verbal && (
           <TooltipBadge
             testId="heartbeat-badge"
             text={undefined}
-            className={cx('heartbeat-badge')}
+            className={styles.heartbeatBadge}
             placement="top"
             borderType={heartbeatStatus ? 'success' : 'danger'}
             customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
@@ -458,14 +471,16 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         )}
       </div>
     );
-  }
+  };
 
-  renderMaintenance(item: ApiSchemas['AlertReceiveChannel']) {
+  renderMaintenance = (item: ApiSchemas['AlertReceiveChannel']) => {
+    const { theme } = this.props;
     const maintenanceMode = item.maintenance_mode;
+    const utilStyles = getUtilStyles(theme);
 
     if (maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance) {
       return (
-        <div className={cx('u-flex')}>
+        <div className={utilStyles.flex}>
           <TooltipBadge
             borderType="primary"
             icon="pause"
@@ -479,39 +494,41 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     }
 
     return null;
-  }
+  };
 
-  renderTeam(item: ApiSchemas['AlertReceiveChannel'], teams: any) {
+  renderTeam = (item: ApiSchemas['AlertReceiveChannel'], teams: any) => {
     return (
       <TextEllipsisTooltip placement="top" content={teams[item.team]?.name}>
         <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[item.team]} />
       </TextEllipsisTooltip>
     );
-  }
+  };
 
   renderButtons = (item: ApiSchemas['AlertReceiveChannel']) => {
-    const { store } = this.props;
+    const { store, theme } = this.props;
+    const styles = getIntegrationsStyles(theme);
+    const utilStyles = getUtilStyles(theme);
 
     return (
       <WithContextMenu
         renderMenuItems={() => (
-          <div className={cx('integrations-actionsList')}>
+          <div className={styles.integrationsActionsList}>
             <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-              <div className={cx('integrations-actionItem')} onClick={() => this.onIntegrationEditClick(item.id)}>
+              <div className={styles.integrationsActionItem} onClick={() => this.onIntegrationEditClick(item.id)}>
                 <Text type="primary">Integration settings</Text>
               </div>
             </WithPermissionControlTooltip>
 
             {store.hasFeature(AppFeature.Labels) && (
               <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integrations-actionItem')} onClick={() => this.onLabelsEditClick(item.id)}>
+                <div className={styles.integrationsActionItem} onClick={() => this.onLabelsEditClick(item.id)}>
                   <Text type="primary">Alert group labeling</Text>
                 </div>
               </WithPermissionControlTooltip>
             )}
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
-              <div className={cx('integrations-actionItem')}>
+              <div className={styles.integrationsActionItem}>
                 <HorizontalGroup spacing={'xs'}>
                   <Icon name="copy" />
 
@@ -520,9 +537,9 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
               </div>
             </CopyToClipboard>
             <RenderConditionally shouldRender={item.allow_delete}>
-              <div className={cx('thin-line-break')} />
+              <div className={utilStyles.thinLineBreak} />
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integrations-actionItem')}>
+                <div className={styles.integrationsActionItem}>
                   <div
                     onClick={() => {
                       this.setState({
@@ -560,12 +577,16 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     );
   };
 
-  getTableColumns = (hasFeatureFn) => {
+  getTableColumns = (hasFeatureFn: (feature: string) => boolean) => {
     const {
       grafanaTeamStore,
       alertReceiveChannelStore,
       filtersStore: { applyLabelFilter },
     } = this.props.store;
+
+    const { theme } = this.props;
+
+    const styles = getIntegrationsStyles(theme);
     const isMonitoringSystemsTab = this.state.activeTab === TabType.MonitoringSystems;
 
     const columns = [
@@ -614,7 +635,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         width: '50px',
         key: 'buttons',
         render: (item: ApiSchemas['AlertReceiveChannel']) => this.renderButtons(item),
-        className: cx('buttons'),
+        className: styles.buttons,
       },
     ];
 
@@ -684,4 +705,4 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 }
 
-export const IntegrationsPage = withRouter(withMobXProviderContext(_IntegrationsPage));
+export const IntegrationsPage = withRouter(withMobXProviderContext(withTheme2(_IntegrationsPage)));

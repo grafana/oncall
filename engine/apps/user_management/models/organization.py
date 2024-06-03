@@ -11,14 +11,10 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
+from apps.chatops_proxy.utils import register_oncall_tenant, unlink_slack_team, unregister_oncall_tenant
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.types import AlertGroupTableColumn
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
-from common.oncall_gateway import (
-    register_oncall_tenant_wrapper,
-    unlink_slack_team_wrapper,
-    unregister_oncall_tenant_wrapper,
-)
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -65,7 +61,7 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            register_oncall_tenant_wrapper(str(instance.uuid), settings.ONCALL_BACKEND_REGION)
+            register_oncall_tenant(str(instance.uuid), settings.ONCALL_BACKEND_REGION, instance.stack_id)
         return instance
 
     def delete(self):
@@ -108,9 +104,9 @@ class Organization(MaintainableObject):
 
     def delete(self):
         if settings.FEATURE_MULTIREGION_ENABLED:
-            unregister_oncall_tenant_wrapper(str(self.uuid), settings.ONCALL_BACKEND_REGION)
-            if self.slack_team_identity:
-                unlink_slack_team_wrapper(str(self.uuid), self.slack_team_identity.slack_id)
+            unregister_oncall_tenant(str(self.uuid), settings.ONCALL_BACKEND_REGION)
+            if self.slack_team_identity and not settings.UNIFIED_SLACK_APP_ENABLED:
+                unlink_slack_team(str(self.uuid), self.slack_team_identity.slack_id)
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
 

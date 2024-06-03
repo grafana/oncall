@@ -17,7 +17,7 @@ export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ classNa
   const classList = [styles.bar, className || ''];
 
   return (
-    <div className={cx(styles.wrapper)}>
+    <div className={styles.wrapper}>
       {!numTotalSteps && <div className={classList.join(' ')} style={{ width: `${completed}%` }} />}
       {renderSteps(numTotalSteps, completed)}
     </div>

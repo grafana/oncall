@@ -116,7 +116,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         key: 'check',
         title: (
           <Checkbox
-            className={cx(styles.checkbox)}
+            className={styles.checkbox}
             onChange={handleMasterCheckboxChange}
             value={data?.length > 0 && rowSelection.selectedRowKeys.length === data?.length}
           />
@@ -124,7 +124,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         render: (item: any) => {
           return (
             <Checkbox
-              className={cx(styles.checkbox)}
+              className={styles.checkbox}
               value={rowSelection.selectedRowKeys.includes(item[rowKey as string])}
               onChange={getCheckboxClickHandler(item[rowKey as string])}
             />
@@ -136,7 +136,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   }, [rowSelection, columnsProp, data]);
 
   return (
-    <div className={cx(styles.root)} data-testid="test__gTable">
+    <div className={styles.root} data-testid="test__gTable">
       <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
@@ -148,7 +148,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
         {...restProps}
       />
       {pagination && (
-        <div className={cx(styles.pagination)}>
+        <div className={styles.pagination}>
           <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
         </div>
       )}

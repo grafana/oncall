@@ -11,7 +11,7 @@ export const getIntegrationFormStyles = (theme: GrafanaTheme2) => {
       padding: 12px;
       margin-bottom: 24px;
       border: 1px solid ${theme.colors.border.weak};
-      border-radius: ${theme.shape.radius.default};
+      border-radius: 2px;
     `,
 
     extraFieldsRadio: css`

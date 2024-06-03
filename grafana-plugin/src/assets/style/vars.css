@@ -7,12 +7,6 @@
   --always-gray: #ccccdc;
   --title-marginBottom: 16px;
   --opacity: 0.5;
-  --tag-danger: #e02f44;
-  --tag-warning: #c69b06;
-  --tag-primary: #299c46;
-  --tag-secondary: #464c54;
-  --tag-secondary-transparent: rgba(204, 204, 220, 0.07);
-  --tag-border-link: rgba(56, 113, 220, 0.2);
 }
 
 .theme-light {
@@ -32,25 +26,13 @@
   --oncall-icon-stroke-color: #fff;
   --hover-selected: #f4f5f5;
   --background-canvas: #f4f5f5;
-  --background-primary: #fff;
   --background-secondary: #f4f5f5;
+  --background-disabled: rgba(204, 204, 220, 0.11);
   --border-medium-color: rgba(36, 41, 46, 0.3);
   --border-medium: 1px solid rgba(36, 41, 46, 0.3);
   --border-strong: 1px solid rgba(36, 41, 46, 0.4);
   --border-weak: 1px solid rgba(36, 41, 46, 0.12);
   --shadows-z3: 0 13px 20px 1px rgba(24, 26, 27, 0.18);
-  --tag-background-primary: rgba(50, 116, 217, 0.15);
-  --tag-border-primary: rgb(136, 174, 233);
-  --tag-text-primary: rgb(26, 71, 139);
-  --tag-background-warning: rgba(255, 120, 10, 0.15);
-  --tag-border-warning: rgb(255, 176, 112);
-  --tag-text-warning: rgb(163, 73, 0);
-  --tag-background-success: rgba(86, 166, 75, 0.15);
-  --tag-border-success: rgb(148, 203, 140);
-  --tag-text-success: rgb(50, 96, 43);
-  --tag-background-danger: rgba(224, 47, 68, 0.15);
-  --tag-border-danger: rgb(237, 136, 148);
-  --tag-text-danger: rgb(147, 22, 37);
   --button-background: rgba(36, 41, 46, 0.08);
   --button-hover-background: rgba(36, 41, 46, 0.15);
   --box-background: rgba(244, 245, 245);
@@ -79,25 +61,13 @@
   --hover-selected-hardcoded: #34363d;
   --oncall-icon-stroke-color: #181b1f;
   --background-canvas: #111217;
-  --background-primary: #181b1f;
   --background-secondary: #22252b;
+  --background-disabled: rgba(204, 204, 220, 0.04);
   --border-medium-color: rgba(204, 204, 220, 0.15);
   --border-medium: 1px solid rgba(204, 204, 220, 0.15);
   --border-strong: 1px solid rgba(204, 204, 220, 0.25);
   --border-weak: 1px solid rgba(204, 204, 220, 0.07);
   --shadows-z3: 0 8px 24px rgb(1, 4, 9);
-  --tag-background-primary: rgba(87, 148, 242, 0.15);
-  --tag-border-primary: rgb(13, 72, 163);
-  --tag-text-primary: rgb(158, 193, 247);
-  --tag-background-warning: rgba(255, 152, 48, 0.15);
-  --tag-border-warning: rgb(150, 75, 0);
-  --tag-text-warning: rgb(255, 190, 124);
-  --tag-background-success: rgba(115, 191, 105, 0.15);
-  --tag-border-success: rgb(49, 100, 43);
-  --tag-text-success: rgb(165, 214, 159);
-  --tag-background-danger: rgba(242, 73, 92, 0.15);
-  --tag-border-danger: rgb(151, 11, 27);
-  --tag-text-danger: rgb(247, 144, 156);
   --box-background: rgba(10, 10, 10, 0.4);
   --working-hours-shades-color: rgba(17, 18, 23, 0.15);
   --working-hours-shades-color-light: rgba(17, 18, 23, 0.1);

@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2 } from '@grafana/ui';
+import { useStyles2, useTheme2 } from '@grafana/ui';
 import { bem, getLabelCss } from 'styles/utils.styles';
 
 interface TagProps {
@@ -30,6 +30,7 @@ export enum TagColor {
 
 export const Tag: FC<TagProps> = (props) => {
   const { color, children, className, onClick, size = 'medium' } = props;
+  const theme = useTheme2();
 
   const styles = useStyles2(getStyles);
 
@@ -49,7 +50,7 @@ export const Tag: FC<TagProps> = (props) => {
         styles[color]
       : css`
           background-color: ${color};
-          color: text;
+          color: ${theme.colors.primary.contrastText};
         `;
   }
 

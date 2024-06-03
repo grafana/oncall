@@ -44,7 +44,7 @@ jobs:
   post-status-to-slack:
     runs-on: ubuntu-latest
     needs: end-to-end-tests
-    if: failure
+    if: failure()
     steps:
       # Useful references
       # https://stackoverflow.com/questions/59073850/github-actions-get-url-of-test-build

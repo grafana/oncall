@@ -21,6 +21,7 @@ import {
   fillGapsInShifts,
   flattenShiftEvents,
   getFromString,
+  getTotalDaysToDisplay,
   splitToLayers,
   splitToShifts,
   unFlattenShiftEvents,
@@ -34,9 +35,9 @@ import {
   Event,
   Layer,
   ShiftEvents,
-  RotationFormLiveParams,
   ScheduleScoreQualityResponse,
   ShiftSwap,
+  ScheduleView,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
@@ -109,9 +110,6 @@ export class ScheduleStore extends BaseStore {
   overridePreview?: { [fromString: string]: ShiftEvents[] };
 
   @observable
-  rotationFormLiveParams: RotationFormLiveParams = undefined;
-
-  @observable
   scheduleToScheduleEvents: {
     [id: string]: ScheduleEvent[];
   } = {};
@@ -125,12 +123,20 @@ export class ScheduleStore extends BaseStore {
     wrongTeamNoPermissions: false,
   };
 
+  @observable
+  scheduleView = ScheduleView.OneWeek;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
     makeObservable(this);
 
     this.path = '/schedules/';
+  }
+
+  @action.bound
+  setScheduleView(value: ScheduleView) {
+    this.scheduleView = value;
   }
 
   @action.bound
@@ -189,7 +195,7 @@ export class ScheduleStore extends BaseStore {
       try {
         schedule = await this.getById(id, true, fromOrganization);
       } catch (error) {
-        if (error.response.data.error_code === 'wrong_team') {
+        if (error.response.data?.error_code === 'wrong_team') {
           schedule = {
             id,
             name: '🔒 Private schedule',
@@ -277,10 +283,6 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  setRotationFormLiveParams(params: RotationFormLiveParams) {
-    this.rotationFormLiveParams = params;
-  }
-
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
@@ -290,12 +292,14 @@ export class ScheduleStore extends BaseStore {
   ) {
     const type = isOverride ? 3 : 2;
 
+    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate);
+
     const fromString = getFromString(startMoment);
 
     const dayBefore = startMoment.subtract(1, 'day');
 
     const response = await makeRequest(`/oncall_shifts/preview/`, {
-      params: { date: getFromString(dayBefore), days: 8 },
+      params: { date: getFromString(dayBefore), days },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
     });
@@ -356,7 +360,6 @@ export class ScheduleStore extends BaseStore {
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
     this.shiftSwapsPreview = undefined;
-    this.rotationFormLiveParams = undefined;
   }
 
   @action.bound
@@ -497,7 +500,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days = 9) {
+  async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days) {
     const dayBefore = startMoment.subtract(1, 'day');
 
     const response = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
@@ -530,9 +533,12 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async refreshEvents(scheduleId: string) {
+  async refreshEvents(scheduleId: string, scheduleView?: ScheduleView) {
     this.refreshEventsError = {};
     const startMoment = this.rootStore.timezoneStore.calendarStartDate;
+
+    const days =
+      getTotalDaysToDisplay(scheduleView || this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 2;
 
     try {
       const schedule = await this.loadItem(scheduleId);
@@ -545,9 +551,9 @@ export class ScheduleStore extends BaseStore {
 
     this.updateRelatedUsers(scheduleId); // to refresh related users
     await Promise.all([
-      this.updateEvents(scheduleId, startMoment, 'rotation'),
-      this.updateEvents(scheduleId, startMoment, 'override'),
-      this.updateEvents(scheduleId, startMoment, 'final'),
+      this.updateEvents(scheduleId, startMoment, 'rotation', days),
+      this.updateEvents(scheduleId, startMoment, 'override', days),
+      this.updateEvents(scheduleId, startMoment, 'final', days),
       this.updateShiftSwaps(scheduleId, startMoment),
     ]);
   }
@@ -605,8 +611,10 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
-  async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, days = 9) {
+  async updateShiftSwaps(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs) {
     const fromString = getFromString(startMoment);
+
+    const days = getTotalDaysToDisplay(this.scheduleView, this.rootStore.timezoneStore.calendarStartDate) + 2;
 
     const dayBefore = startMoment.subtract(1, 'day');
 
@@ -647,13 +655,10 @@ export class ScheduleStore extends BaseStore {
 
   @AutoLoadingState(ActionKey.UPDATE_PERSONAL_EVENTS)
   @action.bound
-  async updatePersonalEvents(
-    userPk: ApiSchemas['User']['pk'],
-    startMoment: dayjs.Dayjs,
-    days = 9,
-    isUpdateOnCallNow = false
-  ) {
+  async updatePersonalEvents(userPk: ApiSchemas['User']['pk'], startMoment: dayjs.Dayjs, isUpdateOnCallNow = false) {
     const fromString = getFromString(startMoment);
+
+    const days = getTotalDaysToDisplay(ScheduleView.OneWeek, this.rootStore.timezoneStore.calendarStartDate) + 2;
 
     const dayBefore = startMoment.subtract(1, 'day');
 
