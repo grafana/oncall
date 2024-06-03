@@ -40,7 +40,6 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Text } from 'components/Text/Text';
@@ -55,7 +54,7 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { AlertAction, TimeLineItem, TimeLineRealm, GroupedAlert } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
+import { CUSTOM_SILENCE_VALUE, IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { IncidentSilenceModal } from 'pages/incidents/parts/IncidentSilenceModal';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -93,7 +92,11 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   };
 
   componentDidMount() {
+    const { store } = this.props;
+
     this.update();
+
+    store.alertGroupStore.fetchSilenceOptions();
   }
 
   componentWillUnmount(): void {
@@ -253,7 +256,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               shouldRender={Boolean(silenceModalData?.incident)}
               render={() => (
                 <IncidentSilenceModal
-                  alertGroupID={silenceModalData.incident.inside_organization_number}
+                  alertGroupID={silenceModalData.incident.pk}
                   alertGroupName={silenceModalData.incident.render_for_web?.title}
                   isOpen
                   onDismiss={() => this.setState({ silenceModalData: undefined })}
