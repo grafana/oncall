@@ -592,5 +592,13 @@
   "dependencies": {
     "grafanaDependency": ">=9.2.0",
     "plugins": []
-  }
+  },
+  "extensions": [
+    {
+      "extensionPointId": "grafana/user/profile/tab",
+      "title": "IRM",
+      "description": "IRM settings",
+      "type": "component"
+    }
+  ]
 }
