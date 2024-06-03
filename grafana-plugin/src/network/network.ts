@@ -37,7 +37,7 @@ interface RequestConfig {
 
 export const isNetworkError = axios.isAxiosError;
 
-export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
+export const makeRequestRaw = async (path: string, config: RequestConfig) => {
   const { method = 'GET', params, data, validateStatus, headers } = config;
 
   const url = getOnCallApiPath(path);
@@ -54,11 +54,20 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
     });
 
     FaroHelper.pushAxiosNetworkResponseEvent({ name: 'Request succeeded', res: response });
-    return response.data as RT;
+    return response;
   } catch (ex) {
     const error = ex as AxiosError;
     FaroHelper.pushAxiosNetworkResponseEvent({ name: 'Request failed', res: error.response });
     FaroHelper.pushAxiosNetworkError(error.response);
+    throw ex;
+  }
+};
+
+export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
+  try {
+    const result = await makeRequestRaw(path, config);
+    return result.data as RT;
+  } catch (ex) {
     throw ex;
   }
 };

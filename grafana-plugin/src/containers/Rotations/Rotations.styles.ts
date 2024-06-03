@@ -4,73 +4,48 @@ import { GrafanaTheme2 } from '@grafana/data';
 export const getRotationsStyles = (theme: GrafanaTheme2) => {
   return {
     root: css`
-      background: 1px solid ${theme.colors.background.secondary};
-      border: ${theme.colors.border.weak};
+      background: ${theme.colors.background.secondary};
+      border: 1px solid ${theme.colors.border.weak};
       display: flex;
       flex-direction: column;
-      border-radius: ${theme.shape.radius.default};
+      border-radius: 2px;
+
+      &--withNoBackgroundAndBorder {
+        background: none;
+        border: none;
+      }
     `,
 
     currentTime: css`
       position: absolute;
       width: 1px;
-      background: ${theme.colors.gradients.brandVertical}
+      background: ${theme.colors.gradients.brandVertical};
       top: 0;
       bottom: 0;
       z-index: 1;
-      transition: left 500ms ease;
     `,
 
     header: css`
-      padding: 0 10px;
-    `,
-
-    title: css`
-      margin: 16px 0;
+      padding: 12px;
     `,
 
     layer: css`
       display: block;
     `,
 
-    rotations: css`
-      position: relative;
+    layerFirst: css`
+      padding-top: 32px;
     `,
 
     layerTitle: css`
-      text-align: center;
-      font-weight: 500;
-      line-height: 16px;
-      padding: 8px;
-      background: ${theme.colors.background.secondary};
-
-      &:hover {
-        background: rgba(204, 204, 220, 0.12);
-      }
+      margin: 8px;
+      border: ${theme.colors.border.weak};
+      background: ${theme.colors.background.canvas};
     `,
 
     rotationsPlusTitle: css`
       display: flex;
       flex-direction: column;
-    `,
-
-    headerPlusContent: css`
-      position: relative;
-      padding-top: 26px;
-      padding-bottom: 26px;
-    `,
-
-    layerHeader: css`
-      padding: 12px;
-      display: flex;
-      justify-content: space-between;
-    `,
-
-    layerHeaderTitle: css`
-      font-weight: 400;
-      font-size: 14px;
-      line-height: 20px;
-      color: rgba(204, 204, 220, 0.65);
     `,
 
     layerContent: css`
@@ -81,7 +56,7 @@ export const getRotationsStyles = (theme: GrafanaTheme2) => {
       font-weight: 400;
       font-size: 12px;
       line-height: 16px;
-      text-align: center;
+      text-align: left;
       padding: 12px;
       cursor: pointer;
 

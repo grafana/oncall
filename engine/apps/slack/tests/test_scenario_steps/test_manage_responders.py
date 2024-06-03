@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
+from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.scenarios.manage_responders import (
     ALERT_GROUP_DATA_KEY,
     DIRECT_PAGING_USER_SELECT_ID,
@@ -23,17 +24,19 @@ CHANNEL_ID = "123"
 MESSAGE_TS = "67"
 
 
-def make_slack_payload(user=None, actions=None):
+def make_slack_payload(organization, user=None, actions=None):
     payload = {
         "trigger_id": TRIGGER_ID,
         "view": {
             "id": "view-id",
-            "private_metadata": json.dumps({"input_id_prefix": "", ALERT_GROUP_DATA_KEY: ALERT_GROUP_ID}),
+            "private_metadata": make_private_metadata(
+                {"input_id_prefix": "", ALERT_GROUP_DATA_KEY: ALERT_GROUP_ID}, organization
+            ),
             "state": {
                 "values": {
                     DIRECT_PAGING_USER_SELECT_ID: {
                         ManageRespondersUserChange.routing_uid(): {
-                            "selected_option": {"value": user.pk} if user else None
+                            "selected_option": {"value": make_value({"id": user.pk}, organization)} if user else None
                         }
                     },
                 }
@@ -118,21 +121,23 @@ def test_add_user_no_warning(manage_responders_setup, make_schedule, make_on_cal
         notify_by=UserNotificationPolicy.NotificationChannel.SMS,
     )
 
-    payload = make_slack_payload(user=user)
+    payload = make_slack_payload(organization, user=user)
 
     step = ManageRespondersUserChange(slack_team_identity, organization, user)
     with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     # check there's a delete button for the user
-    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == str(user.pk)
+    assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == make_value(
+        {"id": str(user.pk)}, organization
+    )
 
 
 @pytest.mark.django_db
 def test_add_user_raise_warning(manage_responders_setup):
     organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
     # user is not on call
-    payload = make_slack_payload(user=user)
+    payload = make_slack_payload(organization, user=user)
 
     step = ManageRespondersUserChange(slack_team_identity, organization, user)
     with patch.object(step._slack_client, "views_push") as mock_slack_api_call:
@@ -154,7 +159,7 @@ def test_add_user_raise_warning(manage_responders_setup):
 def test_remove_user(manage_responders_setup):
     organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
 
-    payload = make_slack_payload(actions=[{"value": user.pk}])
+    payload = make_slack_payload(organization, actions=[{"value": make_value({"id": user.pk}, organization)}])
     step = ManageRespondersRemoveUser(slack_team_identity, organization, user)
     with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)

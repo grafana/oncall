@@ -22,10 +22,9 @@ import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
 import { SchedulePersonal } from 'containers/Rotations/SchedulePersonal';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Schedule } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleView } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -83,7 +82,10 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={styles.schedulesActions}>
-                <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
+                <HorizontalGroup>
+                  <Text type="secondary">View in timezone:</Text>
+                  <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
+                </HorizontalGroup>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
@@ -105,6 +107,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
           </div>
           <div data-testid="schedules-table">
             <GTable
+              className={styles.table}
               columns={this.getTableColumns()}
               data={results}
               pagination={{
@@ -168,7 +171,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
     if (expanded && !expandedRowKeys.includes(data.id)) {
       this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, () => {
-        this.props.store.scheduleStore.refreshEvents(data.id);
+        this.props.store.scheduleStore.refreshEvents(data.id, ScheduleView.OneWeek);
       });
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
@@ -180,7 +183,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
   refreshExpandedSchedules = () => {
     const { expandedRowKeys } = this.state;
-    expandedRowKeys.forEach(this.props.store.scheduleStore.refreshEvents);
+    expandedRowKeys.forEach((key: Schedule['id']) => {
+      this.props.store.scheduleStore.refreshEvents(key, ScheduleView.OneWeek);
+    });
   };
 
   renderSchedule = (data: Schedule) => {
@@ -188,10 +193,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
     return (
       <div className={styles.schedule}>
-        <TimelineMarks />
-        <div className={styles.rotations}>
-          <ScheduleFinal simplified scheduleId={data.id} onSlotClick={this.getScheduleClickHandler(data.id)} />
-        </div>
+        <ScheduleFinal
+          scheduleView={ScheduleView.OneWeek}
+          simplified
+          scheduleId={data.id}
+          onSlotClick={this.getScheduleClickHandler(data.id)}
+        />
       </div>
     );
   };
@@ -375,16 +382,15 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const { store } = this.props;
     const page = store.filtersStore.currentTablePageNum[PAGE.Schedules];
 
-    store.scheduleStore.updatePersonalEvents(
-      store.userStore.currentUserPk,
-      store.timezoneStore.calendarStartDate,
-      9,
-      true
-    );
-
     // For removal we need to check if count is 1, which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();
     const newPage = results.length === 1 ? Math.max(page - 1, 1) : page;
+
+    store.scheduleStore.updatePersonalEvents(
+      store.userStore.currentUserPk,
+      store.timezoneStore.calendarStartDate,
+      true
+    );
 
     this.handlePageChange(newPage);
   };
