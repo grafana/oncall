@@ -333,18 +333,20 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                               this.setState({ calendarStartDatePickerIsOpen: !calendarStartDatePickerIsOpen });
                             }}
                           />
-                          <DatePicker
-                            isOpen={calendarStartDatePickerIsOpen}
-                            value={store.timezoneStore.calendarStartDate.toDate()}
-                            onChange={(newDate) => {
-                              store.timezoneStore.setCalendarStartDate(
-                                getCalendarStartDate(dayjs(newDate), scheduleView)
-                              );
-                              this.handleDateRangeUpdate();
-                              this.setState({ calendarStartDatePickerIsOpen: false });
-                            }}
-                            onClose={() => this.setState({ calendarStartDatePickerIsOpen: false })}
-                          />
+                          <div className={styles.datePicker}>
+                            <DatePicker
+                              isOpen={calendarStartDatePickerIsOpen}
+                              value={store.timezoneStore.calendarStartDate.toDate()}
+                              onChange={(newDate) => {
+                                store.timezoneStore.setCalendarStartDate(
+                                  getCalendarStartDate(dayjs(newDate), scheduleView)
+                                );
+                                this.handleDateRangeUpdate();
+                                this.setState({ calendarStartDatePickerIsOpen: false });
+                              }}
+                              onClose={() => this.setState({ calendarStartDatePickerIsOpen: false })}
+                            />
+                          </div>
                         </HorizontalGroup>
                         <HorizontalGroup>
                           <RadioButtonGroup
