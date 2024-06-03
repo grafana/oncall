@@ -1,14 +1,10 @@
 import {
   test as setup,
   chromium,
-  expect,
-  type Page,
   type BrowserContext,
   type FullConfig,
   type APIRequestContext,
 } from '@playwright/test';
-
-import { getOnCallApiUrl } from 'utils/consts';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -23,8 +19,6 @@ import {
   IS_CLOUD,
   IS_OPEN_SOURCE,
 } from './utils/constants';
-import { clickButton, getInputByName } from './utils/forms';
-import { goToGrafanaPage } from './utils/navigation';
 
 enum OrgRole {
   None = 'None',
@@ -65,47 +59,6 @@ const generateLoginStorageStateAndOptionallCreateUser = async (
 };
 
 /**
- go to config page and wait for plugin icon to be available on left-hand navigation
- */
-const configureOnCallPlugin = async (page: Page): Promise<void> => {
-  /**
-   * go to the oncall plugin configuration page and wait for the page to be loaded
-   */
-  await goToGrafanaPage(page, '/plugins/grafana-oncall-app');
-  await page.waitForTimeout(3000);
-
-  // if plugin is configured, go to OnCall
-  const isConfigured = (await page.getByText('Connected to OnCall').count()) >= 1;
-  if (isConfigured) {
-    await page.getByRole('link', { name: 'Open Grafana OnCall' }).click();
-    return;
-  }
-
-  // otherwise we may need to reconfigure the plugin
-  const needToReconfigure = (await page.getByText('try removing your plugin configuration').count()) >= 1;
-  if (needToReconfigure) {
-    await clickButton({ page, buttonText: 'Remove current configuration' });
-    await clickButton({ page, buttonText: /^Remove$/ });
-  }
-  await page.waitForTimeout(2000);
-
-  const needToEnterOnCallApiUrl = await page.getByText(/Connected to OnCall/).isHidden();
-  if (needToEnterOnCallApiUrl) {
-    await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl() || 'http://oncall-dev-engine:8080');
-    await clickButton({ page, buttonText: 'Connect' });
-  }
-
-  /**
-   * wait for the "Connected to OnCall" message to know that everything is properly configured
-   *
-   * Regarding increasing the timeout for the "plugin configured" assertion:
-   * This is because it can sometimes take a bit longer for the backend sync to finish. The default assertion
-   * timeout is 5s, which is sometimes not enough if the backend is under load
-   */
-  await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/, { timeout: 25_000 });
-};
-
-/**
  * Borrowed from our friends on the Incident team
  * https://github.com/grafana/incident/blob/main/plugin/e2e/global-setup.ts
  */
@@ -120,7 +73,7 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     GRAFANA_ADMIN_PASSWORD,
     ADMIN_USER_STORAGE_STATE
   );
-  const adminPage = await adminBrowserContext.newPage();
+  await adminBrowserContext.newPage();
   const { request: adminAuthedRequest } = adminBrowserContext;
 
   await generateLoginStorageStateAndOptionallCreateUser(
@@ -146,11 +99,6 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     },
     true
   );
-
-  if (IS_OPEN_SOURCE) {
-    // plugin configuration can safely be skipped for cloud environments
-    await configureOnCallPlugin(adminPage);
-  }
 
   /**
    * determine the current Grafana version of the stack in question and set it such that it can be used in the tests

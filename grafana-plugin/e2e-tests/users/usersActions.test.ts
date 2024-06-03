@@ -1,3 +1,5 @@
+import semver from 'semver';
+
 import { test, expect } from '../fixtures';
 import { goToOnCallPage } from '../utils/navigation';
 import { viewUsers, accessProfileTabs } from '../utils/users';
@@ -18,8 +20,16 @@ test.describe('Users screen actions', () => {
 
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
+    const tabsToCheck = ['tab-phone-verification', 'tab-slack', 'tab-telegram'];
 
-    await accessProfileTabs(page, ['tab-mobile-app', 'tab-phone-verification', 'tab-slack', 'tab-telegram'], false);
+    console.log(process.env.CURRENT_GRAFANA_VERSION);
+
+    // After 10.3 it's been moved to global user profile
+    if (semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.3.0')) {
+      tabsToCheck.unshift('tab-mobile-app');
+    }
+
+    await accessProfileTabs(page, tabsToCheck, false);
   });
 
   test('Editor is allowed to view the list of users', async ({ editorRolePage }) => {

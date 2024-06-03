@@ -2,12 +2,15 @@ import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 
 import { ConfirmModal, useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
+import { AppRootProps } from 'types';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
+import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 
 import { LocationHelper } from './LocationHelper';
+import { GRAFANA_LICENSE_OSS } from './consts';
 import { getCommonStyles } from './styles';
 
 export function useForceUpdate() {
@@ -137,4 +140,39 @@ export const useOnMount = (callback: () => void) => {
   useEffect(() => {
     callback();
   }, []);
+};
+
+export const useInitializePlugin = ({ meta }: AppRootProps) => {
+  const IS_OPEN_SOURCE = meta?.jsonData?.license === GRAFANA_LICENSE_OSS;
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // create oncall api token and save in plugin settings
+  const install = async () => {
+    await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
+      method: 'POST',
+    });
+  };
+
+  const initializePlugin = async () => {
+    if (!meta?.secureJsonFields?.onCallApiToken) {
+      await install();
+    }
+
+    // trigger users sync
+    try {
+      await makeRequest(`/plugin/status`, {
+        method: 'POST',
+      });
+    } catch (_err) {
+      await install();
+    }
+
+    setIsInitialized(true);
+  };
+
+  useOnMount(() => {
+    initializePlugin();
+  });
+
+  return { isInitialized };
 };

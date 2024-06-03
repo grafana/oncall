@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
-	"strings"
 )
 
 type OnCallPluginSettingsJSONData struct {
@@ -15,7 +16,6 @@ type OnCallPluginSettingsJSONData struct {
 	StackID          int    `json:"stackId,omitempty"`
 	OrgID            int    `json:"orgId,omitempty"`
 	License          string `json:"license"`
-	UseBackendPlugin bool   `json:"useBackendPlugin"`
 }
 
 type OnCallPluginSettingsSecureJSONData struct {

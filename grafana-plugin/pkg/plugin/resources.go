@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
 type XInstanceContextJSONData struct {
@@ -150,7 +151,15 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	proxyReq, err := http.NewRequest(proxyMethod, reqURL, bodyReader)
+
+	 parsedReqURL, err := url.Parse(reqURL)
+	 if err != nil {
+		 http.Error(w, err.Error(), http.StatusInternalServerError)
+		 return
+	 }
+	 parsedReqURL.RawQuery = req.URL.RawQuery
+
+	proxyReq, err := http.NewRequest(proxyMethod, parsedReqURL.String(), bodyReader)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

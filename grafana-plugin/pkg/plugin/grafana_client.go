@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int, error) {
@@ -17,9 +18,9 @@ func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int,
 		return 0, err
 	}
 
-	reqURL.Path += "api/users"
+	reqURL.Path += "api/users/lookup"
 	q := reqURL.Query()
-	q.Set("login", user.Login)
+	q.Set("loginOrEmail", user.Login)
 	reqURL.RawQuery = q.Encode()
 
 	req, err := http.NewRequest("GET", reqURL.String(), nil)
@@ -42,7 +43,7 @@ func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int,
 
 	log.DefaultLogger.Info(fmt.Sprintf("User Response %s %s %s", reqURL.String(), res.Status, body))
 
-	var result []map[string]interface{}
+	var result map[string]interface{}
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		err = fmt.Errorf("Error unmarshalling JSON: %+v", err)
@@ -50,8 +51,8 @@ func (a *App) GetUserID(user *backend.User, settings OnCallPluginSettings) (int,
 		return 0, err
 	}
 
-	if len(result) > 0 && res.StatusCode == 200 {
-		id, ok := result[0]["id"].(float64)
+	if res.StatusCode == 200 {
+		id, ok := result["id"].(float64)
 		if !ok {
 			err = fmt.Errorf("Error no id field in object: %+v", err)
 			return 0, err
@@ -130,7 +131,6 @@ func (a *App) SaveOnCallSettings(settings OnCallPluginSettings) error {
 			OnCallAPIURL:     settings.OnCallAPIURL,
 			StackID:          settings.StackID,
 			OrgID:            settings.OrgID,
-			UseBackendPlugin: true,
 			License:          settings.License,
 		},
 		SecureJSONData: OnCallPluginSettingsSecureJSONData{

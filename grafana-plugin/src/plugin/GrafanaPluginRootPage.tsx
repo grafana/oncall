@@ -27,7 +27,6 @@ import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { CloudPage } from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import { UsersPage } from 'pages/users/Users';
-import { PluginSetup } from 'plugin/PluginSetup/PluginSetup';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization/authorization';
@@ -36,13 +35,15 @@ import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
 import { FaroHelper } from 'utils/faro';
-import { useOnMount } from 'utils/hooks';
+import { useInitializePlugin, useOnMount } from 'utils/hooks';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
+  const { isInitialized } = useInitializePlugin(props);
+
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
   });
@@ -54,9 +55,14 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
       }}
     >
       {() => (
-        <Provider store={rootStore}>
-          <PluginSetup InitializedComponent={Root} {...props} />
-        </Provider>
+        <RenderConditionally
+          shouldRender={isInitialized}
+          render={() => (
+            <Provider store={rootStore}>
+              <Root {...props} />
+            </Provider>
+          )}
+        />
       )}
     </ErrorBoundary>
   );
@@ -68,9 +74,6 @@ export const Root = observer((props: AppRootProps) => {
   const location = useLocation();
 
   useEffect(() => {
-    // TODO: remove once backend plugin is enabled by default
-    window.pluginMeta = props.meta;
-
     loadBasicData();
     // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
     const timeout = setTimeout(() => {

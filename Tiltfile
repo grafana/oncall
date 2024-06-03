@@ -104,7 +104,7 @@ local_resource(
     cmd=e2e_tests_cmd,
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
-    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
+    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery", "build-oncall-plugin-backend"]
 )
 
 cmd_button(
@@ -172,7 +172,7 @@ if not running_under_parent_tiltfile:
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
         namespace="default",
-        deps=["grafana-oncall-app-provisioning-configmap", "build-ui"],
+        deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
         extra_env={
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",

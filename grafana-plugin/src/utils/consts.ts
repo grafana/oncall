@@ -54,16 +54,7 @@ export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   return undefined;
 };
 
-export const getOnCallApiPath = (subpath = '') => {
-  // TODO: remove flag check once backend plugin is enabled by default
-  // return window?.pluginMeta?.jsonData?.useBackendPlugin
-  //   ? `/api/plugins/grafana-oncall-app/resources${subpath}`
-  //   : `api/plugin-proxy/grafana-oncall-app/api/internal/v1${subpath}`;
-  return `/api/plugins/grafana-oncall-app/resources${subpath}`;
-};
-
-// If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
-export const hasPluginBeenConfigured = (meta?: OnCallAppPluginMeta) => Boolean(meta?.jsonData?.onCallApiUrl);
+export const getOnCallApiPath = (subpath = '') => `/api/plugins/grafana-oncall-app/resources${subpath}`;
 
 // Faro
 export const FARO_ENDPOINT_DEV =
