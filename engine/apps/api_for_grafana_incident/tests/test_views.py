@@ -2,9 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 from apps.metrics_exporter.constants import SERVICE_LABEL
-from apps.metrics_exporter.tests.conftest import (
-    METRICS_TEST_SERVICE_NAME,
-)
+from apps.metrics_exporter.tests.conftest import METRICS_TEST_SERVICE_NAME
 
 
 @pytest.mark.django_db
@@ -58,9 +56,13 @@ def test_alert_group_details(
     settings.FEATURE_LABELS_ENABLED_FOR_ALL = True
     alert_group_with_labels = make_alert_group(alert_receive_channel)
     alert_with_labels = make_alert(alert_group_with_labels, alert_payload)
-    alert_group_labels_association = make_alert_group_label_association(organization, alert_group_with_labels, key_name=SERVICE_LABEL, value_name=METRICS_TEST_SERVICE_NAME)
+    _ = make_alert_group_label_association(
+        organization, alert_group_with_labels, key_name=SERVICE_LABEL, value_name=METRICS_TEST_SERVICE_NAME
+    )
 
-    url = reverse("api-gi:alert-groups-detail", kwargs={"public_primary_key": alert_group_with_labels.public_primary_key})
+    url = reverse(
+        "api-gi:alert-groups-detail", kwargs={"public_primary_key": alert_group_with_labels.public_primary_key}
+    )
     response = client.get(url, format="json", **headers)
     expected = {
         "id": alert_group_with_labels.public_primary_key,
