@@ -59,11 +59,8 @@ jobs:
           config: ./dev/kind.yml
           install_only: true
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
 
       - name: Install Tilt
         run: |
@@ -75,18 +72,6 @@ jobs:
           CTLPTL_FILE_NAME="ctlptl.$CTLPTL_VERSION.linux.x86_64.tar.gz"
           curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/$CTLPTL_FILE_NAME | \
             tar -xzv -C /usr/local/bin ctlptl
-
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
-
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
       - name: Use cached plugin frontend build
         id: cache-plugin-frontend

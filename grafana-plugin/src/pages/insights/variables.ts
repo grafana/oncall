@@ -15,13 +15,18 @@ const DEFAULT_VARIABLE_CONFIG: Partial<ConstructorParameters<typeof QueryVariabl
   type: 'query',
 };
 
-const getVariables = ({ datasource, stack }: InsightsConfig) => ({
-  datasource: new DataSourceVariable({
-    name: 'datasource',
-    label: 'Data source',
-    pluginId: 'prometheus',
-    value: 'grafanacloud-usage',
-  }),
+const getVariables = ({ isOpenSource, datasource, stack }: InsightsConfig) => ({
+  // Selectable
+  ...(isOpenSource
+    ? {
+        datasource: new DataSourceVariable({
+          name: 'datasource',
+          label: 'Data source',
+          pluginId: 'prometheus',
+          value: 'grafanacloud-usage',
+        }),
+      }
+    : {}),
   team: new QueryVariable({
     ...DEFAULT_VARIABLE_CONFIG,
     name: 'team',
@@ -29,9 +34,9 @@ const getVariables = ({ datasource, stack }: InsightsConfig) => ({
     text: ['All'],
     value: ['$__all'],
     datasource,
-    definition: `label_values(\${alert_groups_total}{slug=~"${stack}"},team)`,
+    definition: `label_values(\${alert_groups_total}{slug=~\`${stack}\`},team)`,
     query: {
-      query: `label_values(\${alert_groups_total}{slug=~"${stack}"},team)`,
+      query: `label_values(\${alert_groups_total}{slug=~\`${stack}\`},team)`,
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
     refresh: 2,
@@ -43,9 +48,9 @@ const getVariables = ({ datasource, stack }: InsightsConfig) => ({
     text: ['All'],
     value: ['$__all'],
     datasource,
-    definition: `label_values(\${alert_groups_total}{team=~"$team",slug=~"${stack}"},integration)`,
+    definition: `label_values(\${alert_groups_total}{team=~\`$team\`,slug=~\`${stack}\`},integration)`,
     query: {
-      query: `label_values(\${alert_groups_total}{team=~"$team",slug=~"${stack}"},integration)`,
+      query: `label_values(\${alert_groups_total}{team=~\`$team\`,slug=~\`${stack}\`},integration)`,
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
     refresh: 2,
@@ -58,9 +63,9 @@ const getVariables = ({ datasource, stack }: InsightsConfig) => ({
     value: ['$__all'],
     allValue: '($^)|(.+)',
     datasource,
-    definition: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
+    definition: `label_values(\${alert_groups_total}{slug=~\`${stack}\`,team=~\`$team\`},service_name)`,
     query: {
-      query: `label_values(\${alert_groups_total}{slug=~"${stack}",team=~"$team"},service_name)`,
+      query: `label_values(\${alert_groups_total}{slug=~\`${stack}\`,team=~\`$team\`},service_name)`,
       refId: 'PrometheusVariableQueryEditor-VariableQuery',
     },
     refresh: 2,

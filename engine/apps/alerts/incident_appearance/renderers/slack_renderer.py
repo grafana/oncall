@@ -5,6 +5,7 @@ from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
 from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.types import Block
@@ -436,9 +437,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
 
         data = {
             "organization_id": self.alert_group.channel.organization_id,
-            "alert_group_pk": self.alert_group.pk,
-            # eventually replace using alert_group_pk with alert_group_public_pk in slack payload
             "alert_group_ppk": self.alert_group.public_primary_key,
             **kwargs,
         }
-        return json.dumps(data)  # Slack block elements allow to pass value as string only (max 2000 chars)
+
+        return make_value(data, self.alert_group.channel.organization)

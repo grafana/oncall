@@ -638,10 +638,13 @@ class AlertGroupView(
                     choices=[display_name for _, display_name in AlertGroup.SILENCE_DELAY_OPTIONS]
                 ),
             },
+            many=True,
         )
     )
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
+        # TODO: DEPRECATED, REMOVE IN A FUTURE RELEASE
+
         """
         Retrieve a list of valid silence options
         """

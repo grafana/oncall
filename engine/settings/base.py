@@ -98,7 +98,9 @@ WEBHOOK_RESPONSE_LIMIT = 50000
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
-CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
+UNIFIED_SLACK_APP_ENABLED = getenv_boolean("UNIFIED_SLACK_APP_ENABLED", default=False)
+# secret to verify the incoming requests from the chatops-proxy
+CHATOPS_SIGNING_SECRET = os.environ.get("CHATOPS_SIGNING_SECRET", None)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -281,6 +283,7 @@ INSTALLED_APPS = [
     "apps.phone_notifications",
     "drf_spectacular",
     "apps.google",
+    "apps.chatops_proxy",
 ]
 
 REST_FRAMEWORK = {
@@ -779,7 +782,7 @@ GRAFANA_CLOUD_AUTH_API_URL = os.environ.get("GRAFANA_CLOUD_AUTH_API_URL", None)
 GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN", None)
 
 SELF_HOSTED_SETTINGS = {
-    "STACK_ID": 5,
+    "STACK_ID": getenv_integer("SELF_HOSTED_STACK_ID", 5),
     "STACK_SLUG": os.environ.get("SELF_HOSTED_STACK_SLUG", "self_hosted_stack"),
     "ORG_ID": 100,
     "ORG_SLUG": os.environ.get("SELF_HOSTED_ORG_SLUG", "self_hosted_org"),

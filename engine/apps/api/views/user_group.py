@@ -6,9 +6,12 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.user_group import UserGroupSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.slack.models import SlackUserGroup
+from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
-class UserGroupViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class UserGroupViewSet(
+    PublicPrimaryKeyMixin[SlackUserGroup], mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     serializer_class = UserGroupSerializer

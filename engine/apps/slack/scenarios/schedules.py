@@ -4,6 +4,7 @@ import typing
 import pytz
 
 from apps.schedules.models import OnCallSchedule
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
     Block,
@@ -33,22 +34,26 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        if payload["actions"][0].get("value", None) and payload["actions"][0]["value"].startswith("edit"):
+        action_type = payload["actions"][0]["type"]
+        if action_type == BlockActionType.BUTTON:
             self.open_settings_modal(payload)
-        elif payload["actions"][0].get("type", None) and payload["actions"][0]["type"] == "static_select":
+        elif action_type == BlockActionType.STATIC_SELECT:
             self.set_selected_value(slack_user_identity, payload)
 
     def open_settings_modal(self, payload: EventPayload) -> None:
-        schedule_id = payload["actions"][0]["value"].split("_")[1]
+        value = payload["actions"][0]["value"]
         try:
-            _ = OnCallSchedule.objects.get(pk=schedule_id)  # noqa
+            schedule_id = json.loads(value)["schedule_id"]
+        except json.JSONDecodeError:
+            # Deprecated and kept for backward compatibility (so older Slack messages can still be processed)
+            schedule_id = value.split("_")[1]
+
+        try:
+            schedule = OnCallSchedule.objects.get(pk=schedule_id)  # noqa
         except OnCallSchedule.DoesNotExist:
             blocks = [{"type": "section", "text": {"type": "plain_text", "text": "Schedule was removed"}}]
         else:
-            blocks = self.get_modal_blocks(schedule_id)
-
-        private_metadata = {}
-        private_metadata["schedule_id"] = schedule_id
+            blocks = self.get_modal_blocks(schedule)
 
         view: ModalView = {
             "callback_id": EditScheduleShiftNotifyStep.routing_uid(),
@@ -58,7 +63,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                 "type": "plain_text",
                 "text": "Notification preferences",
             },
-            "private_metadata": json.dumps(private_metadata),
+            "private_metadata": json.dumps({"schedule_id": schedule_id}),
         }
 
         self._slack_client.views_open(trigger_id=payload["trigger_id"], view=view)
@@ -69,7 +74,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         schedule_id = private_metadata["schedule_id"]
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
         prev_state = schedule.insight_logs_serialized
-        setattr(schedule, action["block_id"], int(action["selected_option"]["value"]))
+        setattr(schedule, action["block_id"], json.loads(action["selected_option"]["value"])["option"])
         schedule.save()
         new_state = schedule.insight_logs_serialized
         write_resource_insight_log(
@@ -80,7 +85,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             new_state=new_state,
         )
 
-    def get_modal_blocks(self, schedule_id: str) -> typing.List[Block.Section]:
+    def get_modal_blocks(self, schedule: OnCallSchedule) -> typing.List[Block.Section]:
         blocks: typing.List[Block.Section] = [
             {
                 "type": "section",
@@ -90,8 +95,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     "type": "static_select",
                     "placeholder": {"type": "plain_text", "text": "----"},
                     "action_id": EditScheduleShiftNotifyStep.routing_uid(),
-                    "options": self.get_options("notify_oncall_shift_freq"),
-                    "initial_option": self.get_initial_option(schedule_id, "notify_oncall_shift_freq"),
+                    "options": self.get_options(schedule, "notify_oncall_shift_freq"),
+                    "initial_option": self.get_initial_option(schedule, "notify_oncall_shift_freq"),
                 },
             },
             {
@@ -102,8 +107,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     "type": "static_select",
                     "placeholder": {"type": "plain_text", "text": "----"},
                     "action_id": EditScheduleShiftNotifyStep.routing_uid(),
-                    "options": self.get_options("mention_oncall_start"),
-                    "initial_option": self.get_initial_option(schedule_id, "mention_oncall_start"),
+                    "options": self.get_options(schedule, "mention_oncall_start"),
+                    "initial_option": self.get_initial_option(schedule, "mention_oncall_start"),
                 },
             },
             {
@@ -114,8 +119,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     "type": "static_select",
                     "placeholder": {"type": "plain_text", "text": "----"},
                     "action_id": EditScheduleShiftNotifyStep.routing_uid(),
-                    "options": self.get_options("mention_oncall_next"),
-                    "initial_option": self.get_initial_option(schedule_id, "mention_oncall_next"),
+                    "options": self.get_options(schedule, "mention_oncall_next"),
+                    "initial_option": self.get_initial_option(schedule, "mention_oncall_next"),
                 },
             },
             {
@@ -126,24 +131,25 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     "type": "static_select",
                     "placeholder": {"type": "plain_text", "text": "----"},
                     "action_id": EditScheduleShiftNotifyStep.routing_uid(),
-                    "options": self.get_options("notify_empty_oncall"),
-                    "initial_option": self.get_initial_option(schedule_id, "notify_empty_oncall"),
+                    "options": self.get_options(schedule, "notify_empty_oncall"),
+                    "initial_option": self.get_initial_option(schedule, "notify_empty_oncall"),
                 },
             },
         ]
 
         return blocks
 
-    def get_options(self, select_name: str) -> typing.List[CompositionObjectOption]:
+    def get_options(self, schedule: OnCallSchedule, select_name: str) -> typing.List[CompositionObjectOption]:
         select_options = getattr(self, f"{select_name}_options")
         return [
-            {"text": {"type": "plain_text", "text": select_options[option]}, "value": str(option)}
+            {
+                "text": {"type": "plain_text", "text": select_options[option]},
+                "value": make_value({"option": option}, schedule.organization),
+            }
             for option in select_options
         ]
 
-    def get_initial_option(self, schedule_id: str, select_name: str) -> CompositionObjectOption:
-        schedule = OnCallSchedule.objects.get(pk=schedule_id)
-
+    def get_initial_option(self, schedule: OnCallSchedule, select_name: str) -> CompositionObjectOption:
         current_value = getattr(schedule, select_name)
         text = getattr(self, f"{select_name}_options")[current_value]
 
@@ -152,7 +158,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                 "type": "plain_text",
                 "text": f"{text}",
             },
-            "value": str(int(current_value)),
+            "value": make_value({"option": int(current_value)}, schedule.organization),
         }
 
         return initial_option
@@ -243,7 +249,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                             "type": "button",
                             "action_id": f"{cls.routing_uid()}",
                             "text": {"type": "plain_text", "text": ":gear:", "emoji": True},
-                            "value": f"edit_{schedule.pk}",
+                            "value": make_value({"schedule_id": schedule.pk}, schedule.organization),
                         },
                     ],
                 },

@@ -30,12 +30,12 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   const warningComments = comments.filter((c) => c.type === 'warning');
 
   return (
-    <div className={cx(styles.root)} data-testid="schedule-quality-details">
-      <div className={cx(styles.container)}>
+    <div className={styles.root} data-testid="schedule-quality-details">
+      <div className={styles.container}>
         <div className={cx(styles.container, bem(styles.container, 'withLateralPadding'))}>
-          <Text type="secondary" className={cx(styles.header)}>
+          <Text type="secondary" className={styles.header}>
             Schedule quality:{' '}
-            <Text type="primary" className={cx(styles.headerSubText)}>
+            <Text type="primary" className={styles.headerSubText}>
               {getScheduleQualityString(score)}
             </Text>
           </Text>
@@ -53,10 +53,10 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             <>
               {/* Show Info comments */}
               {infoComments?.length > 0 && (
-                <div className={cx(styles.container)}>
-                  <div className={cx(styles.row)}>
+                <div className={styles.container}>
+                  <div className={styles.row}>
                     <Icon name="info-circle" />
-                    <div className={cx(styles.container)}>
+                    <div className={styles.container}>
                       {infoComments.map((comment, index) => (
                         <Text type="primary" key={index}>
                           {comment.text}
@@ -69,10 +69,10 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
 
               {/* Show Warning comments afterwards */}
               {warningComments?.length > 0 && (
-                <div className={cx(styles.container)}>
-                  <div className={cx(styles.row)}>
+                <div className={styles.container}>
+                  <div className={styles.row}>
                     <Icon name="calendar-alt" />
-                    <div className={cx(styles.container)}>
+                    <div className={styles.container}>
                       <Text type="secondary">Rotation structure issues</Text>
                       {warningComments.map((comment, index) => (
                         <Text type="primary" key={index}>
@@ -87,13 +87,13 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           )}
 
           {overloaded_users?.length > 0 && (
-            <div className={cx(styles.container)}>
-              <div className={cx(styles.row)}>
+            <div className={styles.container}>
+              <div className={styles.row}>
                 <Icon name="users-alt" />
-                <div className={cx(styles.container)}>
+                <div className={styles.container}>
                   <Text type="secondary">Overloaded users</Text>
                   {overloaded_users.map((overloadedUser, index) => (
-                    <Text type="primary" className={cx(styles.username)} key={index}>
+                    <Text type="primary" className={styles.username} key={index}>
                       {overloadedUser.username} (+{overloadedUser.score}% avg)
                     </Text>
                   ))}
@@ -115,7 +115,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Icon name="calculator-alt" />
-              <Text type="secondary" className={cx(styles.metholodogy)}>
+              <Text type="secondary" className={styles.metholodogy}>
                 Calculation methodology
               </Text>
             </HorizontalGroup>
@@ -126,7 +126,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             />
           </HorizontalGroup>
           {expanded && (
-            <Text type="primary" className={cx(styles.text)}>
+            <Text type="primary" className={styles.text}>
               The next 52 weeks (~1 year) are taken into account when generating the quality report. Refer to the{' '}
               <a
                 href={'https://grafana.com/docs/oncall/latest/on-call-schedules/web-schedule/#schedule-quality-report'}
