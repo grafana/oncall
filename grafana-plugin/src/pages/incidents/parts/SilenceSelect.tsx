@@ -3,18 +3,26 @@ import React from 'react';
 import { Select } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import { SILENCE_DURATION_LIST } from 'components/Policy/Policy.consts';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { SelectOption } from 'state/types';
+import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 interface SilenceSelectProps {
   placeholder?: string;
+  customValueNum: number;
 
   onSelect: (value: number) => void;
 }
 
 export const SilenceSelect = observer((props: SilenceSelectProps) => {
-  const { placeholder = 'Silence for', onSelect } = props;
+  const { customValueNum, placeholder = 'Silence for', onSelect } = props;
+
+  const store = useStore();
+
+  const { alertGroupStore } = store;
+
+  const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
     <>
@@ -34,6 +42,14 @@ export const SilenceSelect = observer((props: SilenceSelectProps) => {
   );
 
   function getOptions() {
-    return [...SILENCE_DURATION_LIST];
+    return silenceOptions
+      .map((silenceOption: SelectOption) => ({
+        value: silenceOption.value,
+        label: silenceOption.display_name,
+      }))
+      .concat({
+        value: customValueNum,
+        label: 'Custom',
+      });
   }
 });

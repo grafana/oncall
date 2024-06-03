@@ -39,7 +39,7 @@ def test_create_escalation_policy(escalation_policy_internal_api_setup, make_use
 
     data = {
         "step": EscalationPolicy.STEP_WAIT,
-        "wait_delay": 60,
+        "wait_delay": "60.0",
         "escalation_chain": escalation_chain.public_primary_key,
         "notify_to_users_queue": [],
         "from_time": None,
@@ -53,28 +53,6 @@ def test_create_escalation_policy(escalation_policy_internal_api_setup, make_use
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_201_CREATED
     assert EscalationPolicy.objects.get(public_primary_key=response.data["id"]).order == max_order + 1
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize("wait_delay", (timedelta(seconds=59), timedelta(hours=24, seconds=1)))
-def test_create_escalation_policy_wait_delay_invalid(
-    escalation_policy_internal_api_setup, make_user_auth_headers, wait_delay
-):
-    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
-    client = APIClient()
-    url = reverse("api-internal:escalation_policy-list")
-
-    data = {
-        "step": EscalationPolicy.STEP_WAIT,
-        "wait_delay": int(wait_delay.total_seconds()),
-        "escalation_chain": escalation_chain.public_primary_key,
-        "notify_to_users_queue": [],
-        "from_time": None,
-        "to_time": None,
-    }
-
-    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -712,7 +690,7 @@ def test_escalation_policy_can_not_create_with_non_step_type_related_data(
         "escalation_chain": escalation_chain.public_primary_key,
         "step": step,
         "notify_to_users_queue": [user.public_primary_key],
-        "wait_delay": 300,
+        "wait_delay": "300.0",
         "from_time": "06:50:00",
         "to_time": "04:10:00",
     }
