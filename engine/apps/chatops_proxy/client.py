@@ -7,6 +7,7 @@ import requests
 from django.conf import settings
 
 SERVICE_TYPE_ONCALL = "oncall"
+PROVIDER_TYPE_SLACK = "slack"
 
 
 @dataclass
@@ -32,6 +33,15 @@ class Tenant:
     msteams_links: List[MSTeamsLink] = field(default_factory=list)
 
 
+@dataclass
+class OAuthInstallation:
+    id: str
+    oauth_response: dict
+    stack_id: int
+    provider_type: str
+    provider_id: str
+
+
 class ChatopsProxyAPIException(Exception):
     """A generic 400 or 500 level exception from the Chatops Proxy API"""
 
@@ -55,7 +65,7 @@ class ChatopsProxyAPIClient:
 
     # OnCall Tenant
     def register_tenant(
-        self, service_tenant_id: str, cluster_slug: str, service_type: str
+        self, service_tenant_id: str, cluster_slug: str, service_type: str, stack_id: int
     ) -> tuple[Tenant, requests.models.Response]:
         url = f"{self.api_base_url}/tenants/register"
         d = {
@@ -63,6 +73,7 @@ class ChatopsProxyAPIClient:
                 "service_tenant_id": service_tenant_id,
                 "cluster_slug": cluster_slug,
                 "service_type": service_type,
+                "stack_id": stack_id,
             }
         }
         response = requests.post(url=url, json=d, headers=self._headers)
@@ -130,6 +141,34 @@ class ChatopsProxyAPIClient:
         response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return response.json()["removed"], response
+
+    def get_slack_oauth_link(
+        self, stack_id: int, grafana_user_id: int, app_redirect: str, app_type: str
+    ) -> tuple[str, requests.models.Response]:
+        url = f"{self.api_base_url}/oauth2/start"
+        d = {
+            "stack_id": stack_id,
+            "grafana_user_id": grafana_user_id,
+            "app_redirect": app_redirect,
+            "app_type": app_type,
+        }
+        response = requests.post(url=url, json=d, headers=self._headers)
+        self._check_response(response)
+        return response.json()["install_link"], response
+
+    def get_oauth_installation(
+        self,
+        stack_id: int,
+        provider_type: str,
+    ) -> tuple[OAuthInstallation, requests.models.Response]:
+        url = f"{self.api_base_url}/oauth_installations/get"
+        d = {
+            "stack_id": stack_id,
+            "provider_type": provider_type,
+        }
+        response = requests.post(url=url, json=d, headers=self._headers)
+        self._check_response(response)
+        return OAuthInstallation(**response.json()["oauth_installation"]), response
 
     def _check_response(self, response: requests.models.Response):
         """

@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.client import SlackClient
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.errors import SlackAPIViewNotFoundError
@@ -91,14 +92,15 @@ def test_get_resolution_notes_blocks_non_empty(
                     "emoji": True,
                 },
                 "action_id": "AddRemoveThreadMessageStep",
-                "value": json.dumps(
+                "value": make_value(
                     {
                         "resolution_note_window_action": "edit",
                         "msg_value": "add",
                         "message_pk": resolution_note.pk,
                         "resolution_note_pk": None,
                         "alert_group_pk": alert_group.pk,
-                    }
+                    },
+                    organization,
                 ),
             },
         },
@@ -281,14 +283,15 @@ def test_get_resolution_notes_blocks_latest_limit(
                         "emoji": True,
                     },
                     "action_id": "AddRemoveThreadMessageStep",
-                    "value": json.dumps(
+                    "value": make_value(
                         {
                             "resolution_note_window_action": "edit",
                             "msg_value": "add",
                             "message_pk": m.pk,
                             "resolution_note_pk": None,
                             "alert_group_pk": alert_group.pk,
-                        }
+                        },
+                        organization,
                     ),
                 },
             },
