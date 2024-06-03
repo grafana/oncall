@@ -91,7 +91,10 @@ class SlackOAuth2V2(SlackOAuth2):
 
     @handle_http_errors
     def auth_complete(self, *args, **kwargs):
-        """Completes login process, must return user instance"""
+        """
+        Override original method to include auth token in redirect uri and adjust response shape to slack Oauth2.0 V2.
+        Access token is in the ["authed_user"]["access_token"] field, not in the root of the response.
+        """
         self.process_error(self.data)
         state = self.validate_state()
         # add auth token to redirect uri, because it must be the same in all slack auth requests
@@ -113,6 +116,7 @@ class SlackOAuth2V2(SlackOAuth2):
             method=self.ACCESS_TOKEN_METHOD,
         )
         self.process_error(response)
+        # Take access token from the authed_user field, not from the root
         access_token = response["authed_user"]["access_token"]
         kwargs.update(response=response)
         return self.do_auth(access_token, *args, **kwargs)
@@ -187,8 +191,13 @@ class LoginSlackOAuth2V2(SlackOAuth2V2):
         return {"user_scope": USER_SCOPE}
 
 
+# it's named slack-install-free because it was used to install free version of Slack App.
+# There is no free/paid version of Slack App anymore, so it's just a name.
+SLACK_INSTALLATION_BACKEND = "slack-install-free"
+
+
 class InstallSlackOAuth2V2(SlackOAuth2V2):
-    name = "slack-install-free"
+    name = SLACK_INSTALLATION_BACKEND
 
     def get_scope(self):
         return {"user_scope": USER_SCOPE, "scope": BOT_SCOPE}

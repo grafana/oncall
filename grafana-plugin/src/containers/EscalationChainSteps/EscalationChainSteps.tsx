@@ -4,6 +4,7 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
@@ -50,6 +51,8 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   useEffect(() => {
     escalationPolicyStore.updateWebEscalationPolicyOptions();
+    escalationPolicyStore.updateEscalationPolicyOptions();
+    escalationPolicyStore.updateNumMinutesInWindowOptions();
   }, []);
 
   const handleSortEnd = useCallback(
@@ -104,9 +107,14 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
               data={escalationPolicy}
               number={index + offset + 1}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
+              waitDelays={get(escalationPolicyStore.escalationChoices, 'wait_delay.choices', [])}
+              numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
               onChange={escalationPolicyStore.saveEscalationPolicy.bind(escalationPolicyStore)}
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
+              teamStore={store.grafanaTeamStore}
+              scheduleStore={store.scheduleStore}
+              outgoingWebhookStore={store.outgoingWebhookStore}
               isDisabled={isDisabled}
               {...extraProps}
             />
