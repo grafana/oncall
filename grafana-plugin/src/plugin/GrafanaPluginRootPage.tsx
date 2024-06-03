@@ -55,11 +55,14 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
       }}
     >
       {() => (
-        <RenderConditionally shouldRender={isInitialized}>
-          <Provider store={rootStore}>
-            <Root {...props} />
-          </Provider>
-        </RenderConditionally>
+        <RenderConditionally
+          shouldRender={isInitialized}
+          render={() => (
+            <Provider store={rootStore}>
+              <Root {...props} />
+            </Provider>
+          )}
+        />
       )}
     </ErrorBoundary>
   );
