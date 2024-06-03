@@ -218,6 +218,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   <HorizontalGroup spacing={'xs'}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
+                        isClearable
                         isSearchable
                         width={'auto'}
                         menuShouldPortal
@@ -341,12 +342,13 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       onRouteDelete(routeIdForDeletion);
     }
 
-    async function onEscalationChainChange({ id }) {
+    async function onEscalationChainChange(value: { id: string }) {
+      const newEscalationChainId = value ? value.id : null;
       await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
-        escalation_chain: id,
+        escalation_chain: newEscalationChainId,
       });
       escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
-      escalationPolicyStore.updateEscalationPolicies(id);
+      escalationPolicyStore.updateEscalationPolicies(newEscalationChainId);
     }
 
     async function onEscalationChainsRefresh() {
