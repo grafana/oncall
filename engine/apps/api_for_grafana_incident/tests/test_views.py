@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.metrics_exporter.constants import SERVICE_LABEL
 from apps.metrics_exporter.tests.conftest import METRICS_TEST_SERVICE_NAME
 
