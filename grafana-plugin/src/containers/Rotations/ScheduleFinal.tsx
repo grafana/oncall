@@ -101,7 +101,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
             </HorizontalGroup>
           </div>
         )}
-        <div className="u-position-relative">
+        <div className="u-position-relative we-are-here">
           {rows.map(({ startDate }, index) => (
             <TransitionGroup key={index} className={cx('u-position-relative', styles.layer, styles.layerFirst)}>
               <TimelineMarks
