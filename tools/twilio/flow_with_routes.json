@@ -257,9 +257,7 @@
           "conditions": [
             {
               "friendly_name": "If value equal_to abc",
-              "arguments": [
-                "{{widgets.sms_select_target.inbound.Body}}"
-              ],
+              "arguments": ["{{widgets.sms_select_target.inbound.Body}}"],
               "type": "matches_any_of",
               "value": "abc,default"
             }
@@ -343,9 +341,7 @@
           "conditions": [
             {
               "friendly_name": "If value matches_any_of 1,2",
-              "arguments": [
-                "{{widgets.call_select_target.Digits}}"
-              ],
+              "arguments": ["{{widgets.call_select_target.Digits}}"],
               "type": "matches_any_of",
               "value": "1,2"
             }
