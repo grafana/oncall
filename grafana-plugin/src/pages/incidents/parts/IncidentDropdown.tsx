@@ -5,7 +5,6 @@ import { intervalToAbbreviatedDurationString } from '@grafana/data';
 import { Icon, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
 import { getUtilStyles } from 'styles/utils.styles';
 
-import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
 import { Tag, TagColor } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
@@ -57,6 +56,8 @@ function IncidentStatusTag({
     </Tag>
   );
 }
+
+export const CUSTOM_SILENCE_VALUE = -100;
 
 export const IncidentDropdown: FC<{
   alert: ApiSchemas['AlertGroup'];
@@ -198,6 +199,7 @@ export const IncidentDropdown: FC<{
 
               <div className={styles.incidentOptionItem}>
                 <SilenceSelect
+                  customValueNum={CUSTOM_SILENCE_VALUE}
                   placeholder={
                     currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
                   }
@@ -224,7 +226,7 @@ export const IncidentDropdown: FC<{
           {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
         </WithContextMenu>
         <IncidentSilenceModal
-          alertGroupID={alert.inside_organization_number}
+          alertGroupID={alert.pk}
           alertGroupName={alert.render_for_web?.title}
           isOpen={isSilenceModalOpen}
           onDismiss={() => setIsSilenceModalOpen(false)}

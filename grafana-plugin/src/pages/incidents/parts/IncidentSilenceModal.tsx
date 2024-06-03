@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import {
   DateTime,
   addDurationToDate,
@@ -11,24 +11,16 @@ import {
   parseDuration,
 } from '@grafana/data';
 import { Button, DateTimePicker, Field, HorizontalGroup, Input, Modal, useStyles2 } from '@grafana/ui';
-import { Controller, useForm } from 'react-hook-form';
-import { bem, getUtilStyles } from 'styles/utils.styles';
 
-import { Text } from 'components/Text/Text';
 import { useDebouncedCallback } from 'utils/hooks';
-import { openWarningNotification } from 'utils/utils';
 
 interface IncidentSilenceModalProps {
   isOpen: boolean;
-  alertGroupID: number;
+  alertGroupID: string;
   alertGroupName: string;
 
   onDismiss: () => void;
   onSave: (value: number) => void;
-}
-
-interface FormFields {
-  duration: string;
 }
 
 const IncidentSilenceModal: React.FC<IncidentSilenceModalProps> = ({
@@ -39,117 +31,65 @@ const IncidentSilenceModal: React.FC<IncidentSilenceModalProps> = ({
   onDismiss,
   onSave,
 }) => {
-  const [date, setDate] = useState<DateTime>(dateTime());
+  const [date, setDate] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
+  const [duration, setDuration] = useState<string>('');
   const debouncedUpdateDateTime = useDebouncedCallback(updateDateTime, 500);
 
   const styles = useStyles2(getStyles);
-  const utilStyles = useStyles2(getUtilStyles);
-
-  const {
-    control,
-    setValue,
-    getValues,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormFields>({
-    mode: 'onSubmit',
-  });
+  const isDurationValid = isValidDuration(duration);
 
   return (
     <Modal
       onDismiss={onDismiss}
       closeOnBackdropClick={false}
       isOpen={isOpen}
-      title={
-        <Text.Title
-          level={4}
-          type="primary"
-          className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}
-        >
-          Silence alert group #${alertGroupID} ${alertGroupName}
-        </Text.Title>
-      }
+      title={`Silence alert group #${alertGroupID} ${alertGroupName}`}
       className={styles.root}
     >
-      <form onSubmit={handleSubmit(onFormSubmit)}>
-        <div className={styles.container}>
-          <Field key={'SilencePicker'} label={'Silence'} className={styles.containerChild}>
-            <div className={styles.datePicker}>
-              <DateTimePicker
-                showSeconds={false}
-                label="Date"
-                date={date}
-                onChange={onDateChange}
-                minDate={new Date()}
-              />
-            </div>
-          </Field>
+      <div className={styles.container}>
+        <Field key={'SilencePicker'} label={'Silence End'} className={styles.containerChild}>
+          <DateTimePicker label="Date" date={date} onChange={onDateChange} minDate={new Date()} />
+        </Field>
 
-          <Controller
-            name={'duration'}
-            control={control}
-            rules={{
-              required: 'Duration is required',
-              validate: (value: string) => {
-                return value?.trim() && isValidDuration(value) ? true : 'Duration is invalid';
-              },
-            }}
-            render={({ field }) => (
-              <Field
-                key={'Duration'}
-                label={'Duration'}
-                invalid={!!errors.duration}
-                error={errors.duration?.message}
-                className={styles.containerChild}
-              >
-                <Input
-                  {...field}
-                  value={field.value}
-                  onChange={(event: React.FormEvent<HTMLInputElement>) => {
-                    const newDuration: string = event.currentTarget.value;
-                    field.onChange(newDuration);
+        <Field key={'Duration'} label={'Duration'} className={styles.containerChild} invalid={!isDurationValid}>
+          <Input value={duration} onChange={onDurationChange} placeholder="Enter duration (2h 30m)" />
+        </Field>
+      </div>
 
-                    debouncedUpdateDateTime(newDuration);
-                  }}
-                  placeholder="Enter duration (2h 30m)"
-                />
-              </Field>
-            )}
-          />
-        </div>
-
-        <HorizontalGroup justify="flex-end">
-          <Button variant={'secondary'} onClick={onDismiss}>
-            Cancel
-          </Button>
-          <Button type="submit" variant={'primary'} disabled={!!errors.duration?.message}>
-            Silence
-          </Button>
-        </HorizontalGroup>
-      </form>
+      <HorizontalGroup justify="flex-end">
+        <Button variant={'secondary'} onClick={onDismiss}>
+          Cancel
+        </Button>
+        <Button variant={'primary'} onClick={onSubmit} disabled={!isDurationValid}>
+          Add
+        </Button>
+      </HorizontalGroup>
     </Modal>
   );
 
-  function onFormSubmit() {
-    onSave(durationToMilliseconds(parseDuration(getValues('duration'))) / 1000);
-  }
-
-  function onDateChange(newDate: DateTime) {
+  function onDateChange(date: DateTime) {
+    setDate(date);
     const duration = intervalToAbbreviatedDurationString({
       start: new Date(),
-      end: new Date(newDate.toDate()),
+      end: new Date(date.toDate()),
     });
+    setDuration(duration);
+  }
 
-    if (!duration) {
-      openWarningNotification('Silence Date is either invalid or in the past');
-    } else {
-      setDate(newDate);
-      setValue('duration', duration);
+  function onDurationChange(event: React.SyntheticEvent<HTMLInputElement>) {
+    const newDuration = event.currentTarget.value;
+    if (newDuration !== duration) {
+      setDuration(newDuration);
+      debouncedUpdateDateTime(newDuration);
     }
   }
 
   function updateDateTime(newDuration: string) {
     setDate(dateTime(addDurationToDate(new Date(), parseDuration(newDuration))));
+  }
+
+  function onSubmit() {
+    onSave(durationToMilliseconds(parseDuration(duration)) / 1000);
   }
 };
 
@@ -161,15 +101,10 @@ const getStyles = () => ({
   container: css`
     width: 100%;
     display: flex;
-    column-gap: 8px;
+    column-gap: 16px;
   `,
   containerChild: css`
-    flex-basis: 50%;
-  `,
-  datePicker: css`
-    label {
-      display: none;
-    }
+    flex-grow: 1;
   `,
 });
 
