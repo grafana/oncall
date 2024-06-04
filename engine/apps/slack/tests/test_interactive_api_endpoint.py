@@ -295,13 +295,13 @@ def test_grafana_escalate(
 
     payload = {
         "token": "gIkuvaNzQIHg97ATvDxqgjtO",
-        "team_id": "T0001",
+        "team_id": slack_team_identity.slack_id,
         "team_domain": "example",
         "enterprise_id": "E0001",
         "enterprise_name": "Globular%20Construct%20Inc",
         "channel_id": "C2147483705",
         "channel_name": "test",
-        "user_id": "U2147483697",
+        "user_id": slack_user_identity.slack_id,
         "user_name": "Steve",
         "command": "/grafana",
         "text": "escalate",
@@ -336,13 +336,13 @@ def test_escalate(
 
     payload = {
         "token": "gIkuvaNzQIHg97ATvDxqgjtO",
-        "team_id": "T0001",
+        "team_id": slack_team_identity.slack_id,
         "team_domain": "example",
         "enterprise_id": "E0001",
         "enterprise_name": "Globular%20Construct%20Inc",
         "channel_id": "C2147483705",
         "channel_name": "test",
-        "user_id": "U2147483697",
+        "user_id": slack_user_identity.slack_id,
         "user_name": "Steve",
         "command": "/escalate",
         "text": "",
