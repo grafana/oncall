@@ -257,7 +257,7 @@ class GrafanaAPIClient(APIClient):
 
         user_permissions = {}
         if rbac_is_enabled_for_org:
-            user_permissions = self.get_users_permissions(rbac_is_enabled_for_org)
+            user_permissions = self.get_users_permissions()
             if user_permissions is None:
                 # If we cannot fetch permissions when RBAC is enabled (ex. HTTP 500), we should not return any users
                 # to avoid potentially wiping-out OnCall's copy of permissions for all users

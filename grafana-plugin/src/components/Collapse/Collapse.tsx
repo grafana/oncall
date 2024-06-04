@@ -50,7 +50,7 @@ export const Collapse: FC<CollapseProps> = (props) => {
         data-testid="test__toggle"
       >
         <Icon name={'angle-right'} size="xl" className={cx(styles.icon, { [bem(styles.icon, 'rotated')]: isOpen })} />
-        <div className={cx(styles.label)}> {label}</div>
+        <div className={styles.label}> {label}</div>
       </div>
       {isOpen && (
         <div className={cx(styles.content, contentClassName)} data-testid="test__children">

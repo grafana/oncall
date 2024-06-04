@@ -15,7 +15,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, waitForElement } from 'utils/DOM';
+import { HTML_ID, getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
@@ -79,7 +79,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        const elm = await waitForElement('#overrides-list');
+        const elm = await waitForElement(`#${HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS}`);
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
         const coords = getCoords(elm);
         const offsetTop = Math.min(
@@ -171,7 +171,10 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     } catch (err) {
       onError(err);
     } finally {
-      setIsOpen(true);
+      // wait until a scroll to the "Overrides and swaps" happened
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 100);
     }
   };
 

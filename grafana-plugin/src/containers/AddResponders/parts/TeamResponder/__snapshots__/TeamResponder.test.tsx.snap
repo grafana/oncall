@@ -18,7 +18,7 @@ exports[`TeamResponder it renders data properly 1`] = `
             class="css-18qv8yz-layoutChildrenWrapper"
           >
             <div
-              class="timeline-icon-background"
+              class="css-1yiiywv"
             >
               <img
                 class="css-m6de9j css-m6de9j--medium"
@@ -31,7 +31,7 @@ exports[`TeamResponder it renders data properly 1`] = `
             class="css-18qv8yz-layoutChildrenWrapper"
           >
             <span
-              class="css-77ouhj--undefined css-77ouhj--medium responder-name css-1287p17"
+              class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
             >
               my test team
             </span>

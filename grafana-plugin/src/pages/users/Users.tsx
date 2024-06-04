@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Alert, Button, HorizontalGroup, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
@@ -30,13 +31,13 @@ import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } fr
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
+import { getUsersStyles } from './Users.styles';
 
-import styles from './Users.module.css';
-
-const cx = cn.bind(styles);
 const DEBOUNCE_MS = 1000;
 
-interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  theme: GrafanaTheme2;
+}
 
 const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
@@ -132,9 +133,11 @@ class Users extends React.Component<UsersProps, UsersState> {
       match: {
         params: { id },
       },
+      theme,
     } = this.props;
 
     const isAuthorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
+    const styles = getUsersStyles(theme);
 
     return (
       <PageErrorHandlingWrapper
@@ -144,9 +147,9 @@ class Users extends React.Component<UsersProps, UsersState> {
         itemNotFoundMessage={`User with id=${id} is not found. Please select user from the list.`}
       >
         {() => (
-          <div className={cx('root')}>
-            <div className={cx('users-header')}>
-              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+          <div>
+            <div className={styles.usersHeader}>
+              <div className={styles.usersHeaderLeft}>
                 <div>
                   <LegacyNavHeading>
                     <Text.Title level={3}>Users</Text.Title>
@@ -181,6 +184,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   renderContentIfAuthorized(authorizedToViewUsers: boolean) {
     const {
       store: { userStore, filtersStore },
+      theme,
     } = this.props;
 
     const { usersFilters, userPkToEdit } = this.state;
@@ -194,19 +198,20 @@ class Users extends React.Component<UsersProps, UsersState> {
       this.setState({ usersFilters: { searchTerm: '' } }, () => {
         this.updateUsers();
       });
+    const styles = getUsersStyles(theme);
 
     return (
       <>
         {authorizedToViewUsers ? (
           <>
-            <div className={cx('user-filters-container')} data-testid="users-filters">
+            <div className={styles.userFiltersContainer} data-testid="users-filters">
               <UsersFilters
-                className={cx('users-filters')}
+                className={styles.usersFilters}
                 value={usersFilters}
                 isLoading={results === undefined}
                 onChange={this.handleUsersFiltersChange}
               />
-              <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
+              <Button variant="secondary" icon="times" onClick={handleClear}>
                 Clear filters
               </Button>
             </div>
@@ -248,12 +253,14 @@ class Users extends React.Component<UsersProps, UsersState> {
   renderTitle = (user: ApiSchemas['User']) => {
     const {
       store: { userStore },
+      theme,
     } = this.props;
     const isCurrent = userStore.currentUserPk === user.pk;
+    const styles = getUsersStyles(theme);
 
     return (
       <HorizontalGroup>
-        <Avatar className={cx('user-avatar')} size="large" src={user.avatar} />
+        <Avatar className={styles.userAvatar} size="large" src={user.avatar} />
         <div
           className={cx({
             'current-user': isCurrent,
@@ -284,10 +291,10 @@ class Users extends React.Component<UsersProps, UsersState> {
   renderContacts = (user: ApiSchemas['User']) => {
     const { store } = this.props;
     return (
-      <div className={cx('contacts')}>
-        <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
+      <div>
+        <div>Slack: {user.slack_user_identity?.name || '-'}</div>
         {store.hasFeature(AppFeature.Telegram) && (
-          <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+          <div>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
         )}
       </div>
     );
@@ -360,7 +367,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       warnings.push('Phone not verified');
     }
 
-    if (organizationStore.currentOrganization.slack_team_identity && !user.slack_user_identity) {
+    if (organizationStore.currentOrganization?.slack_team_identity && !user.slack_user_identity) {
       warnings.push('Slack profile is not connected');
     }
 
@@ -453,4 +460,4 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 }
 
-export const UsersPage = withRouter(withMobXProviderContext(Users));
+export const UsersPage = withRouter(withMobXProviderContext(withTheme2(Users)));

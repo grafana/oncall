@@ -132,3 +132,9 @@ export const useIsLoading = (actionKey: ActionKey) => {
   const { loaderStore } = useStore();
   return LoaderHelper.isLoading(loaderStore, actionKey);
 };
+
+export const useOnMount = (callback: () => void) => {
+  useEffect(() => {
+    callback();
+  }, []);
+};

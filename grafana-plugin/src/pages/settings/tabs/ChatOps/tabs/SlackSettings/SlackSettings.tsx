@@ -118,7 +118,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       <div className={cx('root')}>
         <Legend>Slack App settings</Legend>
         <InlineField label="Slack Workspace" grow disabled>
-          <Input value={currentOrganization.slack_team_identity?.cached_name} />
+          <Input value={currentOrganization?.slack_team_identity?.cached_name} />
         </InlineField>
         <InlineField
           label="Default channel for Slack notifications"
@@ -200,34 +200,6 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
           </HorizontalGroup>
         </InlineField>
       </div>
-    );
-  };
-
-  renderSlackWorkspace = () => {
-    const { store } = this.props;
-    return <Text>{store.organizationStore.currentOrganization.slack_team_identity?.cached_name}</Text>;
-  };
-
-  renderSlackChannels = () => {
-    const {
-      store: { organizationStore, slackChannelStore },
-    } = this.props;
-    return (
-      <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-        <GSelect<SlackChannel>
-          className={cx('select', 'control')}
-          items={slackChannelStore.items}
-          fetchItemsFn={slackChannelStore.updateItems}
-          fetchItemFn={slackChannelStore.updateItem}
-          getSearchResult={slackChannelStore.getSearchResult}
-          displayField="display_name"
-          valueField="id"
-          placeholder="Select Slack Channel"
-          value={organizationStore.currentOrganization?.slack_channel?.id}
-          onChange={this.handleSlackChannelChange}
-          nullItemName={PRIVATE_CHANNEL_NAME}
-        />
-      </WithPermissionControlTooltip>
     );
   };
 

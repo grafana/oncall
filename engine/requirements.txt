@@ -349,7 +349,7 @@ pyjwt==2.8.0
     #   twilio
 pymdown-extensions==10.0
     # via -r requirements.in
-pymysql==1.1.0
+pymysql==1.1.1
     # via -r requirements.in
 pyopenssl==23.2.0
     # via django-sns-view
@@ -392,7 +392,7 @@ referencing==0.33.0
     #   jsonschema-specifications
 regex==2021.11.2
     # via -r requirements.in
-requests==2.31.0
+requests==2.32.0
     # via
     #   -r requirements.in
     #   cachecontrol

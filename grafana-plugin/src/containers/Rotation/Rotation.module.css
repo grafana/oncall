@@ -24,10 +24,6 @@
   position: relative;
 }
 
-.root:last-child .timeline {
-  padding-bottom: 0;
-}
-
 .slots {
   width: 100%;
   display: flex;
@@ -37,10 +33,6 @@
 
 .slots__transparent {
   opacity: 0.5;
-}
-
-.slots__animate {
-  transition: transform 500ms ease;
 }
 
 .current-time {
@@ -64,11 +56,6 @@
   margin: 0 2px;
 }
 
-.slots--tutorial {
-  position: absolute;
-  background: rgba(61, 113, 217, 0.15);
-}
-
 .pointer {
   position: absolute;
   top: -9px;
@@ -81,16 +68,4 @@
 .pointer--active {
   transform: scale(1);
   opacity: 1;
-}
-
-.tutorial-slot {
-  width: 175px;
-  height: 28px;
-  border-radius: 2px;
-  margin: 0 1px;
-  padding: 4px;
-}
-
-.tutorial-slot--active {
-  box-shadow: var(--shadows-z3);
 }

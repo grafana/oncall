@@ -48,12 +48,12 @@ prometheus_client==0.16.0
 psutil==5.9.4
 psycopg2==2.9.3
 pymdown-extensions==10.0
-PyMySQL==1.1.0
+PyMySQL==1.1.1
 python-telegram-bot==13.13
 recurring-ical-events==2.1.0
 redis==5.0.1
 regex==2021.11.2
-requests==2.31.0
+requests==2.32.0
 slack-export-viewer==1.1.4
 slack_sdk==3.21.3
 social-auth-app-django==5.4.1

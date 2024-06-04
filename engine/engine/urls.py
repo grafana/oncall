@@ -58,8 +58,10 @@ if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/slack/", include("apps.slack.urls")),
+        path("api/v3/webhook/slack/", include("apps.slack.urls")),
         path("slack/", include("apps.slack.urls")),
     ]
+
 
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
@@ -87,4 +89,9 @@ if settings.DRF_SPECTACULAR_ENABLED:
     urlpatterns += [
         path("internal/schema/", SpectacularYAMLAPIView.as_view(api_version="internal/v1"), name="schema"),
         path("internal/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    ]
+
+if settings.UNIFIED_SLACK_APP_ENABLED:
+    urlpatterns += [
+        path("api/chatops/", include("apps.chatops_proxy.urls")),
     ]

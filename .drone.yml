@@ -53,7 +53,7 @@ steps:
   - name: Lint Backend
     image: python:3.11.4
     environment:
-      DJANGO_SETTINGS_MODULE: settings.ci-test
+      DJANGO_SETTINGS_MODULE: settings.ci_test
     commands:
       - pip install $(grep "pre-commit==" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
@@ -64,7 +64,7 @@ steps:
     image: python:3.11.4
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
+      DJANGO_SETTINGS_MODULE: settings.ci_test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
       - apt-get update && apt-get install -y netcat-traditional
@@ -386,4 +386,4 @@ name: cloud_access_policy_token
 
 ---
 kind: signature
-hmac: 7bf9c1d378bf2a93cb758436de78878f9a49a8501b5d1b199c412198439d3593
+hmac: c3043848d6057dfa6fb59d49459af1cbc0d013a697fd84a1329c444a6beb8ce1

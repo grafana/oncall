@@ -108,10 +108,10 @@ define run_ui_docker_command
 	$(call run_docker_compose_command,run --rm oncall_ui sh -c '$(1)')
 endef
 
-# always use settings.ci-test django settings file when running the tests
+# always use settings.ci_test django settings file when running the tests
 # if we use settings.dev it's very possible that some fail just based on the settings alone
 define run_backend_tests
-	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
+	$(call run_engine_docker_command,pytest --ds=settings.ci_test $(1))
 endef
 
 .PHONY: local/up

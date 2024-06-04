@@ -43,9 +43,7 @@ def _sync_organization(organization: Organization) -> None:
         stack_id = organization.stack_id
         gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
 
-        if not organization.should_be_considered_for_rbac_permissioning():
-            rbac_is_enabled = False
-        elif gcom_client.is_stack_active(stack_id):
+        if gcom_client.is_stack_active(stack_id):
             # the stack MUST be active for this check.. if it is in any other state
             # the Grafana API risks returning an HTTP 200 but the actual permissions data that is
             # synced later on will be empty (and we'd erase all RBAC permissions stored in OnCall)

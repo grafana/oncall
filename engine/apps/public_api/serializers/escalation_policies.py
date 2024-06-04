@@ -41,7 +41,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects, source="escalation_chain"
     )
-    type = EscalationPolicyTypeField(source="step", allow_null=True)
+    type = EscalationPolicyTypeField(source="step")
     duration = serializers.ChoiceField(required=False, source="wait_delay", choices=EscalationPolicy.DURATION_CHOICES)
     persons_to_notify = UsersFilteredByOrganizationField(
         queryset=User.objects,

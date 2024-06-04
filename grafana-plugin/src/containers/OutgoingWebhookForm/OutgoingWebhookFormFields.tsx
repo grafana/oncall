@@ -354,7 +354,7 @@ export const OutgoingWebhookFormFields = ({
   return (
     <>
       {React.Children.toArray(controls.props.children).filter(
-        (child) => !preset || !preset.controlled_fields.includes((child as React.ReactElement).props.name)
+        (child) => !preset?.controlled_fields.includes((child as React.ReactElement).props.name)
       )}
     </>
   );

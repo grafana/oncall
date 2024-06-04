@@ -108,7 +108,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const [rotationName, setRotationName] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [offsetTop, setOffsetTop] = useState<number>(0);
+  const [offsetTop, setOffsetTop] = useState<number>(GRAFANA_HEADER_HEIGHT + 10);
+  const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
@@ -130,6 +131,14 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [userGroups, setUserGroups] = useState([]);
 
   const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
+  const debouncedOnResize = useDebouncedCallback(onResize, 250);
+
+  useEffect(() => {
+    window.addEventListener('resize', debouncedOnResize);
+    return () => {
+      window.removeEventListener('resize', debouncedOnResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (rotationStart.isBefore(shiftStart)) {
@@ -146,16 +155,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        const elm = await waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`);
-        const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-        const coords = getCoords(elm);
-
-        const offsetTop = Math.max(
-          Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
-          GRAFANA_HEADER_HEIGHT + 10
-        );
-
-        setOffsetTop(offsetTop);
+        setOffsetTop(await calculateOffsetTop());
       }
     })();
   }, [isOpen]);
@@ -198,13 +198,18 @@ export const RotationForm = observer((props: RotationFormProps) => {
     } catch (err) {
       onError(err);
     } finally {
-      setIsOpen(true);
+      // wait until a scroll to the "Rotations" happened
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 100);
     }
   };
 
-  const onError = useCallback((error) => {
-    setErrors(error.response.data);
-  }, []);
+  const onError = (error) => {
+    if (error.response?.data) {
+      setErrors(error.response.data);
+    }
+  };
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
@@ -480,13 +485,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
 
-  useEffect(() => {
-    window.addEventListener('resize', onResize);
-    return () => {
-      window.removeEventListener('resize', onResize);
-    };
-  }, []);
-
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   const hasUpdatedShift = shift && shift.updated_shift;
@@ -506,8 +504,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
             handle=".drag-handler"
             defaultClassName={cx('draggable')}
             positionOffset={{ x: 0, y: offsetTop }}
+            position={draggablePosition}
             bounds={{ ...bounds } || 'body'}
             onStart={onDraggableInit}
+            onStop={(_e, data) => setDraggablePosition({ x: data.x, y: data.y })}
           >
             <div {...props}>{children}</div>
           </Draggable>
@@ -765,8 +765,21 @@ export const RotationForm = observer((props: RotationFormProps) => {
     </>
   );
 
-  function onResize() {
-    onHide();
+  async function onResize() {
+    setDraggablePosition({ x: 0, y: await calculateOffsetTop() });
+  }
+
+  async function calculateOffsetTop(): Promise<number> {
+    const elm = await waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`);
+    const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
+    const coords = getCoords(elm);
+
+    const offsetTop = Math.max(
+      Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
+      GRAFANA_HEADER_HEIGHT + 10
+    );
+
+    return offsetTop;
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {

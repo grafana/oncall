@@ -9,6 +9,7 @@ from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     ALERT_GROUPS_RESPONSE_TIME,
     ALERT_GROUPS_TOTAL,
+    SERVICE_LABEL,
     USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
@@ -52,7 +53,7 @@ class ApplicationMetricsCollector:
                 "team",
             ]
             + self._stack_labels
-            # + [SERVICE_LABEL]  # todo:metrics: uncomment when all metric cache is updated (~2 after release)
+            + [SERVICE_LABEL]
         )
         self._integration_labels_with_state = self._integration_labels + ["state"]
         self._user_labels = ["username"] + self._stack_labels
@@ -100,24 +101,12 @@ class ApplicationMetricsCollector:
                     integration_data["id"],  # grafana instance id
                 ]
                 labels_values = list(map(str, labels_values))
-                # clause below is needed for compatibility with old metric cache during rollout metrics with services
-                if "services" in integration_data:
-                    count_per_state = {state.value: 0 for state in AlertGroupState}
-                    for service_name in integration_data["services"]:
-                        for state in AlertGroupState:
-                            count_per_state[state.value] += integration_data["services"][service_name][state.value]
-                    # todo:metrics: with enabling service_name label move "add_metric" under
-                    #  "for service_name..." iteration
-                    for state_name, counter in count_per_state.items():
-                        alert_groups_total.add_metric(
-                            labels_values + [state_name],
-                            # todo:metrics: replace [state.value] when all metric cache is updated
-                            # + [service_name, state.value],
-                            counter,
-                        )
-                else:
+                for service_name in integration_data["services"]:
                     for state in AlertGroupState:
-                        alert_groups_total.add_metric(labels_values + [state.value], integration_data[state.value])
+                        alert_groups_total.add_metric(
+                            labels_values + [service_name, state.value],
+                            integration_data["services"][service_name][state.value],
+                        )
             org_id_from_key = RE_ALERT_GROUPS_TOTAL.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
         missing_org_ids = org_ids - processed_org_ids
@@ -146,30 +135,16 @@ class ApplicationMetricsCollector:
                 ]
                 labels_values = list(map(str, labels_values))
 
-                # clause below is needed for compatibility with old metric cache during rollout metrics with services
-                if "services" in integration_data:
-                    response_time_values = []
-                    # todo:metrics: for service_name, response_time
-                    for _, response_time in integration_data["services"].items():
-                        if not response_time:
-                            continue
-                        response_time_values.extend(response_time)
-                else:
-                    response_time_values = integration_data["response_time"]
-
-                if not response_time_values:
-                    # ignore empty response_time_values
-                    continue
-
-                # todo:metrics: with enabling service_name label move "add_metric" under
-                #  "for service_name, response_time..." iteration
-                buckets, sum_value = self.get_buckets_with_sum(response_time_values)
-                buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
-                alert_groups_response_time_seconds.add_metric(
-                    labels_values,  # + [service_name]  todo:metrics: uncomment when all metric cache is updated
-                    buckets=buckets,
-                    sum_value=sum_value,
-                )
+                for service_name, response_time in integration_data["services"].items():
+                    if not response_time:
+                        continue
+                    buckets, sum_value = self.get_buckets_with_sum(response_time)
+                    buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
+                    alert_groups_response_time_seconds.add_metric(
+                        labels_values + [service_name],
+                        buckets=buckets,
+                        sum_value=sum_value,
+                    )
             org_id_from_key = RE_ALERT_GROUPS_RESPONSE_TIME.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
         missing_org_ids = org_ids - processed_org_ids

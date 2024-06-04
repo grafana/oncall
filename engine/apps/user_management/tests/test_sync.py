@@ -288,37 +288,28 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
 
 
 @pytest.mark.parametrize(
-    "should_be_considered_for_rbac_permissioning,gcom_api_response,grafana_api_response,org_initial_value,org_is_rbac_permissions_enabled_expected_value",
+    "gcom_api_response,grafana_api_response,org_initial_value,org_is_rbac_permissions_enabled_expected_value",
     [
-        # org shouldn't be considered for RBAC permissioning
-        (False, True, True, True, False),
-        # org should be considered for RBAC permissioning
-        #
         # stack is in an inactive state, rely on org's previous state of is_rbac_permissions_enabled
-        (True, False, False, False, False),
-        (True, False, False, True, True),
+        (False, False, False, False),
+        (False, False, True, True),
         # stack is active, Grafana API tells us RBAC is not enabled
-        (True, True, False, True, False),
+        (True, False, True, False),
         # stack is active, Grafana API tells us RBAC is enabled
-        (True, True, True, False, True),
+        (True, True, False, True),
     ],
 )
-@patch("apps.user_management.models.Organization.should_be_considered_for_rbac_permissioning")
 @patch("apps.user_management.sync.GcomAPIClient")
 @override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
 @pytest.mark.django_db
 def test_sync_organization_is_rbac_permissions_enabled_cloud(
     mock_gcom_client,
-    mock_should_be_considered_for_rbac_permissioning,
     make_organization,
-    should_be_considered_for_rbac_permissioning,
     gcom_api_response,
     grafana_api_response,
     org_initial_value,
     org_is_rbac_permissions_enabled_expected_value,
 ):
-    mock_should_be_considered_for_rbac_permissioning.return_value = should_be_considered_for_rbac_permissioning
-
     stack_id = 5
     organization = make_organization(stack_id=stack_id, is_rbac_permissions_enabled=org_initial_value)
     mock_gcom_client.return_value.is_stack_active.return_value = gcom_api_response
@@ -332,11 +323,10 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(
 
     assert organization.is_rbac_permissions_enabled == org_is_rbac_permissions_enabled_expected_value
 
-    if should_be_considered_for_rbac_permissioning:
-        mock_gcom_client.return_value.is_stack_active.assert_called_once_with(stack_id)
+    mock_gcom_client.return_value.is_stack_active.assert_called_once_with(stack_id)
 
-        if gcom_api_response:
-            mock_grafana_api_client.return_value.is_rbac_enabled_for_organization.assert_called_once_with()
+    if gcom_api_response:
+        mock_grafana_api_client.return_value.is_rbac_enabled_for_organization.assert_called_once_with()
 
 
 @pytest.mark.django_db
