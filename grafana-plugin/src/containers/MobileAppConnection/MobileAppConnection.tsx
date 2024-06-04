@@ -21,6 +21,7 @@ import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
 import { QRCode } from './parts/QRCode/QRCode';
+import { useInitializePlugin } from 'utils/hooks';
 
 const cx = cn.bind(styles);
 
@@ -364,6 +365,7 @@ function QRLoading() {
 
 export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
   const { userStore } = store;
+  const {} = useInitializePlugin({ forceReinstall: true });
 
   useEffect(() => {
     loadData();

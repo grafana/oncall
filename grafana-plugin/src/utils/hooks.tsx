@@ -9,9 +9,11 @@ import { LoaderHelper } from 'models/loader/loader.helpers';
 import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 
+import { config } from '@grafana/runtime';
 import { LocationHelper } from './LocationHelper';
 import { GRAFANA_LICENSE_OSS } from './consts';
 import { getCommonStyles } from './styles';
+import { getIsRunningOpenSourceVersion } from './utils';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -142,8 +144,14 @@ export const useOnMount = (callback: () => void) => {
   }, []);
 };
 
-export const useInitializePlugin = ({ meta }: AppRootProps) => {
-  const IS_OPEN_SOURCE = meta?.jsonData?.license === GRAFANA_LICENSE_OSS;
+export const useInitializePlugin = ({
+  appRootProps,
+  forceReinstall,
+}: {
+  appRootProps?: AppRootProps;
+  forceReinstall?: boolean;
+}) => {
+  const IS_OPEN_SOURCE = getIsRunningOpenSourceVersion();
   const [isInitialized, setIsInitialized] = useState(false);
 
   // create oncall api token and save in plugin settings
@@ -154,17 +162,23 @@ export const useInitializePlugin = ({ meta }: AppRootProps) => {
   };
 
   const initializePlugin = async () => {
-    if (!meta?.secureJsonFields?.onCallApiToken) {
+    if (forceReinstall || !appRootProps?.meta?.secureJsonFields?.onCallApiToken) {
       await install();
     }
 
     // trigger users sync
+    let shouldReinstall = false;
     try {
-      await makeRequest(`/plugin/status`, {
+      const { token_ok } = await makeRequest(`/plugin/status`, {
         method: 'POST',
       });
+      shouldReinstall = !token_ok;
     } catch (_err) {
-      await install();
+      shouldReinstall = true;
+    } finally {
+      if (shouldReinstall) {
+        await install();
+      }
     }
 
     setIsInitialized(true);

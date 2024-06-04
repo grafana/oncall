@@ -42,7 +42,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
-  const { isInitialized } = useInitializePlugin(props);
+  const { isInitialized } = useInitializePlugin({ appRootProps: props });
 
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));

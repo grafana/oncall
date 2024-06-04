@@ -1,4 +1,5 @@
 import { AppEvents } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { AxiosError } from 'axios';
 import { sentenceCase } from 'change-case';
 // @ts-ignore
@@ -118,3 +119,5 @@ function isFieldEmpty(value: any): boolean {
 export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
 
 export const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+export const getIsRunningOpenSourceVersion = () => config.apps['grafana-oncall-app'].version.startsWith('r');

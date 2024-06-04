@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
+import { clickButton } from './forms';
 
-import { goToOnCallPage } from './navigation';
+import { goToGrafanaPage, goToOnCallPage } from './navigation';
 
 export async function accessProfileTabs(page: Page, tabs: string[], hasAccess: boolean) {
   await goToOnCallPage(page, 'users');
@@ -43,3 +44,12 @@ export async function viewUsers(page: Page, isAllowedToView = true): Promise<voi
     );
   }
 }
+
+export const createGrafanaUser = async (page: Page, username: string): Promise<void> => {
+  await goToGrafanaPage(page, '/admin/users');
+  await page.getByRole('link', { name: 'New user' }).click();
+  await page.getByLabel('Name *').fill(username);
+  await page.getByLabel('Username').fill(username);
+  await page.getByLabel('Password *').fill(username);
+  await clickButton({ page, buttonText: 'Create user' });
+};
