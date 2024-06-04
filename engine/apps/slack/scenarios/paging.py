@@ -950,6 +950,11 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "step": StartDirectPaging,
     },
     {
+        "payload_type": PayloadType.SLASH_COMMAND,
+        "command_name": StartDirectPaging.command_name,
+        "step": StartDirectPaging,
+    },
+    {
         "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": FinishDirectPaging.routing_uid(),
         "step": FinishDirectPaging,
