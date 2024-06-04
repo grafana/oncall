@@ -42,6 +42,7 @@ class ScenarioRoute:
 
     class SlashCommandScenarioRoute(_Base):
         payload_type: typing.Literal[PayloadType.SLASH_COMMAND]
+        command_name: typing.List[str]
 
     class ViewSubmissionScenarioRoute(_Base):
         payload_type: typing.Literal[PayloadType.VIEW_SUBMISSION]
