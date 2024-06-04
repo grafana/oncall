@@ -1,13 +1,13 @@
-class Command:
+class SlashCommand:
     """
-    Command represents slack slash command.
+    SlashCommand represents slack slash command.
 
     Attributes:
     command -- command itself
     args -- list of args passed to command
     Examples:
         /grafana escalate
-        Command(command='grafana', args=['escalate'])
+        SlashCommand(command='grafana', args=['escalate'])
     """
 
     def __init__(self, command, args):
@@ -31,4 +31,4 @@ class Command:
         parts = text.split()
         command = parts[0].lstrip("/")
         args = parts[1:]
-        return Command(command, args)
+        return SlashCommand(command, args)

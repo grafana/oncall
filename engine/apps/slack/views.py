@@ -41,7 +41,7 @@ from apps.user_management.models import Organization
 from .errors import SlackAPITokenError
 from .installation import SlackInstallationExc, uninstall_slack_integration
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
-from .slash_command import Command
+from .slash_command import SlashCommand
 
 SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
@@ -355,7 +355,7 @@ class SlackEventApiEndpointView(APIView):
 
                 # Slash commands have to "type"
                 if payload_command and route_payload_type == PayloadType.SLASH_COMMAND:
-                    cmd = Command.parse(payload_command)
+                    cmd = SlashCommand.parse(payload_command)
                     # Check both command and subcommand for backward compatibility
                     # So both /grafana escalate and /escalate will work.
                     if cmd.command in route["command_name"] or cmd.subcommand in route["command_name"]:
