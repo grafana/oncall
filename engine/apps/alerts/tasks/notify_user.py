@@ -254,9 +254,6 @@ def notify_user_task(
                             notification_channel=notification_policy.notify_by,
                         )
 
-        if log_record:  # log_record is None if user notification policy step is unspecified
-            log_record.save()
-
         is_notification_triggered = (
             log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED
             if log_record
@@ -272,6 +269,9 @@ def notify_user_task(
             ).exists()
         ):
             update_metrics_for_user.apply_async((user.id,))
+
+        if log_record:  # log_record is None if user notification policy step is unspecified
+            log_record.save()
 
         if not stop_escalation:
             # if the step is NOTIFY and notification was not not bundled, perform regular notification
