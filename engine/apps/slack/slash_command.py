@@ -29,7 +29,7 @@ class SlashCommand:
     @staticmethod
     def parse(payload: SlashCommandPayload):
         """
-        Parse slack shash command payload and return SlashCommand object
+        Parse slack slash command payload and return SlashCommand object
         """
         command = payload["command"].lstrip("/")
         args = payload["text"].split()
