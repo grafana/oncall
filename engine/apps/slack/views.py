@@ -355,7 +355,7 @@ class SlackEventApiEndpointView(APIView):
 
                 # Slash commands have to "type"
                 if payload_command and route_payload_type == PayloadType.SLASH_COMMAND:
-                    cmd = SlashCommand.parse(payload_command)
+                    cmd = SlashCommand.parse(payload)
                     # Check both command and subcommand for backward compatibility
                     # So both /grafana escalate and /escalate will work.
                     if cmd.command in route["command_name"] or cmd.subcommand in route["command_name"]:

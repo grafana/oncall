@@ -1,3 +1,6 @@
+from apps.slack.types.interaction_payloads import SlashCommandPayload
+
+
 class SlashCommand:
     """
     SlashCommand represents slack slash command.
@@ -24,11 +27,10 @@ class SlashCommand:
         return self.args[0] if len(self.args) > 0 else None
 
     @staticmethod
-    def parse(text: str):
+    def parse(payload: SlashCommandPayload):
         """
-        Parse command text
+        Parse slack shash command payload and return SlashCommand object
         """
-        parts = text.split()
-        command = parts[0].lstrip("/")
-        args = parts[1:]
+        command = payload["command"].lstrip("/")
+        args = payload["text"].split()
         return SlashCommand(command, args)
