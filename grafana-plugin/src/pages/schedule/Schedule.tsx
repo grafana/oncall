@@ -38,16 +38,7 @@ import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSe
 import { UsersTimezones } from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getLayersFromStore, getTotalDaysToDisplay } from 'models/schedule/schedule.helpers';
-import {
-  Event,
-  Layer,
-  Schedule,
-  ScheduleEvent,
-  ScheduleType,
-  ScheduleView,
-  Shift,
-  ShiftSwap,
-} from 'models/schedule/schedule.types';
+import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
