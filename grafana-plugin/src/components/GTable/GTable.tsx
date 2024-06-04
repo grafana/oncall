@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, ChangeEvent, ReactElement } from 'react';
 
 import { css, cx } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
 import { Pagination, Checkbox, Icon, useStyles2 } from '@grafana/ui';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
@@ -136,7 +135,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   }, [rowSelection, columnsProp, data]);
 
   return (
-    <div className={styles.root} data-testid="test__gTable">
+    <div className={cx(styles.root, { [styles.fixed]: props.tableLayout === 'fixed' })} data-testid="test__gTable">
       <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
@@ -156,20 +155,24 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   );
 };
 
-const getGTableStyles = (_theme: GrafanaTheme2) => {
-  return {
-    root: css`
-      table {
-        width: 100%;
-      }
-    `,
+const getGTableStyles = () => ({
+  root: css`
+    table {
+      width: 100%;
+    }
+  `,
 
-    pagination: css`
-      margin-top: 20px;
-    `,
+  fixed: css`
+    table {
+      table-layout: fixed;
+    }
+  `,
 
-    checkbox: css`
-      display: inline-flex;
-    `,
-  };
-};
+  pagination: css`
+    margin-top: 20px;
+  `,
+
+  checkbox: css`
+    display: inline-flex;
+  `,
+});

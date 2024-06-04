@@ -681,7 +681,7 @@ def _create_user_option_groups(
                 "text": f"{user.name or user.username}",
                 "emoji": True,
             },
-            "value": make_value({"id": user.pk}, organization),
+            "value": json.dumps({"id": user.pk}),
         }
         for user in users
     ]

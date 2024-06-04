@@ -598,23 +598,35 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     history.replace(`${PLUGIN_ROOT}/schedules`);
   };
 
-  handleShowShiftSwapForm = (id: ShiftSwap['id'] | 'new') => {
+  handleShowShiftSwapForm = (id: ShiftSwap['id'] | 'new', swap?: { swap_start: string; swap_end: string }) => {
+    const { filters } = this.state;
     const {
       store,
+      store: {
+        userStore: { currentUserPk },
+        timezoneStore: { currentDateInSelectedTimezone },
+      },
       match: {
         params: { id: scheduleId },
       },
     } = this.props;
 
-    const {
-      userStore: { currentUserPk },
-      timezoneStore: { currentDateInSelectedTimezone },
-    } = store;
+    if (swap) {
+      if (!filters.users.includes(currentUserPk)) {
+        this.setState({ filters: { ...filters, users: [...this.state.filters.users, currentUserPk] } });
+        this.highlightMyShiftsWasToggled = true;
+      }
+
+      return this.setState({
+        shiftSwapIdToShowForm: id,
+        shiftSwapParamsToShowForm: {
+          swap_start: swap.swap_start,
+          swap_end: swap.swap_end,
+        },
+      });
+    }
 
     const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
-
-    const { filters } = this.state;
-
     const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
     const swapStart = closestEvent
       ? dayjs(closestEvent.start)

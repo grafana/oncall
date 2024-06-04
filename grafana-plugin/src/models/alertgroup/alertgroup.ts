@@ -65,7 +65,7 @@ export class AlertGroupStore {
       params: {
         query: {
           ...incidentFilters,
-          search,
+          search: incidentFilters?.search || search,
           perpage: this.alertsSearchResult?.page_size,
           cursor: this.incidentsCursor,
           is_root: true,
