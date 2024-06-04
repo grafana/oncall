@@ -80,7 +80,7 @@ def test_create_notification_policy_wait_delay_invalid(
 
     data = {
         "step": UserNotificationPolicy.Step.WAIT,
-        "wait_delay": int(wait_delay.total_seconds()),
+        "wait_delay": str(wait_delay.total_seconds()),
         "important": False,
         "user": admin.public_primary_key,
     }
@@ -273,7 +273,7 @@ def test_unable_to_change_importance(user_notification_policy_internal_api_setup
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("wait_delay, expected_wait_delay", [(None, 300), (900, 900)])
+@pytest.mark.parametrize("wait_delay, expected_wait_delay", [(None, "300.0"), ("900.0", "900.0")])
 def test_switch_step_type_from_notify_to_wait(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
@@ -421,7 +421,9 @@ def test_switch_notification_channel(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("from_wait_delay, to_wait_delay", [(None, 300), (timezone.timedelta(seconds=900), 900)])
+@pytest.mark.parametrize(
+    "from_wait_delay, to_wait_delay", [(None, "300.0"), (timezone.timedelta(seconds=900), "900.0")]
+)
 def test_switch_wait_delay(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,

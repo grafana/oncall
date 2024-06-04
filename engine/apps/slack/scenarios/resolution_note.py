@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.utils.text import Truncator
 
 from apps.api.permissions import RBACPermission
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE, DIVIDER
 from apps.slack.errors import (
     SlackAPICantUpdateMessageError,
@@ -483,14 +484,15 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                         "emoji": True,
                     },
                     "action_id": AddRemoveThreadMessageStep.routing_uid(),
-                    "value": json.dumps(
+                    "value": make_value(
                         {
                             "resolution_note_window_action": "edit",
                             "msg_value": "add" if not message.added_to_resolution_note else "remove",
                             "message_pk": message.pk,
                             "resolution_note_pk": None,
                             "alert_group_pk": alert_group.pk,
-                        }
+                        },
+                        alert_group.channel.organization,
                     ),
                 },
             }
@@ -542,7 +544,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                                     "emoji": True,
                                 },
                                 "action_id": AddRemoveThreadMessageStep.routing_uid(),
-                                "value": json.dumps(
+                                "value": make_value(
                                     {
                                         "resolution_note_window_action": "edit",
                                         "msg_value": "remove",
@@ -551,7 +553,8 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                                         else resolution_note_slack_message.pk,
                                         "resolution_note_pk": resolution_note.pk,
                                         "alert_group_pk": alert_group.pk,
-                                    }
+                                    },
+                                    alert_group.channel.organization,
                                 ),
                                 "confirm": {
                                     "title": {"type": "plain_text", "text": "Are you sure?"},
