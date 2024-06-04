@@ -33,19 +33,50 @@ When user goes to OnCall
 Then OnCall loads as usual
 */
 
-import { test } from '../fixtures';
-import { goToGrafanaPage } from '../utils/navigation';
+import { test, expect } from '../fixtures';
+import { clickButton } from '../utils/forms';
+import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
 
 test.describe('Plugin initialization', () => {
-  test('plugin config page', async ({ adminRolePage: { page } }) => {
-    await goToGrafanaPage(page);
-    expect(page).toHaveText('plugin config page');
+  test('Plugin works for new viewer user right away', async ({ adminRolePage: { page } }) => {
+    // Create new viewer user
+    const USER_NAME = `viewer-${new Date().getTime()}`;
+    await goToGrafanaPage(page, '/admin/users');
+    await page.getByRole('link', { name: 'New user' }).click();
+    await page.getByLabel('Name *').fill(USER_NAME);
+    await page.getByLabel('Username').fill(USER_NAME);
+    await page.getByLabel('Password *').fill(USER_NAME);
+    await clickButton({ page, buttonText: 'Create user' });
+    await page.waitForTimeout(2000);
+
+    // Login as new user
+    await goToGrafanaPage(page, '/logout');
+    await page.getByLabel('Email or username').fill(USER_NAME);
+    await page.getByLabel(/Password/).fill(USER_NAME);
+    await clickButton({ page, buttonText: 'Log in' });
+    await page.getByText('Welcome to Grafana').waitFor();
+
+    // Start tracking HTTP response codes
+    const networkResponseStatuses: number[] = [];
+    page.on('requestfinished', async (request) => networkResponseStatuses.push((await request.response()).status()));
+
+    // Go to OnCall
+    await goToOnCallPage(page, 'alert-groups');
+
+    // Assert that none of the requests failed
+    const allRequestsPassed = networkResponseStatuses.every(
+      (status) => `${status}`.startsWith('2') || `${status}`.startsWith('3')
+    );
+    expect(allRequestsPassed).toBeTruthy();
+
+    // // ...and user sees conent of alert groups page
+    // await expect(page.getByText('No alert groups found')).toBeVisible();
   });
 });
 
 test.describe('Plugin configuration', () => {
   test('plugin config page', async ({ adminRolePage: { page } }) => {
     await goToGrafanaPage(page);
-    expect(page).toHaveText('plugin config page');
+    expect(page).toBe('plugin config page');
   });
 });
