@@ -240,7 +240,7 @@ class LiveSetting(models.Model):
 
     @classmethod
     def validate_settings(cls):
-        settings_to_validate = cls.objects.all()
+        settings_to_validate = cls.objects.filter(name__in=cls.AVAILABLE_NAMES)
         for setting in settings_to_validate:
             setting.error = LiveSettingValidator(live_setting=setting).get_error()
             setting.save(update_fields=["error"])
