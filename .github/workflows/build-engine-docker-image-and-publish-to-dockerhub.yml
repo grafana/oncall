@@ -33,7 +33,7 @@ jobs:
         # TODO: change back to grafana/shared-workflows once this PR is merged
         # https://github.com/grafana/shared-workflows/pull/143
         # uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
-        uses: joeyorlando/shared-workflows/actions/build-push-to-dockerhub@2cd8f06917d985a0f83176e6e439f69398c8d6e8
+        uses: joeyorlando/shared-workflows/actions/build-push-to-dockerhub@a5b95e1419bc78276cf74f0f8246e25192345b94
         with:
           context: engine/
           push: true
