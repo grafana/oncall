@@ -58,7 +58,7 @@ jobs:
           echo url="https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${{ github.ref_name }}.zip" >> $GITHUB_OUTPUT
       - name: Publish plugin to grafana.com
         run: |
-          curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer $${{ env.GCOM_PLUGIN_PUBLISHER_API_KEY }}" -d "download[any][url]=${{ steps.gcs-artifact-url.outputs.url }}" -d "download[any][md5]=$$(curl -sL ${{ steps.gcs-artifact-url.outputs.url }} | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins
+          curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer ${{ env.GCOM_PLUGIN_PUBLISHER_API_KEY }}" -d "download[any][url]=${{ steps.gcs-artifact-url.outputs.url }}" -d "download[any][md5]=$(curl -sL ${{ steps.gcs-artifact-url.outputs.url }} | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins
         # yamllint enable rule:line-length
 
   build-engine-docker-image-and-publish-to-dockerhub:
@@ -76,7 +76,8 @@ jobs:
   merge-helm-release-pr:
     name: Merge Helm release PR
     needs:
-      - linting-and-tests
+      - build-sign-and-publish-plugin-to-gcom
+      - build-engine-docker-image-and-publish-to-dockerhub
     runs-on: ubuntu-latest
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
