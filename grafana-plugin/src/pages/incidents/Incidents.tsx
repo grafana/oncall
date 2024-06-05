@@ -210,7 +210,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { values } = filtersState;
     const { stats } = store.alertGroupStore;
 
-
     const status = values.status || [];
     const styles = getStyles(theme);
 
