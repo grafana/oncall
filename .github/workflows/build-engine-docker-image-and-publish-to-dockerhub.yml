@@ -23,6 +23,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v3
       - name: Set engine version number in settings file
+        if: inputs.engine_version
         uses: ./.github/actions/set-engine-version-in-settings
         with:
           working_directory: .
@@ -37,6 +38,7 @@ jobs:
           context: engine/
           push: true
           platforms: linux/arm64/v8,linux/amd64
+          repository: grafana/oncall
           tags: ${{ inputs.docker_image_tags }}
           build-args: |
             BUILDKIT_INLINE_CACHE=1
