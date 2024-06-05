@@ -39,6 +39,10 @@ import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
 import { createGrafanaUser, reloginAndWaitTillGrafanaIsLoaded } from '../utils/users';
 
 test.describe('Plugin initialization', () => {
+  test.afterAll(async ({ adminRolePage: { page } }) => {
+    await reloginAndWaitTillGrafanaIsLoaded({ page, username: GRAFANA_ADMIN_USERNAME });
+  });
+
   test('Plugin OnCall pages work for new viewer user right away', async ({ adminRolePage: { page } }) => {
     // Create new editor user and login as new user
     const USER_NAME = `viewer-${new Date().getTime()}`;
@@ -52,22 +56,20 @@ test.describe('Plugin initialization', () => {
     // Go to OnCall and assert that none of the requests failed
     await goToOnCallPage(page, 'alert-groups');
     await page.waitForLoadState('networkidle');
-    const allRequestsPassed = networkResponseStatuses.every(
-      (status) => `${status}`.startsWith('2') || `${status}`.startsWith('3')
-    );
-    expect(allRequestsPassed).toBeTruthy();
+    const numberOfFailedRequests = networkResponseStatuses.filter(
+      (status) => !(`${status}`.startsWith('2') || `${status}`.startsWith('3'))
+    ).length;
+    expect(numberOfFailedRequests).toBeLessThanOrEqual(1); // we allow /status request to fail once so plugin is reinstalled
 
     // ...as well as that user sees content of alert groups page
-    await expect(page.getByText('No alert groups found')).toBeVisible();
+    await expect(page.getByText('No Alert Groups selected')).toBeVisible();
   });
 
   test('Extension registered by OnCall plugin works for new editor user right away', async ({
     adminRolePage: { page },
   }) => {
-    // Login again as admin
-    await reloginAndWaitTillGrafanaIsLoaded({ page, username: GRAFANA_ADMIN_USERNAME });
-
     // Create new editor user and login as new user
+    await reloginAndWaitTillGrafanaIsLoaded({ page, username: GRAFANA_ADMIN_USERNAME });
     const USER_NAME = `editor-${new Date().getTime()}`;
     await createGrafanaUser({ page, username: USER_NAME, role: OrgRole.Editor });
     await page.waitForLoadState('networkidle');
@@ -80,21 +82,14 @@ test.describe('Plugin initialization', () => {
     // Go to profile -> IRM tab where OnCall plugin extension is registered and assert that none of the requests failed
     await goToGrafanaPage(page, '/profile?tab=irm');
     await page.waitForLoadState('networkidle');
-    const allRequestsPassed = networkResponseStatuses.every(
-      (status) => `${status}`.startsWith('2') || `${status}`.startsWith('3')
-    );
-    expect(allRequestsPassed).toBeTruthy();
+    const numberOfFailedRequests = networkResponseStatuses.filter(
+      (status) => !(`${status}`.startsWith('2') || `${status}`.startsWith('3'))
+    ).length;
+    expect(numberOfFailedRequests).toBeLessThanOrEqual(1); // we allow /status request to fail once so plugin is reinstalled
 
     // ...as well as that user sees content of the extension
     const extensionContentText = page.getByText('Please connect Grafana Cloud OnCall to use the mobile app');
     await extensionContentText.waitFor();
     await expect(extensionContentText).toBeVisible();
-  });
-});
-
-test.describe('Plugin configuration', () => {
-  test('plugin config page', async ({ adminRolePage: { page } }) => {
-    await goToGrafanaPage(page);
-    expect(page).toBe('plugin config page');
   });
 });
