@@ -218,7 +218,6 @@ export class AlertGroupStore {
     composeFailureMessageFn,
   })
   async resolve(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi({ skipErrorHandling: true }).POST('/alertgroups/{id}/resolve/', {
       params: { path: { id } },
     });
@@ -233,7 +232,6 @@ export class AlertGroupStore {
     composeFailureMessageFn,
   })
   async unresolve(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unresolve/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
@@ -246,7 +244,6 @@ export class AlertGroupStore {
     composeFailureMessageFn,
   })
   async acknowledge(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/acknowledge/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
@@ -259,7 +256,6 @@ export class AlertGroupStore {
     composeFailureMessageFn,
   })
   async unacknowledge(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unacknowledge/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
@@ -272,7 +268,6 @@ export class AlertGroupStore {
     composeFailureMessageFn,
   })
   async silence(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/silence/', {
       params: { path: { id } },
       body: { delay },
@@ -288,7 +283,6 @@ export class AlertGroupStore {
     composeFailureMessageFn,
   })
   async unsilence(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unsilence/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
@@ -305,8 +299,14 @@ export class AlertGroupStore {
       [AlertAction.Resolve]: this.resolve,
       [AlertAction.unResolve]: this.unresolve,
     };
+
     if (actionToMethodMap[action]) {
-      await actionToMethodMap[action](id, delay);
+      try {
+        this.setLiveUpdatesPaused(true);
+        await actionToMethodMap[action](id, delay);
+      } finally {
+        this.setLiveUpdatesPaused(false);
+      }
     }
   }
 

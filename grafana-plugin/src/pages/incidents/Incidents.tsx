@@ -942,12 +942,25 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   getBulkActionClickHandler = (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
     const { selectedIncidentIds, affectedRows } = this.state;
-    const { store } = this.props;
+    const {
+      store: { alertGroupStore },
+    } = this.props;
 
-    this.setPollingInterval();
-
-    store.alertGroupStore.setLiveUpdatesPaused(true);
     const delay = typeof event === 'number' ? event : 0;
+    const onStateUpdate = async () => {
+      this.setPollingInterval();
+
+      try {
+        alertGroupStore.setLiveUpdatesPaused(true);
+        await AlertGroupHelper.bulkAction({
+          action,
+          alert_group_pks: selectedIncidentIds,
+          delay,
+        });
+      } finally {
+        alertGroupStore.setLiveUpdatesPaused(false);
+      }
+    };
 
     this.setState(
       {
@@ -960,13 +973,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           affectedRows
         ),
       },
-      () => {
-        AlertGroupHelper.bulkAction({
-          action,
-          alert_group_pks: selectedIncidentIds,
-          delay,
-        });
-      }
+      onStateUpdate
     );
   };
 
@@ -988,13 +995,15 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       this.pollingIntervalId = setTimeout(
         async () => {
           const isBrowserWindowInactive = document.hidden;
+          const { liveUpdatesPaused } = this.props.store.alertGroupStore;
+
           if (
+            !liveUpdatesPaused &&
             !isBrowserWindowInactive &&
             !LoaderHelper.isLoading(this.props.store.loaderStore, [
               ActionKey.FETCH_INCIDENTS,
               ActionKey.FETCH_INCIDENTS_POLLING,
-            ]) &&
-            !this.props.store.alertGroupStore.liveUpdatesPaused
+            ])
           ) {
             await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
           }
@@ -1002,6 +1011,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           if (this.pollingIntervalId === null) {
             return;
           }
+
           startPolling(isBrowserWindowInactive);
         },
         delayed ? 60 * 1000 : POLLING_NUM_SECONDS * 1000
