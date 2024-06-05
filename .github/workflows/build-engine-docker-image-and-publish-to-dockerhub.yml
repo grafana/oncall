@@ -23,7 +23,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v3
       - name: Set engine version number in settings file
-        uses: ./.github/actions/set-engine-version-in-settings/action.yml
+        uses: ./.github/actions/set-engine-version-in-settings
         with:
           working_directory: .
           engine_version_number: ${{ inputs.engine_version }}
