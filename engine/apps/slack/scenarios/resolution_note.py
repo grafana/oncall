@@ -30,7 +30,6 @@ from apps.slack.types import (
     ScenarioRoute,
 )
 from apps.user_management.models import User
-from common.api_helpers.utils import create_engine_url
 
 from .step_mixins import AlertGroupActionsMixin
 
@@ -324,6 +323,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
+    EMPTY_TEXT = "You can add thread messages to resolution notes here."
 
     class ScenarioData(typing.TypedDict):
         resolution_note_window_action: str
@@ -575,40 +575,24 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 )
 
         if not blocks:
-            # there aren't any resolution notes yet, display a hint instead
-            link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
-                DIVIDER,
                 typing.cast(
                     Block.Section,
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": ":bulb: You can add a message to the resolution notes via context menu:",
+                            "text": self.EMPTY_TEXT,
                         },
                     },
-                ),
-                typing.cast(
-                    Block.Image,
-                    {
-                        "type": "image",
-                        "title": {
-                            "type": "plain_text",
-                            "text": "Add a resolution note",
-                        },
-                        "image_url": link_to_instruction,
-                        "alt_text": "Add to postmortem context menu",
-                    },
-                ),
+                )
             ]
 
         return blocks
 
-    def get_invite_bot_tip_blocks(self, channel: str) -> Block.AnyBlocks:
-        link_to_instruction = create_engine_url("static/images/postmortem.gif")
-        blocks: Block.AnyBlocks = [
-            DIVIDER,
+    @staticmethod
+    def get_invite_bot_tip_blocks(channel: str) -> Block.AnyBlocks:
+        return [
             typing.cast(
                 Block.Context,
                 {
@@ -616,15 +600,12 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": f":bulb: To include messages from thread to resolution note `/invite` Grafana OnCall to "
-                            f"<#{channel}>. Or you can add a message via "
-                            f"<{link_to_instruction}|context menu>.",
+                            "text": f"To make this feature available, `/invite` Grafana OnCall to <#{channel}>.",
                         },
                     ],
                 },
             ),
         ]
-        return blocks
 
 
 class ReadEditPostmortemStep(ResolutionNoteModalStep):

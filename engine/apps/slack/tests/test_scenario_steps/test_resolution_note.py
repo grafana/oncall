@@ -9,7 +9,6 @@ from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.errors import SlackAPIViewNotFoundError
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.tests.conftest import build_slack_response
-from common.api_helpers.utils import create_engine_url
 
 
 @pytest.mark.django_db
@@ -26,30 +25,8 @@ def test_get_resolution_notes_blocks_default_if_empty(
     alert_group = make_alert_group(alert_receive_channel)
 
     blocks = step.get_resolution_notes_blocks(alert_group, "", False)
-
-    link_to_instruction = create_engine_url("static/images/postmortem.gif")
-    expected_blocks = [
-        {
-            "type": "divider",
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": ":bulb: You can add a message to the resolution notes via context menu:",
-            },
-        },
-        {
-            "type": "image",
-            "title": {
-                "type": "plain_text",
-                "text": "Add a resolution note",
-            },
-            "image_url": link_to_instruction,
-            "alt_text": "Add to postmortem context menu",
-        },
-    ]
-    assert blocks == expected_blocks
+    assert len(blocks) == 1
+    assert blocks[0]["text"]["text"] == SlackResolutionNoteModalStep.EMPTY_TEXT
 
 
 @pytest.mark.django_db
