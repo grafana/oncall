@@ -908,10 +908,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
     const { store } = this.props;
 
-    return (e: SyntheticEvent) => {
+    return async (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action);
+      await store.alertGroupStore.doIncidentAction(incidentId, action);
+      await store.alertGroupStore.fetchIncidentsAndStats();
     };
   };
 
@@ -938,12 +939,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { alertGroupStore } = this.props.store;
 
     const delay = typeof event === 'number' ? event : 0;
-    const mapActionToStatus = {
-      ['acknowledge']: IncidentStatus.Acknowledged,
-      ['resolve']: IncidentStatus.Resolved,
-      ['silence']: IncidentStatus.Silenced,
-      ['restart']: IncidentStatus.Firing,
-    };
 
     this.setPollingInterval();
 
@@ -956,8 +951,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       alertGroupStore,
       async () => {
         // clear selected incident on finally and update incident stats
-        await alertGroupStore.fetchStats(mapActionToStatus[action]);
         this.setState({ selectedIncidentIds: [] });
+
+        await alertGroupStore.fetchIncidentsAndStats();
       }
     );
   };
