@@ -34,7 +34,7 @@ import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { ColumnsSelectorWrapper } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { RemoteFilters, RemoteFiltersState } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
@@ -200,9 +200,16 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store: RootStore, theme: GrafanaTheme2) {
+  renderCards(
+    filtersState: RemoteFiltersState,
+    filtersSetState: (data: any, callback: () => void) => void,
+    filtersOnFiltersValueChange: (status: string, newStatuses: string[]) => void,
+    store: RootStore,
+    theme: GrafanaTheme2
+  ) {
     const { values } = filtersState;
     const { stats } = store.alertGroupStore;
+
 
     const status = values.status || [];
     const styles = getStyles(theme);
@@ -218,7 +225,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Firing,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
@@ -232,7 +239,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Acknowledged,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
@@ -246,7 +253,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Resolved,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
@@ -260,7 +267,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Silenced,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
@@ -271,13 +278,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   getStatusButtonClickHandler = (
     status: IncidentStatus,
-    filtersState,
-    filtersSetState,
-    filtersOnFiltersValueChange
+    filtersState: RemoteFiltersState,
+    filtersSetState: (data: any, callback: () => void) => void,
+    filtersOnFiltersValueChange: (status: string, newStatuses: string[]) => void
   ) => {
     return (selected: boolean) => {
       const { values } = filtersState;
-
       const { status: statusFilter = [] } = values;
 
       let newStatuses = [...statusFilter];
@@ -946,12 +952,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       // clear selected incident on finally
       () => this.setState({ selectedIncidentIds: [] })
     );
-  };
-
-  onIncidentsUpdateClick = () => {
-    const { store } = this.props;
-
-    store.alertGroupStore.fetchIncidentsAndStats();
   };
 
   clearPollingInterval() {

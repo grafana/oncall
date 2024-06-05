@@ -114,7 +114,8 @@ export class AlertGroupStore {
     this.rootStore.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
   }
 
-  async fetchIncidentsAndStats(isPollingJob = false) {
+  @AutoLoadingState(ActionKey.FETCH_INCIDENTS_AND_STATS)
+  async fetchIncidentsAndStats(isPollingJob = false): Promise<void> {
     await Promise.all([
       this.fetchStats(IncidentStatus.Firing),
       this.fetchStats(IncidentStatus.Acknowledged),
