@@ -2,17 +2,14 @@ import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 
 import { ConfirmModal, useStyles2 } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
-import { AppRootProps } from 'types';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
-import { makeRequest } from 'network/network';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 
 import { LocationHelper } from './LocationHelper';
 import { getCommonStyles } from './styles';
-import { getIsRunningOpenSourceVersion } from './utils';
-import { RootStore, rootStore } from 'state/rootStore';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
