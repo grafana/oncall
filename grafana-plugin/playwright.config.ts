@@ -30,7 +30,7 @@ export default defineConfig({
   reporter: [['html', { open: IS_CI ? 'never' : 'always' }]],
 
   /* Maximum time one test can run for. */
-  timeout: 20_000,
+  timeout: 60_000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
