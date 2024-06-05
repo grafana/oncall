@@ -73,7 +73,6 @@ interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentPr
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<ApiSchemas['AlertGroup']['pk']>;
-  affectedRows: { [key: string]: boolean };
   filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
@@ -128,7 +127,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     this.state = {
       selectedIncidentIds: [],
-      affectedRows: {},
       showAddAlertGroupForm: false,
       pagination: {
         start,
@@ -348,7 +346,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     this.setState({
       filters,
       selectedIncidentIds: [],
-      affectedRows: {},
     });
 
     if (!isOnMount) {
@@ -428,23 +425,23 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderBulkActions = () => {
-    const { selectedIncidentIds, affectedRows, isHorizontalScrolling } = this.state;
+    const { selectedIncidentIds, isHorizontalScrolling } = this.state;
     const { store, theme } = this.props;
 
     if (!store.alertGroupStore.bulkActions) {
       return null;
     }
 
-    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore);
-
     const hasSelected = selectedIncidentIds.length > 0;
-    const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
-    const hasInvalidatedAlert = Boolean(
-      (results && results.some((alert: ApiSchemas['AlertGroup']) => alert.undoAction)) ||
-        Object.keys(affectedRows).length
-    );
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, [
+      ActionKey.FETCH_INCIDENTS,
+      ActionKey.FETCH_INCIDENTS_POLLING,
+      ActionKey.FETCH_INCIDENTS_AND_STATS,
+      ActionKey.INCIDENTS_BULK_UPDATE,
+    ]);
 
     const styles = getStyles(theme);
+    const isBulkUpdate = LoaderHelper.isLoading(store.loaderStore, ActionKey.INCIDENTS_BULK_UPDATE);
 
     return (
       <div className={styles.aboveIncidentsTable}>
@@ -453,9 +450,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'resolve' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
-                  disabled={!hasSelected}
+                  disabled={!hasSelected || isBulkUpdate}
                   variant="primary"
-                  onClick={(ev) => this.getBulkActionClickHandler('resolve', ev)}
+                  onClick={(ev) => this.onBulkActionClick('resolve', ev)}
                 >
                   Resolve
                 </Button>
@@ -464,9 +461,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'acknowledge' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
-                  disabled={!hasSelected}
+                  disabled={!hasSelected || isBulkUpdate}
                   variant="secondary"
-                  onClick={(ev) => this.getBulkActionClickHandler('acknowledge', ev)}
+                  onClick={(ev) => this.onBulkActionClick('acknowledge', ev)}
                 >
                   Acknowledge
                 </Button>
@@ -475,9 +472,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'silence' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
-                  disabled={!hasSelected}
+                  disabled={!hasSelected || isBulkUpdate}
                   variant="secondary"
-                  onClick={(ev) => this.getBulkActionClickHandler('restart', ev)}
+                  onClick={(ev) => this.onBulkActionClick('restart', ev)}
                 >
                   Restart
                 </Button>
@@ -486,8 +483,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
                 <SilenceButtonCascader
-                  disabled={!hasSelected}
-                  onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
+                  disabled={!hasSelected || isBulkUpdate}
+                  onSelect={(ev) => this.onBulkActionClick('silence', ev)}
                 />
               </WithPermissionControlTooltip>
             )}
@@ -499,15 +496,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           </div>
 
           <div className={styles.fieldsDropdown}>
-            <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
-              <HorizontalGroup spacing="xs">
-                <Text type="secondary">Results out of date</Text>
-                <Button className={styles.btnResults} variant="primary" onClick={this.onIncidentsUpdateClick}>
-                  Refresh
-                </Button>
-              </HorizontalGroup>
-            </RenderConditionally>
-
             <RenderConditionally shouldRender={isLoading}>
               <LoadingPlaceholder text="Loading..." className={styles.loadingPlaceholder} />
             </RenderConditionally>
@@ -940,49 +928,30 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     };
   };
 
-  getBulkActionClickHandler = (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
-    const { selectedIncidentIds, affectedRows } = this.state;
-    const {
-      store: { alertGroupStore },
-    } = this.props;
+  onBulkActionClick = async (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
+    const { selectedIncidentIds } = this.state;
+    const { alertGroupStore } = this.props.store;
 
     const delay = typeof event === 'number' ? event : 0;
-    const onStateUpdate = async () => {
-      this.setPollingInterval();
 
-      try {
-        alertGroupStore.setLiveUpdatesPaused(true);
-        await AlertGroupHelper.bulkAction({
-          action,
-          alert_group_pks: selectedIncidentIds,
-          delay,
-        });
-      } finally {
-        alertGroupStore.setLiveUpdatesPaused(false);
-      }
-    };
+    this.setPollingInterval();
 
-    this.setState(
+    await AlertGroupHelper.updateBulkActionAndRefresh(
       {
-        selectedIncidentIds: [],
-        affectedRows: selectedIncidentIds.reduce(
-          (acc, incidentId: ApiSchemas['AlertGroup']['pk']) => ({
-            ...acc,
-            [incidentId]: true,
-          }),
-          affectedRows
-        ),
+        action,
+        alert_group_pks: selectedIncidentIds,
+        delay,
       },
-      onStateUpdate
+      alertGroupStore,
+      // clear selected incident on finally
+      () => this.setState({ selectedIncidentIds: [] })
     );
   };
 
   onIncidentsUpdateClick = () => {
     const { store } = this.props;
 
-    this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.fetchIncidentsAndStats();
-    });
+    store.alertGroupStore.fetchIncidentsAndStats();
   };
 
   clearPollingInterval() {

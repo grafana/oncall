@@ -79,7 +79,7 @@ export class AlertGroupStore {
     const newAlerts = new Map(
       results.map((alert: ApiSchemas['AlertGroup']) => {
         const oldAlert = this.alerts.get(alert.pk) || {};
-        const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
+        const mergedAlertData = { ...oldAlert, ...alert };
         return [alert.pk, mergedAlertData];
       })
     );
@@ -223,7 +223,6 @@ export class AlertGroupStore {
     });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.Resolve,
     });
   }
 
@@ -235,7 +234,6 @@ export class AlertGroupStore {
     const { data } = await onCallApi().POST('/alertgroups/{id}/unresolve/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.unResolve,
     });
   }
 
@@ -247,7 +245,6 @@ export class AlertGroupStore {
     const { data } = await onCallApi().POST('/alertgroups/{id}/acknowledge/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.Acknowledge,
     });
   }
 
@@ -259,7 +256,6 @@ export class AlertGroupStore {
     const { data } = await onCallApi().POST('/alertgroups/{id}/unacknowledge/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.unAcknowledge,
     });
   }
 
@@ -274,7 +270,6 @@ export class AlertGroupStore {
     });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.Silence,
     });
   }
 
@@ -286,7 +281,6 @@ export class AlertGroupStore {
     const { data } = await onCallApi().POST('/alertgroups/{id}/unsilence/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.unSilence,
     });
   }
 
