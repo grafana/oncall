@@ -24,6 +24,7 @@ runs:
     - name: Determine artifact filename
       shell: bash
       id: artifact-filename
+      # yamllint disable rule:line-length
       run: |
         echo filename="grafana-oncall${{ inputs.is_enterprise == 'true' && '-ee' || '' }}-app-${{ inputs.plugin_version_number }}.zip" >> $GITHUB_OUTPUT
     - name: Build, sign, and package plugin
@@ -39,3 +40,4 @@ runs:
         mv dist grafana-oncall-app
         zip -r grafana-oncall-app.zip ./grafana-oncall-app
         cp grafana-oncall-app.zip ${{ steps.artifact-filename.outputs.filename }}
+      # yamllint enable rule:line-length

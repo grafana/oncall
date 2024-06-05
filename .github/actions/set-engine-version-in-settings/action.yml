@@ -16,6 +16,8 @@ runs:
     - name: Set engine version in settings file
       shell: bash
       working-directory: ${{ inputs.working_directory }}
+      # yamllint disable rule:line-length
       run: |
         sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${{ inputs.engine_version_number }}\"/g" ${{ inputs.settings_file_path }} > ./settings.temp && mv settings.temp ${{ inputs.settings_file_path }}
         cat ${{ inputs.settings_file_path }} | grep VERSION | head -1
+      # yamllint enable rule:line-length
