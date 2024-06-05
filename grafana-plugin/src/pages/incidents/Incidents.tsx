@@ -938,6 +938,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { alertGroupStore } = this.props.store;
 
     const delay = typeof event === 'number' ? event : 0;
+    const mapActionToStatus = {
+      ['acknowledge']: IncidentStatus.Acknowledged,
+      ['resolve']: IncidentStatus.Resolved,
+      ['silence']: IncidentStatus.Silenced,
+      ['restart']: IncidentStatus.Firing,
+    };
 
     this.setPollingInterval();
 
@@ -948,8 +954,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         delay,
       },
       alertGroupStore,
-      // clear selected incident on finally
-      () => this.setState({ selectedIncidentIds: [] })
+      async () => {
+        // clear selected incident on finally and update incident stats
+        await alertGroupStore.fetchStats(mapActionToStatus[action]);
+        this.setState({ selectedIncidentIds: [] });
+      }
     );
   };
 
