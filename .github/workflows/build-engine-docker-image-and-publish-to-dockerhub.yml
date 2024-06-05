@@ -23,7 +23,8 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v3
       - name: Set engine version number in settings file
-        uses: ./.github/actions/set-engine-version-number-in-settings/action.yml
+        if: inputs.engine_version
+        uses: ./.github/actions/set-engine-version-in-settings
         with:
           working_directory: .
           engine_version_number: ${{ inputs.engine_version }}
@@ -32,11 +33,12 @@ jobs:
         # TODO: change back to grafana/shared-workflows once this PR is merged
         # https://github.com/grafana/shared-workflows/pull/143
         # uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
-        uses: joeyorlando/shared-workflows/actions/build-push-to-dockerhub@2cd8f06917d985a0f83176e6e439f69398c8d6e8
+        uses: joeyorlando/shared-workflows/actions/build-push-to-dockerhub@a5b95e1419bc78276cf74f0f8246e25192345b94
         with:
           context: engine/
           push: true
           platforms: linux/arm64/v8,linux/amd64
+          repository: grafana/oncall
           tags: ${{ inputs.docker_image_tags }}
           build-args: |
             BUILDKIT_INLINE_CACHE=1
