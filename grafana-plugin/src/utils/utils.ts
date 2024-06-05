@@ -9,6 +9,8 @@ import { isArray, concat, every, isEmpty, isObject, isPlainObject, flatMap, map,
 import { isNetworkError } from 'network/network';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
+import { CLOUD_VERSION_REGEX, PLUGIN_ID } from './consts';
+
 export class KeyValuePair<T = string | number> {
   key: T;
   value: string;
@@ -120,4 +122,4 @@ export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
 
 export const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
-export const getIsRunningOpenSourceVersion = () => config.apps['grafana-oncall-app'].version.startsWith('r');
+export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[PLUGIN_ID]?.version);

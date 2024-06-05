@@ -9,11 +9,10 @@ import { LoaderHelper } from 'models/loader/loader.helpers';
 import { makeRequest } from 'network/network';
 import { useStore } from 'state/useStore';
 
-import { config } from '@grafana/runtime';
 import { LocationHelper } from './LocationHelper';
-import { GRAFANA_LICENSE_OSS } from './consts';
 import { getCommonStyles } from './styles';
 import { getIsRunningOpenSourceVersion } from './utils';
+import { RootStore, rootStore } from 'state/rootStore';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -144,48 +143,18 @@ export const useOnMount = (callback: () => void) => {
   }, []);
 };
 
-export const useInitializePlugin = ({
-  appRootProps,
-  forceReinstall,
-}: {
-  appRootProps?: AppRootProps;
-  forceReinstall?: boolean;
-}) => {
-  const IS_OPEN_SOURCE = getIsRunningOpenSourceVersion();
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // create oncall api token and save in plugin settings
-  const install = async () => {
-    await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
-      method: 'POST',
-    });
-  };
-
-  const initializePlugin = async () => {
-    if (forceReinstall || !appRootProps?.meta?.secureJsonFields?.onCallApiToken) {
-      await install();
-    }
-
-    // trigger users sync
-    let shouldReinstall = false;
-    try {
-      const { token_ok } = await makeRequest(`/plugin/status`, {
-        method: 'POST',
-      });
-      shouldReinstall = !token_ok;
-    } catch (_err) {
-      shouldReinstall = true;
-    } finally {
-      if (shouldReinstall) {
-        await install();
-      }
-    }
-
-    setIsInitialized(true);
-  };
+export const useInitializePlugin = () => {
+  /* 
+  We need to rely on rootStore imported directly (not provided via context)
+  because this hook is invoked out of plugin root (in plugin extension)
+  */
+  const isInitialized = rootStore.isPluginInitialized;
+  const isPluginInitializing = rootStore.loaderStore.isLoading(ActionKey.INITIALIZE_PLUGIN);
 
   useOnMount(() => {
-    initializePlugin();
+    if (!isInitialized && !isPluginInitializing) {
+      rootStore.initializePlugin();
+    }
   });
 
   return { isInitialized };

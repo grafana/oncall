@@ -9,11 +9,13 @@ import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
+import { ActionKey } from 'models/loader/action-keys';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { useInitializePlugin, useOnMount } from 'utils/hooks';
 import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MobileAppConnection.module.scss';
@@ -21,7 +23,6 @@ import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
 import { QRCode } from './parts/QRCode/QRCode';
-import { useInitializePlugin } from 'utils/hooks';
 
 const cx = cn.bind(styles);
 
@@ -365,11 +366,13 @@ function QRLoading() {
 
 export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
   const { userStore } = store;
-  const {} = useInitializePlugin({ forceReinstall: true });
+  const { isInitialized } = useInitializePlugin();
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isInitialized) {
+      loadData();
+    }
+  }, [isInitialized]);
 
   const loadData = async () => {
     if (!store.isBasicDataLoaded) {
@@ -381,7 +384,7 @@ export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
     }
   };
 
-  if (store.isBasicDataLoaded && userStore.currentUserPk) {
+  if (isInitialized && store.isBasicDataLoaded && userStore.currentUserPk) {
     return <MobileAppConnection userPk={userStore.currentUserPk} />;
   }
 
