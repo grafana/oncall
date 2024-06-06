@@ -940,8 +940,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     const delay = typeof event === 'number' ? event : 0;
 
-    this.setPollingInterval();
-
     await AlertGroupHelper.updateBulkActionAndRefresh(
       {
         action,
@@ -952,6 +950,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       async () => {
         // clear selected incident on finally and update incident stats
         this.setState({ selectedIncidentIds: [] });
+        this.setPollingInterval();
 
         await alertGroupStore.fetchIncidentsAndStats();
       }
@@ -964,31 +963,28 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 
   setPollingInterval() {
-    const startPolling = (delayed = false) => {
-      this.pollingIntervalId = setTimeout(
-        async () => {
-          const isBrowserWindowInactive = document.hidden;
-          const { liveUpdatesPaused } = this.props.store.alertGroupStore;
+    const startPolling = () => {
+      this.pollingIntervalId = setTimeout(async () => {
+        const isBrowserWindowInactive = document.hidden;
+        const { liveUpdatesPaused } = this.props.store.alertGroupStore;
 
-          if (
-            !liveUpdatesPaused &&
-            !isBrowserWindowInactive &&
-            !LoaderHelper.isLoading(this.props.store.loaderStore, [
-              ActionKey.FETCH_INCIDENTS,
-              ActionKey.FETCH_INCIDENTS_POLLING,
-            ])
-          ) {
-            await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
-          }
+        if (
+          !liveUpdatesPaused &&
+          !isBrowserWindowInactive &&
+          !LoaderHelper.isLoading(this.props.store.loaderStore, [
+            ActionKey.FETCH_INCIDENTS,
+            ActionKey.FETCH_INCIDENTS_POLLING,
+          ])
+        ) {
+          await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
+        }
 
-          if (this.pollingIntervalId === null) {
-            return;
-          }
+        if (this.pollingIntervalId === null) {
+          return;
+        }
 
-          startPolling(isBrowserWindowInactive);
-        },
-        delayed ? 60 * 1000 : POLLING_NUM_SECONDS * 1000
-      );
+        startPolling();
+      }, POLLING_NUM_SECONDS * 1000);
     };
 
     startPolling();
