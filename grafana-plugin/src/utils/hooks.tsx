@@ -145,12 +145,12 @@ export const useInitializePlugin = () => {
   We need to rely on rootStore imported directly (not provided via context)
   because this hook is invoked out of plugin root (in plugin extension)
   */
-  const isInitialized = rootStore.isPluginInitialized;
+  const isInitialized = rootStore.pluginStore.isPluginInitialized;
   const isPluginInitializing = rootStore.loaderStore.isLoading(ActionKey.INITIALIZE_PLUGIN);
 
   useOnMount(() => {
     if (!isInitialized && !isPluginInitializing) {
-      rootStore.initializePlugin();
+      rootStore.pluginStore.initializePlugin();
     }
   });
 

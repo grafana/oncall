@@ -16,11 +16,11 @@ import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { LabelStore } from 'models/label/label';
-import { ActionKey } from 'models/loader/action-keys';
 import { LoaderStore } from 'models/loader/loader';
 import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { PluginStore } from 'models/plugin/plugin';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -34,8 +34,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { retryFailingPromises } from 'utils/async';
 import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
-import { AutoLoadingState } from 'utils/decorators';
-import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
 // ------ Dashboard ------ //
 
@@ -51,9 +49,6 @@ export class RootBaseStore {
 
   @observable
   recaptchaSiteKey = '';
-
-  @observable
-  isPluginInitialized = false;
 
   @observable
   currentlyUndergoingMaintenance = false;
@@ -79,6 +74,7 @@ export class RootBaseStore {
   insightsDatasource?: string;
 
   // stores
+  pluginStore = new PluginStore(this);
   userStore = new UserStore(this);
   cloudStore = new CloudStore(this);
   directPagingStore = new DirectPagingStore(this);
@@ -109,11 +105,6 @@ export class RootBaseStore {
 
   constructor() {
     makeObservable(this);
-  }
-
-  @action.bound
-  setIsPluginInitialized(value: boolean) {
-    this.isPluginInitialized = value;
   }
 
   @action.bound
@@ -189,33 +180,5 @@ export class RootBaseStore {
   @action.bound
   async getApiUrlForSettings() {
     return this.onCallApiUrl;
-  }
-
-  @AutoLoadingState(ActionKey.INITIALIZE_PLUGIN)
-  @action.bound
-  async initializePlugin() {
-    const IS_OPEN_SOURCE = getIsRunningOpenSourceVersion();
-
-    // create oncall api token and save in plugin settings
-    const install = async () => {
-      await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
-        method: 'POST',
-      });
-    };
-
-    // trigger users sync
-    try {
-      // TODO: once we improve backend we should get rid of token_ok check and call install() only in catch block
-      const { token_ok } = await makeRequest(`/plugin/status`, {
-        method: 'POST',
-      });
-      if (!token_ok) {
-        await install();
-      }
-    } catch (_err) {
-      await install();
-    }
-
-    this.setIsPluginInitialized(true);
   }
 }

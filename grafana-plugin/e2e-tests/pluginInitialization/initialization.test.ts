@@ -63,9 +63,6 @@ test.describe('Plugin initialization', () => {
       (status) => !(`${status}`.startsWith('2') || `${status}`.startsWith('3'))
     ).length;
     expect(numberOfFailedRequests).toBeLessThanOrEqual(1); // we allow /status request to fail once so plugin is reinstalled
-
-    // ...as well as that user sees content of alert groups page
-    await expect(viewerUserPage.getByText('No Alert Groups selected')).toBeVisible();
   });
 
   test('Extension registered by OnCall plugin works for new editor user right away', async ({

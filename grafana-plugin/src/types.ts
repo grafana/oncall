@@ -5,7 +5,6 @@ export type OnCallPluginMetaJSONData = {
   orgId: number;
   onCallApiUrl: string;
   insightsDatasource?: string;
-  license: string;
 };
 
 export type OnCallPluginMetaSecureJSONData = {
@@ -13,7 +12,7 @@ export type OnCallPluginMetaSecureJSONData = {
   onCallApiToken: string;
 };
 
-export type AppRootProps = BaseAppRootProps<OnCallPluginMetaJSONData> & { forceReinstall?: boolean };
+export type AppRootProps = BaseAppRootProps<OnCallPluginMetaJSONData>;
 
 // NOTE: it is possible that plugin.meta.jsonData is null (ex. on first-ever setup)
 // the typing on AppPluginMeta does not seem correct atm..
