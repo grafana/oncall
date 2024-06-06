@@ -74,8 +74,8 @@ export const createGrafanaUser = async ({
   }
 };
 
-export const reloginAndWaitTillGrafanaIsLoaded = async ({ page, username }: { page: Page; username: string }) => {
-  await goToGrafanaPage(page, '/logout');
+export const loginAndWaitTillGrafanaIsLoaded = async ({ page, username }: { page: Page; username: string }) => {
+  await goToGrafanaPage(page, '/login');
   await page.getByLabel('Email or username').fill(username);
   await page.getByLabel(/Password/).fill(username);
   await clickButton({ page, buttonText: 'Log in' });
