@@ -43,7 +43,11 @@ test.describe('Plugin initialization', () => {
     await reloginAndWaitTillGrafanaIsLoaded({ page, username: GRAFANA_ADMIN_USERNAME });
   });
 
-  test('Plugin OnCall pages work for new viewer user right away', async ({ adminRolePage: { page } }) => {
+  // Separate browser context to not affect other tests that use logged in admin user in adminRolePage
+  test('Plugin OnCall pages work for new viewer user right away', async ({ page }) => {
+    // Login as admin
+    await reloginAndWaitTillGrafanaIsLoaded({ page, username: GRAFANA_ADMIN_USERNAME });
+
     // Create new editor user and login as new user
     const USER_NAME = `viewer-${new Date().getTime()}`;
     await createGrafanaUser({ page, username: USER_NAME, role: OrgRole.Viewer });
@@ -65,11 +69,10 @@ test.describe('Plugin initialization', () => {
     await expect(page.getByText('No Alert Groups selected')).toBeVisible();
   });
 
-  test('Extension registered by OnCall plugin works for new editor user right away', async ({
-    adminRolePage: { page },
-  }) => {
-    // Create new editor user and login as new user
+  test('Extension registered by OnCall plugin works for new editor user right away', async ({ page }) => {
     await reloginAndWaitTillGrafanaIsLoaded({ page, username: GRAFANA_ADMIN_USERNAME });
+
+    // Create new editor user and login as new user
     const USER_NAME = `editor-${new Date().getTime()}`;
     await createGrafanaUser({ page, username: USER_NAME, role: OrgRole.Editor });
     await page.waitForLoadState('networkidle');
