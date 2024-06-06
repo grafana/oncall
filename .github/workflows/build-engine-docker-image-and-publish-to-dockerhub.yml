@@ -30,10 +30,7 @@ jobs:
           engine_version_number: ${{ inputs.engine_version }}
           settings_file_path: engine/settings/base.py
       - name: Build engine Docker image and push to Dockerhub
-        # TODO: change back to grafana/shared-workflows once this PR is merged
-        # https://github.com/grafana/shared-workflows/pull/143
-        # uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
-        uses: joeyorlando/shared-workflows/actions/build-push-to-dockerhub@a5b95e1419bc78276cf74f0f8246e25192345b94
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
         with:
           context: engine/
           push: true
