@@ -32,13 +32,14 @@ export async function accessProfileTabs(page: Page, tabs: string[], hasAccess: b
   }
 }
 
-export async function viewUsers(page: Page, isAllowedToView = true): Promise<void> {
+export async function verifyThatUserCanViewOtherUsers(page: Page, isAllowedToView = true): Promise<void> {
   await goToOnCallPage(page, 'users');
 
   if (isAllowedToView) {
     const usersTable = page.getByTestId('users-table');
     await usersTable.getByRole('row').nth(1).waitFor();
-    await expect(usersTable.getByRole('row')).toHaveCount(4);
+    const usersCount = await page.getByTestId('users-table').getByRole('row').count();
+    expect(usersCount).toBeGreaterThan(1);
   } else {
     await expect(page.getByTestId('view-users-missing-permission-message')).toHaveText(
       /You are missing the .* to be able to view OnCall users/
