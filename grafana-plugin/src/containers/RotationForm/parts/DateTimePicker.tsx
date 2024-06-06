@@ -8,7 +8,6 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
-import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -28,7 +27,7 @@ export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const styles = useStyles2(getStyles);
     const { timezoneStore } = useStore();
-    const { getDateInSelectedTimezone, selectedTimezoneOffset } = timezoneStore;
+    const { getDateInSelectedTimezone } = timezoneStore;
 
     const valueInSelectedTimezone = getDateInSelectedTimezone(propValue);
 
