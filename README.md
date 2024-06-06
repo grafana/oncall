@@ -15,8 +15,8 @@ Developer-friendly incident response with brilliant Slack integration.
 <table>
   <tbody>
     <tr>
-    <td width="75%"><img src="screenshot.png"></td>
-      <td><div align="center"><a href="https://grafana.com/docs/oncall/latest/mobile-app/">Android & iOS</a>:<br><img src="screenshot_mobile.png"></div></td>
+    <td width="75%"><img src="docs/img/screenshot.png"></td>
+      <td><div align="center"><a href="https://grafana.com/docs/oncall/latest/mobile-app/">Android & iOS</a>:<br><img src="docs/img/screenshot_mobile.png"></div></td>
     </tr>
   </tbody>
 </table>
