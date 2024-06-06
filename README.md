@@ -7,7 +7,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/grafana/oncall)](https://hub.docker.com/r/grafana/oncall/tags)
 [![Slack](https://img.shields.io/badge/join%20slack-%23grafana-%2Doncall-brightgreen.svg)](https://slack.grafana.com/)
 [![Discussion](https://img.shields.io/badge/discuss-oncall%20forum-orange.svg)](https://github.com/grafana/oncall/discussions)
-[![Build Status](https://drone.grafana.net/api/badges/grafana/oncall/status.svg?ref=refs/heads/dev)](https://drone.grafana.net/grafana/oncall)
+[![Build Status](https://github.com/grafana/oncall/actions/workflows/on-commits-to-dev.yml/badge.svg)](https://github.com/grafana/oncall/actions/workflows/on-commits-to-dev.yml)
 
 Developer-friendly incident response with brilliant Slack integration.
 
@@ -15,8 +15,8 @@ Developer-friendly incident response with brilliant Slack integration.
 <table>
   <tbody>
     <tr>
-    <td width="75%"><img src="screenshot.png"></td>
-      <td><div align="center"><a href="https://grafana.com/docs/oncall/latest/mobile-app/">Android & iOS</a>:<br><img src="screenshot_mobile.png"></div></td>
+    <td width="75%"><img src="docs/img/screenshot.png"></td>
+      <td><div align="center"><a href="https://grafana.com/docs/oncall/latest/mobile-app/">Android & iOS</a>:<br><img src="docs/img/screenshot_mobile.png"></div></td>
     </tr>
   </tbody>
 </table>
