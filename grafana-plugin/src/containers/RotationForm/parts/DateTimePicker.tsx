@@ -27,30 +27,32 @@ interface DateTimePickerProps {
 export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const styles = useStyles2(getStyles);
-    const {
-      timezoneStore: { getDateInSelectedTimezone },
-    } = useStore();
+    const { timezoneStore } = useStore();
+    const { getDateInSelectedTimezone, selectedTimezoneOffset } = timezoneStore;
+
     const valueInSelectedTimezone = getDateInSelectedTimezone(propValue);
-    const valueAsDate = valueInSelectedTimezone.toDate();
 
     const handleDateChange = (newDate: Date) => {
-      const localMoment = getDateInSelectedTimezone(dayjs(newDate));
-      const newValue = localMoment
-        .set('year', newDate.getFullYear())
-        .set('month', newDate.getMonth())
-        .set('date', newDate.getDate())
-        .set('hour', valueAsDate.getHours())
-        .set('minute', valueAsDate.getMinutes())
-        .set('second', valueAsDate.getSeconds());
+      const dateInDayJS = dayjs(newDate);
 
-      onChange(newValue);
+      // newDate will always point to a new day in the calendar at 00:00 local timezone
+      // We need to clone the date and apply only the new changes to it (year/month/date);
+      // Because we're only altering the date and not the time of it
+
+      const newDateTime = propValue
+        .clone()
+        .set('year', dateInDayJS.year())
+        .set('month', dateInDayJS.month())
+        .set('date', dateInDayJS.date());
+
+      onChange(newDateTime);
     };
-    const handleTimeChange = (newMoment: DateTime) => {
-      const selectedHour = newMoment.hour();
-      const selectedMinute = newMoment.minute();
-      const newValue = valueInSelectedTimezone.set('hour', selectedHour).set('minute', selectedMinute);
 
-      onChange(newValue);
+    const handleTimeChange = (timeMoment: DateTime) => {
+      // Same as above, clone the date and only alter hour and minute from timeMoment
+      const newDateTime = propValue.clone().set('hour', timeMoment.hour()).set('minute', timeMoment.minute());
+
+      onChange(newDateTime);
     };
 
     const getTimeValueInSelectedTimezone = () => {
@@ -73,7 +75,7 @@ export const DateTimePicker = observer(
             <DatePickerWithInput
               open
               disabled={disabled}
-              value={getDateForDatePicker(valueInSelectedTimezone)}
+              value={valueInSelectedTimezone.toDate()}
               onChange={handleDateChange}
             />
           </div>

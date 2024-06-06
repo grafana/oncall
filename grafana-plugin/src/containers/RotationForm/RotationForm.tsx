@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
+  Alert,
   Button,
   Field,
   HorizontalGroup,
@@ -330,28 +331,26 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   };
 
-  const handleRotationStartChange = useCallback(
-    (value) => {
-      setRotationStart(value);
-      setShiftStart(value);
-      if (showActiveOnSelectedPartOfDay) {
-        setShiftEnd(
-          dayJSAddWithDSTFixed({
-            baseDate: value,
-            addParams: [activePeriod, 'seconds'],
-          })
-        );
-      } else {
-        setShiftEnd(
-          dayJSAddWithDSTFixed({
-            baseDate: value,
-            addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
-          })
-        );
-      }
-    },
-    [showActiveOnSelectedPartOfDay, activePeriod, repeatEveryPeriod, repeatEveryValue]
-  );
+  const handleRotationStartChange = (value: dayjs.Dayjs) => {
+    setRotationStart(value);
+    setShiftStart(value);
+
+    if (showActiveOnSelectedPartOfDay) {
+      setShiftEnd(
+        dayJSAddWithDSTFixed({
+          baseDate: value,
+          addParams: [activePeriod, 'seconds'],
+        })
+      );
+    } else {
+      setShiftEnd(
+        dayJSAddWithDSTFixed({
+          baseDate: value,
+          addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
+        })
+      );
+    }
+  };
 
   const handleActivePeriodChange = useCallback(
     (value) => {
@@ -435,9 +434,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     if (shift) {
       setRotationName(getShiftName(shift));
-      const shiftStart = getDateTime(shift.shift_start);
+      const shiftStart = getDateTime(shift.shift_start).utcOffset(store.timezoneStore.selectedTimezoneOffset);
       // use shiftStart as rotationStart for existing shifts
       // (original rotationStart defaulted to the shift creation timestamp)
+
       setRotationStart(shiftStart);
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       setShiftStart(shiftStart);
@@ -561,14 +561,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   </Block>
                 )}
                 {!hasUpdatedShift && ended && (
-                  <Block bordered className={cx('updated-shift-info')}>
+                  <div className={cx('updated-shift-info')}>
                     <VerticalGroup>
-                      <HorizontalGroup>
-                        <Icon name="info-circle" size="md"></Icon>
-                        <Text>This rotation is over</Text>
-                      </HorizontalGroup>
+                      <Alert severity="info" title={(<Text>This rotation is over</Text>) as unknown as string} />
                     </VerticalGroup>
-                  </Block>
+                  </div>
                 )}
                 <div className={cx('two-fields')}>
                   <Field
