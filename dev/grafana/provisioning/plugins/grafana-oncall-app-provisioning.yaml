@@ -5,4 +5,5 @@ apps:
     jsonData:
       stackId: 5
       orgId: 100
+      license: OpenSource
       onCallApiUrl: http://oncall-dev-engine:8080
