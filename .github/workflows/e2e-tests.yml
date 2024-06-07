@@ -48,6 +48,7 @@ jobs:
 
       - name: Collect Workflow Telemetry
         uses: catchpoint/workflow-telemetry-action@v2
+        # testing
         with:
           comment_on_pr: false
           proc_trace_chart_show: false
