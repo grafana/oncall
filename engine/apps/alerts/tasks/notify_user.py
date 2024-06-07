@@ -582,6 +582,8 @@ def send_bundled_notification(user_notification_bundle_id):
                 #  notify_by_sms_bundle:
                 #  - call send sms async
                 #  - filter notifications by bundle_uuid
+                #  - send sms
+                #  - create logs
                 #  - delete notifications
                 # phone_backend = PhoneBackend()
                 # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
