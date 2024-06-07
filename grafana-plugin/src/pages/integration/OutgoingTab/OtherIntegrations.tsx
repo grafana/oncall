@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { HorizontalGroup } from '@grafana/ui';
-import { observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';

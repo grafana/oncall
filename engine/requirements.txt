@@ -438,7 +438,7 @@ sqlparse==0.4.4
     #   django-silk
 toml==0.10.2
     # via django-migration-linter
-tornado==6.4
+tornado==6.4.1
     # via python-telegram-bot
 tqdm==4.66.3
     # via django-mirage-field

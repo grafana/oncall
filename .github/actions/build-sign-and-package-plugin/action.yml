@@ -1,0 +1,43 @@
+name: Build, sign, and package plugin
+description: Build, sign, and package plugin
+inputs:
+  plugin_version_number:
+    description: "The version number of the plugin"
+    required: true
+  grafana_access_policy_token:
+    description: "The Grafana access policy token used to sign the plugin"
+    required: true
+  working_directory:
+    description: "The working directory of the plugin"
+    required: true
+  is_enterprise:
+    description: "Whether the plugin is an enterprise build or not"
+    required: false
+    default: "false"
+outputs:
+  artifact_filename:
+    description: "The filename of the plugin artifact"
+    value: ${{ steps.artifact-filename.outputs.filename }}
+runs:
+  using: "composite"
+  steps:
+    - name: Determine artifact filename
+      shell: bash
+      id: artifact-filename
+      # yamllint disable rule:line-length
+      run: |
+        echo filename="grafana-oncall${{ inputs.is_enterprise == 'true' && '-ee' || '' }}-app-${{ inputs.plugin_version_number }}.zip" >> $GITHUB_OUTPUT
+    - name: Build, sign, and package plugin
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      env:
+        GRAFANA_ACCESS_POLICY_TOKEN: ${{ inputs.grafana_access_policy_token }}
+      run: |
+        jq --arg v "${{ inputs.plugin_version_number }}" '.version=$v' package.json > package.new && mv package.new package.json && jq '.version' package.json;
+        yarn build
+        yarn sign
+        if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
+        mv dist grafana-oncall-app
+        zip -r grafana-oncall-app.zip ./grafana-oncall-app
+        cp grafana-oncall-app.zip ${{ steps.artifact-filename.outputs.filename }}
+      # yamllint enable rule:line-length

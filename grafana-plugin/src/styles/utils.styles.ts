@@ -19,7 +19,7 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
 
     thinLineBreak: css`
       width: 100%;
-      border-top: 1px solid ${theme.colors.secondary.main};
+      border-top: 1px solid ${theme.colors.secondary.contrastText};
       margin-top: 8px;
       opacity: 15%;
     `,

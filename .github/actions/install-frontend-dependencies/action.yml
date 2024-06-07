@@ -25,7 +25,7 @@ runs:
         cache-dependency-path: ${{ steps.yarn-lock-location.outputs.yarn-lock-location }}
     - name: Use cached frontend dependencies
       id: cache-frontend-dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ inputs.working-directory }}/grafana-plugin/node_modules
         # yamllint disable rule:line-length

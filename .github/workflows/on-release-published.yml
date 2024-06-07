@@ -1,0 +1,109 @@
+name: On release published
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  linting-and-tests:
+    name: Linting and tests
+    uses: ./.github/workflows/linting-and-tests.yml
+
+  build-sign-and-publish-plugin-to-gcom:
+    name: Build, sign, and publish frontend plugin to grafana.com
+    needs:
+      - linting-and-tests
+    runs-on: ubuntu-latest
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
+      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
+            GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON=github_actions:gcs-plugin-publisher
+            GCOM_PLUGIN_PUBLISHER_API_KEY=github_actions:gcom-plugin-publisher-api-key
+      - name: Build, sign, and package plugin
+        id: build-sign-and-package-plugin
+        uses: ./.github/actions/build-sign-and-package-plugin
+        with:
+          plugin_version_number: ${{ github.ref_name }}
+          grafana_access_policy_token: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN }}
+          working_directory: grafana-plugin
+      - name: Authenticate with GCS
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON }}
+      - name: Publish plugin artifact to GCS
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: grafana-plugin/${{ steps.build-sign-and-package-plugin.outputs.artifact_filename }}
+          destination: grafana-oncall-app/releases
+          predefinedAcl: publicRead
+      - name: Determine GCS artifact URL
+        shell: bash
+        id: gcs-artifact-url
+        # yamllint disable rule:line-length
+        run: |
+          echo url="https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${{ github.ref_name }}.zip" >> $GITHUB_OUTPUT
+      - name: Publish plugin to grafana.com
+        run: |
+          curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer ${{ env.GCOM_PLUGIN_PUBLISHER_API_KEY }}" -d "download[any][url]=${{ steps.gcs-artifact-url.outputs.url }}" -d "download[any][md5]=$(curl -sL ${{ steps.gcs-artifact-url.outputs.url }} | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins
+        # yamllint enable rule:line-length
+
+  build-engine-docker-image-and-publish-to-dockerhub:
+    name: Build engine Docker image and publish to Dockerhub
+    needs:
+      - linting-and-tests
+    uses: ./.github/workflows/build-engine-docker-image-and-publish-to-dockerhub.yml
+    with:
+      engine_version: ${{ github.ref_name }}
+      # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
+      docker_image_tags: |
+        type=raw,value=${{ github.ref_name }}
+        type=raw,value=latest
+
+  merge-helm-release-pr:
+    name: Merge Helm release PR
+    needs:
+      - build-sign-and-publish-plugin-to-gcom
+      - build-engine-docker-image-and-publish-to-dockerhub
+    runs-on: ubuntu-latest
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GITHUB_API_KEY=github_actions:github-api-key
+      - name: Slice v from the tag
+        id: prepare-version-tag
+        run: |
+          echo processed-tag="${GITHUB_REF_NAME:1}" >> $GITHUB_OUTPUT
+      - name: Find Helm release pull request
+        uses: juliangruber/find-pull-request-action@v1
+        id: find-pull-request
+        with:
+          branch: helm-release/${{ steps.prepare-version-tag.outputs.processed-tag }}
+      - name: Merge pull Request
+        uses: juliangruber/merge-pull-request-action@v1
+        with:
+          github-token: ${{ env.GITHUB_API_KEY }}
+          number: ${{ steps.find-pull-request.outputs.number }}
