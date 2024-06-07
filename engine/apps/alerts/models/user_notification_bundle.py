@@ -20,9 +20,6 @@ class UserNotificationBundle(models.Model):
     notification_channel = models.PositiveSmallIntegerField(default=0)
     last_notified = models.DateTimeField(default=None, null=True)
     notification_task_id = models.CharField(max_length=100, null=True, default=None)
-    # list with alert groups info to build notification message:
-    # [{"alert_group_id": 1, "integration_name": "Test", "notification_policy_id": 1}]
-    notification_data = models.JSONField(default=list)
     # estimated time of arrival for notification bundle
     eta = models.DateTimeField(default=None, null=True)
 
@@ -48,3 +45,16 @@ class UserNotificationBundle(models.Model):
     def get_notification_eta(self) -> datetime.datetime:
         last_notified = self.last_notified if self.last_notified else timezone.now()
         return last_notified + timezone.timedelta(seconds=BUNDLED_NOTIFICATION_DELAY_SECONDS)
+
+    def attach_notification(self, alert_group, notification_policy):
+        self.notifications.create(alert_group=alert_group, notification_policy=notification_policy)
+
+
+class BundledNotification(models.Model):
+    alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE)
+    notification_policy = models.ForeignKey("base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True)
+    notification_bundle = models.ForeignKey(
+        UserNotificationBundle, on_delete=models.CASCADE, related_name="notifications"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    bundle_uuid = models.CharField(max_length=100, null=True, default=None, db_index=True)
