@@ -149,6 +149,7 @@
     "axios": "^1.6.7",
     "change-case": "^4.1.1",
     "circular-dependency-plugin": "^5.2.2",
+    "classnames": "^2.3.2",
     "dayjs": "^1.11.5",
     "eslint-plugin-import": "^2.29.1",
     "immutability-helper": "^3.1.1",
@@ -157,6 +158,7 @@
     "object-hash": "^3.0.0",
     "openapi-fetch": "^0.8.1",
     "qrcode.react": "^3.1.0",
+    "query-string": "^7.1.1",
     "raw-loader": "^4.0.2",
     "rc-table": "^7.17.1",
     "react": "18.2.0",
@@ -171,11 +173,11 @@
     "react-sortable-hoc": "^1.11.0",
     "react-string-replace": "^0.4.4",
     "react-transition-group": "^4.4.5",
+    "react-use": "^17.4.0",
     "stylelint": "^13.13.1",
     "stylelint-config-standard": "^22.0.0",
     "throttle-debounce": "^2.1.0",
     "tinycolor2": "^1.6.0",
     "tslib": "2.5.3"
-  },
-  "packageManager": "yarn@1.22.21"
+  }
 }
