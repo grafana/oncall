@@ -41,8 +41,8 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
-export const GrafanaPluginRootPage = (props: AppRootProps) => {
-  const { isInitialized } = useInitializePlugin(props);
+export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
+  const { isInitialized } = useInitializePlugin();
 
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
@@ -66,7 +66,7 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
       )}
     </ErrorBoundary>
   );
-};
+});
 
 export const Root = observer((props: AppRootProps) => {
   const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle } = useStore();

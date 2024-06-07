@@ -18,14 +18,8 @@ import {
   GRAFANA_VIEWER_USERNAME,
   IS_CLOUD,
   IS_OPEN_SOURCE,
+  OrgRole,
 } from './utils/constants';
-
-enum OrgRole {
-  None = 'None',
-  Viewer = 'Viewer',
-  Editor = 'Editor',
-  Admin = 'Admin',
-}
 
 type UserCreationSettings = {
   adminAuthedRequest: APIRequestContext;

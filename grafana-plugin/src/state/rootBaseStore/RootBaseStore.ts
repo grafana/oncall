@@ -20,6 +20,7 @@ import { LoaderStore } from 'models/loader/loader';
 import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { PluginStore } from 'models/plugin/plugin';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -50,9 +51,6 @@ export class RootBaseStore {
   recaptchaSiteKey = '';
 
   @observable
-  initializationError = '';
-
-  @observable
   currentlyUndergoingMaintenance = false;
 
   @observable
@@ -76,6 +74,7 @@ export class RootBaseStore {
   insightsDatasource?: string;
 
   // stores
+  pluginStore = new PluginStore(this);
   userStore = new UserStore(this);
   cloudStore = new CloudStore(this);
   directPagingStore = new DirectPagingStore(this);
@@ -107,6 +106,7 @@ export class RootBaseStore {
   constructor() {
     makeObservable(this);
   }
+
   @action.bound
   loadBasicData = async () => {
     const updateFeatures = async () => {
@@ -175,16 +175,6 @@ export class RootBaseStore {
   @action.bound
   setPageTitle(title: string) {
     this.pageTitle = title;
-  }
-
-  @action
-  async removeSlackIntegration() {
-    await this.slackStore.removeSlackIntegration();
-  }
-
-  @action
-  async installSlackIntegration() {
-    await this.slackStore.installSlackIntegration();
   }
 
   @action.bound

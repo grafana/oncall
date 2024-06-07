@@ -28,7 +28,8 @@ export const BREAKPOINT_TABS = 1024;
 // Default redirect page
 export const DEFAULT_PAGE = 'alert-groups';
 
-export const PLUGIN_ROOT = '/a/grafana-oncall-app';
+export const PLUGIN_ID = 'grafana-oncall-app';
+export const PLUGIN_ROOT = `/a/${PLUGIN_ID}`;
 
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
@@ -54,7 +55,7 @@ export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   return undefined;
 };
 
-export const getOnCallApiPath = (subpath = '') => `/api/plugins/grafana-oncall-app/resources${subpath}`;
+export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
 
 // Faro
 export const FARO_ENDPOINT_DEV =

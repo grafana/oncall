@@ -1,3 +1,5 @@
+import { parseURL } from './url';
+
 // Truncate a string to a given maximum length, adding ellipsis if it was truncated.
 export function truncateTitle(title: string, length: number): string {
   if (title.length <= length) {
@@ -25,3 +27,7 @@ export const safeJSONStringify = (value: unknown) => {
 };
 
 export const VALID_URL_PATTERN = /(http|https)\:\/\/.+?\..+/;
+
+export function validateURL(urlFieldValue: string): string | boolean {
+  return !parseURL(urlFieldValue) ? 'URL is invalid' : true;
+}

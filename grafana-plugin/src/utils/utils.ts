@@ -1,4 +1,5 @@
 import { AppEvents } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { AxiosError } from 'axios';
 import { sentenceCase } from 'change-case';
 // @ts-ignore
@@ -7,6 +8,8 @@ import { isArray, concat, every, isEmpty, isObject, isPlainObject, flatMap, map,
 
 import { isNetworkError } from 'network/network';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
+
+import { CLOUD_VERSION_REGEX, PLUGIN_ID } from './consts';
 
 export class KeyValuePair<T = string | number> {
   key: T;
@@ -118,3 +121,5 @@ function isFieldEmpty(value: any): boolean {
 export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
 
 export const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[PLUGIN_ID]?.version);
