@@ -602,20 +602,3 @@ def send_user_notification_signal(log_record_pk):
     # FAILED notifications (see NotificationDeliveryStep and ERRORS_TO_SEND_IN_SLACK_CHANNEL).
     # No need to call it here.
     pass
-
-
-# def send_sms(bundle_uuid, user_id):
-#     from apps.alerts.models import BundledNotification
-#     from apps.base.models import UserNotificationPolicyLogRecord, UserNotificationPolicy
-#     notifications = BundledNotification.objects.filter(bundle_uuid=bundle_uuid).select_related("notification_policy")
-#     for i in notifications:
-#         log_record = UserNotificationPolicyLogRecord(
-#             author_id=user_id,
-#             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
-#             notification_policy=i.notification_policy,
-#             alert_group_id=i.alert_group_id,
-#             notification_step=UserNotificationPolicy.Step.NOTIFY,
-#             notification_channel=UserNotificationPolicy.NotificationChannel.SMS,
-#         )
-#         log_record.save()
-#     notifications.delete()
