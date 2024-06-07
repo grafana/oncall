@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       - name: Build, lint and test frontend
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
       - name: "Build website"
         # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
         # that no refs to external content can be used as these refs will not resolve in the
@@ -73,7 +73,7 @@ jobs:
           - 3306:3306
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Lint migrations
@@ -89,8 +89,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
-      - uses: azure/setup-helm@v3
+        uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4.2.0
         with:
           version: v3.8.0
       - name: Install helm unittest plugin
@@ -123,7 +123,7 @@ jobs:
           - 3306:3306
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Unit Test Backend
@@ -162,7 +162,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Unit Test Backend
@@ -192,7 +192,7 @@ jobs:
           --health-retries 5
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Unit Test Backend
@@ -204,7 +204,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
         with:
@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: mypy Static Type Checking
