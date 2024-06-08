@@ -37,8 +37,10 @@ type OnCallProvisioningJSONData struct {
 	License     string `json:"license,omitempty"`
 }
 
-type UserIDJSONData struct {
-	ID int `json:"intField"`
+type OnCallSync struct {
+	Users       []OnCallUser  `json:"users"`
+	Teams       []OnCallTeam  `json:"teams"`
+	TeamMembers map[int][]int `json:"teamMembers"`
 }
 
 type responseWriter struct {
@@ -113,7 +115,16 @@ func SetAuthorizationHeader(settings OnCallPluginSettings, req *http.Request) {
 	req.Header.Set("Authorization", settings.OnCallToken)
 }
 
-func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
+func SetOnCallUserHeader(onCallUser *OnCallUser, settings OnCallPluginSettings, req *http.Request) error {
+	xOnCallUserHeader, err := json.Marshal(onCallUser)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("X-OnCall-User-Context", string(xOnCallUserHeader))
+	return nil
+}
+
+func (a *App) handleInternalApi(w http.ResponseWriter, req *http.Request) {
 	proxyMethod := req.Method
 	var bodyReader io.Reader
 	if req.Body != nil {
@@ -133,18 +144,14 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.DefaultLogger.Info(fmt.Sprintf("OnCallSettings %+v", onCallPluginSettings))
 
 	user := httpadapter.UserFromContext(req.Context())
-	userID, err := a.GetUserID(user, onCallPluginSettings)
+	onCallUser, err := a.GetUser(&onCallPluginSettings, user)
 	if err != nil {
 		log.DefaultLogger.Error("Error getting user id: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.DefaultLogger.Info(fmt.Sprintf("User %+v, UserID = %s", user, strconv.Itoa(userID)))
-
-	log.DefaultLogger.Info(fmt.Sprintf("Request -> %s", req.URL.Path))
 
 	reqURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "api/internal/v1/", req.URL.Path)
 	if err != nil {
@@ -152,12 +159,12 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	 parsedReqURL, err := url.Parse(reqURL)
-	 if err != nil {
-		 http.Error(w, err.Error(), http.StatusInternalServerError)
-		 return
-	 }
-	 parsedReqURL.RawQuery = req.URL.RawQuery
+	parsedReqURL, err := url.Parse(reqURL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	parsedReqURL.RawQuery = req.URL.RawQuery
 
 	proxyReq, err := http.NewRequest(proxyMethod, parsedReqURL.String(), bodyReader)
 	if err != nil {
@@ -174,19 +181,13 @@ func (a *App) handleOnCall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = SetXGrafanaContextHeader(user, userID, proxyReq)
+	err = SetXGrafanaContextHeader(user, onCallUser.ID, proxyReq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = a.SetPermissionsHeader(userID, onCallPluginSettings, proxyReq)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err = a.SetTeamsHeader(userID, onCallPluginSettings, proxyReq)
+	err = SetOnCallUserHeader(onCallUser, onCallPluginSettings, proxyReq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -246,8 +247,67 @@ func (a *App) handleInstall(w *responseWriter, req *http.Request) {
 	}
 }
 
+func (a *App) handleCurrentUser(w http.ResponseWriter, req *http.Request) {
+	onCallPluginSettings, err := OnCallSettingsFromContext(req.Context())
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting settings from context = %+v", err))
+		return
+	}
+
+	user := httpadapter.UserFromContext(req.Context())
+	onCallUser, err := a.GetUserForHeader(&onCallPluginSettings, user)
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting user = %+v", err))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(onCallUser); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
+	onCallPluginSettings, err := OnCallSettingsFromContext(req.Context())
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting settings from context = %+v", err))
+		return
+	}
+
+	onCallSync := OnCallSync{}
+	onCallSync.Users, err = a.GetAllUsersWithPermissions(&onCallPluginSettings)
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting users = %+v", err))
+		return
+	}
+
+	onCallSync.Teams, err = a.GetAllTeams(&onCallPluginSettings)
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting teams = %+v", err))
+		return
+	}
+
+	teamMembers, err := a.GetAllTeamMembers(&onCallPluginSettings, onCallSync.Teams)
+	if err != nil {
+		log.DefaultLogger.Error(fmt.Sprintf("Error getting team members = %+v", err))
+		return
+	}
+	onCallSync.TeamMembers = teamMembers
+
+	w.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(onCallSync); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
-	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleOnCall), a.handleInstall))
-	mux.HandleFunc("/", a.handleOnCall)
+	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleInstall))
+	mux.HandleFunc("/test-current-user", a.handleCurrentUser)
+	mux.HandleFunc("/test-sync", a.handleSync)
+	mux.HandleFunc("/", a.handleInternalApi)
 }
