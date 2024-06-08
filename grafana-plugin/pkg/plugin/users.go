@@ -15,7 +15,7 @@ type LookupUser struct {
 	Name      string `json:"name"`
 	Login     string `json:"login"`
 	Email     string `json:"email"`
-	AvatarURL string `json:"avatar_url"`
+	AvatarURL string `json:"avatarUrl"`
 }
 
 type OrgUser struct {
@@ -23,7 +23,7 @@ type OrgUser struct {
 	Name      string `json:"name"`
 	Login     string `json:"login"`
 	Email     string `json:"email"`
-	AvatarURL string `json:"avatar_url"`
+	AvatarURL string `json:"avatarUrl"`
 	Role      string `json:"role"`
 }
 
