@@ -97,11 +97,11 @@ class BaseFaroHelper {
     });
   };
 
-  pushAxiosNetworkResponseEvent = ({ name, res }: { name: string; res: AxiosResponse }) => {
+  pushAxiosNetworkResponseEvent = ({ name, res }: { name: string; res?: AxiosResponse }) => {
     this.faro?.api.pushEvent(name, {
-      url: res.config?.url,
-      status: `${res.status}`,
-      statusText: `${res.statusText}`,
+      url: res?.config?.url,
+      status: `${res?.status}`,
+      statusText: `${res?.statusText}`,
       method: res.config?.method.toUpperCase(),
     });
   };
