@@ -59,6 +59,10 @@ export const DateTimePicker = observer(
       return time;
     };
 
+    const forceConvertToDateWithOffset = (date: dayjs.Dayjs) => {
+      return date.set('hours', 23).toDate();
+    };
+
     return (
       <VerticalGroup>
         <div className={styles.wrapper}>
@@ -71,7 +75,7 @@ export const DateTimePicker = observer(
             <DatePickerWithInput
               open
               disabled={disabled}
-              value={valueInSelectedTimezone.toDate()}
+              value={forceConvertToDateWithOffset(valueInSelectedTimezone)}
               onChange={handleDateChange}
             />
           </div>
