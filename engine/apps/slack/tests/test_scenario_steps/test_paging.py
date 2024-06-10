@@ -301,7 +301,13 @@ def test_trigger_paging_additional_responders(make_organization_and_user_with_sl
         with patch.object(step._slack_client, "api_call"):
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    mock_direct_paging.assert_called_once_with(organization, user, "The Message", team, [(user, True)])
+    mock_direct_paging.assert_called_once_with(
+        organization=organization,
+        from_user=user,
+        message="The Message",
+        team=team,
+        users=[(user, True)],
+    )
 
 
 @pytest.mark.django_db
@@ -315,7 +321,13 @@ def test_page_team(make_organization_and_user_with_slack_identities, make_team):
         with patch.object(step._slack_client, "api_call"):
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    mock_direct_paging.assert_called_once_with(organization, user, "The Message", team)
+    mock_direct_paging.assert_called_once_with(
+        organization=organization,
+        from_user=user,
+        message="The Message",
+        team=team,
+        users=[],
+    )
 
 
 @pytest.mark.django_db

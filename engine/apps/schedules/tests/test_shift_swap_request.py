@@ -23,7 +23,7 @@ def test_soft_delete(shift_swap_request_setup):
     ssr.refresh_from_db()
     assert ssr.deleted_at is not None
 
-    assert mock_refresh_final.apply_async.called_with((ssr.schedule.pk,))
+    mock_refresh_final.apply_async.assert_called_with((ssr.schedule.pk,))
 
     assert ShiftSwapRequest.objects.all().count() == 0
     assert ShiftSwapRequest.objects_with_deleted.all().count() == 1
@@ -100,7 +100,7 @@ def test_take(
     mock_notify_beneficiary_about_taken_shift_swap_request.apply_async.assert_called_once_with((ssr.pk,))
 
     # final schedule refresh was triggered
-    assert mock_refresh_final.apply_async.called_with((ssr.schedule.pk,))
+    mock_refresh_final.apply_async.assert_called_with((ssr.schedule.pk,))
 
 
 @pytest.mark.django_db
