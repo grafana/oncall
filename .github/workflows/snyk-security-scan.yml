@@ -13,6 +13,8 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
+      - name: Install Snyk
+        uses: snyk/actions/setup@master
       - name: Run Snyk
         continue-on-error: true
         run: snyk monitor --all-projects --severity-threshold=high
