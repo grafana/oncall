@@ -20,8 +20,6 @@ autopep8==2.0.4
     # via django-silk
 babel==2.12.1
     # via -r requirements.in
-backoff==2.2.1
-    # via opentelemetry-exporter-otlp-proto-grpc
 beautifulsoup4==4.12.2
     # via -r requirements.in
 billiard==4.2.0
@@ -77,7 +75,9 @@ defusedxml==0.8.0rc2
     #   python3-openid
     #   social-auth-core
 deprecated==1.2.14
-    # via opentelemetry-api
+    # via
+    #   opentelemetry-api
+    #   opentelemetry-exporter-otlp-proto-grpc
 django==4.2.11
     # via
     #   -r requirements.in
@@ -266,7 +266,7 @@ oauthlib==3.2.2
     # via
     #   requests-oauthlib
     #   social-auth-core
-opentelemetry-api==1.23.0
+opentelemetry-api==1.25.0
     # via
     #   -r requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
@@ -276,37 +276,42 @@ opentelemetry-api==1.23.0
     #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
-opentelemetry-exporter-otlp-proto-grpc==1.15.0
+    #   opentelemetry-semantic-conventions
+opentelemetry-exporter-otlp-proto-common==1.25.0
+    # via opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-exporter-otlp-proto-grpc==1.25.0
     # via -r requirements.in
-opentelemetry-instrumentation==0.44b0
+opentelemetry-instrumentation==0.46b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-logging
     #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
-opentelemetry-instrumentation-django==0.44b0
+opentelemetry-instrumentation-django==0.46b0
     # via -r requirements.in
-opentelemetry-instrumentation-logging==0.44b0
+opentelemetry-instrumentation-logging==0.46b0
     # via -r requirements.in
-opentelemetry-instrumentation-requests==0.44b0
+opentelemetry-instrumentation-requests==0.46b0
     # via -r requirements.in
-opentelemetry-instrumentation-wsgi==0.44b0
+opentelemetry-instrumentation-wsgi==0.46b0
     # via
     #   -r requirements.in
     #   opentelemetry-instrumentation-django
-opentelemetry-proto==1.15.0
-    # via opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-sdk==1.23.0
+opentelemetry-proto==1.25.0
+    # via
+    #   opentelemetry-exporter-otlp-proto-common
+    #   opentelemetry-exporter-otlp-proto-grpc
+opentelemetry-sdk==1.25.0
     # via
     #   -r requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-semantic-conventions==0.44b0
+opentelemetry-semantic-conventions==0.46b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
-opentelemetry-util-http==0.44b0
+opentelemetry-util-http==0.46b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-requests
