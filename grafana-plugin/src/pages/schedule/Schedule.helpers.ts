@@ -69,8 +69,8 @@ export const getCurrentTimeX = (currentDate: dayjs.Dayjs, startDate: dayjs.Dayjs
   return diff / baseInMinutes;
 };
 
-export const getUTCString = (moment: dayjs.Dayjs) => {
-  return moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
+export const getUTCString = (date: dayjs.Dayjs) => {
+  return date.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 };
 
 export const getDateTime = (date: string) => {

@@ -27,31 +27,29 @@ export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const styles = useStyles2(getStyles);
     const { timezoneStore } = useStore();
-    const { getDateInSelectedTimezone } = timezoneStore;
+    const { selectedTimezoneOffset, getDateInSelectedTimezone } = timezoneStore;
 
     const valueInSelectedTimezone = getDateInSelectedTimezone(propValue);
 
-    const handleDateChange = (newDate: Date) => {
-      const dateInDayJS = dayjs(newDate);
+    const handleDateChange = (value: Date) => {
+      const newDate = dayjs(value)
+        .utcOffset(selectedTimezoneOffset)
+        .set('date', 1)
+        .set('months', 0)
+        .set('months', value.getMonth())
+        .set('date', value.getDate())
+        .set('hours', propValue.hour())
+        .set('minutes', propValue.minute())
+        .set('second', 0)
+        .set('milliseconds', 0);
 
-      // newDate will always point to a new day in the calendar at 00:00 local timezone
-      // We need to clone the date and apply only the new changes to it (year/month/date);
-      // Because we're only altering the date and not the time of it
-
-      const newDateTime = propValue
-        .clone()
-        .set('year', dateInDayJS.year())
-        .set('month', dateInDayJS.month())
-        .set('date', dateInDayJS.date());
-
-      onChange(newDateTime);
+      onChange(newDate);
     };
 
     const handleTimeChange = (timeMoment: DateTime) => {
-      // Same as above, clone the date and only alter hour and minute from timeMoment
-      const newDateTime = propValue.clone().set('hour', timeMoment.hour()).set('minute', timeMoment.minute());
+      const newDate = propValue.set('hour', timeMoment.hour()).set('minute', timeMoment.minute());
 
-      onChange(newDateTime);
+      onChange(newDate);
     };
 
     const getTimeValueInSelectedTimezone = () => {

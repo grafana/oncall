@@ -66,6 +66,7 @@ import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/const
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
+import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -335,21 +336,17 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setRotationStart(value);
     setShiftStart(value);
 
-    if (showActiveOnSelectedPartOfDay) {
-      setShiftEnd(
-        dayJSAddWithDSTFixed({
-          baseDate: value,
-          addParams: [activePeriod, 'seconds'],
-        })
-      );
-    } else {
-      setShiftEnd(
-        dayJSAddWithDSTFixed({
-          baseDate: value,
-          addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
-        })
-      );
-    }
+    setShiftEnd(
+      showActiveOnSelectedPartOfDay
+        ? dayJSAddWithDSTFixed({
+            baseDate: value,
+            addParams: [activePeriod, 'seconds'],
+          })
+        : dayJSAddWithDSTFixed({
+            baseDate: value,
+            addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
+          })
+    );
   };
 
   const handleActivePeriodChange = useCallback(
@@ -434,14 +431,16 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     if (shift) {
       setRotationName(getShiftName(shift));
-      const shiftStart = getDateTime(shift.shift_start).utcOffset(store.timezoneStore.selectedTimezoneOffset);
+
       // use shiftStart as rotationStart for existing shifts
       // (original rotationStart defaulted to the shift creation timestamp)
+      const shiftStart = getDateTime(shift.shift_start).utcOffset(store.timezoneStore.selectedTimezoneOffset);
 
       setRotationStart(shiftStart);
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       setShiftStart(shiftStart);
-      const shiftEnd = getDateTime(shift.shift_end);
+
+      const shiftEnd = getDateTime(shift.shift_end).utcOffset(store.timezoneStore.selectedTimezoneOffset);
       setShiftEnd(shiftEnd);
       setEndless(!shift.until);
 
