@@ -237,6 +237,10 @@ _backend-debug-disable:  ## disable Django's debug mode and Silk profiling
 backend-debug-enable: _backend-debug-enable stop start
 backend-debug-disable: _backend-debug-disable stop start
 
+pip-compile-locked-dependencies:  ## compile engine requirements.txt files
+	$(shell cd engine && uv pip compile requirements.in -o requirements.txt)
+	$(shell cd engine && uv pip compile requirements-dev.in -o requirements-dev.txt)
+
 # The below commands are useful for running backend services outside of docker
 define backend_command
 	export `grep -v '^#' $(DEV_ENV_FILE) | xargs -0` && \
