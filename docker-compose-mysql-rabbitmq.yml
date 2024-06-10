@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-environment: &oncall-environment
   BASE_URL: $DOMAIN
   SECRET_KEY: $SECRET_KEY

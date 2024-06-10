@@ -20,7 +20,7 @@ def test_it_triggers_an_organization_sync_and_saves_the_grafana_token(
     response = client.post(reverse("grafana-plugin:install"), format="json", **auth_headers)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert mocked_sync_organization.called_once_with(organization)
+    mocked_sync_organization.assert_called_once_with(organization)
 
     # make sure api token is saved on the org
     organization.refresh_from_db()
