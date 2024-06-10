@@ -29,16 +29,6 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
 
 RUN pip install uv
 
-# see the following resources as to why we need to install setuptools manually
-#
-# Python 3.12 release notes https://docs.python.org/3/whatsnew/3.12.html
-#
-# python/cpython#95299: Do not pre-install setuptools in virtual environments
-# created with venv. This means that distutils, setuptools, pkg_resources, and
-# easy_install will no longer available by default; to access these run pip
-# install setuptools in the activated virtual environment.
-RUN pip install setuptools==70.0.0
-
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527
 # RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements.txt
