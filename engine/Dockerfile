@@ -27,6 +27,8 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     && rm grpcio-1.64.1-cp312-cp312-linux_aarch64.whl; \
     fi
 
+RUN pip install uv
+
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527
 # RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements.txt
