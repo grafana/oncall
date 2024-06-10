@@ -40,7 +40,7 @@ djangorestframework-stubs==3.14.2
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
-execnet==2.0.2
+execnet==2.1.1
     # via pytest-xdist
 factory-boy==2.12.0
     # via
@@ -77,10 +77,12 @@ mypy-extensions==1.0.0
 nodeenv==1.8.0
     # via pre-commit
 packaging==23.2
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-factoryboy
 platformdirs==4.2.0
     # via virtualenv
-pluggy==1.4.0
+pluggy==1.5.0
     # via pytest
 pre-commit==2.15.0
     # via -r requirements-dev.in
@@ -88,17 +90,17 @@ psutil==5.9.4
     # via
     #   -c requirements.txt
     #   pytest-xdist
-pytest==7.3.1
+pytest==8.2.2
     # via
     #   -r requirements-dev.in
     #   pytest-django
     #   pytest-factoryboy
     #   pytest-xdist
-pytest-django==4.5.2
+pytest-django==4.8.0
     # via -r requirements-dev.in
-pytest-factoryboy==2.5.1
+pytest-factoryboy==2.7.0
     # via -r requirements-dev.in
-pytest-xdist==3.5.0
+pytest-xdist==3.6.1
     # via -r requirements-dev.in
 python-dateutil==2.8.2
     # via
