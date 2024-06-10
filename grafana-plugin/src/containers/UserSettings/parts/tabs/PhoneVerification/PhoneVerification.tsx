@@ -47,8 +47,6 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const user = userStore.items[userPk];
   const isCurrentUser = userStore.currentUserPk === user.pk;
 
-  console.log(window.grecaptcha);
-
   const [
     { showForgetScreen, phone, code, isCodeSent, isPhoneCallInitiated, isPhoneNumberHidden, isLoading },
     setState,

@@ -40,12 +40,8 @@ export const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponen
   useEffect(() => {
     (async function () {
       await setupPlugin();
-      setTimeout(
-        () =>
-          store.recaptchaSiteKey &&
-          loadJs(`https://www.google.com/recaptcha/api.js?render=${store.recaptchaSiteKey}`, store.recaptchaSiteKey),
-        5000
-      );
+      store.recaptchaSiteKey &&
+        loadJs(`https://www.google.com/recaptcha/api.js?render=${store.recaptchaSiteKey}`, store.recaptchaSiteKey);
     })();
   }, [setupPlugin]);
 
