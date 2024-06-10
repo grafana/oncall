@@ -285,8 +285,8 @@ def update_metrics_for_alert_group(alert_group_id, organization_id, previous_sta
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
 )
-def update_metrics_for_user(user_id):
+def update_metrics_for_user(user_id, counter=1):
     from apps.user_management.models import User
 
     user = User.objects.get(id=user_id)
-    metrics_update_user_cache(user)
+    metrics_update_user_cache(user, counter)

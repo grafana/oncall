@@ -327,7 +327,7 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time: 
     cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
 
 
-def metrics_update_user_cache(user):
+def metrics_update_user_cache(user, counter=1):
     """Update "user_was_notified_of_alert_groups" metric cache."""
     metrics_cache_timeout = get_metrics_cache_timeout(user.organization_id)
     metric_user_was_notified_key = get_metric_user_was_notified_of_alert_groups_key(user.organization_id)
@@ -344,6 +344,6 @@ def metrics_update_user_cache(user):
             "id": user.organization.stack_id,
             "counter": 0,
         },
-    )["counter"] += 1
+    )["counter"] += counter
 
     cache.set(metric_user_was_notified_key, metric_user_was_notified, timeout=metrics_cache_timeout)

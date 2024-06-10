@@ -196,45 +196,43 @@ def notify_user_task(
                     )
                 else:
                     # todo: feature flag
-                    user_notification_bundle, _ = UserNotificationBundle.objects.get_or_create(
-                        user=user, important=important, notification_channel=notification_policy.notify_by
-                    )
-                    user_notification_bundle = UserNotificationBundle.objects.filter(
-                        pk=user_notification_bundle.pk
-                    ).select_for_update()[0]
-                    # check if notification needs to be bundled
-                    if (
-                        notification_policy.notify_by in UserNotificationBundle.NOTIFICATION_CHANNELS_TO_BUNDLE
-                        and user_notification_bundle.notified_recently()
-                    ):
-                        user_notification_bundle.attach_notification(alert_group, notification_policy)
-                        # schedule notification task for bundled notifications if it hasn't been scheduled or
-                        # task eta is outdated
-                        eta_is_valid = user_notification_bundle.eta_is_valid()
-                        if not user_notification_bundle.notification_task_id or not eta_is_valid:
-                            if not eta_is_valid:
-                                task_logger.warning(
-                                    f"ETA ({user_notification_bundle.eta}) is not valid for "
-                                    f"user_notification_bundle {user_notification_bundle.id}, "
-                                    f"task_id {user_notification_bundle.notification_task_id}. "
-                                    f"Rescheduling the task"
-                                )
-                            new_eta = user_notification_bundle.get_notification_eta()
-                            task_id = celery_uuid()
-                            user_notification_bundle.notification_task_id = task_id
-                            user_notification_bundle.eta = new_eta
-                            user_notification_bundle.save(update_fields=["notification_task_id", "eta"])
+                    if notification_policy.notify_by in UserNotificationBundle.NOTIFICATION_CHANNELS_TO_BUNDLE:
+                        user_notification_bundle, _ = UserNotificationBundle.objects.get_or_create(
+                            user=user, important=important, notification_channel=notification_policy.notify_by
+                        )
+                        user_notification_bundle = UserNotificationBundle.objects.filter(
+                            pk=user_notification_bundle.pk
+                        ).select_for_update()[0]
+                        # check if notification needs to be bundled
+                        if user_notification_bundle.notified_recently():
+                            user_notification_bundle.attach_notification(alert_group, notification_policy)
+                            # schedule notification task for bundled notifications if it hasn't been scheduled or
+                            # task eta is outdated
+                            eta_is_valid = user_notification_bundle.eta_is_valid()
+                            if not user_notification_bundle.notification_task_id or not eta_is_valid:
+                                if not eta_is_valid:
+                                    task_logger.warning(
+                                        f"ETA ({user_notification_bundle.eta}) is not valid for "
+                                        f"user_notification_bundle {user_notification_bundle.id}, "
+                                        f"task_id {user_notification_bundle.notification_task_id}. "
+                                        f"Rescheduling the task"
+                                    )
+                                new_eta = user_notification_bundle.get_notification_eta()
+                                task_id = celery_uuid()
+                                user_notification_bundle.notification_task_id = task_id
+                                user_notification_bundle.eta = new_eta
+                                user_notification_bundle.save(update_fields=["notification_task_id", "eta"])
 
-                            transaction.on_commit(
-                                partial(
-                                    create_send_bundled_notification_task,
-                                    user_notification_bundle,
-                                    alert_group,
-                                    task_id,
-                                    new_eta,
+                                transaction.on_commit(
+                                    partial(
+                                        create_send_bundled_notification_task,
+                                        user_notification_bundle,
+                                        alert_group,
+                                        task_id,
+                                        new_eta,
+                                    )
                                 )
-                            )
-                        is_notification_bundled = True
+                            is_notification_bundled = True
 
                     if not is_notification_bundled:
                         log_record = UserNotificationPolicyLogRecord(
@@ -248,23 +246,17 @@ def notify_user_task(
                             notification_channel=notification_policy.notify_by,
                         )
 
-        is_notification_triggered = (
-            log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED
-            if log_record
-            else is_notification_bundled
-        )
-        # if this is the first notification step, and user hasn't been notified for this alert group - update metric
-        if (
-            is_notification_triggered
-            and previous_notification_policy_pk is None
-            and not user.personal_log_records.filter(
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
-                alert_group_id=alert_group_pk,
-            ).exists()
-        ):
-            update_metrics_for_user.apply_async((user.id,))
-
         if log_record:  # log_record is None if user notification policy step is unspecified
+            # if this is the first notification step, and user hasn't been notified for this alert group - update metric
+            if (
+                log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED
+                and previous_notification_policy_pk is None
+                and not user.personal_log_records.filter(
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                    alert_group_id=alert_group_pk,
+                ).exists()
+            ):
+                update_metrics_for_user.apply_async((user.id,))
             log_record.save()
 
         if not stop_escalation:
@@ -517,6 +509,18 @@ def send_bundled_notification(user_notification_bundle_id):
         skip_notification_ids = []
         perform_notifications = []
 
+        # update metric
+        existing_logs = set(
+            user_notification_bundle.user.personal_log_records.filter(
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                alert_group_id__in=active_alert_groups,
+            ).values_list("alert_group_id", flat=True)
+        )
+        metric_counter = len(active_alert_groups - existing_logs)
+        if metric_counter > 0:
+            update_metrics_for_user.apply_async((user_notification_bundle.user.id, metric_counter))
+
+        # create logs
         for notification in notifications:
             if notification.alert_group_id not in active_alert_groups:
                 task_logger.info(
