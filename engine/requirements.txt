@@ -60,7 +60,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-cryptography==38.0.4
+cryptography==42.0.8
     # via
     #   -r requirements.in
     #   django-mirage-field
@@ -352,7 +352,7 @@ pymdown-extensions==10.0
     # via -r requirements.in
 pymysql==1.1.1
     # via -r requirements.in
-pyopenssl==23.2.0
+pyopenssl==24.1.0
     # via django-sns-view
 pyparsing==3.1.1
     # via httplib2

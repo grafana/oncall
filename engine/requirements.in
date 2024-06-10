@@ -1,7 +1,7 @@
 babel==2.12.1
 beautifulsoup4==4.12.2
 celery[redis]==5.3.1
-cryptography==38.0.4 # version 39.0.0 introduced an issue - https://stackoverflow.com/a/75053968/3902555
+cryptography==42.0.8
 django==4.2.11
 django-add-default-value==0.10.0
 django-amazon-ses==4.0.1
