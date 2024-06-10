@@ -60,7 +60,11 @@ export const DateTimePicker = observer(
     };
 
     const forceConvertToDateWithOffset = (date: dayjs.Dayjs) => {
-      return date.set('hours', 23).toDate();
+      // Since the date selector only cares about the date being displayed and is not tied to time as well
+      // We make sure the date we pass won't be converted to the day before or day after due to DST
+      // E.g. If the offset is UTC+3 and we want to set the datetime to 00:00 in a month where DST changes
+      // We would actually go back 1 day (1 hour), which is not the desired result
+      return date.set('hours', 22).toDate();
     };
 
     return (
