@@ -66,7 +66,6 @@ import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/const
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 

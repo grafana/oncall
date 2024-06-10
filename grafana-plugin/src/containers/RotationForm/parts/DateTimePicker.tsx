@@ -35,7 +35,6 @@ export const DateTimePicker = observer(
       const newDate = dayjs(value)
         .utcOffset(selectedTimezoneOffset)
         .set('date', 1)
-        .set('months', 0)
         .set('months', value.getMonth())
         .set('date', value.getDate())
         .set('hours', propValue.hour())
