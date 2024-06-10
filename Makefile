@@ -247,7 +247,7 @@ define backend_command
 endef
 
 backend-bootstrap:
-	python3.11 -m venv $(VENV_DIR)
+	python3.12 -m venv $(VENV_DIR)
 	$(VENV_DIR)/bin/pip install -U pip wheel uv
 	$(VENV_DIR)/bin/uv pip sync $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
 	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \

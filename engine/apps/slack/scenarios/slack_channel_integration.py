@@ -142,7 +142,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     typing.cast(
-        ScenarioRoute.EventCallbackChannelMessageScenarioRoute,
+        ScenarioRoute.EventCallbackScenarioRoute,
         {
             "payload_type": PayloadType.EVENT_CALLBACK,
             "event_type": EventType.MESSAGE,
