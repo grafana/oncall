@@ -24,6 +24,14 @@ INTEGRATION_TYPES = sorted(AlertReceiveChannel.INTEGRATION_TYPES)
 class DatabaseBlocker(DjangoDbBlocker):
     """Customize pytest_django db blocker to raise OperationalError exception."""
 
+    def __init__(self, *args, **kwargs):
+        """
+        Override the constructor to get around this:
+        https://github.com/pytest-dev/pytest-django/blob/v4.8.0/pytest_django/plugin.py#L778-L782
+        """
+        self._history = []
+        self._real_ensure_connection = None
+
     def _blocking_wrapper(*args, **kwargs):
         __tracebackhide__ = True
         __tracebackhide__  # Silence pyflakes
