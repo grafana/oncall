@@ -248,6 +248,8 @@ jsonschema-specifications==2023.12.1
     # via jsonschema
 kombu==5.3.5
     # via celery
+lxml==5.2.2
+    # via -r requirements.in
 markdown==3.5.2
     # via pymdown-extensions
 markdown2==2.4.10
