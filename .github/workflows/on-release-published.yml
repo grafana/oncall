@@ -22,7 +22,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
@@ -86,7 +86,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
       - name: Get Vault secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
