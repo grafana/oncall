@@ -52,6 +52,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
+  getDateTimeWithOffset,
   getSelectedDays,
   getStartOfWeekBasedOnCurrentDate,
   getUTCByDay,
@@ -433,13 +434,13 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       // use shiftStart as rotationStart for existing shifts
       // (original rotationStart defaulted to the shift creation timestamp)
-      const shiftStart = getDateTime(shift.shift_start).utcOffset(store.timezoneStore.selectedTimezoneOffset);
+      const shiftStart = getDateTimeWithOffset(shift.shift_start, store.timezoneStore.selectedTimezoneOffset);
 
       setRotationStart(shiftStart);
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       setShiftStart(shiftStart);
 
-      const shiftEnd = getDateTime(shift.shift_end).utcOffset(store.timezoneStore.selectedTimezoneOffset);
+      const shiftEnd = getDateTimeWithOffset(shift.shift_end, store.timezoneStore.selectedTimezoneOffset);
       setShiftEnd(shiftEnd);
       setEndless(!shift.until);
 
