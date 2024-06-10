@@ -181,9 +181,9 @@ def test_direct_paging_reusing_alert_group(
 
     # notifications sent
     ag = alert_groups.get()
-    notify_task.apply_async.assert_has_calls([
-        call((user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True})
-    ])
+    notify_task.apply_async.assert_has_calls(
+        [call((user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True})]
+    )
 
 
 @pytest.mark.django_db
@@ -256,10 +256,18 @@ def test_direct_paging_always_create_group(
     assert alert_groups.count() == 2
 
     # notifications sent
-    notify_task.apply_async.assert_has_calls([
-        call((user.pk, alert_groups[0].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}),
-        call((user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}),
-    ])
+    notify_task.apply_async.assert_has_calls(
+        [
+            call(
+                (user.pk, alert_groups[0].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+            call(
+                (user.pk, alert_groups[1].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+        ]
+    )
 
 
 @pytest.mark.django_db
