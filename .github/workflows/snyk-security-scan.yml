@@ -1,0 +1,22 @@
+name: Snyk security scan
+
+on:
+  workflow_call:
+
+jobs:
+  synk-security-scan:
+    name: Snyk security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
+      - name: Install Snyk
+        uses: snyk/actions/setup@master
+      - name: Run Snyk
+        continue-on-error: true
+        run: snyk monitor --all-projects --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

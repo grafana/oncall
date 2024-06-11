@@ -22,6 +22,10 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+        with:
+          # we have one large .whl file which is referenced in the engine Dockerfile.. we need to
+          # fetch that file to be able to properly build the image
+          lfs: true
       - name: Set engine version number in settings file
         if: inputs.engine_version
         uses: ./.github/actions/set-engine-version-in-settings
