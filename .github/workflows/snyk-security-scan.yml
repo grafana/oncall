@@ -9,12 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     # see this PR regarding the permissions needed for this workflow
     # https://github.com/snyk/actions/pull/79
-    permissions:
-      # required for all workflows
-      security-events: write
-      # only required for workflows in private repositories
-      actions: read
-      contents: read
+    # permissions:
+    #   # required for all workflows
+    #   security-events: write
+    #   # only required for workflows in private repositories
+    #   actions: read
+    #   contents: read
+    env:
+      # https://github.com/snyk/actions/pull/79
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
@@ -26,5 +29,3 @@ jobs:
       - name: Run Snyk
         continue-on-error: true
         run: snyk monitor --all-projects --severity-threshold=high
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
