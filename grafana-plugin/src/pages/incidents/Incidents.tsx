@@ -695,7 +695,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderLabels = (item: ApiSchemas['AlertGroup']) => {
-    if (!item.labels.length) {
+    if (!item.labels?.length) {
       return null;
     }
 
