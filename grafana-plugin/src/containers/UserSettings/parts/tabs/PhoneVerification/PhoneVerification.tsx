@@ -171,7 +171,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
     (!isCodeSent && !isPhoneValid && !isPhoneCallInitiated) ||
     !isPhoneProviderConfigured ||
     !window.grecaptcha;
-  const disabledButtonTooltipText = !window.grecaptcha ? 'reCAPTCHA has not been loaded' : undefined;
+  const disabledButtonTooltipText = window.grecaptcha ? undefined : 'reCAPTCHA has not been loaded';
 
   const isPhoneDisabled = !!user.verified_phone_number;
   const isCodeFieldDisabled = (!isCodeSent && !isPhoneCallInitiated) || !isUserActionAllowed(action);
