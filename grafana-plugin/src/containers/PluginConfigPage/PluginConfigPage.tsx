@@ -12,6 +12,7 @@ import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleT
 import { Text } from 'components/Text/Text';
 import { DOCS_ONCALL_OSS_INSTALL, DOCS_SERVICE_ACCOUNTS, getOnCallApiUrl } from 'utils/consts';
 import { validateURL } from 'utils/string';
+import { GrafanaApiClient } from 'network/grafana-api/http-client';
 
 type PluginConfigFormValues = {
   onCallApiUrl: string;
@@ -62,7 +63,12 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
                     <Text type="link">Read more</Text>
                   </a>
                 </Text>
-                <Button variant="secondary">Re-create</Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings()}
+                >
+                  Re-create
+                </Button>
               </>
             ),
           },

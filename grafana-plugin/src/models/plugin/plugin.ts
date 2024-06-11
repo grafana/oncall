@@ -21,11 +21,9 @@ export class PluginStore {
 
   @AutoLoadingState(ActionKey.INITIALIZE_PLUGIN)
   async initializePlugin() {
-    const IS_OPEN_SOURCE = getIsRunningOpenSourceVersion();
-
     // create oncall api token and save in plugin settings
     const install = async () => {
-      await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
+      await makeRequest(`/plugin${getIsRunningOpenSourceVersion() ? '/self-hosted' : ''}/install`, {
         method: 'POST',
       });
     };
