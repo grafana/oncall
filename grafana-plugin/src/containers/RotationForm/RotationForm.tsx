@@ -73,6 +73,7 @@ const cx = cn.bind(styles);
 interface RotationFormProps {
   layerPriority: number;
   onHide: () => void;
+  isNewRotation?: boolean;
   scheduleId: Schedule['id'];
   shiftId: Shift['id'] | 'new';
   shiftStart?: dayjs.Dayjs;
@@ -83,6 +84,15 @@ interface RotationFormProps {
   shiftColor?: string;
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
+
+const getStartShift = (start: dayjs.Dayjs, utcOffset: number, isNewRotation: boolean = false) => {
+  let dateStart = start;
+  if (!isNewRotation) {
+    dateStart = dateStart.utcOffset(utcOffset);
+  }
+
+  return dateStart;
+};
 
 export const RotationForm = observer((props: RotationFormProps) => {
   const store = useStore();
@@ -98,12 +108,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
     shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
     onShowRotationForm,
+    isNewRotation,
   } = props;
 
   const shift = store.scheduleStore.shifts[shiftId];
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
-
   const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
     undefined
   );
@@ -113,8 +123,13 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [offsetTop, setOffsetTop] = useState<number>(GRAFANA_HEADER_HEIGHT + 10);
   const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
-  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(
+    getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, isNewRotation)
+  );
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(
+    propsShiftEnd?.utcOffset(store.timezoneStore.selectedTimezoneOffset) || shiftStart.add(1, 'day')
+  );
+
   const [activePeriod, setActivePeriod] = useState<number | undefined>(undefined);
   const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
 
@@ -481,6 +496,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
           moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
         })
       );
+    } else {
+      // empty shift (aka new rotation)
+      setRotationStart(rotationStart.utcOffset(store.timezoneStore.selectedTimezoneOffset));
+      if (!endLess) {
+        setRotationEnd(rotationEnd.utcOffset(store.timezoneStore.selectedTimezoneOffset));
+      }
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
 
@@ -490,6 +511,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
 
   const disabled = hasUpdatedShift || ended;
+
+  console.log(rotationStart.toDate());
 
   return (
     <>

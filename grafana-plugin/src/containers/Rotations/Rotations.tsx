@@ -50,6 +50,7 @@ interface RotationsProps extends WithStoreProps {
 interface RotationsState {
   shiftStartToShowRotationForm?: dayjs.Dayjs;
   shiftEndToShowRotationForm?: dayjs.Dayjs;
+  isNewRotation?: boolean;
 }
 
 @observer
@@ -57,6 +58,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
     shiftStartToShowRotationForm: undefined,
     shiftEndToShowRotationForm: undefined,
+    isNewRotation: false,
   };
 
   render() {
@@ -75,7 +77,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       theme,
     } = this.props;
 
-    const { shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
+    const { shiftStartToShowRotationForm, shiftEndToShowRotationForm, isNewRotation } = this.state;
 
     const currentTimeX = getCurrentTimeX(
       store.timezoneStore.currentDateInSelectedTimezone,
@@ -140,7 +142,9 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                   <Button
                     variant="secondary"
                     icon="plus"
-                    onClick={() => this.handleAddLayer(nextPriority, store.timezoneStore.calendarStartDate)}
+                    onClick={() =>
+                      this.handleAddLayer(nextPriority, store.timezoneStore.calendarStartDate, undefined, true)
+                    }
                   >
                     Add rotation
                   </Button>
@@ -246,6 +250,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
         </div>
         {shiftIdToShowRotationForm && (
           <RotationForm
+            isNewRotation={isNewRotation}
             shiftId={shiftIdToShowRotationForm}
             shiftColor={findColor(shiftIdToShowRotationForm, layers)}
             scheduleId={scheduleId}
@@ -291,16 +296,28 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
     });
   };
 
-  handleAddLayer = (layerPriority: number, shiftStart?: dayjs.Dayjs, shiftEnd?: dayjs.Dayjs) => {
+  handleAddLayer = (
+    layerPriority: number,
+    shiftStart?: dayjs.Dayjs,
+    shiftEnd?: dayjs.Dayjs,
+    isNewRotation?: boolean
+  ) => {
     const { disabled } = this.props;
 
     if (disabled) {
       return;
     }
 
-    this.setState({ shiftStartToShowRotationForm: shiftStart, shiftEndToShowRotationForm: shiftEnd }, () => {
-      this.onShowRotationForm('new', layerPriority);
-    });
+    this.setState(
+      {
+        shiftStartToShowRotationForm: shiftStart,
+        shiftEndToShowRotationForm: shiftEnd,
+        isNewRotation,
+      },
+      () => {
+        this.onShowRotationForm('new', layerPriority);
+      }
+    );
   };
 
   handleAddRotation = (option: SelectableValue) => {
@@ -325,6 +342,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       {
         shiftStartToShowRotationForm: undefined,
         shiftEndToShowRotationForm: undefined,
+        isNewRotation: false,
       },
       () => {
         this.onShowRotationForm(undefined, undefined);

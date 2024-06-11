@@ -64,8 +64,19 @@ export const DateTimePicker = observer(
       // We make sure the date we pass won't be converted to the day before or day after due to DST
       // E.g. If the offset is UTC+3 and we want to set the datetime to 00:00 in a month where DST changes
       // We would actually go back 1 day (1 hour), which is not the desired result
-      return date.set('hours', 22).toDate();
+
+      const formattedDate = getFormattedDateDDMMYYYY(date.toDate());
+      const formattedDayMoment = date.format('DD/MM/YYYY');
+
+      let resultDate = date;
+      if (formattedDate !== formattedDayMoment) {
+        resultDate = resultDate.set('hours', Math.abs(selectedTimezoneOffset / 60));
+      }
+
+      return resultDate.toDate();
     };
+
+    // console.log('Converted date is ' + forceConvertToDateWithOffset(valueInSelectedTimezone));
 
     return (
       <VerticalGroup>
@@ -98,6 +109,15 @@ export const DateTimePicker = observer(
     );
   }
 );
+
+// TODO: Move to date helpers/util
+export const getFormattedDateDDMMYYYY = (date: Date) => {
+  const year = date.getFullYear();
+  const month = (1 + date.getMonth()).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+
+  return day + '/' + month + '/' + year;
+};
 
 const getStyles = () => ({
   wrapper: css`
