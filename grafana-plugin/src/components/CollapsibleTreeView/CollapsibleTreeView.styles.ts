@@ -2,7 +2,7 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { COLORS } from 'styles/utils.styles';
 
-export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
+export const getCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
   return {
     container: css`
       margin-left: 32px;

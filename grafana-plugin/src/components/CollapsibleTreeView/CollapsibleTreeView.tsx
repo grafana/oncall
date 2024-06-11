@@ -8,9 +8,9 @@ import { bem } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 
-import { getIntegrationCollapsibleTreeStyles } from './IntegrationCollapsibleTreeView.styles';
+import { getCollapsibleTreeStyles } from './CollapsibleTreeView.styles';
 
-export interface IntegrationCollapsibleItem {
+export interface CollapsibleItem {
   isHidden?: boolean;
   customIcon?: IconName;
   canHoverIcon?: boolean;
@@ -23,16 +23,17 @@ export interface IntegrationCollapsibleItem {
   onStateChange?(isChecked: boolean): void;
 }
 
-interface IntegrationCollapsibleTreeViewProps {
+interface CollapsibleTreeViewProps {
   startingElemPosition?: string;
   isRouteView?: boolean;
-  configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
+  configElements: Array<CollapsibleItem | CollapsibleItem[]>;
+  className?: string;
 }
 
-export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
-  const { configElements, isRouteView } = props;
+export const CollapsibleTreeView: React.FC<CollapsibleTreeViewProps> = observer((props) => {
+  const { configElements, isRouteView, className } = props;
 
-  const styles = useStyles2(getIntegrationCollapsibleTreeStyles);
+  const styles = useStyles2(getCollapsibleTreeStyles);
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
 
   useEffect(() => {
@@ -40,13 +41,13 @@ export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTree
   }, [configElements]);
 
   return (
-    <div className={cx(styles.container, isRouteView ? styles.timeline : '')}>
+    <div className={cx(styles.container, isRouteView ? styles.timeline : '', className)}>
       {configElements
         .filter((config) => config) // filter out falsy values
-        .map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
+        .map((item: CollapsibleItem | CollapsibleItem[], idx) => {
           if (isArray(item)) {
             return item.map((it, innerIdx) => (
-              <IntegrationCollapsibleTreeItem
+              <CollapsibleTreeItem
                 item={it}
                 key={`${idx}-${innerIdx}`}
                 onClick={() => expandOrCollapseAtPos(!expandedList[idx][innerIdx], idx, innerIdx)}
@@ -56,7 +57,7 @@ export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTree
           }
 
           return (
-            <IntegrationCollapsibleTreeItem
+            <CollapsibleTreeItem
               item={item}
               key={idx}
               elementPosition={idx + 1} // start from 1 instead of 0
@@ -83,12 +84,12 @@ export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTree
 
   function expandOrCollapseAtPos(isChecked: boolean, i: number, j: number = undefined) {
     if (j !== undefined) {
-      let elem = configElements[i] as IntegrationCollapsibleItem[];
+      let elem = configElements[i] as CollapsibleItem[];
       if (elem[j].onStateChange) {
         elem[j].onStateChange(isChecked);
       }
     } else {
-      let elem = configElements[i] as IntegrationCollapsibleItem;
+      let elem = configElements[i] as CollapsibleItem;
       if (elem.onStateChange) {
         elem.onStateChange(isChecked);
       }
@@ -108,13 +109,13 @@ export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTree
   }
 });
 
-const IntegrationCollapsibleTreeItem: React.FC<{
-  item: IntegrationCollapsibleItem;
+const CollapsibleTreeItem: React.FC<{
+  item: CollapsibleItem;
   elementPosition?: number;
   isExpanded: boolean;
   onClick: () => void;
 }> = ({ item, elementPosition, isExpanded, onClick }) => {
-  const styles = useStyles2(getIntegrationCollapsibleTreeStyles);
+  const styles = useStyles2(getCollapsibleTreeStyles);
   const handleIconClick = !item.isCollapsible ? undefined : onClick;
 
   return (
