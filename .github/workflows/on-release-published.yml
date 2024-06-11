@@ -10,10 +10,15 @@ jobs:
     name: Linting and tests
     uses: ./.github/workflows/linting-and-tests.yml
 
+  snyk-security-scan:
+    name: Snyk security scan
+    uses: ./.github/workflows/snyk-security-scan.yml
+
   build-sign-and-publish-plugin-to-gcom:
     name: Build, sign, and publish frontend plugin to grafana.com
     needs:
       - linting-and-tests
+      - snyk-security-scan
     runs-on: ubuntu-latest
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
@@ -65,6 +70,7 @@ jobs:
     name: Build engine Docker image and publish to Dockerhub
     needs:
       - linting-and-tests
+      - snyk-security-scan
     uses: ./.github/workflows/build-engine-docker-image-and-publish-to-dockerhub.yml
     with:
       engine_version: ${{ github.ref_name }}
@@ -73,16 +79,11 @@ jobs:
         type=raw,value=${{ github.ref_name }}
         type=raw,value=latest
 
-  snyk-security-scan:
-    name: Snyk security scan
-    uses: ./.github/workflows/snyk-security-scan.yml
-
   merge-helm-release-pr:
     name: Merge Helm release PR
     needs:
       - build-sign-and-publish-plugin-to-gcom
       - build-engine-docker-image-and-publish-to-dockerhub
-      - snyk-security-scan
     runs-on: ubuntu-latest
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
