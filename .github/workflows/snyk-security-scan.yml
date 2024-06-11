@@ -4,9 +4,17 @@ on:
   workflow_call:
 
 jobs:
-  synk-security-scan:
+  snyk-python-security-scan:
     name: Snyk security scan
     runs-on: ubuntu-latest
+    # see this PR regarding the permissions needed for this workflow
+    # https://github.com/snyk/actions/pull/79
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
