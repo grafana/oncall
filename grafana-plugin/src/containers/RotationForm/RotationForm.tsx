@@ -42,7 +42,7 @@ import {
   TIME_UNITS_ORDER,
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
-import { DateTimePicker } from 'containers/RotationForm/parts/DateTimePicker';
+import { DateTimePicker, getFormattedDateDDMMYYYY } from 'containers/RotationForm/parts/DateTimePicker';
 import { DaysSelector } from 'containers/RotationForm/parts/DaysSelector';
 import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
 import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
@@ -86,12 +86,22 @@ interface RotationFormProps {
 }
 
 const getStartShift = (start: dayjs.Dayjs, utcOffset: number, isNewRotation: boolean = false) => {
-  let dateStart = start;
-  if (!isNewRotation) {
-    dateStart = dateStart.utcOffset(utcOffset);
+  if (isNewRotation) {
+    const localMoment = start.utcOffset(utcOffset);
+    const newValue = localMoment
+      .set('date', 1)
+      .set('year', start.year())
+      .set('month', start.month())
+      .set('date', start.date())
+      .set('hour', 0)
+      .set('minute', 0)
+      // .set('minute', 12) // debug
+      .set('second', 0);
+
+    return newValue;
   }
 
-  return dateStart;
+  return start.utcOffset(utcOffset); // .set('minute', 40); // debug
 };
 
 export const RotationForm = observer((props: RotationFormProps) => {
@@ -111,6 +121,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     isNewRotation,
   } = props;
 
+  const [isNewRotationInit, setIsNewRotationInit] = useState(isNewRotation);
   const shift = store.scheduleStore.shifts[shiftId];
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
@@ -124,7 +135,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(
-    getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, isNewRotation)
+    getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, isNewRotationInit)
   );
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(
     propsShiftEnd?.utcOffset(store.timezoneStore.selectedTimezoneOffset) || shiftStart.add(1, 'day')
@@ -151,6 +162,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
   useEffect(() => {
+    setIsNewRotationInit(false);
+
     window.addEventListener('resize', debouncedOnResize);
     return () => {
       window.removeEventListener('resize', debouncedOnResize);

@@ -1,6 +1,4 @@
-import dayjs, { Dayjs, ManipulateType } from 'dayjs';
-
-import { Timezone } from 'models/timezone/timezone.types';
+import { Dayjs, ManipulateType } from 'dayjs';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 
@@ -9,19 +7,6 @@ export const getRepeatShiftsEveryOptions = (repeatEveryPeriod: number) => {
   return Array.from(Array(count + 1).keys())
     .slice(1)
     .map((i) => ({ label: String(i), value: i }));
-};
-
-export const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
-  const localMoment = moment.tz(timezone);
-
-  return new Date(
-    localMoment.get('year'),
-    localMoment.get('month'),
-    localMoment.get('date'),
-    localMoment.get('hour'),
-    localMoment.get('minute'),
-    localMoment.get('second')
-  );
 };
 
 export interface TimeUnit {
