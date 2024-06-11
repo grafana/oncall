@@ -270,7 +270,7 @@ def test_organization_moved_middleware_amazon_sns_headers(
     response = client.post(url, data, format="json", **expected_sns_headers)
     assert mocked_make_request.called
     for k in AMAZON_SNS_HEADERS:
-        assert expected_sns_headers.get(f'HTTP_{k.upper().replace("-","_")}') == mocked_make_request.call_args.args[
+        assert expected_sns_headers.get(f'HTTP_{k.upper().replace("-", "_")}') == mocked_make_request.call_args.args[
             2
         ].get(k)
     assert response.content == expected_message

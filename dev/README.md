@@ -190,7 +190,7 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Make sure you have Python 3.11 installed.
+1. Make sure you have Python 3.12 installed.
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
    [here](https://www.postgresql.org/download/) for installation instructions.
@@ -270,23 +270,6 @@ and also overrides any defaults that are set in other `.env*` files
 ## Slack application setup
 
 For Slack app configuration check our docs: <https://grafana.com/docs/oncall/latest/open-source/#slack-setup>
-
-## Update drone build
-
-The `.drone.yml` build file must be signed when changes are made to it. Follow these steps:
-
-If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
-
-To sign the `.drone.yml` file:
-
-```bash
-export DRONE_SERVER=https://drone.grafana.net
-
-# Get your drone token from https://drone.grafana.net/account
-export DRONE_TOKEN=<Your DRONE_TOKEN>
-
-drone sign --save grafana/oncall .drone.yml
-```
 
 ## Troubleshooting
 

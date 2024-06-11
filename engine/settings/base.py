@@ -854,7 +854,7 @@ INSTALLED_WEBHOOK_PRESETS = [
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok", "apps.exotel"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -901,6 +901,7 @@ PHONE_PROVIDERS = {
 
 if IS_OPEN_SOURCE:
     PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+    PHONE_PROVIDERS["exotel"] = "apps.exotel.phone_provider.ExotelPhoneProvider"
 
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
 
@@ -914,6 +915,15 @@ ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
 ZVONOK_VERIFICATION_CAMPAIGN_ID = os.getenv("ZVONOK_VERIFICATION_CAMPAIGN_ID", None)
+
+EXOTEL_ACCOUNT_SID = os.getenv("EXOTEL_ACCOUNT_SID", None)
+EXOTEL_API_KEY = os.getenv("EXOTEL_API_KEY", None)
+EXOTEL_API_TOKEN = os.getenv("EXOTEL_API_TOKEN", None)
+EXOTEL_APP_ID = os.getenv("EXOTEL_APP_ID", None)
+EXOTEL_CALLER_ID = os.getenv("EXOTEL_CALLER_ID", None)
+EXOTEL_SMS_SENDER_ID = os.getenv("EXOTEL_SMS_SENDER_ID", None)
+EXOTEL_SMS_VERIFICATION_TEMPLATE = os.getenv("EXOTEL_SMS_VERIFICATION_TEMPLATE", None)
+EXOTEL_SMS_DLT_ENTITY_ID = os.getenv("EXOTEL_SMS_DLT_ENTITY_ID", None)
 
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 

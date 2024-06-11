@@ -22,7 +22,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
@@ -73,11 +73,16 @@ jobs:
         type=raw,value=${{ github.ref_name }}
         type=raw,value=latest
 
+  snyk-security-scan:
+    name: Snyk security scan
+    uses: ./.github/workflows/snyk-security-scan.yml
+
   merge-helm-release-pr:
     name: Merge Helm release PR
     needs:
       - build-sign-and-publish-plugin-to-gcom
       - build-engine-docker-image-and-publish-to-dockerhub
+      - snyk-security-scan
     runs-on: ubuntu-latest
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
@@ -86,7 +91,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
       - name: Get Vault secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main

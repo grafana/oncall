@@ -48,7 +48,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   grafanaTeamStore: GrafanaTeamStore;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
-interface RemoteFiltersState {
+export interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
   values: Record<string, any>;

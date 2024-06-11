@@ -44,17 +44,17 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Collect Workflow Telemetry
-        uses: runforesight/workflow-telemetry-action@v1
+        uses: catchpoint/workflow-telemetry-action@v2
         with:
           comment_on_pr: false
           proc_trace_chart_show: false
           proc_trace_table_show: false
 
       - name: Install Kind
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.10.0
         with:
           config: ./dev/kind.yml
           install_only: true
@@ -75,7 +75,7 @@ jobs:
 
       - name: Use cached plugin frontend build
         id: cache-plugin-frontend
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: grafana-plugin/dist
           key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
@@ -96,7 +96,7 @@ jobs:
 
       - name: Cache Playwright binaries/dependencies
         id: playwright-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.cache/ms-playwright"
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
