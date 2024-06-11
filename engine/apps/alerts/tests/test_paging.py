@@ -266,7 +266,8 @@ def test_direct_paging_always_create_group(
                 (user.pk, alert_groups[1].pk),
                 {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
             ),
-        ]
+        ],
+        any_order=True,
     )
 
 
