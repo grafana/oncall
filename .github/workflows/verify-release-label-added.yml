@@ -25,7 +25,7 @@ jobs:
     # see comment above
     if: github.event_name == 'pull_request'
     name: Verify Release Label Added
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - uses: docker://agilepathway/pull-request-label-checker:latest
         with:

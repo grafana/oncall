@@ -6,7 +6,7 @@ name: "Triage stale pull requests"
 jobs:
   stale-pull-requests:
     name: Triage stale pull requests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - uses: actions/stale@v8
         with:
@@ -29,7 +29,7 @@ jobs:
 
   stale-issues:
     name: Triage stale issues
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - uses: actions/stale@v8
         with:

@@ -42,7 +42,7 @@ jobs:
     secrets: inherit
 
   post-status-to-slack:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     needs: end-to-end-tests
     if: failure()
     steps:

@@ -6,7 +6,7 @@ name: Update `make docs` procedure
 jobs:
   main:
     if: github.repository == 'grafana/oncall'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/writers-toolkit/update-make-docs@update-make-docs/v1

@@ -14,7 +14,7 @@ jobs:
     name: Build, sign, and publish frontend plugin to grafana.com
     needs:
       - linting-and-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
     permissions:
@@ -83,7 +83,7 @@ jobs:
       - build-sign-and-publish-plugin-to-gcom
       - build-engine-docker-image-and-publish-to-dockerhub
       - snyk-security-scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
     permissions:

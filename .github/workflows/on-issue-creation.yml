@@ -8,7 +8,7 @@ name: On issue creation
 jobs:
   add-latest-version-comment-to-feature-request-issues:
     name: Add latest version comment to feature request issues
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     if: contains(github.event.issue.labels.*.name, 'feature request')
     permissions:
       issues: write
@@ -33,7 +33,7 @@ jobs:
 
   add-needs-triage-label:
     name: Add "needs triage" label
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - uses: actions/checkout@v2
       - name: Add "needs triage" label
@@ -43,7 +43,7 @@ jobs:
 
   map-selected-product-areas-to-labels-and-assignees:
     name: Map selected product areas to labels and assignees
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     # try to avoid running this job for an issue that is created via a tasklist
     # only run it for issues created via the bug or feature request issue templates
     if: >

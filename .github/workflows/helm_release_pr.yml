@@ -6,7 +6,7 @@ name: Create PR to release updated oncall Helm chart
       - "v[0-9]+.[0-9]+.[0-9]+"
 jobs:
   update-helm-chart-versions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - uses: actions/checkout@v4
       - name: Define app_version and helm version

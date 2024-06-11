@@ -12,7 +12,7 @@ env:
 jobs:
   lint-entire-project:
     name: "Lint entire project"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
 
   lint-test-and-build-frontend:
     name: "Lint, test, and build frontend"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
 
   test-technical-documentation:
     name: "Test technical documentation"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - name: "Check out code"
         uses: "actions/checkout@v4"
@@ -55,7 +55,7 @@ jobs:
 
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     services:
       rabbit_test:
         image: rabbitmq:3.12.0
@@ -86,7 +86,7 @@ jobs:
 
   unit-test-helm-chart:
     name: "Helm Chart Unit Tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-x64-large
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
@@ -132,7 +132,7 @@ jobs:
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-x64-large
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
@@ -171,7 +171,7 @@ jobs:
 
   unit-test-backend-sqlite-redis:
     name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-x64-large
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
@@ -201,7 +201,7 @@ jobs:
 
   unit-test-migrators:
     name: "Unit tests - Migrators"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -215,7 +215,7 @@ jobs:
 
   mypy:
     name: "mypy"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
