@@ -78,8 +78,6 @@ export const DateTimePicker = observer(
         .toDate();
     };
 
-    console.log(getConvertedDateToOffset().toString());
-
     return (
       <VerticalGroup>
         <div className={styles.wrapper}>

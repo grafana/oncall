@@ -42,7 +42,7 @@ import {
   TIME_UNITS_ORDER,
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
-import { DateTimePicker, getFormattedDateDDMMYYYY } from 'containers/RotationForm/parts/DateTimePicker';
+import { DateTimePicker } from 'containers/RotationForm/parts/DateTimePicker';
 import { DaysSelector } from 'containers/RotationForm/parts/DaysSelector';
 import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
 import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
@@ -85,7 +85,7 @@ interface RotationFormProps {
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
-const getStartShift = (start: dayjs.Dayjs, utcOffset: number, isNewRotation: boolean = false) => {
+const getStartShift = (start: dayjs.Dayjs, utcOffset: number, isNewRotation = false) => {
   if (isNewRotation) {
     const localMoment = start.utcOffset(utcOffset);
     const newValue = localMoment
