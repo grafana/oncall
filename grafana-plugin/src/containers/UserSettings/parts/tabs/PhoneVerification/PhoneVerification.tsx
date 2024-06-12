@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -168,7 +169,9 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const isButtonDisabled =
     phone === user.verified_phone_number ||
     (!isCodeSent && !isPhoneValid && !isPhoneCallInitiated) ||
-    !isPhoneProviderConfigured;
+    !isPhoneProviderConfigured ||
+    !window.grecaptcha;
+  const disabledButtonTooltipText = window.grecaptcha ? undefined : 'reCAPTCHA has not been loaded';
 
   const isPhoneDisabled = !!user.verified_phone_number;
   const isCodeFieldDisabled = (!isCodeSent && !isPhoneCallInitiated) || !isUserActionAllowed(action);
@@ -263,6 +266,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
           isCodeSent={isCodeSent}
           isPhoneCallInitiated={isPhoneCallInitiated}
           isButtonDisabled={isButtonDisabled}
+          disabledButtonTooltipText={disabledButtonTooltipText}
           providerConfiguration={providerConfiguration}
           onSubmitCallback={onSubmitCallback}
           onVerifyCallback={onVerifyCallback}
@@ -306,6 +310,7 @@ interface PhoneVerificationButtonsGroupProps {
   isCodeSent: boolean;
   isPhoneCallInitiated: boolean;
   isButtonDisabled: boolean;
+  disabledButtonTooltipText?: string;
   providerConfiguration: {
     configured: boolean;
     test_call: boolean;
@@ -328,6 +333,7 @@ const PhoneVerificationButtonsGroup = observer(
     isCodeSent,
     isPhoneCallInitiated,
     isButtonDisabled,
+    disabledButtonTooltipText,
     providerConfiguration,
     onSubmitCallback,
     onVerifyCallback,
@@ -353,30 +359,37 @@ const PhoneVerificationButtonsGroup = observer(
                 </WithPermissionControlTooltip>
               </>
             ) : (
-              <HorizontalGroup>
-                {providerConfiguration.verification_sms && (
-                  <WithPermissionControlTooltip userAction={action}>
-                    <Button
-                      variant="primary"
-                      onClick={() => onSubmitCallback('verification_sms')}
-                      disabled={isButtonDisabled}
-                    >
-                      Send Code
-                    </Button>
-                  </WithPermissionControlTooltip>
+              <RenderConditionally
+                shouldRender={Boolean(providerConfiguration)}
+                render={() => (
+                  <HorizontalGroup>
+                    {providerConfiguration.verification_sms && (
+                      <WithPermissionControlTooltip userAction={action}>
+                        <Button
+                          variant="primary"
+                          onClick={() => onSubmitCallback('verification_sms')}
+                          disabled={isButtonDisabled}
+                          tooltip={disabledButtonTooltipText}
+                        >
+                          Send Code
+                        </Button>
+                      </WithPermissionControlTooltip>
+                    )}
+                    {providerConfiguration.verification_call && (
+                      <WithPermissionControlTooltip userAction={action}>
+                        <Button
+                          variant="primary"
+                          onClick={() => onSubmitCallback('verification_call')}
+                          disabled={isButtonDisabled}
+                          tooltip={disabledButtonTooltipText}
+                        >
+                          Call to get the code
+                        </Button>
+                      </WithPermissionControlTooltip>
+                    )}
+                  </HorizontalGroup>
                 )}
-                {providerConfiguration.verification_call && (
-                  <WithPermissionControlTooltip userAction={action}>
-                    <Button
-                      variant="primary"
-                      onClick={() => onSubmitCallback('verification_call')}
-                      disabled={isButtonDisabled}
-                    >
-                      Call to get the code
-                    </Button>
-                  </WithPermissionControlTooltip>
-                )}
-              </HorizontalGroup>
+              ></RenderConditionally>
             )}
           </HorizontalGroup>
         )}

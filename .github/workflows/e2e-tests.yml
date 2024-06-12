@@ -54,7 +54,7 @@ jobs:
           proc_trace_table_show: false
 
       - name: Install Kind
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.10.0
         with:
           config: ./dev/kind.yml
           install_only: true

@@ -22,7 +22,7 @@ jobs:
           install-dependencies: "false"
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
-      - uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@v3.0.1
 
   lint-test-and-build-frontend:
     name: "Lint, test, and build frontend"
