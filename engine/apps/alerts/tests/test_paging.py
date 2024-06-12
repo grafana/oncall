@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from django.utils import timezone
@@ -78,7 +78,7 @@ def test_direct_paging_user(make_organization, make_user_for_organization, djang
     assert len(callbacks) == 3
     # notifications sent
     for u, important in ((user, False), (other_user, True)):
-        assert notify_task.apply_async.called_with(
+        notify_task.apply_async.assert_any_call(
             (u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
         )
         expected_info = {"user": u.public_primary_key, "important": important}
@@ -158,7 +158,11 @@ def test_direct_paging_no_team_and_no_users(make_organization, make_user_for_org
 
 @pytest.mark.django_db
 def test_direct_paging_reusing_alert_group(
-    make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    django_capture_on_commit_callbacks,
 ):
     organization = make_organization()
     user = make_user_for_organization(organization)
@@ -166,8 +170,9 @@ def test_direct_paging_reusing_alert_group(
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
 
-    with patch("apps.alerts.paging.notify_user_task") as notify_task:
-        direct_paging(organization, from_user, "Fire!", users=[(user, False)], alert_group=alert_group)
+    with django_capture_on_commit_callbacks(execute=True):
+        with patch("apps.alerts.paging.notify_user_task") as notify_task:
+            direct_paging(organization, from_user, "Fire!", users=[(user, False)], alert_group=alert_group)
 
     # no new alert group is created
     alert_groups = AlertGroup.objects.all()
@@ -176,8 +181,8 @@ def test_direct_paging_reusing_alert_group(
 
     # notifications sent
     ag = alert_groups.get()
-    assert notify_task.apply_async.called_with(
-        (user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    notify_task.apply_async.assert_has_calls(
+        [call((user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True})]
     )
 
 
@@ -229,28 +234,40 @@ def test_unpage_user_ok(make_organization, make_user_for_organization, make_aler
 
 
 @pytest.mark.django_db
-def test_direct_paging_always_create_group(make_organization, make_user_for_organization):
+def test_direct_paging_always_create_group(
+    make_organization,
+    make_user_for_organization,
+    django_capture_on_commit_callbacks,
+):
     organization = make_organization()
     user = make_user_for_organization(organization)
     from_user = make_user_for_organization(organization)
     msg = "Help!"
     users = [(user, False)]
 
-    with patch("apps.alerts.paging.notify_user_task") as notify_task:
-        # although calling twice with same params, there should be 2 alert groups
-        direct_paging(organization, from_user, msg, users=users)
-        direct_paging(organization, from_user, msg, users=users)
+    with django_capture_on_commit_callbacks(execute=True):
+        with patch("apps.alerts.paging.notify_user_task") as notify_task:
+            # although calling twice with same params, there should be 2 alert groups
+            direct_paging(organization, from_user, msg, users=users)
+            direct_paging(organization, from_user, msg, users=users)
 
     # alert group created
     alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 2
 
     # notifications sent
-    assert notify_task.apply_async.called_with(
-        (user.pk, alert_groups[0].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
-    )
-    assert notify_task.apply_async.called_with(
-        (user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    notify_task.apply_async.assert_has_calls(
+        [
+            call(
+                (user.pk, alert_groups[0].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+            call(
+                (user.pk, alert_groups[1].pk),
+                {"important": False, "notify_even_acknowledged": True, "notify_anyway": True},
+            ),
+        ],
+        any_order=True,
     )
 
 

@@ -141,7 +141,7 @@ def test_notify_by_provider_call_limits_warning(
     phone_backend = PhoneBackend()
     phone_backend._notify_by_provider_call(user, "some_message")
 
-    assert mock_add_call_limit_warning.called_once_with(2, "some_message")
+    mock_add_call_limit_warning.assert_called_once_with(2, "some_message")
 
 
 @pytest.mark.django_db
