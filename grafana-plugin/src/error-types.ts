@@ -13,9 +13,8 @@ const OnCallErrorCode = {
 type OnCallErrorCode = (typeof OnCallErrorCode)[keyof typeof OnCallErrorCode];
 
 type OnCallError = {
-  code: OnCallErrorCode;
+  code?: OnCallErrorCode;
   message: string;
-  details?: string;
   fields?: {
     [key: string]: string[];
   };
