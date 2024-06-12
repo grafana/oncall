@@ -511,9 +511,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
       );
     } else {
       // empty shift (aka new rotation)
-      setRotationStart(rotationStart.utcOffset(store.timezoneStore.selectedTimezoneOffset));
+      setShiftStart(shiftStart.utcOffset(store.timezoneStore.selectedTimezoneOffset));
       if (!endLess) {
-        setRotationEnd(rotationEnd.utcOffset(store.timezoneStore.selectedTimezoneOffset));
+        setShiftEnd(shiftEnd.utcOffset(store.timezoneStore.selectedTimezoneOffset));
       }
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
@@ -524,8 +524,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
 
   const disabled = hasUpdatedShift || ended;
-
-  console.log(rotationStart.toDate());
 
   return (
     <>

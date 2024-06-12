@@ -46,16 +46,21 @@ export const DateTimePicker = observer(
     };
 
     const handleTimeChange = (timeMoment: DateTime) => {
-      const newDate = propValue.set('hour', timeMoment.hour()).set('minute', timeMoment.minute());
+      const newDate = dayjs(propValue.toDate())
+        .utcOffset(selectedTimezoneOffset)
+        .set('hour', timeMoment.hour())
+        .set('minute', timeMoment.minute());
 
       onChange(newDate);
     };
 
     const getTimeValueInSelectedTimezone = () => {
-      const time = dateTime(valueInSelectedTimezone.format());
-      time.set('hour', valueInSelectedTimezone.hour());
-      time.set('minute', valueInSelectedTimezone.minute());
-      time.set('second', valueInSelectedTimezone.second());
+      const dateInOffset = dayjs(propValue.toDate()).utcOffset(selectedTimezoneOffset);
+      const time = dateTime();
+      time.set('hour', dateInOffset.hour());
+      time.set('minute', dateInOffset.minute());
+      time.set('seconds', dateInOffset.second());
+
       return time;
     };
 
@@ -70,13 +75,12 @@ export const DateTimePicker = observer(
 
       let resultDate = date;
       if (formattedDate !== formattedDayMoment) {
+        // TODO: Check with old/new if this is still needed
         resultDate = resultDate.set('hours', Math.abs(selectedTimezoneOffset / 60));
       }
 
       return resultDate.toDate();
     };
-
-    // console.log('Converted date is ' + forceConvertToDateWithOffset(valueInSelectedTimezone));
 
     return (
       <VerticalGroup>
