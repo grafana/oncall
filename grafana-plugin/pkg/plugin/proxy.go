@@ -121,7 +121,6 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 }
 
 func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pathPrefix string) {
-	log.DefaultLogger.Error("Start proxy")
 	proxyMethod := req.Method
 	var bodyReader io.Reader
 	if req.Body != nil {

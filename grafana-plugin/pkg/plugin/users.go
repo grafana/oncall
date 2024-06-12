@@ -39,50 +39,17 @@ type OnCallUser struct {
 }
 
 func (a *App) GetUser(settings *OnCallPluginSettings, user *backend.User) (*OnCallUser, error) {
-	reqURL, err := url.Parse(settings.GrafanaURL)
+	users, err := a.GetAllUsers(settings)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing URL: %+v", err)
+		return nil, err
 	}
 
-	reqURL.Path += "api/users/lookup"
-	q := reqURL.Query()
-	q.Set("loginOrEmail", user.Login)
-	reqURL.RawQuery = q.Encode()
-
-	req, err := http.NewRequest("GET", reqURL.String(), nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating new request: %+v", err)
+	for _, u := range users {
+		if u.Login == user.Login {
+			return &u, nil
+		}
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
-
-	res, err := a.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %+v", err)
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response: %+v", err)
-	}
-
-	var result LookupUser
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
-	}
-
-	if res.StatusCode == 200 {
-		return &OnCallUser{
-			ID:        result.ID,
-			Name:      result.Name,
-			Login:     result.Login,
-			Email:     result.Email,
-			AvatarURL: result.AvatarURL,
-			Role:      user.Role,
-		}, nil
-	}
-	return nil, fmt.Errorf("no user for %s, http status %s", user.Login, res.Status)
+	return nil, fmt.Errorf("user %s not found", user.Login)
 }
 
 func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.User) (*OnCallUser, error) {

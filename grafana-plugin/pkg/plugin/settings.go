@@ -20,6 +20,7 @@ type OnCallPluginSettingsJSONData struct {
 	StackID      int    `json:"stackId,omitempty"`
 	OrgID        int    `json:"orgId,omitempty"`
 	License      string `json:"license"`
+	GrafanaURL   string `json:"grafanaUrl"`
 }
 
 type OnCallPluginSettingsSecureJSONData struct {
@@ -59,11 +60,15 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettin
 	}
 
 	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
-
 	cfg := backend.GrafanaConfigFromContext(ctx)
-	settings.GrafanaURL, err = cfg.AppURL()
+	grafanaURL, err := cfg.AppURL()
 	if err != nil {
-		return settings, err
+		// Fallback to GrafanaURL already being set in settings outside backend plugin from provisioning or UI
+		if settings.GrafanaURL == "" {
+			return settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %+v", settings)
+		}
+	} else {
+		settings.GrafanaURL = grafanaURL
 	}
 
 	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
@@ -101,6 +106,7 @@ func (a *App) SaveOnCallSettings(settings OnCallPluginSettings) error {
 			StackID:      settings.StackID,
 			OrgID:        settings.OrgID,
 			License:      settings.License,
+			GrafanaURL:   settings.GrafanaURL,
 		},
 		SecureJSONData: OnCallPluginSettingsSecureJSONData{
 			OnCallToken:  settings.OnCallToken,
