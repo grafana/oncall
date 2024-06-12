@@ -218,7 +218,8 @@ Create a new Flow for more complex handling:
 If Studio isn’t visible, select **Explore Products** and navigate to Studio under the **Developer Tools** section.
 1. Select **Create new Flow**, enter a Flow name, and click **Next**.
 1. Select **Import from JSON** and click **Next**.
-1. Import the provided JSON, replacing `<YOUR_INTEGRATION_URL>` (Lines 54 and 156) with the webhook integration URL from Grafana OnCall.
+1. Import the provided JSON, which can be found in the [Grafana OnCall GitHub repository](https://github.com/grafana/oncall/blob/dev/tools/twilio/flow_with_routes.json).
+1. Replace `<YOUR_INTEGRATION_URL>` (Lines 54 and 156) with the webhook integration URL from Grafana OnCall.
 1. After adding your webhook URL, click **Next**.
 1. Review the flow and click **Publish** to make the flow available for use.
 
