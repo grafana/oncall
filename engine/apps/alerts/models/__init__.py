@@ -15,3 +15,4 @@ from .invitation import Invitation  # noqa: F401
 from .maintainable_object import MaintainableObject  # noqa: F401
 from .resolution_note import ResolutionNote, ResolutionNoteSlackMessage  # noqa: F401
 from .user_has_notification import UserHasNotification  # noqa: F401
+from .user_notification_bundle import BundledNotification, UserNotificationBundle  # noqa: F401

@@ -1,5 +1,5 @@
-import time
 from functools import partial
+from uuid import uuid4
 
 from celery.exceptions import Retry
 from django.conf import settings
@@ -9,13 +9,51 @@ from kombu.utils.uuid import uuid as celery_uuid
 from telegram.error import RetryAfter
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
-from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
+
+
+def create_send_bundled_notification_task(user_notification_bundle, alert_group, task_id, eta):
+    """Schedule notification task for bundled notifications"""
+    send_bundled_notification.apply_async(
+        (user_notification_bundle.id,),
+        eta=eta,
+        task_id=task_id,
+    )
+    task_logger.info(
+        f"Scheduled send_bundled_notification task {task_id}, "
+        f"user_notification_bundle: {user_notification_bundle.id}, alert_group {alert_group.id}, eta: {eta}"
+    )
+
+
+def create_perform_notification_task(log_record_pk, alert_group_pk):
+    task = perform_notification.apply_async((log_record_pk,))
+    task_logger.info(
+        f"Created perform_notification task {task} log_record={log_record_pk} " f"alert_group={alert_group_pk}"
+    )
+
+
+def build_user_notification_plan(notification_policy, reason):
+    from apps.base.models import UserNotificationPolicy
+
+    # Here we collect a brief overview of notification steps configured for user to send it to thread.
+    collected_steps_ids = []
+    next_notification_policy = notification_policy.next()
+    while next_notification_policy is not None:
+        if next_notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
+            if next_notification_policy.notify_by not in collected_steps_ids:
+                collected_steps_ids.append(next_notification_policy.notify_by)
+        next_notification_policy = next_notification_policy.next()
+    collected_steps = ", ".join(
+        UserNotificationPolicy.NotificationChannel(step_id).label for step_id in collected_steps_ids
+    )
+    reason = ("Reason: " + reason + "\n") if reason is not None else ""
+    reason += ("Further notification plan: " + collected_steps) if len(collected_steps_ids) > 0 else ""
+    return reason
 
 
 @shared_dedicated_queue_retry_task(
@@ -31,7 +69,7 @@ def notify_user_task(
     important=False,
     notify_anyway=False,
 ):
-    from apps.alerts.models import AlertGroup, UserHasNotification
+    from apps.alerts.models import AlertGroup, UserHasNotification, UserNotificationBundle
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.user_management.models import User
 
@@ -42,8 +80,9 @@ def notify_user_task(
 
     countdown = 0
     stop_escalation = False
-    log_message = ""
     log_record = None
+    is_notification_bundled = False
+    user_notification_bundle = None
 
     with transaction.atomic():
         try:
@@ -78,19 +117,7 @@ def notify_user_task(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
                 )
                 return
-            # Here we collect a brief overview of notification steps configured for user to send it to thread.
-            collected_steps_ids = []
-            next_notification_policy = notification_policy.next()
-            while next_notification_policy is not None:
-                if next_notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
-                    if next_notification_policy.notify_by not in collected_steps_ids:
-                        collected_steps_ids.append(next_notification_policy.notify_by)
-                next_notification_policy = next_notification_policy.next()
-            collected_steps = ", ".join(
-                UserNotificationPolicy.NotificationChannel(step_id).label for step_id in collected_steps_ids
-            )
-            reason = ("Reason: " + reason + "\n") if reason is not None else ""
-            reason += ("Further notification plan: " + collected_steps) if len(collected_steps_ids) > 0 else ""
+            reason = build_user_notification_plan(notification_policy, reason)
         else:
             if notify_user_task.request.id != user_has_notification.active_notification_policy_id:
                 task_logger.info(
@@ -122,7 +149,7 @@ def notify_user_task(
                 alert_group=alert_group,
                 slack_prevent_posting=prevent_posting_to_thread,
             )
-            log_message += "Personal escalation exceeded"
+            task_logger.info(f"Personal escalation exceeded. User: {user.pk}, alert_group: {alert_group.pk}")
         else:
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
@@ -139,11 +166,9 @@ def notify_user_task(
                 return
 
             if notification_policy.step == UserNotificationPolicy.Step.WAIT:
-                if notification_policy.wait_delay is not None:
-                    delay_in_seconds = notification_policy.wait_delay.total_seconds()
-                else:
-                    delay_in_seconds = 0
-                countdown = delay_in_seconds
+                countdown = (
+                    notification_policy.wait_delay.total_seconds() if notification_policy.wait_delay is not None else 0
+                )
                 log_record = UserNotificationPolicyLogRecord(
                     author=user,
                     type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
@@ -152,7 +177,7 @@ def notify_user_task(
                     slack_prevent_posting=prevent_posting_to_thread,
                     notification_step=notification_policy.step,
                 )
-                task_logger.info(f"notify_user_task: Waiting {delay_in_seconds} to notify user {user.pk}")
+                task_logger.info(f"notify_user_task: Waiting {countdown} to notify user {user.pk}")
             elif notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
                 user_to_be_notified_in_slack = (
                     notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK
@@ -170,16 +195,57 @@ def notify_user_task(
                         notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
                     )
                 else:
-                    log_record = UserNotificationPolicyLogRecord(
-                        author=user,
-                        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
-                        notification_policy=notification_policy,
-                        alert_group=alert_group,
-                        reason=reason,
-                        slack_prevent_posting=prevent_posting_to_thread,
-                        notification_step=notification_policy.step,
-                        notification_channel=notification_policy.notify_by,
-                    )
+                    # todo: feature flag
+                    if notification_policy.notify_by in UserNotificationBundle.NOTIFICATION_CHANNELS_TO_BUNDLE:
+                        user_notification_bundle, _ = UserNotificationBundle.objects.get_or_create(
+                            user=user, important=important, notification_channel=notification_policy.notify_by
+                        )
+                        user_notification_bundle = UserNotificationBundle.objects.filter(
+                            pk=user_notification_bundle.pk
+                        ).select_for_update()[0]
+                        # check if notification needs to be bundled
+                        if user_notification_bundle.notified_recently():
+                            user_notification_bundle.attach_notification(alert_group, notification_policy)
+                            # schedule notification task for bundled notifications if it hasn't been scheduled or
+                            # task eta is outdated
+                            eta_is_valid = user_notification_bundle.eta_is_valid()
+                            if not user_notification_bundle.notification_task_id or not eta_is_valid:
+                                if not eta_is_valid:
+                                    task_logger.warning(
+                                        f"ETA ({user_notification_bundle.eta}) is not valid for "
+                                        f"user_notification_bundle {user_notification_bundle.id}, "
+                                        f"task_id {user_notification_bundle.notification_task_id}. "
+                                        f"Rescheduling the task"
+                                    )
+                                new_eta = user_notification_bundle.get_notification_eta()
+                                task_id = celery_uuid()
+                                user_notification_bundle.notification_task_id = task_id
+                                user_notification_bundle.eta = new_eta
+                                user_notification_bundle.save(update_fields=["notification_task_id", "eta"])
+
+                                transaction.on_commit(
+                                    partial(
+                                        create_send_bundled_notification_task,
+                                        user_notification_bundle,
+                                        alert_group,
+                                        task_id,
+                                        new_eta,
+                                    )
+                                )
+                            is_notification_bundled = True
+
+                    if not is_notification_bundled:
+                        log_record = UserNotificationPolicyLogRecord(
+                            author=user,
+                            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                            notification_policy=notification_policy,
+                            alert_group=alert_group,
+                            reason=reason,
+                            slack_prevent_posting=prevent_posting_to_thread,
+                            notification_step=notification_policy.step,
+                            notification_channel=notification_policy.notify_by,
+                        )
+
         if log_record:  # log_record is None if user notification policy step is unspecified
             # if this is the first notification step, and user hasn't been notified for this alert group - update metric
             if (
@@ -191,30 +257,20 @@ def notify_user_task(
                 ).exists()
             ):
                 update_metrics_for_user.apply_async((user.id,))
-
             log_record.save()
-            if notify_user_task.request.retries == 0:
-                transaction.on_commit(partial(send_user_notification_signal.apply_async, (log_record.pk,)))
 
         if not stop_escalation:
-            if notification_policy.step != UserNotificationPolicy.Step.WAIT:
+            # if the step is NOTIFY and notification was not not bundled, perform regular notification
+            # and update time when user was notified
+            if notification_policy.step == UserNotificationPolicy.Step.NOTIFY and not is_notification_bundled:
+                transaction.on_commit(partial(create_perform_notification_task, log_record.pk, alert_group_pk))
 
-                def _create_perform_notification_task(log_record_pk, alert_group_pk):
-                    task = perform_notification.apply_async((log_record_pk,))
-                    task_logger.info(
-                        f"Created perform_notification task {task} log_record={log_record_pk} "
-                        f"alert_group={alert_group_pk}"
-                    )
+                if user_notification_bundle:
+                    user_notification_bundle.last_notified = timezone.now()
+                    user_notification_bundle.save(update_fields=["last_notified"])
 
-                transaction.on_commit(partial(_create_perform_notification_task, log_record.pk, alert_group_pk))
-
-            delay = NEXT_ESCALATION_DELAY
-            if countdown is not None:
-                delay += countdown
             task_id = celery_uuid()
-
-            user_has_notification.active_notification_policy_id = task_id
-            user_has_notification.save(update_fields=["active_notification_policy_id"])
+            user_has_notification.update_active_task_id(task_id=task_id)
 
             transaction.on_commit(
                 partial(
@@ -225,14 +281,13 @@ def notify_user_task(
                         "notify_anyway": notify_anyway,
                         "prevent_posting_to_thread": prevent_posting_to_thread,
                     },
-                    countdown=delay,
+                    countdown=countdown + NEXT_ESCALATION_DELAY,
                     task_id=task_id,
                 )
             )
 
         else:
-            user_has_notification.active_notification_policy_id = None
-            user_has_notification.save(update_fields=["active_notification_policy_id"])
+            user_has_notification.update_active_task_id(task_id=None)
 
 
 @shared_dedicated_queue_retry_task(
@@ -418,17 +473,138 @@ def perform_notification(log_record_pk):
 
 
 @shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+def send_bundled_notification(user_notification_bundle_id):
+    from apps.alerts.models import AlertGroup, UserNotificationBundle
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+
+    task_logger.info(f"Start send_bundled_notification for user_notification_bundle {user_notification_bundle_id}")
+    with transaction.atomic():
+        user_notification_bundle = UserNotificationBundle.objects.filter(
+            pk=user_notification_bundle_id
+        ).select_for_update()[0]
+
+        if send_bundled_notification.request.id != user_notification_bundle.notification_task_id:
+            task_logger.info(
+                f"send_bundled_notification: notification_task_id mismatch. "
+                f"Duplication or non-active notification triggered. "
+                f"Active: {user_notification_bundle.notification_task_id}"
+            )
+            return
+
+        notifications = user_notification_bundle.notifications.filter(bundle_uuid__isnull=True)
+
+        alert_group_ids = [i.alert_group_id for i in notifications]
+        # get active alert groups to notify about
+        active_alert_groups = set(
+            AlertGroup.objects.filter(
+                id__in=alert_group_ids,
+                resolved=False,
+                acknowledged=False,
+                silenced=False,
+            ).values_list("id", flat=True)
+        )
+        created_lod_records = []
+        skip_notification_ids = []
+        perform_notifications = []
+
+        # update metric
+        existing_logs = set(
+            user_notification_bundle.user.personal_log_records.filter(
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                alert_group_id__in=active_alert_groups,
+            ).values_list("alert_group_id", flat=True)
+        )
+        metric_counter = len(active_alert_groups - existing_logs)
+        if metric_counter > 0:
+            update_metrics_for_user.apply_async((user_notification_bundle.user.id, metric_counter))
+
+        # create logs
+        for notification in notifications:
+            if notification.alert_group_id not in active_alert_groups:
+                task_logger.info(
+                    f"alert_group {notification.alert_group_id} is not active or doesn't exist, skip notification"
+                )
+                skip_notification_ids.append(notification.id)
+                continue
+
+            # collect notifications for active alert groups
+            perform_notifications.append(notification)
+
+            log_record = UserNotificationPolicyLogRecord(
+                author=user_notification_bundle.user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                notification_policy=notification.notification_policy,
+                alert_group=notification.alert_group,
+                notification_step=UserNotificationPolicy.Step.NOTIFY,
+                notification_channel=user_notification_bundle.notification_channel,
+            )
+            log_record.save()
+            created_lod_records.append(log_record)
+
+        user_notification_bundle.notification_task_id = None
+        user_notification_bundle.last_notified = timezone.now()
+        user_notification_bundle.eta = None
+        user_notification_bundle.save(update_fields=["notification_task_id", "last_notified", "eta"])
+
+        if not user_notification_bundle.user.is_notification_allowed:
+            for notification in perform_notifications:
+                UserNotificationPolicyLogRecord(
+                    author=user_notification_bundle.user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    reason="notification is not allowed for user",
+                    alert_group=notification.alert_group,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
+                ).save()
+            notifications.delete()
+            return
+
+        if not perform_notifications:
+            task_logger.info("no alert groups to notify about, skip notification")
+            notifications.delete()
+
+        elif len(perform_notifications) == 1:
+            # perform regular notification
+            log_record = created_lod_records[0]
+            task_logger.info(
+                f"there is only one alert group in bundled notification, perform regular notification. "
+                f"alert_group {log_record.alert_group_id}"
+            )
+            transaction.on_commit(partial(create_perform_notification_task, log_record.pk, log_record.alert_group_id))
+            notifications.delete()
+        else:
+            notifications.filter(id__in=skip_notification_ids).delete()
+            bundle_uuid = uuid4()
+            notifications.update(bundle_uuid=bundle_uuid)
+            task_logger.info(
+                f"perform notification for alert groups with ids: {active_alert_groups}, bundle_uuid: {bundle_uuid}"
+            )
+
+            if user_notification_bundle.notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
+                # todo:
+                #  notify_by_sms_bundle:
+                #  - call send sms async
+                #  - filter notifications by bundle_uuid
+                #  - send sms
+                #  - create logs
+                #  - delete notifications
+                # phone_backend = PhoneBackend()
+                # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
+                pass
+
+        task_logger.info(
+            f"Finished send_bundled_notification for user_notification_bundle {user_notification_bundle_id}"
+        )
+
+
+# deprecated
+@shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=0 if settings.DEBUG else None
 )
 def send_user_notification_signal(log_record_pk):
-    start_time = time.time()
-
-    from apps.base.models import UserNotificationPolicyLogRecord
-
-    task_logger.debug(f"LOG RECORD PK: {log_record_pk}")
-    task_logger.debug(f"LOG RECORD LAST: {UserNotificationPolicyLogRecord.objects.last()}")
-
-    log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
-    user_notification_action_triggered_signal.send(sender=send_user_notification_signal, log_record=log_record)
-
-    task_logger.debug("--- USER SIGNAL TOOK %s seconds ---" % (time.time() - start_time))
+    # Triggers user_notification_action_triggered_signal
+    # This signal is only connected to UserSlackRepresentative and triggers posting message to Slack about some
+    # FAILED notifications (see NotificationDeliveryStep and ERRORS_TO_SEND_IN_SLACK_CHANNEL).
+    # No need to call it here.
+    pass

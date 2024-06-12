@@ -16,3 +16,7 @@ class UserHasNotification(models.Model):
 
     class Meta:
         unique_together = ("user", "alert_group")
+
+    def update_active_task_id(self, task_id):
+        self.active_notification_policy_id = task_id
+        self.save(update_fields=["active_notification_policy_id"])

@@ -105,6 +105,7 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.notify_ical_schedule_shift.notify_ical_schedule_shift": {"queue": "critical"},
     "apps.alerts.tasks.notify_user.notify_user_task": {"queue": "critical"},
     "apps.alerts.tasks.notify_user.perform_notification": {"queue": "critical"},
+    "apps.alerts.tasks.notify_user.send_bundled_notification": {"queue": "critical"},
     "apps.alerts.tasks.notify_user.send_user_notification_signal": {"queue": "critical"},
     "apps.alerts.tasks.resolve_alert_group_by_source_if_needed.resolve_alert_group_by_source_if_needed": {
         "queue": "critical"
