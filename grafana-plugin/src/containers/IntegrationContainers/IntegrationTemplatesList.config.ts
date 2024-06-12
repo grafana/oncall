@@ -26,10 +26,9 @@ const additionalTemplatesToRender: TemplateBlock[] = [
   },
 ];
 
-export const getTemplatesToRender = (features: Record<string, boolean>) => {
-  if (features[AppFeature.MsTeams]) {
+export const getTemplatesToRender = (features?: Record<string, boolean>) => {
+  if (features?.[AppFeature.MsTeams]) {
     return commonTemplatesToRender.concat(additionalTemplatesToRender);
   }
-
   return commonTemplatesToRender;
 };

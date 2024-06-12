@@ -179,7 +179,9 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   };
 
   const onError = useCallback((error) => {
-    setErrors(error.response.data);
+    if (error.response) {
+      setErrors(error.response.data);
+    }
   }, []);
 
   const handleChange = useDebouncedCallback(updatePreview, 200);

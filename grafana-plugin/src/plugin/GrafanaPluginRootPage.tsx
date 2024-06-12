@@ -48,11 +48,7 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
   });
 
   return (
-    <ErrorBoundary
-      onError={(error) => {
-        FaroHelper.faro.api.pushError(error, { context: { type: 'react' } });
-      }}
-    >
+    <ErrorBoundary onError={FaroHelper.pushReactError}>
       {() => (
         <Provider store={rootStore}>
           <PluginSetup InitializedComponent={Root} {...props} />

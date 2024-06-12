@@ -70,6 +70,10 @@ class BaseFaroHelper {
     return this.faro;
   }
 
+  pushReactError = (error: Error) => {
+    this.faro?.api.pushError(error, { context: { type: 'react' } });
+  };
+
   pushNetworkRequestEvent = (config: { method: string; url: string; body: string }) => {
     this.faro?.api.pushEvent('Request sent', config);
   };
@@ -97,10 +101,10 @@ class BaseFaroHelper {
     });
   };
 
-  pushAxiosNetworkResponseEvent = ({ name, res }: { name: string; res: AxiosResponse }) => {
+  pushAxiosNetworkResponseEvent = ({ name, res }: { name: string; res?: AxiosResponse }) => {
     this.faro?.api.pushEvent(name, {
-      url: res.config?.url,
-      status: `${res.status}`,
+      url: res?.config?.url,
+      status: `${res?.status}`,
       statusText: `${res.statusText}`,
       method: res.config?.method.toUpperCase(),
     });
