@@ -2,6 +2,7 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { Field, HorizontalGroup, Input, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,9 +11,9 @@ import { OnCallPluginMetaJSONData } from 'types';
 import { Button } from 'components/Button/Button';
 import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { Text } from 'components/Text/Text';
+import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { DOCS_ONCALL_OSS_INSTALL, DOCS_SERVICE_ACCOUNTS, getOnCallApiUrl } from 'utils/consts';
 import { validateURL } from 'utils/string';
-import { GrafanaApiClient } from 'network/grafana-api/http-client';
 
 type PluginConfigFormValues = {
   onCallApiUrl: string;
@@ -51,27 +52,31 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
               </>
             ),
           },
-          {
-            ...(true ? { customIcon: 'check' } : { isTextIcon: true }),
-            startingElemPosition: '-6px',
-            expandedView: () => (
-              <>
-                <Text strong>Service account user allows to connect OnCall plugin to Grafana. </Text>
-                <Text type="secondary" className={styles.secondaryTitle}>
-                  Make sure that OnCall plugin has been enabled.{' '}
-                  <a href={DOCS_SERVICE_ACCOUNTS} target="_blank" rel="noreferrer">
-                    <Text type="link">Read more</Text>
-                  </a>
-                </Text>
-                <Button
-                  variant="secondary"
-                  onClick={() => GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings()}
-                >
-                  Re-create
-                </Button>
-              </>
-            ),
-          },
+          ...(config.featureToggles.externalServiceAccounts
+            ? [
+                {
+                  ...(true ? { customIcon: 'check' as const } : { isTextIcon: true }),
+                  startingElemPosition: '-6px',
+                  expandedView: () => (
+                    <>
+                      <Text strong>Service account user allows to connect OnCall plugin to Grafana. </Text>
+                      <Text type="secondary" className={styles.secondaryTitle}>
+                        Make sure that OnCall plugin has been enabled.{' '}
+                        <a href={DOCS_SERVICE_ACCOUNTS} target="_blank" rel="noreferrer">
+                          <Text type="link">Read more</Text>
+                        </a>
+                      </Text>
+                      <Button
+                        variant="secondary"
+                        onClick={() => GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings()}
+                      >
+                        Re-create
+                      </Button>
+                    </>
+                  ),
+                },
+              ]
+            : []),
           {
             ...(true ? { customIcon: 'check' } : { isTextIcon: true }),
             startingElemPosition: '-6px',
@@ -117,9 +122,6 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
                     <Button type="submit" disabled={!formState.isValid}>
                       Connect
                     </Button>
-                    {/* {config.featureToggles.externalServiceAccounts && (
-                      <Button variant="secondary">Recreate service account</Button>
-                    )} */}
                   </HorizontalGroup>
                 </form>
               </>

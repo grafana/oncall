@@ -8,6 +8,7 @@ import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
 import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
+import errorSVG from 'assets/img/error.svg';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
@@ -42,17 +43,21 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
-  const { isInitialized } = useInitializePlugin();
+  const { isInitialized, isPluginInitializing } = useInitializePlugin();
 
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
   });
 
+  if (isPluginInitializing) {
+    return <LoadingPlaceholder text="Loading..." />;
+  }
   return (
     <ErrorBoundary onError={FaroHelper.pushReactError}>
       {() => (
         <RenderConditionally
           shouldRender={isInitialized}
+          backupChildren={<img src={errorSVG} alt="" />}
           render={() => (
             <Provider store={rootStore}>
               <Root {...props} />
