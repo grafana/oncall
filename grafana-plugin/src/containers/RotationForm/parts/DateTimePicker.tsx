@@ -27,9 +27,7 @@ export const DateTimePicker = observer(
   ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const styles = useStyles2(getStyles);
     const { timezoneStore } = useStore();
-    const { selectedTimezoneOffset, getDateInSelectedTimezone } = timezoneStore;
-
-    const valueInSelectedTimezone = getDateInSelectedTimezone(propValue);
+    const { selectedTimezoneOffset } = timezoneStore;
 
     const handleDateChange = (value: Date) => {
       const newDate = dayjs(value)
@@ -109,15 +107,6 @@ export const DateTimePicker = observer(
     );
   }
 );
-
-// TODO: Move to date helpers/util
-export const getFormattedDateDDMMYYYY = (date: Date) => {
-  const year = date.getFullYear();
-  const month = (1 + date.getMonth()).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-
-  return day + '/' + month + '/' + year;
-};
 
 const getStyles = () => ({
   wrapper: css`
