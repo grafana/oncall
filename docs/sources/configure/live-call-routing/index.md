@@ -31,10 +31,12 @@ Twilio account: [Sign up for Twilio](https://www.twilio.com/try-twilio).
 ## Basic set up
 
 In the basic set up, you'll create an integration in OnCall and configure a phone number in Twilio.
-This set up allows you to receive alerts from SMS messages or phone calls made to your Twilio phone number.
+This set up allows you to receive alerts in OnCall from SMS messages or phone calls made to your Twilio phone number.
 We’ll expand this setup as we go.
 
-<!--- [Visual diagram to represent the OnCall/Twilio flow] --->
+![OnCall & Twilio flow](/media/docs/grafana-cloud/oncall/big-OnCall-SMS-Diagram.png)
+
+<!--- {{< figure alt="Diagram of how to Twilio calls and texts are routed to OnCall"  src="/media/docs/grafana-cloud/oncall/big-OnCall-SMS-Diagram.png>" >}} -->
 
 ### Grafana OnCall set up
 
@@ -85,7 +87,7 @@ Next, switch to Twilio to set up the other side of the integration.
 
 ### Twilio set up
 
-A Twilio account is required to complete the steps in this section. (Sign-up).
+A Twilio account is required to complete the steps in this section. If you haven't already,[sign up for Twilio](https://www.twilio.com/try-twilio)
 
 In this section, you’ll set up the following:
 
@@ -97,7 +99,7 @@ In this section, you’ll set up the following:
 Utilize Twilio's Studio Flow to capture alert information from SMS messages and phone calls to send it to Grafana OnCall:
 
 1. In Twilio, navigate to **Develop** -> **Studio** -> **Flows**.
-If Studio isn’t visible, select **Explore Products** and navigate to Studio under the **Developer Tools** section.
+If Studio isn’t visible, select **Explore Products** and navigate to **Studio** under the **Developer Tools** section.
 1. Select **Create new Flow**, enter a Flow name, and click **Next**.
 1. Select **Import from JSON** and click **Next**.
 1. Import the provided JSON, replacing `<YOUR_INTEGRATION_URL>` (Lines 54 and 156) with the webhook integration URL from Grafana OnCall.
