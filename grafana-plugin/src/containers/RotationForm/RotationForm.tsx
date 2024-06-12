@@ -52,13 +52,13 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
-  getDateTimeWithOffset,
   getSelectedDays,
   getStartOfWeekBasedOnCurrentDate,
   getUTCByDay,
   getUTCString,
   getUTCWeekStart,
   getWeekStartString,
+  toDateWithTimezoneOffset,
 } from 'pages/schedule/Schedule.helpers';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
@@ -85,23 +85,19 @@ interface RotationFormProps {
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
-const getStartShift = (start: dayjs.Dayjs, utcOffset: number, isNewRotation = false) => {
+const getStartShift = (start: dayjs.Dayjs, timezoneOffset: number, isNewRotation = false) => {
   if (isNewRotation) {
-    const localMoment = start.utcOffset(utcOffset);
-    const newValue = localMoment
+    return toDateWithTimezoneOffset(start, timezoneOffset)
       .set('date', 1)
       .set('year', start.year())
       .set('month', start.month())
       .set('date', start.date())
       .set('hour', 0)
       .set('minute', 0)
-      // .set('minute', 12) // debug
       .set('second', 0);
-
-    return newValue;
   }
 
-  return start.utcOffset(utcOffset); // .set('minute', 40); // debug
+  return toDateWithTimezoneOffset(start, timezoneOffset);
 };
 
 export const RotationForm = observer((props: RotationFormProps) => {
@@ -137,6 +133,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(
     getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, isNewRotationInit)
   );
+
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(
     propsShiftEnd?.utcOffset(store.timezoneStore.selectedTimezoneOffset) || shiftStart.add(1, 'day')
   );
@@ -243,43 +240,26 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
-  const params = useMemo(
-    () => ({
-      rotation_start: getUTCString(rotationStart),
-      until: endLess ? null : getUTCString(rotationEnd),
-      shift_start: getUTCString(shiftStart),
-      shift_end: getUTCString(shiftEnd),
-      rolling_users: userGroups,
-      interval: repeatEveryValue,
-      frequency: repeatEveryPeriod,
-      by_day: getUTCByDay({
-        dayOptions: store.scheduleStore.byDayOptions,
-        by_day: selectedDays,
-        moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
-      }),
-      week_start: getUTCWeekStart(
-        store.scheduleStore.byDayOptions,
-        store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-      ),
-      priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
-      name: rotationName,
+  const params = {
+    rotation_start: getUTCString(rotationStart),
+    until: endLess ? null : getUTCString(rotationEnd),
+    shift_start: getUTCString(shiftStart),
+    shift_end: getUTCString(shiftEnd),
+    rolling_users: userGroups,
+    interval: repeatEveryValue,
+    frequency: repeatEveryPeriod,
+    by_day: getUTCByDay({
+      dayOptions: store.scheduleStore.byDayOptions,
+      by_day: selectedDays,
+      moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
     }),
-    [
-      rotationStart,
-      rotationEnd,
-      shiftStart,
-      shiftEnd,
-      userGroups,
-      repeatEveryValue,
-      repeatEveryPeriod,
-      selectedDays,
-      shiftId,
-      layerPriority,
-      shift,
-      endLess,
-      rotationName,
-    ]
-  );
+    week_start: getUTCWeekStart(
+      store.scheduleStore.byDayOptions,
+      store.timezoneStore.getDateInSelectedTimezone(shiftStart)
+    ),
+    priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
+    name: rotationName,
+  };
 
   useEffect(handleChange, [params, store.timezoneStore.calendarStartDate]);
 
@@ -462,13 +442,13 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       // use shiftStart as rotationStart for existing shifts
       // (original rotationStart defaulted to the shift creation timestamp)
-      const shiftStart = getDateTimeWithOffset(shift.shift_start, store.timezoneStore.selectedTimezoneOffset);
+      const shiftStart = toDateWithTimezoneOffset(dayjs(shift.shift_start), store.timezoneStore.selectedTimezoneOffset);
 
       setRotationStart(shiftStart);
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       setShiftStart(shiftStart);
 
-      const shiftEnd = getDateTimeWithOffset(shift.shift_end, store.timezoneStore.selectedTimezoneOffset);
+      const shiftEnd = toDateWithTimezoneOffset(dayjs(shift.shift_end), store.timezoneStore.selectedTimezoneOffset);
       setShiftEnd(shiftEnd);
       setEndless(!shift.until);
 
@@ -509,12 +489,18 @@ export const RotationForm = observer((props: RotationFormProps) => {
           moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
         })
       );
-    } else {
-      // empty shift (aka new rotation)
-      setShiftStart(shiftStart.utcOffset(store.timezoneStore.selectedTimezoneOffset));
-      if (!endLess) {
-        setShiftEnd(shiftEnd.utcOffset(store.timezoneStore.selectedTimezoneOffset));
-      }
+    }
+
+    const { selectedTimezoneOffset } = store.timezoneStore;
+    const offsetedShiftStart = toDateWithTimezoneOffset(shiftStart, selectedTimezoneOffset);
+    const offsetedRotationStart = toDateWithTimezoneOffset(rotationStart, selectedTimezoneOffset);
+
+    setShiftStart(offsetedShiftStart);
+    setRotationStart(offsetedRotationStart);
+
+    if (!endLess) {
+      setRotationEnd(toDateWithTimezoneOffset(rotationEnd, selectedTimezoneOffset));
+      setShiftEnd(toDateWithTimezoneOffset(shiftEnd, selectedTimezoneOffset));
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
 

@@ -24,7 +24,7 @@ import { HTML_ID } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
-import { findColor } from './Rotations.helpers';
+import { findColor, getCalendarStartDateInTimezone } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
 
 import animationStyles from './Rotations.module.css';
@@ -143,7 +143,15 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                     variant="secondary"
                     icon="plus"
                     onClick={() =>
-                      this.handleAddLayer(nextPriority, store.timezoneStore.calendarStartDate, undefined, true)
+                      this.handleAddLayer(
+                        nextPriority,
+                        getCalendarStartDateInTimezone(
+                          store.timezoneStore.calendarStartDate,
+                          store.timezoneStore.selectedTimezoneOffset
+                        ),
+                        undefined,
+                        true
+                      )
                     }
                   >
                     Add rotation

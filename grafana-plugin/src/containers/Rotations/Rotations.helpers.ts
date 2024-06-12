@@ -4,6 +4,21 @@ import { getColor, getOverrideColor } from 'models/schedule/schedule.helpers';
 import { Layer, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
+export const getCalendarStartDateInTimezone = (calendarStartDate: dayjs.Dayjs, utcOffset: number) => {
+  const offsetedDate = dayjs(calendarStartDate.toDate())
+    .utcOffset(utcOffset)
+    .set('date', 1)
+    .set('months', calendarStartDate.month())
+    .set('date', calendarStartDate.date())
+    .set('year', calendarStartDate.year())
+    .set('hours', 0)
+    .set('minutes', 0)
+    .set('second', 0)
+    .set('milliseconds', 0);
+
+  return offsetedDate;
+};
+
 export const findColor = (shiftId: Shift['id'], layers: Layer[], overrides?) => {
   let color = undefined;
 

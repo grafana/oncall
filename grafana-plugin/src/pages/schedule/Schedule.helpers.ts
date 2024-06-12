@@ -77,10 +77,6 @@ export const getDateTime = (date: string) => {
   return dayjs(date);
 };
 
-export const getDateTimeWithOffset = (date: string, offset: number) => {
-  return dayjs(date).utcOffset(offset);
-};
-
 const getUTCDayIndex = (index: number, moment: dayjs.Dayjs, reverse: boolean) => {
   let utc_index = index;
   if (moment.day() !== moment.utc().day()) {
@@ -207,4 +203,8 @@ export const getColorSchemeMappingForUsers = (
       });
     });
   }
+};
+
+export const toDateWithTimezoneOffset = (date: dayjs.Dayjs, timezoneOffset: number) => {
+  return date.utcOffset() === timezoneOffset ? date : date.utcOffset(timezoneOffset);
 };
