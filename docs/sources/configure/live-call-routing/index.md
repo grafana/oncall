@@ -18,15 +18,18 @@ aliases:
 
 # Configure SMS & call routing with Grafana OnCall
 
-This guide walks you through configuring a system that enables you to page on-call personnel via phone call and SMS message using Grafana OnCall and Twilio.
+This guide walks you through how to configure a system that enables you to page on-call personnel in Grafana OnCall by calling or texting a specific phone number.
+
+Configure the basic setup in this guide to route SMS and voice calls to OnCall using a Twilio phone number and a Webhook integration.
+You can further customize your configuration to send different alerts to different escalation chains based on the contents of the text or voice call.
 
 ## Before you begin
 
-Before you begin, ensure you have the following:
+To complete the steps in this guide, ensure you have the following:
 
 - Grafana Cloud account: If you haven't already, [sign up for Grafana Cloud](https://grafana.com/auth/sign-up/create-user).
-Grafana OnCall user with administrator privileges.
-Twilio account: [Sign up for Twilio](https://www.twilio.com/try-twilio).
+- Grafana OnCall user with administrator privileges and notification settings configured.
+- Twilio account: [Sign up for Twilio](https://www.twilio.com/try-twilio).
 
 ## Basic set up
 
@@ -34,9 +37,7 @@ In the basic set up, you'll create an integration in OnCall and configure a phon
 This set up allows you to receive alerts in OnCall from SMS messages or phone calls made to your Twilio phone number.
 We’ll expand this setup as we go.
 
-![OnCall & Twilio flow](/media/docs/grafana-cloud/oncall/big-OnCall-SMS-Diagram.png)
-
-<!--- {{< figure alt="Diagram of how to Twilio calls and texts are routed to OnCall"  src="/media/docs/grafana-cloud/oncall/big-OnCall-SMS-Diagram.png>" >}} -->
+{{< figure src="/media/docs/grafana-cloud/oncall/big-OnCall-SMS-Diagram.png" alt="Diagram of how Twilio calls and texts are routed to OnCall">}}
 
 ### Grafana OnCall set up
 
@@ -45,7 +46,7 @@ To complete the Grafana OnCall portion of the configuration, ensure you have:
 - Grafana OnCall user account with administrator privileges.
 - Configured notification settings for your user to test functionality along the way.
 
-If you need to set these up first, refer to the Grafana OnCall documentation.
+If you need to set these up first, refer to the [Grafana OnCall documentation](https://grafana.com/docs/oncall/latest/).
 
 #### Set up webhook integration
 
@@ -56,10 +57,10 @@ accepts any payload and allows for customization of how the payload is handled i
 To create the integration:
 
 1. In Grafana Cloud, navigate to **Alerts & IRM** -> **OnCall** -> **Integrations**.
-1. Click **+ New Integration**.
-1. Choose **Webhook (Generic)** as the integration type.
-1. Provide a name, description, and optionally assign it to a team.
-1. Note the integration URL for future use in Twilio.
+2. Click **+ New Integration**.
+3. Choose **Webhook (Generic)** as the integration type.
+4. Provide a name, description, and optionally assign it to a team.
+5. Note the integration URL for future use in Twilio.
 
 #### Add an Escalation Chain
 
@@ -72,7 +73,7 @@ Create a simple escalation chain to directly notify your user for testing during
 3. Provide a name and click **Create Escalation Chain**.
 4. For step 1, choose **Notify users** and select your user.
 
-Later, you can customize the escalation chain as needed.
+Later, you can customize the [escalation chain](https://grafana.com/docs/oncall/latest/configure/escalation-chains-and-routes/) as needed.
 
 #### Connect and test the Escalation Chain
 
@@ -96,24 +97,27 @@ In this section, you’ll set up the following:
 
 #### Set up Studio Flow
 
-Utilize Twilio's Studio Flow to capture alert information from SMS messages and phone calls to send it to Grafana OnCall:
+Twilio [Studio](https://www.twilio.com/docs/studio) flows allow you to create custom workflows to execute when a phone call or SMS message is received.
+
+In this guide, we'll use Twilio's Studio Flow to capture alert information from SMS messages and phone calls to send it to Grafana OnCall:
 
 1. In Twilio, navigate to **Develop** -> **Studio** -> **Flows**.
 If Studio isn’t visible, select **Explore Products** and navigate to **Studio** under the **Developer Tools** section.
 1. Select **Create new Flow**, enter a Flow name, and click **Next**.
 1. Select **Import from JSON** and click **Next**.
-1. Import the provided JSON, replacing `<YOUR_INTEGRATION_URL>` (Lines 54 and 156) with the webhook integration URL from Grafana OnCall.
+1. Import the provided JSON, which can be found in the [Grafana OnCall GitHub repository](https://github.com/grafana/oncall/blob/dev/tools/twilio/basic_flow.json).
+1. Replace `<YOUR_INTEGRATION_URL>` (Lines 54 and 156) with the webhook integration URL from Grafana OnCall.
 1. After adding your webhook URL, click **Next**.
 1. Review the flow and click **Publish** to make the flow available for use.
 
 #### Understand your flow
 
-The flow you created has the following two paths:
+The flow you created has two paths:
 
 - SMS Path: Accepts incoming messages and forwards their contents to Grafana OnCall via the Webhook URL, including the sender's phone number.
 - Voice Path: Converts voice calls to text and sends them to the Webhook integration in Grafana OnCall.
 
-<!--- Screenshot of Twilio flow --->
+{{< figure src="/media/blog/oncall-sms-call-routing/studio-flow.png" alt="Studio flow workflow" >}}
 
 #### Buy a Twilio phone number
 
@@ -172,8 +176,6 @@ The selected option then determines which route an alert is sent to in Grafana O
 To accomplish this, you’ll configure an additional route and escalation chain attached to your Twilio Webhook integration in Grafana OnCall.
 Then, in Twilio, expand the Studio Flow to present options to the caller.  This set up can be easily expanded upon to handle more routes.
 
-<!--- [Visual or diagram to simplify this?] --->
-
 ### Create an additional Escalation Chain
 
 To create an escalation chain:
@@ -228,7 +230,7 @@ include validation checks to ensure the accuracy of provided values.
 - SMS Path: Accepts incoming messages and forwards their contents to Grafana OnCall via the Webhook URL, including the sender's phone number.
 - Voice Path: Converts voice calls to text and sends them to the Webhook integration in Grafana OnCall.
 
-<!--- Screenshot of Twilio flow --->
+{{< figure src="/media/blog/oncall-sms-call-routing/twilio-add-route.png" alt="Route added workflow" >}}
 
 ### Reconfigure the Twilio phone number
 
