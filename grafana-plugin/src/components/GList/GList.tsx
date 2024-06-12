@@ -64,7 +64,7 @@ export const GList = <T extends WithId>(props: GListProps<T>) => {
   }
 
   return (
-    <div className={cx(styles.root)}>
+    <div className={styles.root}>
       {items ? (
         items.map((item) => (
           <div

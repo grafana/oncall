@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
+from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_MESSAGE_INPUT_ID,
     DIRECT_PAGING_ORG_SELECT_ID,
@@ -32,24 +33,31 @@ def make_slack_payload(organization, team=None, user=None, current_users=None, a
         "trigger_id": "111",
         "view": {
             "id": "view-id",
-            "private_metadata": json.dumps(
+            "private_metadata": make_private_metadata(
                 {
                     "input_id_prefix": "",
                     "channel_id": "123",
                     "submit_routing_uid": "FinishStepUID",
                     DataKey.USERS: current_users or {},
-                }
+                },
+                organization,
             ),
             "state": {
                 "values": {
                     DIRECT_PAGING_ORG_SELECT_ID: {
-                        OnPagingOrgChange.routing_uid(): {"selected_option": {"value": organization.pk}}
+                        OnPagingOrgChange.routing_uid(): {
+                            "selected_option": {"value": make_value({"id": organization.pk}, organization)}
+                        }
                     },
                     DIRECT_PAGING_TEAM_SELECT_ID: {
-                        OnPagingTeamChange.routing_uid(): {"selected_option": {"value": team.pk if team else None}}
+                        OnPagingTeamChange.routing_uid(): {
+                            "selected_option": {"value": make_value({"id": team.pk if team else None}, organization)}
+                        }
                     },
                     DIRECT_PAGING_USER_SELECT_ID: {
-                        OnPagingUserChange.routing_uid(): {"selected_option": {"value": user.pk} if user else None}
+                        OnPagingUserChange.routing_uid(): {
+                            "selected_option": {"value": make_value({"id": user.pk}, organization)} if user else None
+                        }
                     },
                     DIRECT_PAGING_MESSAGE_INPUT_ID: {FinishDirectPaging.routing_uid(): {"value": "The Message"}},
                 }
@@ -203,7 +211,13 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = make_slack_payload(
         organization=organization,
-        actions=[{"selected_option": {"value": f"{Policy.IMPORTANT}|{DataKey.USERS}|{user.pk}"}}],
+        actions=[
+            {
+                "selected_option": {
+                    "value": make_value({"action": Policy.IMPORTANT, "key": DataKey.USERS, "id": user.pk}, organization)
+                }
+            }
+        ],
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
@@ -219,7 +233,15 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     payload = make_slack_payload(
         organization=organization,
-        actions=[{"selected_option": {"value": f"{Policy.REMOVE_ACTION}|{DataKey.USERS}|{user.pk}"}}],
+        actions=[
+            {
+                "selected_option": {
+                    "value": make_value(
+                        {"action": Policy.REMOVE_ACTION, "key": DataKey.USERS, "id": user.pk}, organization
+                    )
+                }
+            }
+        ],
     )
 
     step = OnPagingItemActionChange(slack_team_identity)
@@ -279,7 +301,13 @@ def test_trigger_paging_additional_responders(make_organization_and_user_with_sl
         with patch.object(step._slack_client, "api_call"):
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    mock_direct_paging.called_once_with(organization, user, "The Message", team, [(user, True)])
+    mock_direct_paging.assert_called_once_with(
+        organization=organization,
+        from_user=user,
+        message="The Message",
+        team=team,
+        users=[(user, True)],
+    )
 
 
 @pytest.mark.django_db
@@ -293,7 +321,13 @@ def test_page_team(make_organization_and_user_with_slack_identities, make_team):
         with patch.object(step._slack_client, "api_call"):
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    mock_direct_paging.called_once_with(organization, user, "The Message", team)
+    mock_direct_paging.assert_called_once_with(
+        organization=organization,
+        from_user=user,
+        message="The Message",
+        team=team,
+        users=[],
+    )
 
 
 @pytest.mark.django_db
@@ -302,7 +336,9 @@ def test_get_organization_select(make_organization):
     select = _get_organization_select(Organization.objects.filter(pk=organization.pk), organization, "test")
 
     assert len(select["element"]["options"]) == 1
-    assert select["element"]["options"][0]["value"] == str(organization.pk)
+    assert json.loads(select["element"]["options"][0]["value"]) == json.loads(
+        make_value({"id": organization.pk}, organization)
+    )
     assert select["element"]["options"][0]["text"]["text"] == "Organization (stack_slug)"
 
 
@@ -322,7 +358,10 @@ def test_get_team_select_blocks(
     input_id_prefix = "nmxcnvmnxv"
 
     def _contstruct_team_option(team):
-        return {"text": {"emoji": True, "text": team.name, "type": "plain_text"}, "value": str(team.pk)}
+        return {
+            "text": {"emoji": True, "text": team.name, "type": "plain_text"},
+            "value": make_value({"id": team.pk}, organization),
+        }
 
     # no team selected - no team direct paging integrations available
     organization, _, _, slack_user_identity = make_organization_and_user_with_slack_identities()
@@ -408,5 +447,7 @@ def test_get_team_select_blocks(
 
     assert input_block["type"] == "input"
     assert len(input_block["element"]["options"]) == 1
-    assert input_block["element"]["options"] == [_contstruct_team_option(team)]
+    assert json.loads(input_block["element"]["options"][0]["value"]) == json.loads(
+        _contstruct_team_option(team)["value"]
+    )
     assert context_block["elements"][0]["text"] == info_msg

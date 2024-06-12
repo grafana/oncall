@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 

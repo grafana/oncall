@@ -182,7 +182,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "sum(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__range]))) >= 0",
+          "expr": "round(delta(sum($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"})[$__range:])) >= 0",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -266,7 +266,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])",
+          "expr": "avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}))[$__range:])",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -389,7 +389,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "sum by (integration)(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__interval:]))) >= 0",
+          "expr": "round(delta(sum by (integration) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"})[$__interval:])) >= 0",
           "fullMetaSearch": false,
           "hide": false,
           "instant": false,
@@ -507,7 +507,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg(sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
+          "expr": "avg(sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -613,7 +613,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(sum by (integration)(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__range]))) >= 0)",
+          "expr": "sort_desc(round(delta(sum by (integration)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"})[$__range:])) >= 0)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -729,7 +729,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:]))",
+          "expr": "sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}))[$__range:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -862,7 +862,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(sum by (team)(round(delta($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}[$__range]))) >= 0)",
+          "expr": "sort_desc(round(delta(sum by (team)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"})[$__range:])) >= 0)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -979,7 +979,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(avg_over_time((sum by(team) ($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum by(team)($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:]))",
+          "expr": "sort_desc(avg_over_time((sum by(team) ($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}) / sum by(team)($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\", service_name=~\"$service_name\"}))[$__range:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1129,7 +1129,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "sum by (username)(round(delta($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}[$__interval:]))) >= 0",
+          "expr": "round(delta(sum by (username)($user_was_notified_of_alert_groups_total{slug=~\"$instance\"})[$__interval:])) >= 0",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1222,7 +1222,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(sum by (username)(round(delta($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}[$__range]))) >= 0)",
+          "expr": "sort_desc(round(delta(sum by (username)($user_was_notified_of_alert_groups_total{slug=~\"$instance\"})[$__range:])) >= 0)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1392,6 +1392,7 @@
         "type": "query"
       },
       {
+        "allValue": ".+",
         "current": {
           "selected": true,
           "text": ["All"],
@@ -1419,6 +1420,7 @@
         "type": "query"
       },
       {
+        "allValue": ".+",
         "current": {
           "selected": true,
           "text": ["All"],
@@ -1446,6 +1448,7 @@
         "type": "query"
       },
       {
+        "allValue": ".+",
         "current": {
           "selected": true,
           "text": ["All"],
@@ -1471,6 +1474,35 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
+      },
+      {
+        "allValue": "($^)|(.+)",
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(${alert_groups_total}{slug=~\"$instance\", team=~\"$team\"},service_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service name",
+        "multi": true,
+        "name": "service_name",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(${alert_groups_total}{slug=~\"$instance\", team=~\"$team\"},service_name)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
       }
     ]
   },
@@ -1484,7 +1516,7 @@
   },
   "timezone": "browser",
   "title": "OnCall Insights",
-  "version": 3,
-  "revision": 3,
+  "version": 5,
+  "revision": 5,
   "weekStart": ""
 }

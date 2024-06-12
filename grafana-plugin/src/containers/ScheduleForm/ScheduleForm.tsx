@@ -289,11 +289,11 @@ const ScheduleNotificationSettingsFields = () => {
             invalid={!!errors.user_group}
             error={errors.user_group?.message}
           >
-            <GSelect<UserGroup[]>
+            <GSelect<UserGroup>
               allowClear
               items={userGroupStore.items}
               fetchItemsFn={userGroupStore.updateItems}
-              fetchItemFn={() => undefined}
+              fetchItemFn={userGroupStore.fetchItemById}
               getSearchResult={userGroupStore.getSearchResult}
               displayField="handle"
               placeholder="Select User Group"

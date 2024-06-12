@@ -11,6 +11,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
 from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
+from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
@@ -292,15 +293,16 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         # check if user is on-call
         if not user_is_oncall(selected_user):
             # display additional confirmation modal
-            metadata = metadata = json.loads(payload["view"]["private_metadata"])
-            private_metadata = json.dumps(
+            metadata = json.loads(payload["view"]["private_metadata"])
+            private_metadata = make_private_metadata(
                 {
                     "state": payload["view"]["state"],
                     "input_id_prefix": metadata["input_id_prefix"],
                     "channel_id": metadata["channel_id"],
                     "submit_routing_uid": metadata["submit_routing_uid"],
                     DataKey.USERS: metadata[DataKey.USERS],
-                }
+                },
+                selected_user.organization,
             )
 
             view = _display_confirm_participant_invitation_view(
@@ -326,9 +328,9 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
 class OnPagingItemActionChange(scenario_step.ScenarioStep):
     """Reload form with updated user details."""
 
-    def _parse_action(self, payload: EventPayload) -> typing.Tuple[Policy, str, str]:
-        value = payload["actions"][0]["selected_option"]["value"]
-        return value.split("|")
+    def _parse_action(self, payload: EventPayload) -> typing.Tuple[Policy, DataKey, str]:
+        value = json.loads(payload["actions"][0]["selected_option"]["value"])
+        return value["action"], value["key"], value["id"]
 
     def process_scenario(
         self,
@@ -464,7 +466,9 @@ def render_dialog(
         }
     )
 
-    return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
+    return _get_form_view(
+        submit_routing_uid, blocks, make_private_metadata(new_private_metadata, selected_organization)
+    )
 
 
 def _get_unauthorized_warning(error=False):
@@ -518,7 +522,7 @@ def _get_organization_select(
                     "text": f"{org.org_title} ({org.stack_slug})",
                     "emoji": True,
                 },
-                "value": f"{org.pk}",
+                "value": make_value({"id": org.pk}, org),
             }
         )
 
@@ -547,7 +551,7 @@ def _get_select_field_value(payload: EventPayload, prefix_id: str, routing_uid: 
         field = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_option"]
     except KeyError:
         return None
-    return field["value"] if field else None
+    return json.loads(field["value"])["id"] if field else None
 
 
 def _get_selected_org_from_payload(
@@ -616,7 +620,7 @@ def _get_team_select_blocks(
                     "text": team_name,
                     "emoji": True,
                 },
-                "value": str(team_pk),
+                "value": make_value({"id": team_pk}, organization),
             }
         )
 
@@ -668,7 +672,7 @@ def _get_team_select_blocks(
 
 
 def _create_user_option_groups(
-    users: "RelatedManager['User']", max_options_per_group: int, option_group_label_text_prefix: str
+    organization, users: "RelatedManager['User']", max_options_per_group: int, option_group_label_text_prefix: str
 ) -> typing.List[CompositionObjectOptionGroup]:
     user_options: typing.List[CompositionObjectOption] = [
         {
@@ -677,7 +681,7 @@ def _create_user_option_groups(
                 "text": f"{user.name or user.username}",
                 "emoji": True,
             },
-            "value": f"{user.pk}",
+            "value": json.dumps({"id": user.pk}),
         }
         for user in users
     ]
@@ -733,7 +737,7 @@ def _get_user_select_blocks(
     # selected items
     if selected_users := get_current_items(payload, DataKey.USERS, organization.users):
         blocks += [DIVIDER]
-        blocks += _get_selected_entries_list(input_id_prefix, DataKey.USERS, selected_users)
+        blocks += _get_selected_entries_list(organization, input_id_prefix, DataKey.USERS, selected_users)
         blocks += [DIVIDER]
 
     return blocks
@@ -746,10 +750,10 @@ def _get_users_select(
     oncall_user_pks = {user.pk for _, users in schedules.items() for user in users}
 
     oncall_user_option_groups = _create_user_option_groups(
-        organization.users.filter(pk__in=oncall_user_pks), max_options_per_group, "On-call now"
+        organization, organization.users.filter(pk__in=oncall_user_pks), max_options_per_group, "On-call now"
     )
     not_oncall_user_option_groups = _create_user_option_groups(
-        organization.users.exclude(pk__in=oncall_user_pks), max_options_per_group, "Not on-call"
+        organization, organization.users.exclude(pk__in=oncall_user_pks), max_options_per_group, "Not on-call"
     )
 
     if not oncall_user_option_groups and not not_oncall_user_option_groups:
@@ -773,7 +777,7 @@ def _get_users_select(
 
 
 def _get_selected_entries_list(
-    input_id_prefix: str, key: DataKey, entries: typing.List[typing.Tuple[Model, Policy]]
+    organization: "Organization", input_id_prefix: str, key: DataKey, entries: typing.List[typing.Tuple[Model, Policy]]
 ) -> typing.List[Block.Section]:
     current_entries: typing.List[Block.Section] = []
     for entry, policy in entries:
@@ -793,7 +797,10 @@ def _get_selected_entries_list(
                 "accessory": {
                     "type": "overflow",
                     "options": [
-                        {"text": {"type": "plain_text", "text": f"{label}"}, "value": f"{action}|{key}|{entry.pk}"}
+                        {
+                            "text": {"type": "plain_text", "text": f"{label}"},
+                            "value": make_value({"action": action, "key": key, "id": str(entry.pk)}, organization),
+                        }
                         for (action, label) in ITEM_ACTIONS
                     ],
                     "action_id": OnPagingItemActionChange.routing_uid(),
@@ -900,7 +907,7 @@ def _get_available_organizations(
 
 def _generate_input_id_prefix() -> str:
     """
-    returns unique string to not to preserve input's values between view update
+    returns unique string to not preserve input's values between view update
 
     https://api.slack.com/methods/views.update#markdown
     """

@@ -10,7 +10,7 @@ export function getNewAlertGroupsNotificationsTableScene({ datasource, stack }: 
       {
         editorMode: 'code',
         exemplar: false,
-        expr: `sort_desc(sum by (username)(round(delta($user_was_notified_of_alert_groups_total{slug=~"${stack}"}[$__range]))) >= 0)`,
+        expr: `sort_desc(round(delta(sum by (username)($user_was_notified_of_alert_groups_total{slug=~"${stack}"})[$__range:])) >= 0)`,
         format: 'table',
         instant: true,
         legendFormat: '__auto',

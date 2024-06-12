@@ -1,0 +1,386 @@
+{
+  "description": "Added Routes SMS and Call escalation",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "sms_select_target",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "call_select_target",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 80,
+          "y": -200
+        }
+      }
+    },
+    {
+      "name": "send_alert_from_sms",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "send_alert_from_sms_success",
+          "event": "success"
+        },
+        {
+          "next": "send_alert_from_sms_fail",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -370,
+          "y": 500
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"from\":\"{{trigger.message.From}}\",\"message\":\"{{trigger.message.Body}}\",\"target\":\"{{widgets.sms_select_target.inbound.Body}}\"}",
+        "url": "<YOUR_INTEGRATION_URL>"
+      }
+    },
+    {
+      "name": "send_alert_from_sms_success",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -700,
+          "y": 780
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "to": "{{contact.channel.address}}",
+        "body": "Alert sent successfully"
+      }
+    },
+    {
+      "name": "send_alert_from_sms_fail",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -340,
+          "y": 780
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "to": "{{contact.channel.address}}",
+        "body": "Failed to send alert: Status({{widgets.send_escalation.status_code}})"
+      }
+    },
+    {
+      "name": "describe_alert_from_call",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "event": "keypress"
+        },
+        {
+          "next": "send_alert_from_call",
+          "event": "speech"
+        },
+        {
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 350,
+          "y": 310
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "Describe the alert to send. Press pound when finished.",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 60
+      }
+    },
+    {
+      "name": "send_alert_from_call",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "send_alert_from_call_success",
+          "event": "success"
+        },
+        {
+          "next": "send_alert_from_call_fail",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 350,
+          "y": 580
+        },
+        "method": "POST",
+        "content_type": "application/json;charset=utf-8",
+        "body": "{\"from\":\"{{trigger.call.From}}\", \"message\":\"{{widgets.describe_alert_from_call.SpeechResult}} \",\"target\":\"{{widgets.call_set_target.target}}\"}",
+        "url": "<YOUR_INTEGRATION_URL>"
+      }
+    },
+    {
+      "name": "send_alert_from_call_success",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 200,
+          "y": 950
+        },
+        "loop": 1,
+        "say": "Alert sent successfully"
+      }
+    },
+    {
+      "name": "send_alert_from_call_fail",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 630,
+          "y": 950
+        },
+        "loop": 1,
+        "say": "Failed to send alert: Status   ({{widgets.send_alert_from_call.status_code}})"
+      }
+    },
+    {
+      "name": "sms_select_target",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "sms_validate_target",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "sms_select_target_timeout",
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -330,
+          "y": -50
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "body": "Which target do you want to send the alert to?\nabc \ndefault",
+        "timeout": "300"
+      }
+    },
+    {
+      "name": "sms_select_target_timeout",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -80,
+          "y": 210
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "to": "{{contact.channel.address}}",
+        "body": "Target select timed out, send the alert again to start over."
+      }
+    },
+    {
+      "name": "sms_validate_target",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "sms_validate_target_fail",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_alert_from_sms",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to abc",
+              "arguments": ["{{widgets.sms_select_target.inbound.Body}}"],
+              "type": "matches_any_of",
+              "value": "abc,default"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.sms_select_target.inbound.Body}}",
+        "offset": {
+          "x": -590,
+          "y": 210
+        }
+      }
+    },
+    {
+      "name": "sms_validate_target_fail",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -700,
+          "y": 500
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "message_type": "custom",
+        "to": "{{contact.channel.address}}",
+        "body": "{{widgets.sms_select_target.inbound.Body}} is not a valid target."
+      }
+    },
+    {
+      "name": "call_select_target",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "call_select_validate",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "number_of_digits": 1,
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 350,
+          "y": 50
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "Which target do you want to send to? Press 1 for ABC. \nPress 2 for default.",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 5
+      }
+    },
+    {
+      "name": "call_select_validate",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "call_select_target",
+          "event": "noMatch"
+        },
+        {
+          "next": "call_set_target",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of 1,2",
+              "arguments": ["{{widgets.call_select_target.Digits}}"],
+              "type": "matches_any_of",
+              "value": "1,2"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.call_select_target.Digits}}",
+        "offset": {
+          "x": 760,
+          "y": 50
+        }
+      }
+    },
+    {
+      "name": "call_set_target",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "describe_alert_from_call",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{% if widgets.call_select_target.Digits == \"1\" %}abc{% elsif widgets.call_select_target.Digits == \"2\" %}default{% endif %}",
+            "key": "target"
+          }
+        ],
+        "offset": {
+          "x": 760,
+          "y": 300
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

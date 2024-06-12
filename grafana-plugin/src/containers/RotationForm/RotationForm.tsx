@@ -108,7 +108,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const [rotationName, setRotationName] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [offsetTop, setOffsetTop] = useState<number>(0);
+  const [offsetTop, setOffsetTop] = useState<number>(GRAFANA_HEADER_HEIGHT + 10);
   const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
@@ -198,13 +198,18 @@ export const RotationForm = observer((props: RotationFormProps) => {
     } catch (err) {
       onError(err);
     } finally {
-      setIsOpen(true);
+      // wait until a scroll to the "Rotations" happened
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 100);
     }
   };
 
-  const onError = useCallback((error) => {
-    setErrors(error.response.data);
-  }, []);
+  const onError = (error) => {
+    if (error.response?.data) {
+      setErrors(error.response.data);
+    }
+  };
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 

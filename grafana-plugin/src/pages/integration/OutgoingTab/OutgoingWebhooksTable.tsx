@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useEffect } from 'react';
 
 import { IconButton, HorizontalGroup, Icon, ConfirmModal, useStyles2 } from '@grafana/ui';
-import { observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { GTable } from 'components/GTable/GTable';

@@ -1,6 +1,7 @@
 import React, { SyntheticEvent } from 'react';
 
-import { SelectableValue } from '@grafana/data';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
   Button,
@@ -8,17 +9,16 @@ import {
   Icon,
   LoadingPlaceholder,
   RadioButtonGroup,
-  Themeable2,
   Tooltip,
   VerticalGroup,
   withTheme2,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { CardButton } from 'components/CardButton/CardButton';
 import { CursorPagination } from 'components/CursorPagination/CursorPagination';
@@ -34,7 +34,7 @@ import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { ColumnsSelectorWrapper } from 'containers/ColumnsSelectorWrapper/ColumnsSelectorWrapper';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
+import { RemoteFilters, RemoteFiltersState } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
@@ -48,8 +48,9 @@ import {
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { IncidentRelatedUsers } from 'pages/incident/Incident.helpers';
 import { AppFeature } from 'state/features';
+import { RootStore } from 'state/rootStore';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
@@ -58,22 +59,20 @@ import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
-import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
-
-const cx = cn.bind(styles);
 
 interface Pagination {
   start: number;
   end: number;
 }
 
-interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps, Themeable2 {}
+interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {
+  theme: GrafanaTheme2;
+}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<ApiSchemas['AlertGroup']['pk']>;
-  affectedRows: { [key: string]: boolean };
   filters?: Record<string, any>;
   pagination: Pagination;
   showAddAlertGroupForm: boolean;
@@ -128,7 +127,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     this.state = {
       selectedIncidentIds: [],
-      affectedRows: {},
       showAddAlertGroupForm: false,
       pagination: {
         start,
@@ -148,7 +146,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { alertGroupStore } = store;
 
     alertGroupStore.fetchBulkActions();
-    alertGroupStore.fetchSilenceOptions();
 
     if (store.hasFeature(AppFeature.Labels)) {
       alertGroupStore.fetchTableSettings();
@@ -164,14 +161,17 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   render() {
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
+
     const {
+      theme,
       store: { alertReceiveChannelStore },
     } = this.props;
+    const styles = getStyles(theme);
 
     return (
       <>
-        <div className={cx('root')}>
-          <div className={cx('title')}>
+        <div>
+          <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
@@ -184,6 +184,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           {this.renderIncidentFilters()}
           {this.renderTable()}
         </div>
+
         {showAddAlertGroupForm && (
           <ManualAlertGroup
             onHide={() => {
@@ -199,15 +200,22 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange, store) {
+  renderCards(
+    filtersState: RemoteFiltersState,
+    filtersSetState: (data: any, callback: () => void) => void,
+    filtersOnFiltersValueChange: (status: string, newStatuses: string[]) => void,
+    store: RootStore,
+    theme: GrafanaTheme2
+  ) {
     const { values } = filtersState;
     const { stats } = store.alertGroupStore;
 
     const status = values.status || [];
+    const styles = getStyles(theme);
 
     return (
-      <div className={cx('cards', 'row')}>
-        <div key="new" className={cx('col')}>
+      <div className={cx(styles.cards, styles.row)}>
+        <div key="new" className={styles.col}>
           <CardButton
             icon={<Icon name="bell" size="xxl" />}
             description="Firing"
@@ -216,12 +224,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Firing,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
         </div>
-        <div key="acknowledged" className={cx('col')}>
+        <div key="acknowledged" className={styles.col}>
           <CardButton
             icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
@@ -230,12 +238,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Acknowledged,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
         </div>
-        <div key="resolved" className={cx('col')}>
+        <div key="resolved" className={styles.col}>
           <CardButton
             icon={<Icon name="check" size="xxl" />}
             description="Resolved"
@@ -244,12 +252,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Resolved,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
         </div>
-        <div key="silenced" className={cx('col')}>
+        <div key="silenced" className={styles.col}>
           <CardButton
             icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
@@ -258,7 +266,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             onClick={this.getStatusButtonClickHandler(
               IncidentStatus.Silenced,
               filtersState,
-              setFiltersState,
+              filtersSetState,
               filtersOnFiltersValueChange
             )}
           />
@@ -269,13 +277,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   getStatusButtonClickHandler = (
     status: IncidentStatus,
-    filtersState,
-    filtersSetState,
-    filtersOnFiltersValueChange
+    filtersState: RemoteFiltersState,
+    filtersSetState: (data: any, callback: () => void) => void,
+    filtersOnFiltersValueChange: (status: string, newStatuses: string[]) => void
   ) => {
     return (selected: boolean) => {
       const { values } = filtersState;
-
       const { status: statusFilter = [] } = values;
 
       let newStatuses = [...statusFilter];
@@ -306,15 +313,17 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderIncidentFilters() {
-    const { query, store } = this.props;
+    const { query, store, theme } = this.props;
+    const styles = getStyles(theme);
+
     return (
-      <div className={cx('filters')}>
+      <div className={styles.filters}>
         <RemoteFilters
           query={query}
           page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
           extraFilters={(...args) => {
-            return this.renderCards(...args, store);
+            return this.renderCards(...args, store, theme);
           }}
           grafanaTeamStore={store.grafanaTeamStore}
           defaultFilters={{
@@ -342,7 +351,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     this.setState({
       filters,
       selectedIncidentIds: [],
-      affectedRows: {},
     });
 
     if (!isOnMount) {
@@ -422,32 +430,34 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderBulkActions = () => {
-    const { selectedIncidentIds, affectedRows, isHorizontalScrolling } = this.state;
-    const { store } = this.props;
+    const { selectedIncidentIds, isHorizontalScrolling } = this.state;
+    const { store, theme } = this.props;
 
     if (!store.alertGroupStore.bulkActions) {
       return null;
     }
 
-    const { results } = AlertGroupHelper.getAlertSearchResult(store.alertGroupStore);
-
     const hasSelected = selectedIncidentIds.length > 0;
-    const isLoading = LoaderHelper.isLoading(store.loaderStore, ActionKey.FETCH_INCIDENTS);
-    const hasInvalidatedAlert = Boolean(
-      (results && results.some((alert: ApiSchemas['AlertGroup']) => alert.undoAction)) ||
-        Object.keys(affectedRows).length
-    );
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, [
+      ActionKey.FETCH_INCIDENTS,
+      ActionKey.FETCH_INCIDENTS_POLLING,
+      ActionKey.FETCH_INCIDENTS_AND_STATS,
+      ActionKey.INCIDENTS_BULK_UPDATE,
+    ]);
+
+    const styles = getStyles(theme);
+    const isBulkUpdate = LoaderHelper.isLoading(store.loaderStore, ActionKey.INCIDENTS_BULK_UPDATE);
 
     return (
-      <div className={cx('above-incidents-table')}>
-        <div className={cx('bulk-actions-container')}>
-          <div className={cx('bulk-actions-list')}>
+      <div className={styles.aboveIncidentsTable}>
+        <div className={styles.bulkActionsContainer}>
+          <div className={styles.bulkActionsList}>
             {'resolve' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
-                  disabled={!hasSelected}
+                  disabled={!hasSelected || isBulkUpdate}
                   variant="primary"
-                  onClick={(ev) => this.getBulkActionClickHandler('resolve', ev)}
+                  onClick={(ev) => this.onBulkActionClick('resolve', ev)}
                 >
                   Resolve
                 </Button>
@@ -456,9 +466,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'acknowledge' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
-                  disabled={!hasSelected}
+                  disabled={!hasSelected || isBulkUpdate}
                   variant="secondary"
-                  onClick={(ev) => this.getBulkActionClickHandler('acknowledge', ev)}
+                  onClick={(ev) => this.onBulkActionClick('acknowledge', ev)}
                 >
                   Acknowledge
                 </Button>
@@ -467,9 +477,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'silence' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
-                  disabled={!hasSelected}
+                  disabled={!hasSelected || isBulkUpdate}
                   variant="secondary"
-                  onClick={(ev) => this.getBulkActionClickHandler('restart', ev)}
+                  onClick={(ev) => this.onBulkActionClick('restart', ev)}
                 >
                   Restart
                 </Button>
@@ -478,8 +488,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
                 <SilenceButtonCascader
-                  disabled={!hasSelected}
-                  onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
+                  disabled={!hasSelected || isBulkUpdate}
+                  onSelect={(ev) => this.onBulkActionClick('silence', ev)}
                 />
               </WithPermissionControlTooltip>
             )}
@@ -490,18 +500,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             </Text>
           </div>
 
-          <div className={cx('fields-dropdown')}>
-            <RenderConditionally shouldRender={!isLoading && hasInvalidatedAlert}>
-              <HorizontalGroup spacing="xs">
-                <Text type="secondary">Results out of date</Text>
-                <Button className={cx('btn-results')} variant="primary" onClick={this.onIncidentsUpdateClick}>
-                  Refresh
-                </Button>
-              </HorizontalGroup>
-            </RenderConditionally>
-
+          <div className={styles.fieldsDropdown}>
             <RenderConditionally shouldRender={isLoading}>
-              <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+              <LoadingPlaceholder text="Loading..." className={styles.loadingPlaceholder} />
             </RenderConditionally>
 
             <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
@@ -521,10 +522,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   renderTable() {
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
     const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
+    const { theme } = this.props;
 
     const { results, prev, next } = AlertGroupHelper.getAlertSearchResult(alertGroupStore);
     const isLoading =
       LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
+
+    const styles = getStyles(theme);
 
     if (results && !results.length) {
       return (
@@ -550,7 +554,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const tableColumns = this.getTableColumns();
 
     return (
-      <div className={cx('root')} ref={this.rootElRef}>
+      <div ref={this.rootElRef}>
         {this.renderBulkActions()}
         <GTable
           emptyText={isLoading ? 'Loading...' : 'No alert groups found'}
@@ -566,7 +570,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           scroll={{ x: isHorizontalScrolling ? 'max-content' : undefined }}
         />
         {this.shouldShowPagination() && (
-          <div className={cx('pagination')}>
+          <div className={styles.pagination}>
             <CursorPagination
               current={`${pagination.start}-${pagination.end}`}
               itemsPerPage={alertGroupStore.alertsSearchResult?.page_size}
@@ -582,15 +586,16 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   }
 
-  renderId(record: ApiSchemas['AlertGroup']) {
+  renderId = (record: ApiSchemas['AlertGroup']) => {
+    const styles = getUtilStyles(this.props.theme);
     return (
       <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
-        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
+        <Text type="secondary" className={cx(styles.overflowChild)}>
           #{record.inside_organization_number}
         </Text>
       </TextEllipsisTooltip>
     );
-  }
+  };
 
   renderTitle = (record: ApiSchemas['AlertGroup']) => {
     const { store, query } = this.props;
@@ -600,7 +605,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (
       <div>
         <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
-          <Text type="link" size="medium" className={cx('overflow-parent')} data-testid="integration-url">
+          <Text type="link" size="medium" data-testid="integration-url">
             <PluginLink
               query={{
                 page: 'alert-groups',
@@ -626,16 +631,18 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderSource = (record: ApiSchemas['AlertGroup']) => {
     const {
+      theme,
       store: { alertReceiveChannelStore },
     } = this.props;
     const integration = AlertReceiveChannelHelper.getIntegrationSelectOption(
       alertReceiveChannelStore,
       record.alert_receive_channel
     );
+    const utilStyles = getUtilStyles(theme);
 
     return (
       <TextEllipsisTooltip
-        className={cx('u-flex', 'u-flex-gap-xs', 'overflow-parent')}
+        className={cx(utilStyles.flex, utilStyles.flexGapXS)}
         placement="top"
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
@@ -688,7 +695,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderLabels = (item: ApiSchemas['AlertGroup']) => {
-    if (!item.labels.length) {
+    if (!item.labels?.length) {
       return null;
     }
 
@@ -830,7 +837,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       Users: {
         title: 'Users',
         key: 'users',
-        render: renderRelatedUsers,
+        render: (item: ApiSchemas['AlertGroup'], isFull: boolean) => (
+          <IncidentRelatedUsers incident={item} isFull={isFull} />
+        ),
         grow: 1.5,
       },
     };
@@ -899,10 +908,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
     const { store } = this.props;
 
-    return (e: SyntheticEvent) => {
+    return async (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      return store.alertGroupStore.doIncidentAction(incidentId, action);
+      await store.alertGroupStore.doIncidentAction(incidentId, action);
+      await store.alertGroupStore.fetchIncidentsAndStats();
     };
   };
 
@@ -924,42 +934,27 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     };
   };
 
-  getBulkActionClickHandler = (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
-    const { selectedIncidentIds, affectedRows } = this.state;
-    const { store } = this.props;
+  onBulkActionClick = async (action: ApiSchemas['AlertGroupBulkActionRequest']['action'], event?: any) => {
+    const { selectedIncidentIds } = this.state;
+    const { alertGroupStore } = this.props.store;
 
-    this.setPollingInterval();
-
-    store.alertGroupStore.setLiveUpdatesPaused(true);
     const delay = typeof event === 'number' ? event : 0;
 
-    this.setState(
+    await AlertGroupHelper.updateBulkActionAndRefresh(
       {
-        selectedIncidentIds: [],
-        affectedRows: selectedIncidentIds.reduce(
-          (acc, incidentId: ApiSchemas['AlertGroup']['pk']) => ({
-            ...acc,
-            [incidentId]: true,
-          }),
-          affectedRows
-        ),
+        action,
+        alert_group_pks: selectedIncidentIds,
+        delay,
       },
-      () => {
-        AlertGroupHelper.bulkAction({
-          action,
-          alert_group_pks: selectedIncidentIds,
-          delay,
-        });
+      alertGroupStore,
+      async () => {
+        // clear selected incident on finally and update incident stats
+        this.setState({ selectedIncidentIds: [] });
+        this.setPollingInterval();
+
+        await alertGroupStore.fetchIncidentsAndStats();
       }
     );
-  };
-
-  onIncidentsUpdateClick = () => {
-    const { store } = this.props;
-
-    this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.fetchIncidentsAndStats();
-    });
   };
 
   clearPollingInterval() {
@@ -968,32 +963,147 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 
   setPollingInterval() {
-    const startPolling = (delayed = false) => {
-      this.pollingIntervalId = setTimeout(
-        async () => {
-          const isBrowserWindowInactive = document.hidden;
-          if (
-            !isBrowserWindowInactive &&
-            !LoaderHelper.isLoading(this.props.store.loaderStore, [
-              ActionKey.FETCH_INCIDENTS,
-              ActionKey.FETCH_INCIDENTS_POLLING,
-            ]) &&
-            !this.props.store.alertGroupStore.liveUpdatesPaused
-          ) {
-            await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
-          }
+    const startPolling = () => {
+      this.pollingIntervalId = setTimeout(async () => {
+        const isBrowserWindowInactive = document.hidden;
+        const { liveUpdatesPaused } = this.props.store.alertGroupStore;
 
-          if (this.pollingIntervalId === null) {
-            return;
-          }
-          startPolling(isBrowserWindowInactive);
-        },
-        delayed ? 60 * 1000 : POLLING_NUM_SECONDS * 1000
-      );
+        if (
+          !liveUpdatesPaused &&
+          !isBrowserWindowInactive &&
+          !LoaderHelper.isLoading(this.props.store.loaderStore, [
+            ActionKey.FETCH_INCIDENTS,
+            ActionKey.FETCH_INCIDENTS_POLLING,
+          ])
+        ) {
+          await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
+        }
+
+        if (this.pollingIntervalId === null) {
+          return;
+        }
+
+        startPolling();
+      }, POLLING_NUM_SECONDS * 1000);
     };
 
     startPolling();
   }
 }
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    select: css`
+      width: 400px;
+    `,
+
+    bau: css`
+      ${[1, 2, 3].map(
+        (num) => `
+      $--line-${num} {
+        -webkit-line-clamp: ${num}
+      }
+    `
+      )}
+    `,
+
+    actionButtons: css`
+      width: 100%;
+      justify-content: flex-end;
+    `,
+
+    filters: css`
+      margin-bottom: 20px;
+    `,
+
+    fieldsDropdown: css`
+      gap: 8px;
+      display: flex;
+      margin-left: auto;
+      align-items: center;
+      padding-left: 4px;
+    `,
+
+    aboveIncidentsTable: css`
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `,
+
+    horizontalScrollTable: css`
+      table td:global(.rc-table-cell) {
+        white-space: nowrap;
+        padding-right: 16px;
+      }
+    `,
+
+    bulkActionsContainer: css`
+      margin: 10px 0 10px 0;
+      display: flex;
+      width: 100%;
+    `,
+
+    bulkActionsList: css`
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `,
+
+    otherUsers: css`
+      color: ${theme.colors.secondary.text};
+    `,
+
+    pagination: css`
+      width: 100%;
+      margin-top: 20px;
+    `,
+
+    title: css`
+      margin-bottom: 24px;
+      right: 0;
+    `,
+
+    btnResults: css`
+      margin-left: 8px;
+    `,
+
+    /* filter cards */
+
+    cards: css`
+      margin-top: 25px;
+    `,
+
+    row: css`
+      display: flex;
+      flex-wrap: wrap;
+      margin-left: -8px;
+      margin-right: -8px;
+      row-gap: 16px;
+    `,
+
+    loadingPlaceholder: css`
+      margin-bottom: 0;
+      text-align: center;
+    `,
+
+    col: css`
+      padding-left: 8px;
+      padding-right: 8px;
+      display: block;
+      flex: 0 0 25%;
+      max-width: 25%;
+
+      @media (max-width: 1200px) {
+        flex: 0 0 50%;
+        max-width: 50%;
+      }
+
+      @media (max-width: 800px) {
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+    `,
+  };
+};
 
 export const IncidentsPage = withRouter(withMobXProviderContext(withTheme2(_IncidentsPage)));

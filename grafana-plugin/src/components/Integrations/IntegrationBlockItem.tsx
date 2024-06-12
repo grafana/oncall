@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
@@ -12,8 +12,8 @@ export const IntegrationBlockItem: React.FC<IntegrationBlockItemProps> = (props)
   const styles = useStyles2(getStyles);
 
   return (
-    <div className={cx(styles.parent)} data-testid="integration-block-item">
-      <div className={cx(styles.content)}>{props.children}</div>
+    <div className={styles.parent} data-testid="integration-block-item">
+      <div className={styles.content}>{props.children}</div>
     </div>
   );
 };

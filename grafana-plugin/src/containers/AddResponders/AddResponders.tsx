@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Button, Modal, Alert, VerticalGroup, Icon } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { HorizontalGroup, Button, Modal, Alert, VerticalGroup, Icon, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
@@ -14,14 +13,12 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
-import styles from './AddResponders.module.scss';
+import { getAddRespondersStyles } from './AddResponders.styles';
 import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';
 import { AddRespondersPopup } from './parts/AddRespondersPopup/AddRespondersPopup';
 import { NotificationPoliciesSelect } from './parts/NotificationPoliciesSelect/NotificationPoliciesSelect';
 import { TeamResponder } from './parts/TeamResponder/TeamResponder';
 import { UserResponder } from './parts/UserResponder/UserResponder';
-
-const cx = cn.bind(styles);
 
 type Props = {
   mode: 'create' | 'update';
@@ -31,21 +28,24 @@ type Props = {
   generateRemovePreviouslyPagedUserCallback?: (userId: string) => () => Promise<void>;
 };
 
-const LearnMoreAboutNotificationPoliciesLink: React.FC = () => (
-  <a
-    className={cx('learn-more-link')}
-    href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
-    target="_blank"
-    rel="noreferrer"
-  >
-    <Text type="link">
-      <HorizontalGroup spacing="xs">
-        Learn more
-        <Icon name="external-link-alt" />
-      </HorizontalGroup>
-    </Text>
-  </a>
-);
+const LearnMoreAboutNotificationPoliciesLink: React.FC = () => {
+  const styles = useStyles2(getAddRespondersStyles);
+  return (
+    <a
+      className={styles.learnMoreLink}
+      href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
+      target="_blank"
+      rel="noreferrer"
+    >
+      <Text type="link">
+        <HorizontalGroup spacing="xs">
+          Learn more
+          <Icon name="external-link-alt" />
+        </HorizontalGroup>
+      </Text>
+    </a>
+  );
+};
 
 export const AddResponders = observer(
   ({
@@ -56,6 +56,8 @@ export const AddResponders = observer(
     generateRemovePreviouslyPagedUserCallback,
   }: Props) => {
     const { directPagingStore } = useStore();
+    const styles = useStyles2(getAddRespondersStyles);
+
     const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
     const currentMoment = useMemo(() => dayjs(), []);
@@ -107,7 +109,7 @@ export const AddResponders = observer(
 
     return (
       <>
-        <div className={cx('body')}>
+        <div className={styles.content}>
           <Block bordered>
             <HorizontalGroup justify="space-between">
               <Text.Title type="primary" level={4}>
@@ -129,7 +131,7 @@ export const AddResponders = observer(
             </HorizontalGroup>
             {(selectedTeamResponder || existingPagedUsers.length > 0 || selectedUserResponders.length > 0) && (
               <>
-                <ul className={cx('responders-list')}>
+                <ul className={styles.respondersList}>
                   {selectedTeamResponder && (
                     <TeamResponder team={selectedTeamResponder} handleDelete={directPagingStore.resetSelectedTeam} />
                   )}
@@ -156,6 +158,7 @@ export const AddResponders = observer(
                   {selectedUserResponders.length > 0 && (
                     <Alert
                       severity="info"
+                      className={styles.alert}
                       title={
                         (
                           <Text type="primary">
@@ -184,7 +187,7 @@ export const AddResponders = observer(
             isOpen
             title="Confirm Participant Invitation"
             onDismiss={closeUserConfirmationModal}
-            className={cx('confirm-participant-invitation-modal')}
+            className={styles.confirmParticipantInvitationModal}
           >
             <VerticalGroup spacing="md">
               {!isCreateMode && (
@@ -194,7 +197,7 @@ export const AddResponders = observer(
                     {currentMoment.tz(UserHelper.getTimezone(currentlyConsideredUser)).format('HH:mm')}) will be
                     notified using
                   </Text>
-                  <div className={cx('confirm-participant-invitation-modal-select')}>
+                  <div className={styles.confirmParticipantInvitationModalSelect}>
                     <NotificationPoliciesSelect
                       important={Boolean(currentlyConsideredUserNotificationPolicy)}
                       onChange={onChangeCurrentlyConsideredUserNotificationPolicy}

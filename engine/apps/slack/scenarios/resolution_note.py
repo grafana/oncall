@@ -7,8 +7,10 @@ from django.db.models import Q
 from django.utils.text import Truncator
 
 from apps.api.permissions import RBACPermission
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE, DIVIDER
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
@@ -43,6 +45,7 @@ logger.setLevel(logging.DEBUG)
 RESOLUTION_NOTE_EXCEPTIONS = (
     SlackAPIChannelNotFoundError,
     SlackAPIMessageNotFoundError,
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIInvalidAuthError,
     SlackAPITokenError,
@@ -321,6 +324,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
+    MESSAGE_SHORTCUT_INSTRUCTION = "You can add thread messages as resolution notes using the message shortcut"
 
     class ScenarioData(typing.TypedDict):
         resolution_note_window_action: str
@@ -481,14 +485,15 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                         "emoji": True,
                     },
                     "action_id": AddRemoveThreadMessageStep.routing_uid(),
-                    "value": json.dumps(
+                    "value": make_value(
                         {
                             "resolution_note_window_action": "edit",
                             "msg_value": "add" if not message.added_to_resolution_note else "remove",
                             "message_pk": message.pk,
                             "resolution_note_pk": None,
                             "alert_group_pk": alert_group.pk,
-                        }
+                        },
+                        alert_group.channel.organization,
                     ),
                 },
             }
@@ -540,7 +545,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                                     "emoji": True,
                                 },
                                 "action_id": AddRemoveThreadMessageStep.routing_uid(),
-                                "value": json.dumps(
+                                "value": make_value(
                                     {
                                         "resolution_note_window_action": "edit",
                                         "msg_value": "remove",
@@ -549,7 +554,8 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                                         else resolution_note_slack_message.pk,
                                         "resolution_note_pk": resolution_note.pk,
                                         "alert_group_pk": alert_group.pk,
-                                    }
+                                    },
+                                    alert_group.channel.organization,
                                 ),
                                 "confirm": {
                                     "title": {"type": "plain_text", "text": "Are you sure?"},
@@ -571,29 +577,17 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         if not blocks:
             # there aren't any resolution notes yet, display a hint instead
-            link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
-                DIVIDER,
-                typing.cast(
-                    Block.Section,
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": ":bulb: You can add a message to the resolution notes via context menu:",
-                        },
-                    },
-                ),
                 typing.cast(
                     Block.Image,
                     {
                         "type": "image",
                         "title": {
                             "type": "plain_text",
-                            "text": "Add a resolution note",
+                            "text": self.MESSAGE_SHORTCUT_INSTRUCTION,
                         },
-                        "image_url": link_to_instruction,
-                        "alt_text": "Add to postmortem context menu",
+                        "image_url": create_engine_url("static/images/resolution_note.gif"),
+                        "alt_text": self.MESSAGE_SHORTCUT_INSTRUCTION,
                     },
                 ),
             ]
@@ -601,9 +595,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         return blocks
 
     def get_invite_bot_tip_blocks(self, channel: str) -> Block.AnyBlocks:
-        link_to_instruction = create_engine_url("static/images/postmortem.gif")
-        blocks: Block.AnyBlocks = [
-            DIVIDER,
+        return [
             typing.cast(
                 Block.Context,
                 {
@@ -611,15 +603,12 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": f":bulb: To include messages from thread to resolution note `/invite` Grafana OnCall to "
-                            f"<#{channel}>. Or you can add a message via "
-                            f"<{link_to_instruction}|context menu>.",
+                            "text": f"To enable this feature, `/invite` Grafana OnCall to <#{channel}>.",
                         },
                     ],
                 },
             ),
         ]
-        return blocks
 
 
 class ReadEditPostmortemStep(ResolutionNoteModalStep):

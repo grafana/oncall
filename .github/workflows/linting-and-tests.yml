@@ -1,74 +1,37 @@
 name: Linting and Tests
 
-"on":
-  push:
-    branches:
-      - main
-      - dev
-  pull_request:
-  # You can use the merge_group event to trigger your GitHub Actions workflow when
-  # a pull request is added to a merge queue
-  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
-  merge_group:
+on:
+  workflow_call:
 
-concurrency:
-  # Cancel any running workflow for the same branch when new commits are pushed.
-  # We group both by ref_name (available when CI is triggered by a push to a branch/tag)
-  # and head_ref (available when CI is triggered by a PR).
-  group: "${{ github.ref_name }}-${{ github.head_ref }}"
-  cancel-in-progress: true
+env:
+  DJANGO_SETTINGS_MODULE: settings.ci_test
+  DATABASE_HOST: localhost
+  RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
+  SLACK_CLIENT_OAUTH_ID: 1
 
 jobs:
   lint-entire-project:
     name: "Lint entire project"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
-      # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+          install-dependencies: "false"
       - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
-      - uses: pre-commit/action@v3.0.0
+        uses: ./.github/actions/install-frontend-dependencies
+      - uses: pre-commit/action@v3.0.1
 
   lint-test-and-build-frontend:
     name: "Lint, test, and build frontend"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+      - name: Checkout project
+        uses: actions/checkout@v4
       - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
+        uses: ./.github/actions/install-frontend-dependencies
       - name: Build, lint and test frontend
         working-directory: grafana-plugin
         run: yarn lint && yarn test && yarn build
@@ -78,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
       - name: "Build website"
         # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
         # that no refs to external content can be used as these refs will not resolve in the
@@ -93,11 +56,6 @@ jobs:
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
     runs-on: ubuntu-latest
-    env:
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
     services:
       rabbit_test:
         image: rabbitmq:3.12.0
@@ -114,21 +72,15 @@ jobs:
         ports:
           - 3306:3306
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
       - name: Lint migrations
         working-directory: engine
         # makemigrations --check = Exit with a non-zero status if model changes are missing migrations
         # and don't actually write them.
         run: |
-          pip install uv
-          uv pip sync --system requirements.txt requirements-dev.txt
           python manage.py makemigrations --check
           python manage.py lintmigrations
 
@@ -136,8 +88,9 @@ jobs:
     name: "Helm Chart Unit Tests"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: azure/setup-helm@v3
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4.2.0
         with:
           version: v3.8.0
       - name: Install helm unittest plugin
@@ -147,15 +100,11 @@ jobs:
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
     env:
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      SLACK_CLIENT_OAUTH_ID: 1
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
@@ -173,34 +122,22 @@ jobs:
         ports:
           - 3306:3306
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
       - name: Unit Test Backend
         working-directory: engine
-        run: |
-          apt-get update && apt-get install -y netcat-traditional
-          pip install uv
-          uv pip sync --system requirements.txt requirements-dev.txt
-          ./wait_for_test_mysql_start.sh && pytest -x
+        run: ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
     env:
       DATABASE_TYPE: postgresql
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
@@ -224,24 +161,17 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
       - name: Unit Test Backend
         working-directory: engine
-        run: |
-          pip install uv
-          uv pip sync --system requirements.txt requirements-dev.txt
-          pytest -x
+        run: pytest -x
 
   unit-test-backend-sqlite-redis:
     name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     strategy:
       matrix:
         rbac_enabled: ["True", "False"]
@@ -249,8 +179,6 @@ jobs:
       DATABASE_TYPE: sqlite3
       BROKER_TYPE: redis
       REDIS_URI: redis://localhost:6379
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       redis_test:
@@ -263,57 +191,39 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
       - name: Unit Test Backend
         working-directory: engine
-        run: |
-          apt-get update && apt-get install -y netcat-traditional
-          pip install uv
-          uv pip sync --system requirements.txt requirements-dev.txt
-          pytest -x
+        run: pytest -x
 
   unit-test-migrators:
     name: "Unit tests - Migrators"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
         with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: tools/migrators/requirements.txt
+          python-requirements-paths: tools/migrators/requirements.txt
       - name: Unit Test Migrators
         working-directory: tools/migrators
-        run: |
-          pip install uv
-          uv pip sync --system requirements.txt
-          pytest -x
+        run: pytest -x
 
   mypy:
     name: "mypy"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: ./.github/actions/setup-python
       - name: mypy Static Type Checking
         working-directory: engine
-        run: |
-          pip install uv
-          uv pip sync --system requirements.txt requirements-dev.txt
-          mypy .
+        run: mypy .
 
   end-to-end-tests:
     name: Standard e2e tests

@@ -44,26 +44,23 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Collect Workflow Telemetry
-        uses: runforesight/workflow-telemetry-action@v1
+        uses: catchpoint/workflow-telemetry-action@v2
         with:
           comment_on_pr: false
           proc_trace_chart_show: false
           proc_trace_table_show: false
 
       - name: Install Kind
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.10.0
         with:
           config: ./dev/kind.yml
           install_only: true
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
 
       - name: Install Tilt
         run: |
@@ -76,21 +73,9 @@ jobs:
           curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/$CTLPTL_FILE_NAME | \
             tar -xzv -C /usr/local/bin ctlptl
 
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
-
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
-
       - name: Use cached plugin frontend build
         id: cache-plugin-frontend
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: grafana-plugin/dist
           key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
@@ -111,7 +96,7 @@ jobs:
 
       - name: Cache Playwright binaries/dependencies
         id: playwright-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.cache/ms-playwright"
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}

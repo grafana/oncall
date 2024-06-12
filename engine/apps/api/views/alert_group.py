@@ -1,5 +1,6 @@
 import typing
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django_filters import rest_framework as filters
@@ -275,6 +276,11 @@ class AlertGroupView(
     pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = (
+        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
+        else []
+    )
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -638,10 +644,13 @@ class AlertGroupView(
                     choices=[display_name for _, display_name in AlertGroup.SILENCE_DELAY_OPTIONS]
                 ),
             },
+            many=True,
         )
     )
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
+        # TODO: DEPRECATED, REMOVE IN A FUTURE RELEASE
+
         """
         Retrieve a list of valid silence options
         """

@@ -56,6 +56,28 @@ def test_create_escalation_policy(escalation_policy_internal_api_setup, make_use
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("wait_delay", (timedelta(seconds=59), timedelta(hours=24, seconds=1)))
+def test_create_escalation_policy_wait_delay_invalid(
+    escalation_policy_internal_api_setup, make_user_auth_headers, wait_delay
+):
+    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:escalation_policy-list")
+
+    data = {
+        "step": EscalationPolicy.STEP_WAIT,
+        "wait_delay": str(wait_delay.total_seconds()),
+        "escalation_chain": escalation_chain.public_primary_key,
+        "notify_to_users_queue": [],
+        "from_time": None,
+        "to_time": None,
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_create_escalation_policy_webhook(
     escalation_policy_internal_api_setup, make_custom_webhook, make_user_auth_headers
 ):
