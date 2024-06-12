@@ -64,23 +64,21 @@ export const DateTimePicker = observer(
       return time;
     };
 
-    const forceConvertToDateWithOffset = (date: dayjs.Dayjs) => {
-      // Since the date selector only cares about the date being displayed and is not tied to time as well
-      // We make sure the date we pass won't be converted to the day before or day after due to DST
-      // E.g. If the offset is UTC+3 and we want to set the datetime to 00:00 in a month where DST changes
-      // We would actually go back 1 day (1 hour), which is not the desired result
+    const getConvertedDateToOffset = () => {
+      const date = dayjs(propValue.toDate()).utcOffset(selectedTimezoneOffset);
 
-      const formattedDate = getFormattedDateDDMMYYYY(date.toDate());
-      const formattedDayMoment = date.format('DD/MM/YYYY');
-
-      let resultDate = date;
-      if (formattedDate !== formattedDayMoment) {
-        // TODO: Check with old/new if this is still needed
-        resultDate = resultDate.set('hours', Math.abs(selectedTimezoneOffset / 60));
-      }
-
-      return resultDate.toDate();
+      return dayjs()
+        .set('minute', 0)
+        .set('second', 0)
+        .set('millisecond', 0)
+        .set('date', 1)
+        .set('month', date.month())
+        .set('date', date.date())
+        .set('year', date.year())
+        .toDate();
     };
+
+    console.log(getConvertedDateToOffset().toString());
 
     return (
       <VerticalGroup>
@@ -94,7 +92,7 @@ export const DateTimePicker = observer(
             <DatePickerWithInput
               open
               disabled={disabled}
-              value={forceConvertToDateWithOffset(valueInSelectedTimezone)}
+              value={getConvertedDateToOffset()}
               onChange={handleDateChange}
             />
           </div>
