@@ -29,20 +29,20 @@ export class PluginStore {
     });
   }
 
+  // create oncall api token and save in plugin settings
+  async install() {
+    return makeRequest(`/plugin${getIsRunningOpenSourceVersion() ? '/self-hosted' : ''}/install`, {
+      method: 'POST',
+    });
+  }
+
   @AutoLoadingState(ActionKey.INITIALIZE_PLUGIN)
   async initializePlugin() {
-    // create oncall api token and save in plugin settings
-    const install = async () => {
-      await makeRequest(`/plugin${getIsRunningOpenSourceVersion() ? '/self-hosted' : ''}/install`, {
-        method: 'POST',
-      });
-    };
-
     // 1. Check if plugin is connected
     await this.verifyPluginConnection();
     if (!this.isPluginConnected) {
       // 2. if not connected try to install
-      await install();
+      await this.install();
       // 3. Check if plugin is connected once again after install
       await this.verifyPluginConnection();
     }

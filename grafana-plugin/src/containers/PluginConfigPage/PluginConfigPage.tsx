@@ -12,6 +12,7 @@ import { Button } from 'components/Button/Button';
 import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { Text } from 'components/Text/Text';
 import { GrafanaApiClient } from 'network/grafana-api/http-client';
+import { rootStore } from 'state/rootStore';
 import { DOCS_ONCALL_OSS_INSTALL, DOCS_SERVICE_ACCOUNTS, getOnCallApiUrl } from 'utils/consts';
 import { validateURL } from 'utils/string';
 
@@ -20,15 +21,19 @@ type PluginConfigFormValues = {
 };
 
 export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
+  const {
+    pluginStore: { install },
+  } = rootStore;
   const styles = useStyles2(getStyles);
   const { handleSubmit, control, formState } = useForm<PluginConfigFormValues>({
     mode: 'onChange',
     defaultValues: { onCallApiUrl: getOnCallApiUrl(props.plugin.meta) },
   });
 
-  const onSubmit = (values: PluginConfigFormValues) => {
+  const onSubmit = async (values: PluginConfigFormValues) => {
     // eslint-disable-next-line no-console
     console.log(values);
+    await install();
   };
 
   return (
