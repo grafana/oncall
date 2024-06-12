@@ -13,7 +13,7 @@ on:
 jobs:
   build-engine-docker-image-and-publish-to-dockerhub:
     name: Build engine Docker image and publish to Dockerhub
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/build-push-to-dockerhub
     permissions:
@@ -22,6 +22,10 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
+        with:
+          # we have one large .whl file which is referenced in the engine Dockerfile.. we need to
+          # fetch that file to be able to properly build the image
+          lfs: true
       - name: Set engine version number in settings file
         if: inputs.engine_version
         uses: ./.github/actions/set-engine-version-in-settings

@@ -315,7 +315,7 @@ export class AlertGroupStore {
   async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
-    const { hidden, visible, default: isDefaultOrder } = tableSettings;
+    const { hidden = [], visible = [], default: isDefaultOrder } = tableSettings;
 
     runInAction(() => {
       this.isDefaultColumnOrder = isDefaultOrder;
