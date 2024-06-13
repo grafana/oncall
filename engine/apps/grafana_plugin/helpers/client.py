@@ -94,7 +94,7 @@ class HttpMethod(typing.Protocol):
 
 class APIClient:
     def __init__(self, api_url: str, api_token: str) -> None:
-        self.api_url = settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"] or api_url
+        self.api_url = settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"] if settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"] is not None else api_url
         if urlparse(self.api_url).path and not self.api_url.endswith('/'):
             self.api_url += '/'
         self.api_token = api_token
