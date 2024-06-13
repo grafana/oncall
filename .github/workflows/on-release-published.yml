@@ -81,30 +81,17 @@ jobs:
   #       type=raw,value=${{ github.ref_name }}
   #       type=raw,value=latest
 
-  merge-helm-release-pr:
-    name: Merge Helm release PR
+  create-helm-release-pr:
+    name: Create Helm release PR
     # needs:
     #   - build-sign-and-publish-plugin-to-gcom
     #   - build-engine-docker-image-and-publish-to-dockerhub
     runs-on: ubuntu-latest
-    # These permissions are needed to assume roles from Github's OIDC.
-    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
-    # permissions:
-    #   id-token: write
-    #   contents: read
-    #   # the following permissions are needed for the yaml-update-action step
-    #   # https://github.com/fjogeleit/yaml-update-action/issues/539#issuecomment-1440922870
-    #   issues: write
-    #   pull-requests: write
+    outputs:
+      helm_release_pr_number: ${{ fromJSON(steps.update-helm-chart-pr.outputs.pull_request).number }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
-      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
-      # - name: Get Vault secrets
-      #   uses: grafana/shared-workflows/actions/get-vault-secrets@main
-      #   with:
-      #     repo_secrets: |
-      #       GITHUB_API_KEY=github_actions:github-api-key
       - name: Prepare version tags
         id: prepare-version-tags
         run: |
@@ -131,11 +118,29 @@ jobs:
               "version": "${{ steps.prepare-version-tags.outputs.version }}",
               "appVersion": "${{ steps.prepare-version-tags.outputs.app-version }}"
             }
+
+  merge-helm-release-pr:
+    name: Merge Helm release PR
+    needs:
+      - create-helm-release-pr
+    runs-on: ubuntu-latest
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GITHUB_API_KEY=github_actions:github-api-key
       - name: Merge pull Request
         uses: juliangruber/merge-pull-request-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ fromJSON(steps.update-helm-chart-pr.outputs.pull_request).number }}
+          number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}
 
   update-helm-repo:
     name: Update Helm Repo
