@@ -334,3 +334,21 @@ def test_resolution_notes_modal_closed_before_update(
     # Check that "views.update" API call was made
     call_args, _ = mock_slack_api_call.call_args
     assert call_args[0] == "views.update"
+
+
+@pytest.mark.django_db
+def test_add_to_resolution_note_broadcast(make_organization_and_user_with_slack_identities):
+    AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+
+    payload = {
+        "channel": {"id": "TEST"},
+        "message_ts": "TEST",
+        "message": {"thread_ts": "TEST"},
+    }
+
+    step = AddToResolutionNoteStep(organization=organization, user=user, slack_team_identity=slack_team_identity)
+    with patch.object(AddToResolutionNoteStep, "open_warning_window") as mock_open_warning_window:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_open_warning_window.assert_not_called()  # warning window should not be opened

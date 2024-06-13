@@ -3,6 +3,7 @@ import json
 import logging
 import typing
 
+from django.conf import settings
 from django.db.models import Q
 from django.utils.text import Truncator
 
@@ -82,10 +83,11 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
             )
-        except KeyError:
-            self.open_warning_window(payload, warning_text)
-            return
-        except SlackMessage.DoesNotExist:
+        except (KeyError, SlackMessage.DoesNotExist):
+            if settings.FEATURE_MULTIREGION_ENABLED:
+                # Message shortcut events are broadcasted to multiple regions by chatops-proxy
+                # Return 200 as this event could be handled by another region
+                return
             self.open_warning_window(payload, warning_text)
             return
 
