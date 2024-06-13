@@ -139,15 +139,3 @@ jobs:
         with:
           github-token: ${{ env.GITHUB_API_KEY }}
           number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}
-
-  update-helm-repo:
-    name: Update Helm Repo
-    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
-    needs:
-      - merge-helm-release-pr
-    with:
-      charts_dir: helm
-      cr_configfile: helm/cr.yaml
-      ct_configfile: helm/ct.yaml
-    secrets:
-      helm_repo_token: ${{ secrets.GH_HELM_RELEASE }}
