@@ -3,6 +3,7 @@ import React, { FC, useEffect } from 'react';
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Badge, BadgeColor, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -51,7 +52,8 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   };
 
   const handleTodayClick = () => {
-    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(timezoneStore.currentDateInSelectedTimezone));
+    // TODAY
+    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(dayjs()));
   };
 
   const handleLeftClick = () => {

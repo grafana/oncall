@@ -53,7 +53,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
   getSelectedDays,
-  getStartOfWeekBasedOnCurrentDate,
   getUTCByDay,
   getUTCString,
   getUTCWeekStart,
@@ -67,6 +66,7 @@ import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/const
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
+import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -102,6 +102,7 @@ const getStartShift = (start: dayjs.Dayjs, timezoneOffset: number, isNewRotation
 
 export const RotationForm = observer((props: RotationFormProps) => {
   const store = useStore();
+
   const {
     onHide,
     onCreate,
@@ -110,7 +111,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     onDelete,
     layerPriority,
     shiftId,
-    shiftStart: propsShiftStart = getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone),
+    shiftStart: propsShiftStart = store.timezoneStore.calendarStartDate,
     shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
     onShowRotationForm,
@@ -240,28 +241,46 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
-  const params = {
-    rotation_start: getUTCString(rotationStart),
-    until: endLess ? null : getUTCString(rotationEnd),
-    shift_start: getUTCString(shiftStart),
-    shift_end: getUTCString(shiftEnd),
-    rolling_users: userGroups,
-    interval: repeatEveryValue,
-    frequency: repeatEveryPeriod,
-    by_day: getUTCByDay({
-      dayOptions: store.scheduleStore.byDayOptions,
-      by_day: selectedDays,
-      moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+  const params = useMemo(
+    () => ({
+      rotation_start: getUTCString(rotationStart),
+      until: endLess ? null : getUTCString(rotationEnd),
+      shift_start: getUTCString(shiftStart),
+      shift_end: getUTCString(shiftEnd),
+      rolling_users: userGroups,
+      interval: repeatEveryValue,
+      frequency: repeatEveryPeriod,
+      by_day: getUTCByDay({
+        dayOptions: store.scheduleStore.byDayOptions,
+        by_day: selectedDays,
+        moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
+      }),
+      week_start: getUTCWeekStart(
+        store.scheduleStore.byDayOptions,
+        store.timezoneStore.getDateInSelectedTimezone(shiftStart)
+      ),
+      priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
+      name: rotationName,
     }),
-    week_start: getUTCWeekStart(
-      store.scheduleStore.byDayOptions,
-      store.timezoneStore.getDateInSelectedTimezone(shiftStart)
-    ),
-    priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
-    name: rotationName,
-  };
+    [
+      rotationStart,
+      rotationEnd,
+      shiftStart,
+      shiftEnd,
+      userGroups,
+      repeatEveryValue,
+      repeatEveryPeriod,
+      selectedDays,
+      shiftId,
+      layerPriority,
+      shift,
+      endLess,
+      rotationName,
+      store.timezoneStore.selectedTimezoneOffset,
+    ]
+  );
 
-  useEffect(handleChange, [params, store.timezoneStore.calendarStartDate]);
+  useEffect(handleChange, [params, store.timezoneStore.calendarStartDate, store.timezoneStore.selectedTimezoneOffset]);
 
   const create = useCallback(async () => {
     try {
@@ -445,7 +464,13 @@ export const RotationForm = observer((props: RotationFormProps) => {
       const shiftStart = toDateWithTimezoneOffset(dayjs(shift.shift_start), store.timezoneStore.selectedTimezoneOffset);
 
       setRotationStart(shiftStart);
-      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
+      setRotationEnd(
+        toDateWithTimezoneOffset(
+          // always keep the date offseted
+          shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'),
+          store.timezoneStore.selectedTimezoneOffset
+        )
+      );
       setShiftStart(shiftStart);
 
       const shiftEnd = toDateWithTimezoneOffset(dayjs(shift.shift_end), store.timezoneStore.selectedTimezoneOffset);
@@ -478,7 +503,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       setUserGroups(shift.rolling_users);
     }
-  }, [shift]);
+  }, [shift, store.timezoneStore.selectedTimezoneOffset]);
 
   useEffect(() => {
     if (shift) {
@@ -489,18 +514,17 @@ export const RotationForm = observer((props: RotationFormProps) => {
           moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
         })
       );
-    }
+    } else {
+      // for new rotations
+      const offsetedShiftStart = toDateWithTimezoneOffset(shiftStart, store.timezoneStore.selectedTimezoneOffset);
+      const offsetedRotationStart = toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset);
 
-    const { selectedTimezoneOffset } = store.timezoneStore;
-    const offsetedShiftStart = toDateWithTimezoneOffset(shiftStart, selectedTimezoneOffset);
-    const offsetedRotationStart = toDateWithTimezoneOffset(rotationStart, selectedTimezoneOffset);
+      setShiftStart(offsetedShiftStart);
+      setRotationStart(offsetedRotationStart);
+      setShiftEnd(toDateWithTimezoneOffset(shiftEnd, store.timezoneStore.selectedTimezoneOffset));
 
-    setShiftStart(offsetedShiftStart);
-    setRotationStart(offsetedRotationStart);
-
-    if (!endLess) {
-      setRotationEnd(toDateWithTimezoneOffset(rotationEnd, selectedTimezoneOffset));
-      setShiftEnd(toDateWithTimezoneOffset(shiftEnd, selectedTimezoneOffset));
+      // not behind an "if" such that it will reflect correct value after toggle gets switched
+      setRotationEnd(toDateWithTimezoneOffset(rotationEnd, store.timezoneStore.selectedTimezoneOffset));
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
 
@@ -596,6 +620,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   >
                     <DateTimePicker
                       value={rotationStart}
+                      utcOffset={store.timezoneStore.selectedTimezoneOffset}
                       onChange={handleRotationStartChange}
                       error={errors.rotation_start}
                       disabled={disabled}
@@ -624,6 +649,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     ) : (
                       <DateTimePicker
                         value={rotationEnd}
+                        utcOffset={store.timezoneStore.selectedTimezoneOffset}
                         onChange={setRotationEnd}
                         error={errors.until}
                         disabled={disabled}

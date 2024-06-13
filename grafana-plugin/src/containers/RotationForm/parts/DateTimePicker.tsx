@@ -9,7 +9,6 @@ import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
-import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
 
@@ -17,6 +16,7 @@ const cx = cn.bind(styles);
 
 interface DateTimePickerProps {
   value: dayjs.Dayjs;
+  utcOffset?: number;
   onChange: (value: dayjs.Dayjs) => void;
   disabled?: boolean;
   onFocus?: () => void;
@@ -25,13 +25,11 @@ interface DateTimePickerProps {
 }
 
 export const DateTimePicker = observer(
-  ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
+  ({ value: propValue, utcOffset, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const styles = useStyles2(getStyles);
-    const { timezoneStore } = useStore();
-    const { selectedTimezoneOffset } = timezoneStore;
 
     const handleDateChange = (value: Date) => {
-      const newDate = toDateWithTimezoneOffset(dayjs(value), selectedTimezoneOffset)
+      const newDate = toDateWithTimezoneOffset(dayjs(value), utcOffset)
         .set('date', 1)
         .set('months', value.getMonth())
         .set('date', value.getDate())
@@ -44,7 +42,7 @@ export const DateTimePicker = observer(
     };
 
     const handleTimeChange = (timeMoment: DateTime) => {
-      const newDate = toDateWithTimezoneOffset(propValue, selectedTimezoneOffset)
+      const newDate = toDateWithTimezoneOffset(propValue, utcOffset)
         .set('hour', timeMoment.hour())
         .set('minute', timeMoment.minute());
 
@@ -52,9 +50,9 @@ export const DateTimePicker = observer(
     };
 
     const getTimeValueInSelectedTimezone = () => {
-      const dateInOffset = toDateWithTimezoneOffset(propValue, selectedTimezoneOffset);
+      const dateInOffset = toDateWithTimezoneOffset(propValue, utcOffset);
 
-      const time = dateTime();
+      const time = dateTime(dateInOffset.format());
       time.set('hour', dateInOffset.hour());
       time.set('minute', dateInOffset.minute());
       time.set('seconds', dateInOffset.second());
@@ -63,7 +61,7 @@ export const DateTimePicker = observer(
     };
 
     const getConvertedDateToOffset = () => {
-      const date = toDateWithTimezoneOffset(propValue, selectedTimezoneOffset);
+      const date = toDateWithTimezoneOffset(propValue, utcOffset);
 
       return dayjs()
         .set('hour', 0)

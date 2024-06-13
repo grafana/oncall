@@ -40,13 +40,15 @@ export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
   return date.startOf('isoWeek'); // it's Monday always
 };
 
-export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView) => {
+export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView, timezoneOffset: number) => {
+  const offsetedDate = toDateWithTimezoneOffset(date, timezoneOffset);
+
   switch (scheduleView) {
     case ScheduleView.OneMonth:
-      const startOfMonth = date.startOf('month');
+      const startOfMonth = offsetedDate.startOf('month');
       return startOfMonth.startOf('isoWeek');
     default:
-      return date.startOf('isoWeek');
+      return offsetedDate.startOf('isoWeek');
   }
 };
 
@@ -205,6 +207,12 @@ export const getColorSchemeMappingForUsers = (
   }
 };
 
-export const toDateWithTimezoneOffset = (date: dayjs.Dayjs, timezoneOffset: number) => {
-  return date.utcOffset() === timezoneOffset ? date : date.utcOffset(timezoneOffset);
+export const toDateWithTimezoneOffset = (date: dayjs.Dayjs, timezoneOffset?: number) => {
+  if (!date) {
+    return undefined;
+  }
+  if (timezoneOffset === undefined) {
+    return date;
+  }
+  return date.utcOffset() === timezoneOffset ? date : date.tz().utcOffset(timezoneOffset);
 };

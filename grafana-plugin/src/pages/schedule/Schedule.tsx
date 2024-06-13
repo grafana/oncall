@@ -339,7 +339,11 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                               value={store.timezoneStore.calendarStartDate.toDate()}
                               onChange={(newDate) => {
                                 store.timezoneStore.setCalendarStartDate(
-                                  getCalendarStartDate(dayjs(newDate), scheduleView)
+                                  getCalendarStartDate(
+                                    dayjs(newDate),
+                                    scheduleView,
+                                    store.timezoneStore.selectedTimezoneOffset
+                                  )
                                 );
                                 this.handleDateRangeUpdate();
                                 this.setState({ calendarStartDatePickerIsOpen: false });
@@ -362,7 +366,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                 timezoneStore.setCalendarStartDate(
                                   getCalendarStartDate(
                                     timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
-                                    value
+                                    value,
+                                    timezoneStore.selectedTimezoneOffset
                                   )
                                 );
                               }
@@ -532,9 +537,13 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   };
 
   handleTodayClick = () => {
-    const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(
-      getCalendarStartDate(store.timezoneStore.currentDateInSelectedTimezone, store.scheduleStore.scheduleView)
+    const {
+      store: { scheduleStore, timezoneStore },
+    } = this.props;
+
+    timezoneStore.setCalendarStartDate(
+      // TODAY
+      getCalendarStartDate(dayjs(), scheduleStore.scheduleView, timezoneStore.selectedTimezoneOffset)
     );
     this.handleDateRangeUpdate();
   };

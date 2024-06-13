@@ -20,18 +20,22 @@ export class TimezoneStore {
   @observable
   selectedTimezoneOffset = getOffsetOfCurrentUser();
 
-  /* @observable
-  calendarStartDate = getStartOfWeekBasedOnCurrentDate(this.currentDateInSelectedTimezone); */
-
   @observable
-  calendarStartDate = getCalendarStartDate(this.currentDateInSelectedTimezone, ScheduleView.OneWeek);
+  calendarStartDate = getCalendarStartDate(
+    this.currentDateInSelectedTimezone,
+    ScheduleView.OneWeek,
+    this.selectedTimezoneOffset
+  );
 
   @action.bound
   setSelectedTimezoneOffset(offset: number) {
     this.selectedTimezoneOffset = offset;
+
+    // TODO: This needs to be addressed
     this.calendarStartDate = getCalendarStartDate(
       this.currentDateInSelectedTimezone,
-      this.rootStore.scheduleStore.scheduleView
+      this.rootStore.scheduleStore.scheduleView,
+      offset
     );
   }
 

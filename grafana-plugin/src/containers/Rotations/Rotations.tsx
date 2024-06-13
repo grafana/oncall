@@ -17,7 +17,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { getColor, getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType, Shift, ShiftSwap, Event, Layer } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
+import { getCurrentTimeX, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { HTML_ID } from 'utils/DOM';
@@ -78,6 +78,8 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
     } = this.props;
 
     const { shiftStartToShowRotationForm, shiftEndToShowRotationForm, isNewRotation } = this.state;
+
+    const { selectedTimezoneOffset } = store.timezoneStore;
 
     const currentTimeX = getCurrentTimeX(
       store.timezoneStore.currentDateInSelectedTimezone,
@@ -263,8 +265,8 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
             shiftColor={findColor(shiftIdToShowRotationForm, layers)}
             scheduleId={scheduleId}
             layerPriority={layerPriorityToShowRotationForm}
-            shiftStart={shiftStartToShowRotationForm}
-            shiftEnd={shiftEndToShowRotationForm}
+            shiftStart={toDateWithTimezoneOffset(shiftStartToShowRotationForm, selectedTimezoneOffset)}
+            shiftEnd={toDateWithTimezoneOffset(shiftEndToShowRotationForm, selectedTimezoneOffset)}
             onHide={() => {
               this.hideRotationForm();
 
