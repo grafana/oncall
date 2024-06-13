@@ -1,5 +1,6 @@
 name: "Triage stale pull requests"
-"on":
+
+on:
   schedule:
     - cron: "30 1 * * *"
 
