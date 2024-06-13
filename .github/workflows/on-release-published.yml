@@ -139,7 +139,7 @@ jobs:
       - name: Merge pull Request
         uses: juliangruber/merge-pull-request-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ env.GITHUB_API_KEY }}
           number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}
 
   update-helm-repo:
