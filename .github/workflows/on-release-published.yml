@@ -106,12 +106,12 @@ jobs:
           targetBranch: main
           masterBranchName: main
           createPR: true
+          # yamllint disable rule:line-length
           description: |
-            This PR was created automatically by
-            [this github action](https://github.com/grafana/oncall/blob/dev/.github/workflows/on-release-published.yml).
+            This PR was created automatically by [this github action](https://github.com/grafana/oncall/blob/dev/.github/workflows/on-release-published.yml).
 
-            It will be auto-merged very soon, which will then release the updated version of the chart into the
-            `grafana/helm-charts` helm repository.
+            It will be auto-merged very soon, which will then release the updated version of the chart into the `grafana/helm-charts` helm repository.
+          # yamllint enable rule:line-length
           message: "Release oncall Helm chart ${{ steps.prepare-version-tags.outputs.version }}"
           changes: |
             {
