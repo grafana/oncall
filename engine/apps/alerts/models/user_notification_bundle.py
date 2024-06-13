@@ -12,10 +12,7 @@ class UserNotificationBundle(models.Model):
         UserNotificationPolicy.NotificationChannel.SMS,
     ]
 
-    user = models.ForeignKey(
-        "user_management.User",
-        on_delete=models.CASCADE,
-    )
+    user = models.ForeignKey("user_management.User", on_delete=models.CASCADE, related_name="notification_bundles")
     important = models.BooleanField()
     notification_channel = models.PositiveSmallIntegerField(default=0)
     last_notified = models.DateTimeField(default=None, null=True)
@@ -38,6 +35,11 @@ class UserNotificationBundle(models.Model):
         )
 
     def eta_is_valid(self) -> bool:
+        """
+        `eta` shows eta of scheduled send_bundled_notification task and should never be less than the current time
+        (with a 1 minute buffer provided).
+        `eta` is None means that there is no scheduled task.
+        """
         if not self.eta or self.eta + timezone.timedelta(minutes=1) >= timezone.now():
             return True
         return False
@@ -46,7 +48,7 @@ class UserNotificationBundle(models.Model):
         last_notified = self.last_notified if self.last_notified else timezone.now()
         return last_notified + timezone.timedelta(seconds=BUNDLED_NOTIFICATION_DELAY_SECONDS)
 
-    def attach_notification(self, alert_group, notification_policy):
+    def append_notification(self, alert_group, notification_policy):
         self.notifications.create(alert_group=alert_group, notification_policy=notification_policy)
 
 

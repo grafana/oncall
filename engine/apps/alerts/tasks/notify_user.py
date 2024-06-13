@@ -14,19 +14,21 @@ from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
+from .compare_escalations import compare_escalations
 from .task_logger import task_logger
 
 
-def create_send_bundled_notification_task(user_notification_bundle, alert_group, task_id, eta):
+def create_send_bundled_notification_task(user_notification_bundle, alert_group):
     """Schedule notification task for bundled notifications"""
     send_bundled_notification.apply_async(
         (user_notification_bundle.id,),
-        eta=eta,
-        task_id=task_id,
+        eta=user_notification_bundle.eta,
+        task_id=user_notification_bundle.notification_task_id,
     )
     task_logger.info(
-        f"Scheduled send_bundled_notification task {task_id}, "
-        f"user_notification_bundle: {user_notification_bundle.id}, alert_group {alert_group.id}, eta: {eta}"
+        f"Scheduled send_bundled_notification task {user_notification_bundle.notification_task_id}, "
+        f"user_notification_bundle: {user_notification_bundle.id}, alert_group {alert_group.id}, "
+        f"eta: {user_notification_bundle.eta}"
     )
 
 
@@ -90,8 +92,6 @@ def notify_user_task(
         except User.DoesNotExist:
             return f"notify_user_task: user {user_pk} doesn't exist"
 
-        organization = alert_group.channel.organization
-
         if not user.is_notification_allowed:
             task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed")
             UserNotificationPolicyLogRecord(
@@ -129,14 +129,14 @@ def notify_user_task(
 
             try:
                 notification_policy = UserNotificationPolicy.objects.get(pk=previous_notification_policy_pk)
-                if notification_policy.user.organization != organization:
+                if notification_policy.user != user:  # todo: how could it happen?
                     notification_policy = UserNotificationPolicy.objects.get(
                         order=notification_policy.order, user=user, important=important
                     )
                 notification_policy = notification_policy.next()
             except UserNotificationPolicy.DoesNotExist:
                 task_logger.info(
-                    f"notify_user_taskLNotification policy {previous_notification_policy_pk} has been deleted"
+                    f"notify_user_task: Notification policy {previous_notification_policy_pk} has been deleted"
                 )
                 return
             reason = None
@@ -153,17 +153,16 @@ def notify_user_task(
         else:
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
+                or (alert_group.silenced and not notify_anyway)
                 or alert_group.resolved
                 or alert_group.wiped_at
                 or alert_group.root_alert_group
             ):
-                return "Acknowledged, resolved, attached or wiped."
-
-            if alert_group.silenced and not notify_anyway:
                 task_logger.info(
-                    f"notify_user_task: skip notification user {user.pk} because alert_group {alert_group.pk} is silenced"
+                    f"notify_user_task: skip notification user {user.pk}, alert_group {alert_group.pk} is "
+                    f"{alert_group.state} and/or attached or wiped"
                 )
-                return
+                return "Acknowledged, resolved, silenced, attached or wiped."
 
             if notification_policy.step == UserNotificationPolicy.Step.WAIT:
                 countdown = (
@@ -195,8 +194,10 @@ def notify_user_task(
                         notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
                     )
                 else:
-                    # todo: feature flag
-                    if notification_policy.notify_by in UserNotificationBundle.NOTIFICATION_CHANNELS_TO_BUNDLE:
+                    if (
+                        settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED
+                        and notification_policy.notify_by in UserNotificationBundle.NOTIFICATION_CHANNELS_TO_BUNDLE
+                    ):
                         user_notification_bundle, _ = UserNotificationBundle.objects.get_or_create(
                             user=user, important=important, notification_channel=notification_policy.notify_by
                         )
@@ -205,31 +206,25 @@ def notify_user_task(
                         ).select_for_update()[0]
                         # check if notification needs to be bundled
                         if user_notification_bundle.notified_recently():
-                            user_notification_bundle.attach_notification(alert_group, notification_policy)
-                            # schedule notification task for bundled notifications if it hasn't been scheduled or
-                            # task eta is outdated
+                            user_notification_bundle.append_notification(alert_group, notification_policy)
+                            # schedule send_bundled_notification task if it hasn't been scheduled or the task eta is
+                            # outdated
                             eta_is_valid = user_notification_bundle.eta_is_valid()
+                            if not eta_is_valid:
+                                task_logger.warning(
+                                    f"ETA is not valid - {user_notification_bundle.eta}, "
+                                    f"user_notification_bundle {user_notification_bundle.id}, "
+                                    f"task_id {user_notification_bundle.notification_task_id}. "
+                                    f"Rescheduling the send_bundled_notification task"
+                                )
                             if not user_notification_bundle.notification_task_id or not eta_is_valid:
-                                if not eta_is_valid:
-                                    task_logger.warning(
-                                        f"ETA ({user_notification_bundle.eta}) is not valid for "
-                                        f"user_notification_bundle {user_notification_bundle.id}, "
-                                        f"task_id {user_notification_bundle.notification_task_id}. "
-                                        f"Rescheduling the task"
-                                    )
-                                new_eta = user_notification_bundle.get_notification_eta()
-                                task_id = celery_uuid()
-                                user_notification_bundle.notification_task_id = task_id
-                                user_notification_bundle.eta = new_eta
+                                user_notification_bundle.notification_task_id = celery_uuid()
+                                user_notification_bundle.eta = user_notification_bundle.get_notification_eta()
                                 user_notification_bundle.save(update_fields=["notification_task_id", "eta"])
 
                                 transaction.on_commit(
                                     partial(
-                                        create_send_bundled_notification_task,
-                                        user_notification_bundle,
-                                        alert_group,
-                                        task_id,
-                                        new_eta,
+                                        create_send_bundled_notification_task, user_notification_bundle, alert_group
                                     )
                                 )
                             is_notification_bundled = True
@@ -481,11 +476,18 @@ def send_bundled_notification(user_notification_bundle_id):
 
     task_logger.info(f"Start send_bundled_notification for user_notification_bundle {user_notification_bundle_id}")
     with transaction.atomic():
-        user_notification_bundle = UserNotificationBundle.objects.filter(
-            pk=user_notification_bundle_id
-        ).select_for_update()[0]
+        try:
+            user_notification_bundle = UserNotificationBundle.objects.filter(
+                pk=user_notification_bundle_id
+            ).select_for_update()[0]
+        except IndexError:
+            task_logger.info(
+                f"user_notification_bundle {user_notification_bundle_id} doesn't exist. "
+                f"The user associated with this notification bundle may have been deleted."
+            )
+            return
 
-        if send_bundled_notification.request.id != user_notification_bundle.notification_task_id:
+        if not compare_escalations(send_bundled_notification.request.id, user_notification_bundle.notification_task_id):
             task_logger.info(
                 f"send_bundled_notification: notification_task_id mismatch. "
                 f"Duplication or non-active notification triggered. "
@@ -508,17 +510,6 @@ def send_bundled_notification(user_notification_bundle_id):
         created_lod_records = []
         skip_notification_ids = []
         perform_notifications = []
-
-        # update metric
-        existing_logs = set(
-            user_notification_bundle.user.personal_log_records.filter(
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
-                alert_group_id__in=active_alert_groups,
-            ).values_list("alert_group_id", flat=True)
-        )
-        metric_counter = len(active_alert_groups - existing_logs)
-        if metric_counter > 0:
-            update_metrics_for_user.apply_async((user_notification_bundle.user.id, metric_counter))
 
         # create logs
         for notification in notifications:
@@ -593,9 +584,19 @@ def send_bundled_notification(user_notification_bundle_id):
                 # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
                 pass
 
-        task_logger.info(
-            f"Finished send_bundled_notification for user_notification_bundle {user_notification_bundle_id}"
+    # update metric
+    existing_logs = set(
+        user_notification_bundle.user.personal_log_records.filter(
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+            alert_group_id__in=active_alert_groups,
         )
+        .exclude(id__in=[log.id for log in created_lod_records])
+        .values_list("alert_group_id", flat=True)
+    )
+    metric_counter = len(active_alert_groups - existing_logs)
+    if metric_counter > 0:
+        update_metrics_for_user.apply_async((user_notification_bundle.user.id, metric_counter))
+    task_logger.info(f"Finished send_bundled_notification for user_notification_bundle {user_notification_bundle_id}")
 
 
 # deprecated
