@@ -337,7 +337,9 @@ def test_resolution_notes_modal_closed_before_update(
 
 
 @pytest.mark.django_db
-def test_add_to_resolution_note_broadcast(make_organization_and_user_with_slack_identities):
+def test_add_to_resolution_note_broadcast(make_organization_and_user_with_slack_identities, settings):
+    settings.FEATURE_MULTIREGION_ENABLED = True
+
     AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
 
