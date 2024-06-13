@@ -99,17 +99,47 @@ jobs:
         with:
           repo_secrets: |
             GITHUB_API_KEY=github_actions:github-api-key
-      - name: Slice v from the tag
-        id: prepare-version-tag
+      - name: Prepare version tags
+        id: prepare-version-tags
         run: |
-          echo processed-tag="${GITHUB_REF_NAME:1}" >> $GITHUB_OUTPUT
-      - name: Find Helm release pull request
-        uses: juliangruber/find-pull-request-action@v1
-        id: find-pull-request
+          echo app-version="${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo version="${GITHUB_REF_NAME:1}" >> $GITHUB_OUTPUT
+      - name: Update oncall Helm chart Chart.yaml
+        id: update-helm-chart-pr
+        uses: fjogeleit/yaml-update-action@v0.12.3
         with:
-          branch: helm-release/${{ steps.prepare-version-tag.outputs.processed-tag }}
+          valueFile: helm/oncall/Chart.yaml
+          branch: helm-release/${{ steps.prepare-version-tags.outputs.version }}
+          targetBranch: main
+          masterBranchName: main
+          createPR: true
+          description: |
+            This PR was created automatically by this
+            [github action](https://github.com/grafana/oncall/blob/dev/.github/workflows/on-release-published.yml).
+
+            It will be auto-merged very soon, which will then release the updated version of the chart
+            (version: ${{ steps.prepare-version-tags.outputs.version }}, appVersion: ${{ steps.prepare-version-tags.outputs.app-version }})
+            into the `grafana/helm-charts` helm repository.
+          message: "Release oncall Helm chart ${{ steps.prepare-version-tags.outputs.version }}"
+          changes: |
+            {
+              "version": "${{ steps.prepare-version-tags.outputs.version }}",
+              "appVersion": "${{ steps.prepare-version-tags.outputs.app-version }}"
+            }
       - name: Merge pull Request
         uses: juliangruber/merge-pull-request-action@v1
         with:
           github-token: ${{ env.GITHUB_API_KEY }}
-          number: ${{ steps.find-pull-request.outputs.number }}
+          number: ${{ fromJSON(steps.update-helm-chart-pr.outputs.pull_request).number }}
+
+  update-helm-repo:
+    name: Update Helm Repo
+    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
+    needs:
+      - merge-helm-release-pr
+    with:
+      charts_dir: helm
+      cr_configfile: helm/cr.yaml
+      ct_configfile: helm/ct.yaml
+    secrets:
+      helm_repo_token: ${{ secrets.GH_HELM_RELEASE }}
