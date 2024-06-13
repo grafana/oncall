@@ -11,3 +11,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/writers-toolkit/update-make-docs@update-make-docs/v1
+        with:
+          pr_options: --label "release:ignore"
