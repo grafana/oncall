@@ -1,0 +1,18 @@
+name: Update grafana/helm-charts repo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - helm/oncall/Chart.yaml
+
+jobs:
+  call-update-helm-repo:
+    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
+    with:
+      charts_dir: helm
+      cr_configfile: helm/cr.yaml
+      ct_configfile: helm/ct.yaml
+    secrets:
+      helm_repo_token: ${{ secrets.GH_HELM_RELEASE }}
