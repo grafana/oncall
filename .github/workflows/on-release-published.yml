@@ -88,8 +88,12 @@ jobs:
     # These permissions are needed to assume roles from Github's OIDC.
     # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
     permissions:
-      contents: read
       id-token: write
+      contents: read
+      # the following permissions are needed for the yaml-update-action step
+      # https://github.com/fjogeleit/yaml-update-action/issues/539#issuecomment-1440922870
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout project
         uses: actions/checkout@v4

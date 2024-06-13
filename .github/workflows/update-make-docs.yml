@@ -1,4 +1,4 @@
-name: Update `make docs` procedure
+name: Update make docs procedure
 
 on:
   schedule:
@@ -7,10 +7,7 @@ on:
 
 jobs:
   main:
-    if: github.repository == 'grafana/oncall'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/writers-toolkit/update-make-docs@update-make-docs/v1
-        with:
-          pr_options: --label "pr:no changelog"
