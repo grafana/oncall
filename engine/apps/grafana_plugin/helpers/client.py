@@ -2,7 +2,7 @@ import json
 import logging
 import time
 import typing
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from django.conf import settings
@@ -94,7 +94,10 @@ class HttpMethod(typing.Protocol):
 
 class APIClient:
     def __init__(self, api_url: str, api_token: str) -> None:
-        self.api_url = api_url
+        if settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"] is not None:
+            self.api_url = settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"]
+            if urlparse(self.api_url).path and not self.api_url.endswith('/'):
+                self.api_url += '/'
         self.api_token = api_token
 
     def api_head(self, endpoint: str, body: typing.Optional[typing.Dict] = None, **kwargs) -> APIClientResponse[_RT]:
