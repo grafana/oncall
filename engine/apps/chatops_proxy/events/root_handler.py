@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from .handlers import Handler, SlackInstallationHandler
+from .handlers import Handler, SlackInstallHandler, SlackUninstallHandler
 from .types import Event
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class ChatopsEventsHandler:
     ChatopsEventsHandler is a root handler which receives event from Chatops-Proxy and chooses the handler to process it.
     """
 
-    HANDLERS: typing.List[typing.Type[Handler]] = [SlackInstallationHandler]
+    HANDLERS: typing.List[typing.Type[Handler]] = [SlackInstallHandler, SlackUninstallHandler]
 
     def handle(self, event_data: Event) -> bool:
         """

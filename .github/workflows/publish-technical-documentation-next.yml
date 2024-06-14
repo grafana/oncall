@@ -1,12 +1,13 @@
 name: "Publish Technical Documentation (next)"
 
-"on":
+on:
   push:
     branches:
       - "main"
     paths:
       - "docs/sources/**"
   workflow_dispatch:
+
 jobs:
   test:
     runs-on: "ubuntu-latest"
