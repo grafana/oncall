@@ -303,11 +303,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
     });
   };
 
-  handleAddLayer = (
-    layerPriority: number,
-    shiftStart?: dayjs.Dayjs,
-    shiftEnd?: dayjs.Dayjs,
-  ) => {
+  handleAddLayer = (layerPriority: number, shiftStart?: dayjs.Dayjs, shiftEnd?: dayjs.Dayjs) => {
     const { disabled } = this.props;
 
     if (disabled) {
