@@ -70,10 +70,12 @@ body:
         - Alert Flow & Configuration
         - Auth
         - Chatops
-        - Helm
         - Mobile App
         - Schedules
-        - Terraform
+        - Helm
+        - API
+        - Terraform/Crossplane
+        - Metrics
         - Other
     validations:
       required: true
