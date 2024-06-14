@@ -3,7 +3,7 @@ import { observable, action, computed, makeObservable } from 'mobx';
 
 // TODO: move utils from Schedule.helpers to common place
 import { ScheduleView } from 'models/schedule/schedule.types';
-import { getCalendarStartDate } from 'pages/schedule/Schedule.helpers';
+import { getCalendarStartDate, toDateWithTimezoneOffsetAtMidnight } from 'pages/schedule/Schedule.helpers';
 import { RootStore } from 'state/rootStore';
 
 import { getOffsetOfCurrentUser, getGMTTimezoneLabelBasedOnOffset } from './timezone.helpers';
@@ -31,12 +31,7 @@ export class TimezoneStore {
   setSelectedTimezoneOffset(offset: number) {
     this.selectedTimezoneOffset = offset;
 
-    // TODO: This needs to be addressed
-    this.calendarStartDate = getCalendarStartDate(
-      this.currentDateInSelectedTimezone,
-      this.rootStore.scheduleStore.scheduleView,
-      offset
-    );
+    this.calendarStartDate = toDateWithTimezoneOffsetAtMidnight(this.calendarStartDate, offset);
   }
 
   @action.bound

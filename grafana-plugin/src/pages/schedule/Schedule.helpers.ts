@@ -216,3 +216,14 @@ export const toDateWithTimezoneOffset = (date: dayjs.Dayjs, timezoneOffset?: num
   }
   return date.utcOffset() === timezoneOffset ? date : date.tz().utcOffset(timezoneOffset);
 };
+
+export const toDateWithTimezoneOffsetAtMidnight = (date: dayjs.Dayjs, timezoneOffset?: number) => {
+  return toDateWithTimezoneOffset(date, timezoneOffset)
+    .set('date', 1)
+    .set('year', date.year())
+    .set('month', date.month())
+    .set('date', date.date())
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0);
+};
