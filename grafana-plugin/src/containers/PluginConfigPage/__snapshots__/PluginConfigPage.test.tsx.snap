@@ -21,7 +21,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
         1. Launch the OnCall backend
       </p>
       <span
-        class="css-77ouhj--secondary css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
       >
         Run hobby, dev or production backend. See
          
@@ -31,7 +31,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
           target="_blank"
         >
           <span
-            class="css-77ouhj--link css-77ouhj--medium css-1d6rs0l"
+            class="css-77ouhj--link css-77ouhj--medium css-1287p17"
           >
             here
           </span>
@@ -47,7 +47,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
         2. Let us know the base URL of your OnCall API
       </p>
       <span
-        class="css-77ouhj--secondary css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
       >
         The OnCall backend must be reachable from your Grafana installation. Some examples are:
         <br />
@@ -117,7 +117,7 @@ exports[`PluginConfigPage If onCallApiUrl is set, and updatePluginStatus returns
     data-testid="status-message-block"
   >
     <span
-      class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+      class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
     >
       ohhh nooo a plugin connection error
     </span>
@@ -169,7 +169,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
     data-testid="status-message-block"
   >
     <span
-      class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+      class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
     >
       Connected to OnCall (v1.2.3, OpenSource)
     </span>
@@ -224,7 +224,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
     data-testid="status-message-block"
   >
     <span
-      class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+      class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
     >
       Connected to OnCall (v1.2.3, OpenSource)
     </span>
@@ -279,7 +279,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
     data-testid="status-message-block"
   >
     <span
-      class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+      class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
     >
       Connected to OnCall (v1.2.3, some-other-license)
     </span>
@@ -336,7 +336,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
     data-testid="status-message-block"
   >
     <span
-      class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+      class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
     >
       ohhh noooo a sync issue
     </span>
@@ -391,7 +391,7 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
     data-testid="status-message-block"
   >
     <span
-      class="css-77ouhj--undefined css-77ouhj--medium css-1d6rs0l"
+      class="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
     >
       There was an error resetting your plugin, try again.
     </span>
@@ -453,7 +453,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
         1. Launch the OnCall backend
       </p>
       <span
-        class="css-77ouhj--secondary css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
       >
         Run hobby, dev or production backend. See
          
@@ -463,7 +463,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
           target="_blank"
         >
           <span
-            class="css-77ouhj--link css-77ouhj--medium css-1d6rs0l"
+            class="css-77ouhj--link css-77ouhj--medium css-1287p17"
           >
             here
           </span>
@@ -479,7 +479,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
         2. Let us know the base URL of your OnCall API
       </p>
       <span
-        class="css-77ouhj--secondary css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
       >
         The OnCall backend must be reachable from your Grafana installation. Some examples are:
         <br />

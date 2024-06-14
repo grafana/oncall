@@ -58,6 +58,7 @@ module = [
     "fcm_django.*",
     "firebase_admin.*",
     "googleapiclient.discovery.*",
+    "googleapiclient.errors.*",
     "google.oauth2.credentials.*",
     "httpretty.*",
     "humanize.*",

@@ -2,10 +2,10 @@ import React, { ReactElement, useCallback, useEffect } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { LoadingPlaceholder, Select, useStyles2 } from '@grafana/ui';
+import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 import { EscalationPolicy, EscalationPolicyProps } from 'components/Policy/EscalationPolicy';
 import { SortableList } from 'components/SortableList/SortableList';
@@ -14,7 +14,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './EscalationChainSteps.module.css';
@@ -41,6 +40,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   const store = useStore();
   const styles = useStyles2(getStyles);
+  const theme = useTheme2();
 
   const { escalationPolicyStore } = store;
 
@@ -50,8 +50,6 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   useEffect(() => {
     escalationPolicyStore.updateWebEscalationPolicyOptions();
-    escalationPolicyStore.updateEscalationPolicyOptions();
-    escalationPolicyStore.updateNumMinutesInWindowOptions();
   }, []);
 
   const handleSortEnd = useCallback(
@@ -74,6 +72,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   const escalationPolicyIds = escalationPolicyStore.escalationChainToEscalationPolicy[id];
   const isSlackInstalled = Boolean(store.organizationStore.currentOrganization?.slack_team_identity);
+  const { bgColor: successBgColor, textColor: successTextColor } = getLabelBackgroundTextColorObject('green', theme);
 
   return (
     // @ts-ignore
@@ -105,14 +104,9 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
               data={escalationPolicy}
               number={index + offset + 1}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
-              waitDelays={get(escalationPolicyStore.escalationChoices, 'wait_delay.choices', [])}
-              numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
               onChange={escalationPolicyStore.saveEscalationPolicy.bind(escalationPolicyStore)}
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
-              teamStore={store.grafanaTeamStore}
-              scheduleStore={store.scheduleStore}
-              outgoingWebhookStore={store.outgoingWebhookStore}
               isDisabled={isDisabled}
               {...extraProps}
             />
@@ -124,8 +118,8 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
       {!isDisabled && (
         <Timeline.Item
           number={(escalationPolicyIds?.length || 0) + offset + 1}
-          backgroundHexNumber={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
-          textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+          backgroundHexNumber={isDisabled ? successBgColor : theme.colors.secondary.main}
+          textColor={isDisabled ? successTextColor : undefined}
         >
           <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
             <Select

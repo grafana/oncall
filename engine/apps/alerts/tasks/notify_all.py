@@ -22,7 +22,13 @@ def notify_all_task(alert_group_pk, escalation_policy_snapshot_order=None):
 
     escalation_snapshot = alert_group.escalation_snapshot
     try:
-        escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+        # escalation_policy_snapshot_order refers to order as defined in the policy,
+        # which is unique but not necessarily sequential and may not start from zero
+        escalation_policy_snapshot = [
+            policy
+            for policy in escalation_snapshot.escalation_policies_snapshots
+            if policy.order == escalation_policy_snapshot_order
+        ][0]
     except IndexError:
         escalation_policy_snapshot = None
 

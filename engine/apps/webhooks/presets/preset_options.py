@@ -9,11 +9,14 @@ from apps.webhooks.models import Webhook
 
 class WebhookPresetOptions:
     WEBHOOK_PRESETS = {}
+    ADVANCED_PRESET_META_DATA = {}
     for webhook_preset_config in settings.INSTALLED_WEBHOOK_PRESETS:
         module_path, class_name = webhook_preset_config.rsplit(".", 1)
         module = import_module(module_path)
         preset = getattr(module, class_name)()
         WEBHOOK_PRESETS[preset.metadata.id] = preset
+        if webhook_preset_config == settings.ADVANCED_WEBHOOK_PRESET:
+            ADVANCED_PRESET_META_DATA = preset.metadata
 
     WEBHOOK_PRESET_CHOICES = [webhook_preset.metadata for webhook_preset in WEBHOOK_PRESETS.values()]
 

@@ -41,7 +41,7 @@ export const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
         </Block>
       )}
       {content && (
-        <div className={cx(styles.integrationBlockContent)} onClick={toggle}>
+        <div className={styles.integrationBlockContent} onClick={toggle}>
           {content}
         </div>
       )}

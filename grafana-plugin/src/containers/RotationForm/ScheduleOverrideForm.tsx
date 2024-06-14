@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { IconButton, VerticalGroup, HorizontalGroup, Field, Button } from '@grafana/ui';
+import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
@@ -15,7 +15,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, getVar, waitForElement } from 'utils/DOM';
+import { HTML_ID, getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
@@ -48,10 +48,11 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     shiftId,
     shiftStart: propsShiftStart = dayjs().startOf('day').add(1, 'day'),
     shiftEnd: propsShiftEnd,
-    shiftColor = getVar('--tag-warning'),
+    shiftColor: shiftColorProp,
   } = props;
 
   const store = useStore();
+  const theme = useTheme2();
 
   const [rotationName, setRotationName] = useState<string>(shiftId === 'new' ? 'Override' : 'Update override');
 
@@ -63,6 +64,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+  const shiftColor = shiftColorProp || theme.colors.warning.main;
 
   const updateShiftStart = useCallback(
     (value) => {
@@ -77,7 +79,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        const elm = await waitForElement('#overrides-list');
+        const elm = await waitForElement(`#${HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS}`);
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
         const coords = getCoords(elm);
         const offsetTop = Math.min(
@@ -169,12 +171,17 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     } catch (err) {
       onError(err);
     } finally {
-      setIsOpen(true);
+      // wait until a scroll to the "Overrides and swaps" happened
+      setTimeout(() => {
+        setIsOpen(true);
+      }, 100);
     }
   };
 
   const onError = useCallback((error) => {
-    setErrors(error.response.data);
+    if (error.response) {
+      setErrors(error.response.data);
+    }
   }, []);
 
   const handleChange = useDebouncedCallback(updatePreview, 200);

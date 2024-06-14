@@ -4,6 +4,7 @@ from django.core.cache import cache
 from apps.metrics_exporter.constants import (
     ALERT_GROUPS_RESPONSE_TIME,
     ALERT_GROUPS_TOTAL,
+    NO_SERVICE_VALUE,
     USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
 )
 from apps.metrics_exporter.helpers import (
@@ -17,6 +18,7 @@ METRICS_TEST_ORG_ID = 123  # random number
 METRICS_TEST_INSTANCE_SLUG = "test_instance"
 METRICS_TEST_INSTANCE_ID = 292  # random number
 METRICS_TEST_USER_USERNAME = "Alex"
+METRICS_TEST_SERVICE_NAME = "test_service"
 
 
 @pytest.fixture()
@@ -37,11 +39,37 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                     "org_id": 1,
                     "slug": "Test stack",
                     "id": 1,
-                    "firing": 2,
-                    "acknowledged": 3,
-                    "silenced": 4,
-                    "resolved": 5,
-                }
+                    "services": {
+                        NO_SERVICE_VALUE: {
+                            "firing": 2,
+                            "silenced": 4,
+                            "acknowledged": 3,
+                            "resolved": 5,
+                        },
+                        METRICS_TEST_SERVICE_NAME: {
+                            "firing": 12,
+                            "silenced": 14,
+                            "acknowledged": 13,
+                            "resolved": 15,
+                        },
+                    },
+                },
+                2: {
+                    "integration_name": "Empty integration",
+                    "team_name": "Test team",
+                    "team_id": 1,
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 2,
+                    "services": {
+                        NO_SERVICE_VALUE: {
+                            "firing": 0,
+                            "silenced": 0,
+                            "acknowledged": 0,
+                            "resolved": 0,
+                        },
+                    },
+                },
             },
             ALERT_GROUPS_RESPONSE_TIME: {
                 1: {
@@ -51,8 +79,20 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                     "org_id": 1,
                     "slug": "Test stack",
                     "id": 1,
-                    "response_time": [2, 10, 200, 650],
-                }
+                    "services": {NO_SERVICE_VALUE: [2, 10, 200, 650], METRICS_TEST_SERVICE_NAME: [4, 12, 20]},
+                },
+                2: {
+                    "integration_name": "Empty integration",
+                    "team_name": "Test team",
+                    "team_id": 1,
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 2,
+                    "services": {
+                        # if there are no response times available, this integration will be ignored
+                        NO_SERVICE_VALUE: [],
+                    },
+                },
             },
             USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
                 1: {
@@ -103,7 +143,9 @@ def make_metrics_cache_params(monkeypatch):
                         "org_id": METRICS_TEST_ORG_ID,
                         "slug": METRICS_TEST_INSTANCE_SLUG,
                         "id": METRICS_TEST_INSTANCE_ID,
-                        "response_time": [],
+                        "services": {
+                            NO_SERVICE_VALUE: [],
+                        },
                     }
                 },
                 metric_alert_groups_total_key: {
@@ -114,10 +156,14 @@ def make_metrics_cache_params(monkeypatch):
                         "org_id": METRICS_TEST_ORG_ID,
                         "slug": METRICS_TEST_INSTANCE_SLUG,
                         "id": METRICS_TEST_INSTANCE_ID,
-                        "firing": 0,
-                        "acknowledged": 0,
-                        "silenced": 0,
-                        "resolved": 0,
+                        "services": {
+                            NO_SERVICE_VALUE: {
+                                "firing": 0,
+                                "silenced": 0,
+                                "acknowledged": 0,
+                                "resolved": 0,
+                            },
+                        },
                     }
                 },
             }

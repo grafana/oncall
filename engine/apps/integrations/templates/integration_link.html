@@ -30,13 +30,6 @@
               Copy to clipboard
             </button>
           </p>
-          {% if show_button %}
-          <p>
-              <button class="btn btn-primary" id="post_example">
-                Simulate incident from {{ source }}
-              </button>
-          </p>
-          {% endif %}
           <p>
             <a href={{ docs_url }} class="btn btn-success">Go to the Guide</a>
           </p>
@@ -49,34 +42,6 @@
       $(function () {
         $('[data-toggle="tooltip"]').tooltip()
       })
-    });
-    </script>
-    <script>
-    
-    $("#post_example").click(function(e) {
-        e.preventDefault();
-        Cookies.remove('csrftoken');
-        $.ajax({
-            type: "POST",
-            url: "{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.META.HTTP_HOST }}{{ url }}",
-            data: '{{ payload|safe }}',
-            contentType: "application/json; charset=utf-8",
-            success: function(result) {
-              $('#post_example').attr('title', "Success")
-                .tooltip({
-                    trigger: 'click',
-                    placement: 'right'
-                });
-            },
-            error: function(result) {
-              console.log(result)
-              $('#post_example').attr('title', "Error")
-                  .tooltip({
-                      trigger: 'click',
-                      placement: 'right'
-                  });
-            },
-        });
     });
     </script>
   </body>

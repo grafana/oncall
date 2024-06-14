@@ -44,7 +44,7 @@ def alert_receive_channel_internal_api_setup(
 
 @pytest.fixture
 def setup_additional_settings_for_integration():
-    integration_config = AlertReceiveChannel._config[0]
+    integration_config = AlertReceiveChannel._config[2]  # It points to alertmanager
     previous_value = getattr(integration_config, "additional_settings_serializer", None)
     integration_config.additional_settings_serializer = AdditionalSettingsTestSerializer
     try:
@@ -2653,7 +2653,7 @@ def test_alert_receive_channel_integration_options_search(
     response = client.get(search_url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
     returned_choices = [i["display_name"] for i in response.json()]
-    assert returned_choices == ["Grafana Alerting", "Grafana", "(Legacy) Grafana Alerting"]
+    assert returned_choices == ["Grafana Alerting", "Grafana Legacy Alerting", "(Deprecated) Grafana Alerting"]
 
     search_url = f"{url}?search=notfound"
     response = client.get(search_url, format="json", **make_user_auth_headers(user, token))

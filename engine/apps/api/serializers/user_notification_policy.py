@@ -1,4 +1,3 @@
-import time
 from datetime import timedelta
 
 from rest_framework import serializers
@@ -6,7 +5,7 @@ from rest_framework import serializers
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import NotificationChannelAPIOptions
 from apps.user_management.models import User
-from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import DurationSecondsField, OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import Forbidden
 from common.api_helpers.mixins import EagerLoadingMixin
 
@@ -26,6 +25,12 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
         default=UserNotificationPolicy.Step.NOTIFY,
         choices=UserNotificationPolicy.Step.choices,
     )
+    wait_delay = DurationSecondsField(
+        required=False,
+        allow_null=True,
+        min_value=timedelta(minutes=1),
+        max_value=timedelta(hours=24),
+    )
 
     SELECT_RELATED = [
         "user",
@@ -41,14 +46,6 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
         read_only_fields = ["order"]
 
     def to_internal_value(self, data):
-        if data.get("wait_delay", None):
-            try:
-                time.strptime(data["wait_delay"], "%H:%M:%S")
-            except ValueError:
-                try:
-                    data["wait_delay"] = str(timedelta(seconds=float(data["wait_delay"])))
-                except ValueError:
-                    raise serializers.ValidationError("Invalid wait delay format")
         data = self._notify_by_to_internal_value(data)
         return super().to_internal_value(data)
 

@@ -10,7 +10,7 @@ exports[`DownloadIcons it renders properly 1`] = `
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
-        class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1d6rs0l"
+        class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
       >
         Download
       </span>
@@ -19,7 +19,7 @@ exports[`DownloadIcons it renders properly 1`] = `
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
-        class="css-77ouhj--primary css-77ouhj--medium css-1d6rs0l"
+        class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
       >
         The Grafana OnCall app is available on both the App Store and Google Play Store.
       </span>
@@ -49,7 +49,7 @@ exports[`DownloadIcons it renders properly 1`] = `
                 src="[object Object]"
               />
               <span
-                class="css-77ouhj--primary css-77ouhj--medium icon-text css-1d6rs0l"
+                class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
               >
                 iOS
               </span>
@@ -74,7 +74,7 @@ exports[`DownloadIcons it renders properly 1`] = `
                 src="[object Object]"
               />
               <span
-                class="css-77ouhj--primary css-77ouhj--medium icon-text css-1d6rs0l"
+                class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
               >
                 Android
               </span>

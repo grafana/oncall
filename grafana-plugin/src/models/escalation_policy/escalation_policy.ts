@@ -1,4 +1,3 @@
-import { get } from 'lodash-es';
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
@@ -7,7 +6,6 @@ import { EscalationPolicy } from 'models/escalation_policy/escalation_policy.typ
 import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
-import { SelectOption } from 'state/types';
 
 export class EscalationPolicyStore extends BaseStore {
   @observable.shallow
@@ -20,9 +18,6 @@ export class EscalationPolicyStore extends BaseStore {
 
   @observable
   escalationChoices: any = [];
-
-  @observable
-  numMinutesInWindowOptions: SelectOption[] = [];
 
   @observable
   webEscalationChoices: any = [];
@@ -41,26 +36,6 @@ export class EscalationPolicyStore extends BaseStore {
 
     runInAction(() => {
       this.webEscalationChoices = response;
-    });
-  }
-
-  @action.bound
-  async updateEscalationPolicyOptions() {
-    const response = await makeRequest('/escalation_policies/', {
-      method: 'OPTIONS',
-    });
-
-    runInAction(() => {
-      this.escalationChoices = get(response, 'actions.POST', []);
-    });
-  }
-
-  @action.bound
-  async updateNumMinutesInWindowOptions() {
-    const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/', {});
-
-    runInAction(() => {
-      this.numMinutesInWindowOptions = response;
     });
   }
 

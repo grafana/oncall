@@ -1,5 +1,3 @@
-import { convertRelativeToAbsoluteDate } from 'utils/datetime';
-
 import { FilterOption } from './RemoteFilters.types';
 
 const normalize = (value: any) => {
@@ -33,8 +31,6 @@ export function parseFilters(
         value = [rawValue];
       }
       value = value.map(normalize);
-    } else if (filterOption.type === 'daterange') {
-      value = convertRelativeToAbsoluteDate(value);
     } else if ((filterOption.type === 'boolean' && rawValue === '') || rawValue === 'true') {
       value = true;
     } else if (rawValue === 'false') {

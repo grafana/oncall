@@ -269,8 +269,17 @@ def test_get_organization_slack_config_checks(
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_result
 
-    # connect integration to Slack
-    make_channel_filter(integration, notify_in_slack=True)
+    # connect integration to Slack (no channel means default channel)
+    channel_filter = make_channel_filter(integration, notify_in_slack=True)
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_result["is_integration_chatops_connected"] = True
+    assert response.json() == expected_result
+
+    # connect integration to Slack (set a channel)
+    channel_filter.slack_channel_id = "C123456"
+    channel_filter.save()
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK

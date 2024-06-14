@@ -23,6 +23,37 @@ const config = async (env): Promise<Configuration> => {
             },
           },
         },
+        {
+          test: /\.s[ac]ss$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                modules: {
+                  auto: true,
+                  localIdentName: env.development ? '[path][name]__[local]' : '[name]__[hash:base64]',
+                },
+              },
+            },
+            'sass-loader',
+          ],
+        },
+        {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                modules: {
+                  auto: true,
+                  localIdentName: env.development ? '[path][name]__[local]' : '[name]__[hash:base64]',
+                },
+              },
+            },
+          ],
+        },
       ],
     },
     watchOptions: {

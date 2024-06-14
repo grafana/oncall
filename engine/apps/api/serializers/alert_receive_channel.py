@@ -574,7 +574,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 raise serializers.ValidationError("Unable to retrieve example payload for this alert group")
         else:
             try:
-                return obj.alert_groups.last().alerts.first().raw_request_data
+                return obj.alert_groups.only("id").last().alerts.first().raw_request_data
             except AttributeError:
                 return None
 

@@ -6,6 +6,7 @@ import pytest
 
 from apps.webhooks.models import Webhook
 from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
+from apps.webhooks.presets.advanced import AdvancedWebhookPreset
 from apps.webhooks.presets.preset import WebhookPreset, WebhookPresetMetadata
 from apps.webhooks.tasks.trigger_webhook import make_request
 from apps.webhooks.tests.test_trigger_webhook import MockResponse
@@ -20,6 +21,7 @@ TEST_WEBHOOK_AUTHORIZATION_HEADER = "Test Auth header 12345"
 TEST_WEBHOOK_MASK_HEADER = "X-Secret-Header"
 TEST_WEBHOOK_MASK_HEADER_VALUE = "abc123"
 INVALID_PRESET_ID = "invalid_preset_id"
+ADVANCED_WEBHOOK_PRESET_ID = "advanced_webhook"
 
 
 class TestWebhookPreset(WebhookPreset):
@@ -45,6 +47,10 @@ class TestWebhookPreset(WebhookPreset):
 
     def get_masked_headers(self) -> typing.List[str]:
         return [TEST_WEBHOOK_MASK_HEADER]
+
+
+class TestAdvancedWebhookPreset(AdvancedWebhookPreset):
+    pass
 
 
 @pytest.mark.django_db

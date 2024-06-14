@@ -1,6 +1,6 @@
 name: On issue creation
 
-"on":
+on:
   issues:
     types:
       - opened
@@ -30,6 +30,16 @@ jobs:
             The current version of Grafana OnCall, at the time this issue was opened,
             is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall,
             please be sure to list it in the PR description. Thank you :smile:!
+
+  add-needs-triage-label:
+    name: Add "needs triage" label
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add "needs triage" label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: needs triage
 
   map-selected-product-areas-to-labels-and-assignees:
     name: Map selected product areas to labels and assignees

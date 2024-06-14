@@ -83,7 +83,6 @@ export const OutgoingWebhookFormFields = ({
             error={errors.team?.message}
           >
             <GSelect<GrafanaTeam>
-              showSearch
               allowClear
               items={grafanaTeamStore.items}
               fetchItemsFn={grafanaTeamStore.updateItems}
@@ -147,7 +146,6 @@ export const OutgoingWebhookFormFields = ({
           >
             <GSelect<ApiSchemas['AlertReceiveChannel']>
               isMulti
-              showSearch
               placeholder="Choose (Optional)"
               items={alertReceiveChannelStore.items}
               fetchItemsFn={alertReceiveChannelStore.fetchItems}
@@ -356,7 +354,7 @@ export const OutgoingWebhookFormFields = ({
   return (
     <>
       {React.Children.toArray(controls.props.children).filter(
-        (child) => !preset || !preset.controlled_fields.includes((child as React.ReactElement).props.name)
+        (child) => !preset?.controlled_fields.includes((child as React.ReactElement).props.name)
       )}
     </>
   );

@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 
-import { randomUUID } from 'crypto';
+import { randomInt, randomUUID } from 'crypto';
 
 type SelectorType = 'gSelect' | 'grafanaSelect';
 type SelectDropdownValueArgs = {
@@ -97,6 +97,16 @@ export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promis
 
 export const generateRandomValue = (): string => randomUUID();
 
+export const generateRandomValidLabel = (length = 10) => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = randomInt(0, characters.length);
+    result += characters[randomIndex];
+  }
+  return result;
+};
+
 /**
  * wait for the options to appear
  *
@@ -113,3 +123,6 @@ export const selectValuePickerValue = async (
       `div[class*="grafana-select-menu"] >> ${textMatchSelector(optionExactMatch, valuePickerText)}`
     )
   ).click();
+
+export const openDropdown = async ({ page, text }: { page: Page; text: string | RegExp }) =>
+  page.locator('div').filter({ hasText: text }).nth(1).click();

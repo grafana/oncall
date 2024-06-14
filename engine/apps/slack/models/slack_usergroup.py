@@ -143,7 +143,12 @@ class SlackUserGroup(models.Model):
         sc = SlackClient(slack_team_identity)
         usergroups = sc.usergroups_list()["usergroups"]
 
-        usergroup = [ug for ug in usergroups if ug["id"] == slack_id][0]
+        try:
+            usergroup = [ug for ug in usergroups if ug["id"] == slack_id][0]
+        except IndexError:
+            # user group not found
+            return
+
         try:
             members = sc.usergroups_users_list(usergroup=usergroup["id"])["users"]
         except SlackAPIError:

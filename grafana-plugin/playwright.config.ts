@@ -1,4 +1,4 @@
-import { PlaywrightTestProject, defineConfig, devices, PlaywrightTestConfig } from '@playwright/test';
+import { PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
 
 import path from 'path';
 /**
@@ -49,7 +49,7 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: 1,
-  workers: 2,
+  workers: '25%', // 25% of logical CPU cores, e.g. for 16 CPU cores it will use 4 workers
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

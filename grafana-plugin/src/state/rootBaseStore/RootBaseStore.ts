@@ -42,7 +42,6 @@ import {
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
 } from 'utils/consts';
-import { FaroHelper } from 'utils/faro';
 
 // ------ Dashboard ------ //
 
@@ -177,10 +176,6 @@ export class RootBaseStore {
     this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
     this.insightsDatasource = meta.jsonData?.insightsDatasource || 'grafanacloud-usage';
-
-    if (!FaroHelper.faro) {
-      FaroHelper.initializeFaro(this.onCallApiUrl);
-    }
 
     if (!this.onCallApiUrl) {
       // plugin is not provisioned

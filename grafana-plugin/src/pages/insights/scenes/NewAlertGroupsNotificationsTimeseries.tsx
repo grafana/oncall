@@ -13,7 +13,7 @@ export function getNewAlertGroupsNotificationsTimeseriesScene({ datasource, stac
         editorMode: 'code',
         excludeNullMetadata: false,
         exemplar: false,
-        expr: `sum by (username)(round(delta($user_was_notified_of_alert_groups_total{slug=~"${stack}"}[$__interval:]))) >= 0`,
+        expr: `round(delta(sum by (username)($user_was_notified_of_alert_groups_total{slug=~"${stack}"})[$__interval:])) >= 0`,
         fullMetaSearch: false,
         instant: false,
         legendFormat: '__auto',

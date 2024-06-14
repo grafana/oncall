@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
+from googleapiclient.errors import HttpError
 
 from apps.google import constants, tasks
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
@@ -138,6 +139,28 @@ def test_setup(
         return google_oauth2_user, schedule
 
     return _test_setup
+
+
+class MockResponse:
+    def __init__(self, reason=None, status=200) -> None:
+        self.reason = reason or ""
+        self.status = status
+
+
+@patch("apps.google.client.build")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_user_httperror(mock_google_api_client_build, test_setup):
+    mock_response = MockResponse(reason="forbidden", status=403)
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.side_effect = HttpError(
+        resp=mock_response, content=b"error"
+    )
+
+    google_oauth2_user, schedule = test_setup([])
+    user = google_oauth2_user.user
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+
+    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 0
 
 
 @patch("apps.google.client.build")
@@ -325,6 +348,7 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
     }
 
     google_oauth2_user, schedule = test_setup(out_of_office_events)
+    google_oauth2_user_pk = google_oauth2_user.pk
     user = google_oauth2_user.user
 
     make_shift_swap_request(
@@ -334,7 +358,17 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
         swap_end=end_time,
     )
 
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    def _fetch_shift_swap_requests():
+        return ShiftSwapRequest.objects_with_deleted.filter(beneficiary=user, schedule=schedule)
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
 
     # should be 1 because we just created a shift swap request above via the fixture
-    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 1
+    ssrs = _fetch_shift_swap_requests()
+    assert ssrs.count() == 1
+
+    # lets delete the shift swap request and run the task again, it should recognize that there was already
+    # a shift swap request and shouldn't recreate a new one
+    ssrs.first().delete()
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
+    assert _fetch_shift_swap_requests().count() == 1

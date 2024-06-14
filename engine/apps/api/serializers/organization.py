@@ -131,7 +131,10 @@ class CurrentOrganizationConfigChecksSerializer(serializers.ModelSerializer):
 
     def get_is_integration_chatops_connected(self, obj):
         return (
-            obj.alert_receive_channels.filter(channel_filters__notify_in_slack=True).exists()
+            (
+                obj.slack_team_identity_id is not None
+                and obj.alert_receive_channels.filter(channel_filters__notify_in_slack=True).exists()
+            )
             or obj.alert_receive_channels.filter(channel_filters__notify_in_telegram=True).exists()
             or obj.alert_receive_channels.filter(channel_filters__notification_backends__MSTEAMS__enabled=True).exists()
         )

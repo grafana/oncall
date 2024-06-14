@@ -56,5 +56,8 @@ def test_slack_message_deep_link(
     slack_channel = make_slack_channel(slack_team_identity)
     slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
 
-    expected = f"slack://channel?team={slack_team_identity.slack_id}&id={slack_channel.slack_id}&message={slack_message.slack_id}"
+    expected = (
+        f"https://slack.com/app_redirect?channel={slack_channel.slack_id}"
+        f"&team={slack_team_identity.slack_id}&message={slack_message.slack_id}"
+    )
     assert slack_message.deep_link == expected

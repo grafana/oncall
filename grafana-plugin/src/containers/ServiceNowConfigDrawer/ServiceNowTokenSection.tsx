@@ -49,7 +49,11 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
 
       <Text>
         Copy and paste the following script to ServiceNow to allow communication between ServiceNow and OnCall{' '}
-        <a href={`${DOCS_ROOT}/integrations/servicenow/#create-integration`} target="_blank" rel="noreferrer">
+        <a
+          href={`${DOCS_ROOT}/integrations/servicenow/#generate-business-rule-script`}
+          target="_blank"
+          rel="noreferrer"
+        >
           <Text type="link">Read more</Text>
         </a>
       </Text>

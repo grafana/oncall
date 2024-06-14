@@ -175,6 +175,8 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
             for user in set(notification.author for notification in alert_group.sent_notifications)
         ],
         "users_to_be_notified": _extract_users_from_escalation_snapshot(alert_group.escalation_snapshot),
+        "alert_group_acknowledged_by": _serialize_event_user(alert_group.acknowledged_by_user),
+        "alert_group_resolved_by": _serialize_event_user(alert_group.resolved_by_user),
     }
     if responses:
         data["responses"] = responses

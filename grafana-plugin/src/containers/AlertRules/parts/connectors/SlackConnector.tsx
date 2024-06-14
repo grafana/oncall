@@ -55,7 +55,6 @@ export const SlackConnector = (props: SlackConnectorProps) => {
         Slack Channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect<SlackChannel>
-            showSearch
             allowClear
             className={cx('select', 'control')}
             items={slackChannelStore.items}

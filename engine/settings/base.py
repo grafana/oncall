@@ -71,6 +71,7 @@ GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATION
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
+FEATURE_ALERT_GROUP_SEARCH_ENABLED = getenv_boolean("FEATURE_ALERT_GROUP_SEARCH_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -98,7 +99,9 @@ WEBHOOK_RESPONSE_LIMIT = 50000
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
-CHATOPS_V3 = getenv_boolean("CHATOPS_V3", False)
+UNIFIED_SLACK_APP_ENABLED = getenv_boolean("UNIFIED_SLACK_APP_ENABLED", default=False)
+# secret to verify the incoming requests from the chatops-proxy
+CHATOPS_SIGNING_SECRET = os.environ.get("CHATOPS_SIGNING_SECRET", None)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
@@ -281,6 +284,7 @@ INSTALLED_APPS = [
     "apps.phone_notifications",
     "drf_spectacular",
     "apps.google",
+    "apps.chatops_proxy",
 ]
 
 REST_FRAMEWORK = {
@@ -352,7 +356,7 @@ if OTEL_TRACING_ENABLED:
     MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
-
+LOG_CELERY_TASK_ARGUMENTS = getenv_boolean("LOG_CELERY_TASK_ARGUMENTS", default=True)
 
 log_fmt = "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"
 
@@ -674,7 +678,7 @@ SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
 SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
-SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
+SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate").lstrip("/")
 
 # Controls if slack integration can be installed/uninstalled.
 SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)
@@ -779,7 +783,7 @@ GRAFANA_CLOUD_AUTH_API_URL = os.environ.get("GRAFANA_CLOUD_AUTH_API_URL", None)
 GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN = os.environ.get("GRAFANA_CLOUD_AUTH_API_SYSTEM_TOKEN", None)
 
 SELF_HOSTED_SETTINGS = {
-    "STACK_ID": 5,
+    "STACK_ID": getenv_integer("SELF_HOSTED_STACK_ID", 5),
     "STACK_SLUG": os.environ.get("SELF_HOSTED_STACK_SLUG", "self_hosted_stack"),
     "ORG_ID": 100,
     "ORG_SLUG": os.environ.get("SELF_HOSTED_ORG_SLUG", "self_hosted_org"),
@@ -819,13 +823,12 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager",
-    "config_integrations.legacy_alertmanager",
-    "config_integrations.grafana",
+    # Featured
     "config_integrations.grafana_alerting",
-    "config_integrations.legacy_grafana_alerting",
-    "config_integrations.formatted_webhook",
     "config_integrations.webhook",
+    "config_integrations.alertmanager",
+    # Not featured
+    "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
     "config_integrations.heartbeat",
@@ -835,15 +838,23 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
+    # Actually it's Grafana 8 integration.
+    # users are confused and tries to use to send alerts from external Grafana.
+    # So move it closer to the end of the list
+    "config_integrations.grafana",
+    # Legacy are not shown, ordering isn't important
+    "config_integrations.legacy_alertmanager",
+    "config_integrations.legacy_grafana_alerting",
 ]
 
+ADVANCED_WEBHOOK_PRESET = "apps.webhooks.presets.advanced.AdvancedWebhookPreset"
 INSTALLED_WEBHOOK_PRESETS = [
     "apps.webhooks.presets.simple.SimpleWebhookPreset",
-    "apps.webhooks.presets.advanced.AdvancedWebhookPreset",
+    ADVANCED_WEBHOOK_PRESET,
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok", "apps.exotel"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -890,6 +901,7 @@ PHONE_PROVIDERS = {
 
 if IS_OPEN_SOURCE:
     PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+    PHONE_PROVIDERS["exotel"] = "apps.exotel.phone_provider.ExotelPhoneProvider"
 
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
 
@@ -902,7 +914,16 @@ ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign
 ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
 ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
 ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
-ZVONOK_VERIFICATION_TEMPLATE = os.getenv("ZVONOK_VERIFICATION_TEMPLATE", None)
+ZVONOK_VERIFICATION_CAMPAIGN_ID = os.getenv("ZVONOK_VERIFICATION_CAMPAIGN_ID", None)
+
+EXOTEL_ACCOUNT_SID = os.getenv("EXOTEL_ACCOUNT_SID", None)
+EXOTEL_API_KEY = os.getenv("EXOTEL_API_KEY", None)
+EXOTEL_API_TOKEN = os.getenv("EXOTEL_API_TOKEN", None)
+EXOTEL_APP_ID = os.getenv("EXOTEL_APP_ID", None)
+EXOTEL_CALLER_ID = os.getenv("EXOTEL_CALLER_ID", None)
+EXOTEL_SMS_SENDER_ID = os.getenv("EXOTEL_SMS_SENDER_ID", None)
+EXOTEL_SMS_VERIFICATION_TEMPLATE = os.getenv("EXOTEL_SMS_VERIFICATION_TEMPLATE", None)
+EXOTEL_SMS_DLT_ENTITY_ID = os.getenv("EXOTEL_SMS_DLT_ENTITY_ID", None)
 
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 

@@ -490,7 +490,12 @@ def get_cached_oncall_users_for_multiple_schedules(schedules: typing.List["OnCal
     for cache_key, oncall_users in cached_results.items():
         schedule_public_primary_key = _get_schedule_public_primary_key_from_schedule_oncall_users_cache_key(cache_key)
         schedule = schedules[schedule_public_primary_key]
-        oncall_users = [users[user_public_primary_key] for user_public_primary_key in oncall_users]
+        oncall_users = [
+            users[user_public_primary_key]
+            for user_public_primary_key in oncall_users
+            # filter out any users that we couldn't find in the database (e.g. deleted)
+            if user_public_primary_key in users
+        ]
 
         results[schedule] = oncall_users
 

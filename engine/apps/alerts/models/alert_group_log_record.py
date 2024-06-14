@@ -160,7 +160,8 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_NOTIFY_IF_NUM_ALERTS_IN_WINDOW_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR,
         ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED,
-    ) = range(19)
+        ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED,
+    ) = range(20)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
 
@@ -590,6 +591,8 @@ class AlertGroupLogRecord(models.Model):
                         usergroup_handle = self.escalation_policy.notify_to_group.handle
                     usergroup_handle_text = f" @{usergroup_handle}" if usergroup_handle else ""
                     result += f"failed to notify User Group{usergroup_handle_text} in Slack"
+            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED:
+                result += 'skipped escalation step "Trigger Outgoing Webhook" because it is disabled'
         return result
 
     def get_step_specific_info(self):

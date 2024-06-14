@@ -3,11 +3,11 @@ import React, { FC, useEffect } from 'react';
 import { cx } from '@emotion/css';
 import { Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { bem, getUtilStyles } from 'styles/utils.styles';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import { Tag } from 'components/Tag/Tag';
+import { Tag, TagColor } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
@@ -41,7 +41,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
 
   return (
     <>
-      <div className={cx(styles.root)} data-testid="schedule-quality">
+      <div className={styles.root} data-testid="schedule-quality">
         {relatedScheduleEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
           <TooltipBadge
             borderType="success"
@@ -88,7 +88,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
           content={<ScheduleQualityDetails quality={quality} getScheduleQualityString={getScheduleQualityString} />}
         >
           <div className={cx(utils.cursorDefault)}>
-            <Tag className={cx(styles.tag, bem(styles.tag, getTagSeverity()))}>
+            <Tag className={styles.tag} color={getTagSeverity()}>
               Quality: <strong>{getScheduleQualityString(quality.total_score)}</strong>
             </Tag>
           </div>
@@ -115,11 +115,11 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
 
   function getTagSeverity() {
     if (quality?.total_score < 20) {
-      return 'danger';
+      return TagColor.ERROR_LABEL;
     }
     if (quality?.total_score < 60) {
-      return 'warning';
+      return TagColor.WARNING_LABEL;
     }
-    return 'primary';
+    return TagColor.SUCCESS_LABEL;
   }
 });

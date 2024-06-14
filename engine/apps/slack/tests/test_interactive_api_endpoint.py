@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.slack.scenarios.manage_responders import ManageRespondersUserChange
-from apps.slack.scenarios.paging import OnPagingTeamChange
+from apps.slack.scenarios.paging import OnPagingTeamChange, StartDirectPaging
 from apps.slack.scenarios.schedules import EditScheduleShiftNotifyStep
 from apps.slack.scenarios.shift_swap_requests import AcceptShiftSwapRequestStep
 from apps.slack.types import PayloadType
@@ -268,6 +268,88 @@ def test_accept_shift_swap_request(
         ],
     }
 
+    response = _make_request(payload)
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_process_scenario.assert_called_once_with(slack_user_identity, slack_team_identity, payload)
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch.object(StartDirectPaging, "process_scenario")
+@pytest.mark.django_db
+def test_grafana_escalate(
+    mock_process_scenario,
+    _mock_verify_signature,
+    make_organization,
+    make_slack_user_identity,
+    make_user,
+    slack_team_identity,
+):
+    """
+    Check StartDirectPaging.process_scenario gets called when a user types /grafana escalate.
+    UnifiedSlackApp commands are prefixed with /grafana.
+    """
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    make_user(organization=organization, slack_user_identity=slack_user_identity)
+
+    payload = {
+        "token": "gIkuvaNzQIHg97ATvDxqgjtO",
+        "team_id": slack_team_identity.slack_id,
+        "team_domain": "example",
+        "enterprise_id": "E0001",
+        "enterprise_name": "Globular%20Construct%20Inc",
+        "channel_id": "C2147483705",
+        "channel_name": "test",
+        "user_id": slack_user_identity.slack_id,
+        "user_name": "Steve",
+        "command": "/grafana",
+        "text": "escalate",
+        "response_url": "https://hooks.slack.com/commands/1234/5678",
+        "trigger_id": "13345224609.738474920.8088930838d88f008e0",
+        "api": "api_value",
+    }
+    response = _make_request(payload)
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_process_scenario.assert_called_once_with(slack_user_identity, slack_team_identity, payload)
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch.object(StartDirectPaging, "process_scenario")
+@pytest.mark.django_db
+def test_escalate(
+    mock_process_scenario,
+    _mock_verify_signature,
+    make_organization,
+    make_slack_user_identity,
+    make_user,
+    slack_team_identity,
+):
+    """
+    Check StartDirectPaging.process_scenario gets called when a user types /escalate.
+    /escalate was used before Unified Slack App
+    """
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    make_user(organization=organization, slack_user_identity=slack_user_identity)
+
+    payload = {
+        "token": "gIkuvaNzQIHg97ATvDxqgjtO",
+        "team_id": slack_team_identity.slack_id,
+        "team_domain": "example",
+        "enterprise_id": "E0001",
+        "enterprise_name": "Globular%20Construct%20Inc",
+        "channel_id": "C2147483705",
+        "channel_name": "test",
+        "user_id": slack_user_identity.slack_id,
+        "user_name": "Steve",
+        "command": "/escalate",
+        "text": "",
+        "response_url": "https://hooks.slack.com/commands/1234/5678",
+        "trigger_id": "13345224609.738474920.8088930838d88f008e0",
+        "api": "api_value",
+    }
     response = _make_request(payload)
 
     assert response.status_code == status.HTTP_200_OK

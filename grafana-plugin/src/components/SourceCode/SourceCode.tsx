@@ -54,7 +54,7 @@ export const SourceCode: FC<SourceCodeProps> = ({
           {showClipboardIconOnly ? (
             <IconButton
               aria-label="Copy"
-              className={cx(styles.copyIcon)}
+              className={styles.copyIcon}
               size={'lg'}
               name="copy"
               data-emotion="copyIcon"
@@ -62,7 +62,7 @@ export const SourceCode: FC<SourceCodeProps> = ({
             />
           ) : (
             <Button
-              className={cx(styles.copyIcon)}
+              className={styles.copyIcon}
               variant="primary"
               size="xs"
               icon="copy"

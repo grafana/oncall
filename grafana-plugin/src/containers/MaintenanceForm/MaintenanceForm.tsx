@@ -87,7 +87,6 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
                   >
                     <GSelect<ApiSchemas['AlertReceiveChannel']>
                       disabled
-                      showSearch
                       items={alertReceiveChannelStore.items}
                       fetchItemsFn={alertReceiveChannelStore.fetchItems}
                       fetchItemFn={alertReceiveChannelStore.fetchItemById}
