@@ -514,7 +514,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       );
     } else {
       // for new rotations
-      handleRotationStartChange(toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset))
+      handleRotationStartChange(toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset));
 
       setShiftEnd(toDateWithTimezoneOffset(shiftEnd, store.timezoneStore.selectedTimezoneOffset));
 
