@@ -51,12 +51,7 @@ export const DateTimePicker = observer(
 
     const getTimeValueInSelectedTimezone = () => {
       const dateInOffset = toDateWithTimezoneOffset(propValue, utcOffset);
-
       const time = dateTime(dateInOffset.format());
-      time.set('hour', dateInOffset.hour());
-      time.set('minute', dateInOffset.minute());
-      time.set('seconds', dateInOffset.second());
-
       return time;
     };
 
