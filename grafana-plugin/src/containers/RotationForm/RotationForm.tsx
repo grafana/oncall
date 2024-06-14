@@ -72,7 +72,6 @@ const cx = cn.bind(styles);
 interface RotationFormProps {
   layerPriority: number;
   onHide: () => void;
-  isNewRotation?: boolean;
   scheduleId: Schedule['id'];
   shiftId: Shift['id'] | 'new';
   shiftStart?: dayjs.Dayjs;
@@ -86,6 +85,7 @@ interface RotationFormProps {
 
 const getStartShift = (start: dayjs.Dayjs, timezoneOffset: number, isNewRotation = false) => {
   if (isNewRotation) {
+    // all new rotations default to midnight in selected timezone offset
     return toDateWithTimezoneOffset(start, timezoneOffset)
       .set('date', 1)
       .set('year', start.year())
@@ -114,10 +114,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
     shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
     onShowRotationForm,
-    isNewRotation,
   } = props;
 
-  const [isNewRotationInit, setIsNewRotationInit] = useState(isNewRotation);
   const shift = store.scheduleStore.shifts[shiftId];
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
@@ -131,7 +129,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(
-    getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, isNewRotationInit)
+    getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, shiftId === 'new')
   );
 
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(
@@ -159,8 +157,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
   useEffect(() => {
-    setIsNewRotationInit(false);
-
     window.addEventListener('resize', debouncedOnResize);
     return () => {
       window.removeEventListener('resize', debouncedOnResize);

@@ -50,7 +50,6 @@ interface RotationsProps extends WithStoreProps {
 interface RotationsState {
   shiftStartToShowRotationForm?: dayjs.Dayjs;
   shiftEndToShowRotationForm?: dayjs.Dayjs;
-  isNewRotation?: boolean;
 }
 
 @observer
@@ -58,7 +57,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
     shiftStartToShowRotationForm: undefined,
     shiftEndToShowRotationForm: undefined,
-    isNewRotation: false,
   };
 
   render() {
@@ -77,7 +75,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       theme,
     } = this.props;
 
-    const { shiftStartToShowRotationForm, shiftEndToShowRotationForm, isNewRotation } = this.state;
+    const { shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
     const { selectedTimezoneOffset } = store.timezoneStore;
 
@@ -260,7 +258,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
         </div>
         {shiftIdToShowRotationForm && (
           <RotationForm
-            isNewRotation={isNewRotation}
             shiftId={shiftIdToShowRotationForm}
             shiftColor={findColor(shiftIdToShowRotationForm, layers)}
             scheduleId={scheduleId}
@@ -310,7 +307,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
     layerPriority: number,
     shiftStart?: dayjs.Dayjs,
     shiftEnd?: dayjs.Dayjs,
-    isNewRotation?: boolean
   ) => {
     const { disabled } = this.props;
 
@@ -322,7 +318,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       {
         shiftStartToShowRotationForm: shiftStart,
         shiftEndToShowRotationForm: shiftEnd,
-        isNewRotation,
       },
       () => {
         this.onShowRotationForm('new', layerPriority);
@@ -352,7 +347,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       {
         shiftStartToShowRotationForm: undefined,
         shiftEndToShowRotationForm: undefined,
-        isNewRotation: false,
       },
       () => {
         this.onShowRotationForm(undefined, undefined);
