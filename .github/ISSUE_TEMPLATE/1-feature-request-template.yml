@@ -37,10 +37,11 @@ body:
         - Chatops
         - Mobile App
         - Schedules
-        - Helm
         - API
-        - Terraform/Crossplane
         - Metrics
+        - Terraform/Crossplane
+        - Helm/Kubernetes/Docker
+        - CI/CD
         - Other
     validations:
       required: true
