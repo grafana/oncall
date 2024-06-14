@@ -15,3 +15,9 @@ class IntegrationInstalledData(typing.TypedDict):
     stack_id: int
     grafana_user_id: int
     payload: dict
+
+
+class IntegrationUninstalledData(typing.TypedDict):
+    provider_type: str
+    stack_id: int
+    grafana_user_id: int
