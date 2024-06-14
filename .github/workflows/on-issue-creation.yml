@@ -1,6 +1,6 @@
 name: On issue creation
 
-"on":
+on:
   issues:
     types:
       - opened
