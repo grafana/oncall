@@ -514,11 +514,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
       );
     } else {
       // for new rotations
-      const offsetedShiftStart = toDateWithTimezoneOffset(shiftStart, store.timezoneStore.selectedTimezoneOffset);
-      const offsetedRotationStart = toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset);
+      handleRotationStartChange(toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset))
 
-      setShiftStart(offsetedShiftStart);
-      setRotationStart(offsetedRotationStart);
       setShiftEnd(toDateWithTimezoneOffset(shiftEnd, store.timezoneStore.selectedTimezoneOffset));
 
       // not behind an "if" such that it will reflect correct value after toggle gets switched

@@ -149,8 +149,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                           store.timezoneStore.calendarStartDate,
                           store.timezoneStore.selectedTimezoneOffset
                         ),
-                        undefined,
-                        true
+                        undefined
                       )
                     }
                   >
