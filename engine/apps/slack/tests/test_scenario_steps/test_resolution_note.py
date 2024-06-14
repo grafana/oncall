@@ -336,21 +336,109 @@ def test_resolution_notes_modal_closed_before_update(
     assert call_args[0] == "views.update"
 
 
+@patch.object(SlackClient, "chat_getPermalink", return_value={"permalink": "https://example.com"})
 @pytest.mark.django_db
-def test_add_to_resolution_note_broadcast(make_organization_and_user_with_slack_identities, settings):
-    settings.FEATURE_MULTIREGION_ENABLED = True
+def test_add_to_resolution_note(
+    _,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    settings,
+):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+    slack_message = make_slack_message(alert_group=alert_group)
+
+    payload = {
+        "channel": {"id": slack_message.channel_id},
+        "message_ts": "random_ts",
+        "message": {
+            "type": "message",
+            "text": "Test resolution note",
+            "ts": "random_ts",
+            "thread_ts": slack_message.slack_id,
+            "user": slack_user_identity.slack_id,
+        },
+        "trigger_id": "random_trigger_id",
+    }
 
     AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
+    step = AddToResolutionNoteStep(organization=organization, user=user, slack_team_identity=slack_team_identity)
+    with patch.object(SlackClient, "reactions_add") as mock_reactions_add:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_reactions_add.assert_called_once()
+    assert alert_group.resolution_notes.get().text == "Test resolution note"
+
+
+@pytest.mark.django_db
+def test_add_to_resolution_note_broadcast(make_organization_and_user_with_slack_identities, settings):
+    settings.UNIFIED_SLACK_APP_ENABLED = True
+
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
 
     payload = {
         "channel": {"id": "TEST"},
         "message_ts": "TEST",
         "message": {"thread_ts": "TEST"},
+        "trigger_id": "TEST",
     }
 
+    AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
     step = AddToResolutionNoteStep(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    with patch.object(AddToResolutionNoteStep, "open_warning_window") as mock_open_warning_window:
+    with patch.object(SlackClient, "api_call") as mock_api_call:
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    mock_open_warning_window.assert_not_called()  # warning window should not be opened
+    mock_api_call.assert_not_called()  # no Slack API calls should be made
+
+
+@patch.object(SlackClient, "chat_getPermalink", return_value={"permalink": "https://example.com"})
+@pytest.mark.django_db
+def test_add_to_resolution_note_deleted_org(
+    _,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    make_organization,
+    make_user_for_organization,
+    settings,
+):
+    settings.UNIFIED_SLACK_APP_ENABLED = True
+
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+    slack_message = make_slack_message(alert_group=alert_group)
+    organization.delete()
+
+    other_organization = make_organization(slack_team_identity=slack_team_identity)
+    other_user = make_user_for_organization(organization=other_organization, slack_user_identity=slack_user_identity)
+
+    payload = {
+        "channel": {"id": slack_message.channel_id},
+        "message_ts": "random_ts",
+        "message": {
+            "type": "message",
+            "text": "Test resolution note",
+            "ts": "random_ts",
+            "thread_ts": slack_message.slack_id,
+            "user": slack_user_identity.slack_id,
+        },
+        "trigger_id": "random_trigger_id",
+    }
+
+    AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
+    step = AddToResolutionNoteStep(
+        organization=other_organization, user=other_user, slack_team_identity=slack_team_identity
+    )
+    with patch.object(SlackClient, "api_call") as mock_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_api_call.assert_not_called()  # no Slack API calls should be made

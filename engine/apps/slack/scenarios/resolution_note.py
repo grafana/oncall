@@ -77,16 +77,26 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
 
         warning_text = "Unable to add this message to resolution note, this command works only in incident threads."
 
+        thread_ts = payload.get("message", {}).get("thread_ts")
+        if not thread_ts:
+            if settings.UNIFIED_SLACK_APP_ENABLED:
+                # Message shortcut events are broadcasted to multiple regions by chatops-proxy
+                # Do not open a warning window to avoid multiple regions opening the same window multiple times
+                return
+
+            self.open_warning_window(payload, warning_text)
+            return
+
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
             )
-        except (KeyError, SlackMessage.DoesNotExist):
-            if settings.FEATURE_MULTIREGION_ENABLED:
+        except SlackMessage.DoesNotExist:
+            if settings.UNIFIED_SLACK_APP_ENABLED:
                 # Message shortcut events are broadcasted to multiple regions by chatops-proxy
-                # Return 200 as this event could be handled by another region
+                # Don't open a warning window as this event could be handled by another region
                 return
             self.open_warning_window(payload, warning_text)
             return
@@ -101,9 +111,17 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             )
             return
 
+        if alert_group.channel.organization.deleted_at is not None:
+            if settings.UNIFIED_SLACK_APP_ENABLED:
+                # Message shortcut events are broadcasted to multiple regions by chatops-proxy
+                # Don't open a warning window as this event could be handled by another region
+                return
+
+            self.open_warning_window(payload, warning_text)
+            return
+
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
-            thread_ts = payload["message"]["thread_ts"]
 
             result = self._slack_client.chat_getPermalink(channel=channel_id, message_ts=message_ts)
             permalink = None
