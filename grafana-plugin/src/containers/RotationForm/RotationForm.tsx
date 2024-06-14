@@ -66,7 +66,6 @@ import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/const
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -143,7 +142,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
 
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
-  const [endLess, setEndless] = useState<boolean>(true);
+  const [endLess, setEndless] = useState<boolean>(shift?.until === undefined ? true : !Boolean(shift.until));
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
@@ -475,7 +474,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       const shiftEnd = toDateWithTimezoneOffset(dayjs(shift.shift_end), store.timezoneStore.selectedTimezoneOffset);
       setShiftEnd(shiftEnd);
-      setEndless(!shift.until);
 
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
@@ -503,10 +501,14 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       setUserGroups(shift.rolling_users);
     }
-  }, [shift, store.timezoneStore.selectedTimezoneOffset]);
+  }, [shift]);
 
   useEffect(() => {
     if (shift) {
+      // for existing rotations
+      handleRotationStartChange(toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset));
+      setRotationEnd(toDateWithTimezoneOffset(rotationEnd, store.timezoneStore.selectedTimezoneOffset));
+
       setSelectedDays(
         getSelectedDays({
           dayOptions: store.scheduleStore.byDayOptions,
