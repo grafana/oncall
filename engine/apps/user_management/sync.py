@@ -214,3 +214,10 @@ def cleanup_organization(organization_pk: int) -> None:
 
     except Organization.DoesNotExist:
         logger.info(f"Organization {organization_pk} was not found")
+
+
+def get_organization(org_id: int, stack_id: int, sync_data=None) -> Organization:
+    pass
+
+def get_user(organization: Organization, user_sync_data=None) -> User:
+    pass

@@ -37,16 +37,16 @@ type OnCallPluginJSONData struct {
 
 type OnCallPluginSettings struct {
 	OnCallAPIURL       string
-	StackID            int
-	OrgID              int
-	GrafanaToken       string
 	OnCallToken        string
-	GrafanaURL         string
-	License            string
-	RBACEnabled        bool
-	IncidentEnabled    bool
-	IncidentBackendURL string
-	LabelsEnabled      bool
+	StackID            int    `json:"stack_id"`
+	OrgID              int    `json:"org_id"`
+	License            string `json:"license"`
+	GrafanaURL         string `json:"grafana_url"`
+	GrafanaToken       string `json:"grafana_token"`
+	RBACEnabled        bool   `json:"rbac_enabled"`
+	IncidentEnabled    bool   `json:"incident_enabled"`
+	IncidentBackendURL string `json:"incident_backend_url"`
+	LabelsEnabled      bool   `json:"labels_enabled"`
 }
 
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettings, error) {
@@ -192,12 +192,7 @@ func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (
 	}
 
 	onCallSync := OnCallSync{
-		Config: OnCallFeaturesConfig{
-			RBACEnabled:        settings.RBACEnabled,
-			IncidentEnabled:    settings.IncidentEnabled,
-			IncidentBackendURL: settings.IncidentBackendURL,
-			LabelsEnabled:      settings.LabelsEnabled,
-		},
+		Settings: *settings,
 	}
 	onCallSync.Users, err = a.GetAllUsersWithPermissions(&onCallPluginSettings)
 	if err != nil {

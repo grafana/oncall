@@ -9,18 +9,17 @@ import (
 	"net/http"
 )
 
-type OnCallFeaturesConfig struct {
-	RBACEnabled        bool   `json:"rbac_enabled"`
-	IncidentEnabled    bool   `json:"incident_enabled"`
-	IncidentBackendURL string `json:"incident_backend_url,omitempty"`
-	LabelsEnabled      bool   `json:"labels_enabled"`
-}
-
 type OnCallSync struct {
 	Users       []OnCallUser         `json:"users"`
 	Teams       []OnCallTeam         `json:"teams"`
 	TeamMembers map[int][]int        `json:"team_members"`
-	Config      OnCallFeaturesConfig `json:"config"`
+	Settings    OnCallPluginSettings `json:"settings"`
+}
+
+type OnCallError struct {
+	Code    int                 `json:"code"`
+	Message string              `json:"message"`
+	Fields  map[string][]string `json:"fields"`
 }
 
 type responseWriter struct {
@@ -57,7 +56,7 @@ func (a *App) handleInternalApi(w http.ResponseWriter, req *http.Request) {
 	a.ProxyRequestToOnCall(w, req, "api/internal/v1/")
 }
 
-func (a *App) handleInstall(w *responseWriter, req *http.Request) {
+func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 	var provisioningData OnCallProvisioningJSONData
 	err := json.Unmarshal(w.body.Bytes(), &provisioningData)
 	if err != nil {
@@ -135,7 +134,9 @@ func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
 
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
-	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleInstall))
+	mux.HandleFunc("/plugin/install", a.handleInstall)
+	//mux.Handle("/plugin/status", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleInstall))
+	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleLegacyInstall))
 	mux.HandleFunc("/test-current-user", a.handleCurrentUser)
 	mux.HandleFunc("/test-sync", a.handleSync)
 	mux.HandleFunc("/", a.handleInternalApi)
