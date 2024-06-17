@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 
 import { ActionKey } from 'models/loader/action-keys';
+import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { makeRequest } from 'network/network';
 import { PluginConnection, PostStatusResponse } from 'network/oncall-api/api.types';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
@@ -46,5 +47,12 @@ export class PluginStore {
       // 3. Check if plugin is connected once again after install
       await this.verifyPluginConnection();
     }
+  }
+
+  @AutoLoadingState(ActionKey.REINITIALIZE_PLUGIN_WITH_NEW_API_URL)
+  async updateOnCallApiUrlAndReinitializePlugin(onCallApiUrl: string) {
+    await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl } });
+    await this.install();
+    await this.verifyPluginConnection();
   }
 }

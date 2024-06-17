@@ -55,7 +55,7 @@ export class GrafanaApiClient {
     return keys.find(({ name }) => name === ONCALL_KEY_NAME);
   };
 
-  private static updateGrafanaPluginSettings = async (data: UpdateGrafanaPluginSettingsProps, enabled = true) =>
+  static updateGrafanaPluginSettings = async (data: UpdateGrafanaPluginSettingsProps, enabled = true) =>
     this.grafanaBackend.post(GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
   static recreateGrafanaTokenAndSaveInPluginSettings = async () => {
