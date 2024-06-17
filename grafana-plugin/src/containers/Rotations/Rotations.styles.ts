@@ -8,7 +8,7 @@ export const getRotationsStyles = (theme: GrafanaTheme2) => {
       border: 1px solid ${theme.colors.border.weak};
       display: flex;
       flex-direction: column;
-      border-radius: ${theme.shape.radius.default};
+      border-radius: 2px;
 
       &--withNoBackgroundAndBorder {
         background: none;

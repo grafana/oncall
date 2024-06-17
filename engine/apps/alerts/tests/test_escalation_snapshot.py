@@ -183,15 +183,24 @@ def test_next_escalation_policy_snapshot(escalation_snapshot_test_setup):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "next_step_eta,expected",
+    "timedelta,time_in_past,expected",
     [
-        (None, None),
-        (timezone.now() - timezone.timedelta(weeks=50), False),
-        (timezone.now() - timezone.timedelta(minutes=4), True),
-        (timezone.now() + timezone.timedelta(minutes=4), True),
+        (None, None, None),
+        (timezone.timedelta(weeks=50), True, False),
+        (timezone.timedelta(minutes=4), True, True),
+        (timezone.timedelta(minutes=4), False, True),
     ],
 )
-def test_next_step_eta_is_valid(escalation_snapshot_test_setup, next_step_eta, expected) -> None:
+def test_next_step_eta_is_valid(escalation_snapshot_test_setup, timedelta, time_in_past, expected) -> None:
+    now = timezone.now()
+
+    if timedelta is None:
+        next_step_eta = None
+    elif time_in_past:
+        next_step_eta = now - timedelta
+    else:
+        next_step_eta = now + timedelta
+
     alert_group, _, _, _ = escalation_snapshot_test_setup
     escalation_snapshot = alert_group.escalation_snapshot
 

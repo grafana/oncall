@@ -1,6 +1,6 @@
 name: Verify Release Label Added
 
-"on":
+on:
   pull_request:
     types:
       - opened

@@ -142,7 +142,7 @@ export const Alerts = function () {
   );
 
   function showBannerTeam(): boolean {
-    return currentOrganization?.banner.title != null && !getItem(currentOrganization?.banner.title);
+    return Boolean(currentOrganization?.banner?.title) && !getItem(currentOrganization?.banner?.title);
   }
 
   function showMismatchWarning(): boolean {

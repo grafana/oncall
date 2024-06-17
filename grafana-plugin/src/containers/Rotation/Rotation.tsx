@@ -40,7 +40,7 @@ interface RotationProps {
 
 export const Rotation: FC<RotationProps> = observer((props) => {
   const {
-    timezoneStore: { calendarStartDate, getDateInSelectedTimezone },
+    timezoneStore: { calendarStartDate, getDateInSelectedTimezone, selectedTimezoneOffset },
     scheduleStore: { scheduleView: storeScheduleView },
   } = useStore();
   const {
@@ -144,7 +144,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     const base = 60 * 60 * 24 * days;
 
     return firstShiftOffset / base;
-  }, [events, startDate]);
+  }, [events, startDate, selectedTimezoneOffset]);
 
   return (
     <div className={cx('root')} onClick={onClick && handleRotationClick}>

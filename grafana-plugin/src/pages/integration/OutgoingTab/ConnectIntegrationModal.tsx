@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, HorizontalGroup, Icon, Input, Modal, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
 import { debounce } from 'lodash-es';
-import { observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';

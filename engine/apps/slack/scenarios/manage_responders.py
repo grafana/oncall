@@ -2,6 +2,7 @@ import json
 import typing
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, direct_paging, unpage_user, user_is_oncall
+from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
@@ -61,7 +62,9 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
         # check if user is on-call
         if not user_is_oncall(selected_user):
             # display additional confirmation modal
-            private_metadata = json.dumps({USER_DATA_KEY: selected_user.id, ALERT_GROUP_DATA_KEY: alert_group.pk})
+            private_metadata = make_private_metadata(
+                {USER_DATA_KEY: selected_user.id, ALERT_GROUP_DATA_KEY: alert_group.pk}, organization
+            )
             view = _display_confirm_participant_invitation_view(
                 ManageRespondersConfirmUserChange.routing_uid(), private_metadata
             )
@@ -163,7 +166,7 @@ def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False)
                         "type": "button",
                         "text": {"type": "plain_text", "text": "Remove", "emoji": True},
                         "action_id": ManageRespondersRemoveUser.routing_uid(),
-                        "value": str(user["id"]),
+                        "value": make_value({"id": str(user["id"])}, alert_group.channel.organization),
                     },
                 },
             ),
@@ -205,7 +208,7 @@ def _get_selected_user_from_payload(payload: EventPayload) -> "User":
     from apps.user_management.models import User
 
     try:
-        selected_user_id = payload["actions"][0]["value"]  # "remove" button
+        selected_user_id = json.loads(payload["actions"][0]["value"])["id"]  # "remove" button
     except KeyError:
         try:
             # "confirm" button on availability warnings modal

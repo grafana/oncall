@@ -47,5 +47,11 @@ export const getScheduleStyles = (theme: GrafanaTheme2) => {
       margin: 50px auto;
       text-align: center;
     `,
+
+    datePicker: css`
+      position: absolute;
+      z-index: 1060;
+      top: 0;
+    `,
   };
 };

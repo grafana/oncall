@@ -15,7 +15,12 @@ from social_django.utils import psa
 from social_django.views import _do_login
 
 from apps.auth_token.auth import GoogleTokenAuthentication, PluginAuthentication, SlackTokenAuthentication
-from apps.social_auth.backends import LoginSlackOAuth2V2
+from apps.chatops_proxy.utils import (
+    get_installation_link_from_chatops_proxy,
+    get_slack_oauth_response_from_chatops_proxy,
+)
+from apps.slack.installation import install_slack_integration
+from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +30,10 @@ logger = logging.getLogger(__name__)
 @never_cache
 @psa("social:complete")
 def overridden_login_social_auth(request: Request, backend: str) -> Response:
+    """
+    overridden_login_social_auth starts the installation of integration which uses OAuth flow.
+    """
+
     # We can't just redirect frontend here because we need to make a API call and pass tokens to this view from JS.
     # So frontend can't follow our redirect.
     # So wrapping and returning URL to redirect as a string.
@@ -34,7 +43,26 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
             status=400,
         )
 
-    url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
+    if backend == SLACK_INSTALLATION_BACKEND and settings.UNIFIED_SLACK_APP_ENABLED:
+        """
+        Install unified slack integration via chatops-proxy.
+        1. Get installation link from chatops-proxy
+        2. If link is not None – slack installation already exists on Chatops-Proxy - install using it's oauth response.
+        """
+        try:
+            link = get_installation_link_from_chatops_proxy(request.user)
+            if link is not None:
+                return Response(link, 200)
+            else:
+                slack_oauth_response = get_slack_oauth_response_from_chatops_proxy(request.user.organization.stack_id)
+                install_slack_integration(request.user.organization, request.user, slack_oauth_response)
+                return Response("slack integration installed", 201)
+        except Exception as e:
+            logger.exception("overridden_login_social_auth: Failed to install slack via chatops-proxy: %s", e)
+            return Response({"error": "something went wrong, try again later"}, 500)
+    else:
+        # Otherwise use social-auth.
+        url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
     return Response(url_to_redirect_to, 200)
 
 

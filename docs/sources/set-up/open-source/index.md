@@ -213,6 +213,23 @@ To connect to Grafana Cloud OnCall, refer to the **Cloud** page in your OSS Graf
 
 ## Supported Phone Providers
 
+### Exotel
+
+Grafana OnCall supports Exotel phone call notifications delivery. To configure phone call notifications using Exotel,
+complete the following steps:
+
+1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
+2. Change `PHONE_PROVIDER` value to `exotel`.
+3. `EXOTEL_ACCOUNT_SID` can be found under DEVELOPER SETTINGS->API Settings
+4. `EXOTEL_API_KEY` and `EXOTEL_API_TOKEN` can also be found under DEVELOPER SETTINGS->API Settings
+5. `EXOTEL_APP_ID` is the identiﬁer of the flow (or applet) which can be found under MANAGE->App Bazaar (Installed apps)
+6. `EXOTEL_CALLER_ID` is the Exophone / Exotel virtual number.
+7. `EXOTEL_SMS_SENDER_ID` is the SMS Sender ID to use for sending verification SMS, which can be found under
+   SMS SETTINGS->Sender ID.
+8. `EXOTEL_SMS_VERIFICATION_TEMPLATE` is the SMS text template to be used for sending verification SMS, add
+   $verification_code as a placeholder.
+9. `EXOTEL_SMS_DLT_ENTITY_ID` is the DLT Entity ID registered with TRAI.
+
 ### Twilio
 
 Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you prefer to configure SMS and phone call
@@ -234,8 +251,7 @@ Zvonok.com, complete the following steps:
    to the variable `ZVONOK_AUDIO_ID` (optional step).
 6. To make a call with a specific voice, you can set the `ZVONOK_SPEAKER_ID`.
    By default, the ID used is `Salli` (optional step).
-7. To change the voice message for phone verification, you can set the variable `ZVONOK_VERIFICATION_TEMPLATE`
-   with the following format (optional step): `Your verification code is $verification_code, have a nice day.`.
+7. Create phone number verification campaign with type `tellcode` and assign its ID value to `ZVONOK_VERIFICATION_CAMPAIGN_ID`.
 8. To process the call status, it is required to add a postback with the GET/POST method on the side of the zvonok.com
    service with the following format (optional step):
    `${ONCALL_BASE_URL}/zvonok/call_status_events?campaign_id={ct_campaign_id}&call_id={ct_call_id}&status={ct_status}&user_choice={ct_user_choice}`

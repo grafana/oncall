@@ -1,0 +1,141 @@
+name: On release published
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  linting-and-tests:
+    name: Linting and tests
+    uses: ./.github/workflows/linting-and-tests.yml
+
+  snyk-security-scan:
+    name: Snyk security scan
+    uses: ./.github/workflows/snyk-security-scan.yml
+
+  build-sign-and-publish-plugin-to-gcom:
+    name: Build, sign, and publish frontend plugin to grafana.com
+    needs:
+      - linting-and-tests
+      - snyk-security-scan
+    runs-on: ubuntu-latest
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
+      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
+            GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON=github_actions:gcs-plugin-publisher
+            GCOM_PLUGIN_PUBLISHER_API_KEY=github_actions:gcom-plugin-publisher-api-key
+      - name: Build, sign, and package plugin
+        id: build-sign-and-package-plugin
+        uses: ./.github/actions/build-sign-and-package-plugin
+        with:
+          plugin_version_number: ${{ github.ref_name }}
+          grafana_access_policy_token: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN }}
+          working_directory: grafana-plugin
+      - name: Authenticate with GCS
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON }}
+      - name: Publish plugin artifact to GCS
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: grafana-plugin/${{ steps.build-sign-and-package-plugin.outputs.artifact_filename }}
+          destination: grafana-oncall-app/releases
+          predefinedAcl: publicRead
+      - name: Determine GCS artifact URL
+        shell: bash
+        id: gcs-artifact-url
+        # yamllint disable rule:line-length
+        run: |
+          echo url="https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${{ github.ref_name }}.zip" >> $GITHUB_OUTPUT
+      - name: Publish plugin to grafana.com
+        run: |
+          curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer ${{ env.GCOM_PLUGIN_PUBLISHER_API_KEY }}" -d "download[any][url]=${{ steps.gcs-artifact-url.outputs.url }}" -d "download[any][md5]=$(curl -sL ${{ steps.gcs-artifact-url.outputs.url }} | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins
+        # yamllint enable rule:line-length
+
+  build-engine-docker-image-and-publish-to-dockerhub:
+    name: Build engine Docker image and publish to Dockerhub
+    needs:
+      - linting-and-tests
+      - snyk-security-scan
+    uses: ./.github/workflows/build-engine-docker-image-and-publish-to-dockerhub.yml
+    with:
+      engine_version: ${{ github.ref_name }}
+      # https://github.com/docker/metadata-action?tab=readme-ov-file#tags-input
+      docker_image_tags: |
+        type=raw,value=${{ github.ref_name }}
+        type=raw,value=latest
+
+  create-helm-release-pr:
+    name: Create Helm release PR
+    needs:
+      - build-sign-and-publish-plugin-to-gcom
+      - build-engine-docker-image-and-publish-to-dockerhub
+    runs-on: ubuntu-latest
+    outputs:
+      helm_release_pr_number: ${{ fromJSON(steps.update-helm-chart-pr.outputs.pull_request).number }}
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Prepare version tags
+        id: prepare-version-tags
+        run: |
+          echo app-version="${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo version="${GITHUB_REF_NAME:1}" >> $GITHUB_OUTPUT
+      - name: Update oncall Helm chart Chart.yaml
+        id: update-helm-chart-pr
+        uses: fjogeleit/yaml-update-action@v0.12.3
+        with:
+          valueFile: helm/oncall/Chart.yaml
+          branch: helm-release/${{ steps.prepare-version-tags.outputs.version }}
+          targetBranch: main
+          masterBranchName: main
+          createPR: true
+          # yamllint disable rule:line-length
+          description: |
+            This PR was created automatically by [this github action](https://github.com/grafana/oncall/blob/dev/.github/workflows/on-release-published.yml).
+
+            It will be auto-merged very soon, which will then release the updated version of the chart into the `grafana/helm-charts` helm repository.
+          # yamllint enable rule:line-length
+          message: "Release oncall Helm chart ${{ steps.prepare-version-tags.outputs.version }}"
+          changes: |
+            {
+              "version": "${{ steps.prepare-version-tags.outputs.version }}",
+              "appVersion": "${{ steps.prepare-version-tags.outputs.app-version }}"
+            }
+
+  merge-helm-release-pr:
+    name: Merge Helm release PR
+    needs:
+      - create-helm-release-pr
+    runs-on: ubuntu-latest
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GITHUB_API_KEY=github_actions:github-api-key
+      - name: Merge pull Request
+        uses: juliangruber/merge-pull-request-action@v1
+        with:
+          github-token: ${{ env.GITHUB_API_KEY }}
+          number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}
