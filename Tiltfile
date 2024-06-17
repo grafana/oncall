@@ -94,7 +94,7 @@ local_resource(
     labels=["OnCallPluginBackend"],
     dir="./dev/scripts",
     cmd="chmod +x ./restart_backend_plugin.sh && ./restart_backend_plugin.sh",
-    resource_deps=["grafana", "build-plugin-backend"],
+    resource_deps=["grafana", "build-oncall-plugin-backend"],
     deps=['grafana-plugin/pkg/plugin']
 )
 
