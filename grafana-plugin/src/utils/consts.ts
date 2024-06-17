@@ -31,6 +31,8 @@ export const DEFAULT_PAGE = 'alert-groups';
 export const PLUGIN_ID = 'grafana-oncall-app';
 export const PLUGIN_ROOT = `/a/${PLUGIN_ID}`;
 
+export const REQUEST_HELP_URL = 'https://grafana.com/profile/org/tickets/new';
+
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';

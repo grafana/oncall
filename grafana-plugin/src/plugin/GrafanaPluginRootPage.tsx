@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 
-import { ErrorBoundary, LoadingPlaceholder } from '@grafana/ui';
+import { ErrorBoundary, HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
 import { Header } from 'navbar/Header/Header';
 import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
-import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
+import { Redirect, Route, Switch, useHistory, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
-import errorSVG from 'assets/img/error.svg';
+import { Button } from 'components/Button/Button';
+import { FullPageError } from 'components/FullPageError/FullPageError';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
@@ -31,12 +32,13 @@ import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization/authorization';
-import { DEFAULT_PAGE, getOnCallApiUrl } from 'utils/consts';
+import { DEFAULT_PAGE, getOnCallApiUrl, PLUGIN_ID, REQUEST_HELP_URL } from 'utils/consts';
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
 import { FaroHelper } from 'utils/faro';
 import { useInitializePlugin, useOnMount } from 'utils/hooks';
+import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
@@ -57,7 +59,7 @@ export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
       {() => (
         <RenderConditionally
           shouldRender={isInitialized}
-          backupChildren={<img src={errorSVG} alt="" />}
+          backupChildren={<PluginNotInitializedFullPageError />}
           render={() => (
             <Provider store={rootStore}>
               <Root {...props} />
@@ -216,5 +218,37 @@ export const Root = observer((props: AppRootProps) => {
         </RenderConditionally>
       </div>
     </DefaultPageLayout>
+  );
+});
+
+const PluginNotInitializedFullPageError = observer(() => {
+  const isOpenSource = getIsRunningOpenSourceVersion();
+  const isCurrentUserAdmin = window.grafanaBootData.user.orgRole === 'Admin';
+  const { push } = useHistory();
+
+  const getSubtitleExtension = () => {
+    if (!isOpenSource) {
+      return 'request help from our support team.';
+    }
+    return isCurrentUserAdmin
+      ? 'go to plugin configuration page to check what went wrong.'
+      : 'contact your administrator to check what went wrong.';
+  };
+
+  return (
+    <FullPageError
+      title="Plugin not initialized"
+      subtitle={`Looks like OnCall plugin is not configured properly and couldn't be loaded. Retry or ${getSubtitleExtension()}`}
+    >
+      <HorizontalGroup>
+        <Button variant="secondary" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+        {!isOpenSource && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
+        {isOpenSource && isCurrentUserAdmin && (
+          <Button onClick={() => push(`/plugins/${PLUGIN_ID}`)}>Open configuration</Button>
+        )}
+      </HorizontalGroup>
+    </FullPageError>
   );
 });
