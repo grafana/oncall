@@ -3,6 +3,38 @@ import dayjs from 'dayjs';
 import { getColor, getOverrideColor } from 'models/schedule/schedule.helpers';
 import { Layer, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
+
+// DatePickers will convert the date passed to local timezone, instead we want to use the date in the given timezone
+export const toDatePickerDate = (value: dayjs.Dayjs, timezoneOffset: number) => {
+  const date = toDateWithTimezoneOffset(value, timezoneOffset);
+
+  return dayjs()
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0)
+    .set('date', 1)
+    .set('month', date.month())
+    .set('date', date.date())
+    .set('year', date.year())
+    .toDate();
+};
+
+export const getCalendarStartDateInTimezone = (calendarStartDate: dayjs.Dayjs, utcOffset: number) => {
+  const offsetedDate = dayjs(calendarStartDate.toDate())
+    .utcOffset(utcOffset)
+    .set('date', 1)
+    .set('months', calendarStartDate.month())
+    .set('date', calendarStartDate.date())
+    .set('year', calendarStartDate.year())
+    .set('hours', 0)
+    .set('minutes', 0)
+    .set('second', 0)
+    .set('milliseconds', 0);
+
+  return offsetedDate;
+};
 
 export const findColor = (shiftId: Shift['id'], layers: Layer[], overrides?) => {
   let color = undefined;

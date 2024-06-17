@@ -1,6 +1,4 @@
-import dayjs, { Dayjs, ManipulateType } from 'dayjs';
-
-import { Timezone } from 'models/timezone/timezone.types';
+import { Dayjs, ManipulateType } from 'dayjs';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 
@@ -9,19 +7,6 @@ export const getRepeatShiftsEveryOptions = (repeatEveryPeriod: number) => {
   return Array.from(Array(count + 1).keys())
     .slice(1)
     .map((i) => ({ label: String(i), value: i }));
-};
-
-export const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
-  const localMoment = moment.tz(timezone);
-
-  return new Date(
-    localMoment.get('year'),
-    localMoment.get('month'),
-    localMoment.get('date'),
-    localMoment.get('hour'),
-    localMoment.get('minute'),
-    localMoment.get('second')
-  );
 };
 
 export interface TimeUnit {
@@ -169,23 +154,6 @@ export const timeUnitsToSeconds = (units: TimeUnit[]) =>
 
 export const repeatEveryInSeconds = (repeatEveryPeriod: RepeatEveryPeriod, repeatEveryValue: number) => {
   return repeatEveryPeriodMultiplier[repeatEveryPeriod] * repeatEveryValue;
-};
-
-export const getDateForDatePicker = (dayJsDate: Dayjs) => {
-  const date = new Date();
-  // Day of the month needs to be set to 1st day at first to prevent incorrect month increment
-  // when selected day of month doesn't exist in current month
-  // E.g. selected date is 30th March and current month is Feb, so in this case date.setMonth(2) results in April
-
-  date.setDate(1); // temporary selection to prevent incorrect month increment
-
-  date.setFullYear(dayJsDate.year());
-  date.setMonth(dayJsDate.month());
-  date.setDate(dayJsDate.date());
-  date.setHours(dayJsDate.hour());
-  date.setMinutes(dayJsDate.minute());
-  date.setSeconds(dayJsDate.second());
-  return date;
 };
 
 export const dayJSAddWithDSTFixed = ({

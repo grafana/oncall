@@ -56,7 +56,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
     scheduleView: propsScheduleView,
   }) => {
     const {
-      timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
+      timezoneStore: { selectedTimezoneOffset, currentDateInSelectedTimezone, calendarStartDate },
       scheduleStore: { scheduleView: storeScheduleView },
     } = store;
 
@@ -85,7 +85,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
         });
       }
       return rows;
-    }, [calendarStartDate, scheduleView]);
+    }, [calendarStartDate, scheduleView, currentDateInSelectedTimezone, selectedTimezoneOffset]);
 
     return (
       <div
