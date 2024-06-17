@@ -3,7 +3,7 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
 import { config } from '@grafana/runtime';
-import { Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
 import { OnCallPluginMetaJSONData } from 'types';
@@ -43,6 +43,7 @@ export const PluginConfigPage = observer(
 
     return (
       <>
+        <PluginConfigAlert />
         <Text.Title level={3}>Configure Grafana OnCall</Text.Title>
         <Text type="secondary" className={styles.secondaryTitle}>
           This page will help you to connect OnCall backend and OnCall Grafana plugin.
@@ -121,7 +122,7 @@ export const PluginConfigPage = observer(
                     />
                     <HorizontalGroup>
                       <Button type="submit" disabled={!formState.isValid || !meta.enabled}>
-                        Test & Connect
+                        {meta.jsonData?.onCallApiUrl ? 'Reconnect' : 'Connect'}
                       </Button>
                       {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
                     </HorizontalGroup>
@@ -135,6 +136,31 @@ export const PluginConfigPage = observer(
     );
   }
 );
+
+const PluginConfigAlert = observer(() => {
+  const {
+    pluginStore: { connectionStatus, isPluginConnected },
+  } = rootStore;
+
+  if (!connectionStatus) {
+    return null;
+  }
+  return isPluginConnected ? (
+    <Alert severity="success" title="Plugin is connected" />
+  ) : (
+    <Alert severity="error" title="Plugin is not connected">
+      <ol>
+        {Object.values(connectionStatus)
+          .filter(({ ok, error }) => !ok && Boolean(error))
+          .map(({ error }, idx) => (
+            <li key={error}>
+              {idx + 1}. {error}
+            </li>
+          ))}
+      </ol>
+    </Alert>
+  );
+});
 
 const getStyles = (theme: GrafanaTheme2) => ({
   secondaryTitle: css`
