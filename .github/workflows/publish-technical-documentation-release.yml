@@ -1,6 +1,6 @@
 name: "Publish Technical Documentation (release)"
 
-"on":
+on:
   push:
     branches:
       - "release-*"
@@ -9,6 +9,7 @@ name: "Publish Technical Documentation (release)"
     paths:
       - "docs/sources/**"
   workflow_dispatch:
+
 jobs:
   test:
     runs-on: "ubuntu-latest"
