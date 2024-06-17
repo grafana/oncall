@@ -77,6 +77,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
 
         warning_text = "Unable to add this message to resolution note, this command works only in incident threads."
 
+        # thread_ts is only present for thread messages
         thread_ts = payload.get("message", {}).get("thread_ts")
         if not thread_ts:
             if settings.UNIFIED_SLACK_APP_ENABLED:
