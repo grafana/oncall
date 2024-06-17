@@ -1,6 +1,6 @@
 * @grafana/grafana-oncall-backend
 /grafana-plugin @grafana/grafana-oncall-frontend
-/docs @grafana/docs-gops @grafana/grafana-oncall
+/docs @grafana/grafana-oncall
 
 # `make docs` procedure is owned by @jdbaldry of @grafana/docs-squad.
 /.github/workflows/update-make-docs.yml @jdbaldry

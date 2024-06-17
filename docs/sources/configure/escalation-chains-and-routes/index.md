@@ -140,6 +140,6 @@ affect all linked Integrations and Routes.
 [outgoing webhook]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
 [outgoing webhook]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
 
-[Routing Templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
-[Routing Templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
+[Routing Templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#routing-template"
+[Routing Templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#routing-template"
 {{% /docs/reference %}}

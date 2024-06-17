@@ -8,6 +8,9 @@ keywords:
   - amixr
   - oncall
   - integrations
+  - Alert templates
+  - Routing template
+  - Routes
 title: Integrations
 weight: 500
 ---
@@ -18,17 +21,15 @@ An "Integration" is a main entry point for alerts being consumed by Grafana OnCa
 Integrations receive alerts on a unique API URL, interprets them using a set of templates tailored for the monitoring system, and starts
 escalations.
 
-For more information about the templating used in OnCall, refer to [Jinja2 templating][].
-
 ## Learn Alert Flow Within Integration
 
 1. An Alert is received on an integration's **Unique URL** as an HTTP POST request with a JSON payload (or via
 [Inbound email][], for inbound email integrations)
-1. Routing is determined for the incoming alert, by applying the [Routing Template][]
-1. Alert Grouping is determined based on [Grouping Id Template][]
-1. An Alert Group may be acknowledged or resolved with status `_ by source` based on its [Behavioral templates][]
+1. Routing is determined for the incoming alert, by applying the [Routing Template](#routing-template)
+1. Alert Grouping is determined based on [Grouping Id Template](#behavioral-templates)
+1. An Alert Group may be acknowledged or resolved with status `_ by source` based on its [Behavioral templates](#behavioral-templates)
 1. The Alert Group is available in Web, and can be published to messengers, based on the Route's **Publish to Chatops** configuration.
-It is rendered using [Appearance templates][]
+It is rendered using [Appearance templates](#appearance-templates)
 1. The Alert Group is escalated to users based on the Escalation Chains selected for the Route
 1. Users can perform actions listed in [Learn about the Alert Workflow][] section
 
@@ -53,15 +54,226 @@ Click the **How to connect** link for more information.
 
 ### Complete the integration configuration
 
-- Review and customise grouping, autoresolution, autoacknowledge templates
+- [Review and customise](#behavioral-templates) grouping, autoresolution, autoacknowledge templates
 if you want to customise alert behaviour for your team
-- Review and customise other templates to change how alert groups are displayed
+- [Review and customise](#appearance-templates) other templates to change how alert groups are displayed
 in different parts of Grafana OnCall: UI, messengers, emails, notifications, etc.
-- Add routes to your integration to route alerts to different users and teams based on labels or other data
+- [Add routes to your integration] to route alerts to different users and teams based on labels or other data
 - Connect your escalation chains to routes to notify the right people, at the right time
 - Learn [how to start Maintenance Mode](#maintenance-mode) for an integration
 - Send demo alerts to an integration to make sure routes, templates, and escalations, are working as expected. Consider using
 `Debug Maintenance mode` to avoid sending real notifications to your team
+
+### Templates
+
+When Grafana OnCall receives an alert and parses its payload, a default pre-configured alert template
+is applied to modify the alert payload to be more human-readable. These alert templates
+are customizable for any integration. Templates are also used to notify different
+escalation chains based on the content of the alert payload.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/S6Is8hhyCos" title="YouTube video player"
+frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;
+web-share" allowfullscreen></iframe>
+
+#### Alert payload
+
+Alerts received by Grafana OnCall contain metadata as keys and values in a JSON object.
+The following is an example of an alert which was initiated by Grafana Alerting, and
+received by Grafana OnCall:
+
+```json
+{
+  "dashboardId": 1,
+  "title": "[Alerting] Panel Title alert",
+  "message": "Notification Message",
+  "evalMatches": [
+    {
+      "value": 1,
+      "metric": "Count",
+      "tags": {}
+    }
+  ],
+  "imageUrl": "https://grafana.com/static/assets/img/blog/mixed_styles.png",
+  "orgId": 1,
+  "panelId": 2,
+  "ruleId": 1,
+  "ruleName": "Panel Title alert",
+  "ruleUrl": "http://localhost:3000/d/hZ7BuVbWz/test-dashboard?fullscreen\u0026edit\u0026tab=alert\u0026panelId=2\u0026orgId=1",
+  "state": "alerting",
+  "tags": {
+    "tag name": "tag value"
+  }
+}
+```
+
+In Grafana OnCall every alert and alert group have the following fields:
+
+- `Title`, `Message` and `Image Url` for each notification method (Web, Slack, Ms Teams, SMS, Phone, Email, etc.)
+- `Grouping Id` - unique identifier for each non-resolved alert group
+- `Resolved by source`
+- `Acknowledged by source`
+- `Source link`
+
+The JSON payload is converted to OnCall fields. For example:
+
+- `{{ payload.title }}` -> `Title`
+- `{{ payload.message }}` -> `Message`
+- `{{ payload.imageUrl }}` -> `Image Url`
+
+The result is that each field of the alert in OnCall is now mapped to the JSON payload
+keys. This also true for the
+alert behavior:
+
+- `{{ payload.ruleId }}` -> Grouping Id
+- `{{ 1 if payload.state == 'OK' else 0 }}` -> Resolve Signal
+
+Grafana OnCall provides pre-configured default Jinja templates for supported
+integrations. If your monitoring system is
+not in the Grafana OnCall integrations list, you can create a generic `webhook`
+integration, send an alert, and configure
+your templates.
+
+#### Types of templates
+
+Alert templates allow you to format any alert fields recognized by Grafana OnCall. You can
+customize default alert
+templates for all the different notification methods. For more advanced
+customization, use Jinja templates.
+
+##### Routing template
+
+- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template, output should be `True`)
+
+   > **Note:** For conditional templates, the output should be `True` to be applied, for example `{{ True if payload.state == 'OK' else False }}`
+
+##### Appearance templates
+
+How alerts are displayed in the UI, messengers, and notifications
+
+- `Title`, `Message`, `Image url` for Web
+- `Title`, `Message`, `Image url` for Slack
+- `Title`, `Message`, `Image url` for MS Teams
+- `Title`, `Message`, `Image url` for Telegram
+- `Title` for SMS
+- `Title` for Phone Call
+- `Title`, `Message` for Email
+- `Title`, `Message` for Mobile app push notifications
+
+##### Behavioral templates
+
+- `Grouping Id` - applied to every incoming alert payload after the `Routing Template`. It
+can be based on time, alert content, or both. If the resulting grouping id matches an
+existing non-resolved alert group grouping id, the alert will be grouped accordingly.
+Otherwise, a new alert group will be created
+- `Autoresolution` - used to auto-resolve alert groups with status `Resolved by source`
+(Conditional template, output should be `True`)
+- `Auto acknowledge` - used to auto-acknowledge alert groups with status `Acknowledged by
+source` (Conditional template, output should be `True`)
+- `Source link` - Used to customize the URL link to provide as the "source" of the alert.
+
+   > **Note:** For conditional templates, the output should be `True` to be applied, for
+   example `{{ True if payload.state == 'OK' else False }}`
+
+> **Pro Tip:** As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the
+alert message.
+
+#### How to edit templates
+
+1. Open the **Integration** page for the integration you want to edit
+1. Click the **Edit** button for the Templates Section. Now you can see previews of all
+templates for the Integration
+1. Select the template you want to edit and click the **Edit** button to the right to the template
+name. The template editor will open. The first column is the example alert payload, second
+column is the Template itself, and third column is used to view rendered result.
+1. Select one of the **Recent Alert groups** for the integration to see its `latest alert
+payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
+Name.
+1. Alternatively, you can click **Use custom payload** and write your own payload to see
+how it will be rendered
+1. Press `Control + Enter` in the editor to see suggestions
+1. Click **Cheatsheet** in the second column to get some inspiration.
+1. If you edit Messenger templates, click **Save and open Alert Group in ChatOps** to see
+how the alert will be rendered in the messenger, right in the messenger (Only works for
+an Alert Group that exists in the messenger)
+1. Click **Save** to save the template
+
+#### Advanced Jinja templates
+
+Grafana OnCall uses the [Jinja templating language](http://jinja.pocoo.org/docs/2.10/) to
+format alert groups for the Web,
+Slack, phone calls, SMS messages, and more. As a result, you
+can decide what you want to see when an alert group is triggered, as well as how it should
+be presented.
+
+Jinja2 offers simple but multi-faceted functionality by using loops, conditions,
+functions, and more.
+
+> **NOTE:** Every alert from a monitoring system comes in the key/value format.
+
+Grafana OnCall has rules about which of the keys match to: `__title`, `message`, `image`, `grouping`, and `auto-resolve__`.
+
+##### Loops
+
+Monitoring systems can send an array of values. In this example, you can use Jinja to
+iterate and format the alert
+using a Grafana example:
+
+```.jinja2
+*Values:*
+ {% for evalMatch in payload.evalMatches -%}
+ `{{ evalMatch['metric'] }}: '{{ evalMatch['value'] -}}'`{{ " " }}
+ {%- endfor %}
+```
+
+##### Conditions
+
+You can add instructions if an alert comes from a specified Grafana alert rule:
+
+````jinja2
+{% if  payload.ruleId == '1' -%}
+*Alert TODOs*
+1. Get acess to the container
+    ```
+        kubectl port-forward service/example 3000:80
+    ```
+2. Check for the exception.
+3. Open the container and reload caches.
+4. Click Custom Button `Send to Jira`
+{%- endif -%}
+````
+
+##### Built-in Jinja functions
+
+Jinja2 includes built-in functions that can also be used in Grafana OnCall. For example:
+
+```.jinja2
+{{ payload | tojson_pretty }}
+```
+
+Built-in functions:
+
+- `abs`
+- `capitalize`
+- `trim`
+- You can see the full list of Jinja built-in functions on github [here](https://github.com/pallets/jinja/blob/3915eb5c2a7e2e4d49ebdf0ecb167ea9c21c60b2/src/jinja2/filters.py#L1307)
+
+##### Functions added by Grafana OnCall
+
+- `time` - current time
+- `tojson` - dumps a structure to JSON
+- `tojson_pretty` - same as tojson, but prettified
+- `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
+- `datetimeformat` - converts datetime to string according to strftime format codes (`%H:%M / %d-%m-%Y` by default)
+- `datetimeformat_as_timezone` - same as `datetimeformat`, with the inclusion of timezone conversion (`UTC` by default)
+  - Usage example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
+- `datetimeparse` - converts string to datetime according to strftime format codes (`%H:%M / %d-%m-%Y` by default)
+- `regex_replace` - performs a regex find and replace
+- `regex_match` - performs a regex match, returns `True` or `False`
+  - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
+- `b64decode` - performs a base64 string decode
+  - Usage example: `{{ payload.data | b64decode }}`
+- `parse_json` - parses a given json string to an object
+  - Usage example: `{{ (payload.data | b64decode | parse_json).name }}`
 
 ### Manage integrations
 
@@ -104,7 +316,7 @@ More specific instructions can be found in a specific integration's documentatio
 #### Behaviour and rendering templates example
 
 _Integration templates_ are Jinja2 templates which are applied to each alert to define it's rendering and behaviour.
-For more information refer to [Jinja2 templating][].
+For more information refer to [Templates](#templates).
 
 For templates editor:
 
@@ -147,7 +359,7 @@ To edit the name of an integration:
 
 Integration labels allows to manage and filter integrations based on specific criteria
 and pass these labels down to Alert Groups.
-It could be useful to organize integrations by service, region or other custom attribute.  
+It could be useful to organize integrations by service, region or other custom attribute.
 
 To assign labels to the integration:
 
@@ -333,23 +545,14 @@ Users with admin permissions have the ability to add custom columns based on lab
 {{< section >}}
 
 {{% docs/reference %}}
-[Appearance templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#appearance-templates"
-[Appearance templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#appearance-templates"
-
-[Behavioral templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#behavioral-templates"
-[Behavioral templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#behavioral-templates"
-
 [Inbound email]: "/docs/oncall -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
 [Inbound email]: "/docs/grafana-cloud -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
-
-[Jinja2 templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[Jinja2 templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
 
 [Learn about the Alert Workflow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/get-started#learn-about-the-alert-workflow"
 [Learn about the Alert Workflow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started#learn-about-the-alert-workflow"
 
-[Routing template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
-[Routing template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
+[Add routes to your integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes#manage-routes"
+[Add routes to your integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes#manage-routes"
 
 [Webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
 [Webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"

@@ -89,7 +89,7 @@ For more information on Grafana OnCall integrations and further configuration gu
 
 Review and customize templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
 customize visualizations and notifications by extracting data from alerts. See more details in the
-[Jinja2 templating][] section.
+[Integration templates][] section.
 
 ### Configure Escalation Chains
 
@@ -210,8 +210,8 @@ For more information about OnCall schedules, refer to [On-call schedules][].
 [integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations"
 [integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
 
-[Jinja2 templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[Jinja2 templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
+[Integration templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#templates"
+[Integration templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#templates"
 
 [Notify people]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify"
 [Notify people]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify"
