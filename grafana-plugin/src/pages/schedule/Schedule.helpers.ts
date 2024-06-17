@@ -1,7 +1,7 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 
-import { findColor } from 'containers/Rotations/Rotations.helpers';
+import { findColor, getCalendarStartDateInTimezone } from 'containers/Rotations/Rotations.helpers';
 import {
   getLayersFromStore,
   getOverridesFromStore,
@@ -41,7 +41,7 @@ export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
 };
 
 export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView, timezoneOffset: number) => {
-  const offsetedDate = toDateWithTimezoneOffset(date, timezoneOffset);
+  const offsetedDate = getCalendarStartDateInTimezone(date, timezoneOffset);
 
   switch (scheduleView) {
     case ScheduleView.OneMonth:

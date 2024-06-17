@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
+import { toDatePickerDate } from 'containers/Rotations/Rotations.helpers';
 import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
@@ -59,21 +60,6 @@ export const DateTimePicker = observer(
       return time;
     };
 
-    const getConvertedDateToOffset = () => {
-      const date = toDateWithTimezoneOffset(propValue, utcOffset);
-
-      return dayjs()
-        .set('hour', 0)
-        .set('minute', 0)
-        .set('second', 0)
-        .set('millisecond', 0)
-        .set('date', 1)
-        .set('month', date.month())
-        .set('date', date.date())
-        .set('year', date.year())
-        .toDate();
-    };
-
     return (
       <VerticalGroup>
         <div className={styles.wrapper}>
@@ -86,7 +72,7 @@ export const DateTimePicker = observer(
             <DatePickerWithInput
               open
               disabled={disabled}
-              value={getConvertedDateToOffset()}
+              value={toDatePickerDate(propValue, utcOffset)}
               onChange={handleDateChange}
             />
           </div>
