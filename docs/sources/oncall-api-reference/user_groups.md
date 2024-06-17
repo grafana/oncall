@@ -6,7 +6,9 @@ weight: 1400
 
 <!--Used in escalation policies with type = `notify_user_group` and in schedules.-->
 
-# List user groups
+# OnCall User Groups HTTP API
+
+## List user groups
 
 ```shell
 curl "{{API_URL}}/api/v1/user_groups/" \

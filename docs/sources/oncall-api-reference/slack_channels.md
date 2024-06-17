@@ -4,7 +4,9 @@ title: Slack Channels HTTP API
 weight: 1300
 ---
 
-# List Slack Channels
+# Slack Channels HTTP API
+
+## List Slack Channels
 
 ```shell
 curl "{{API_URL}}/api/v1/slack_channels/" \

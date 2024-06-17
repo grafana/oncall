@@ -4,7 +4,9 @@ title: Grafana OnCall Users HTTP API
 weight: 1500
 ---
 
-# Get a user
+# Grafana OnCall Users HTTP API
+
+## Get a user
 
 This endpoint retrieves the user object.
 
@@ -50,7 +52,7 @@ Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 | `timezone` |   No    | timezone of the user one of [time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                               |
 | `teams`    |   No    | List of team IDs the user belongs to                               |
 
-# List Users
+## List Users
 
 ```shell
 curl "{{API_URL}}/api/v1/users/" \
