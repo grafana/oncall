@@ -1,14 +1,15 @@
-name: Update `make docs` procedure
-"on":
+name: Update make docs procedure
+
+on:
   schedule:
     - cron: "0 7 * * 1-5"
   workflow_dispatch:
+
 jobs:
   main:
-    if: github.repository == 'grafana/oncall'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: grafana/writers-toolkit/update-make-docs@update-make-docs/v1
         with:
-          pr_options: --label "pr:no changelog"
+          pr_options: --label "release:ignore"
