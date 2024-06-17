@@ -34,7 +34,7 @@ requests==2.32.0
     #   pdpyras
 tomli==2.0.1
     # via pytest
-urllib3==2.2.1
+urllib3==2.2.2
     # via
     #   pdpyras
     #   requests
