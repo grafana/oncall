@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/users/
-title: Grafana OnCall Users HTTP API
+title: Grafana OnCall users HTTP API
 weight: 1500
 ---
 
-# Grafana OnCall Users HTTP API
+# Grafana OnCall users HTTP API
 
 ## Get a user
 

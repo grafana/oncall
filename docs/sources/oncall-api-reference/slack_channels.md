@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/slack_channels/
-title: Slack Channels HTTP API
+title: Slack channels HTTP API
 weight: 1300
 ---
 
-# Slack Channels HTTP API
+# Slack channels HTTP API
 
 ## List Slack Channels
 

@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/shift_swaps/
-title: Shift Swap Requests HTTP API
+title: Shift swap requests HTTP API
 weight: 1200
 ---
 
-# Shift Swap Requests HTTP API
+# Shift swap requests HTTP API
 
 ## Create a shift swap request
 

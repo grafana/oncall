@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alertgroups/
-title: Alert Groups HTTP API
+title: Alert groups HTTP API
 weight: 400
 ---
 
-# Alert Groups HTTP API
+# Alert groups HTTP API
 
 ## List alert groups
 

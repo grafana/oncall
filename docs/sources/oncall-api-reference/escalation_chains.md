@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/
-title: Escalation Chains HTTP API
+title: Escalation chains HTTP API
 weight: 200
 ---
 
-# Escalation Chains HTTP API
+# Escalation chains HTTP API
 
 ## Create an escalation chain
 

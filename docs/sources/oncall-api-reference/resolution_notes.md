@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/resolution_notes/
-title: Resolution Notes HTTP API
+title: Resolution notes HTTP API
 weight: 900
 ---
 
-# Resolution Notes HTTP API
+# Resolution notes HTTP API
 
 ## Create a resolution note
 

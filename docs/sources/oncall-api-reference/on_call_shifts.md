@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/on_call_shifts/
-title: OnCall Shifts HTTP API
+title: OnCall shifts HTTP API
 weight: 600
 ---
 
-# OnCall Shifts HTTP API
+# OnCall shifts HTTP API
 
 ## Create an OnCall shift
 

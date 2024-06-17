@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_policies/
-title: Escalation Policies HTTP API
+title: Escalation policies HTTP API
 weight: 300
 ---
 
-# Escalation Policies HTTP API
+# Escalation policies HTTP API
 
 ## Create an escalation policy
 
