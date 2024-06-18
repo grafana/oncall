@@ -1,5 +1,4 @@
 import logging
-from dataclasses import asdict
 
 from django.conf import settings
 from rest_framework.request import Request
@@ -7,11 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import BasePluginAuthentication
-from apps.base.models import DynamicSetting
 from apps.grafana_plugin.helpers import GrafanaAPIClient
-from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
 from common.api_helpers.utils import create_engine_url
 

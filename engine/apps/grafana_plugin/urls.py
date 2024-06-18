@@ -1,7 +1,14 @@
 from django.urls import re_path
 
-from apps.grafana_plugin.views import (InstallView, SelfHostedInstallView, StatusView, SyncOrganizationView,
-                                       RecaptchaView, StatusV2View, InstallV2View)
+from apps.grafana_plugin.views import (
+    InstallV2View,
+    InstallView,
+    RecaptchaView,
+    SelfHostedInstallView,
+    StatusV2View,
+    StatusView,
+    SyncOrganizationView,
+)
 
 app_name = "grafana-plugin"
 

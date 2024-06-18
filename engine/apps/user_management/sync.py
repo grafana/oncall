@@ -6,7 +6,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.auth_token.exceptions import InvalidToken
-from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient, GCOMInstanceInfo
+from apps.grafana_plugin.helpers.client import GcomAPIClient, GCOMInstanceInfo, GrafanaAPIClient
 from apps.grafana_plugin.sync_data import SyncData, SyncUser
 from apps.user_management.models import Organization, Team, User
 from apps.user_management.signals import org_sync_signal
@@ -219,7 +219,9 @@ def cleanup_organization(organization_pk: int) -> None:
         logger.info(f"Organization {organization_pk} was not found")
 
 
-def create_cloud_organization(org_id: int, stack_id: int, sync_data: SyncData, instance_info: GCOMInstanceInfo) -> Organization:
+def create_cloud_organization(
+    org_id: int, stack_id: int, sync_data: SyncData, instance_info: GCOMInstanceInfo
+) -> Organization:
     client = GcomAPIClient(sync_data.settings.oncall_token)
     if not instance_info:
         instance_info = client.get_instance_info(stack_id)
@@ -257,14 +259,18 @@ def create_oss_organization(sync_data: SyncData) -> Organization:
     )
 
 
-def create_organization(org_id: int, stack_id: int, sync_data: SyncData, instance_info: GCOMInstanceInfo) -> Organization:
+def create_organization(
+    org_id: int, stack_id: int, sync_data: SyncData, instance_info: GCOMInstanceInfo
+) -> Organization:
     if settings.LICENSE == CLOUD_LICENSE_NAME:
         return create_cloud_organization(org_id, stack_id, sync_data, instance_info)
     elif settings.LICENSE == OPEN_SOURCE_LICENSE_NAME:
         return create_oss_organization(sync_data)
 
 
-def get_organization(org_id: int, stack_id: int, sync_data: SyncData = None, instance_info: GCOMInstanceInfo = None) -> Organization:
+def get_organization(
+    org_id: int, stack_id: int, sync_data: SyncData = None, instance_info: GCOMInstanceInfo = None
+) -> Organization:
     organization = Organization.objects.filter(org_id=org_id, stack_id=stack_id).first()
     if not organization:
         organization = create_organization(org_id, stack_id, sync_data, instance_info)

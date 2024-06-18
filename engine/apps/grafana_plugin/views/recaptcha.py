@@ -1,9 +1,10 @@
-from rest_framework.views import APIView
-
 from django.conf import settings
-from apps.auth_token.auth import PluginAuthentication
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.auth_token.auth import PluginAuthentication
+
 
 class RecaptchaView(APIView):
     authentication_classes = (PluginAuthentication,)

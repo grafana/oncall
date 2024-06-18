@@ -8,13 +8,12 @@ from rest_framework.views import APIView
 
 from apps.grafana_plugin.serializers.sync_data import SyncDataSerializer
 from apps.user_management.sync import get_organization
-from common.api_helpers.errors import SELF_HOSTED_ONLY_FEATURE_ERROR, INVALID_SELF_HOSTED_ID
+from common.api_helpers.errors import INVALID_SELF_HOSTED_ID, SELF_HOSTED_ONLY_FEATURE_ERROR
 
 logger = logging.getLogger(__name__)
 
 
 class InstallV2View(APIView):
-
     def post(self, request: Request) -> Response:
         if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
             return Response(data=SELF_HOSTED_ONLY_FEATURE_ERROR, status=status.HTTP_403_FORBIDDEN)
@@ -26,7 +25,7 @@ class InstallV2View(APIView):
         sync_data = serializer.save()
         settings_stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
         settings_org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
-        if(sync_data.settings.org_id != settings_org_id or sync_data.settings.stack_id != settings_stack_id):
+        if sync_data.settings.org_id != settings_org_id or sync_data.settings.stack_id != settings_stack_id:
             return Response(data=INVALID_SELF_HOSTED_ID, status=status.HTTP_400_BAD_REQUEST)
 
         organization = get_organization(sync_data.settings.org_id, sync_data.settings.stack_id, sync_data)

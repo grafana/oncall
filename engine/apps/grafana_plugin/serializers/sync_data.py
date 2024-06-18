@@ -1,9 +1,9 @@
+from dataclasses import asdict
 from typing import Dict, List
 
 from rest_framework import serializers
-from dataclasses import asdict
 
-from apps.grafana_plugin.sync_data import SyncPermission, SyncUser, SyncTeam, SyncSettings, SyncData
+from apps.grafana_plugin.sync_data import SyncData, SyncPermission, SyncSettings, SyncTeam, SyncUser
 
 
 class SyncPermissionSerializer(serializers.Serializer):
