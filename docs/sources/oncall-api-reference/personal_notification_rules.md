@@ -1,10 +1,12 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/personal_notification_rules/
-title: Personal Notification Rules HTTP API
+title: Personal notification rules HTTP API
 weight: 800
 ---
 
-# Post a personal notification rule
+# Personal notification rules HTTP API
+
+## Post a personal notification rule
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/" \
@@ -41,7 +43,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/personal_notification_rules/`
 
-# Get personal notification rule
+## Get personal notification rule
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/ND9EHN5LN1DUU/" \
@@ -67,7 +69,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/personal_notification_rules/<PERSONAL_NOTIFICATION_RULE_ID>/`
 
-# List personal notification rules
+## List personal notification rules
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/" \
@@ -129,7 +131,7 @@ The following available filter parameters should be provided as `GET` arguments:
 
 `GET {{API_URL}}/api/v1/personal_notification_rules/`
 
-# Delete a personal notification rule
+## Delete a personal notification rule
 
 ```shell
 curl "{{API_URL}}/api/v1/personal_notification_rules/NWAL6WFJNWDD8/" \

@@ -1,10 +1,12 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/shift_swaps/
-title: Shift swaps HTTP API
+title: Shift swap requests HTTP API
 weight: 1200
 ---
 
-# Create a shift swap request
+# Shift swap requests HTTP API
+
+## Create a shift swap request
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/" \
@@ -77,7 +79,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/shift_swaps/`
 
-# Get a shift swap request
+## Get a shift swap request
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
@@ -135,7 +137,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/shift_swaps/<SHIFT_SWAP_REQUEST_ID>/`
 
-# List shift swap requests
+## List shift swap requests
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/" \
@@ -195,7 +197,7 @@ The following available filter parameters may be provided as a `GET` arguments:
 
 `GET {{API_URL}}/api/v1/shift_swaps/`
 
-# Update a shift swap request
+## Update a shift swap request
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
@@ -259,7 +261,7 @@ The above command returns JSON structured in the following way:
 
 `PUT {{API_URL}}/api/v1/shift_swaps/<SHIFT_SWAP_REQUEST_ID>/`
 
-# Delete a shift swap request
+## Delete a shift swap request
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
@@ -272,7 +274,7 @@ curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/" \
 
 `DELETE {{API_URL}}/api/v1/shift_swaps/<SHIFT_SWAP_REQUEST_ID>/`
 
-# Take a shift swap request
+## Take a shift swap request
 
 ```shell
 curl "{{API_URL}}/api/v1/shift_swaps/SSRG1TDNBMJQ1NC/take" \

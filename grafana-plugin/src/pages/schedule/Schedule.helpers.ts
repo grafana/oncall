@@ -1,7 +1,7 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 
-import { findColor } from 'containers/Rotations/Rotations.helpers';
+import { findColor, getCalendarStartDateInTimezone } from 'containers/Rotations/Rotations.helpers';
 import {
   getLayersFromStore,
   getOverridesFromStore,
@@ -40,13 +40,15 @@ export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
   return date.startOf('isoWeek'); // it's Monday always
 };
 
-export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView) => {
+export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView, timezoneOffset: number) => {
+  const offsetedDate = getCalendarStartDateInTimezone(date, timezoneOffset);
+
   switch (scheduleView) {
     case ScheduleView.OneMonth:
-      const startOfMonth = date.startOf('month');
+      const startOfMonth = offsetedDate.startOf('month');
       return startOfMonth.startOf('isoWeek');
     default:
-      return date.startOf('isoWeek');
+      return offsetedDate.startOf('isoWeek');
   }
 };
 
@@ -69,8 +71,8 @@ export const getCurrentTimeX = (currentDate: dayjs.Dayjs, startDate: dayjs.Dayjs
   return diff / baseInMinutes;
 };
 
-export const getUTCString = (moment: dayjs.Dayjs) => {
-  return moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
+export const getUTCString = (date: dayjs.Dayjs) => {
+  return date.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 };
 
 export const getDateTime = (date: string) => {
@@ -203,4 +205,25 @@ export const getColorSchemeMappingForUsers = (
       });
     });
   }
+};
+
+export const toDateWithTimezoneOffset = (date: dayjs.Dayjs, timezoneOffset?: number) => {
+  if (!date) {
+    return undefined;
+  }
+  if (timezoneOffset === undefined) {
+    return date;
+  }
+  return date.utcOffset() === timezoneOffset ? date : date.tz().utcOffset(timezoneOffset);
+};
+
+export const toDateWithTimezoneOffsetAtMidnight = (date: dayjs.Dayjs, timezoneOffset?: number) => {
+  return toDateWithTimezoneOffset(date, timezoneOffset)
+    .set('date', 1)
+    .set('year', date.year())
+    .set('month', date.month())
+    .set('date', date.date())
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0);
 };
