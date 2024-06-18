@@ -6,7 +6,7 @@ jest.mock('@grafana/runtime', () => ({
   config: jest.fn(),
 }));
 
-describe('GrafanaPluginRootPage.helpers', () => {
+describe('getGrafanaVersion', () => {
   function setGrafanaVersion(version: string) {
     runtime.config.buildInfo = {
       version,

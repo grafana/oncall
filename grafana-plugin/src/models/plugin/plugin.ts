@@ -55,4 +55,10 @@ export class PluginStore {
     await this.install();
     await this.verifyPluginConnection();
   }
+
+  @AutoLoadingState(ActionKey.RECREATE_SERVICE_ACCOUNT)
+  async recreateServiceAccountAndRecheckPluginStatus() {
+    await GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings();
+    await this.verifyPluginConnection();
+  }
 }

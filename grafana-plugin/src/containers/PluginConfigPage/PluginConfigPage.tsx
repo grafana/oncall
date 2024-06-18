@@ -2,7 +2,6 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
-import { config } from '@grafana/runtime';
 import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
@@ -12,7 +11,6 @@ import { Button } from 'components/Button/Button';
 import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
-import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { rootStore } from 'state/rootStore';
 import {
   DOCS_ONCALL_OSS_INSTALL,
@@ -23,7 +21,7 @@ import {
 } from 'utils/consts';
 import { useOnMount } from 'utils/hooks';
 import { validateURL } from 'utils/string';
-import { getIsRunningOpenSourceVersion } from 'utils/utils';
+import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'utils/utils';
 
 type PluginConfigFormValues = {
   onCallApiUrl: string;
@@ -66,7 +64,12 @@ const CloudPluginConfigPage = observer(() => {
 const OSSPluginConfigPage = observer(
   ({ plugin: { meta } }: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
     const {
-      pluginStore: { updateOnCallApiUrlAndReinitializePlugin, connectionStatus, verifyPluginConnection },
+      pluginStore: {
+        updateOnCallApiUrlAndReinitializePlugin,
+        connectionStatus,
+        verifyPluginConnection,
+        recreateServiceAccountAndRecheckPluginStatus,
+      },
       loaderStore,
     } = rootStore;
     const styles = useStyles2(getStyles);
@@ -75,6 +78,7 @@ const OSSPluginConfigPage = observer(
       defaultValues: { onCallApiUrl: getOnCallApiUrl(meta) },
     });
     const isReinitializating = loaderStore.isLoading(ActionKey.REINITIALIZE_PLUGIN_WITH_NEW_API_URL);
+    const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.RECREATE_SERVICE_ACCOUNT);
 
     useOnMount(verifyPluginConnection);
 
@@ -102,7 +106,7 @@ const OSSPluginConfigPage = observer(
                 </>
               ),
             },
-            ...(config.featureToggles.externalServiceAccounts
+            ...(getIsExternalServiceAccountFeatureAvailable()
               ? []
               : [
                   {
@@ -119,12 +123,12 @@ const OSSPluginConfigPage = observer(
                             <Text type="link">Read more</Text>
                           </a>
                         </Text>
-                        <Button
-                          variant="secondary"
-                          onClick={() => GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings()}
-                        >
-                          Re-create
-                        </Button>
+                        <HorizontalGroup>
+                          <Button variant="secondary" onClick={recreateServiceAccountAndRecheckPluginStatus}>
+                            Re-create
+                          </Button>
+                          {isRecreatingServiceAccount && <LoadingPlaceholder text="" className={styles.spinner} />}
+                        </HorizontalGroup>
                       </>
                     ),
                   },
@@ -160,7 +164,10 @@ const OSSPluginConfigPage = observer(
                       )}
                     />
                     <HorizontalGroup>
-                      <Button type="submit" disabled={!formState.isValid || !meta.enabled}>
+                      <Button
+                        type="submit"
+                        disabled={!formState.isValid || !meta.enabled || !connectionStatus?.service_account_token?.ok}
+                      >
                         {meta.jsonData?.onCallApiUrl ? 'Reconnect' : 'Connect'}
                       </Button>
                       {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
