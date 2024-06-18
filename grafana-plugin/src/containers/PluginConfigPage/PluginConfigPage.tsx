@@ -14,15 +14,56 @@ import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
 import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { rootStore } from 'state/rootStore';
-import { DOCS_ONCALL_OSS_INSTALL, DOCS_SERVICE_ACCOUNTS, getOnCallApiUrl } from 'utils/consts';
+import {
+  DOCS_ONCALL_OSS_INSTALL,
+  DOCS_SERVICE_ACCOUNTS,
+  getOnCallApiUrl,
+  PLUGIN_ROOT,
+  REQUEST_HELP_URL,
+} from 'utils/consts';
 import { useOnMount } from 'utils/hooks';
 import { validateURL } from 'utils/string';
+import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
 type PluginConfigFormValues = {
   onCallApiUrl: string;
 };
 
-export const PluginConfigPage = observer(
+export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
+  const {
+    pluginStore: { verifyPluginConnection },
+  } = rootStore;
+
+  useOnMount(verifyPluginConnection);
+
+  return (
+    <>
+      <Text.Title level={3} className="u-margin-bottom-md">
+        Configure Grafana OnCall
+      </Text.Title>
+      {props.plugin.meta.enabled && <PluginConfigAlert />}
+      {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage />}
+    </>
+  );
+});
+
+const CloudPluginConfigPage = observer(() => {
+  const {
+    pluginStore: { isPluginConnected },
+  } = rootStore;
+  const styles = useStyles2(getStyles);
+
+  return (
+    <>
+      <Text type="secondary" className={styles.secondaryTitle}>
+        This is a cloud-managed configuration.
+      </Text>
+      {!isPluginConnected && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
+    </>
+  );
+});
+
+const OSSPluginConfigPage = observer(
   ({ plugin: { meta } }: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
     const {
       pluginStore: { updateOnCallApiUrlAndReinitializePlugin, connectionStatus, verifyPluginConnection },
@@ -43,8 +84,6 @@ export const PluginConfigPage = observer(
 
     return (
       <>
-        <PluginConfigAlert />
-        <Text.Title level={3}>Configure Grafana OnCall</Text.Title>
         <Text type="secondary" className={styles.secondaryTitle}>
           This page will help you to connect OnCall backend and OnCall Grafana plugin.
         </Text>
@@ -146,7 +185,12 @@ const PluginConfigAlert = observer(() => {
     return null;
   }
   return isPluginConnected ? (
-    <Alert severity="success" title="Plugin is connected" />
+    <Alert severity="success" title="Plugin is connected">
+      Go to{' '}
+      <a href={PLUGIN_ROOT} rel="noreferrer">
+        <Text type="link">Grafana OnCall</Text>
+      </a>
+    </Alert>
   ) : (
     <Alert severity="error" title="Plugin is not connected">
       <ol>

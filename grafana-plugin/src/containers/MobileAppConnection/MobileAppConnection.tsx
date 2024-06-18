@@ -7,7 +7,9 @@ import { observer } from 'mobx-react';
 import qrCodeImage from 'assets/img/qr-code.png';
 import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
+import { PluginInitializer } from 'containers/PluginInitializer/PluginInitializer';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -383,9 +385,13 @@ export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
     }
   };
 
-  if (isInitialized && store.isBasicDataLoaded && userStore.currentUserPk) {
-    return <MobileAppConnection userPk={userStore.currentUserPk} />;
-  }
-
-  return <LoadingPlaceholder text="Loading..." />;
+  return (
+    <PluginInitializer>
+      <RenderConditionally
+        shouldRender={Boolean(store.isBasicDataLoaded && userStore.currentUserPk)}
+        render={() => <MobileAppConnection userPk={userStore.currentUserPk} />}
+        backupChildren={<LoadingPlaceholder text="Loading..." />}
+      ></RenderConditionally>
+    </PluginInitializer>
+  );
 });
