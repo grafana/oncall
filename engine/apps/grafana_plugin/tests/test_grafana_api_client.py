@@ -118,8 +118,8 @@ class TestIsRbacEnabledForOrganization:
         "api_response, api_response_connected, expected",
         [
             ([], True, False),
-            ([{'some': 'data'}], True, True),
-            ([{'some': 'data'}], False, False),
+            ([{"some": "data"}], True, True),
+            ([{"some": "data"}], False, False),
             (None, False, False),
         ],
     )
