@@ -40,6 +40,7 @@ import {
   TimeUnit,
   timeUnitsToSeconds,
   TIME_UNITS_ORDER,
+  getDraggableModalCoordinatesOnInit,
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
 import { DateTimePicker } from 'containers/RotationForm/parts/DateTimePicker';
@@ -58,12 +59,12 @@ import {
   getUTCWeekStart,
   getWeekStartString,
   toDateWithTimezoneOffset,
+  toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
-import { useDebouncedCallback } from 'utils/hooks';
+import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
 
@@ -85,17 +86,11 @@ interface RotationFormProps {
 
 const getStartShift = (start: dayjs.Dayjs, timezoneOffset: number, isNewRotation = false) => {
   if (isNewRotation) {
-    // all new rotations default to midnight in selected timezone offset
-    return toDateWithTimezoneOffset(start, timezoneOffset)
-      .set('date', 1)
-      .set('year', start.year())
-      .set('month', start.month())
-      .set('date', start.date())
-      .set('hour', 0)
-      .set('minute', 0)
-      .set('second', 0);
+    // default to midnight for new rotations
+    return toDateWithTimezoneOffsetAtMidnight(start, timezoneOffset);
   }
 
+  // not always midnight
   return toDateWithTimezoneOffset(start, timezoneOffset);
 };
 
@@ -156,12 +151,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
-  useEffect(() => {
-    window.addEventListener('resize', debouncedOnResize);
-    return () => {
-      window.removeEventListener('resize', debouncedOnResize);
-    };
-  }, []);
+  useResize(debouncedOnResize);
 
   useEffect(() => {
     if (rotationStart.isBefore(shiftStart)) {
@@ -824,30 +814,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
-    const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
-    // top navbar display has 2 scrollbar-view elements (navbar & content)
-    const baseReferenceElRect = (
-      scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
-    ).getBoundingClientRect();
-
-    const { right, bottom } = baseReferenceElRect;
-
-    setDraggableBounds(
-      isTopNavbar()
-        ? {
-            // values are adjusted by any padding/margin differences
-            left: -data.node.offsetLeft + 4,
-            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-            top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
-            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-          }
-        : {
-            left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
-            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-            top: -offsetTop + 4,
-            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-          }
-    );
+    setDraggableBounds(getDraggableModalCoordinatesOnInit(data, offsetTop));
   }
 });
 

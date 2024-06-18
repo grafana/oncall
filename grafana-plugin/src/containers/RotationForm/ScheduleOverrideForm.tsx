@@ -3,7 +3,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { Modal } from 'components/Modal/Modal';
 import { Tag } from 'components/Tag/Tag';
@@ -17,8 +17,9 @@ import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { HTML_ID, getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
-import { useDebouncedCallback } from 'utils/hooks';
+import { useDebouncedCallback, useResize } from 'utils/hooks';
 
+import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
 import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
 
@@ -39,6 +40,9 @@ interface RotationFormProps {
 const cx = cn.bind(styles);
 
 export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
+  const store = useStore();
+  const theme = useTheme2();
+
   const {
     onHide,
     onCreate,
@@ -46,15 +50,17 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     onUpdate,
     onDelete,
     shiftId,
-    shiftStart: propsShiftStart = dayjs().startOf('day').add(1, 'day'),
+    shiftStart: propsShiftStart = store.timezoneStore.calendarStartDate,
     shiftEnd: propsShiftEnd,
     shiftColor: shiftColorProp,
   } = props;
 
-  const store = useStore();
-  const theme = useTheme2();
-
   const [rotationName, setRotationName] = useState<string>(shiftId === 'new' ? 'Override' : 'Update override');
+
+  const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
+  const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
+    undefined
+  );
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || propsShiftStart.add(24, 'hours'));
@@ -65,6 +71,10 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
   const shiftColor = shiftColorProp || theme.colors.warning.main;
+
+  const debouncedOnResize = useDebouncedCallback(onResize, 250);
+
+  useResize(debouncedOnResize);
 
   const updateShiftStart = useCallback(
     (value) => {
@@ -79,15 +89,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        const elm = await waitForElement(`#${HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS}`);
-        const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-        const coords = getCoords(elm);
-        const offsetTop = Math.min(
-          Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGHT + 10),
-          document.body.offsetHeight - modal?.offsetHeight - 10
-        );
-
-        setOffsetTop(offsetTop);
+        setOffsetTop(await calculateOffsetTop());
       }
     })();
   }, [isOpen]);
@@ -200,7 +202,15 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       width="430px"
       onDismiss={onHide}
       contentElement={(props, children) => (
-        <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: offsetTop }}>
+        <Draggable
+          handle=".drag-handler"
+          defaultClassName={cx('draggable')}
+          positionOffset={{ x: 0, y: offsetTop }}
+          position={draggablePosition}
+          bounds={{ ...bounds } || 'body'}
+          onStart={onDraggableInit}
+          onStop={(_e, data) => setDraggablePosition({ x: data.x, y: data.y })}
+        >
           <div {...props}>{children}</div>
         </Draggable>
       )}
@@ -242,6 +252,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 <DateTimePicker
                   disabled={disabled}
                   value={shiftStart}
+                  utcOffset={store.timezoneStore.selectedTimezoneOffset}
                   onChange={updateShiftStart}
                   error={errors.shift_start}
                 />
@@ -254,7 +265,13 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   </Text>
                 }
               >
-                <DateTimePicker disabled={disabled} value={shiftEnd} onChange={setShiftEnd} error={errors.shift_end} />
+                <DateTimePicker
+                  disabled={disabled}
+                  value={shiftEnd}
+                  utcOffset={store.timezoneStore.selectedTimezoneOffset}
+                  onChange={setShiftEnd}
+                  error={errors.shift_end}
+                />
               </Field>
             </HorizontalGroup>
             <UserGroups
@@ -280,4 +297,27 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       </VerticalGroup>
     </Modal>
   );
+
+  async function onResize() {
+    setDraggablePosition({ x: 0, y: await calculateOffsetTop() });
+  }
+
+  async function calculateOffsetTop() {
+    const elm = await waitForElement(`#${HTML_ID.SCHEDULE_ROTATIONS}`);
+    const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
+    const coords = getCoords(elm);
+    const offsetTop = Math.min(
+      Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
+      GRAFANA_HEADER_HEIGHT + 10
+    );
+    return offsetTop;
+  }
+
+  function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
+    if (!data) {
+      return;
+    }
+
+    setDraggableBounds(getDraggableModalCoordinatesOnInit(data, offsetTop));
+  }
 };
