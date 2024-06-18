@@ -36,27 +36,35 @@ type OnCallPluginJSONData struct {
 }
 
 type OnCallPluginSettings struct {
-	OnCallAPIURL       string
-	StackID            int
-	OrgID              int
-	GrafanaToken       string
-	OnCallToken        string
-	GrafanaURL         string
-	License            string
-	RBACEnabled        bool
-	IncidentEnabled    bool
-	IncidentBackendURL string
-	LabelsEnabled      bool
+	OnCallAPIURL       string `json:"oncall_api_url"`
+	OnCallToken        string `json:"oncall_token"`
+	StackID            int    `json:"stack_id"`
+	OrgID              int    `json:"org_id"`
+	License            string `json:"license"`
+	GrafanaURL         string `json:"grafana_url"`
+	GrafanaToken       string `json:"grafana_token"`
+	RBACEnabled        bool   `json:"rbac_enabled"`
+	IncidentEnabled    bool   `json:"incident_enabled"`
+	IncidentBackendURL string `json:"incident_backend_url"`
+	LabelsEnabled      bool   `json:"labels_enabled"`
 }
 
-func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettings, error) {
+func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
 	pluginContext := httpadapter.PluginConfigFromContext(ctx)
-	var settings OnCallPluginSettings
-	err := json.Unmarshal(pluginContext.AppInstanceSettings.JSONData, &settings)
+	var pluginSettingsJson OnCallPluginSettingsJSONData
+	err := json.Unmarshal(pluginContext.AppInstanceSettings.JSONData, &pluginSettingsJson)
 	if err != nil {
 		err = fmt.Errorf("OnCallSettingsFromContext: json.Unmarshal: %w", err)
 		log.DefaultLogger.Error(err.Error())
-		return settings, err
+		return nil, err
+	}
+
+	settings := OnCallPluginSettings{
+		StackID:      pluginSettingsJson.StackID,
+		OrgID:        pluginSettingsJson.OrgID,
+		OnCallAPIURL: pluginSettingsJson.OnCallAPIURL,
+		License:      pluginSettingsJson.License,
+		GrafanaURL:   pluginSettingsJson.GrafanaURL,
 	}
 
 	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
@@ -65,7 +73,7 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettin
 	if err != nil {
 		// Fallback to GrafanaURL already being set in settings outside backend plugin from provisioning or UI
 		if settings.GrafanaURL == "" {
-			return settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %+v", settings)
+			return &settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %v", settings)
 		}
 	} else {
 		settings.GrafanaURL = grafanaURL
@@ -75,7 +83,7 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettin
 	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
 		settings.GrafanaToken, err = cfg.PluginAppClientSecret()
 		if err != nil {
-			return settings, err
+			return &settings, err
 		}
 	} else {
 		settings.GrafanaToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["grafanaToken"])
@@ -84,7 +92,7 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettin
 	var jsonData map[string]interface{}
 	settings.IncidentEnabled, jsonData, err = a.GetOtherPluginSettings(&settings, "grafana-incident-app")
 	if err != nil {
-		return settings, err
+		return &settings, err
 	}
 	if jsonData != nil {
 		if value, ok := jsonData["backendUrl"].(string); ok {
@@ -93,13 +101,13 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (OnCallPluginSettin
 	}
 	settings.LabelsEnabled, _, err = a.GetOtherPluginSettings(&settings, "grafana-labels-app")
 	if err != nil {
-		return settings, err
+		return &settings, err
 	}
 
-	return settings, nil
+	return &settings, nil
 }
 
-func (a *App) SaveOnCallSettings(settings OnCallPluginSettings) error {
+func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
 	data := OnCallPluginJSONData{
 		JSONData: OnCallPluginSettingsJSONData{
 			OnCallAPIURL: settings.OnCallAPIURL,
@@ -145,18 +153,18 @@ func (a *App) SaveOnCallSettings(settings OnCallPluginSettings) error {
 func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID string) (bool, map[string]interface{}, error) {
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/plugins/%s/settings", pluginID))
 	if err != nil {
-		return false, nil, fmt.Errorf("error creating URL: %+v", err)
+		return false, nil, fmt.Errorf("error creating URL: %v", err)
 	}
 
 	req, err := http.NewRequest("GET", reqURL, nil)
 	if err != nil {
-		return false, nil, fmt.Errorf("error creating creating new request: %+v", err)
+		return false, nil, fmt.Errorf("error creating creating new request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
 
 	res, err := a.httpClient.Do(req)
 	if err != nil {
-		return false, nil, fmt.Errorf("error making request: %+v", err)
+		return false, nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer res.Body.Close()
 
@@ -166,7 +174,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return false, nil, fmt.Errorf("error reading response: %+v", err)
+		return false, nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	var result map[string]interface{}
@@ -188,30 +196,25 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (*OnCallSync, error) {
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting settings from context = %+v", err)
+		return nil, fmt.Errorf("error getting settings from context = %v", err)
 	}
 
 	onCallSync := OnCallSync{
-		Config: OnCallFeaturesConfig{
-			RBACEnabled:        settings.RBACEnabled,
-			IncidentEnabled:    settings.IncidentEnabled,
-			IncidentBackendURL: settings.IncidentBackendURL,
-			LabelsEnabled:      settings.LabelsEnabled,
-		},
+		Settings: *settings,
 	}
-	onCallSync.Users, err = a.GetAllUsersWithPermissions(&onCallPluginSettings)
+	onCallSync.Users, err = a.GetAllUsersWithPermissions(onCallPluginSettings)
 	if err != nil {
-		return nil, fmt.Errorf("error getting users = %+v", err)
+		return nil, fmt.Errorf("error getting users = %v", err)
 	}
 
-	onCallSync.Teams, err = a.GetAllTeams(&onCallPluginSettings)
+	onCallSync.Teams, err = a.GetAllTeams(onCallPluginSettings)
 	if err != nil {
-		return nil, fmt.Errorf("error getting teams = %+v", err)
+		return nil, fmt.Errorf("error getting teams = %v", err)
 	}
 
-	teamMembers, err := a.GetAllTeamMembers(&onCallPluginSettings, onCallSync.Teams)
+	teamMembers, err := a.GetAllTeamMembers(onCallPluginSettings, onCallSync.Teams)
 	if err != nil {
-		return nil, fmt.Errorf("error getting team members = %+v", err)
+		return nil, fmt.Errorf("error getting team members = %v", err)
 	}
 	onCallSync.TeamMembers = teamMembers
 

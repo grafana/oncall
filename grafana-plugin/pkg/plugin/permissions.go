@@ -16,24 +16,24 @@ type OnCallPermission struct {
 func (a *App) GetPermissions(settings *OnCallPluginSettings, onCallUser *OnCallUser) ([]OnCallPermission, error) {
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/access-control/users/%d/permissions", onCallUser.ID))
 	if err != nil {
-		return nil, fmt.Errorf("error creating URL: %+v", err)
+		return nil, fmt.Errorf("error creating URL: %v", err)
 	}
 
 	req, err := http.NewRequest("GET", reqURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating creating new request: %+v", err)
+		return nil, fmt.Errorf("error creating creating new request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
 
 	res, err := a.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error making request: %+v", err)
+		return nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response: %+v", err)
+		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	var permissions []OnCallPermission
@@ -57,7 +57,7 @@ func (a *App) GetPermissions(settings *OnCallPluginSettings, onCallUser *OnCallU
 func (a *App) GetAllPermissions(settings *OnCallPluginSettings) (map[string]map[string]interface{}, error) {
 	reqURL, err := url.Parse(settings.GrafanaURL)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing URL: %+v", err)
+		return nil, fmt.Errorf("error parsing URL: %v", err)
 	}
 
 	reqURL.Path += "api/access-control/users/permissions/search"
@@ -67,19 +67,19 @@ func (a *App) GetAllPermissions(settings *OnCallPluginSettings) (map[string]map[
 
 	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating creating new request: %+v", err)
+		return nil, fmt.Errorf("error creating creating new request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
 
 	res, err := a.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error making request: %+v", err)
+		return nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response: %+v", err)
+		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	var permissions map[string]map[string]interface{}
