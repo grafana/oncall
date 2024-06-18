@@ -29,24 +29,24 @@ type OnCallTeam struct {
 func (a *App) GetTeamsForUser(settings *OnCallPluginSettings, onCallUser *OnCallUser) ([]int, error) {
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/users/%d/teams", onCallUser.ID))
 	if err != nil {
-		return nil, fmt.Errorf("error creating URL: %+v", err)
+		return nil, fmt.Errorf("error creating URL: %v", err)
 	}
 
 	req, err := http.NewRequest("GET", reqURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating creating new request: %+v", err)
+		return nil, fmt.Errorf("error creating creating new request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
 
 	res, err := a.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error making request: %+v", err)
+		return nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response: %+v", err)
+		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	var result []Team
@@ -68,7 +68,7 @@ func (a *App) GetTeamsForUser(settings *OnCallPluginSettings, onCallUser *OnCall
 func (a *App) GetAllTeams(settings *OnCallPluginSettings) ([]OnCallTeam, error) {
 	reqURL, err := url.Parse(settings.GrafanaURL)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing URL: %+v", err)
+		return nil, fmt.Errorf("error parsing URL: %v", err)
 	}
 
 	reqURL.Path += "api/teams/search"
@@ -78,7 +78,7 @@ func (a *App) GetAllTeams(settings *OnCallPluginSettings) ([]OnCallTeam, error) 
 
 	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating new request: %+v", err)
+		return nil, fmt.Errorf("error creating new request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
 

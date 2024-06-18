@@ -73,7 +73,7 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 	if err != nil {
 		// Fallback to GrafanaURL already being set in settings outside backend plugin from provisioning or UI
 		if settings.GrafanaURL == "" {
-			return &settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %+v", settings)
+			return &settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %v", settings)
 		}
 	} else {
 		settings.GrafanaURL = grafanaURL
@@ -153,18 +153,18 @@ func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
 func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID string) (bool, map[string]interface{}, error) {
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/plugins/%s/settings", pluginID))
 	if err != nil {
-		return false, nil, fmt.Errorf("error creating URL: %+v", err)
+		return false, nil, fmt.Errorf("error creating URL: %v", err)
 	}
 
 	req, err := http.NewRequest("GET", reqURL, nil)
 	if err != nil {
-		return false, nil, fmt.Errorf("error creating creating new request: %+v", err)
+		return false, nil, fmt.Errorf("error creating creating new request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
 
 	res, err := a.httpClient.Do(req)
 	if err != nil {
-		return false, nil, fmt.Errorf("error making request: %+v", err)
+		return false, nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer res.Body.Close()
 
@@ -174,7 +174,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return false, nil, fmt.Errorf("error reading response: %+v", err)
+		return false, nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	var result map[string]interface{}
@@ -196,7 +196,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (*OnCallSync, error) {
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting settings from context = %+v", err)
+		return nil, fmt.Errorf("error getting settings from context = %v", err)
 	}
 
 	onCallSync := OnCallSync{
@@ -204,17 +204,17 @@ func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (
 	}
 	onCallSync.Users, err = a.GetAllUsersWithPermissions(onCallPluginSettings)
 	if err != nil {
-		return nil, fmt.Errorf("error getting users = %+v", err)
+		return nil, fmt.Errorf("error getting users = %v", err)
 	}
 
 	onCallSync.Teams, err = a.GetAllTeams(onCallPluginSettings)
 	if err != nil {
-		return nil, fmt.Errorf("error getting teams = %+v", err)
+		return nil, fmt.Errorf("error getting teams = %v", err)
 	}
 
 	teamMembers, err := a.GetAllTeamMembers(onCallPluginSettings, onCallSync.Teams)
 	if err != nil {
-		return nil, fmt.Errorf("error getting team members = %+v", err)
+		return nil, fmt.Errorf("error getting team members = %v", err)
 	}
 	onCallSync.TeamMembers = teamMembers
 

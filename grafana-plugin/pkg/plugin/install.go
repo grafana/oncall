@@ -34,7 +34,7 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	installURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "api/internal/v1/plugin/install")
+	installURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "api/internal/v1/plugin/v2/install")
 	if err != nil {
 		log.DefaultLogger.Error("Error joining path: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,25 +64,38 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 	}
 	defer res.Body.Close()
 
-	provisionBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		log.DefaultLogger.Error("Error reading response body: ", err)
-		return
-	}
+	if res.StatusCode != http.StatusOK {
+		w.Header().Add("Content-Type", "application/json")
+		installError := OnCallInstall{
+			OnCallError: OnCallError{
+				Code:    INSTALL_ERROR_CODE,
+				Message: "Install failed check /status for details",
+			},
+		}
+		if err := json.NewEncoder(w).Encode(installError); err != nil {
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		provisionBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.DefaultLogger.Error("Error reading response body: ", err)
+			return
+		}
 
-	var provisioningData OnCallProvisioningJSONData
-	err = json.Unmarshal(provisionBody, &provisioningData)
-	if err != nil {
-		log.DefaultLogger.Error("Error unmarshalling OnCallProvisioningJSONData: ", err)
-		return
-	}
+		var provisioningData OnCallProvisioningJSONData
+		err = json.Unmarshal(provisionBody, &provisioningData)
+		if err != nil {
+			log.DefaultLogger.Error("Error unmarshalling OnCallProvisioningJSONData: ", err)
+			return
+		}
 
-	onCallPluginSettings.OnCallToken = provisioningData.OnCallToken
-	err = a.SaveOnCallSettings(onCallPluginSettings)
-	if err != nil {
-		log.DefaultLogger.Error("Error saving settings: ", err)
-		return
+		onCallPluginSettings.OnCallToken = provisioningData.OnCallToken
+		err = a.SaveOnCallSettings(onCallPluginSettings)
+		if err != nil {
+			log.DefaultLogger.Error("Error saving settings: ", err)
+			return
+		}
 	}
-
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 }

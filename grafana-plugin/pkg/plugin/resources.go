@@ -15,12 +15,6 @@ type OnCallSync struct {
 	Settings    OnCallPluginSettings `json:"settings"`
 }
 
-type OnCallError struct {
-	Code    int                 `json:"code"`
-	Message string              `json:"message"`
-	Fields  map[string][]string `json:"fields"`
-}
-
 type responseWriter struct {
 	http.ResponseWriter
 	statusCode int
@@ -91,7 +85,7 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/plugin/install", a.handleInstall)
-	//mux.Handle("/plugin/status", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleInstall))
+	mux.HandleFunc("/plugin/status", a.handleStatus)
 
 	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleLegacyInstall))
 
