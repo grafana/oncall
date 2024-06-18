@@ -45,7 +45,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-77ouhj--strong css-66w5es"
               >
                 Download
               </span>
@@ -54,7 +54,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -84,7 +84,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         iOS
                       </span>
@@ -109,7 +109,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         Android
                       </span>
@@ -171,7 +171,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-77ouhj--strong css-66w5es"
               >
                 Download
               </span>
@@ -180,7 +180,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -210,7 +210,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         iOS
                       </span>
@@ -235,7 +235,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         Android
                       </span>
@@ -297,7 +297,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-77ouhj--strong css-66w5es"
               >
                 Download
               </span>
@@ -306,7 +306,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -336,7 +336,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         iOS
                       </span>
@@ -361,7 +361,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         Android
                       </span>
@@ -388,7 +388,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
-        class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
+        class="css-77ouhj--secondary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
       >
         Please connect Grafana Cloud OnCall to use the mobile app
       </span>
@@ -438,7 +438,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
           class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <span
-            class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           >
             There was an error disconnecting your mobile app. Please try again.
           </span>
@@ -454,7 +454,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-77ouhj--strong css-66w5es"
               >
                 Download
               </span>
@@ -463,7 +463,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -493,7 +493,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         iOS
                       </span>
@@ -518,7 +518,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         Android
                       </span>
@@ -554,7 +554,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
           class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <span
-            class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           >
             There was an error fetching your QR code. Please try again.
           </span>
@@ -570,7 +570,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-77ouhj--strong css-66w5es"
               >
                 Download
               </span>
@@ -579,7 +579,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -609,7 +609,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         iOS
                       </span>
@@ -634,7 +634,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                         src="[object Object]"
                       />
                       <span
-                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                        class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline icon-text css-66w5es"
                       >
                         Android
                       </span>

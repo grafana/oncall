@@ -8,6 +8,23 @@ import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { AutoLoadingState } from 'utils/decorators';
 import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
+/* 
+High-level OnCall initialization process:
+On OSS:
+  - On OnCall page / OnCall extension mount POST /status is called and it has pluginConfiguration object with different flags. 
+    If all of them have `ok: true` , we consider plugin to be successfully configured and application loading is being continued. 
+    Otherwise, we call POST /install to try to create OnCallApiToken and then we verify configuration again. In case second POST /status fails, 
+    we show error page with the option to go to plugin config (for Admin user) or to contact administrator (for nonAdmin user)
+  - On plugin config page frontend sends another POST /status. If every flag has `ok: true`, it shows that plugin is connected. 
+    Otherwise it shows more detailed information of what is misconfigured / missing. User can update onCallApiUrl and try to reconnect plugin.
+      - If Grafana version >= 10.3 AND externalServiceAccount feature flag is `true`, then grafana token is autoprovisioned and there is no need to create it
+      - Otherwise, user is given the option to manually create service account as Admin and then reconnect the plugin
+On Cloud:
+  - On OnCall page / OnCall extension mount POST /status is called. If plugin is configured correctly, application loads as usual.
+    If it's not, we show error page with the button to contact support
+  - On plugin config page we show info if plugin is connected. If it's not we show detailed information of the errors and the button to contact support
+*/
+
 export class PluginStore {
   rootStore: RootBaseStore;
   connectionStatus?: PluginConnection;
@@ -30,21 +47,17 @@ export class PluginStore {
     });
   }
 
-  // create oncall api token and save in plugin settings
   async install() {
-    return makeRequest(`/plugin${getIsRunningOpenSourceVersion() ? '/self-hosted' : ''}/install`, {
+    return makeRequest(`/plugin/self-hosted/install`, {
       method: 'POST',
     });
   }
 
   @AutoLoadingState(ActionKey.INITIALIZE_PLUGIN)
   async initializePlugin() {
-    // 1. Check if plugin is connected
     await this.verifyPluginConnection();
-    if (!this.isPluginConnected) {
-      // 2. if not connected try to install
+    if (!this.isPluginConnected && getIsRunningOpenSourceVersion()) {
       await this.install();
-      // 3. Check if plugin is connected once again after install
       await this.verifyPluginConnection();
     }
   }

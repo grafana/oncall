@@ -67,7 +67,6 @@ const OSSPluginConfigPage = observer(
       pluginStore: {
         updateOnCallApiUrlAndReinitializePlugin,
         connectionStatus,
-        verifyPluginConnection,
         recreateServiceAccountAndRecheckPluginStatus,
       },
       loaderStore,
@@ -79,8 +78,6 @@ const OSSPluginConfigPage = observer(
     });
     const isReinitializating = loaderStore.isLoading(ActionKey.REINITIALIZE_PLUGIN_WITH_NEW_API_URL);
     const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.RECREATE_SERVICE_ACCOUNT);
-
-    useOnMount(verifyPluginConnection);
 
     const onSubmit = async (values: PluginConfigFormValues) => {
       await updateOnCallApiUrlAndReinitializePlugin(values.onCallApiUrl);

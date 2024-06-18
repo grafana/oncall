@@ -391,7 +391,7 @@ export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
         shouldRender={Boolean(store.isBasicDataLoaded && userStore.currentUserPk)}
         render={() => <MobileAppConnection userPk={userStore.currentUserPk} />}
         backupChildren={<LoadingPlaceholder text="Loading..." />}
-      ></RenderConditionally>
+      />
     </PluginInitializer>
   );
 });
