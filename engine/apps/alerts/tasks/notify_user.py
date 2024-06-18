@@ -4,11 +4,13 @@ from uuid import uuid4
 from celery.exceptions import Retry
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Count
 from django.utils import timezone
 from kombu.utils.uuid import uuid as celery_uuid
 from telegram.error import RetryAfter
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
+from apps.alerts.tasks.send_update_log_report_signal import send_update_log_report_signal
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.metrics_exporter.tasks import update_metrics_for_user
 from apps.phone_notifications.phone_backend import PhoneBackend
@@ -56,6 +58,25 @@ def build_user_notification_plan(notification_policy, reason):
     reason = ("Reason: " + reason + "\n") if reason is not None else ""
     reason += ("Further notification plan: " + collected_steps) if len(collected_steps_ids) > 0 else ""
     return reason
+
+
+def update_metric_if_needed(user, active_alert_group_ids):
+    from apps.base.models import UserNotificationPolicyLogRecord
+
+    # get count of alert groups with only one personal log record with type "triggered"
+    alert_groups_with_one_log = (
+        user.personal_log_records.filter(
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+            alert_group_id__in=active_alert_group_ids,
+        )
+        .values("alert_group")
+        .annotate(count=Count("alert_group"))
+        .filter(count=1)
+        .count()
+    )
+
+    if alert_groups_with_one_log > 0:
+        update_metrics_for_user.apply_async((user.id, alert_groups_with_one_log))
 
 
 @shared_dedicated_queue_retry_task(
@@ -495,35 +516,41 @@ def send_bundled_notification(user_notification_bundle_id):
             )
             return
 
-        notifications = user_notification_bundle.notifications.filter(bundle_uuid__isnull=True)
-
-        alert_group_ids = [i.alert_group_id for i in notifications]
-        # get active alert groups to notify about
-        active_alert_groups = set(
-            AlertGroup.objects.filter(
-                id__in=alert_group_ids,
-                resolved=False,
-                acknowledged=False,
-                silenced=False,
-            ).values_list("id", flat=True)
+        notifications = user_notification_bundle.notifications.filter(bundle_uuid__isnull=True).select_related(
+            "alert_group"
         )
-        created_lod_records = []
+
+        log_records_to_create = []
         skip_notification_ids = []
-        perform_notifications = []
+        active_alert_group_ids = set()
+        log_record_notification_triggered = None
+        perform_regular_notification = False
+        is_notification_allowed = user_notification_bundle.user.is_notification_allowed
 
         # create logs
         for notification in notifications:
-            if notification.alert_group_id not in active_alert_groups:
+            if notification.alert_group.status != AlertGroup.NEW:
                 task_logger.info(
                     f"alert_group {notification.alert_group_id} is not active or doesn't exist, skip notification"
                 )
                 skip_notification_ids.append(notification.id)
                 continue
+            elif not is_notification_allowed:
+                log_record_notification_failed = UserNotificationPolicyLogRecord(
+                    author=user_notification_bundle.user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    reason="notification is not allowed for user",
+                    alert_group=notification.alert_group,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
+                )
+                log_records_to_create.append(log_record_notification_failed)
+                active_alert_group_ids.add(notification.alert_group_id)
+                continue
 
             # collect notifications for active alert groups
-            perform_notifications.append(notification)
+            active_alert_group_ids.add(notification.alert_group_id)
 
-            log_record = UserNotificationPolicyLogRecord(
+            log_record_notification_triggered = UserNotificationPolicyLogRecord(
                 author=user_notification_bundle.user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
                 notification_policy=notification.notification_policy,
@@ -531,47 +558,40 @@ def send_bundled_notification(user_notification_bundle_id):
                 notification_step=UserNotificationPolicy.Step.NOTIFY,
                 notification_channel=user_notification_bundle.notification_channel,
             )
-            log_record.save()
-            created_lod_records.append(log_record)
+            log_records_to_create.append(log_record_notification_triggered)
 
-        user_notification_bundle.notification_task_id = None
-        user_notification_bundle.last_notified = timezone.now()
-        user_notification_bundle.eta = None
-        user_notification_bundle.save(update_fields=["notification_task_id", "last_notified", "eta"])
-
-        if not user_notification_bundle.user.is_notification_allowed:
-            for notification in perform_notifications:
-                UserNotificationPolicyLogRecord(
-                    author=user_notification_bundle.user,
-                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                    reason="notification is not allowed for user",
-                    alert_group=notification.alert_group,
-                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
-                ).save()
-            notifications.delete()
-            return
-
-        if not perform_notifications:
-            task_logger.info("no alert groups to notify about, skip notification")
-            notifications.delete()
-
-        elif len(perform_notifications) == 1:
+        if len(log_records_to_create) == 1 and log_record_notification_triggered:
             # perform regular notification
-            log_record = created_lod_records[0]
+            log_record_notification_triggered.save()
             task_logger.info(
                 f"there is only one alert group in bundled notification, perform regular notification. "
-                f"alert_group {log_record.alert_group_id}"
+                f"alert_group {log_record_notification_triggered.alert_group_id}"
             )
-            transaction.on_commit(partial(create_perform_notification_task, log_record.pk, log_record.alert_group_id))
+            transaction.on_commit(
+                partial(
+                    create_perform_notification_task,
+                    log_record_notification_triggered.pk,
+                    log_record_notification_triggered.alert_group_id,
+                )
+            )
+            perform_regular_notification = True
             notifications.delete()
         else:
+            UserNotificationPolicyLogRecord.objects.bulk_create(log_records_to_create, batch_size=5000)
+
+        if not active_alert_group_ids or not is_notification_allowed:
+            task_logger.info(
+                f"no alert groups to notify about or notification is not allowed for user "
+                f"{user_notification_bundle.user_id}"
+            )
+            notifications.delete()
+        elif not perform_regular_notification:
             notifications.filter(id__in=skip_notification_ids).delete()
             bundle_uuid = uuid4()
             notifications.update(bundle_uuid=bundle_uuid)
             task_logger.info(
-                f"perform notification for alert groups with ids: {active_alert_groups}, bundle_uuid: {bundle_uuid}"
+                f"perform notification for alert groups with ids: {active_alert_group_ids}, bundle_uuid: {bundle_uuid}"
             )
-
             if user_notification_bundle.notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
                 # todo:
                 #  notify_by_sms_bundle:
@@ -584,18 +604,17 @@ def send_bundled_notification(user_notification_bundle_id):
                 # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
                 pass
 
+        user_notification_bundle.notification_task_id = None
+        user_notification_bundle.last_notified = timezone.now()
+        user_notification_bundle.eta = None
+        user_notification_bundle.save(update_fields=["notification_task_id", "last_notified", "eta"])
+
+    for alert_group_id in active_alert_group_ids:
+        transaction.on_commit(partial(send_update_log_report_signal.apply_async, {"alert_group_pk": alert_group_id}))
+
     # update metric
-    existing_logs = set(
-        user_notification_bundle.user.personal_log_records.filter(
-            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
-            alert_group_id__in=active_alert_groups,
-        )
-        .exclude(id__in=[log.id for log in created_lod_records])
-        .values_list("alert_group_id", flat=True)
-    )
-    metric_counter = len(active_alert_groups - existing_logs)
-    if metric_counter > 0:
-        update_metrics_for_user.apply_async((user_notification_bundle.user.id, metric_counter))
+    transaction.on_commit(partial(update_metric_if_needed, user_notification_bundle.user, active_alert_group_ids))
+
     task_logger.info(f"Finished send_bundled_notification for user_notification_bundle {user_notification_bundle_id}")
 
 
