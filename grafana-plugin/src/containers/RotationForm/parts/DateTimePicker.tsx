@@ -8,8 +8,8 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
-import { getDateForDatePicker } from 'containers/RotationForm/RotationForm.helpers';
-import { useStore } from 'state/useStore';
+import { toDatePickerDate } from 'containers/Rotations/Rotations.helpers';
+import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
 
@@ -17,6 +17,7 @@ const cx = cn.bind(styles);
 
 interface DateTimePickerProps {
   value: dayjs.Dayjs;
+  utcOffset?: number;
   onChange: (value: dayjs.Dayjs) => void;
   disabled?: boolean;
   onFocus?: () => void;
@@ -25,39 +26,37 @@ interface DateTimePickerProps {
 }
 
 export const DateTimePicker = observer(
-  ({ value: propValue, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
+  ({ value: propValue, utcOffset, onChange, disabled, onFocus, onBlur, error }: DateTimePickerProps) => {
     const styles = useStyles2(getStyles);
-    const {
-      timezoneStore: { getDateInSelectedTimezone },
-    } = useStore();
-    const valueInSelectedTimezone = getDateInSelectedTimezone(propValue);
-    const valueAsDate = valueInSelectedTimezone.toDate();
 
-    const handleDateChange = (newDate: Date) => {
-      const localMoment = getDateInSelectedTimezone(dayjs(newDate));
-      const newValue = localMoment
-        .set('year', newDate.getFullYear())
-        .set('month', newDate.getMonth())
-        .set('date', newDate.getDate())
-        .set('hour', valueAsDate.getHours())
-        .set('minute', valueAsDate.getMinutes())
-        .set('second', valueAsDate.getSeconds());
+    const handleDateChange = (value: Date) => {
+      const newDate = toDateWithTimezoneOffset(dayjs(value), utcOffset)
+        .set('date', 1)
+        .set('months', value.getMonth())
+        .set('date', value.getDate())
+        .set('hours', propValue.hour())
+        .set('minutes', propValue.minute())
+        .set('second', 0)
+        .set('milliseconds', 0);
 
-      onChange(newValue);
+      onChange(newDate);
     };
-    const handleTimeChange = (newMoment: DateTime) => {
-      const selectedHour = newMoment.hour();
-      const selectedMinute = newMoment.minute();
-      const newValue = valueInSelectedTimezone.set('hour', selectedHour).set('minute', selectedMinute);
 
-      onChange(newValue);
+    const handleTimeChange = (timeMoment: DateTime) => {
+      const newDate = toDateWithTimezoneOffset(propValue, utcOffset)
+        .set('hour', timeMoment.hour())
+        .set('minute', timeMoment.minute());
+
+      onChange(newDate);
     };
 
     const getTimeValueInSelectedTimezone = () => {
-      const time = dateTime(valueInSelectedTimezone.format());
-      time.set('hour', valueInSelectedTimezone.hour());
-      time.set('minute', valueInSelectedTimezone.minute());
-      time.set('second', valueInSelectedTimezone.second());
+      const dateInOffset = toDateWithTimezoneOffset(propValue, utcOffset);
+
+      const time = dateTime(dateInOffset.format());
+      time.set('hour', dateInOffset.hour());
+      time.set('minute', dateInOffset.minute());
+      time.set('seconds', dateInOffset.second());
       return time;
     };
 
@@ -73,7 +72,7 @@ export const DateTimePicker = observer(
             <DatePickerWithInput
               open
               disabled={disabled}
-              value={getDateForDatePicker(valueInSelectedTimezone)}
+              value={toDatePickerDate(propValue, utcOffset)}
               onChange={handleDateChange}
             />
           </div>

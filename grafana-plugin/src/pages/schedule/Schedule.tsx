@@ -29,7 +29,7 @@ import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { ShiftSwapForm } from 'containers/RotationForm/ShiftSwapForm';
 import { Rotations } from 'containers/Rotations/Rotations';
-import { findClosestUserEvent } from 'containers/Rotations/Rotations.helpers';
+import { findClosestUserEvent, toDatePickerDate } from 'containers/Rotations/Rotations.helpers';
 import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
 import { ScheduleOverrides } from 'containers/Rotations/ScheduleOverrides';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
@@ -336,10 +336,17 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                           <div className={styles.datePicker}>
                             <DatePicker
                               isOpen={calendarStartDatePickerIsOpen}
-                              value={store.timezoneStore.calendarStartDate.toDate()}
+                              value={toDatePickerDate(
+                                store.timezoneStore.calendarStartDate,
+                                store.timezoneStore.selectedTimezoneOffset
+                              )}
                               onChange={(newDate) => {
                                 store.timezoneStore.setCalendarStartDate(
-                                  getCalendarStartDate(dayjs(newDate), scheduleView)
+                                  getCalendarStartDate(
+                                    dayjs(newDate),
+                                    scheduleView,
+                                    store.timezoneStore.selectedTimezoneOffset
+                                  )
                                 );
                                 this.handleDateRangeUpdate();
                                 this.setState({ calendarStartDatePickerIsOpen: false });
@@ -362,7 +369,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                 timezoneStore.setCalendarStartDate(
                                   getCalendarStartDate(
                                     timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
-                                    value
+                                    value,
+                                    timezoneStore.selectedTimezoneOffset
                                   )
                                 );
                               }
@@ -532,9 +540,13 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   };
 
   handleTodayClick = () => {
-    const { store } = this.props;
-    store.timezoneStore.setCalendarStartDate(
-      getCalendarStartDate(store.timezoneStore.currentDateInSelectedTimezone, store.scheduleStore.scheduleView)
+    const {
+      store: { scheduleStore, timezoneStore },
+    } = this.props;
+
+    timezoneStore.setCalendarStartDate(
+      // TODAY
+      getCalendarStartDate(dayjs(), scheduleStore.scheduleView, timezoneStore.selectedTimezoneOffset)
     );
     this.handleDateRangeUpdate();
   };
