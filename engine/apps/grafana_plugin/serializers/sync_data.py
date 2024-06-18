@@ -3,17 +3,7 @@ from typing import Dict, List
 from rest_framework import serializers
 from dataclasses import asdict
 
-from apps.grafana_plugin.sync_data import SyncPermission
-
-"""
-
-@dataclass
-class SyncData:
-    users: List[SyncUser]
-    teams: List[SyncTeam]
-    team_members: Dict[int, List[int]]
-    config: SyncFeaturesConfig
-"""
+from apps.grafana_plugin.sync_data import SyncPermission, SyncUser, SyncTeam, SyncSettings, SyncData
 
 
 class SyncPermissionSerializer(serializers.Serializer):
@@ -28,16 +18,16 @@ class SyncPermissionSerializer(serializers.Serializer):
 
 class SyncUserSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    name = serializers.CharField()
+    name = serializers.CharField(allow_blank=True)
     login = serializers.CharField()
     email = serializers.EmailField()
     role = serializers.CharField()
-    avatar_url = serializers.URLField()
-    permissions = SyncPermissionSerializer(many=True)
-    teams = serializers.ListField(child=serializers.IntegerField(), required=False)
+    avatar_url = serializers.CharField()
+    permissions = SyncPermissionSerializer(many=True, allow_empty=True, allow_null=True)
+    teams = serializers.ListField(child=serializers.IntegerField(), allow_empty=True, allow_null=True)
 
     def create(self, validated_data):
-        return SyncPermission(**validated_data)
+        return SyncUser(**validated_data)
 
     def to_representation(self, instance):
         return asdict(instance)
@@ -47,10 +37,10 @@ class SyncTeamSerializer(serializers.Serializer):
     team_id = serializers.IntegerField()
     name = serializers.CharField()
     email = serializers.EmailField()
-    avatar_url = serializers.URLField()
+    avatar_url = serializers.CharField()
 
     def create(self, validated_data):
-        return SyncPermission(**validated_data)
+        return SyncTeam(**validated_data)
 
     def to_representation(self, instance):
         return asdict(instance)
@@ -69,19 +59,21 @@ class TeamMemberMappingField(serializers.Field):
             raise serializers.ValidationError("All keys must be convertible to integers")
 
 
-class SyncFeaturesConfigSerializer(serializers.Serializer):
+class SyncOnCallSettingsSerializer(serializers.Serializer):
     stack_id = serializers.IntegerField()
     org_id = serializers.IntegerField()
     license = serializers.CharField()
+    oncall_api_url = serializers.URLField()
+    oncall_token = serializers.CharField(allow_blank=True)
     grafana_url = serializers.URLField()
     grafana_token = serializers.CharField()
     rbac_enabled = serializers.BooleanField()
     incident_enabled = serializers.BooleanField()
-    incident_backend_url = serializers.URLField()
+    incident_backend_url = serializers.URLField(allow_blank=True)
     labels_enabled = serializers.BooleanField()
 
     def create(self, validated_data):
-        return SyncPermission(**validated_data)
+        return SyncSettings(**validated_data)
 
     def to_representation(self, instance):
         return asdict(instance)
@@ -89,12 +81,25 @@ class SyncFeaturesConfigSerializer(serializers.Serializer):
 
 class SyncDataSerializer(serializers.Serializer):
     users = serializers.ListField(child=SyncUserSerializer())
-    teams = serializers.ListField(child=SyncTeamSerializer())
+    teams = serializers.ListField(child=SyncTeamSerializer(), allow_null=True, allow_empty=True)
     team_members = TeamMemberMappingField()
-    config = SyncFeaturesConfigSerializer()
+    settings = SyncOnCallSettingsSerializer()
 
     def create(self, validated_data):
-        return SyncPermission(**validated_data)
+        return SyncData(**validated_data)
 
     def to_representation(self, instance):
         return asdict(instance)
+
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+        users = data.get("users")
+        if users:
+            data["users"] = [SyncUser(**user) for user in users]
+        teams = data.get("teams")
+        if teams:
+            data["teams"] = [SyncTeam(**team) for team in teams]
+        settings = data.get("settings")
+        if settings:
+            data["settings"] = SyncSettings(**settings)
+        return data

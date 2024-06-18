@@ -35,7 +35,7 @@ type OnCallUser struct {
 	Role        string             `json:"role"`
 	AvatarURL   string             `json:"avatar_url"`
 	Permissions []OnCallPermission `json:"permissions"`
-	Teams       []int              `json:"teams,omitempty"` // Only passed with user header when not part of sync
+	Teams       []int              `json:"teams"`
 }
 
 func (a *App) GetUser(settings *OnCallPluginSettings, user *backend.User) (*OnCallUser, error) {

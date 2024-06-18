@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"net/http"
 )
 
@@ -60,13 +59,13 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 	var provisioningData OnCallProvisioningJSONData
 	err := json.Unmarshal(w.body.Bytes(), &provisioningData)
 	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error unmarshalling OnCallProvisioningJSONData = %+v", err))
+		log.DefaultLogger.Error("Error unmarshalling OnCallProvisioningJSONData: ", err)
 		return
 	}
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error getting settings from context = %+v", err))
+		log.DefaultLogger.Error("Error getting settings from context: ", err)
 		return
 	}
 
@@ -84,60 +83,21 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 
 	err = a.SaveOnCallSettings(onCallPluginSettings)
 	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error saving settings = %+v", err))
+		log.DefaultLogger.Error("Error saving settings: ", err)
 		return
 	}
-}
-
-func (a *App) handleCurrentUser(w http.ResponseWriter, req *http.Request) {
-	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
-	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error getting settings from context = %+v", err))
-		return
-	}
-
-	user := httpadapter.UserFromContext(req.Context())
-	onCallUser, err := a.GetUserForHeader(&onCallPluginSettings, user)
-	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error getting user = %+v", err))
-		return
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(onCallUser); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
-func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
-	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
-	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error getting settings from context = %+v", err))
-		return
-	}
-
-	onCallSync, err := a.GetSyncData(req.Context(), &onCallPluginSettings)
-	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error getting sync data = %+v", err))
-		return
-	}
-
-	w.Header().Add("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(onCallSync); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
 }
 
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/plugin/install", a.handleInstall)
 	//mux.Handle("/plugin/status", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleInstall))
+
 	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleLegacyInstall))
-	mux.HandleFunc("/test-current-user", a.handleCurrentUser)
-	mux.HandleFunc("/test-sync", a.handleSync)
+
+	mux.HandleFunc("/debug/user", a.handleDebugUser)
+	mux.HandleFunc("/debug/sync", a.handleDebugSync)
+	mux.HandleFunc("/debug/settings", a.handleDebugSettings)
+
 	mux.HandleFunc("/", a.handleInternalApi)
 }

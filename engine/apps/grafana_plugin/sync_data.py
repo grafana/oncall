@@ -32,6 +32,8 @@ class SyncSettings:
     stack_id: int
     org_id: int
     license: str
+    oncall_api_url: str
+    oncall_token: str
     grafana_url: str
     grafana_token: str
     rbac_enabled: bool
