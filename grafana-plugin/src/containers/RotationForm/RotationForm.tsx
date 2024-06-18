@@ -761,7 +761,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
+              <Text type="secondary">
+                Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
+              </Text>
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">

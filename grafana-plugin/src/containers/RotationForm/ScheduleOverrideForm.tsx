@@ -13,7 +13,7 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getDateTime, getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { HTML_ID, getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
@@ -103,6 +103,11 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       store.scheduleStore.updateOncallShift(shiftId);
     }
   }, [shiftId]);
+
+  useEffect(() => {
+    setShiftStart(toDateWithTimezoneOffset(shiftStart, store.timezoneStore.selectedTimezoneOffset));
+    setShiftEnd(toDateWithTimezoneOffset(shiftEnd, store.timezoneStore.selectedTimezoneOffset));
+  }, [store.timezoneStore.selectedTimezoneOffset]);
 
   const params = useMemo(
     () => ({
@@ -225,7 +230,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           </HorizontalGroup>
           <HorizontalGroup>
             {shiftId !== 'new' && (
-              <WithConfirm>
+              <WithConfirm title="Are you sure you want to delete override?">
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
               </WithConfirm>
             )}
@@ -287,7 +292,9 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           </VerticalGroup>
         </div>
         <HorizontalGroup justify="space-between">
-          <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
+          <Text type="secondary">
+            Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
+          </Text>
           <HorizontalGroup>
             <Button variant="primary" onClick={handleCreate} disabled={disabled || !isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
