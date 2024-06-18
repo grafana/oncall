@@ -672,10 +672,6 @@
         "scope": "global.users:*"
       },
       {
-        "action": "users:read",
-        "scope": "global.users:id:8"
-      },
-      {
         "action": "users.permissions:read",
         "scope": "users:id:*"
       },
