@@ -243,7 +243,7 @@ class GrafanaAPIClient(APIClient):
 
     def is_rbac_enabled_for_organization(self) -> bool:
         response, resp_status = self.api_get(self.USER_PERMISSION_ENDPOINT)
-        return len(response) > 0 and resp_status["connected"]
+        return response is not None and len(response) > 0 and resp_status["connected"]
 
     def get_users(self, rbac_is_enabled_for_org: bool, **kwargs) -> GrafanaUsersWithPermissions:
         users_response, _ = self.api_get("api/org/users", **kwargs)

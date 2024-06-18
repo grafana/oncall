@@ -115,17 +115,19 @@ class TestGetUsers:
 
 class TestIsRbacEnabledForOrganization:
     @pytest.mark.parametrize(
-        "api_response_connected,expected",
+        "api_response, api_response_connected, expected",
         [
-            (True, True),
-            (False, False),
+            ([], True, False),
+            ([{"some": "data"}], True, True),
+            ([{"some": "data"}], False, False),
+            (None, False, False),
         ],
     )
-    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_head")
-    def test_it_returns_based_on_status_code_of_head_call(
-        self, mocked_grafana_api_client_api_head, api_response_connected, expected
+    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
+    def test_it_returns_based_on_response_and_connected_status(
+        self, mocked_grafana_api_client_api_get, api_response, api_response_connected, expected
     ):
-        mocked_grafana_api_client_api_head.return_value = (None, {"connected": api_response_connected})
+        mocked_grafana_api_client_api_get.return_value = (api_response, {"connected": api_response_connected})
 
         api_client = GrafanaAPIClient(API_URL, API_TOKEN)
         assert api_client.is_rbac_enabled_for_organization() == expected
