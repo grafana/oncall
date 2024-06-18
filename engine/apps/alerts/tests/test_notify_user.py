@@ -493,3 +493,46 @@ def test_send_bundle_notification_task_id_mismatch(
         f"Duplication or non-active notification triggered. "
         f"Active: {notification_bundle.notification_task_id}"
     ) in caplog.text
+
+
+@pytest.mark.django_db
+def test_notify_user_task_notification_bundle_eta_is_outdated(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_user_notification_policy,
+    make_user_notification_bundle,
+    make_alert_receive_channel,
+    make_alert_group,
+    settings,
+):
+    settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED = True
+    organization, user = make_organization_and_user()
+    notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,  # channel is in NOTIFICATION_CHANNELS_TO_BUNDLE
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group_1 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    now = timezone.now()
+    outdated_eta = now - timezone.timedelta(minutes=5)
+    test_task_id = "test_task_id"
+    notification_bundle = make_user_notification_bundle(
+        user,
+        UserNotificationPolicy.NotificationChannel.SMS,
+        eta=outdated_eta,
+        notification_task_id=test_task_id,
+        last_notified=now,
+    )
+    notification_bundle.append_notification(alert_group_1, notification_policy)
+    assert not notification_bundle.eta_is_valid()
+    assert notification_bundle.notifications.count() == 1
+
+    # call notify_user_task and check that new notification task for notification_bundle was scheduled
+    notify_user_task(user.id, alert_group_2.id)
+    notification_bundle.refresh_from_db()
+    assert notification_bundle.eta_is_valid()
+    assert notification_bundle.notification_task_id != test_task_id
+    assert notification_bundle.last_notified == now
+    assert notification_bundle.notifications.count() == 2
