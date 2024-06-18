@@ -30,6 +30,7 @@ export const DEFAULT_PAGE = 'alert-groups';
 
 export const PLUGIN_ID = 'grafana-oncall-app';
 export const PLUGIN_ROOT = `/a/${PLUGIN_ID}`;
+export const PLUGIN_CONFIG = `/plugins/${PLUGIN_ID}`;
 
 export const REQUEST_HELP_URL = 'https://grafana.com/profile/org/tickets/new';
 

@@ -6,7 +6,7 @@ import { useHistory } from 'react-router-dom';
 
 import { FullPageError } from 'components/FullPageError/FullPageError';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
-import { REQUEST_HELP_URL, PLUGIN_ID } from 'utils/consts';
+import { REQUEST_HELP_URL, PLUGIN_CONFIG } from 'utils/consts';
 import { useInitializePlugin } from 'utils/hooks';
 import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
@@ -15,21 +15,21 @@ interface PluginInitializerProps {
 }
 
 export const PluginInitializer: FC<PluginInitializerProps> = observer(({ children }) => {
-  const { isInitialized, isPluginInitializing } = useInitializePlugin();
+  const { isConnected, isCheckingConnectionStatus } = useInitializePlugin();
 
-  if (isPluginInitializing) {
+  if (isCheckingConnectionStatus) {
     return <LoadingPlaceholder text="Loading..." />;
   }
   return (
     <RenderConditionally
-      shouldRender={isInitialized}
-      backupChildren={<PluginNotInitializedFullPageError />}
+      shouldRender={isConnected}
+      backupChildren={<PluginNotConnectedFullPageError />}
       render={() => <>{children}</>}
     />
   );
 });
 
-const PluginNotInitializedFullPageError = observer(() => {
+const PluginNotConnectedFullPageError = observer(() => {
   const isOpenSource = getIsRunningOpenSourceVersion();
   const isCurrentUserAdmin = window.grafanaBootData.user.orgRole === 'Admin';
   const { push } = useHistory();
@@ -39,13 +39,13 @@ const PluginNotInitializedFullPageError = observer(() => {
       return 'request help from our support team.';
     }
     return isCurrentUserAdmin
-      ? 'go to plugin configuration page to check what went wrong.'
+      ? 'go to plugin configuration page to establish connection.'
       : 'contact your administrator to check what went wrong.';
   };
 
   return (
     <FullPageError
-      title="Plugin not initialized"
+      title="Oh Snap!"
       subtitle={`Looks like OnCall plugin is not configured properly and couldn't be loaded. Retry or ${getSubtitleExtension()}`}
     >
       <HorizontalGroup>
@@ -53,9 +53,7 @@ const PluginNotInitializedFullPageError = observer(() => {
           Retry
         </Button>
         {!isOpenSource && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
-        {isOpenSource && isCurrentUserAdmin && (
-          <Button onClick={() => push(`/plugins/${PLUGIN_ID}`)}>Open configuration</Button>
-        )}
+        {isOpenSource && isCurrentUserAdmin && <Button onClick={() => push(PLUGIN_CONFIG)}>Open configuration</Button>}
       </HorizontalGroup>
     </FullPageError>
   );

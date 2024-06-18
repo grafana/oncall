@@ -6,17 +6,15 @@ import { makeRequest } from 'network/network';
 import { PluginConnection, PostStatusResponse } from 'network/oncall-api/api.types';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { AutoLoadingState } from 'utils/decorators';
-import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
 /* 
 High-level OnCall initialization process:
 On OSS:
   - On OnCall page / OnCall extension mount POST /status is called and it has pluginConfiguration object with different flags. 
     If all of them have `ok: true` , we consider plugin to be successfully configured and application loading is being continued. 
-    Otherwise, we call POST /install to try to create OnCallApiToken and then we verify configuration again. In case second POST /status fails, 
-    we show error page with the option to go to plugin config (for Admin user) or to contact administrator (for nonAdmin user)
+    Otherwise, we show error page with the option to go to plugin config (for Admin user) or to contact administrator (for nonAdmin user)
   - On plugin config page frontend sends another POST /status. If every flag has `ok: true`, it shows that plugin is connected. 
-    Otherwise it shows more detailed information of what is misconfigured / missing. User can update onCallApiUrl and try to reconnect plugin.
+    Otherwise, it shows more detailed information of what is misconfigured / missing. User can update onCallApiUrl and try to reconnect plugin.
       - If Grafana version >= 10.3 AND externalServiceAccount feature flag is `true`, then grafana token is autoprovisioned and there is no need to create it
       - Otherwise, user is given the option to manually create service account as Admin and then reconnect the plugin
 On Cloud:
@@ -35,6 +33,7 @@ export class PluginStore {
     this.rootStore = rootStore;
   }
 
+  @AutoLoadingState(ActionKey.VERIFY_PLUGIN_CONNECTION)
   async verifyPluginConnection() {
     const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {
       method: 'POST',
@@ -51,15 +50,6 @@ export class PluginStore {
     return makeRequest(`/plugin/self-hosted/install`, {
       method: 'POST',
     });
-  }
-
-  @AutoLoadingState(ActionKey.INITIALIZE_PLUGIN)
-  async initializePlugin() {
-    await this.verifyPluginConnection();
-    if (!this.isPluginConnected && getIsRunningOpenSourceVersion()) {
-      await this.install();
-      await this.verifyPluginConnection();
-    }
   }
 
   @AutoLoadingState(ActionKey.REINITIALIZE_PLUGIN_WITH_NEW_API_URL)

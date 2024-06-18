@@ -16,6 +16,7 @@ import {
   DOCS_ONCALL_OSS_INSTALL,
   DOCS_SERVICE_ACCOUNTS,
   getOnCallApiUrl,
+  PLUGIN_CONFIG,
   PLUGIN_ROOT,
   REQUEST_HELP_URL,
 } from 'utils/consts';
@@ -68,6 +69,7 @@ const OSSPluginConfigPage = observer(
         updateOnCallApiUrlAndReinitializePlugin,
         connectionStatus,
         recreateServiceAccountAndRecheckPluginStatus,
+        isPluginConnected,
       },
       loaderStore,
     } = rootStore;
@@ -165,7 +167,7 @@ const OSSPluginConfigPage = observer(
                         type="submit"
                         disabled={!formState.isValid || !meta.enabled || !connectionStatus?.service_account_token?.ok}
                       >
-                        {meta.jsonData?.onCallApiUrl ? 'Reconnect' : 'Connect'}
+                        {isPluginConnected ? 'Reconnect' : 'Connect'}
                       </Button>
                       {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
                     </HorizontalGroup>
@@ -197,7 +199,7 @@ const PluginConfigAlert = observer(() => {
     </Alert>
   ) : (
     <Alert severity="error" title="Plugin is not connected">
-      <ol>
+      <ol className="u-margin-bottom-md">
         {Object.values(connectionStatus)
           .filter(({ ok, error }) => !ok && Boolean(error))
           .map(({ error }, idx) => (
@@ -206,6 +208,9 @@ const PluginConfigAlert = observer(() => {
             </li>
           ))}
       </ol>
+      <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
+        <Text type="link">Reload</Text>
+      </a>
     </Alert>
   );
 });

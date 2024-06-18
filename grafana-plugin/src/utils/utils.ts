@@ -136,15 +136,25 @@ export function getGrafanaVersion(): { major?: number; minor?: number; patch?: n
   return {};
 }
 
-export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[PLUGIN_ID]?.version);
-
-export const getIsExternalServiceAccountFeatureAvailable = () => {
-  const grafanaVersion = getGrafanaVersion();
+export const isCurrentGrafanaVersionEqualOrGreaterThan = ({
+  minMajor,
+  minMinor = 0,
+  minPatch = 0,
+}: {
+  minMajor: number;
+  minMinor?: number;
+  minPatch?: number;
+}) => {
+  const { major, minor, patch } = getGrafanaVersion();
   return (
-    grafanaVersion.major &&
-    grafanaVersion.major >= 10 &&
-    grafanaVersion.minor &&
-    grafanaVersion.minor >= 3 &&
-    config.featureToggles.externalServiceAccounts
+    major > minMajor ||
+    (major === minMajor && minor > minMinor) ||
+    (major === minMajor && minor === minMinor && patch >= minPatch)
   );
 };
+
+export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[PLUGIN_ID]?.version);
+
+export const getIsExternalServiceAccountFeatureAvailable = () =>
+  isCurrentGrafanaVersionEqualOrGreaterThan({ minMajor: 10, minMinor: 3 }) &&
+  config.featureToggles.externalServiceAccounts;

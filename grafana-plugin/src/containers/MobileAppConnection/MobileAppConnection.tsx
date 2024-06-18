@@ -367,13 +367,13 @@ function QRLoading() {
 
 export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
   const { userStore } = store;
-  const { isInitialized } = useInitializePlugin();
+  const { isConnected } = useInitializePlugin();
 
   useEffect(() => {
-    if (isInitialized) {
+    if (isConnected) {
       loadData();
     }
-  }, [isInitialized]);
+  }, [isConnected]);
 
   const loadData = async () => {
     if (!store.isBasicDataLoaded) {
