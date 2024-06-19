@@ -110,14 +110,14 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
   route:
   ...
       routes:
-      - match:
+        - match:
           alertname: heartbeat
         receiver: 'grafana-oncall-heartbeat'
         group_wait: 0s
         group_interval: 1m
         repeat_interval: 50s
   receivers:
-  - name: 'grafana-oncall-heartbeat'
+    - name: 'grafana-oncall-heartbeat'
     webhook_configs:
       - url: https://oncall-dev-us-central-0.grafana.net/oncall/integrations/v1/alertmanager/1234567890/heartbeat/
         send_resolved: false
