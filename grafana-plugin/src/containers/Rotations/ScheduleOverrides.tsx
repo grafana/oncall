@@ -259,9 +259,12 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
     }
 
     // use start of current day as default start time for override
-    this.setState({ shiftStartToShowOverrideForm: store.timezoneStore.calendarStartDate }, () => {
-      this.onShowOverridesForm('new');
-    });
+    this.setState(
+      { shiftStartToShowOverrideForm: store.timezoneStore.currentDateInSelectedTimezone.startOf('day') },
+      () => {
+        this.onShowOverridesForm('new');
+      }
+    );
   };
 
   handleHide = () => {

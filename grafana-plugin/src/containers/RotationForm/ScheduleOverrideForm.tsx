@@ -243,53 +243,60 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             />
           </HorizontalGroup>
         </HorizontalGroup>
-        <div className={cx('override-form-content')} data-testid="override-inputs">
-          <VerticalGroup>
-            <HorizontalGroup align="flex-start">
-              <Field
-                className={cx('date-time-picker')}
-                label={
-                  <Text type="primary" size="small">
-                    Override period start
-                  </Text>
-                }
-              >
-                <DateTimePicker
-                  disabled={disabled}
-                  value={shiftStart}
-                  utcOffset={store.timezoneStore.selectedTimezoneOffset}
-                  onChange={updateShiftStart}
-                  error={errors.shift_start}
-                />
-              </Field>
-              <Field
-                className={cx('date-time-picker')}
-                label={
-                  <Text type="primary" size="small">
-                    Override period end
-                  </Text>
-                }
-              >
-                <DateTimePicker
-                  disabled={disabled}
-                  value={shiftEnd}
-                  utcOffset={store.timezoneStore.selectedTimezoneOffset}
-                  onChange={setShiftEnd}
-                  error={errors.shift_end}
-                />
-              </Field>
-            </HorizontalGroup>
-            <UserGroups
-              disabled={disabled}
-              value={userGroups}
-              onChange={setUserGroups}
-              isMultipleGroups={false}
-              renderUser={(pk: ApiSchemas['User']['pk']) => (
-                <UserItem pk={pk} shiftColor={shiftColor} shiftStart={params.shift_start} shiftEnd={params.shift_end} />
-              )}
-              showError={Boolean(errors.rolling_users)}
-            />
-          </VerticalGroup>
+        <div className={cx('container')}>
+          <div className={cx('override-form-content')} data-testid="override-inputs">
+            <VerticalGroup>
+              <HorizontalGroup align="flex-start">
+                <Field
+                  className={cx('date-time-picker')}
+                  label={
+                    <Text type="primary" size="small">
+                      Override period start
+                    </Text>
+                  }
+                >
+                  <DateTimePicker
+                    disabled={disabled}
+                    value={shiftStart}
+                    utcOffset={store.timezoneStore.selectedTimezoneOffset}
+                    onChange={updateShiftStart}
+                    error={errors.shift_start}
+                  />
+                </Field>
+                <Field
+                  className={cx('date-time-picker')}
+                  label={
+                    <Text type="primary" size="small">
+                      Override period end
+                    </Text>
+                  }
+                >
+                  <DateTimePicker
+                    disabled={disabled}
+                    value={shiftEnd}
+                    utcOffset={store.timezoneStore.selectedTimezoneOffset}
+                    onChange={setShiftEnd}
+                    error={errors.shift_end}
+                  />
+                </Field>
+              </HorizontalGroup>
+              <UserGroups
+                disabled={disabled}
+                value={userGroups}
+                onChange={setUserGroups}
+                isMultipleGroups={false}
+                renderUser={(pk: ApiSchemas['User']['pk']) => (
+                  <UserItem
+                    pk={pk}
+                    shiftColor={shiftColor}
+                    shiftStart={params.shift_start}
+                    shiftEnd={params.shift_end}
+                  />
+                )}
+                showError={Boolean(errors.rolling_users)}
+              />
+            </VerticalGroup>
+          </div>
         </div>
         <HorizontalGroup justify="space-between">
           <Text type="secondary">
