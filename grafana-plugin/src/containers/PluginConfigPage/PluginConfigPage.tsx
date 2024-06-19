@@ -175,7 +175,7 @@ const OSSPluginConfigPage = observer(
           ]),
       {
         ...getCheckOrTextIcon(connectionStatus?.oncall_api_url?.ok),
-        expandedView: OnCallApiUrlExpandedView,
+        expandedView: onCallApiUrlExpandedView,
       },
     ].map((elem) => ({ ...COMMON_CONFIG_ELEM_PARAMS, ...elem }));
 
