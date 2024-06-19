@@ -84,10 +84,14 @@ const OSSPluginConfigPage = observer(
     const isSubmitButtonDisabled =
       !formState.isValid ||
       !meta.enabled ||
+      isReinitializating ||
       !(getIsExternalServiceAccountFeatureAvailable() || connectionStatus?.service_account_token?.ok);
 
     const onSubmit = async (values: PluginConfigFormValues) => {
-      await updatePluginSettingsAndReinitializePlugin({ ...meta.jsonData, onCallApiUrl: values.onCallApiUrl });
+      await updatePluginSettingsAndReinitializePlugin({
+        currentJsonData: meta.jsonData,
+        newJsonData: { onCallApiUrl: values.onCallApiUrl },
+      });
     };
 
     const getCheckOrTextIcon = (isOk: boolean) => (isOk ? { customIcon: 'check' as const } : { isTextIcon: true });

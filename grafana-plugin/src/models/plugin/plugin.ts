@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash-es';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { OnCallPluginMetaJSONData } from 'types';
 
@@ -6,6 +7,7 @@ import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { makeRequest } from 'network/network';
 import { PluginConnection, PostStatusResponse } from 'network/oncall-api/api.types';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
+import { waitInMs } from 'utils/async';
 import { AutoLoadingState } from 'utils/decorators';
 
 import { PluginHelper } from './plugin.helper';
@@ -50,8 +52,18 @@ export class PluginStore {
   }
 
   @AutoLoadingState(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE)
-  async updatePluginSettingsAndReinitializePlugin(jsonData: OnCallPluginMetaJSONData) {
-    await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData });
+  async updatePluginSettingsAndReinitializePlugin({
+    currentJsonData,
+    newJsonData,
+  }: {
+    currentJsonData: OnCallPluginMetaJSONData;
+    newJsonData: Partial<OnCallPluginMetaJSONData>;
+  }) {
+    const saveJsonDataCandidate = { ...currentJsonData, ...newJsonData };
+    if (!isEqual(currentJsonData, saveJsonDataCandidate) || !this.connectionStatus?.oncall_api_url?.ok) {
+      await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData: saveJsonDataCandidate });
+      await waitInMs(1000); // It's required for backend proxy to pick up new settings
+    }
     await PluginHelper.install();
     await this.verifyPluginConnection();
   }
