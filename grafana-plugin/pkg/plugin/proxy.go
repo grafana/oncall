@@ -165,7 +165,7 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	}
 
 	proxyReq.Header = req.Header
-	err = a.SetupRequestHeadersForOnCall(req.Context(), &onCallPluginSettings, proxyReq)
+	err = a.SetupRequestHeadersForOnCall(req.Context(), onCallPluginSettings, proxyReq)
 	if err != nil {
 		log.DefaultLogger.Error("Error setting up headers: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -178,7 +178,7 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	log.DefaultLogger.Info(fmt.Sprintf("Making request to oncall = %+v", onCallPluginSettings))
 	res, err := a.httpClient.Do(proxyReq)
 	if err != nil {
-		log.DefaultLogger.Error(fmt.Sprintf("Error request to oncall = %+v", err))
+		log.DefaultLogger.Error("Error request to oncall: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

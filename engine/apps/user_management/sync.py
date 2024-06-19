@@ -5,10 +5,13 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import timezone
 
-from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
+from apps.auth_token.exceptions import InvalidToken
+from apps.grafana_plugin.helpers.client import GcomAPIClient, GCOMInstanceInfo, GrafanaAPIClient
+from apps.grafana_plugin.sync_data import SyncData, SyncUser
 from apps.user_management.models import Organization, Team, User
 from apps.user_management.signals import org_sync_signal
 from common.utils import task_lock
+from settings.base import CLOUD_LICENSE_NAME, OPEN_SOURCE_LICENSE_NAME
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -214,3 +217,69 @@ def cleanup_organization(organization_pk: int) -> None:
 
     except Organization.DoesNotExist:
         logger.info(f"Organization {organization_pk} was not found")
+
+
+def create_cloud_organization(
+    org_id: int, stack_id: int, sync_data: SyncData, instance_info: GCOMInstanceInfo
+) -> Organization:
+    client = GcomAPIClient(sync_data.settings.oncall_token)
+    if not instance_info:
+        instance_info = client.get_instance_info(stack_id)
+        if not instance_info or str(instance_info["orgId"]) != org_id:
+            raise InvalidToken
+
+    return Organization.objects.create(
+        stack_id=str(instance_info["id"]),
+        stack_slug=instance_info["slug"],
+        grafana_url=instance_info["url"],
+        org_id=str(instance_info["orgId"]),
+        org_slug=instance_info["orgSlug"],
+        org_title=instance_info["orgName"],
+        region_slug=instance_info["regionSlug"],
+        cluster_slug=instance_info["clusterSlug"],
+        api_token=sync_data.settings.grafana_token,
+        gcom_token=sync_data.settings.oncall_token,
+        is_rbac_permissions_enabled=sync_data.settings.rbac_enabled,
+        defaults={"gcom_token_org_last_time_synced": timezone.now()},
+    )
+
+
+def create_oss_organization(sync_data: SyncData) -> Organization:
+    return Organization.objects.create(
+        stack_id=settings.SELF_HOSTED_SETTINGS["STACK_ID"],
+        stack_slug=settings.SELF_HOSTED_SETTINGS["STACK_SLUG"],
+        org_id=settings.SELF_HOSTED_SETTINGS["ORG_ID"],
+        org_slug=settings.SELF_HOSTED_SETTINGS["ORG_SLUG"],
+        org_title=settings.SELF_HOSTED_SETTINGS["ORG_TITLE"],
+        region_slug=settings.SELF_HOSTED_SETTINGS["REGION_SLUG"],
+        cluster_slug=settings.SELF_HOSTED_SETTINGS["CLUSTER_SLUG"],
+        grafana_url=sync_data.settings.grafana_url,
+        api_token=sync_data.settings.grafana_token,
+        is_rbac_permissions_enabled=sync_data.settings.rbac_enabled,
+    )
+
+
+def create_organization(
+    org_id: int, stack_id: int, sync_data: SyncData, instance_info: GCOMInstanceInfo
+) -> Organization:
+    if settings.LICENSE == CLOUD_LICENSE_NAME:
+        return create_cloud_organization(org_id, stack_id, sync_data, instance_info)
+    elif settings.LICENSE == OPEN_SOURCE_LICENSE_NAME:
+        return create_oss_organization(sync_data)
+
+
+def get_organization(
+    org_id: int, stack_id: int, sync_data: SyncData = None, instance_info: GCOMInstanceInfo = None
+) -> Organization:
+    organization = Organization.objects.filter(org_id=org_id, stack_id=stack_id).first()
+    if not organization:
+        organization = create_organization(org_id, stack_id, sync_data, instance_info)
+    return organization
+
+
+def get_user(organization: Organization, sync_user: SyncUser) -> User:
+    pass
+
+
+def apply_sync_data(organization: Organization, sync_data: SyncData, instance_info: GCOMInstanceInfo = None):
+    pass
