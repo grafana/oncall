@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-logger = logging.getLogger(__name__)
+1
 
 
 class AlertGroupAbstractRepresentative(ABC):
