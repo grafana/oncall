@@ -66,7 +66,7 @@ const OSSPluginConfigPage = observer(
   ({ plugin: { meta } }: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
     const {
       pluginStore: {
-        updateOnCallApiUrlAndReinitializePlugin,
+        updatePluginSettingsAndReinitializePlugin,
         connectionStatus,
         recreateServiceAccountAndRecheckPluginStatus,
         isPluginConnected,
@@ -78,11 +78,11 @@ const OSSPluginConfigPage = observer(
       mode: 'onChange',
       defaultValues: { onCallApiUrl: getOnCallApiUrl(meta) },
     });
-    const isReinitializating = loaderStore.isLoading(ActionKey.REINITIALIZE_PLUGIN_WITH_NEW_API_URL);
+    const isReinitializating = loaderStore.isLoading(ActionKey.UPDATE_SETTINGS_AND_REINITIALIZE_PLUGIN);
     const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.RECREATE_SERVICE_ACCOUNT);
 
     const onSubmit = async (values: PluginConfigFormValues) => {
-      await updateOnCallApiUrlAndReinitializePlugin(values.onCallApiUrl);
+      await updatePluginSettingsAndReinitializePlugin({ ...meta.jsonData, onCallApiUrl: values.onCallApiUrl });
     };
 
     return (
@@ -165,7 +165,13 @@ const OSSPluginConfigPage = observer(
                     <HorizontalGroup>
                       <Button
                         type="submit"
-                        disabled={!formState.isValid || !meta.enabled || !connectionStatus?.service_account_token?.ok}
+                        disabled={
+                          !formState.isValid ||
+                          !meta.enabled ||
+                          !(
+                            getIsExternalServiceAccountFeatureAvailable() || connectionStatus?.service_account_token?.ok
+                          )
+                        }
                       >
                         {isPluginConnected ? 'Reconnect' : 'Connect'}
                       </Button>
@@ -201,7 +207,7 @@ const PluginConfigAlert = observer(() => {
     <Alert severity="error" title="Plugin is not connected">
       <ol className="u-margin-bottom-md">
         {Object.values(connectionStatus)
-          .filter(({ ok, error }) => !ok && Boolean(error))
+          .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
           .map(({ error }, idx) => (
             <li key={error}>
               {idx + 1}. {error}

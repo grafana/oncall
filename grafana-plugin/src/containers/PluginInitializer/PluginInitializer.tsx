@@ -46,7 +46,12 @@ const PluginNotConnectedFullPageError = observer(() => {
   return (
     <FullPageError
       title="Oh Snap!"
-      subtitle={`Looks like OnCall plugin is not configured properly and couldn't be loaded. Retry or ${getSubtitleExtension()}`}
+      subtitle={
+        <>
+          Looks like OnCall plugin hasn't been connected yet or has been misconfigured. <br />
+          Retry or {getSubtitleExtension()}
+        </>
+      }
     >
       <HorizontalGroup>
         <Button variant="secondary" onClick={() => window.location.reload()}>

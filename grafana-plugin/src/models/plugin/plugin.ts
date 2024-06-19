@@ -1,4 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import { OnCallPluginMetaJSONData } from 'types';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { GrafanaApiClient } from 'network/grafana-api/http-client';
@@ -47,14 +48,14 @@ export class PluginStore {
   }
 
   async install() {
-    return makeRequest(`/plugin/self-hosted/install`, {
+    return makeRequest(`/plugin/install`, {
       method: 'POST',
     });
   }
 
-  @AutoLoadingState(ActionKey.REINITIALIZE_PLUGIN_WITH_NEW_API_URL)
-  async updateOnCallApiUrlAndReinitializePlugin(onCallApiUrl: string) {
-    await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl } });
+  @AutoLoadingState(ActionKey.UPDATE_SETTINGS_AND_REINITIALIZE_PLUGIN)
+  async updatePluginSettingsAndReinitializePlugin(jsonData: OnCallPluginMetaJSONData) {
+    await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData });
     await this.install();
     await this.verifyPluginConnection();
   }

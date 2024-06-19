@@ -9,7 +9,7 @@ import { Text } from 'components/Text/Text';
 interface FullPageErrorProps {
   children?: React.ReactNode;
   title?: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
 }
 
 export const FullPageError: FC<FullPageErrorProps> = ({
@@ -34,7 +34,7 @@ export const FullPageError: FC<FullPageErrorProps> = ({
 const getStyles = () => ({
   wrapper: css`
     margin: 24px auto;
-    width: 520px;
+    width: 600px;
     text-align: center;
   `,
 });

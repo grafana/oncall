@@ -63,13 +63,13 @@ class SyncOnCallSettingsSerializer(serializers.Serializer):
     stack_id = serializers.IntegerField()
     org_id = serializers.IntegerField()
     license = serializers.CharField()
-    oncall_api_url = serializers.URLField()
+    oncall_api_url = serializers.CharField()
     oncall_token = serializers.CharField(allow_blank=True)
-    grafana_url = serializers.URLField()
+    grafana_url = serializers.CharField()
     grafana_token = serializers.CharField()
     rbac_enabled = serializers.BooleanField()
     incident_enabled = serializers.BooleanField()
-    incident_backend_url = serializers.URLField(allow_blank=True)
+    incident_backend_url = serializers.CharField(allow_blank=True)
     labels_enabled = serializers.BooleanField()
 
     def create(self, validated_data):
