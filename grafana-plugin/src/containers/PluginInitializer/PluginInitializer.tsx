@@ -40,7 +40,7 @@ const PluginNotConnectedFullPageError = observer(() => {
     }
     return isCurrentUserAdmin
       ? 'go to plugin configuration page to establish connection.'
-      : 'contact your administrator to check what went wrong.';
+      : 'contact your administrator.';
   };
 
   return (

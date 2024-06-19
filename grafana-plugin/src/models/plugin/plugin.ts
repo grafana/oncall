@@ -8,6 +8,8 @@ import { PluginConnection, PostStatusResponse } from 'network/oncall-api/api.typ
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { AutoLoadingState } from 'utils/decorators';
 
+import { PluginHelper } from './plugin.helper';
+
 /* 
 High-level OnCall initialization process:
 On OSS:
@@ -47,16 +49,10 @@ export class PluginStore {
     });
   }
 
-  async install() {
-    return makeRequest(`/plugin/install`, {
-      method: 'POST',
-    });
-  }
-
   @AutoLoadingState(ActionKey.UPDATE_SETTINGS_AND_REINITIALIZE_PLUGIN)
   async updatePluginSettingsAndReinitializePlugin(jsonData: OnCallPluginMetaJSONData) {
     await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData });
-    await this.install();
+    await PluginHelper.install();
     await this.verifyPluginConnection();
   }
 
