@@ -524,15 +524,12 @@ def send_bundled_notification(user_notification_bundle_id):
         skip_notification_ids = []
         active_alert_group_ids = set()
         log_record_notification_triggered = None
-        perform_regular_notification = False
         is_notification_allowed = user_notification_bundle.user.is_notification_allowed
 
         # create logs
         for notification in notifications:
             if notification.alert_group.status != AlertGroup.NEW:
-                task_logger.info(
-                    f"alert_group {notification.alert_group_id} is not active or doesn't exist, skip notification"
-                )
+                task_logger.info(f"alert_group {notification.alert_group_id} is not active, skip notification")
                 skip_notification_ids.append(notification.id)
                 continue
             elif not is_notification_allowed:
@@ -574,35 +571,35 @@ def send_bundled_notification(user_notification_bundle_id):
                     log_record_notification_triggered.alert_group_id,
                 )
             )
-            perform_regular_notification = True
             notifications.delete()
         else:
             UserNotificationPolicyLogRecord.objects.bulk_create(log_records_to_create, batch_size=5000)
 
-        if not active_alert_group_ids or not is_notification_allowed:
-            task_logger.info(
-                f"no alert groups to notify about or notification is not allowed for user "
-                f"{user_notification_bundle.user_id}"
-            )
-            notifications.delete()
-        elif not perform_regular_notification:
-            notifications.filter(id__in=skip_notification_ids).delete()
-            bundle_uuid = uuid4()
-            notifications.update(bundle_uuid=bundle_uuid)
-            task_logger.info(
-                f"perform notification for alert groups with ids: {active_alert_group_ids}, bundle_uuid: {bundle_uuid}"
-            )
-            if user_notification_bundle.notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-                # todo:
-                #  notify_by_sms_bundle:
-                #  - call send sms async
-                #  - filter notifications by bundle_uuid
-                #  - send sms
-                #  - create logs
-                #  - delete notifications
-                # phone_backend = PhoneBackend()
-                # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
-                pass
+            if not active_alert_group_ids or not is_notification_allowed:
+                task_logger.info(
+                    f"no alert groups to notify about or notification is not allowed for user "
+                    f"{user_notification_bundle.user_id}"
+                )
+                notifications.delete()
+            else:
+                notifications.filter(id__in=skip_notification_ids).delete()
+                bundle_uuid = uuid4()
+                notifications.update(bundle_uuid=bundle_uuid)
+                task_logger.info(
+                    f"perform bundled notification for alert groups with ids: {active_alert_group_ids}, "
+                    f"bundle_uuid: {bundle_uuid}"
+                )
+                if user_notification_bundle.notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
+                    # todo:
+                    #  notify_by_sms_bundle:
+                    #  - call send sms async
+                    #  - filter notifications by bundle_uuid
+                    #  - send sms
+                    #  - create logs
+                    #  - delete notifications
+                    # phone_backend = PhoneBackend()
+                    # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
+                    pass
 
         user_notification_bundle.notification_task_id = None
         user_notification_bundle.last_notified = timezone.now()
