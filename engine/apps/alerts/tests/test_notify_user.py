@@ -446,8 +446,8 @@ def test_send_bundle_notification(
     with patch("apps.alerts.tasks.notify_user.compare_escalations", return_value=True):
         # send notification for 2 active alert groups
         send_bundled_notification(notification_bundle.id)
-        assert "alert_group 3 is not active, skip notification" in caplog.text
-        assert "perform notification for alert groups with ids:" in caplog.text
+        assert f"alert_group {alert_group_3.id} is not active, skip notification" in caplog.text
+        assert "perform bundled notification for alert groups with ids:" in caplog.text
         # check bundle_uuid was set, notification for resolved alert group was deleted
         assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
         assert notification_bundle.notifications.all().count() == 2
@@ -457,7 +457,7 @@ def test_send_bundle_notification(
         notification_bundle.notifications.update(bundle_uuid=None)
         alert_group_2.resolve()
         send_bundled_notification(notification_bundle.id)
-        assert "alert_group 2 is not active, skip notification" in caplog.text
+        assert f"alert_group {alert_group_2.id} is not active, skip notification" in caplog.text
         assert (
             f"there is only one alert group in bundled notification, perform regular notification. "
             f"alert_group {alert_group_1.id}"
@@ -469,7 +469,7 @@ def test_send_bundle_notification(
         notification_bundle.append_notification(alert_group_1, notification_policy)
         alert_group_1.resolve()
         send_bundled_notification(notification_bundle.id)
-        assert "alert_group 1 is not active, skip notification" in caplog.text
+        assert f"alert_group {alert_group_1.id} is not active, skip notification" in caplog.text
         assert f"no alert groups to notify about or notification is not allowed for user {user.id}" in caplog.text
         # check all notifications were deleted
         assert notification_bundle.notifications.all().count() == 0
