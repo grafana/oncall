@@ -1,48 +1,76 @@
-import { makeAutoObservable } from 'mobx';
+import { isEqual } from 'lodash-es';
+import { makeAutoObservable, runInAction } from 'mobx';
+import { OnCallPluginMetaJSONData } from 'types';
 
 import { ActionKey } from 'models/loader/action-keys';
+import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { makeRequest } from 'network/network';
+import { PluginConnection, PostStatusResponse } from 'network/oncall-api/api.types';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
+import { waitInMs } from 'utils/async';
 import { AutoLoadingState } from 'utils/decorators';
-import { getIsRunningOpenSourceVersion } from 'utils/utils';
+
+import { PluginHelper } from './plugin.helper';
+
+/* 
+High-level OnCall initialization process:
+On OSS:
+  - On OnCall page / OnCall extension mount POST /status is called and it has pluginConfiguration object with different flags. 
+    If all of them have `ok: true` , we consider plugin to be successfully configured and application loading is being continued. 
+    Otherwise, we show error page with the option to go to plugin config (for Admin user) or to contact administrator (for nonAdmin user)
+  - On plugin config page frontend sends another POST /status. If every flag has `ok: true`, it shows that plugin is connected. 
+    Otherwise, it shows more detailed information of what is misconfigured / missing. User can update onCallApiUrl and try to reconnect plugin.
+      - If Grafana version >= 10.3 AND externalServiceAccount feature flag is `true`, then grafana token is autoprovisioned and there is no need to create it
+      - Otherwise, user is given the option to manually create service account as Admin and then reconnect the plugin
+On Cloud:
+  - On OnCall page / OnCall extension mount POST /status is called. If plugin is configured correctly, application loads as usual.
+    If it's not, we show error page with the button to contact support
+  - On plugin config page we show info if plugin is connected. If it's not we show detailed information of the errors and the button to contact support
+*/
 
 export class PluginStore {
   rootStore: RootBaseStore;
-  isPluginInitialized = false;
+  connectionStatus?: PluginConnection;
+  isPluginConnected = false;
 
   constructor(rootStore: RootBaseStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
     this.rootStore = rootStore;
   }
 
-  setIsPluginInitialized(value: boolean) {
-    this.isPluginInitialized = value;
+  @AutoLoadingState(ActionKey.PLUGIN_VERIFY_CONNECTION)
+  async verifyPluginConnection() {
+    const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {
+      method: 'POST',
+    });
+    runInAction(() => {
+      this.connectionStatus = pluginConnection;
+      this.isPluginConnected = Object.keys(pluginConnection).every(
+        (key) => pluginConnection[key as keyof PluginConnection]?.ok
+      );
+    });
   }
 
-  @AutoLoadingState(ActionKey.INITIALIZE_PLUGIN)
-  async initializePlugin() {
-    const IS_OPEN_SOURCE = getIsRunningOpenSourceVersion();
-
-    // create oncall api token and save in plugin settings
-    const install = async () => {
-      await makeRequest(`/plugin${IS_OPEN_SOURCE ? '/self-hosted' : ''}/install`, {
-        method: 'POST',
-      });
-    };
-
-    // trigger users sync
-    try {
-      // TODO: once we improve backend we should get rid of token_ok check and call install() only in catch block
-      const { token_ok } = await makeRequest(`/plugin/status`, {
-        method: 'POST',
-      });
-      if (!token_ok) {
-        await install();
-      }
-    } catch (_err) {
-      await install();
+  @AutoLoadingState(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE)
+  async updatePluginSettingsAndReinitializePlugin({
+    currentJsonData,
+    newJsonData,
+  }: {
+    currentJsonData: OnCallPluginMetaJSONData;
+    newJsonData: Partial<OnCallPluginMetaJSONData>;
+  }) {
+    const saveJsonDataCandidate = { ...currentJsonData, ...newJsonData };
+    if (!isEqual(currentJsonData, saveJsonDataCandidate) || !this.connectionStatus?.oncall_api_url?.ok) {
+      await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData: saveJsonDataCandidate });
+      await waitInMs(1000); // It's required for backend proxy to pick up new settings
     }
+    await PluginHelper.install();
+    await this.verifyPluginConnection();
+  }
 
-    this.setIsPluginInitialized(true);
+  @AutoLoadingState(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT)
+  async recreateServiceAccountAndRecheckPluginStatus() {
+    await GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings();
+    await this.verifyPluginConnection();
   }
 }

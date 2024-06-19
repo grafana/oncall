@@ -7,7 +7,6 @@ import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, every, isEmpty, isObject, isPlainObject, flatMap, map, keys } from 'lodash-es';
 
 import { isNetworkError } from 'network/network';
-import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import { CLOUD_VERSION_REGEX, PLUGIN_ID } from './consts';
 
@@ -122,4 +121,40 @@ export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
 
 export const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
+export function getGrafanaVersion(): { major?: number; minor?: number; patch?: number } {
+  const regex = /^([1-9]?[0-9]*)\.([1-9]?[0-9]*)\.([1-9]?[0-9]*)/;
+  const match = config.buildInfo.version.match(regex);
+
+  if (match) {
+    return {
+      major: Number(match[1]),
+      minor: Number(match[2]),
+      patch: Number(match[3]),
+    };
+  }
+
+  return {};
+}
+
+export const isCurrentGrafanaVersionEqualOrGreaterThan = ({
+  minMajor,
+  minMinor = 0,
+  minPatch = 0,
+}: {
+  minMajor: number;
+  minMinor?: number;
+  minPatch?: number;
+}) => {
+  const { major, minor, patch } = getGrafanaVersion();
+  return (
+    major > minMajor ||
+    (major === minMajor && minor > minMinor) ||
+    (major === minMajor && minor === minMinor && patch >= minPatch)
+  );
+};
+
 export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[PLUGIN_ID]?.version);
+
+export const getIsExternalServiceAccountFeatureAvailable = () =>
+  isCurrentGrafanaVersionEqualOrGreaterThan({ minMajor: 10, minMinor: 3 }) &&
+  config.featureToggles.externalServiceAccounts;

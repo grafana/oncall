@@ -16,6 +16,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   strong?: boolean;
   underline?: boolean;
   size?: 'xs' | 'small' | 'medium' | 'large';
+  display?: 'inline' | 'block' | 'inline-block';
   className?: string;
   wrap?: boolean;
   copyable?: boolean;
@@ -39,6 +40,7 @@ export const Text: TextInterface = (props) => {
   const {
     type,
     size = 'medium',
+    display = 'inline',
     strong = false,
     underline = false,
     children,
@@ -91,8 +93,9 @@ export const Text: TextInterface = (props) => {
         styles.root,
         styles.text,
         { [styles.maxWidth]: Boolean(maxWidth) },
-        { [bem(styles.text, type)]: true },
-        { [bem(styles.text, size)]: true },
+        bem(styles.text, type),
+        bem(styles.text, size),
+        bem(styles.display, display),
         { [bem(styles.text, `strong`)]: strong },
         { [bem(styles.text, `underline`)]: underline },
         { [bem(styles.text, 'clickable')]: clickable },

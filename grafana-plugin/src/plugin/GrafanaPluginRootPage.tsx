@@ -11,6 +11,7 @@ import { AppRootProps } from 'types';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
+import { PluginInitializer } from 'containers/PluginInitializer/PluginInitializer';
 import { NoMatch } from 'pages/NoMatch';
 import { EscalationChainsPage } from 'pages/escalation-chains/EscalationChains';
 import { IncidentPage } from 'pages/incident/Incident';
@@ -35,15 +36,13 @@ import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
 import { FaroHelper } from 'utils/faro';
-import { useInitializePlugin, useOnMount } from 'utils/hooks';
+import { useOnMount } from 'utils/hooks';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
-  const { isInitialized } = useInitializePlugin();
-
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
   });
@@ -51,14 +50,11 @@ export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
   return (
     <ErrorBoundary onError={FaroHelper.pushReactError}>
       {() => (
-        <RenderConditionally
-          shouldRender={isInitialized}
-          render={() => (
-            <Provider store={rootStore}>
-              <Root {...props} />
-            </Provider>
-          )}
-        />
+        <PluginInitializer>
+          <Provider store={rootStore}>
+            <Root {...props} />
+          </Provider>
+        </PluginInitializer>
       )}
     </ErrorBoundary>
   );
