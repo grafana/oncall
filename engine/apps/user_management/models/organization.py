@@ -61,7 +61,9 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            register_oncall_tenant(str(instance.uuid), settings.ONCALL_BACKEND_REGION, instance.stack_id)
+            register_oncall_tenant(
+                str(instance.uuid), settings.ONCALL_BACKEND_REGION, instance.stack_id, instance.stack_slug
+            )
         return instance
 
     def delete(self):

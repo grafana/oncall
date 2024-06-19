@@ -48,7 +48,7 @@ def get_slack_oauth_response_from_chatops_proxy(stack_id) -> dict:
     return slack_installation.oauth_response
 
 
-def register_oncall_tenant(service_tenant_id: str, cluster_slug: str, stack_id: int):
+def register_oncall_tenant(service_tenant_id: str, cluster_slug: str, stack_id: int, stack_slug: str):
     """
     register_oncall_tenant tries to register oncall tenant synchronously and fall back to task in case of any exceptions
     to make sure that tenant is registered.
@@ -61,6 +61,7 @@ def register_oncall_tenant(service_tenant_id: str, cluster_slug: str, stack_id: 
             cluster_slug,
             SERVICE_TYPE_ONCALL,
             stack_id,
+            stack_slug,
         )
     except Exception as e:
         logger.error(
