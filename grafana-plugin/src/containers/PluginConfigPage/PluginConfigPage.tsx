@@ -198,14 +198,17 @@ const PluginConfigAlert = observer(() => {
   if (!connectionStatus) {
     return null;
   }
-  return isPluginConnected ? (
-    <Alert severity="success" title="Plugin is connected">
-      Go to{' '}
-      <a href={PLUGIN_ROOT} rel="noreferrer">
-        <Text type="link">Grafana OnCall</Text>
-      </a>
-    </Alert>
-  ) : (
+  if (isPluginConnected) {
+    return (
+      <Alert severity="success" title="Plugin is connected">
+        Go to{' '}
+        <a href={PLUGIN_ROOT} rel="noreferrer">
+          <Text type="link">Grafana OnCall</Text>
+        </a>
+      </Alert>
+    );
+  }
+  return (
     <Alert severity="error" title="Plugin is not connected">
       <ol className="u-margin-bottom-md">
         {Object.values(connectionStatus)
