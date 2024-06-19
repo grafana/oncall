@@ -7,4 +7,4 @@ apps:
       orgId: 100
       license: OpenSource
       onCallApiUrl: http://oncall-dev-engine:8080
-      grafanaUrl: http://localhost:3000
+      grafanaUrl: http://grafana:3000
