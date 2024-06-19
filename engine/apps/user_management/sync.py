@@ -274,6 +274,10 @@ def get_organization(
     organization = Organization.objects.filter(org_id=org_id, stack_id=stack_id).first()
     if not organization:
         organization = create_organization(org_id, stack_id, sync_data, instance_info)
+    if sync_data:
+        organization.grafana_url = sync_data.settings.grafana_url
+        organization.api_token = sync_data.settings.grafana_token
+        organization.save(update_fields=["api_token", "grafana_url"])
     return organization
 
 
