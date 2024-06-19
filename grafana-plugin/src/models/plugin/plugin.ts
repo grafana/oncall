@@ -36,7 +36,7 @@ export class PluginStore {
     this.rootStore = rootStore;
   }
 
-  @AutoLoadingState(ActionKey.VERIFY_PLUGIN_CONNECTION)
+  @AutoLoadingState(ActionKey.PLUGIN_VERIFY_CONNECTION)
   async verifyPluginConnection() {
     const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {
       method: 'POST',
@@ -49,14 +49,14 @@ export class PluginStore {
     });
   }
 
-  @AutoLoadingState(ActionKey.UPDATE_SETTINGS_AND_REINITIALIZE_PLUGIN)
+  @AutoLoadingState(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE)
   async updatePluginSettingsAndReinitializePlugin(jsonData: OnCallPluginMetaJSONData) {
     await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData });
     await PluginHelper.install();
     await this.verifyPluginConnection();
   }
 
-  @AutoLoadingState(ActionKey.RECREATE_SERVICE_ACCOUNT)
+  @AutoLoadingState(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT)
   async recreateServiceAccountAndRecheckPluginStatus() {
     await GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings();
     await this.verifyPluginConnection();

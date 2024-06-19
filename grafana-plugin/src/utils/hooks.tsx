@@ -146,7 +146,7 @@ export const useInitializePlugin = () => {
   because this hook is invoked out of plugin root (in plugin extension)
   */
   const isConnected = rootStore.pluginStore.isPluginConnected;
-  const isCheckingConnectionStatus = rootStore.loaderStore.isLoading(ActionKey.VERIFY_PLUGIN_CONNECTION);
+  const isCheckingConnectionStatus = rootStore.loaderStore.isLoading(ActionKey.PLUGIN_VERIFY_CONNECTION);
 
   useOnMount(() => {
     if (!isConnected && !isCheckingConnectionStatus) {

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
-import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
 import { OnCallPluginMetaJSONData } from 'types';
@@ -36,13 +36,13 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
   useOnMount(verifyPluginConnection);
 
   return (
-    <>
+    <VerticalGroup>
       <Text.Title level={3} className="u-margin-bottom-md">
         Configure Grafana OnCall
       </Text.Title>
       {props.plugin.meta.enabled && <PluginConfigAlert />}
       {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage />}
-    </>
+    </VerticalGroup>
   );
 });
 
@@ -78,112 +78,114 @@ const OSSPluginConfigPage = observer(
       mode: 'onChange',
       defaultValues: { onCallApiUrl: getOnCallApiUrl(meta) },
     });
-    const isReinitializating = loaderStore.isLoading(ActionKey.UPDATE_SETTINGS_AND_REINITIALIZE_PLUGIN);
-    const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.RECREATE_SERVICE_ACCOUNT);
+    const isReinitializating = loaderStore.isLoading(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE);
+    const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT);
+
+    const isSubmitButtonDisabled =
+      !formState.isValid ||
+      !meta.enabled ||
+      !(getIsExternalServiceAccountFeatureAvailable() || connectionStatus?.service_account_token?.ok);
 
     const onSubmit = async (values: PluginConfigFormValues) => {
       await updatePluginSettingsAndReinitializePlugin({ ...meta.jsonData, onCallApiUrl: values.onCallApiUrl });
     };
 
-    return (
+    const getCheckOrTextIcon = (isOk: boolean) => (isOk ? { customIcon: 'check' as const } : { isTextIcon: true });
+
+    const enablePluginExpandedView = () => (
       <>
+        <Text strong>Enable OnCall plugin</Text>
+        <Text type="secondary" className={styles.secondaryTitle}>
+          Make sure that OnCall plugin has been enabled.
+        </Text>
+      </>
+    );
+
+    const serviceAccountTokenExpandedView = () => (
+      <>
+        <Text strong>Service account user allows to connect OnCall plugin to Grafana. </Text>
+        <Text type="secondary" className={styles.secondaryTitle}>
+          Make sure that OnCall plugin has been enabled.{' '}
+          <a href={DOCS_SERVICE_ACCOUNTS} target="_blank" rel="noreferrer">
+            <Text type="link">Read more</Text>
+          </a>
+        </Text>
+        <HorizontalGroup>
+          <Button variant="secondary" onClick={recreateServiceAccountAndRecheckPluginStatus}>
+            Re-create
+          </Button>
+          {isRecreatingServiceAccount && <LoadingPlaceholder text="" className={styles.spinner} />}
+        </HorizontalGroup>
+      </>
+    );
+
+    const OnCallApiUrlExpandedView = () => (
+      <>
+        <Text strong>Let us know the backend URL for your OnCall API</Text>
+        <Text type="secondary" className={styles.secondaryTitle}>
+          OnCall backend must be reachable from your Grafana Installation. <br />
+          You can run hobby, dev or production backend. See{' '}
+          <a href={DOCS_ONCALL_OSS_INSTALL} target="_blank" rel="noreferrer">
+            <Text type="link">here</Text>
+          </a>{' '}
+          how to get started.
+        </Text>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Controller
+            name={'onCallApiUrl'}
+            control={control}
+            rules={{ required: 'OnCall API URL is required', validate: validateURL }}
+            render={({ field }) => (
+              <Field
+                key={'Name'}
+                label={'OnCall API URL'}
+                invalid={Boolean(formState.errors.onCallApiUrl)}
+                error={formState.errors.onCallApiUrl?.message}
+              >
+                <Input {...field} placeholder={'OnCall API URL'} data-testid="oncall-api-url-input" />
+              </Field>
+            )}
+          />
+          <HorizontalGroup>
+            <Button type="submit" disabled={isSubmitButtonDisabled}>
+              {isPluginConnected ? 'Reconnect' : 'Connect'}
+            </Button>
+            {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
+          </HorizontalGroup>
+        </form>
+      </>
+    );
+
+    const COMMON_CONFIG_ELEM_PARAMS = {
+      startingElemPosition: '-6px',
+    };
+
+    const configElements = [
+      {
+        ...getCheckOrTextIcon(meta.enabled),
+        expandedView: enablePluginExpandedView,
+      },
+      ...(getIsExternalServiceAccountFeatureAvailable()
+        ? []
+        : [
+            {
+              ...getCheckOrTextIcon(connectionStatus?.service_account_token?.ok),
+              expandedView: serviceAccountTokenExpandedView,
+            },
+          ]),
+      {
+        ...getCheckOrTextIcon(connectionStatus?.oncall_api_url?.ok),
+        expandedView: OnCallApiUrlExpandedView,
+      },
+    ].map((elem) => ({ ...COMMON_CONFIG_ELEM_PARAMS, ...elem }));
+
+    return (
+      <div>
         <Text type="secondary" className={styles.secondaryTitle}>
           This page will help you to connect OnCall backend and OnCall Grafana plugin.
         </Text>
-        <CollapsibleTreeView
-          className={styles.treeView}
-          configElements={[
-            {
-              ...(meta.enabled ? { customIcon: 'check' } : { isTextIcon: true }),
-              startingElemPosition: '-6px',
-              expandedView: () => (
-                <>
-                  <Text strong>Enable OnCall plugin</Text>
-                  <Text type="secondary" className={styles.secondaryTitle}>
-                    Make sure that OnCall plugin has been enabled.
-                  </Text>
-                </>
-              ),
-            },
-            ...(getIsExternalServiceAccountFeatureAvailable()
-              ? []
-              : [
-                  {
-                    ...(connectionStatus?.service_account_token?.ok
-                      ? { customIcon: 'check' as const }
-                      : { isTextIcon: true }),
-                    startingElemPosition: '-6px',
-                    expandedView: () => (
-                      <>
-                        <Text strong>Service account user allows to connect OnCall plugin to Grafana. </Text>
-                        <Text type="secondary" className={styles.secondaryTitle}>
-                          Make sure that OnCall plugin has been enabled.{' '}
-                          <a href={DOCS_SERVICE_ACCOUNTS} target="_blank" rel="noreferrer">
-                            <Text type="link">Read more</Text>
-                          </a>
-                        </Text>
-                        <HorizontalGroup>
-                          <Button variant="secondary" onClick={recreateServiceAccountAndRecheckPluginStatus}>
-                            Re-create
-                          </Button>
-                          {isRecreatingServiceAccount && <LoadingPlaceholder text="" className={styles.spinner} />}
-                        </HorizontalGroup>
-                      </>
-                    ),
-                  },
-                ]),
-            {
-              ...(connectionStatus?.oncall_api_url?.ok ? { customIcon: 'check' as const } : { isTextIcon: true }),
-              startingElemPosition: '-6px',
-              expandedView: () => (
-                <>
-                  <Text strong>Let us know the backend URL for your OnCall API</Text>
-                  <Text type="secondary" className={styles.secondaryTitle}>
-                    OnCall backend must be reachable from your Grafana Installation. <br />
-                    You can run hobby, dev or production backend. See{' '}
-                    <a href={DOCS_ONCALL_OSS_INSTALL} target="_blank" rel="noreferrer">
-                      <Text type="link">here</Text>
-                    </a>{' '}
-                    how to get started.
-                  </Text>
-                  <form onSubmit={handleSubmit(onSubmit)}>
-                    <Controller
-                      name={'onCallApiUrl'}
-                      control={control}
-                      rules={{ required: 'OnCall API URL is required', validate: validateURL }}
-                      render={({ field }) => (
-                        <Field
-                          key={'Name'}
-                          label={'OnCall API URL'}
-                          invalid={Boolean(formState.errors.onCallApiUrl)}
-                          error={formState.errors.onCallApiUrl?.message}
-                        >
-                          <Input {...field} placeholder={'OnCall API URL'} data-testid="oncall-api-url-input" />
-                        </Field>
-                      )}
-                    />
-                    <HorizontalGroup>
-                      <Button
-                        type="submit"
-                        disabled={
-                          !formState.isValid ||
-                          !meta.enabled ||
-                          !(
-                            getIsExternalServiceAccountFeatureAvailable() || connectionStatus?.service_account_token?.ok
-                          )
-                        }
-                      >
-                        {isPluginConnected ? 'Reconnect' : 'Connect'}
-                      </Button>
-                      {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
-                    </HorizontalGroup>
-                  </form>
-                </>
-              ),
-            },
-          ]}
-        />
-      </>
+        <CollapsibleTreeView className={styles.treeView} configElements={configElements} />
+      </div>
     );
   }
 );
@@ -224,7 +226,7 @@ const PluginConfigAlert = observer(() => {
 const getStyles = (theme: GrafanaTheme2) => ({
   secondaryTitle: css`
     display: block;
-    margin: 12px 0;
+    margin-bottom: 12px;
   `,
   spinner: css`
     margin-bottom: 0;
