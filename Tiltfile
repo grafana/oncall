@@ -178,6 +178,7 @@ if not running_under_parent_tiltfile:
             "GF_SECURITY_ADMIN_USER": "oncall",
             "GF_AUTH_ANONYMOUS_ENABLED": "false",
             "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
+            "ONCALL_API_URL": "http://oncall-dev-engine:8080"
         },
     )
 
