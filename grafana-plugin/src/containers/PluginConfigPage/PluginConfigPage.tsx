@@ -119,7 +119,7 @@ const OSSPluginConfigPage = observer(
       </>
     );
 
-    const OnCallApiUrlExpandedView = () => (
+    const onCallApiUrlExpandedView = () => (
       <>
         <Text strong>Let us know the backend URL for your OnCall API</Text>
         <Text type="secondary" className={styles.secondaryTitle}>
