@@ -174,6 +174,7 @@ if not running_under_parent_tiltfile:
         namespace="default",
         deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
         extra_env={
+            "GF_APP_URL": "http://grafana:3000/",
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
             "GF_SECURITY_ADMIN_USER": "oncall",
             "GF_AUTH_ANONYMOUS_ENABLED": "false",
