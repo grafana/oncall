@@ -1,19 +1,13 @@
 import json
 import logging
 from dataclasses import asdict, dataclass
+from typing import List
 
 from django.db import models
 
 from apps.phone_notifications.exceptions import PhoneNumberBanned
 
 logger = logging.getLogger(__name__)
-
-
-class BannedPhoneNumber(models.Model):
-    phone_number = models.CharField(primary_key=True, max_length=20)
-    created_at = models.DateTimeField(auto_now=True)
-    reason = models.TextField(null=True, default=None)
-    users = models.JSONField(null=True, default=None)
 
 
 @dataclass
@@ -25,13 +19,21 @@ class BannedPhoneUserEntry:
     org_slug: str
 
 
+class BannedPhoneNumber(models.Model):
+    phone_number = models.CharField(primary_key=True, max_length=20)
+    created_at = models.DateTimeField(auto_now=True)
+    reason = models.TextField(null=True, default=None)
+    users = models.JSONField(null=True, default=None)
+
+    def get_user_entries(self) -> List[BannedPhoneUserEntry]:
+        return [BannedPhoneUserEntry(**data) for data in json.loads(self.users)]
+
+
 def ban_phone_number(phone_number: str, reason: str):
     from apps.user_management.models import User
 
     banned_phone_number = BannedPhoneNumber(phone_number=phone_number)
     users = User.objects.filter(_verified_phone_number=phone_number)
-    users.update(_verified_phone_number=None)
-
     # Record instances of phone number use
     user_entries = [
         asdict(
@@ -45,6 +47,7 @@ def ban_phone_number(phone_number: str, reason: str):
         )
         for user in users
     ]
+    users.update(_verified_phone_number=None)
     banned_phone_number.users = json.dumps(user_entries)
     banned_phone_number.reason = reason
     banned_phone_number.save()
