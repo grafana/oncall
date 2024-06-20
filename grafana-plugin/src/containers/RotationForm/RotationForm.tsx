@@ -62,7 +62,7 @@ import {
   toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, waitForElement } from 'utils/DOM';
+import { waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
@@ -602,6 +602,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         Starts
                       </Text>
                     }
+                    data-testid="rotation-start"
                   >
                     <DateTimePicker
                       value={rotationStart}
@@ -626,6 +627,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         />
                       </HorizontalGroup>
                     }
+                    data-testid="rotation-end"
                   >
                     {endLess ? (
                       <div style={{ lineHeight: '32px' }}>
@@ -795,20 +797,17 @@ export const RotationForm = observer((props: RotationFormProps) => {
   );
 
   async function onResize() {
-    setDraggablePosition({ x: 0, y: await calculateOffsetTop() });
+    setOffsetTop(await calculateOffsetTop());
+
+    setDraggablePosition({ x: 0, y: 0 });
   }
 
   async function calculateOffsetTop(): Promise<number> {
-    const elm = await waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`);
-    const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-    const coords = getCoords(elm);
+    const queryClass = `.${cx('draggable')}`;
+    const modal = await waitForElement(queryClass);
+    const modalHeight = modal.clientHeight;
 
-    const offsetTop = Math.max(
-      Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
-      GRAFANA_HEADER_HEIGHT + 10
-    );
-
-    return offsetTop;
+    return document.documentElement.scrollHeight / 2 - modalHeight / 2;
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {

@@ -15,8 +15,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { HTML_ID, getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { waitForElement } from 'utils/DOM';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
@@ -243,12 +242,14 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             />
           </HorizontalGroup>
         </HorizontalGroup>
+
         <div className={cx('container')}>
           <div className={cx('override-form-content')} data-testid="override-inputs">
             <VerticalGroup>
               <HorizontalGroup align="flex-start">
                 <Field
                   className={cx('date-time-picker')}
+                  data-testid="override-start"
                   label={
                     <Text type="primary" size="small">
                       Override period start
@@ -263,8 +264,10 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                     error={errors.shift_start}
                   />
                 </Field>
+
                 <Field
                   className={cx('date-time-picker')}
+                  data-testid="override-end"
                   label={
                     <Text type="primary" size="small">
                       Override period end
@@ -280,6 +283,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   />
                 </Field>
               </HorizontalGroup>
+
               <UserGroups
                 disabled={disabled}
                 value={userGroups}
@@ -313,18 +317,17 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   );
 
   async function onResize() {
-    setDraggablePosition({ x: 0, y: await calculateOffsetTop() });
+    setOffsetTop(await calculateOffsetTop());
+
+    setDraggablePosition({ x: 0, y: 0 });
   }
 
   async function calculateOffsetTop() {
-    const elm = await waitForElement(`#${HTML_ID.SCHEDULE_ROTATIONS}`);
-    const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-    const coords = getCoords(elm);
-    const offsetTop = Math.min(
-      Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
-      GRAFANA_HEADER_HEIGHT + 10
-    );
-    return offsetTop;
+    const queryClass = `.${cx('draggable')}`;
+    const modal = await waitForElement(queryClass);
+    const modalHeight = modal.clientHeight;
+
+    return document.documentElement.scrollHeight / 2 - modalHeight / 2;
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
