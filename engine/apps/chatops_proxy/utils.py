@@ -159,6 +159,6 @@ def uninstall_slack(stack_id: int, grafana_user_id: int) -> bool:
             "uninstall_slack: error trying to install slack from chatops-proxy: " "error=%s",
             api_exc,
         )
-        raise api_exc
+        return False
 
     return removed is True
