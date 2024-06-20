@@ -11,6 +11,7 @@ import {
   ONCALL_PROD,
 } from './consts';
 import { safeJSONStringify } from './string';
+import { getIsDevelopmentEnv } from './utils';
 
 export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
   const baseName = 'grafana-oncall';
@@ -31,7 +32,7 @@ class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    if (this.faro) {
+    if (this.faro || getIsDevelopmentEnv()) {
       return undefined;
     }
 
