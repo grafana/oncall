@@ -9,6 +9,7 @@ import {
   ONCALL_DEV,
   ONCALL_OPS,
   ONCALL_PROD,
+  getIsDevelopmentEnv,
 } from './consts';
 import { safeJSONStringify } from './string';
 
@@ -31,7 +32,7 @@ class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    if (this.faro) {
+    if (this.faro || getIsDevelopmentEnv()) {
       return undefined;
     }
 
