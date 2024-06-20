@@ -2,7 +2,6 @@ import { OnCallAppPluginMeta } from 'types';
 
 //@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
-import { getProcessEnvVarSafely } from './utils';
 
 // Navbar
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
@@ -35,6 +34,17 @@ export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
+
+export const getProcessEnvVarSafely = (name: string) => {
+  try {
+    return process.env[name];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
+
+export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
 
 // Single source of truth on the frontend for OnCall API URL
 export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {

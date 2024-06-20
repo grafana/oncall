@@ -9,9 +9,9 @@ import {
   ONCALL_DEV,
   ONCALL_OPS,
   ONCALL_PROD,
+  getIsDevelopmentEnv,
 } from './consts';
 import { safeJSONStringify } from './string';
-import { getIsDevelopmentEnv } from './utils';
 
 export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
   const baseName = 'grafana-oncall';
