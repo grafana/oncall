@@ -20,8 +20,8 @@ from .compare_escalations import compare_escalations
 from .task_logger import task_logger
 
 
-def create_send_bundled_notification_task(user_notification_bundle, alert_group):
-    """Schedule notification task for bundled notifications"""
+def schedule_send_bundled_notification_task(user_notification_bundle, alert_group):
+    """Schedule a task to send bundled notifications"""
     send_bundled_notification.apply_async(
         (user_notification_bundle.id,),
         eta=user_notification_bundle.eta,
@@ -34,14 +34,14 @@ def create_send_bundled_notification_task(user_notification_bundle, alert_group)
     )
 
 
-def create_perform_notification_task(log_record_pk, alert_group_pk):
+def schedule_perform_notification_task(log_record_pk, alert_group_pk):
     task = perform_notification.apply_async((log_record_pk,))
     task_logger.info(
         f"Created perform_notification task {task} log_record={log_record_pk} " f"alert_group={alert_group_pk}"
     )
 
 
-def build_user_notification_plan(notification_policy, reason):
+def build_notification_reason_for_log_record(notification_policy, reason):
     from apps.base.models import UserNotificationPolicy
 
     # Here we collect a brief overview of notification steps configured for user to send it to thread.
@@ -138,7 +138,7 @@ def notify_user_task(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
                 )
                 return
-            reason = build_user_notification_plan(notification_policy, reason)
+            reason = build_notification_reason_for_log_record(notification_policy, reason)
         else:
             if notify_user_task.request.id != user_has_notification.active_notification_policy_id:
                 task_logger.info(
@@ -245,7 +245,7 @@ def notify_user_task(
 
                                 transaction.on_commit(
                                     partial(
-                                        create_send_bundled_notification_task, user_notification_bundle, alert_group
+                                        schedule_send_bundled_notification_task, user_notification_bundle, alert_group
                                     )
                                 )
                             is_notification_bundled = True
@@ -279,11 +279,11 @@ def notify_user_task(
             # if the step is NOTIFY and notification was not not bundled, perform regular notification
             # and update time when user was notified
             if notification_policy.step == UserNotificationPolicy.Step.NOTIFY and not is_notification_bundled:
-                transaction.on_commit(partial(create_perform_notification_task, log_record.pk, alert_group_pk))
+                transaction.on_commit(partial(schedule_perform_notification_task, log_record.pk, alert_group_pk))
 
                 if user_notification_bundle:
                     user_notification_bundle.last_notified = timezone.now()
-                    user_notification_bundle.save(update_fields=["last_notified"])
+                    user_notification_bundle.save(update_fields=["last_notified_at"])
 
             task_id = celery_uuid()
             user_has_notification.update_active_task_id(task_id=task_id)
@@ -492,6 +492,13 @@ def perform_notification(log_record_pk):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def send_bundled_notification(user_notification_bundle_id):
+    """
+    The task filters bundled notifications, attached to the current user_notification_bundle, by active alert groups,
+    creates notification log records and updates user_notification_bundle.
+    If there are no active alert groups - nothing else happens. If there is only one active alert group - regular
+    notification will be performed (called perform_notification task). Otherwise - "send bundled notification" method of
+    the current notification channel will be called.
+    """
     from apps.alerts.models import AlertGroup, UserNotificationBundle
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
@@ -566,7 +573,7 @@ def send_bundled_notification(user_notification_bundle_id):
             )
             transaction.on_commit(
                 partial(
-                    create_perform_notification_task,
+                    schedule_perform_notification_task,
                     log_record_notification_triggered.pk,
                     log_record_notification_triggered.alert_group_id,
                 )

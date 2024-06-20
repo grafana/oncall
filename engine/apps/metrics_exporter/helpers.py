@@ -328,7 +328,10 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time: 
 
 
 def metrics_update_user_cache(user, counter=1):
-    """Update "user_was_notified_of_alert_groups" metric cache."""
+    """
+    Increase "user_was_notified_of_alert_groups" metric cache by counter.
+    Counter shows how many alert groups user was notified of.
+    """
     metrics_cache_timeout = get_metrics_cache_timeout(user.organization_id)
     metric_user_was_notified_key = get_metric_user_was_notified_of_alert_groups_key(user.organization_id)
     metric_user_was_notified: typing.Dict[int, UserWasNotifiedOfAlertGroupsMetricsDict] = cache.get(

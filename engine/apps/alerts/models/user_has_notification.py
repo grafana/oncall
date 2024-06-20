@@ -18,5 +18,9 @@ class UserHasNotification(models.Model):
         unique_together = ("user", "alert_group")
 
     def update_active_task_id(self, task_id):
+        """
+        `active_notification_policy_id` keeps celery task_id of the next scheduled `notify_user_task`
+        for the current user
+        """
         self.active_notification_policy_id = task_id
         self.save(update_fields=["active_notification_policy_id"])
