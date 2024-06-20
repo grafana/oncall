@@ -1,8 +1,6 @@
-import dayjs from 'dayjs';
-
 import { test, expect, Locator } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
-import { createOnCallSchedule, getOverrideFormDateInputs } from '../utils/schedule';
+import { createOnCallSchedule } from '../utils/schedule';
 
 test('Fills in Rotation time and  reacts to timezone change', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;

@@ -8,7 +8,7 @@ export const createOnCallSchedule = async (
   page: Page,
   scheduleName: string,
   userName: string,
-  withRotation: boolean = true
+  withRotation = true
 ): Promise<void> => {
   // go to the schedules page
   await goToOnCallPage(page, 'schedules');
