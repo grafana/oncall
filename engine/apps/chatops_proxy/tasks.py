@@ -1,7 +1,6 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
-from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .client import ChatopsProxyAPIClient, ChatopsProxyAPIException
@@ -132,6 +131,8 @@ def unlink_slack_team_async(**kwargs):
     max_retries=0,
 )
 def start_sync_org_with_chatops_proxy():
+    from apps.user_management.models import Organization
+
     organization_qs = Organization.objects.all()
     organization_pks = organization_qs.values_list("pk", flat=True)
 
@@ -147,6 +148,8 @@ def start_sync_org_with_chatops_proxy():
     max_retries=3,
 )
 def sync_org_with_chatops_proxy(**kwargs):
+    from apps.user_management.models import Organization
+
     organization_id = kwargs.get("organization_id")
     task_logger.info(f"sync_org_with_chatops_proxy: started org_id={organization_id}")
 

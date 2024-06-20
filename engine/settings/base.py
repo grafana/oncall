@@ -590,6 +590,13 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+if FEATURE_MULTIREGION_ENABLED:
+    CELERY_BEAT_SCHEDULE["start_sync_org_with_chatops_proxy"] = {
+        "task": "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy",
+        "schedule": crontab(hour="*/24"),  # Every 24 hours, feel free to adjust
+        "args": (),
+    }
+
 if ESCALATION_AUDITOR_ENABLED:
     CELERY_BEAT_SCHEDULE["check_escalations"] = {
         "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
