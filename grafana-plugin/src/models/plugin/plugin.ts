@@ -38,6 +38,11 @@ export class PluginStore {
     this.rootStore = rootStore;
   }
 
+  private resetConnectionStatus() {
+    this.connectionStatus = undefined;
+    this.isPluginConnected = false;
+  }
+
   @AutoLoadingState(ActionKey.PLUGIN_VERIFY_CONNECTION)
   async verifyPluginConnection() {
     const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {
@@ -59,13 +64,17 @@ export class PluginStore {
     currentJsonData: OnCallPluginMetaJSONData;
     newJsonData: Partial<OnCallPluginMetaJSONData>;
   }) {
+    this.resetConnectionStatus();
     const saveJsonDataCandidate = { ...currentJsonData, ...newJsonData };
     if (!isEqual(currentJsonData, saveJsonDataCandidate) || !this.connectionStatus?.oncall_api_url?.ok) {
       await GrafanaApiClient.updateGrafanaPluginSettings({ jsonData: saveJsonDataCandidate });
       await waitInMs(1000); // It's required for backend proxy to pick up new settings
     }
-    await PluginHelper.install();
-    await this.verifyPluginConnection();
+    try {
+      await PluginHelper.install();
+    } finally {
+      await this.verifyPluginConnection();
+    }
   }
 
   @AutoLoadingState(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT)
