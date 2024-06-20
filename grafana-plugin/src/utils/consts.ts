@@ -2,6 +2,7 @@ import { OnCallAppPluginMeta } from 'types';
 
 //@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
+import { getProcessEnvVarSafely } from './utils';
 
 // Navbar
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
@@ -40,7 +41,7 @@ export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   if (meta?.jsonData?.onCallApiUrl) {
     return meta?.jsonData?.onCallApiUrl;
   } else if (typeof window === 'undefined') {
-    return process.env.ONCALL_API_URL;
+    return getProcessEnvVarSafely('ONCALL_API_URL');
   }
   return undefined;
 };
