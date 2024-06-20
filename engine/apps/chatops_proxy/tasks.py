@@ -1,9 +1,11 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
+from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .client import ChatopsProxyAPIClient, ChatopsProxyAPIException
+from .utils import register_oncall_tenant
 
 task_logger = get_task_logger(__name__)
 
@@ -122,3 +124,43 @@ def unlink_slack_team_async(**kwargs):
             f'msg="Failed to unlink slack_team: {e}" service_tenant_id={service_tenant_id} slack_team_id={slack_team_id}'
         )
         raise e
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    max_retries=0,
+)
+def start_sync_org_with_chatops_proxy():
+    organization_qs = Organization.objects.all()
+    organization_pks = organization_qs.values_list("pk", flat=True)
+
+    max_countdown = 60 * 30  # 30 minutes, feel free to adjust
+    for idx, organization_pk in enumerate(organization_pks):
+        countdown = idx % max_countdown
+        sync_org_with_chatops_proxy.apply_async((organization_pk,), countdown=countdown)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    max_retries=3,
+)
+def sync_org_with_chatops_proxy(**kwargs):
+    organization_id = kwargs.get("organization_id")
+    task_logger.info(f"sync_org_with_chatops_proxy: started org_id={organization_id}")
+
+    try:
+        org = Organization.objects.get(pk=organization_id)
+    except Organization.DoesNotExist:
+        task_logger.info(f"Organization {organization_id} was not found")
+        return
+
+    try:
+        register_oncall_tenant(org)
+    except ChatopsProxyAPIException as api_exc:
+        # TODO: once tenants upsert api is released, remove this check
+        if api_exc.status == 409:
+            # 409 Indicates that it's impossible to register tenant, because tenant already registered.
+            return
+        raise api_exc
