@@ -534,5 +534,5 @@ def test_notify_user_task_notification_bundle_eta_is_outdated(
     notification_bundle.refresh_from_db()
     assert notification_bundle.eta_is_valid()
     assert notification_bundle.notification_task_id != test_task_id
-    assert notification_bundle.last_notified == now
+    assert notification_bundle.last_notified_at == now
     assert notification_bundle.notifications.count() == 2

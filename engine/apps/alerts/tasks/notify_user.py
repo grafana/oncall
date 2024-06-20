@@ -217,7 +217,7 @@ def notify_user_task(
                 else:
                     if (
                         settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED
-                        and notification_policy.notify_by in UserNotificationBundle.NOTIFICATION_CHANNELS_TO_BUNDLE
+                        and UserNotificationBundle.notification_is_bundleable(notification_policy.notify_by)
                     ):
                         user_notification_bundle, _ = UserNotificationBundle.objects.get_or_create(
                             user=user, important=important, notification_channel=notification_policy.notify_by
@@ -602,9 +602,9 @@ def send_bundled_notification(user_notification_bundle_id):
                     pass
 
         user_notification_bundle.notification_task_id = None
-        user_notification_bundle.last_notified = timezone.now()
+        user_notification_bundle.last_notified_at = timezone.now()
         user_notification_bundle.eta = None
-        user_notification_bundle.save(update_fields=["notification_task_id", "last_notified", "eta"])
+        user_notification_bundle.save(update_fields=["notification_task_id", "last_notified_at", "eta"])
 
     for alert_group_id in active_alert_group_ids:
         transaction.on_commit(partial(send_update_log_report_signal.apply_async, {"alert_group_pk": alert_group_id}))

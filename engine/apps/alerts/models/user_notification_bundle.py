@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.alerts.constants import BUNDLED_NOTIFICATION_DELAY_SECONDS
 from apps.base.models import UserNotificationPolicy
+from apps.base.models.user_notification_policy import validate_channel_choice
 
 
 class UserNotificationBundle(models.Model):
@@ -14,10 +15,12 @@ class UserNotificationBundle(models.Model):
 
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE, related_name="notification_bundles")
     important = models.BooleanField()
-    notification_channel = models.PositiveSmallIntegerField(default=0)
-    last_notified = models.DateTimeField(default=None, null=True)
+    notification_channel = models.PositiveSmallIntegerField(
+        validators=[validate_channel_choice], null=True, default=None
+    )
+    last_notified_at = models.DateTimeField(default=None, null=True)
     notification_task_id = models.CharField(max_length=100, null=True, default=None)
-    # estimated time of arrival for notification bundle
+    # estimated time of arrival for scheduled send_bundled_notification task
     eta = models.DateTimeField(default=None, null=True)
 
     class Meta:
@@ -29,8 +32,8 @@ class UserNotificationBundle(models.Model):
 
     def notified_recently(self) -> bool:
         return (
-            timezone.now() - self.last_notified < timezone.timedelta(seconds=BUNDLED_NOTIFICATION_DELAY_SECONDS)
-            if self.last_notified
+            timezone.now() - self.last_notified_at < timezone.timedelta(seconds=BUNDLED_NOTIFICATION_DELAY_SECONDS)
+            if self.last_notified_at
             else False
         )
 
@@ -45,11 +48,15 @@ class UserNotificationBundle(models.Model):
         return False
 
     def get_notification_eta(self) -> datetime.datetime:
-        last_notified = self.last_notified if self.last_notified else timezone.now()
+        last_notified = self.last_notified_at if self.last_notified_at else timezone.now()
         return last_notified + timezone.timedelta(seconds=BUNDLED_NOTIFICATION_DELAY_SECONDS)
 
     def append_notification(self, alert_group, notification_policy):
         self.notifications.create(alert_group=alert_group, notification_policy=notification_policy)
+
+    @classmethod
+    def notification_is_bundleable(cls, notification_channel):
+        return notification_channel in cls.NOTIFICATION_CHANNELS_TO_BUNDLE
 
 
 class BundledNotification(models.Model):
