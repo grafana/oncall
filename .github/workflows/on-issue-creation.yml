@@ -79,9 +79,12 @@ jobs:
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Auth') && 'part:auth/teams' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Chatops') && 'part:chatops' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Helm') && 'part:deployment/helm' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App') && 'part:mobile' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Schedules') && 'part:schedules' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform') && 'part:API/Terraform' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'API') && 'part:API' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Metrics') && 'part:metrics/logging' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform/Crossplane') && 'part:Terraform/Crossplane' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Helm/Kubernetes/Docker') && 'part:helm/kubernetes/docker' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'CI/CD') && 'part:ci/cd' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'more info needed' || '' }}
           # yamllint enable rule:line-length
