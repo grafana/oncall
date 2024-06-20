@@ -59,7 +59,8 @@ from apps.phone_notifications.exceptions import (
     FailedToStartVerification,
     NumberAlreadyVerified,
     NumberNotVerified,
-    ProviderNotSupports, PhoneNumberBanned,
+    PhoneNumberBanned,
+    ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
