@@ -81,11 +81,7 @@ const OSSPluginConfigPage = observer(
     const isReinitializating = loaderStore.isLoading(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE);
     const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT);
 
-    const isSubmitButtonDisabled =
-      !formState.isValid ||
-      !meta.enabled ||
-      isReinitializating ||
-      !(getIsExternalServiceAccountFeatureAvailable() || connectionStatus?.service_account_token?.ok);
+    const isSubmitButtonDisabled = !formState.isValid || !meta.enabled || isReinitializating;
 
     const onSubmit = async (values: PluginConfigFormValues) => {
       await updatePluginSettingsAndReinitializePlugin({
@@ -115,7 +111,11 @@ const OSSPluginConfigPage = observer(
           </a>
         </Text>
         <HorizontalGroup>
-          <Button variant="secondary" onClick={recreateServiceAccountAndRecheckPluginStatus}>
+          <Button
+            variant="secondary"
+            onClick={recreateServiceAccountAndRecheckPluginStatus}
+            data-testid="recreate-service-account"
+          >
             Re-create
           </Button>
           {isRecreatingServiceAccount && <LoadingPlaceholder text="" className={styles.spinner} />}
@@ -138,7 +138,7 @@ const OSSPluginConfigPage = observer(
           <Controller
             name={'onCallApiUrl'}
             control={control}
-            rules={{ required: 'OnCall API URL is required', validate: validateURL }}
+            rules={{ required: 'URL is required', validate: validateURL }}
             render={({ field }) => (
               <Field
                 key={'Name'}
@@ -151,7 +151,7 @@ const OSSPluginConfigPage = observer(
             )}
           />
           <HorizontalGroup>
-            <Button type="submit" disabled={isSubmitButtonDisabled}>
+            <Button type="submit" disabled={isSubmitButtonDisabled} data-testid="connect-plugin">
               {isPluginConnected ? 'Reconnect' : 'Connect'}
             </Button>
             {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
