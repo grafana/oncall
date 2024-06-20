@@ -69,15 +69,10 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 
 	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
 	cfg := backend.GrafanaConfigFromContext(ctx)
-	grafanaURL, err := cfg.AppURL()
-	if err != nil {
-		// Fallback to GrafanaURL already being set in settings outside backend plugin from provisioning or UI
-		if settings.GrafanaURL == "" {
-			return &settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %v", settings)
-		}
-	} else {
-		settings.GrafanaURL = grafanaURL
+	if settings.GrafanaURL == "" {
+		return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData): %v", settings)
 	}
+	log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 
 	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
 	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
