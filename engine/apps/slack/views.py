@@ -579,6 +579,7 @@ class ResetSlackView(APIView):
             # uninstall it from OnCall.
             removed = uninstall_slack_from_chatops_proxy(request.user.organization.stack_id, request.user.user_id)
         else:
+            # just a placeholder value to continute uninstallation until UNIFIED_SLACK_APP_ENABLED is not enabled
             removed = True
         if not removed:
             return Response({"error": "Failed to uninstall slack integration"}, status=500)
