@@ -1,5 +1,5 @@
-import { MOSCOW_TIMEZONE } from '../utils/constants';
 import { test, expect, Locator } from '../fixtures';
+import { MOSCOW_TIMEZONE } from '../utils/constants';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
 import { createOnCallSchedule } from '../utils/schedule';

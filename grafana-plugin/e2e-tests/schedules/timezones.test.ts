@@ -4,10 +4,10 @@ import isoWeek from 'dayjs/plugin/isoWeek';
 import utc from 'dayjs/plugin/utc';
 
 import { test } from '../fixtures';
+import { MOSCOW_TIMEZONE } from '../utils/constants';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
 import { createOnCallSchedule } from '../utils/schedule';
-import { MOSCOW_TIMEZONE } from '../utils/constants';
 
 dayjs.extend(utc);
 dayjs.extend(isoWeek);
