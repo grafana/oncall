@@ -7,7 +7,7 @@ import { test } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
 import { createOnCallSchedule } from '../utils/schedule';
-import { MOSCOW_TIMEZONE } from '../consts';
+import { MOSCOW_TIMEZONE } from '../utils/constants';
 
 dayjs.extend(utc);
 dayjs.extend(isoWeek);

@@ -1,4 +1,4 @@
-import { MOSCOW_TIMEZONE } from '../consts';
+import { MOSCOW_TIMEZONE } from '../utils/constants';
 import { test, expect, Locator } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';

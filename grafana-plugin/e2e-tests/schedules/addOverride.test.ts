@@ -4,7 +4,7 @@ import { test, expect, Locator } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule, getOverrideFormDateInputs } from '../utils/schedule';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
-import { MOSCOW_TIMEZONE } from '../consts';
+import { MOSCOW_TIMEZONE } from '../utils/constants';
 
 test('Default dates in override creation modal are set to today', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
