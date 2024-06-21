@@ -634,7 +634,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     await this.update();
   };
 
-  getPlaceholderReplaceFn = (entity: any) => {
+  getPlaceholderReplaceFn = (entity: TimeLineItem) => {
     return (match: string) => {
       switch (match) {
         case 'author':
