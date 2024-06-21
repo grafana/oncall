@@ -10,5 +10,5 @@ export const setTimezoneInProfile = async (page: Page, timezone: string) => {
   await page.getByLabel('Select options menu').getByText(timezone).click();
   await page.getByTestId('data-testid-shared-prefs-save').click();
   await page.waitForLoadState('networkidle');
-  await page.waitForLoadState('domcontentloaded'); // wait for reload
+  await page.waitForTimeout(3000); // wait for reload
 };
