@@ -21,6 +21,7 @@ from .exceptions import (
     SMSLimitExceeded,
 )
 from .models import PhoneCallRecord, ProviderPhoneCall, ProviderSMS, SMSRecord
+from .models.banned_phone_number import check_banned_phone_number
 from .phone_provider import PhoneProvider, get_phone_provider
 
 logger = logging.getLogger(__name__)
@@ -316,6 +317,7 @@ class PhoneBackend:
         if self._validate_user_number(user):
             logger.info(f"PhoneBackend.send_verification_sms: number already verified for user {user.id}")
             raise NumberAlreadyVerified
+        check_banned_phone_number(user.unverified_phone_number)
         self.phone_provider.send_verification_sms(user.unverified_phone_number)
 
     def make_verification_call(self, user):
@@ -327,6 +329,7 @@ class PhoneBackend:
         if self._validate_user_number(user):
             logger.info(f"PhoneBackend.make_verification_call: number already verified user_id={user.id}")
             raise NumberAlreadyVerified
+        check_banned_phone_number(user.unverified_phone_number)
         self.phone_provider.make_verification_call(user.unverified_phone_number)
 
     def verify_phone_number(self, user, code) -> bool:
