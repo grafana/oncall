@@ -18,14 +18,16 @@ def register_oncall_tenant_async(**kwargs):
     cluster_slug = kwargs.get("cluster_slug")
     service_type = kwargs.get("service_type")
     stack_id = kwargs.get("stack_id")
+    stack_slug = kwargs.get("stack_slug")
 
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
-        client.register_tenant(service_tenant_id, cluster_slug, service_type, stack_id)
+        client.register_tenant(service_tenant_id, cluster_slug, service_type, stack_id, stack_slug)
     except ChatopsProxyAPIException as api_exc:
         task_logger.error(
             f'msg="Failed to register OnCall tenant: {api_exc.msg}" service_tenant_id={service_tenant_id} cluster_slug={cluster_slug}'
         )
+        # TODO: remove this check once new upsert tenant api is released
         if api_exc.status == 409:
             # 409 Indicates that it's impossible to register tenant, because tenant already registered.
             # Not retrying in this case, because manual conflict-resolution needed.
