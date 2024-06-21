@@ -575,7 +575,7 @@ class ResetSlackView(APIView):
                 status=400,
             )
         if settings.UNIFIED_SLACK_APP_ENABLED:
-            # If unified slack app is enabled -u ninstall slack integration from chatops-proxy first and on success -
+            # If unified slack app is enabled - uninstall slack integration from chatops-proxy first and on success -
             # uninstall it from OnCall.
             removed = uninstall_slack_from_chatops_proxy(request.user.organization.stack_id, request.user.user_id)
         else:
