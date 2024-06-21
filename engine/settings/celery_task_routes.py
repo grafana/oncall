@@ -90,6 +90,7 @@ CELERY_TASK_ROUTES = {
     "apps.chatops_proxy.tasks.link_slack_team_async": {"queue": "default"},
     "apps.chatops_proxy.tasks.unlink_slack_team_async": {"queue": "default"},
     "apps.chatops_proxy.tasks.register_oncall_tenant_async": {"queue": "default"},
+    "apps.chatops_proxy.tasks.unregister_oncall_tenant_async": {"queue": "default"},
     "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy": {"queue": "default"},
     "apps.chatops_proxy.tasks.sync_org_with_chatops_proxy": {"queue": "default"},
     # CRITICAL

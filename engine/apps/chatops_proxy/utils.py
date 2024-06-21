@@ -140,7 +140,7 @@ def unlink_slack_team(service_tenant_id: str, slack_team_id: str):
 def uninstall_slack(stack_id: int, grafana_user_id: int) -> bool:
     """
     uninstall_slack uninstalls slack integration from chatops-proxy and returns bool indicating if it was removed.
-    If such installation does not exist - returns True as well.s
+    If such installation does not exist - returns True as well.
     """
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
