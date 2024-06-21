@@ -64,6 +64,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
 import { sanitize } from 'utils/sanitize';
+import { VALID_URL_PATTERN } from 'utils/string';
 import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
@@ -517,7 +518,6 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   renderTimeline = () => {
     const {
       store,
-      history,
       match: {
         params: { id },
       },
@@ -568,9 +568,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       {ResolutionNoteSourceTypesToDisplayName[item.type] || 'Web'}
                     </Text>
                   )}
-                  <Text type="primary">
-                    {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item, history))}
-                  </Text>
+                  <Text type="primary">{this.replaceTextInResolutionNote(item)}</Text>
                   <Text type="secondary" size="small">
                     {moment(item.created_at).format('MMM DD, YYYY HH:mm:ss Z')}
                   </Text>
@@ -636,22 +634,30 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     await this.update();
   };
 
-  getPlaceholderReplaceFn = (entity: any, history) => {
+  getPlaceholderReplaceFn = (entity: any) => {
     return (match: string) => {
       switch (match) {
         case 'author':
           return (
-            <span
-              onClick={() => history.push(`${PLUGIN_ROOT}/users/${entity?.author?.pk}`)}
-              style={{ textDecoration: 'underline', cursor: 'pointer' }}
-            >
-              {entity.author?.username}
-            </span>
+            <a href={`${PLUGIN_ROOT}/users/${entity?.author?.pk}`} target="_blank" rel="noopener noreferrer">
+              <Text underline>{entity.author?.username}</Text>
+            </a>
           );
         default:
           return '{{' + match + '}}';
       }
     };
+  };
+
+  replaceTextInResolutionNote = (item: TimeLineItem) => {
+    let replacedText: Parameters<typeof reactStringReplace>[0] = item.action;
+    replacedText = reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item));
+    replacedText = reactStringReplace(replacedText, VALID_URL_PATTERN, (match) => (
+      <a href={match} rel="noreferrer noopener" target="_blank">
+        <Text underline>{match}</Text>
+      </a>
+    ));
+    return replacedText;
   };
 
   getOnActionButtonClick = (incidentId: ApiSchemas['AlertGroup']['pk'], action: AlertAction) => {
