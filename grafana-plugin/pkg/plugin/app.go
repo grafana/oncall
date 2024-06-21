@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 )
 
@@ -64,4 +67,41 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 		Status:  backend.HealthStatusOk,
 		Message: "ok",
 	}, nil
+}
+
+// Check OnCallApi health
+func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSettings) (int, error) {
+	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/health")
+	if err != nil {
+		log.DefaultLogger.Error("Error joining path: %v", err)
+		return http.StatusInternalServerError, err
+	}
+
+	parsedHealthURL, err := url.Parse(healthURL)
+	if err != nil {
+		log.DefaultLogger.Error("Error parsing path: %v", err)
+		return http.StatusInternalServerError, err
+	}
+	
+	healthReq, err := http.NewRequest("GET", parsedHealthURL.String(), nil)
+	if err != nil {
+		log.DefaultLogger.Error("Error creating request: ", err)
+		return http.StatusBadRequest, err
+	}
+
+	client := &http.Client{
+		Timeout: 500 * time.Millisecond,
+	}
+	healthRes, err := client.Do(healthReq)
+	if err != nil {
+		log.DefaultLogger.Error("Error request to oncall: ", err)
+		return http.StatusBadRequest, err
+	}
+
+	if healthRes.StatusCode != http.StatusOK {
+		log.DefaultLogger.Error("Error request to oncall: ", err)
+		return http.StatusBadRequest, err
+	}
+
+	return http.StatusOK, nil
 }
