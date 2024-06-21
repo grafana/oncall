@@ -154,4 +154,4 @@ def uninstall_slack(stack_id: int, grafana_user_id: int) -> bool:
         )
         return False
 
-    return removed is True
+    return removed
