@@ -27,7 +27,7 @@ test('Fills in Rotation time and  reacts to timezone change', async ({ adminRole
   await page.getByRole('dialog').click(); // clear focus
 
   await page.getByTestId('timezone-select').locator('svg').click();
-  await page.getByText('viewer, editor', { exact: true }).click();
+  await page.getByText('GMT', { exact: true }).click();
 
   // expect times to go back by -3
   await expect(startEl.getByTestId('date-time-picker').getByRole('textbox')).toHaveValue('23:00');

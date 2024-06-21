@@ -48,6 +48,7 @@ import { DaysSelector } from 'containers/RotationForm/parts/DaysSelector';
 import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
 import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
+import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -62,7 +63,6 @@ import {
   toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
@@ -168,7 +168,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        setOffsetTop(await calculateOffsetTop());
+        setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
       }
     })();
   }, [isOpen]);
@@ -797,17 +797,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
   );
 
   async function onResize() {
-    setOffsetTop(await calculateOffsetTop());
+    setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
 
     setDraggablePosition({ x: 0, y: 0 });
-  }
-
-  async function calculateOffsetTop(): Promise<number> {
-    const queryClass = `.${cx('draggable')}`;
-    const modal = await waitForElement(queryClass);
-    const modalHeight = modal.clientHeight;
-
-    return document.documentElement.scrollHeight / 2 - modalHeight / 2;
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {

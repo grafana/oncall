@@ -10,12 +10,12 @@ import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { waitForElement } from 'utils/DOM';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
@@ -88,7 +88,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        setOffsetTop(await calculateOffsetTop());
+        setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
       }
     })();
   }, [isOpen]);
@@ -317,17 +317,9 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   );
 
   async function onResize() {
-    setOffsetTop(await calculateOffsetTop());
+    setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
 
     setDraggablePosition({ x: 0, y: 0 });
-  }
-
-  async function calculateOffsetTop() {
-    const queryClass = `.${cx('draggable')}`;
-    const modal = await waitForElement(queryClass);
-    const modalHeight = modal.clientHeight;
-
-    return document.documentElement.scrollHeight / 2 - modalHeight / 2;
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
