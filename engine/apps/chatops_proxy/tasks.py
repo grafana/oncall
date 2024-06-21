@@ -1,10 +1,13 @@
+from functools import partial
+
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
+from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .client import ChatopsProxyAPIClient, ChatopsProxyAPIException
-from .utils import register_oncall_tenant
+from .register_oncall_tenant import register_oncall_tenant
 
 task_logger = get_task_logger(__name__)
 
@@ -20,10 +23,23 @@ def register_oncall_tenant_async(**kwargs):
     service_type = kwargs.get("service_type")
     stack_id = kwargs.get("stack_id")
     stack_slug = kwargs.get("stack_slug")
+    org_id = kwargs.get("org_id")
 
-    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+    # Temporary hack to support both old and new set of arguments
+    if org_id:
+        try:
+            org = Organization.objects.get(pk=org_id)
+        except Organization.DoesNotExist:
+            task_logger.info(f"register_oncall_tenant_async: organization {org_id} was not found")
+            return
+        register_func = partial(register_oncall_tenant, org)
+    else:
+        client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
+        register_func = partial(
+            client.register_tenant, service_tenant_id, cluster_slug, service_type, stack_id, stack_slug
+        )
     try:
-        client.register_tenant(service_tenant_id, cluster_slug, service_type, stack_id, stack_slug)
+        register_func()
     except ChatopsProxyAPIException as api_exc:
         task_logger.error(
             f'msg="Failed to register OnCall tenant: {api_exc.msg}" service_tenant_id={service_tenant_id} cluster_slug={cluster_slug}'
@@ -131,8 +147,6 @@ def unlink_slack_team_async(**kwargs):
     max_retries=0,
 )
 def start_sync_org_with_chatops_proxy():
-    from apps.user_management.models import Organization
-
     organization_qs = Organization.objects.all()
     organization_pks = organization_qs.values_list("pk", flat=True)
 
@@ -148,8 +162,6 @@ def start_sync_org_with_chatops_proxy():
     max_retries=3,
 )
 def sync_org_with_chatops_proxy(**kwargs):
-    from apps.user_management.models import Organization
-
     organization_id = kwargs.get("organization_id")
     task_logger.info(f"sync_org_with_chatops_proxy: started org_id={organization_id}")
 

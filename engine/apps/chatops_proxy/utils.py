@@ -7,6 +7,7 @@ import typing
 from django.conf import settings
 
 from .client import PROVIDER_TYPE_SLACK, SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient, ChatopsProxyAPIException
+from .register_oncall_tenant import register_oncall_tenant
 from .tasks import (
     link_slack_team_async,
     register_oncall_tenant_async,
@@ -54,40 +55,21 @@ def register_oncall_tenant_with_async_fallback(org):
     to make sure that tenant is registered.
     First attempt is synchronous to register tenant ASAP to not miss any chatops requests.
     """
-    service_tenant_id = str(org.uuid)
-    cluster_slug = org.stack_slug
-    stack_id = org.stack_id
-
     try:
         register_oncall_tenant(org)
     except Exception as e:
-        logger.error(
-            f"create_oncall_connector: failed "
-            f"oncall_org_id={service_tenant_id} backend={cluster_slug} stack_id={stack_id} exc={e}"
-        )
+        logger.error(f"create_oncall_connector: failed organization_id={org}  exc={e}")
         register_oncall_tenant_async.apply_async(
             kwargs={
-                "service_tenant_id": service_tenant_id,
-                "cluster_slug": cluster_slug,
+                "service_tenant_id": str(org.uuid),
+                "cluster_slug": settings.ONCALL_BACKEND_REGION,
                 "service_type": SERVICE_TYPE_ONCALL,
-                "stack_id": stack_id,
+                "stack_id": org.stack_id,
+                "stack_slug": org.stack_slug,
+                "org_id": org.id,
             },
             countdown=2,
         )
-
-
-def register_oncall_tenant(org):
-    """
-    register_oncall_tenant registers tenant in chatops-proxy.
-    """
-    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
-    client.register_tenant(
-        str(org.uuid),
-        settings.ONCALL_BACKEND_REGION,
-        SERVICE_TYPE_ONCALL,
-        org.stack_id,
-        org.stack_slug,
-    )
 
 
 def unregister_oncall_tenant(service_tenant_id: str, cluster_slug: str):
