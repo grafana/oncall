@@ -137,7 +137,7 @@ k8s_yaml(yaml)
 # Generate and load the grafana deploy yaml
 configmap_create(
     "grafana-oncall-app-provisioning",
-    namespace="default",
+    namespace="stacks-0001",
     from_file="dev/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml",
 )
 
@@ -154,7 +154,7 @@ if not running_under_parent_tiltfile:
         grafana_version=grafana_version,
         context="grafana-plugin",
         plugin_files=["grafana-plugin/src/plugin.json"],
-        namespace="default",
+        namespace="stacks-0001",
         deps=["grafana-oncall-app-provisioning-configmap", "build-ui"],
         extra_env={
             "GF_SECURITY_ADMIN_PASSWORD": "oncall",
