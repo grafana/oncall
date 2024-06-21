@@ -7,11 +7,10 @@ import { test } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
 import { createOnCallSchedule } from '../utils/schedule';
+import { MOSCOW_TIMEZONE } from '../consts';
 
 dayjs.extend(utc);
 dayjs.extend(isoWeek);
-
-const MOSCOW_TIMEZONE = 'Europe/Moscow';
 
 test.use({ timezoneId: MOSCOW_TIMEZONE }); // GMT+3 the whole year
 const currentUtcTimeHour = dayjs().utc().format('HH');

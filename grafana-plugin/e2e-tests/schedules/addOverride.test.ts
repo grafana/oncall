@@ -3,6 +3,8 @@ import dayjs from 'dayjs';
 import { test, expect, Locator } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule, getOverrideFormDateInputs } from '../utils/schedule';
+import { setTimezoneInProfile } from '../utils/grafanaProfile';
+import { MOSCOW_TIMEZONE } from '../consts';
 
 test('Default dates in override creation modal are set to today', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
@@ -24,6 +26,8 @@ test('Default dates in override creation modal are set to today', async ({ admin
 test('Fills in override time and reacts to timezone change', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
+  await setTimezoneInProfile(page, MOSCOW_TIMEZONE); // UTC+3
+
   const onCallScheduleName = generateRandomValue();
   await createOnCallSchedule(page, onCallScheduleName, userName, false);
 
@@ -40,7 +44,7 @@ test('Fills in override time and reacts to timezone change', async ({ adminRoleP
   await page.getByRole('dialog').click(); // clear focus
 
   await page.getByTestId('timezone-select').locator('svg').click();
-  await page.getByTestId('timezone-select').getByText('GMT', { exact: true }).click();
+  await page.getByText('viewer, editor', { exact: true }).click();
 
   // expect times to go back by -3
   await expect(overrideStartEl.getByTestId('date-time-picker').getByRole('textbox')).toHaveValue('23:00');
