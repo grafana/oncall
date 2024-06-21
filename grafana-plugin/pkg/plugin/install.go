@@ -59,7 +59,7 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 	res, err := a.httpClient.Do(installReq)
 	if err != nil {
 		log.DefaultLogger.Error("Error request to oncall: ", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer res.Body.Close()
@@ -76,6 +76,7 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return
 		}
+		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		provisionBody, err := io.ReadAll(res.Body)
 		if err != nil {
@@ -96,6 +97,7 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 			log.DefaultLogger.Error("Error saving settings: ", err)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 	}
-	w.WriteHeader(http.StatusOK)
+
 }
