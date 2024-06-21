@@ -32,6 +32,7 @@ export class PluginStore {
   rootStore: RootBaseStore;
   connectionStatus?: PluginConnection;
   isPluginConnected = false;
+  appliedOnCallApiUrl = '';
 
   constructor(rootStore: RootBaseStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -41,6 +42,13 @@ export class PluginStore {
   private resetConnectionStatus() {
     this.connectionStatus = undefined;
     this.isPluginConnected = false;
+  }
+
+  async refreshAppliedOnCallApiUrl() {
+    const { jsonData } = await GrafanaApiClient.getGrafanaPluginSettings();
+    runInAction(() => {
+      this.appliedOnCallApiUrl = jsonData.onCallApiUrl;
+    });
   }
 
   @AutoLoadingState(ActionKey.PLUGIN_VERIFY_CONNECTION)

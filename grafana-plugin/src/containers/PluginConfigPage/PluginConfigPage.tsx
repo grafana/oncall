@@ -15,7 +15,6 @@ import { rootStore } from 'state/rootStore';
 import {
   DOCS_ONCALL_OSS_INSTALL,
   DOCS_SERVICE_ACCOUNTS,
-  getOnCallApiUrl,
   PLUGIN_CONFIG,
   PLUGIN_ROOT,
   REQUEST_HELP_URL,
@@ -30,10 +29,13 @@ type PluginConfigFormValues = {
 
 export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
   const {
-    pluginStore: { verifyPluginConnection },
+    pluginStore: { verifyPluginConnection, refreshAppliedOnCallApiUrl },
   } = rootStore;
 
-  useOnMount(verifyPluginConnection);
+  useOnMount(() => {
+    refreshAppliedOnCallApiUrl();
+    verifyPluginConnection();
+  });
 
   return (
     <VerticalGroup>
@@ -70,13 +72,14 @@ const OSSPluginConfigPage = observer(
         connectionStatus,
         recreateServiceAccountAndRecheckPluginStatus,
         isPluginConnected,
+        appliedOnCallApiUrl,
       },
       loaderStore,
     } = rootStore;
     const styles = useStyles2(getStyles);
     const { handleSubmit, control, formState } = useForm<PluginConfigFormValues>({
       mode: 'onChange',
-      defaultValues: { onCallApiUrl: getOnCallApiUrl(meta) },
+      values: { onCallApiUrl: appliedOnCallApiUrl },
     });
     const isReinitializating = loaderStore.isLoading(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE);
     const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT);
