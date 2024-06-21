@@ -64,6 +64,7 @@ const config = async (env): Promise<Configuration> => {
       ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
       new EnvironmentPlugin({
         ONCALL_API_URL: null,
+        NODE_ENV: 'development',
       }),
       new DefinePlugin({
         'process.env': JSON.stringify(dotenv.config().parsed),
