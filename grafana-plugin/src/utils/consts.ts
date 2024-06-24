@@ -39,6 +39,8 @@ export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall'
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
+export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => meta?.jsonData?.onCallApiUrl;
+
 export const getProcessEnvVarSafely = (name: string) => {
   try {
     return process.env[name];
@@ -49,16 +51,6 @@ export const getProcessEnvVarSafely = (name: string) => {
 };
 
 export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
-
-// Single source of truth on the frontend for OnCall API URL
-export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
-  if (meta?.jsonData?.onCallApiUrl) {
-    return meta?.jsonData?.onCallApiUrl;
-  } else if (typeof window === 'undefined') {
-    return getProcessEnvVarSafely('ONCALL_API_URL');
-  }
-  return undefined;
-};
 
 export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
 
