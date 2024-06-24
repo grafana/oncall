@@ -7,6 +7,7 @@ from apps.slack.types import EventPayload, EventType, MessageEventSubtype, Paylo
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -17,7 +18,8 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: Any new message in channel.

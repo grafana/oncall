@@ -15,6 +15,7 @@ from apps.slack.utils import SlackDateFormat, format_datetime_to_slack, format_d
 if typing.TYPE_CHECKING:
     from apps.schedules.models import ShiftSwapRequest
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -197,7 +198,8 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         from apps.schedules import exceptions
         from apps.schedules.models import ShiftSwapRequest

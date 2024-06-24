@@ -6,6 +6,7 @@ from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 
 class ProfileUpdateStep(scenario_step.ScenarioStep):
@@ -13,7 +14,8 @@ class ProfileUpdateStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: Any update in Slack Profile.

@@ -9,6 +9,7 @@ from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 
 class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
@@ -16,7 +17,8 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: Create or rename channel
@@ -41,7 +43,8 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: Delete channel
@@ -63,7 +66,8 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: Archive channel
@@ -84,7 +88,8 @@ class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: UnArchive channel

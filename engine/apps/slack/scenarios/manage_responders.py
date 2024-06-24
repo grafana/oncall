@@ -18,7 +18,8 @@ from apps.slack.types import Block, BlockActionType, EventPayload, ModalView, Pa
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
-    from apps.user_management.models import User
+    from apps.user_management.models import Organization, User
+
 
 MANAGE_RESPONDERS_USER_SELECT_ID = "responders_user_select"
 
@@ -35,7 +36,8 @@ class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
@@ -53,7 +55,8 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -99,7 +102,8 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -132,7 +136,8 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)

@@ -20,6 +20,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 
 class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
@@ -32,7 +33,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         action_type = payload["actions"][0]["type"]
         if action_type == BlockActionType.BUTTON:

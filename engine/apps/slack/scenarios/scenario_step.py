@@ -48,6 +48,7 @@ class ScenarioStep(object):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         pass
 

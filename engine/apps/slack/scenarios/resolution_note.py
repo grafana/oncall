@@ -38,6 +38,8 @@ from .step_mixins import AlertGroupActionsMixin
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -65,7 +67,8 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
         from apps.slack.models import SlackMessage, SlackUserIdentity
@@ -642,7 +645,8 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: "EventPayload",
+        organization: typing.Union["Organization", None] = None,
     ) -> None:
         from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
 
