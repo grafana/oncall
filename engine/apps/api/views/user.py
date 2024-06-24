@@ -234,6 +234,7 @@ class UserView(
         "send_test_sms": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "filters": [RBACPermission.Permissions.USER_SETTINGS_READ],
     }
 
     rbac_object_permissions = {
@@ -840,6 +841,31 @@ class UserView(
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+                "global": True,
+            },
+            {
+                "name": "is_currently_oncall",
+                "type": "boolean",
+                "display_name": "Is currently oncall",
+                "default": "true",
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)
 
 
 def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
