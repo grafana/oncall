@@ -854,12 +854,6 @@ class UserView(
                 "href": api_root + "teams/",
                 "global": True,
             },
-            {
-                "name": "is_currently_oncall",
-                "type": "boolean",
-                "display_name": "Is currently oncall",
-                "default": "true",
-            },
         ]
 
         if filter_name is not None:
