@@ -19,7 +19,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Triggered by action: Any new message in channel.

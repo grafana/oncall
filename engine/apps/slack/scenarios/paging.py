@@ -122,7 +122,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         input_id_prefix = _generate_input_id_prefix()
 
@@ -134,7 +134,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         private_metadata = {
             "channel_id": channel_id,
             "input_id_prefix": input_id_prefix,
-            "organization_id": organization.pk if organization else None,
+            "organization_id": predefined_org.pk if predefined_org else None,
             "submit_routing_uid": FinishDirectPaging.routing_uid(),
             DataKey.USERS: {},
         }
@@ -156,7 +156,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
@@ -250,7 +250,7 @@ class OnPagingOrgChange(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         updated_payload = reset_items(payload)
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
@@ -269,7 +269,7 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         view = render_dialog(slack_user_identity, slack_team_identity, payload)
         self._slack_client.views_update(
@@ -290,7 +290,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_user = _get_selected_user_from_payload(payload, private_metadata["input_id_prefix"])
@@ -344,7 +344,7 @@ class OnPagingItemActionChange(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         policy, key, user_pk = self._parse_action(payload)
 
@@ -370,7 +370,7 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         metadata = json.loads(payload["view"]["private_metadata"])
 
@@ -418,14 +418,10 @@ def render_dialog(
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
 
-    org = None
-    org_predefined = False
+    predefined_org = _get_predefined_org_from_private_metadata(private_metadata, slack_team_identity)
+
     available_organizations = []
-    if private_metadata.get("organization_id"):
-        org = slack_team_identity.organizations.filter(pk=private_metadata["organization_id"]).first()
-        org_predefined = True
-    else:
-        # Get organizations available to user
+    if predefined_org is None:
         available_organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
 
     if initial:
@@ -433,7 +429,7 @@ def render_dialog(
         new_input_id_prefix = _generate_input_id_prefix()
         new_private_metadata = private_metadata
         new_private_metadata["input_id_prefix"] = new_input_id_prefix
-        selected_organization = org if org_predefined else available_organizations.first()
+        selected_organization = predefined_org if predefined_org else available_organizations.first()
         is_team_selected, selected_team = False, None
     else:
         # setup form using data/state
@@ -441,8 +437,8 @@ def render_dialog(
             private_metadata
         )
         selected_organization = (
-            org
-            if org_predefined
+            predefined_org
+            if predefined_org
             else _get_selected_org_from_payload(payload, old_input_id_prefix, slack_team_identity, slack_user_identity)
         )
         is_team_selected, selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
@@ -461,7 +457,7 @@ def render_dialog(
 
     # Add organization select if org is not defined on chatops-proxy (it's should happen only in OSS)
     # and user has access to multiple orgs.
-    if not org_predefined and len(available_organizations) > 1:
+    if not predefined_org and len(available_organizations) > 1:
         organization_select = _get_organization_select(
             available_organizations, selected_organization, new_input_id_prefix
         )
@@ -593,6 +589,9 @@ def _get_predefined_org_from_private_metadata(
     private_metadata: dict,
     slack_team_identity: "SlackTeamIdentity",
 ) -> typing.Optional["Organization"]:
+    """
+    Returns organization from private metadata.
+    """
     org_id = private_metadata.get("organization_id")
     org = None
     if org_id:

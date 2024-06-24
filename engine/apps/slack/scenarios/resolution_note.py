@@ -68,7 +68,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
         from apps.slack.models import SlackMessage, SlackUserIdentity
@@ -646,7 +646,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
 

@@ -48,8 +48,18 @@ class ScenarioStep(object):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        organization: typing.Union["Organization", None] = None,
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
+        """
+        process_scenario executes the logic of the step on slack interaction.
+        Args:
+            slack_user_identity: SlackUserIdentity who interacted with slack
+            slack_team_identity: Slack Workspace where interaction happened
+            payload: EventPayload from slack
+            predefined_org:
+                Organization where interaction happened.
+                It's optionally defined by chatops-proxy for slash commands and should be used only in SlashCommands steps
+        """
         pass
 
     @classmethod
