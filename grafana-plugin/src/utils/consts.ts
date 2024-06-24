@@ -41,6 +41,17 @@ export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
 export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => meta?.jsonData?.onCallApiUrl;
 
+export const getProcessEnvVarSafely = (name: string) => {
+  try {
+    return process.env[name];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
+
+export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
+
 export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
 
 // Faro

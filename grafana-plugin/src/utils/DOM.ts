@@ -1,4 +1,4 @@
-export const waitForElement = (selector: string) => {
+export const waitForElement = (selector: string): Promise<Element> => {
   return new Promise((resolve) => {
     if (document.querySelector(selector)) {
       return resolve(document.querySelector(selector));

@@ -17,3 +17,5 @@ export enum OrgRole {
   Editor = 'Editor',
   Admin = 'Admin',
 }
+
+export const MOSCOW_TIMEZONE = 'Europe/Moscow';

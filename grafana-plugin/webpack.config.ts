@@ -1,4 +1,4 @@
-import { Configuration } from 'webpack';
+import { Configuration, EnvironmentPlugin } from 'webpack';
 import LiveReloadPlugin from 'webpack-livereload-plugin';
 import { mergeWithRules, CustomizeRule } from 'webpack-merge';
 
@@ -60,6 +60,9 @@ const config = async (env): Promise<Configuration> => {
     plugins: [
       ...(baseConfig.plugins?.filter((plugin) => !(plugin instanceof LiveReloadPlugin)) || []),
       ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
+      new EnvironmentPlugin({
+        NODE_ENV: 'development',
+      }),
     ],
   };
 
