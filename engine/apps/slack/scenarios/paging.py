@@ -424,7 +424,7 @@ def render_dialog(
 
     predefined_org = _get_predefined_org_from_private_metadata(private_metadata, slack_team_identity)
 
-    available_organizations = []
+    available_organizations = None
     if predefined_org is None:
         available_organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
 
