@@ -312,7 +312,9 @@ def test_grafana_escalate(
     response = _make_request(payload)
 
     assert response.status_code == status.HTTP_200_OK
-    mock_process_scenario.assert_called_once_with(slack_user_identity, slack_team_identity, payload)
+    mock_process_scenario.assert_called_once_with(
+        slack_user_identity, slack_team_identity, payload, predefined_org=None
+    )
 
 
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
