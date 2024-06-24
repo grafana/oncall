@@ -7,6 +7,7 @@ import typing
 from django.conf import settings
 
 from .client import PROVIDER_TYPE_SLACK, SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient, ChatopsProxyAPIException
+from .register_oncall_tenant import register_oncall_tenant
 from .tasks import (
     link_slack_team_async,
     register_oncall_tenant_async,
@@ -48,32 +49,24 @@ def get_slack_oauth_response_from_chatops_proxy(stack_id) -> dict:
     return slack_installation.oauth_response
 
 
-def register_oncall_tenant(service_tenant_id: str, cluster_slug: str, stack_id: int, stack_slug: str):
+def register_oncall_tenant_with_async_fallback(org):
     """
     register_oncall_tenant tries to register oncall tenant synchronously and fall back to task in case of any exceptions
     to make sure that tenant is registered.
     First attempt is synchronous to register tenant ASAP to not miss any chatops requests.
     """
-    client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
-        client.register_tenant(
-            service_tenant_id,
-            cluster_slug,
-            SERVICE_TYPE_ONCALL,
-            stack_id,
-            stack_slug,
-        )
+        register_oncall_tenant(org)
     except Exception as e:
-        logger.error(
-            f"create_oncall_connector: failed "
-            f"oncall_org_id={service_tenant_id} backend={cluster_slug} stack_id={stack_id} exc={e}"
-        )
+        logger.error(f"create_oncall_connector: failed organization_id={org}  exc={e}")
         register_oncall_tenant_async.apply_async(
             kwargs={
-                "service_tenant_id": service_tenant_id,
-                "cluster_slug": cluster_slug,
+                "service_tenant_id": str(org.uuid),
+                "cluster_slug": settings.ONCALL_BACKEND_REGION,
                 "service_type": SERVICE_TYPE_ONCALL,
-                "stack_id": stack_id,
+                "stack_id": org.stack_id,
+                "stack_slug": org.stack_slug,
+                "org_id": org.id,
             },
             countdown=2,
         )
@@ -147,7 +140,7 @@ def unlink_slack_team(service_tenant_id: str, slack_team_id: str):
 def uninstall_slack(stack_id: int, grafana_user_id: int) -> bool:
     """
     uninstall_slack uninstalls slack integration from chatops-proxy and returns bool indicating if it was removed.
-    If such installation does not exist - returns True as well.s
+    If such installation does not exist - returns True as well.
     """
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
@@ -161,4 +154,4 @@ def uninstall_slack(stack_id: int, grafana_user_id: int) -> bool:
         )
         return False
 
-    return removed is True
+    return removed
