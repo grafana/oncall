@@ -257,10 +257,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     });
   };
 
-  applyFilters = () => {
-    this.updateUsers();
-  };
-
   renderTitle = (user: ApiSchemas['User']) => {
     const {
       store: { userStore },
@@ -297,18 +293,6 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderImportantNotificationsChain = (user: ApiSchemas['User']) => {
     return user.notification_chain_verbal.important;
-  };
-
-  renderContacts = (user: ApiSchemas['User']) => {
-    const { store } = this.props;
-    return (
-      <div>
-        <div>Slack: {user.slack_user_identity?.name || '-'}</div>
-        {store.hasFeature(AppFeature.Telegram) && (
-          <div>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
-        )}
-      </div>
-    );
   };
 
   renderButtons = (user: ApiSchemas['User']) => {
