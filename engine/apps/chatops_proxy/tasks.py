@@ -42,22 +42,21 @@ def register_oncall_tenant_async(**kwargs):
     try:
         register_func()
     except ChatopsProxyAPIException as api_exc:
-        task_logger.error(
-            f'msg="Failed to register OnCall tenant: {api_exc.msg}" service_tenant_id={service_tenant_id} cluster_slug={cluster_slug}'
-        )
         # TODO: remove this check once new upsert tenant api is released
         if api_exc.status == 409:
             # 409 Indicates that it's impossible to register tenant, because tenant already registered.
             # Not retrying in this case, because manual conflict-resolution needed.
+            task_logger.info(f"register_oncall_tenant_async: tenant for organization {org_id} already exists")
             return
         else:
             # Otherwise keep retrying task
+            task_logger.error(
+                f"register_oncall_tenant_async: failed to register tenant for organization {org_id}: {api_exc.msg}"
+            )
             raise api_exc
     except Exception as e:
         # Keep retrying task for any other exceptions too
-        task_logger.error(
-            f"Failed to register OnCall tenant: {e}  service_tenant_id={service_tenant_id} cluster_slug={cluster_slug}"
-        )
+        task_logger.error(f"register_oncall_tenant_async: failed to register tenant for organization {org_id}: {e}")
         raise e
 
 
@@ -156,7 +155,7 @@ def start_sync_org_with_chatops_proxy():
     max_countdown = 60 * 30  # 30 minutes, feel free to adjust
     for idx, organization_pk in enumerate(organization_pks):
         countdown = idx % max_countdown
-        sync_org_with_chatops_proxy.apply_async((organization_pk,), countdown=countdown)
+        sync_org_with_chatops_proxy.apply_async(kwargs={"org_id": organization_pk}, countdown=countdown)
 
 
 @shared_dedicated_queue_retry_task(
@@ -167,13 +166,13 @@ def start_sync_org_with_chatops_proxy():
 def sync_org_with_chatops_proxy(**kwargs):
     from apps.user_management.models import Organization
 
-    organization_id = kwargs.get("organization_id")
-    task_logger.info(f"sync_org_with_chatops_proxy: started org_id={organization_id}")
+    org_id = kwargs.get("org_id")
+    task_logger.info(f"sync_org_with_chatops_proxy: started org_id={org_id}")
 
     try:
-        org = Organization.objects.get(pk=organization_id)
+        org = Organization.objects.get(pk=org_id)
     except Organization.DoesNotExist:
-        task_logger.info(f"Organization {organization_id} was not found")
+        task_logger.info(f"sync_org_with_chatops_proxy: organization {org_id} was not found")
         return
 
     try:
@@ -181,6 +180,7 @@ def sync_org_with_chatops_proxy(**kwargs):
     except ChatopsProxyAPIException as api_exc:
         # TODO: once tenants upsert api is released, remove this check
         if api_exc.status == 409:
+            task_logger.info(f"sync_org_with_chatops_proxy: tenant for organization {org_id} already exists")
             # 409 Indicates that it's impossible to register tenant, because tenant already registered.
             return
         raise api_exc
