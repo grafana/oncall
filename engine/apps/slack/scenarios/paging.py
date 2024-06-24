@@ -134,10 +134,14 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         private_metadata = {
             "channel_id": channel_id,
             "input_id_prefix": input_id_prefix,
-            "organization_id": predefined_org.pk if predefined_org else None,
             "submit_routing_uid": FinishDirectPaging.routing_uid(),
             DataKey.USERS: {},
         }
+        # We have access to predefined org only in StartDirectPaging, since it's a slash command.
+        # Chatops-Proxy adds a special header to slash commands payload to define the organization.
+        # Other Paging steps are triggered by buttons and actions,
+        # so we don't have access to predefined org and use private metadata instead.
+        private_metadata = _inject_predefined_org_to_private_metadata(predefined_org, private_metadata)
         initial_payload = {"view": {"private_metadata": json.dumps(private_metadata)}}
         view = render_dialog(slack_user_identity, slack_team_identity, initial_payload, initial=True)
         self._slack_client.views_open(
@@ -583,6 +587,18 @@ def _get_selected_org_from_payload(
     if selected_org_id is None:
         return _get_available_organizations(slack_team_identity, slack_user_identity).first()
     return Organization.objects.filter(pk=selected_org_id).first()
+
+
+def _inject_predefined_org_to_private_metadata(
+    predefined_org: typing.Optional["Organization"], private_metadata: dict
+) -> dict:
+    """
+    Injects predefined organization to private metadata.
+    Predefined org is org defined by chatops-proxy for slash commands.
+    """
+    if predefined_org:
+        private_metadata["organization_id"] = predefined_org.pk
+    return private_metadata
 
 
 def _get_predefined_org_from_private_metadata(
