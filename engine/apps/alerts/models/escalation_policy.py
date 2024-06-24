@@ -128,7 +128,10 @@ class EscalationPolicy(OrderedModel):
         ),
         STEP_FINAL_RESOLVE: ("Resolve alert group automatically", "Resolve alert group automatically"),
         # Slack
-        STEP_FINAL_NOTIFYALL: ("Escalate to all Slack channel members (use with caution)", "Escalate to all Slack channel members (use with caution)"),
+        STEP_FINAL_NOTIFYALL: (
+            "Escalate to all Slack channel members (use with caution)",
+            "Escalate to all Slack channel members (use with caution)",
+        ),
         STEP_NOTIFY_GROUP: (
             "Start {{importance}} notification for everyone from Slack User Group {{slack_user_group}}",
             "Notify Slack User Group",
