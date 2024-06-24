@@ -40,6 +40,7 @@ import {
   TimeUnit,
   timeUnitsToSeconds,
   TIME_UNITS_ORDER,
+  getDraggableModalCoordinatesOnInit,
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
 import { DateTimePicker } from 'containers/RotationForm/parts/DateTimePicker';
@@ -47,6 +48,7 @@ import { DaysSelector } from 'containers/RotationForm/parts/DaysSelector';
 import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
 import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
+import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -58,12 +60,11 @@ import {
   getUTCWeekStart,
   getWeekStartString,
   toDateWithTimezoneOffset,
+  toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
-import { useDebouncedCallback } from 'utils/hooks';
+import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
 
@@ -85,17 +86,11 @@ interface RotationFormProps {
 
 const getStartShift = (start: dayjs.Dayjs, timezoneOffset: number, isNewRotation = false) => {
   if (isNewRotation) {
-    // all new rotations default to midnight in selected timezone offset
-    return toDateWithTimezoneOffset(start, timezoneOffset)
-      .set('date', 1)
-      .set('year', start.year())
-      .set('month', start.month())
-      .set('date', start.date())
-      .set('hour', 0)
-      .set('minute', 0)
-      .set('second', 0);
+    // default to midnight for new rotations
+    return toDateWithTimezoneOffsetAtMidnight(start, timezoneOffset);
   }
 
+  // not always midnight
   return toDateWithTimezoneOffset(start, timezoneOffset);
 };
 
@@ -156,12 +151,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
-  useEffect(() => {
-    window.addEventListener('resize', debouncedOnResize);
-    return () => {
-      window.removeEventListener('resize', debouncedOnResize);
-    };
-  }, []);
+  useResize(debouncedOnResize);
 
   useEffect(() => {
     if (rotationStart.isBefore(shiftStart)) {
@@ -178,7 +168,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        setOffsetTop(await calculateOffsetTop());
+        setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
       }
     })();
   }, [isOpen]);
@@ -612,6 +602,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         Starts
                       </Text>
                     }
+                    data-testid="rotation-start"
                   >
                     <DateTimePicker
                       value={rotationStart}
@@ -636,6 +627,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         />
                       </HorizontalGroup>
                     }
+                    data-testid="rotation-end"
                   >
                     {endLess ? (
                       <div style={{ lineHeight: '32px' }}>
@@ -771,7 +763,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
+              <Text type="secondary">
+                Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
+              </Text>
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">
@@ -803,20 +797,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
   );
 
   async function onResize() {
-    setDraggablePosition({ x: 0, y: await calculateOffsetTop() });
-  }
+    setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
 
-  async function calculateOffsetTop(): Promise<number> {
-    const elm = await waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`);
-    const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-    const coords = getCoords(elm);
-
-    const offsetTop = Math.max(
-      Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
-      GRAFANA_HEADER_HEIGHT + 10
-    );
-
-    return offsetTop;
+    setDraggablePosition({ x: 0, y: 0 });
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
@@ -824,30 +807,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
-    const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
-    // top navbar display has 2 scrollbar-view elements (navbar & content)
-    const baseReferenceElRect = (
-      scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
-    ).getBoundingClientRect();
-
-    const { right, bottom } = baseReferenceElRect;
-
-    setDraggableBounds(
-      isTopNavbar()
-        ? {
-            // values are adjusted by any padding/margin differences
-            left: -data.node.offsetLeft + 4,
-            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-            top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
-            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-          }
-        : {
-            left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
-            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-            top: -offsetTop + 4,
-            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-          }
-    );
+    setDraggableBounds(getDraggableModalCoordinatesOnInit(data, offsetTop));
   }
 });
 

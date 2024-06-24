@@ -706,6 +706,13 @@ def _create_user_option_groups(
             }
         )
 
+    # Only inject chatops-proxy metadata into the first dropdown option to reduce payload size
+    # so the 250kb Slack limit is not exceeded for orgs with many users
+    if option_groups:
+        option_groups[0]["options"][0]["value"] = make_value(
+            json.loads(option_groups[0]["options"][0]["value"]), organization
+        )
+
     return option_groups
 
 

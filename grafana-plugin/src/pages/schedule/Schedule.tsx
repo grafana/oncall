@@ -417,7 +417,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         layerPriorityToShowRotationForm={layerPriorityToShowRotationForm}
                         onShowRotationForm={this.handleShowRotationForm}
                         onShowOverrideForm={this.handleShowOverridesForm}
-                        disabled={disabledRotationForm}
+                        disabled={Boolean(disabledRotationForm)}
                         filters={filters}
                         onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                         onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
@@ -431,9 +431,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         onUpdate={this.refreshEventsAndClearPreview}
                         onDelete={this.refreshEventsAndClearPreview}
                         shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
-                        onShowRotationForm={this.handleShowOverridesForm}
-                        disabled={disabledOverrideForm}
-                        disableShiftSwaps={disabledShiftSwaps}
+                        onShowOverridesForm={this.handleShowOverridesForm}
+                        disabled={Boolean(disabledOverrideForm)}
+                        disableShiftSwaps={Boolean(disabledShiftSwaps)}
                         shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                         shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
                         onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
