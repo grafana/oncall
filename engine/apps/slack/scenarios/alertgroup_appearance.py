@@ -18,6 +18,7 @@ from .step_mixins import AlertGroupActionsMixin
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 
 class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -27,8 +28,8 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-        organization=None,
+        payload: "EventPayload",
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
@@ -76,8 +77,8 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-        organization=None,
+        payload: "EventPayload",
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         from apps.alerts.models import AlertGroup
 

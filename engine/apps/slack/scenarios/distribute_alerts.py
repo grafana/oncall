@@ -223,8 +223,8 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-        organization=None,
+        payload: "EventPayload",
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         pass
 

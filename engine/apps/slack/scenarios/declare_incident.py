@@ -5,6 +5,7 @@ from apps.slack.types import BlockActionType, EventPayload, PayloadType, Scenari
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization
 
 
 class DeclareIncidentStep(scenario_step.ScenarioStep):
@@ -12,8 +13,8 @@ class DeclareIncidentStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-        organization=None,
+        payload: "EventPayload",
+        predefined_org: typing.Union["Organization", None] = None,
     ) -> None:
         """
         Slack sends a POST request to the backend upon clicking a button with a redirect link to Incident.
