@@ -4,13 +4,13 @@ import { HTML_ID } from 'utils/DOM';
 
 import { expect, test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
-import { createOnCallScheduleWithRotation } from '../utils/schedule';
+import { createOnCallSchedule } from '../utils/schedule';
 
 test.skip('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
   const onCallScheduleName = generateRandomValue();
-  await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
+  await createOnCallSchedule(page, onCallScheduleName, userName);
 
   // ScheduleView.OneWeek is selected by default
   expect(await page.getByLabel(ScheduleView.OneWeek, { exact: true }).isChecked()).toBe(true);
