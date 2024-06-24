@@ -29,7 +29,13 @@ SLACK_BOT_USER_ID = "mncvnmvcmnvcmncv,,cx,"
 SLACK_USER_ID = "iurtiurituritu"
 
 
-def _make_request(payload):
+def _make_request(payload, predefined_org=None):
+    headers = {
+        "HTTP_X_SLACK_SIGNATURE": "asdfasdf",
+        "HTTP_X_SLACK_REQUEST_TIMESTAMP": "xxcxcvx",
+    }
+    if predefined_org:
+        headers["HTTP_X_CHATOPS_STACK_ID"] = predefined_org.stack_id
     return APIClient().post(
         "/slack/interactive_api_endpoint/",
         format="json",
@@ -320,6 +326,49 @@ def test_grafana_escalate(
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch.object(StartDirectPaging, "process_scenario")
 @pytest.mark.django_db
+def test_grafana_escalate_with_org_from_chatops_proxy_defines_org(
+    mock_process_scenario,
+    _mock_verify_signature,
+    make_organization,
+    make_slack_user_identity,
+    make_user,
+    slack_team_identity,
+):
+    """
+    Check StartDirectPaging.process_scenario gets called when a user types /grafana escalate.
+    UnifiedSlackApp commands are prefixed with /grafana.
+    """
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    make_user(organization=organization, slack_user_identity=slack_user_identity)
+
+    payload = {
+        "token": "gIkuvaNzQIHg97ATvDxqgjtO",
+        "team_id": slack_team_identity.slack_id,
+        "team_domain": "example",
+        "enterprise_id": "E0001",
+        "enterprise_name": "Globular%20Construct%20Inc",
+        "channel_id": "C2147483705",
+        "channel_name": "test",
+        "user_id": slack_user_identity.slack_id,
+        "user_name": "Steve",
+        "command": "/grafana",
+        "text": "escalate",
+        "response_url": "https://hooks.slack.com/commands/1234/5678",
+        "trigger_id": "13345224609.738474920.8088930838d88f008e0",
+        "api": "api_value",
+    }
+    response = _make_request(payload, predefined_org=organization)
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_process_scenario.assert_called_once_with(
+        slack_user_identity, slack_team_identity, payload, predefined_org=organization
+    )
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch.object(StartDirectPaging, "process_scenario")
+@pytest.mark.django_db
 def test_escalate(
     mock_process_scenario,
     _mock_verify_signature,
@@ -355,4 +404,6 @@ def test_escalate(
     response = _make_request(payload)
 
     assert response.status_code == status.HTTP_200_OK
-    mock_process_scenario.assert_called_once_with(slack_user_identity, slack_team_identity, payload)
+    mock_process_scenario.assert_called_once_with(
+        slack_user_identity, slack_team_identity, payload, predefined_org=None
+    )
