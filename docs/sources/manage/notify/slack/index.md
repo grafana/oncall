@@ -135,7 +135,7 @@ and users:
 Once your Slack integration is configured you can configure Escalation Chains to notify via Slack messages for alerts
 in Grafana OnCall.
 
-There are two Slack notification options that you can configure into escalation chains, notify whole Slack channel and
+There are two Slack notification options that you can configure into escalation chains, escalate to all slack channel members and
 notify Slack user group:
 
 1. In Grafana OnCall, navigate to the **Escalation Chains** tab then select an existing escalation chain or
