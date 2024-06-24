@@ -40,10 +40,7 @@ def _make_request(payload, predefined_org=None):
         "/slack/interactive_api_endpoint/",
         format="json",
         data=payload,
-        **{
-            "HTTP_X_SLACK_SIGNATURE": "asdfasdf",
-            "HTTP_X_SLACK_REQUEST_TIMESTAMP": "xxcxcvx",
-        },
+        **headers,
     )
 
 

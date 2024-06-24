@@ -364,6 +364,7 @@ class SlackEventApiEndpointView(APIView):
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
                         org = get_org_from_chatops_proxy_header(request, slack_team_identity)
+                        print("YOLO ORG", org)
                         step.process_scenario(slack_user_identity, slack_team_identity, payload, predefined_org=org)
                         step_was_found = True
 
