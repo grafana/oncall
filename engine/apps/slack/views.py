@@ -597,7 +597,7 @@ def get_org_from_chatops_proxy_header(request, slack_team_identity) -> Organizat
     """
     get_org_from_chatops_proxy_header extracts organization from the X-Chatops-Stack-ID header injected by chatops-proxy
     """
-    stack_id = request.META.get("X_CHATOPS_STACK_ID")
+    stack_id = request.META.get("HTTP_X_CHATOPS_STACK_ID")
     org = None
     if stack_id:
         try:
