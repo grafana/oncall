@@ -20,6 +20,7 @@ import {
   withTheme2,
   useStyles2,
 } from '@grafana/ui';
+import Linkify from 'linkify-react';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -64,7 +65,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
 import { sanitize } from 'utils/sanitize';
-import { VALID_URL_PATTERN } from 'utils/string';
 import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
@@ -568,7 +568,19 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       {ResolutionNoteSourceTypesToDisplayName[item.type] || 'Web'}
                     </Text>
                   )}
-                  <Text type="primary">{this.replaceTextInResolutionNote(item)}</Text>
+                  <Text type="primary">
+                    <Linkify
+                      options={{
+                        render: ({ attributes, content }) => (
+                          <a {...attributes} rel="noreferrer noopener" target="_blank">
+                            <Text underline>{content}</Text>
+                          </a>
+                        ),
+                      }}
+                    >
+                      {this.replaceTextInResolutionNote(item)}
+                    </Linkify>
+                  </Text>
                   <Text type="secondary" size="small">
                     {moment(item.created_at).format('MMM DD, YYYY HH:mm:ss Z')}
                   </Text>
@@ -649,16 +661,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     };
   };
 
-  replaceTextInResolutionNote = (item: TimeLineItem) => {
-    let replacedText: Parameters<typeof reactStringReplace>[0] = item.action;
-    replacedText = reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item));
-    replacedText = reactStringReplace(replacedText, VALID_URL_PATTERN, (match) => (
-      <a href={match} rel="noreferrer noopener" target="_blank">
-        <Text underline>{match}</Text>
-      </a>
-    ));
-    return replacedText;
-  };
+  replaceTextInResolutionNote = (item: TimeLineItem) =>
+    reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item));
 
   getOnActionButtonClick = (incidentId: ApiSchemas['AlertGroup']['pk'], action: AlertAction) => {
     const { store } = this.props;

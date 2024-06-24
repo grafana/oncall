@@ -26,8 +26,6 @@ export const safeJSONStringify = (value: unknown) => {
   }
 };
 
-export const VALID_URL_PATTERN = /(https?:\/\/[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,})/;
-
 export function validateURL(urlFieldValue: string): string | boolean {
   return !parseURL(urlFieldValue) ? 'URL is invalid' : true;
 }
