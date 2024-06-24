@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 import re
 import typing
@@ -9,7 +8,7 @@ import pytz
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -76,85 +75,7 @@ def default_working_hours():
 
 
 class UserManager(models.Manager["User"]):
-    @staticmethod
-    def sync_for_team(team, api_members: list[dict]):
-        user_ids = tuple(member["userId"] for member in api_members)
-        users = team.organization.users.filter(user_id__in=user_ids)
-        team.users.set(users)
-
-    @staticmethod
-    def sync_for_organization(organization, api_users: list[dict]):
-        from apps.base.models import UserNotificationPolicy
-
-        grafana_users = {user["userId"]: user for user in api_users}
-        existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
-
-        # create missing users
-        users_to_create = tuple(
-            User(
-                organization_id=organization.pk,
-                user_id=user["userId"],
-                email=user["email"],
-                name=user["name"],
-                username=user["login"],
-                role=getattr(LegacyAccessControlRole, user["role"].upper(), LegacyAccessControlRole.NONE),
-                avatar_url=user["avatarUrl"],
-                permissions=user["permissions"],
-            )
-            for user in grafana_users.values()
-            if user["userId"] not in existing_user_ids
-        )
-
-        with transaction.atomic():
-            organization.users.bulk_create(users_to_create, batch_size=5000)
-            # Retrieve primary keys for the newly created users
-            #
-            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
-            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
-            # On other databases, it will not be set.
-            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            created_users = organization.users.exclude(user_id__in=existing_user_ids)
-
-            policies_to_create = ()
-            for user in created_users:
-                policies_to_create = policies_to_create + user.default_notification_policies_defaults
-                policies_to_create = policies_to_create + user.important_notification_policies_defaults
-            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
-
-        # delete excess users
-        user_ids_to_delete = existing_user_ids - grafana_users.keys()
-        organization.users.filter(user_id__in=user_ids_to_delete).delete()
-
-        # update existing users if any fields have changed
-        users_to_update = []
-        for user in organization.users.filter(user_id__in=existing_user_ids):
-            grafana_user = grafana_users[user.user_id]
-            g_user_role = getattr(LegacyAccessControlRole, grafana_user["role"].upper(), LegacyAccessControlRole.NONE)
-
-            if (
-                user.email != grafana_user["email"]
-                or user.name != grafana_user["name"]
-                or user.username != grafana_user["login"]
-                or user.role != g_user_role
-                or user.avatar_url != grafana_user["avatarUrl"]
-                # instead of looping through the array of permission objects, simply take the hash
-                # of the string representation of the data structures and compare.
-                # Need to first convert the lists of objects to strings because lists/dicts are not hashable
-                # (because lists and dicts are not hashable.. as they are mutable)
-                # https://stackoverflow.com/a/22003440
-                or hash(json.dumps(user.permissions)) != hash(json.dumps(grafana_user["permissions"]))
-            ):
-                user.email = grafana_user["email"]
-                user.name = grafana_user["name"]
-                user.username = grafana_user["login"]
-                user.role = g_user_role
-                user.avatar_url = grafana_user["avatarUrl"]
-                user.permissions = grafana_user["permissions"]
-                users_to_update.append(user)
-
-        organization.users.bulk_update(
-            users_to_update, ["email", "name", "username", "role", "avatar_url", "permissions"], batch_size=5000
-        )
+    pass
 
 
 class UserQuerySet(models.QuerySet):

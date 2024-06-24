@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"net/http"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 type OnCallSync struct {
@@ -86,6 +87,7 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 func (a *App) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/plugin/install", a.handleInstall)
 	mux.HandleFunc("/plugin/status", a.handleStatus)
+	mux.HandleFunc("/plugin/sync", a.handleSync)
 
 	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleLegacyInstall))
 
