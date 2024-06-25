@@ -92,7 +92,7 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
       padding: ${theme.spacing(0, 1)};
       background-color: ${theme.colors.background.secondary};
       font-weight: ${theme.typography.fontWeightMedium};
-      font-size: ${theme.typography.size.sm};
+      font-size: ${theme.typography.bodySmall.fontSize};
       height: ${theme.spacing(theme.components.height.md)};
     `,
 
