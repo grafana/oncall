@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 
+import { css } from '@emotion/css';
 import { GrafanaTheme2, KeyValue, SelectableValue, TimeRange } from '@grafana/data';
 import {
   InlineSwitch,
@@ -11,7 +12,6 @@ import {
   Icon,
   Tooltip,
   Button,
-  InlineLabel,
   withTheme2,
   Themeable2,
 } from '@grafana/ui';
@@ -36,8 +36,6 @@ import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
-
-import { css } from '@emotion/css';
 
 interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
