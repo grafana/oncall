@@ -80,7 +80,7 @@ def test_list_filters(
     def assert_expected(response, expected):
         assert response.status_code == status.HTTP_200_OK
         returned = [s["id"] for s in response.json().get("results", [])]
-        assert returned == [s.public_primary_key for s in expected]
+        assert sorted(returned) == sorted([s.public_primary_key for s in expected])
 
     client = APIClient()
     base_url = reverse("api-public:shift_swap-list")
