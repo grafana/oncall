@@ -67,8 +67,8 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 
     FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF = 1000
 
-    is_root = filters.BooleanFilter(field_name="root_alert_group", lookup_expr="isnull")
     status = filters.MultipleChoiceFilter(choices=AlertGroup.STATUS_CHOICES, method="filter_status")
+    is_root = filters.BooleanFilter(field_name="root_alert_group", lookup_expr="isnull")
     started_at = filters.CharFilter(
         field_name="started_at",
         method=DateRangeFilterMixin.filter_date_range.__name__,
@@ -230,7 +230,7 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
 
 
 class AlertGroupSearchFilter(SearchFilter):
-    SEARCH_CUTOFF_DAYS = 30
+    SEARCH_CUTOFF_DAYS = 365
 
     def filter_queryset(self, request, queryset, view):
         search_fields = self.get_search_fields(view, request)
@@ -292,7 +292,7 @@ class AlertGroupView(
 
     pagination_class = AlertGroupCursorPaginator
 
-    filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
+    filter_backends = [filters.DjangoFilterBackend, AlertGroupSearchFilter]
     search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
     filterset_class = AlertGroupFilter
 
