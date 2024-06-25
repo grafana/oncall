@@ -86,6 +86,16 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
       display: none;
     `,
 
+    withBackground: css`
+      display: flex;
+      align-items: center;
+      padding: ${theme.spacing(0, 1)};
+      background-color: ${theme.colors.background.secondary};
+      font-weight: ${theme.typography.fontWeightMedium};
+      font-size: ${theme.typography.size.sm};
+      height: ${theme.spacing(theme.components.height.md)};
+    `,
+
     maxWidth: css`
       text-overflow: ellipsis;
       white-space: nowrap;
