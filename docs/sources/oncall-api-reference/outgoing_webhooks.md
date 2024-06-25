@@ -1,10 +1,10 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
-title: Outgoing Webhooks HTTP API
+title: Outgoing webhooks HTTP API
 weight: 700
 ---
 
-# Outgoing Webhooks
+# Outgoing webhooks
 
 > ⚠️ A note about actions: Before version **v1.3.11** webhooks existed as actions within the API, the /actions
 > endpoint remains available and is compatible with previous callers but under the hood it will interact with the

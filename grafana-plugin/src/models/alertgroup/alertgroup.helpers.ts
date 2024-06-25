@@ -1,6 +1,8 @@
+import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
+import { AutoLoadingState } from 'utils/decorators';
 
 import { AlertGroupStore } from './alertgroup';
 
@@ -31,6 +33,26 @@ export class AlertGroupHelper {
 
   static async bulkAction(data: ApiSchemas['AlertGroupBulkActionRequest']) {
     return (await onCallApi().POST('/alertgroups/bulk_action/', { params: {}, body: data })).data;
+  }
+
+  @AutoLoadingState(ActionKey.INCIDENTS_BULK_UPDATE)
+  static async updateBulkActionAndRefresh(
+    data: ApiSchemas['AlertGroupBulkActionRequest'],
+    alertGroupStore: AlertGroupStore,
+    onFinally?: () => void
+  ) {
+    try {
+      alertGroupStore.setLiveUpdatesPaused(true);
+
+      await AlertGroupHelper.bulkAction(data);
+
+      // pull new data
+      await alertGroupStore.fetchAlertGroups();
+    } finally {
+      alertGroupStore.setLiveUpdatesPaused(false);
+
+      onFinally?.();
+    }
   }
 
   static async renderPreview(id: ApiSchemas['AlertGroup']['pk'], template_name: string, template_body: string) {

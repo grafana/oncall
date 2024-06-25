@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.chatops_proxy.utils import uninstall_slack as uninstall_slack_from_chatops_proxy
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
@@ -41,6 +42,7 @@ from apps.user_management.models import Organization
 from .errors import SlackAPITokenError
 from .installation import SlackInstallationExc, uninstall_slack_integration
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
+from .slash_command import SlashCommand
 
 SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
@@ -354,7 +356,10 @@ class SlackEventApiEndpointView(APIView):
 
                 # Slash commands have to "type"
                 if payload_command and route_payload_type == PayloadType.SLASH_COMMAND:
-                    if payload_command in route["command_name"]:
+                    cmd = SlashCommand.parse(payload)
+                    # Check both command and subcommand for backward compatibility
+                    # So both /grafana escalate and /escalate will work.
+                    if cmd.command in route["command_name"] or cmd.subcommand in route["command_name"]:
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
@@ -569,8 +574,19 @@ class ResetSlackView(APIView):
                 "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
                 status=400,
             )
+        if settings.UNIFIED_SLACK_APP_ENABLED:
+            # If unified slack app is enabled - uninstall slack integration from chatops-proxy first and on success -
+            # uninstall it from OnCall.
+            removed = uninstall_slack_from_chatops_proxy(request.user.organization.stack_id, request.user.user_id)
+        else:
+            # just a placeholder value to continute uninstallation until UNIFIED_SLACK_APP_ENABLED is not enabled
+            removed = True
+        if not removed:
+            return Response({"error": "Failed to uninstall slack integration"}, status=500)
+
         try:
             uninstall_slack_integration(request.user.organization, request.user)
         except SlackInstallationExc as e:
             return Response({"error": e.error_message}, status=400)
+
         return Response(status=200)

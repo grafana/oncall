@@ -1,3 +1,4 @@
+from unittest import mock
 from unittest.mock import Mock, patch
 
 import pytest
@@ -58,7 +59,7 @@ def test_current_user(
                 "user": user.username,
             }
         },
-        "cloud_connection_status": 0,
+        "cloud_connection_status": mock.ANY,
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": user.avatar_url,

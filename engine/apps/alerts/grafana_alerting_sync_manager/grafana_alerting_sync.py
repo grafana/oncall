@@ -203,7 +203,7 @@ class GrafanaAlertingSyncManager:
         if config is None:
             logger.warning(
                 f"GrafanaAlertingSyncManager: Got config None in get_alerting_config_for_datasource "
-                f"for is_grafana_datasource {datasource_uid==cls.GRAFANA_ALERTING_DATASOURCE}, "
+                f"for is_grafana_datasource {datasource_uid == cls.GRAFANA_ALERTING_DATASOURCE}, "
                 f"response: {response_info}"
             )
             return
@@ -232,7 +232,7 @@ class GrafanaAlertingSyncManager:
         if response is None:
             logger.warning(
                 f"GrafanaAlertingSyncManager: Failed to update contact point (POST) for is_grafana_datasource "
-                f"{datasource_uid==cls.GRAFANA_ALERTING_DATASOURCE}; response: {response_info}"
+                f"{datasource_uid == cls.GRAFANA_ALERTING_DATASOURCE}; response: {response_info}"
             )
             if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
                 logger.warning(f"GrafanaAlertingSyncManager: Config: {config}, Updated config: {updated_config}")

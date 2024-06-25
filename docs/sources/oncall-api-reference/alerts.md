@@ -4,7 +4,9 @@ title: Alerts HTTP API
 weight: 100
 ---
 
-# List Alerts
+# Alerts HTTP API
+
+## List Alerts
 
 ```shell
 curl "{{API_URL}}/api/v1/alerts/" \

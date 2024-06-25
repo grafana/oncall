@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
+  Alert,
   Button,
   Field,
   HorizontalGroup,
@@ -39,6 +40,7 @@ import {
   TimeUnit,
   timeUnitsToSeconds,
   TIME_UNITS_ORDER,
+  getDraggableModalCoordinatesOnInit,
 } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
 import { DateTimePicker } from 'containers/RotationForm/parts/DateTimePicker';
@@ -46,23 +48,23 @@ import { DaysSelector } from 'containers/RotationForm/parts/DaysSelector';
 import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
 import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
+import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import {
   getDateTime,
   getSelectedDays,
-  getStartOfWeekBasedOnCurrentDate,
   getUTCByDay,
   getUTCString,
   getUTCWeekStart,
   getWeekStartString,
+  toDateWithTimezoneOffset,
+  toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
-import { useDebouncedCallback } from 'utils/hooks';
+import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
 
@@ -82,8 +84,19 @@ interface RotationFormProps {
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
+const getStartShift = (start: dayjs.Dayjs, timezoneOffset: number, isNewRotation = false) => {
+  if (isNewRotation) {
+    // default to midnight for new rotations
+    return toDateWithTimezoneOffsetAtMidnight(start, timezoneOffset);
+  }
+
+  // not always midnight
+  return toDateWithTimezoneOffset(start, timezoneOffset);
+};
+
 export const RotationForm = observer((props: RotationFormProps) => {
   const store = useStore();
+
   const {
     onHide,
     onCreate,
@@ -92,7 +105,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     onDelete,
     layerPriority,
     shiftId,
-    shiftStart: propsShiftStart = getStartOfWeekBasedOnCurrentDate(store.timezoneStore.currentDateInSelectedTimezone),
+    shiftStart: propsShiftStart = store.timezoneStore.calendarStartDate,
     shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
     onShowRotationForm,
@@ -101,7 +114,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const shift = store.scheduleStore.shifts[shiftId];
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
-
   const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
     undefined
   );
@@ -111,13 +123,19 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [offsetTop, setOffsetTop] = useState<number>(GRAFANA_HEADER_HEIGHT + 10);
   const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
-  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(
+    getStartShift(propsShiftStart, store.timezoneStore.selectedTimezoneOffset, shiftId === 'new')
+  );
+
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(
+    propsShiftEnd?.utcOffset(store.timezoneStore.selectedTimezoneOffset) || shiftStart.add(1, 'day')
+  );
+
   const [activePeriod, setActivePeriod] = useState<number | undefined>(undefined);
   const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
 
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
-  const [endLess, setEndless] = useState<boolean>(true);
+  const [endLess, setEndless] = useState<boolean>(shift?.until === undefined ? true : !Boolean(shift.until));
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
@@ -133,12 +151,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
-  useEffect(() => {
-    window.addEventListener('resize', debouncedOnResize);
-    return () => {
-      window.removeEventListener('resize', debouncedOnResize);
-    };
-  }, []);
+  useResize(debouncedOnResize);
 
   useEffect(() => {
     if (rotationStart.isBefore(shiftStart)) {
@@ -155,7 +168,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     (async () => {
       if (isOpen) {
-        setOffsetTop(await calculateOffsetTop());
+        setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
       }
     })();
   }, [isOpen]);
@@ -248,10 +261,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
       shift,
       endLess,
       rotationName,
+      store.timezoneStore.selectedTimezoneOffset,
     ]
   );
 
-  useEffect(handleChange, [params, store.timezoneStore.calendarStartDate]);
+  useEffect(handleChange, [params, store.timezoneStore.calendarStartDate, store.timezoneStore.selectedTimezoneOffset]);
 
   const create = useCallback(async () => {
     try {
@@ -330,28 +344,22 @@ export const RotationForm = observer((props: RotationFormProps) => {
     }
   };
 
-  const handleRotationStartChange = useCallback(
-    (value) => {
-      setRotationStart(value);
-      setShiftStart(value);
-      if (showActiveOnSelectedPartOfDay) {
-        setShiftEnd(
-          dayJSAddWithDSTFixed({
+  const handleRotationStartChange = (value: dayjs.Dayjs) => {
+    setRotationStart(value);
+    setShiftStart(value);
+
+    setShiftEnd(
+      showActiveOnSelectedPartOfDay
+        ? dayJSAddWithDSTFixed({
             baseDate: value,
             addParams: [activePeriod, 'seconds'],
           })
-        );
-      } else {
-        setShiftEnd(
-          dayJSAddWithDSTFixed({
+        : dayJSAddWithDSTFixed({
             baseDate: value,
             addParams: [repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]],
           })
-        );
-      }
-    },
-    [showActiveOnSelectedPartOfDay, activePeriod, repeatEveryPeriod, repeatEveryValue]
-  );
+    );
+  };
 
   const handleActivePeriodChange = useCallback(
     (value) => {
@@ -435,15 +443,23 @@ export const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     if (shift) {
       setRotationName(getShiftName(shift));
-      const shiftStart = getDateTime(shift.shift_start);
+
       // use shiftStart as rotationStart for existing shifts
       // (original rotationStart defaulted to the shift creation timestamp)
+      const shiftStart = toDateWithTimezoneOffset(dayjs(shift.shift_start), store.timezoneStore.selectedTimezoneOffset);
+
       setRotationStart(shiftStart);
-      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
+      setRotationEnd(
+        toDateWithTimezoneOffset(
+          // always keep the date offseted
+          shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'),
+          store.timezoneStore.selectedTimezoneOffset
+        )
+      );
       setShiftStart(shiftStart);
-      const shiftEnd = getDateTime(shift.shift_end);
+
+      const shiftEnd = toDateWithTimezoneOffset(dayjs(shift.shift_end), store.timezoneStore.selectedTimezoneOffset);
       setShiftEnd(shiftEnd);
-      setEndless(!shift.until);
 
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
@@ -475,6 +491,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   useEffect(() => {
     if (shift) {
+      // for existing rotations
+      handleRotationStartChange(toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset));
+      setRotationEnd(toDateWithTimezoneOffset(rotationEnd, store.timezoneStore.selectedTimezoneOffset));
+
       setSelectedDays(
         getSelectedDays({
           dayOptions: store.scheduleStore.byDayOptions,
@@ -482,6 +502,14 @@ export const RotationForm = observer((props: RotationFormProps) => {
           moment: store.timezoneStore.getDateInSelectedTimezone(shiftStart),
         })
       );
+    } else {
+      // for new rotations
+      handleRotationStartChange(toDateWithTimezoneOffset(rotationStart, store.timezoneStore.selectedTimezoneOffset));
+
+      setShiftEnd(toDateWithTimezoneOffset(shiftEnd, store.timezoneStore.selectedTimezoneOffset));
+
+      // not behind an "if" such that it will reflect correct value after toggle gets switched
+      setRotationEnd(toDateWithTimezoneOffset(rotationEnd, store.timezoneStore.selectedTimezoneOffset));
     }
   }, [store.timezoneStore.selectedTimezoneOffset]);
 
@@ -561,14 +589,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   </Block>
                 )}
                 {!hasUpdatedShift && ended && (
-                  <Block bordered className={cx('updated-shift-info')}>
+                  <div className={cx('updated-shift-info')}>
                     <VerticalGroup>
-                      <HorizontalGroup>
-                        <Icon name="info-circle" size="md"></Icon>
-                        <Text>This rotation is over</Text>
-                      </HorizontalGroup>
+                      <Alert severity="info" title={(<Text>This rotation is over</Text>) as unknown as string} />
                     </VerticalGroup>
-                  </Block>
+                  </div>
                 )}
                 <div className={cx('two-fields')}>
                   <Field
@@ -577,9 +602,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         Starts
                       </Text>
                     }
+                    data-testid="rotation-start"
                   >
                     <DateTimePicker
                       value={rotationStart}
+                      utcOffset={store.timezoneStore.selectedTimezoneOffset}
                       onChange={handleRotationStartChange}
                       error={errors.rotation_start}
                       disabled={disabled}
@@ -600,6 +627,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                         />
                       </HorizontalGroup>
                     }
+                    data-testid="rotation-end"
                   >
                     {endLess ? (
                       <div style={{ lineHeight: '32px' }}>
@@ -608,6 +636,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     ) : (
                       <DateTimePicker
                         value={rotationEnd}
+                        utcOffset={store.timezoneStore.selectedTimezoneOffset}
                         onChange={setRotationEnd}
                         error={errors.until}
                         disabled={disabled}
@@ -734,7 +763,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
+              <Text type="secondary">
+                Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
+              </Text>
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">
@@ -766,20 +797,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
   );
 
   async function onResize() {
-    setDraggablePosition({ x: 0, y: await calculateOffsetTop() });
-  }
+    setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
 
-  async function calculateOffsetTop(): Promise<number> {
-    const elm = await waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`);
-    const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-    const coords = getCoords(elm);
-
-    const offsetTop = Math.max(
-      Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
-      GRAFANA_HEADER_HEIGHT + 10
-    );
-
-    return offsetTop;
+    setDraggablePosition({ x: 0, y: 0 });
   }
 
   function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
@@ -787,30 +807,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
-    const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
-    // top navbar display has 2 scrollbar-view elements (navbar & content)
-    const baseReferenceElRect = (
-      scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
-    ).getBoundingClientRect();
-
-    const { right, bottom } = baseReferenceElRect;
-
-    setDraggableBounds(
-      isTopNavbar()
-        ? {
-            // values are adjusted by any padding/margin differences
-            left: -data.node.offsetLeft + 4,
-            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-            top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
-            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-          }
-        : {
-            left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
-            right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-            top: -offsetTop + 4,
-            bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-          }
-    );
+    setDraggableBounds(getDraggableModalCoordinatesOnInit(data, offsetTop));
   }
 });
 

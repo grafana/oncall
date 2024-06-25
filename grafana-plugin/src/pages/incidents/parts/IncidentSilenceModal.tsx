@@ -66,7 +66,7 @@ const IncidentSilenceModal: React.FC<IncidentSilenceModalProps> = ({
           type="primary"
           className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}
         >
-          Silence alert group #${alertGroupID} ${alertGroupName}
+          Silence alert group #{alertGroupID} ${alertGroupName}
         </Text.Title>
       }
       className={styles.root}

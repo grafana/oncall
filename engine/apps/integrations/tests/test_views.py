@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import OperationalError
 from django.urls import reverse
 from django.utils import timezone
-from pytest_django.plugin import _DatabaseBlocker
+from pytest_django.plugin import DjangoDbBlocker
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -21,8 +21,16 @@ from apps.integrations.views import UniversalAPIView
 INTEGRATION_TYPES = sorted(AlertReceiveChannel.INTEGRATION_TYPES)
 
 
-class DatabaseBlocker(_DatabaseBlocker):
+class DatabaseBlocker(DjangoDbBlocker):
     """Customize pytest_django db blocker to raise OperationalError exception."""
+
+    def __init__(self, *args, **kwargs):
+        """
+        Override the constructor to get around this:
+        https://github.com/pytest-dev/pytest-django/blob/v4.8.0/pytest_django/plugin.py#L778-L782
+        """
+        self._history = []
+        self._real_ensure_connection = None
 
     def _blocking_wrapper(*args, **kwargs):
         __tracebackhide__ = True

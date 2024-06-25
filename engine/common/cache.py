@@ -12,7 +12,7 @@ def ensure_cache_key_allocates_to_the_same_hash_slot(cache_keys: _RT, pattern_to
     exception:
 
     ```
-    File "/usr/local/lib/python3.11/site-packages/redis/cluster.py", line 1006, in determine_slot
+    File "/usr/local/lib/python3.12/site-packages/redis/cluster.py", line 1006, in determine_slot
         raise RedisClusterException(
     redis.exceptions.RedisClusterException: MGET - all keys must map to the same key slot
     ```
