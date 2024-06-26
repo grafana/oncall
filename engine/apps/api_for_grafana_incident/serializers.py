@@ -5,6 +5,7 @@ from rest_framework import serializers
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import Alert, AlertGroup
 from apps.api.serializers.alert_group import AlertGroupFieldsCacheSerializerMixin
+from apps.labels.models import AlertGroupAssociatedLabel
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +22,25 @@ class AlertSerializer(serializers.ModelSerializer):
         ]
 
 
+class LabelsSerializer(serializers.ModelSerializer):
+    key = serializers.CharField(read_only=True, source="key_name")
+    value = serializers.CharField(read_only=True, source="value_name")
+
+    class Meta:
+        model = AlertGroupAssociatedLabel
+        fields = [
+            "key",
+            "value",
+        ]
+
+
 class AlertGroupSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     status = serializers.SerializerMethodField(source="get_status")
     link = serializers.CharField(read_only=True, source="web_link")
     title = serializers.CharField(read_only=True, source="long_verbose_name_without_formatting")
     alerts = AlertSerializer(many=True, read_only=True)
+    labels = LabelsSerializer(many=True, read_only=True)
 
     render_for_web = serializers.SerializerMethodField()
 
@@ -53,4 +67,5 @@ class AlertGroupSerializer(serializers.ModelSerializer):
             "alerts",
             "title",
             "render_for_web",
+            "labels",
         ]
