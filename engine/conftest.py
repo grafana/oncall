@@ -71,6 +71,7 @@ from apps.labels.tests.factories import (
     LabelValueFactory,
     WebhookAssociatedLabelFactory,
 )
+from apps.mattermost.models import MattermostAuthToken
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
@@ -278,6 +279,14 @@ def make_mobile_app_auth_token_for_user():
         return MobileAppAuthToken.create_auth_token(user, organization)
 
     return _make_mobile_app_auth_token_for_user
+
+
+@pytest.fixture
+def make_mattermost_app_verification_token_for_user():
+    def _make_mattermost_app_verification_token_for_user(user, organization):
+        return MattermostAuthToken.create_auth_token(user, organization)
+
+    return _make_mattermost_app_verification_token_for_user
 
 
 @pytest.fixture

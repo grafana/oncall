@@ -55,6 +55,11 @@ if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
         path("telegram/", include("apps.telegram.urls")),
     ]
 
+if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+    urlpatterns += [
+        path("mattermost/", include("apps.mattermost.urls")),
+    ]
+
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/slack/", include("apps.slack.urls")),

@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import MSTeamsSettings from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
+import MattermostSettings from 'pages/settings/tabs/ChatOps/tabs/MattermostSettings/MattermostSettings';
 import { SlackSettings } from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
@@ -23,6 +24,7 @@ export enum ChatOpsTab {
   Slack = 'Slack',
   Telegram = 'Telegram',
   MSTeams = 'MSTeams',
+  Mattermost = 'Mattermost',
 }
 interface ChatOpsProps extends AppRootProps, WithStoreProps {}
 interface ChatOpsState {
@@ -88,7 +90,8 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
     return (
       store.hasFeature(AppFeature.Slack) ||
       store.hasFeature(AppFeature.Telegram) ||
-      store.hasFeature(AppFeature.MsTeams)
+      store.hasFeature(AppFeature.MsTeams) ||
+      store.hasFeature(AppFeature.Mattermost)
     );
   }
 
@@ -136,6 +139,14 @@ const Tabs = (props: TabsProps) => {
           </HorizontalGroup>
         </VerticalTab>
       )}
+      {store.hasFeature(AppFeature.Mattermost) && (
+        <VerticalTab id={ChatOpsTab.Mattermost}>
+          <HorizontalGroup>
+            <Icon name="message" />
+            Mattermost
+          </HorizontalGroup>
+        </VerticalTab>
+      )}
     </VerticalTabsBar>
   );
 };
@@ -163,6 +174,11 @@ const TabsContent = (props: TabsContentProps) => {
       {store.hasFeature(AppFeature.MsTeams) && activeTab === ChatOpsTab.MSTeams && (
         <div className={cx('messenger-settings')}>
           <MSTeamsSettings />
+        </div>
+      )}
+      {store.hasFeature(AppFeature.Mattermost) && activeTab === ChatOpsTab.Mattermost && (
+        <div className={cx('messenger-settings')}>
+          <MattermostSettings />
         </div>
       )}
     </>

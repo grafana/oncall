@@ -9,6 +9,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.organization import CurrentOrganizationConfigChecksSerializer, CurrentOrganizationSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.telegram.client import TelegramClient
 from common.insight_log import EntityEvent, write_resource_insight_log
@@ -106,6 +107,31 @@ class GetChannelVerificationCode(APIView):
 
         code = backend.generate_channel_verification_code(organization)
         return Response(code)
+
+
+class GetMattermostSetupDetails(APIView):
+    authentication_classes = (PluginAuthentication,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+    }
+
+    def _create_engine_url(self, auth_token) -> str:
+        return f"{live_settings.MATTERMOST_WEBHOOK_HOST}/mattermost/manifest?auth_token={auth_token}"
+
+    def get(self, request):
+        organization = request.auth.organization
+        user = request.user
+        from apps.mattermost.models import MattermostAuthToken
+
+        with suppress(MattermostAuthToken.DoesNotExist):
+            existing_auth_token = organization.mattermost_auth_token
+            existing_auth_token.delete()
+        _, auth_token = MattermostAuthToken.create_auth_token(user=user, organization=organization)
+        manifest_link = self._create_engine_url(auth_token=auth_token)
+
+        return Response({"manifest_link": manifest_link})
 
 
 class SetGeneralChannel(APIView):

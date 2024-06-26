@@ -32,3 +32,12 @@ export interface Organization {
     };
   };
 }
+
+export interface OrganizationConfigChecks {
+  is_chatops_connected: boolean;
+  is_integration_chatops_connected: boolean;
+  mattermost: {
+    env_status: boolean;
+    is_integrated: boolean;
+  };
+}

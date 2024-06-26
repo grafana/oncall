@@ -19,6 +19,7 @@ from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
     CurrentOrganizationView,
     GetChannelVerificationCode,
+    GetMattermostSetupDetails,
     GetTelegramVerificationCode,
     OrganizationConfigChecksView,
     SetGeneralChannel,
@@ -89,6 +90,9 @@ urlpatterns = [
         "current_team/get_channel_verification_code",
         GetChannelVerificationCode.as_view(),
         name="api-get-channel-verification-code",
+    ),
+    optional_slash_path(
+        "mattermost/setup", GetMattermostSetupDetails.as_view(), name="api-get-mattermost-setup-details"
     ),
     optional_slash_path("slack_settings", SlackTeamSettingsAPIView.as_view(), name="slack-settings"),
     optional_slash_path(

@@ -59,6 +59,7 @@ export const FARO_ENDPOINT_PROD =
 export const DOCS_ROOT = 'https://grafana.com/docs/oncall/latest';
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/oncall/latest/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notify/telegram/';
+export const DOCS_MATTERMOST_SETUP = 'https://grafana.com/docs/oncall/latest/manage/notify/mattermost/';
 
 export const generateAssignToTeamInputDescription = (objectName: string): string =>
   `Assigning to a team allows you to filter ${objectName} and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details.`;

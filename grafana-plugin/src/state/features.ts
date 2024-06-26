@@ -7,4 +7,5 @@ export enum AppFeature {
   Labels = 'labels',
   MsTeams = 'msteams',
   GoogleOauth2 = 'google_oauth2',
+  Mattermost = 'mattermost',
 }

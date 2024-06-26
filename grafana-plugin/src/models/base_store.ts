@@ -89,6 +89,7 @@ export class BaseStore {
 
       // Update env_status field for current team
       await this.rootStore.organizationStore.loadCurrentOrganization();
+      await this.rootStore.organizationStore.loadCurrentOrganizationConfigChecks();
       return result;
     } catch (error) {
       this.onApiError(error, skipErrorHandling);
@@ -103,6 +104,7 @@ export class BaseStore {
       });
       // Update env_status field for current team
       await this.rootStore.organizationStore.loadCurrentOrganization();
+      await this.rootStore.organizationStore.loadCurrentOrganizationConfigChecks();
       return result;
     } catch (error) {
       this.onApiError(error);
