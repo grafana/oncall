@@ -141,8 +141,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<RepeatEveryPeriod>(RepeatEveryPeriod.DAYS);
 
-  const [showActiveOnSelectedDays, setShowActiveOnSelectedDays] = useState<boolean>(false);
-  const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(false);
+  const [isMaskedByWeekdays, setIsMaskedByWeekdays] = useState<boolean>(false);
+  const [isLimitShiftEnabled, setIsLimitShiftEnabled] = useState<boolean>(false);
 
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
@@ -160,10 +160,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
   }, [rotationStart, shiftStart]);
 
   useEffect(() => {
-    if (!showActiveOnSelectedDays) {
+    if (!isMaskedByWeekdays) {
       setSelectedDays([]);
     }
-  }, [showActiveOnSelectedDays]);
+  }, [isMaskedByWeekdays]);
 
   useEffect(() => {
     (async () => {
@@ -301,11 +301,14 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const handleRepeatEveryPeriodChange = useCallback(
     (value) => {
       setShiftPeriodDefaultValue(undefined);
-
       setRepeatEveryPeriod(value);
 
-      if (!showActiveOnSelectedPartOfDay) {
-        if (showActiveOnSelectedDays) {
+      if (value === RepeatEveryPeriod.MONTHS && !isMaskedByWeekdays) {
+        setIsLimitShiftEnabled(false);
+      }
+
+      if (!isLimitShiftEnabled) {
+        if (isMaskedByWeekdays) {
           setShiftEnd(
             dayJSAddWithDSTFixed({
               baseDate: shiftStart,
@@ -322,7 +325,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue, shiftStart]
+    [isLimitShiftEnabled, isMaskedByWeekdays, repeatEveryValue, shiftStart]
   );
 
   const handleRepeatEveryValueChange = (option) => {
@@ -334,7 +337,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setShiftPeriodDefaultValue(undefined);
     setRepeatEveryValue(value);
 
-    if (!showActiveOnSelectedPartOfDay) {
+    if (!isLimitShiftEnabled) {
       setShiftEnd(
         dayJSAddWithDSTFixed({
           baseDate: rotationStart,
@@ -349,7 +352,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setShiftStart(value);
 
     setShiftEnd(
-      showActiveOnSelectedPartOfDay
+      isLimitShiftEnabled
         ? dayJSAddWithDSTFixed({
             baseDate: value,
             addParams: [activePeriod, 'seconds'],
@@ -385,7 +388,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.currentTarget.checked;
 
-      setShowActiveOnSelectedDays(value);
+      setIsMaskedByWeekdays(value);
+
+      if (!value && repeatEveryPeriod === RepeatEveryPeriod.MONTHS) {
+        setIsLimitShiftEnabled(false);
+      }
 
       if (value && shiftEnd.diff(shiftStart, 'hours') > 24) {
         setShiftEnd(
@@ -395,7 +402,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
           })
         );
       } else {
-        if (!showActiveOnSelectedPartOfDay) {
+        if (!isLimitShiftEnabled) {
           setShiftEnd(
             dayJSAddWithDSTFixed({
               baseDate: shiftStart,
@@ -405,16 +412,16 @@ export const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [showActiveOnSelectedPartOfDay, shiftStart, shiftEnd, repeatEveryValue, repeatEveryPeriod]
+    [isLimitShiftEnabled, shiftStart, shiftEnd, repeatEveryValue, repeatEveryPeriod]
   );
 
   const handleShowActiveOnSelectedPartOfDayToggle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.currentTarget.checked;
-      setShowActiveOnSelectedPartOfDay(value);
+      setIsLimitShiftEnabled(value);
 
       if (!value) {
-        if (showActiveOnSelectedDays && shiftEnd.diff(shiftStart, 'hours') > 24) {
+        if (isMaskedByWeekdays && shiftEnd.diff(shiftStart, 'hours') > 24) {
           setShiftEnd(
             dayJSAddWithDSTFixed({
               baseDate: shiftStart,
@@ -431,14 +438,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
         }
       }
     },
-    [shiftStart, shiftEnd, repeatEveryPeriod, repeatEveryValue, showActiveOnSelectedDays]
+    [shiftStart, shiftEnd, repeatEveryPeriod, repeatEveryValue, isMaskedByWeekdays]
   );
-
-  useEffect(() => {
-    if (repeatEveryPeriod === RepeatEveryPeriod.MONTHS) {
-      setShowActiveOnSelectedPartOfDay(false);
-    }
-  }, [repeatEveryPeriod]);
 
   useEffect(() => {
     if (shift) {
@@ -471,13 +472,15 @@ export const RotationForm = observer((props: RotationFormProps) => {
         })
       );
 
-      setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
+      setIsMaskedByWeekdays(Boolean(shift.by_day?.length));
 
+      const isMonthlyRecurrence = shift.frequency === RepeatEveryPeriod.MONTHS;
       const activeOnSelectedPartOfDay =
-        shift.frequency !== RepeatEveryPeriod.MONTHS &&
-        repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds');
+        repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds') &&
+        // Disallow for Monthly view, except if it's masked by week days
+        (!isMonthlyRecurrence || (isMonthlyRecurrence && isMaskedByWeekdays));
 
-      setShowActiveOnSelectedPartOfDay(activeOnSelectedPartOfDay);
+      setIsLimitShiftEnabled(activeOnSelectedPartOfDay);
       if (activeOnSelectedPartOfDay) {
         const activePeriod = shiftEnd.diff(shiftStart, 'seconds');
 
@@ -683,12 +686,12 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     <HorizontalGroup align="flex-start">
                       <Switch
                         disabled={disabled}
-                        value={showActiveOnSelectedDays}
+                        value={isMaskedByWeekdays}
                         onChange={handleShowActiveOnSelectedDaysToggle}
                       />
                       <VerticalGroup>
                         <Text type="secondary">Mask by weekdays</Text>
-                        {showActiveOnSelectedDays && (
+                        {isMaskedByWeekdays && (
                           <DaysSelector
                             options={store.scheduleStore.byDayOptions}
                             value={selectedDays}
@@ -702,17 +705,17 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
                     <HorizontalGroup align="flex-start">
                       <Switch
-                        disabled={disabled || repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
-                        value={showActiveOnSelectedPartOfDay}
+                        disabled={isSelectedPartOfDayDisabled()}
+                        value={isLimitShiftEnabled}
                         onChange={handleShowActiveOnSelectedPartOfDayToggle}
                       />
                       <VerticalGroup>
                         <Text type="secondary">Limit each shift length</Text>
-                        {showActiveOnSelectedPartOfDay && (
+                        {isLimitShiftEnabled && (
                           <ShiftPeriod
-                            repeatEveryPeriod={showActiveOnSelectedDays ? RepeatEveryPeriod.HOURS : repeatEveryPeriod}
+                            repeatEveryPeriod={isMaskedByWeekdays ? RepeatEveryPeriod.HOURS : repeatEveryPeriod}
                             repeatEveryValue={
-                              showActiveOnSelectedDays
+                              isMaskedByWeekdays
                                 ? repeatEveryPeriod === RepeatEveryPeriod.HOURS
                                   ? Math.min(repeatEveryValue, 24)
                                   : 24
@@ -725,7 +728,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                             errors={errors}
                           />
                         )}
-                        {showActiveOnSelectedDays && (
+                        {isMaskedByWeekdays && (
                           <Text type="secondary">
                             Since masking by weekdays is enabled, each shift length may not exceed 24hs, and each shift
                             will repeat every day
@@ -795,6 +798,15 @@ export const RotationForm = observer((props: RotationFormProps) => {
       )}
     </>
   );
+
+  function isSelectedPartOfDayDisabled() {
+    // Disable Shift length limit if Monday is enabled without masked weekdays
+    if (repeatEveryPeriod === RepeatEveryPeriod.MONTHS && !isMaskedByWeekdays) {
+      return true;
+    }
+
+    return disabled;
+  }
 
   async function onResize() {
     setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
