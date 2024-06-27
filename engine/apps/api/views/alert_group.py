@@ -231,7 +231,7 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
 
 
 class AlertGroupSearchFilter(SearchFilter):
-    SEARCH_CUTOFF_DAYS = 30 * 6
+    SEARCH_CUTOFF_DAYS = 30
 
     def filter_queryset(self, request, queryset, view):
         search_fields = self.get_search_fields(view, request)
