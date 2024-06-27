@@ -11,7 +11,7 @@ test.describe('Plugin configuration', () => {
     expect(currentlyAppliedURL).toBe('http://oncall-dev-engine:8080');
   });
 
-  test.skip('Admin user can see error when invalid OnCall API URL is entered and plugin is reconnected', async ({
+  test('Admin user can see error when invalid OnCall API URL is entered and plugin is reconnected', async ({
     adminRolePage: { page },
   }) => {
     await goToGrafanaPage(page, PLUGIN_CONFIG);
