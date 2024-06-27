@@ -644,7 +644,7 @@ const GrafanaContactPoint = observer(
       // filter contact points for current alert manager
       const contactPointsForCurrentOption = allContactPoints
         .find((opt) => opt.uid === option.value)
-        .contact_points?.map((cp) => ({ value: cp, label: cp }));
+        ?.contact_points?.map((cp) => ({ value: cp, label: cp }));
 
       const newState: Partial<GrafanaContactPointState> = {
         selectedAlertManagerOption: option.value,
