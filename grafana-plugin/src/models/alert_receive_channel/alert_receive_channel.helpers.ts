@@ -164,10 +164,14 @@ export class AlertReceiveChannelHelper {
     ).data;
   }
 
-  static async sendDemoAlert(id: ApiSchemas['AlertReceiveChannel']['id'], payload?: { [key: string]: unknown }) {
+  static async sendDemoAlert(
+    id: ApiSchemas['AlertReceiveChannel']['id'],
+    payload?: { [key: string]: unknown },
+    groupAlerts?: boolean
+  ) {
     await onCallApi().POST('/alert_receive_channels/{id}/send_demo_alert/', {
       params: { path: { id } },
-      body: { demo_alert_payload: payload },
+      body: { demo_alert_payload: payload, group_alerts: groupAlerts },
     });
   }
 

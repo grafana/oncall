@@ -264,6 +264,7 @@ class AlertReceiveChannelView(
             name="AlertReceiveChannelSendDemoAlert",
             fields={
                 "demo_alert_payload": serializers.DictField(required=False, allow_null=True),
+                "group_alerts": serializers.DictField(required=False, allow_null=True),
             },
         ),
         responses={status.HTTP_200_OK: None},
@@ -272,12 +273,16 @@ class AlertReceiveChannelView(
     def send_demo_alert(self, request, pk):
         instance = self.get_object()
         payload = request.data.get("demo_alert_payload", None)
+        group_alerts = request.data.get("group_alerts", True)
+
+        if not isinstance(group_alerts, bool):
+            raise BadRequest(detail="group_alerts for demo alert must be a boolean")
 
         if payload is not None and not isinstance(payload, dict):
             raise BadRequest(detail="Payload for demo alert must be a valid json object")
 
         try:
-            instance.send_demo_alert(payload=payload)
+            instance.send_demo_alert(payload=payload, group_alerts=group_alerts)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
 

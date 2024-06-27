@@ -1697,6 +1697,7 @@ export interface components {
       demo_alert_payload?: {
         [key: string]: unknown;
       } | null;
+      group_alerts?: boolean;
     };
     AlertReceiveChannelSourceChannel: {
       readonly alert_receive_channel: components['schemas']['FastAlertReceiveChannel'];

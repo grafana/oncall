@@ -1142,6 +1142,35 @@ def test_alert_receive_channel_send_demo_alert(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "group_alerts,expected_status",
+    [("random_str", status.HTTP_400_BAD_REQUEST), ({}, status.HTTP_400_BAD_REQUEST), (True, status.HTTP_200_OK)],
+)
+def test_alert_receive_channel_send_demo_alert_incorrect_group_alerts(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    group_alerts,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
+    )
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel-send-demo-alert",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    data = {"group_alerts": group_alerts}
+
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
 def test_alert_receive_channel_send_demo_alert_not_enabled(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,

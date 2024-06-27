@@ -96,7 +96,7 @@ class Alert(models.Model):
         integration_unique_data: typing.Optional[typing.Dict],
         raw_request_data: RawRequestData,
         enable_autoresolve=True,
-        is_demo: bool = False,
+        group_alerts: bool = True,
         channel_filter: typing.Optional["ChannelFilter"] = None,
         received_at: typing.Optional[str] = None,
     ) -> "Alert":
@@ -109,7 +109,7 @@ class Alert(models.Model):
         parsed_labels = gather_labels_from_alert_receive_channel_and_raw_request_data(
             alert_receive_channel, raw_request_data
         )
-        group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, parsed_labels, is_demo)
+        group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, parsed_labels, group_alerts)
 
         if channel_filter is None:
             channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, parsed_labels)
@@ -247,7 +247,7 @@ class Alert(models.Model):
         alert_receive_channel: "AlertReceiveChannel",
         raw_request_data: RawRequestData,
         labels: typing.Optional[AlertLabels],
-        is_demo=False,
+        group_alerts=True,
     ) -> "AlertGroup.GroupData":
         from apps.alerts.models import AlertGroup
 
@@ -278,8 +278,8 @@ class Alert(models.Model):
                 grouping_id_template, "grouping_id_template", alert_receive_channel, raw_request_data, labels
             )
 
-        # Insert random uuid to prevent grouping of demo alerts or alerts with group_distinction=None
-        if is_demo or not group_distinction:
+        # Insert random uuid to prevent grouping of demo alerts or alerts with group_distinction=None #
+        if not group_alerts or not group_distinction:
             group_distinction = cls.insert_random_uuid(group_distinction)
 
         if group_distinction is not None:
