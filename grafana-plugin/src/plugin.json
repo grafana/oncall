@@ -5,7 +5,7 @@
   "id": "grafana-oncall-app",
   "preload": true,
   "info": {
-    "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others.",
+    "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others",
     "author": {
       "name": "Grafana Labs",
       "url": "https://grafana.com"
