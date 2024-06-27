@@ -27,26 +27,43 @@ from apps.slack.scenarios.paging import (
 from apps.user_management.models import Organization
 
 
-def make_slack_payload(organization, team=None, user=None, current_users=None, actions=None):
+def make_paging_view_slack_payload(
+    selected_org=None, predefined_org=None, team=None, user=None, current_users=None, actions=None
+):
+    """
+    Helper function to create a payload for paging view.
+    Args:
+        selected_org: selected organization
+        predefined_org: predefined organization parsed from chatops-proxy headers
+        team: selected team object.
+        user: selected user object.
+        current_users: Dictionary of current users.
+        actions: List of actions.
+    """
+    organization = selected_org or predefined_org
+    if organization is None:
+        raise Exception("either selected or predifined org must be defined")
+    private_metadata = {
+        "input_id_prefix": "",
+        "channel_id": "123",
+        "submit_routing_uid": "FinishStepUID",
+        DataKey.USERS: current_users or {},
+    }
+    if predefined_org:
+        private_metadata["organization_id"] = str(predefined_org.pk)
     payload = {
         "channel_id": "123",
         "trigger_id": "111",
         "view": {
             "id": "view-id",
-            "private_metadata": make_private_metadata(
-                {
-                    "input_id_prefix": "",
-                    "channel_id": "123",
-                    "submit_routing_uid": "FinishStepUID",
-                    DataKey.USERS: current_users or {},
-                },
-                organization,
-            ),
+            "private_metadata": make_private_metadata(private_metadata, organization),
             "state": {
                 "values": {
                     DIRECT_PAGING_ORG_SELECT_ID: {
                         OnPagingOrgChange.routing_uid(): {
-                            "selected_option": {"value": make_value({"id": organization.pk}, organization)}
+                            "selected_option": {
+                                "value": make_value({"id": organization.pk if selected_org else None}, organization)
+                            }
                         }
                     },
                     DIRECT_PAGING_TEAM_SELECT_ID: {
@@ -82,6 +99,50 @@ def test_initial_state(
 
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.USERS] == {}
+
+
+@pytest.mark.django_db
+def test_org_predefined(
+    make_organization_and_user_with_slack_identities,
+):
+    """
+    See get_org_from_chatops_proxy_header function.
+    """
+    org, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    payload = {"channel_id": "123", "trigger_id": "111"}
+
+    step = StartDirectPaging(slack_team_identity, user=user)
+    with patch.object(step._slack_client, "views_open") as mock_slack_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload, predefined_org=org)
+
+    view = mock_slack_api_call.call_args.kwargs["view"]
+    metadata = json.loads(view["private_metadata"])
+    # Test that organization is injected to private metadata if it is defined by chatops-proxy.
+    assert metadata["organization_id"] == org.pk
+    # Test that organization select is not present if org defined by chatops-proxy.
+    for block in view["blocks"]:
+        if block.get("block_id") == DIRECT_PAGING_ORG_SELECT_ID:
+            raise AssertionError("Organization select block should not be present in the view")
+
+
+@pytest.mark.django_db
+def test_page_team_with_predefined_org(make_organization_and_user_with_slack_identities, make_team):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    team = make_team(organization)
+    payload = make_paging_view_slack_payload(predefined_org=organization, team=team)
+
+    step = FinishDirectPaging(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
+        with patch.object(step._slack_client, "api_call"):
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_direct_paging.assert_called_once_with(
+        organization=organization,
+        from_user=user,
+        message="The Message",
+        team=team,
+        users=[],
+    )
 
 
 @pytest.mark.parametrize("role", (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE))
@@ -126,7 +187,7 @@ def test_add_user_no_warning(make_organization_and_user_with_slack_identities, m
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
 
-    payload = make_slack_payload(organization=organization, user=user)
+    payload = make_paging_view_slack_payload(selected_org=organization, user=user)
 
     step = OnPagingUserChange(slack_team_identity)
     with patch.object(step._slack_client, "views_update") as mock_slack_api_call:
@@ -161,7 +222,7 @@ def test_add_user_maximum_exceeded(make_organization_and_user_with_slack_identit
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
 
-    payload = make_slack_payload(organization=organization, user=user)
+    payload = make_paging_view_slack_payload(selected_org=organization, user=user)
 
     step = OnPagingUserChange(slack_team_identity)
     with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
@@ -188,7 +249,7 @@ def test_add_user_maximum_exceeded(make_organization_and_user_with_slack_identit
 def test_add_user_raise_warning(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     # user is not on call
-    payload = make_slack_payload(organization=organization, user=user)
+    payload = make_paging_view_slack_payload(selected_org=organization, user=user)
 
     step = OnPagingUserChange(slack_team_identity)
     with patch.object(step._slack_client, "views_push") as mock_slack_api_call:
@@ -209,8 +270,8 @@ def test_add_user_raise_warning(make_organization_and_user_with_slack_identities
 @pytest.mark.django_db
 def test_change_user_policy(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    payload = make_slack_payload(
-        organization=organization,
+    payload = make_paging_view_slack_payload(
+        selected_org=organization,
         actions=[
             {
                 "selected_option": {
@@ -231,8 +292,8 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
 @pytest.mark.django_db
 def test_remove_user(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    payload = make_slack_payload(
-        organization=organization,
+    payload = make_paging_view_slack_payload(
+        selected_org=organization,
         actions=[
             {
                 "selected_option": {
@@ -255,7 +316,7 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
 @pytest.mark.django_db
 def test_trigger_paging_no_team_or_user_selected(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    payload = make_slack_payload(organization=organization)
+    payload = make_paging_view_slack_payload(selected_org=organization)
 
     step = FinishDirectPaging(slack_team_identity, user=user)
 
@@ -277,7 +338,7 @@ def test_trigger_paging_unauthorized(make_organization_and_user_with_slack_ident
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(
         role=role
     )
-    payload = make_slack_payload(organization=organization)
+    payload = make_paging_view_slack_payload(selected_org=organization)
 
     step = FinishDirectPaging(slack_team_identity)
     with patch.object(step._slack_client, "api_call"):
@@ -294,7 +355,9 @@ def test_trigger_paging_unauthorized(make_organization_and_user_with_slack_ident
 def test_trigger_paging_additional_responders(make_organization_and_user_with_slack_identities, make_team):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     team = make_team(organization)
-    payload = make_slack_payload(organization=organization, team=team, current_users={str(user.pk): Policy.IMPORTANT})
+    payload = make_paging_view_slack_payload(
+        selected_org=organization, team=team, current_users={str(user.pk): Policy.IMPORTANT}
+    )
 
     step = FinishDirectPaging(slack_team_identity)
     with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
@@ -314,7 +377,7 @@ def test_trigger_paging_additional_responders(make_organization_and_user_with_sl
 def test_page_team(make_organization_and_user_with_slack_identities, make_team):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     team = make_team(organization)
-    payload = make_slack_payload(organization=organization, team=team)
+    payload = make_paging_view_slack_payload(selected_org=organization, team=team)
 
     step = FinishDirectPaging(slack_team_identity)
     with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
