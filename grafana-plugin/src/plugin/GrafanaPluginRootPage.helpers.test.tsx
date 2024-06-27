@@ -1,6 +1,6 @@
 import * as runtime from '@grafana/runtime';
 
-import { getGrafanaVersion } from './GrafanaPluginRootPage.helpers';
+import { getGrafanaVersion } from 'utils/utils';
 
 jest.mock('@grafana/runtime', () => ({
   config: jest.fn(),

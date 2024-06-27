@@ -20,7 +20,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
         className="css-1fmhfo9"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -38,7 +38,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
         className="css-u023fv"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -78,7 +78,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
         className="css-1fmhfo9"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -96,7 +96,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
         className="css-u023fv"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -136,7 +136,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
         className="css-1fmhfo9"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -154,7 +154,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
         className="css-u023fv"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -194,7 +194,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
         className="css-1fmhfo9"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -212,7 +212,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
         className="css-u023fv"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -252,7 +252,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
         className="css-1fmhfo9"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,
@@ -270,7 +270,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
         className="css-u023fv"
       >
         <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           style={
             {
               "maxWidth": undefined,

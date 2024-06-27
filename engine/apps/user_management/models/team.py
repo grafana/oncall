@@ -4,18 +4,14 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from apps.alerts.models import AlertReceiveChannel
-from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
-from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroupLogRecord
-    from apps.grafana_plugin.helpers.client import GrafanaAPIClient
     from apps.schedules.models import CustomOnCallShift
-    from apps.user_management.models import Organization, User
+    from apps.user_management.models import User
 
 
 def generate_public_primary_key_for_team() -> str:
@@ -33,66 +29,7 @@ def generate_public_primary_key_for_team() -> str:
 
 
 class TeamManager(models.Manager["Team"]):
-    @staticmethod
-    def sync_for_organization(
-        organization: "Organization", api_teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
-    ) -> None:
-        grafana_teams = {team["id"]: team for team in api_teams}
-        existing_team_ids: typing.Set[int] = set(organization.teams.all().values_list("team_id", flat=True))
-
-        # create missing teams
-        teams_to_create = tuple(
-            Team(
-                organization_id=organization.pk,
-                team_id=team["id"],
-                name=team["name"],
-                email=team["email"],
-                avatar_url=team["avatarUrl"],
-            )
-            for team in grafana_teams.values()
-            if team["id"] not in existing_team_ids
-        )
-        # create entries, ignore failed insertions if team_id already exists in the organization
-        organization.teams.bulk_create(teams_to_create, batch_size=5000, ignore_conflicts=True)
-
-        # create missing direct paging integrations
-        AlertReceiveChannel.objects.create_missing_direct_paging_integrations(organization)
-
-        # delete excess teams and their direct paging integrations
-        team_ids_to_delete = existing_team_ids - grafana_teams.keys()
-        organization.alert_receive_channels.filter(
-            team__team_id__in=team_ids_to_delete, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-        ).delete()
-        organization.teams.filter(team_id__in=team_ids_to_delete).delete()
-
-        # collect teams diffs to update metrics cache
-        metrics_teams_to_update: MetricsCacheManager.TeamsDiffMap = {}
-        for team_id in team_ids_to_delete:
-            metrics_teams_to_update = MetricsCacheManager.update_team_diff(
-                metrics_teams_to_update, team_id, deleted=True
-            )
-
-        # update existing teams if any fields have changed
-        teams_to_update = []
-        for team in organization.teams.filter(team_id__in=existing_team_ids):
-            grafana_team = grafana_teams[team.team_id]
-            if (
-                team.name != grafana_team["name"]
-                or team.email != grafana_team["email"]
-                or team.avatar_url != grafana_team["avatarUrl"]
-            ):
-                if team.name != grafana_team["name"]:
-                    # collect teams diffs to update metrics cache
-                    metrics_teams_to_update = MetricsCacheManager.update_team_diff(
-                        metrics_teams_to_update, team.id, new_name=grafana_team["name"]
-                    )
-                team.name = grafana_team["name"]
-                team.email = grafana_team["email"]
-                team.avatar_url = grafana_team["avatarUrl"]
-                teams_to_update.append(team)
-        organization.teams.bulk_update(teams_to_update, ["name", "email", "avatar_url"], batch_size=5000)
-
-        metrics_bulk_update_team_label_cache(metrics_teams_to_update, organization.id)
+    pass
 
 
 class Team(models.Model):

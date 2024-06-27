@@ -28,12 +28,18 @@ export const BREAKPOINT_TABS = 1024;
 // Default redirect page
 export const DEFAULT_PAGE = 'alert-groups';
 
-export const PLUGIN_ROOT = '/a/grafana-oncall-app';
+export const PLUGIN_ID = 'grafana-oncall-app';
+export const PLUGIN_ROOT = `/a/${PLUGIN_ID}`;
+export const PLUGIN_CONFIG = `/plugins/${PLUGIN_ID}`;
+
+export const REQUEST_HELP_URL = 'https://grafana.com/profile/org/tickets/new';
 
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
+
+export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => meta?.jsonData?.onCallApiUrl;
 
 export const getProcessEnvVarSafely = (name: string) => {
   try {
@@ -46,18 +52,7 @@ export const getProcessEnvVarSafely = (name: string) => {
 
 export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
 
-// Single source of truth on the frontend for OnCall API URL
-export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
-  if (meta?.jsonData?.onCallApiUrl) {
-    return meta?.jsonData?.onCallApiUrl;
-  } else if (typeof window === 'undefined') {
-    return getProcessEnvVarSafely('ONCALL_API_URL');
-  }
-  return undefined;
-};
-
-// If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
-export const hasPluginBeenConfigured = (meta?: OnCallAppPluginMeta) => Boolean(meta?.jsonData?.onCallApiUrl);
+export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
 
 // Faro
 export const FARO_ENDPOINT_DEV =
@@ -70,6 +65,9 @@ export const FARO_ENDPOINT_PROD =
 export const DOCS_ROOT = 'https://grafana.com/docs/oncall/latest';
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/oncall/latest/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notify/telegram/';
+export const DOCS_SERVICE_ACCOUNTS = 'https://grafana.com/docs/grafana/latest/administration/service-accounts/';
+export const DOCS_ONCALL_OSS_INSTALL =
+  'https://grafana.com/docs/oncall/latest/set-up/open-source/#install-grafana-oncall-oss';
 
 export const generateAssignToTeamInputDescription = (objectName: string): string =>
   `Assigning to a team allows you to filter ${objectName} and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details.`;

@@ -22,11 +22,8 @@ import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
 import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
+import { CollapsibleTreeView, CollapsibleItem } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
-import {
-  IntegrationCollapsibleTreeView,
-  IntegrationCollapsibleItem,
-} from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationContactPoint } from 'components/IntegrationContactPoint/IntegrationContactPoint';
 import { IntegrationHowToConnect } from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
 import { IntegrationLogoWithTitle } from 'components/IntegrationLogo/IntegrationLogoWithTitle';
@@ -171,7 +168,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
     const incomingPart = (
       <>
-        <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
+        <CollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
         {isEditTemplateModalOpen && (
           <IntegrationTemplate
             id={id}
@@ -457,7 +454,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
     const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
 
-    const configs: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]> = [
+    const configs: Array<CollapsibleItem | CollapsibleItem[]> = [
       (isAlerting || isLegacyAlerting) && {
         isHidden: isLegacyAlerting || contactPoints === null || contactPoints === undefined,
         isCollapsible: false,
@@ -568,7 +565,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           </div>
         ),
       },
-      this.renderRoutesFn() as IntegrationCollapsibleItem[],
+      this.renderRoutesFn() as CollapsibleItem[],
     ];
 
     return configs.filter(Boolean);
@@ -618,7 +615,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     );
   };
 
-  renderRoutesFn = (): IntegrationCollapsibleItem[] => {
+  renderRoutesFn = (): CollapsibleItem[] => {
     const {
       store: { alertReceiveChannelStore },
       match: {
@@ -676,8 +673,8 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               onRouteDelete={onRouteDelete}
             />
           ),
-        } as IntegrationCollapsibleItem)
-    ) as IntegrationCollapsibleItem[];
+        } as CollapsibleItem)
+    ) as CollapsibleItem[];
   };
 
   handleEditRegexpRouteTemplate = (channelFilterId) => {

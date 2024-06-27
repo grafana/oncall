@@ -1,10 +1,12 @@
 import { test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createIntegration, searchIntegrationAndAssertItsPresence } from '../utils/integrations';
+import { goToOnCallPage } from '../utils/navigation';
 
 test('Integrations table shows data in Monitoring Systems and Direct Paging tabs', async ({
   adminRolePage: { page },
 }) => {
+  test.slow();
   const ID = generateRandomValue();
   const WEBHOOK_INTEGRATION_NAME = `Webhook-${ID}`;
   const ALERTMANAGER_INTEGRATION_NAME = `Alertmanager-${ID}`;
@@ -13,14 +15,14 @@ test('Integrations table shows data in Monitoring Systems and Direct Paging tabs
   // Create 2 integrations that are not Direct Paging
   await createIntegration({ page, integrationSearchText: 'Webhook', integrationName: WEBHOOK_INTEGRATION_NAME });
   await page.waitForTimeout(1000);
-  await page.getByRole('tab', { name: 'Tab Integrations' }).click();
+  await goToOnCallPage(page, 'integrations');
   await createIntegration({
     page,
     integrationSearchText: 'Alertmanager',
     integrationName: ALERTMANAGER_INTEGRATION_NAME,
   });
   await page.waitForTimeout(1000);
-  await page.getByRole('tab', { name: 'Tab Integrations' }).click();
+  await goToOnCallPage(page, 'integrations');
 
   // Create 1 Direct Paging integration if it doesn't exist
   await page.getByRole('tab', { name: 'Tab Manual Direct Paging' }).click();
@@ -35,7 +37,7 @@ test('Integrations table shows data in Monitoring Systems and Direct Paging tabs
     });
     await page.waitForTimeout(1000);
   }
-  await page.getByRole('tab', { name: 'Tab Integrations' }).click();
+  await goToOnCallPage(page, 'integrations');
 
   // By default Monitoring Systems tab is opened and newly created integrations are visible except Direct Paging one
   await searchIntegrationAndAssertItsPresence({ page, integrationName: WEBHOOK_INTEGRATION_NAME });
