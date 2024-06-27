@@ -1,6 +1,7 @@
 import json
 import typing
 
+from django.conf import settings
 from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
@@ -133,12 +134,13 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
 
         # Attaching resolve information
         if self.alert_group.resolved:
-            resolve_attachment = {
-                "fallback": "Resolved...",
-                "text": self.alert_group.get_resolve_text(mention_user=True),
-                "callback_id": "alert",
-            }
-            attachments.append(resolve_attachment)
+            if not settings.FEATURE_SKIP_SLACK_RESOLVED_BY:
+                resolve_attachment = {
+                    "fallback": "Resolved...",
+                    "text": self.alert_group.get_resolve_text(mention_user=True),
+                    "callback_id": "alert",
+                }
+                attachments.append(resolve_attachment)
         else:
             if self.alert_group.acknowledged:
                 ack_attachment = {

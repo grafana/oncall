@@ -56,6 +56,7 @@ DOCS_URL = "https://grafana.com/docs/oncall/latest/"
 BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
 
 # Feature toggles
+FEATURE_SKIP_SLACK_RESOLVED_BY = getenv_boolean("FEATURE_SKIP_SLACK_RESOLVED_BY", default=False)
 FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", default=True)
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_TELEGRAM_LONG_POLLING_ENABLED = getenv_boolean("FEATURE_TELEGRAM_LONG_POLLING_ENABLED", default=False)
