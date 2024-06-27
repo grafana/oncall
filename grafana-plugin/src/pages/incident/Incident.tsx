@@ -20,6 +20,7 @@ import {
   withTheme2,
   useStyles2,
 } from '@grafana/ui';
+import Linkify from 'linkify-react';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -517,7 +518,6 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   renderTimeline = () => {
     const {
       store,
-      history,
       match: {
         params: { id },
       },
@@ -569,7 +569,17 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     </Text>
                   )}
                   <Text type="primary">
-                    {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item, history))}
+                    <Linkify
+                      options={{
+                        render: ({ attributes, content }) => (
+                          <a {...attributes} rel="noreferrer noopener" target="_blank">
+                            <Text underline>{content}</Text>
+                          </a>
+                        ),
+                      }}
+                    >
+                      {this.replaceTextInResolutionNote(item)}
+                    </Linkify>
                   </Text>
                   <Text type="secondary" size="small">
                     {moment(item.created_at).format('MMM DD, YYYY HH:mm:ss Z')}
@@ -636,23 +646,23 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     await this.update();
   };
 
-  getPlaceholderReplaceFn = (entity: any, history) => {
+  getPlaceholderReplaceFn = (entity: TimeLineItem) => {
     return (match: string) => {
       switch (match) {
         case 'author':
           return (
-            <span
-              onClick={() => history.push(`${PLUGIN_ROOT}/users/${entity?.author?.pk}`)}
-              style={{ textDecoration: 'underline', cursor: 'pointer' }}
-            >
-              {entity.author?.username}
-            </span>
+            <a href={`${PLUGIN_ROOT}/users/${entity?.author?.pk}`} target="_blank" rel="noopener noreferrer">
+              <Text underline>{entity.author?.username}</Text>
+            </a>
           );
         default:
           return '{{' + match + '}}';
       }
     };
   };
+
+  replaceTextInResolutionNote = (item: TimeLineItem) =>
+    reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item));
 
   getOnActionButtonClick = (incidentId: ApiSchemas['AlertGroup']['pk'], action: AlertAction) => {
     const { store } = this.props;
