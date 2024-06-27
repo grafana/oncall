@@ -14,6 +14,32 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/
   - /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/
   - ../outgoing-webhooks/  # /docs/oncall/<ONCALL_VERSION>/outgoing-webhooks/
+refs:
+  integration-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/#labels
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels
+  alert-group-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/#alert-group-labels
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#alert-group-labels
+  servicenow:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/servicenow/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/servicenow/
+  jira:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/jira/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/jira/
+  zendesk:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/zendesk/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/zendesk/
 ---
 
 
@@ -243,16 +269,6 @@ must match the structure of how the fields are nested in the data.
       "urgency": "3"
     }
   },
-  "alert_group_acknowledged_by": {
-    "id": "UVMX6YI9VY9PV",
-    "username": "admin",
-    "email": "admin@localhost"
-  },
-  "alert_group_resolved_by": {
-    "id": "UVMX6YI9VY9PV",
-    "username": "admin",
-    "email": "admin@localhost"
-  },
   "notified_users": [],
   "users_to_be_notified": [],
   "responses": {
@@ -307,7 +323,7 @@ Details about the alert group associated with this event.
 - `{{ alert_group.acknowledged_at }}` - Timestamp alert group was acknowledged (None if not acknowledged yet)
 - `{{ alert_group.title }}` - Title of alert group
 - `{{ alert_group.permalinks }}` - Links to alert group in web and chat ops if available
-- `{{ alert_group.labels }}` - [Alert group labels]
+- `{{ alert_group.labels }}` -[Alert group labels](ref:alert-group-labels)
 
 #### `{{ alert_group_id }}`
 
@@ -329,7 +345,7 @@ Details about the integration that received this alert
 - `{{ integration.type }}` - Type of integration (grafana, alertmanager, webhook, etc.)
 - `{{ integration.name }}` - Name of integration
 - `{{ integration.team }}` - Team integration belongs to if integration is assigned to a team
-- `{{ integration.labels }}` - [Integration labels]
+- `{{ integration.labels }}` -[Integration labels](ref:integration-labels)
 
 #### `notified_users`
 
@@ -344,22 +360,6 @@ consists of `id`,`username`,`email`. Array elements are ordered based on the ord
 first element being the user that will be notified next. Like `notified_users` depending on timing of notifications
 a user in this array may have already been notified by the time this data is being processed. Access as
 `{{ users_to_notify[0].username }}` for example.
-
-#### `alert_group_acknowledged_by`
-
-Information about the user who acknowledged the alert group
-
-- `{{ user.id }}` - [UID](#uid) of the user within Grafana OnCall
-- `{{ user.username }}` - Username in Grafana
-- `{{ user.email }}` - Email associated with user's Grafana account
-
-#### `alert_group_resolved_by`
-
-Information about the user who resolved the alert group
-
-- `{{ user.id }}` - [UID](#uid) of the user within Grafana OnCall
-- `{{ user.username }}` - Username in Grafana
-- `{{ user.email }}` - Email associated with user's Grafana account
 
 #### `responses`
 
@@ -552,23 +552,6 @@ the `id` of that ticket to keep its status synchronized with the state changes b
 
 Integrate with third-party services:
 
-- [JIRA][]
-- [ServiceNow][]
-- [Zendesk][]
-
-- {{% docs/reference %}}
-[Alert group labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#alert-group-labels"
-[Alert group labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#alert-group-labels"
-
-[Integration labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#labels"
-[Integration labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#labels"
-
-[JIRA]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/jira"
-[JIRA]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/jira"
-
-[ServiceNow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/servicenow"
-[ServiceNow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/servicenow"
-
-[Zendesk]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/zendesk"
-[Zendesk]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/zendesk"
-{{% /docs/reference %}}
+- [JIRA](ref:jira)
+- [ServiceNow](ref:servicenow)
+- [Zendesk](ref:zendesk)

@@ -14,6 +14,12 @@ labels:
     - cloud
 title: Datadog
 weight: 500
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # Datadog integration for Grafana OnCall
@@ -23,7 +29,7 @@ weight: 500
 The Datadog integration for Grafana OnCall handles ticket events sent from Datadog webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin](ref:user-and-team-management) to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from Datadog
 
@@ -41,8 +47,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 5. Navigate to the Events page from the sidebar to send the test alert
 6. Type @webhook-grafana-oncall-alerts test alert
 7. Click the post button
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

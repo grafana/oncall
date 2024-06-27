@@ -15,6 +15,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/insights-and-metrics/
   - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
   - ../insights-and-metrics/ # /docs/oncall/<ONCALL_VERSION>/insights-and-metrics/
+refs:
+  grafana-oncall-api:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/
 ---
 
 # Insight Logs and Metrics
@@ -264,7 +270,7 @@ Resource IDs are used a lot in insight logs. You can find them in web ui (exampl
 3. The URL looks like `https://<YOUR_STACK_SLUG>/a/grafana-oncall-app/integrations/C5VXMIFKKP67K`.
 4. Integration ID is `C5VXMIFKKP67K`.
 
-Alternatively you can find the resource ID using the [Grafana OnCall API] or browser dev tools.
+Alternatively you can find the resource ID using the[Grafana OnCall API](ref:grafana-oncall-api) or browser dev tools.
 
 Actions performed by user:
 
@@ -295,8 +301,3 @@ Actions performed with slack chatops integration:
 ```logql
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
-
-{{% docs/reference %}}
-[Grafana OnCall API]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/oncall-api-reference"
-[Grafana OnCall API]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
-{{% /docs/reference %}}

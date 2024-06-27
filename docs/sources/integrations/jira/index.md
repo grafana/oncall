@@ -15,6 +15,17 @@ labels:
     - cloud
 title: Jira
 weight: 500
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  outgoing-webhooks:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/
 ---
 
 # Jira integration for Grafana OnCall
@@ -24,7 +35,7 @@ weight: 500
 The Jira integration for Grafana OnCall handles issue events sent from Jira webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin](ref:user-and-team-management) to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from Jira
 
@@ -59,7 +70,7 @@ To customize this behaviour, consider modifying alert templates in integration s
 
 ## Configuring Grafana OnCall to send data to Jira
 
-Grafana OnCall can automatically create and resolve issues in Jira via [outgoing webhooks][outgoing-webhooks].
+Grafana OnCall can automatically create and resolve issues in Jira via [outgoing webhooks](ref:outgoing-webhooks).
 This guide provides example webhook configurations for common use cases, as well as information on how to set up a user in Jira to be used by Grafana OnCall.
 
 ### Prerequisites
@@ -173,14 +184,6 @@ to get the list of available transitions.
 The examples above describe how to create outgoing webhooks in Grafana OnCall that will allow to automatically create and resolve issues in Jira.
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
-Refer to [outgoing webhooks documentation][outgoing-webhooks] for more information on available template variables and webhook configuration.
+Refer to [outgoing webhooks documentation](ref:outgoing-webhooks) for more information on available template variables and webhook configuration.
 
 For more information on Jira REST API, refer to [Jira REST API documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues).
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-
-[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
-[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
-{{% /docs/reference %}}

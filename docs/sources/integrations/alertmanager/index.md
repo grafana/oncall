@@ -11,6 +11,32 @@ keywords:
   - Prometheus
 title: Alertmanager
 weight: 300
+refs:
+  data_webhook_template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks/#outgoing-webhook-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/#outgoing-webhook-templates
+  legacy_integration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/alertmanager/#note-about-legacy-integration
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager/#note-about-legacy-integration
+  complete-the-integration-configuration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/#complete-the-integration-configuration
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#complete-the-integration-configuration
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  trigger_webhook_template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks/#using-trigger-template-field
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks/#using-trigger-template-field
 ---
 
 # Alertmanager integration for Grafana OnCall
@@ -18,7 +44,7 @@ weight: 300
 > ⚠️ A note about **(Legacy)** integrations:
 > Integrations that were created before version 1.3.21 (1 August 2023) were marked as **(Legacy)** and recently migrated.
 > These integrations are receiving and escalating alerts, but some manual adjustments might be required.
-> [Here][legacy_integration] you can read more about changes.
+> [Here](ref:legacy_integration) you can read more about changes.
 
 The Alertmanager integration handles alerts from [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/).
 This integration is the recommended way to send alerts from Prometheus deployed in your infrastructure, to Grafana OnCall.
@@ -61,7 +87,7 @@ receivers:
 ## Complete the Integration Configuration
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
-[this section][complete-the-integration-configuration]
+[this section](ref:complete-the-integration-configuration)
 
 ## Note about grouping and autoresolution
 
@@ -174,26 +200,9 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 
 1. Send a new demo alert to the migrated integration.
 2. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
-3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger][trigger_webhook_template]
-or [data][data_webhook_template] template it's needed to adjust them as well.
+3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger](ref:trigger_webhook_template)
+or [data](ref:data_webhook_template) template it's needed to adjust them as well.
 
 <img width="1646" alt="Screenshot 2023-12-14 at 1 14 21 PM" src="https://github.com/grafana/oncall/assets/85312870/7e281416-edbc-4384-8d15-7efaec2de311">
 
 <img width="1644" alt="Screenshot 2023-12-14 at 1 14 32 PM" src="https://github.com/grafana/oncall/assets/85312870/b62cfa1d-2ff6-4b46-9cec-459b14cd1996">
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-
-[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#complete-the-integration-configuration"
-[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
-
-[legacy_integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/alertmanager#note-about-legacy-integration"
-[legacy_integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#note-about-legacy-integration"
-
-[data_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#outgoing-webhook-templates"
-[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#outgoing-webhook-templates"
-
-[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#using-trigger-template-field"
-[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/outgoing-webhooks#using-trigger-template-field"
-{{% /docs/reference %}}

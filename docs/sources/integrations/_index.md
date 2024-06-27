@@ -10,6 +10,47 @@ keywords:
   - integrations
 title: Integrations
 weight: 500
+refs:
+  appearance-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#appearance-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#appearance-templates
+  behavioral-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#behavioral-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#behavioral-templates
+  routing-template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#routing-template
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#routing-template
+  inbound-email:
+    - pattern: /docs/oncall
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email/
+    - pattern: /docs/grafana-cloud
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email/
+  webhooks:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/
+  integration-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/#labels
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels
+  jinja2-templating:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
+  learn-about-the-alert-workflow:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/set-up/get-started/#learn-about-the-alert-workflow
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started/#learn-about-the-alert-workflow
 ---
 
 # Integrations
@@ -18,19 +59,19 @@ An "Integration" is a main entry point for alerts being consumed by Grafana OnCa
 Integrations receive alerts on a unique API URL, interprets them using a set of templates tailored for the monitoring system, and starts
 escalations.
 
-For more information about the templating used in OnCall, refer to [Jinja2 templating][].
+For more information about the templating used in OnCall, refer to [Jinja2 templating](ref:jinja2-templating).
 
 ## Learn Alert Flow Within Integration
 
 1. An Alert is received on an integration's **Unique URL** as an HTTP POST request with a JSON payload (or via
-[Inbound email][], for inbound email integrations)
+[Inbound email](ref:inbound-email), for inbound email integrations)
 1. Routing is determined for the incoming alert, by applying the [Routing Template][]
 1. Alert Grouping is determined based on [Grouping Id Template][]
-1. An Alert Group may be acknowledged or resolved with status `_ by source` based on its [Behavioral templates][]
+1. An Alert Group may be acknowledged or resolved with status `_ by source` based on its [Behavioral templates](ref:behavioral-templates)
 1. The Alert Group is available in Web, and can be published to messengers, based on the Route's **Publish to Chatops** configuration.
-It is rendered using [Appearance templates][]
+It is rendered using [Appearance templates](ref:appearance-templates)
 1. The Alert Group is escalated to users based on the Escalation Chains selected for the Route
-1. Users can perform actions listed in [Learn about the Alert Workflow][] section
+1. Users can perform actions listed in [Learn about the Alert Workflow](ref:learn-about-the-alert-workflow) section
 
 ## Configure and manage integrations
 
@@ -104,7 +145,7 @@ More specific instructions can be found in a specific integration's documentatio
 #### Behaviour and rendering templates example
 
 _Integration templates_ are Jinja2 templates which are applied to each alert to define it's rendering and behaviour.
-For more information refer to [Jinja2 templating][].
+For more information refer to [Jinja2 templating](ref:jinja2-templating).
 
 For templates editor:
 
@@ -172,7 +213,7 @@ The Alert Group Labeling feature allows users to:
 - Assign labels to alert groups
 - Filter alert groups by labels
 - Customize the Alert Group table
-- Pass labels in [Webhooks]
+- Pass labels in[Webhooks](ref:webhooks)
 
 ##### Label Assignment Limits
 
@@ -201,7 +242,7 @@ To find Alert Group Labeling Settings:
 ###### Pass Down Integration Labels
 
 These labels are automatically assigned to each alert group coming to the integration,
-based on the labels assigned to the [integration][integration-labels].
+based on the labels assigned to the [integration](ref:integration-labels).
 
 1. Navigate to the Integration Labels section in the Alert Group Labeling tab.
 2. Enable/disable passing down specific labels using the toggler.
@@ -331,29 +372,3 @@ Users with admin permissions have the ability to add custom columns based on lab
 ## List of available integrations
 
 {{< section >}}
-
-{{% docs/reference %}}
-[Appearance templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#appearance-templates"
-[Appearance templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#appearance-templates"
-
-[Behavioral templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#behavioral-templates"
-[Behavioral templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#behavioral-templates"
-
-[Inbound email]: "/docs/oncall -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
-[Inbound email]: "/docs/grafana-cloud -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
-
-[Jinja2 templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[Jinja2 templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
-
-[Learn about the Alert Workflow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/get-started#learn-about-the-alert-workflow"
-[Learn about the Alert Workflow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started#learn-about-the-alert-workflow"
-
-[Routing template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
-[Routing template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
-
-[Webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
-[Webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
-
-[integration-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/#labels"
-[integration-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels"
-{{% /docs/reference %}}

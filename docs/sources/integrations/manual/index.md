@@ -12,13 +12,39 @@ keywords:
   - Direct paging
 title: Page people manually
 weight: 300
+refs:
+  notify:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/#configure-user-notification-policies
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/#configure-user-notification-policies
+  escalation-chains-and-routes:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/
+  manage-teams:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/#manage-teams-in-grafana-oncall
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/#manage-teams-in-grafana-oncall
+  integrations:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/
+  slack-escalate:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/slack/#slack-escalate-command
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack/#slack-escalate-command
 ---
 
 # Page people manually
 
-Grafana OnCall relies on automated and pre-configured workflows, such as [integrations][integrations],
-[routes, and escalation chains][escalation-chains-and-routes] to handle most of the incident response process.
-However, sometimes you might need to page a [team][manage-teams] or request assistance from specific people that
+Grafana OnCall relies on automated and pre-configured workflows, such as [integrations](ref:integrations),
+[routes, and escalation chains](ref:escalation-chains-and-routes) to handle most of the incident response process.
+However, sometimes you might need to page a [team](ref:manage-teams) or request assistance from specific people that
 are not part of these pre-defined rules.
 
 For such ad-hoc scenarios, Grafana OnCall allows you to create an alert group, input necessary information, and decide
@@ -35,9 +61,9 @@ From there, you can configure the alert group to notify a particular team and op
   see teams that have a "contactable" direct paging integration (ie. it has an escalation chain assigned to it, or has
   at least one Chatops integration connected to send notifications to).
 - **Users**: Include more users to the alert group. For each additional user, you can select a notification policy:
-  [default or important][notify].
+  [default or important](ref:notify).
 
-> The same feature is also available as [**/escalate**][slack-escalate] Slack command.
+> The same feature is also available as [**/escalate**](ref:slack-escalate) Slack command.
 
 ## Add users to an existing alert group
 
@@ -70,20 +96,3 @@ Navigate to the **Integrations** page and find the "Direct paging" integration f
 integration's detail page, you can customize its settings, link it to an escalation chain, and configure associated
 ChatOps channels. To confirm that the integration is functioning as intended, [create a new alert group](#page-a-team)
 and select the same team for a test run.
-
-{{% docs/reference %}}
-[integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations"
-[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
-
-[escalation-chains-and-routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes"
-[escalation-chains-and-routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes"
-
-[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify#configure-user-notification-policies"
-[notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify#configure-user-notification-policies"
-
-[slack-escalate]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify/slack#slack-escalate-command"
-[slack-escalate]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack#slack-escalate-command"
-
-[manage-teams]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management#manage-teams-in-grafana-oncall"
-[manage-teams]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management#manage-teams-in-grafana-oncall"
-{{% /docs/reference %}}

@@ -14,6 +14,17 @@ labels:
     - cloud
 title: AppDynamics
 weight: 500
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  complete-the-integration-configuration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/integrations/#complete-the-integration-configuration
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#complete-the-integration-configuration
 ---
 
 # AppDynamics integration for Grafana OnCall
@@ -23,7 +34,7 @@ weight: 500
 The AppDynamics integration for Grafana OnCall handles health rule violation events sent from AppDynamics actions.
 The integration provides grouping and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin](ref:user-and-team-management) to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from AppDynamics
 
@@ -38,7 +49,7 @@ You will need it when configuring AppDynamics.
 Create a new HTTP Request Template in AppDynamics to send events to Grafana OnCall using the integration URL above.
 
 Refer to
-[AppDynamics documentation]
+[AppDynamics documentation][]
 (<https://docs.appdynamics.com/appd/23.x/latest/en/appdynamics-essentials/alert-and-respond/actions/http-request-actions-and-templates>)
 for more information on **how to create HTTP Request Templates**:
 
@@ -110,12 +121,4 @@ Grafana OnCall provides grouping and auto-resolve logic for the AppDynamics inte
 ## Complete the Integration Configuration
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
-[this section][complete-the-integration-configuration]
-
-{{% docs/reference %}}
-[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations#complete-the-integration-configuration"
-[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
-
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}
+[this section](ref:complete-the-integration-configuration)
