@@ -1,6 +1,7 @@
 import typing
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
@@ -322,7 +323,11 @@ class AlertGroupView(
             alert_receive_channels_qs = alert_receive_channels_qs.filter(teams_lookup)
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
-        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
+        select = {"updated_started_at": "alerts_alertgroup.started_at"}
+        if settings.DATABASE_TYPE == "mysql":
+            # related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
+            select = {"updated_started_at": "alerts_alertgroup.started_at + 0"}
+        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids).extra(select=select)
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
         label_query = self.request.query_params.getlist("label", [])
@@ -419,7 +424,6 @@ class AlertGroupView(
         to add additional info like alert_count and last_alert for every alert group efficiently.
         We need the last_alert because it's used by AlertGroupWebRenderer.
         """
-
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
         queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
