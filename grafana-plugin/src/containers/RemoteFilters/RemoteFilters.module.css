@@ -16,7 +16,7 @@
 .filter {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 0;
 }
 
 .root .filter-options {
@@ -26,4 +26,16 @@
 .root .filter-select {
   min-width: 250px;
   width: fit-content;
+}
+
+.infoIcon {
+  margin-left: 4px;
+}
+
+.border {
+  border: 1px solid red;
+
+  &:hover {
+    border: 1px solid red;
+  }
 }
