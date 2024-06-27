@@ -152,7 +152,7 @@ def start_sync_org_with_chatops_proxy():
     organization_qs = Organization.objects.all()
     organization_pks = organization_qs.values_list("pk", flat=True)
 
-    max_countdown = 60 * 30  # 30 minutes, feel free to adjust
+    max_countdown = 12 * 60 * 60  # 12 hours, feel free to adjust
     for idx, organization_pk in enumerate(organization_pks):
         countdown = idx % max_countdown
         sync_org_with_chatops_proxy.apply_async(kwargs={"org_id": organization_pk}, countdown=countdown)
