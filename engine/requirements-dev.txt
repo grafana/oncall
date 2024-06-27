@@ -25,14 +25,14 @@ django==4.2.11
     #   django-stubs-ext
 django-filter-stubs==0.1.3
     # via -r requirements-dev.in
-django-stubs==4.2.2
+django-stubs[compatible-mypy]==4.2.2
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
     #   djangorestframework-stubs
 django-stubs-ext==4.2.7
     # via django-stubs
-djangorestframework-stubs==3.14.2
+djangorestframework-stubs[compatible-mypy]==3.14.2
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
@@ -96,7 +96,7 @@ pytest-django==4.8.0
     # via -r requirements-dev.in
 pytest-factoryboy==2.7.0
     # via -r requirements-dev.in
-pytest-xdist==3.6.1
+pytest-xdist[psutil]==3.6.1
     # via -r requirements-dev.in
 python-dateutil==2.8.2
     # via
@@ -110,10 +110,6 @@ requests==2.32.0
     # via
     #   -c requirements.txt
     #   djangorestframework-stubs
-setuptools==70.0.0
-    # via
-    #   -c requirements.txt
-    #   nodeenv
 six==1.16.0
     # via
     #   -c requirements.txt
@@ -156,7 +152,7 @@ typing-extensions==4.9.0
     #   djangorestframework-stubs
     #   mypy
     #   pytest-factoryboy
-urllib3==1.26.18
+urllib3==1.26.19
     # via
     #   -c requirements.txt
     #   requests

@@ -34,7 +34,7 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery==5.3.1
+celery[redis]==5.3.1
     # via -r requirements.in
 certifi==2024.2.2
     # via
@@ -157,7 +157,7 @@ firebase-admin==5.4.0
     # via fcm-django
 flask==3.0.2
     # via slack-export-viewer
-google-api-core==2.17.0
+google-api-core[grpc]==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -416,11 +416,6 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
-setuptools==70.0.0
-    # via
-    #   -r requirements.in
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
@@ -460,7 +455,7 @@ uritemplate==4.1.1
     # via
     #   drf-spectacular
     #   google-api-python-client
-urllib3==1.26.18
+urllib3==1.26.19
     # via
     #   -r requirements.in
     #   botocore
