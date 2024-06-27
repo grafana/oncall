@@ -118,9 +118,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
     undefined
   );
 
-  const [rotationName, setRotationName] = useState<string>(`[L${layerPriority}] Rotation`);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [offsetTop, setOffsetTop] = useState<number>(GRAFANA_HEADER_HEIGHT + 10);
+  const [rotationName, setRotationName] = useState(`[L${layerPriority}] Rotation`);
+  const [isOpen, setIsOpen] = useState(false);
+  const [offsetTop, setOffsetTop] = useState(GRAFANA_HEADER_HEIGHT + 10);
   const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(
@@ -131,24 +131,24 @@ export const RotationForm = observer((props: RotationFormProps) => {
     propsShiftEnd?.utcOffset(store.timezoneStore.selectedTimezoneOffset) || shiftStart.add(1, 'day')
   );
 
-  const [activePeriod, setActivePeriod] = useState<number | undefined>(undefined);
-  const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
+  const [activePeriod, setActivePeriod] = useState<number>(undefined);
+  const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number>(undefined);
 
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
   const [endLess, setEndless] = useState<boolean>(shift?.until === undefined ? true : !Boolean(shift.until));
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
 
-  const [recurrenceNum, setRecurrenceNum] = useState<number>(1);
-  const [recurrencePeriod, setRecurrencePeriod] = useState<RepeatEveryPeriod>(RepeatEveryPeriod.DAYS);
+  const [recurrenceNum, setRecurrenceNum] = useState(1);
+  const [recurrencePeriod, setRecurrencePeriod] = useState(RepeatEveryPeriod.DAYS);
 
-  const [isMaskedByWeekdays, setIsMaskedByWeekdays] = useState<boolean>(false);
-  const [isLimitShiftEnabled, setIsLimitShiftEnabled] = useState<boolean>(false);
+  const [isMaskedByWeekdays, setIsMaskedByWeekdays] = useState(false);
+  const [isLimitShiftEnabled, setIsLimitShiftEnabled] = useState(false);
 
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
   const [userGroups, setUserGroups] = useState([]);
 
-  const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
+  const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState(false);
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
   useResize(debouncedOnResize);
@@ -387,10 +387,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const onMaskedByWeekdaysSwitch = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.currentTarget.checked;
+      const disableLimitShift = !value && recurrencePeriod === RepeatEveryPeriod.MONTHS;
 
       setIsMaskedByWeekdays(value);
 
-      const disableLimitShift = !value && recurrencePeriod === RepeatEveryPeriod.MONTHS;
       if (disableLimitShift) {
         setIsLimitShiftEnabled(false);
       }
@@ -416,7 +416,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     [isLimitShiftEnabled, shiftStart, shiftEnd, recurrenceNum, recurrencePeriod]
   );
 
-  const handleShowActiveOnSelectedPartOfDayToggle = useCallback(
+  const onLimitShiftSwitch = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.currentTarget.checked;
       setIsLimitShiftEnabled(value);
@@ -704,7 +704,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                       <Switch
                         disabled={isSelectedPartOfDayDisabled()}
                         value={isLimitShiftEnabled}
-                        onChange={handleShowActiveOnSelectedPartOfDayToggle}
+                        onChange={onLimitShiftSwitch}
                       />
                       <VerticalGroup>
                         <Text type="secondary">Limit each shift length</Text>
