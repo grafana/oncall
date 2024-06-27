@@ -1,6 +1,7 @@
 import json
 import typing
 
+from django.conf import settings
 from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
@@ -245,23 +246,26 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         },
                     )
 
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
-                    },
-                )
+                if not settings.FEATURE_FEWER_SLACK_BUTTONS:
+                    buttons.append(
+                        {
+                            "text": {"type": "plain_text", "text": "Responders", "emoji": True},
+                            "type": "button",
+                            "value": self._alert_group_action_value(),
+                            "action_id": ScenarioStep.get_step(
+                                "manage_responders", "StartManageResponders"
+                            ).routing_uid(),
+                        },
+                    )
 
-                attach_button = {
-                    "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
-                    "type": "button",
-                    "action_id": ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep").routing_uid(),
-                    "value": self._alert_group_action_value(),
-                }
-                buttons.append(attach_button)
-            else:
+                    attach_button = {
+                        "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
+                        "type": "button",
+                        "action_id": ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep").routing_uid(),
+                        "value": self._alert_group_action_value(),
+                    }
+                    buttons.append(attach_button)
+            elif not settings.FEATURE_FEWER_SLACK_BUTTONS:
                 buttons.append(
                     {
                         "text": {"type": "plain_text", "text": "Unresolve", "emoji": True},
@@ -271,7 +275,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     },
                 )
 
-            if self.alert_group.channel.is_available_for_custom_templates:
+            if self.alert_group.channel.is_available_for_custom_templates and not settings.FEATURE_FEWER_SLACK_BUTTONS:
                 buttons.append(
                     {
                         "text": {"type": "plain_text", "text": ":mag: Format Alert", "emoji": True},
@@ -298,7 +302,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             if resolution_notes_count == 0:
                 resolution_notes_button["style"] = "primary"
                 resolution_notes_button["text"]["text"] = "Add Resolution notes"
-            buttons.append(resolution_notes_button)
+            if resolution_notes_count > 0 or not settings.FEATURE_FEWER_SLACK_BUTTONS:
+                buttons.append(resolution_notes_button)
 
             # Declare incident button
             if self.alert_group.channel.organization.is_grafana_incident_enabled:
