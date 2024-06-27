@@ -369,6 +369,8 @@ def _sync_users_data(organization: Organization, sync_users: list[SyncUser], del
 
 
 def _sync_teams_data(organization: Organization, sync_teams: list[SyncTeam]):
+    if sync_teams is None:
+        sync_teams = []
     # keep existing team names mapping to check for possible metrics cache updates
     existing_team_names = {team.team_id: team.name for team in organization.teams.all()}
     teams_to_sync = tuple(
