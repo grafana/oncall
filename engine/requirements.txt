@@ -34,7 +34,7 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery==5.3.1
+celery[redis]==5.3.1
     # via -r requirements.in
 certifi==2024.2.2
     # via
@@ -136,7 +136,7 @@ django-silk==5.0.3
     # via -r requirements.in
 django-sns-view==0.1.2
     # via -r requirements.in
-djangorestframework==3.14.0
+djangorestframework==3.15.2
     # via
     #   -r requirements.in
     #   django-rest-polymorphic
@@ -157,7 +157,7 @@ firebase-admin==5.4.0
     # via fcm-django
 flask==3.0.2
     # via slack-export-viewer
-google-api-core==2.17.0
+google-api-core[grpc]==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -370,7 +370,6 @@ python3-openid==3.2.0
 pytz==2024.1
     # via
     #   apscheduler
-    #   djangorestframework
     #   icalendar
     #   python-telegram-bot
     #   recurring-ical-events
@@ -416,11 +415,6 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
-setuptools==70.0.0
-    # via
-    #   -r requirements.in
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
