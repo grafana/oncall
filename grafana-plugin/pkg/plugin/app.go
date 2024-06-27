@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -101,7 +100,7 @@ func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSetti
 
 	if healthRes.StatusCode != http.StatusOK {
 		log.DefaultLogger.Error("Error request to oncall: ", healthRes.Status)
-		return healthRes.StatusCode, errors.New("Error request to oncall: " + healthRes.Status)
+		return healthRes.StatusCode, fmt.Errorf(healthRes.Status)
 	}
 
 	return http.StatusOK, nil
