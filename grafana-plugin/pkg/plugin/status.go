@@ -130,10 +130,10 @@ func (a *App) ValidateGrafanaConnectionFromPlugin(status *OnCallStatus, settings
 func (a *App) ValidateOnCallConnection(ctx context.Context, status *OnCallStatus, settings *OnCallPluginSettings) error {
 	healthStatus, err := a.CheckOnCallApiHealthStatus(settings)
 	if err != nil {
-		log.DefaultLogger.Error("Error checking on-call API health: ", err)
+		log.DefaultLogger.Error("Error checking OnCall API health: ", err)
 		status.PluginConnection.OnCallAPIURL = OnCallPluginConnectionEntry{
 			Ok:    false,
-			Error: fmt.Sprintf("Error connecting to OnCall engine: %v, status code: %d", err, healthStatus),
+			Error: fmt.Sprintf("Error checking OnCall API health. %v. Status code: %d", err, healthStatus),
 		}
 		return nil
 	}

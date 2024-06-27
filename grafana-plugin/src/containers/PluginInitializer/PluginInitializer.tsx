@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
@@ -18,7 +18,11 @@ export const PluginInitializer: FC<PluginInitializerProps> = observer(({ childre
   const { isConnected, isCheckingConnectionStatus } = useInitializePlugin();
 
   if (isCheckingConnectionStatus) {
-    return <LoadingPlaceholder text="Loading..." />;
+    return (
+      <VerticalGroup justify="center" height="100%" align="center">
+        <LoadingPlaceholder text="Loading..." />
+      </VerticalGroup>
+    );
   }
   return (
     <RenderConditionally

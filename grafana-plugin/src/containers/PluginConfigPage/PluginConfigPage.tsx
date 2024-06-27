@@ -220,10 +220,8 @@ const PluginConfigAlert = observer(() => {
       <ol className="u-margin-bottom-md">
         {Object.values(connectionStatus)
           .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
-          .map(({ error }, idx) => (
-            <li key={error}>
-              {idx + 1}. {error}
-            </li>
+          .map(({ error }) => (
+            <li key={error}>{error}</li>
           ))}
       </ol>
       <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
