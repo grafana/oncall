@@ -230,7 +230,7 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
 
 
 class AlertGroupSearchFilter(SearchFilter):
-    SEARCH_CUTOFF_DAYS = 30
+    SEARCH_CUTOFF_DAYS = 30 * 6
 
     def filter_queryset(self, request, queryset, view):
         search_fields = self.get_search_fields(view, request)
@@ -322,7 +322,10 @@ class AlertGroupView(
             alert_receive_channels_qs = alert_receive_channels_qs.filter(teams_lookup)
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
-        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
+        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids).extra(
+            # related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
+            select={"updated_started_at": "alerts_alertgroup.started_at + 0"}
+        )
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
         label_query = self.request.query_params.getlist("label", [])
@@ -419,7 +422,6 @@ class AlertGroupView(
         to add additional info like alert_count and last_alert for every alert group efficiently.
         We need the last_alert because it's used by AlertGroupWebRenderer.
         """
-
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
         queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")

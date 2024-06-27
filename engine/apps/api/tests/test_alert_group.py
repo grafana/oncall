@@ -976,6 +976,47 @@ def test_get_filter_labels(
 
 
 @pytest.mark.django_db
+def test_get_title_search(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    alert_groups = []
+    for i in range(3):
+        alert_group = make_alert_group(
+            alert_receive_channel,
+            channel_filter=channel_filter,
+            web_title_cache=f"testing {i+1}",
+        )
+        # alert groups starting every 2 months going back
+        alert_group.started_at = timezone.now() - datetime.timedelta(days=10 + 30 * (i + 1) * 2)
+        alert_group.save(update_fields=["started_at"])
+        make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+        alert_groups.append(alert_group)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+
+    response = client.get(
+        url + "?search=testing",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 2
+    assert response.json()["results"][0]["pk"] == alert_groups[0].public_primary_key
+    assert response.json()["results"][1]["pk"] == alert_groups[1].public_primary_key
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [

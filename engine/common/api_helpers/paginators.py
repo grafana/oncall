@@ -85,4 +85,4 @@ class FifteenPageSizePaginator(PathPrefixedPagePagination):
 
 class AlertGroupCursorPaginator(PathPrefixedCursorPagination):
     page_size = 25
-    ordering = "-started_at"  # ordering by "-started_at", so it uses the right index (see AlertGroup.Meta.indexes)
+    ordering = "-updated_started_at"  # ordering by "-updated_started_at", so it uses the right index
