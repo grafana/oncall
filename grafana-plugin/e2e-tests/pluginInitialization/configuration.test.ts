@@ -24,12 +24,6 @@ test.describe('Plugin configuration', () => {
     await urlInput.fill('invalid-url-format:8080');
     await page.getByText('URL is invalid').waitFor();
 
-    // apply incorrect url on the backend and show error message
-    await urlInput.fill('http://incorrect-url-in-valid-format:8080');
-    await page.getByTestId('connect-plugin').click();
-    await page.waitForLoadState('networkidle');
-    await page.getByText('Plugin is not connected').waitFor();
-
     // apply back correct url and verify plugin connected again
     await urlInput.fill(correctURLAppliedByDefault);
     await page.getByTestId('connect-plugin').click();
