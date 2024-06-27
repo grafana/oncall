@@ -77,9 +77,9 @@ export const createGrafanaUser = async ({
 
 export const loginAndWaitTillGrafanaIsLoaded = async ({ page, username }: { page: Page; username: string }) => {
   await goToGrafanaPage(page, '/login');
-  await page.getByLabel('Email or username').fill(username);
-  await page.getByLabel(/Password/).fill(username);
-  await clickButton({ page, buttonText: 'Log in' });
+  await page.getByPlaceholder(/Email or username/i).fill(username);
+  await page.getByPlaceholder(/Password/i).fill(username);
+  await page.locator('button[type="submit"]').click();
 
   await page.getByText('Welcome to Grafana').waitFor();
   await page.waitForLoadState('networkidle');
