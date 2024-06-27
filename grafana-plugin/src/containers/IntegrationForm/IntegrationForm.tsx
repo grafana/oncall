@@ -18,7 +18,6 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { parseUrl } from 'query-string';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
@@ -40,6 +39,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
+import { validateURL } from 'utils/string';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
@@ -404,10 +404,6 @@ export const IntegrationForm = observer(
           {isLoading ? <LoadingPlaceholder text="Loading..." className={styles.loader} /> : buttonCopy}
         </Button>
       );
-    }
-
-    function validateURL(urlFieldValue: string): string | boolean {
-      return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
     async function onFormSubmit(formData: IntegrationFormFields): Promise<void> {
