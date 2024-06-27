@@ -42,6 +42,10 @@ We prepared multiple environments:
 
 2. Set variables:
 
+    **Note** 
+
+    When generating the `.env` file on Windows, opt for PowerShell to echo the environment variables.
+
    ```bash
    echo "DOMAIN=http://localhost:8080
    # Remove 'with_grafana' below if you want to use existing grafana
