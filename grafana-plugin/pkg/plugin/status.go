@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 type OnCallPluginConnectionEntry struct {
@@ -127,6 +128,16 @@ func (a *App) ValidateGrafanaConnectionFromPlugin(status *OnCallStatus, settings
 }
 
 func (a *App) ValidateOnCallConnection(ctx context.Context, status *OnCallStatus, settings *OnCallPluginSettings) error {
+	healthStatus, err := a.CheckOnCallApiHealthStatus(settings)
+	if err != nil {
+		log.DefaultLogger.Error("Error checking OnCall API health: ", err)
+		status.PluginConnection.OnCallAPIURL = OnCallPluginConnectionEntry{
+			Ok:    false,
+			Error: fmt.Sprintf("Error checking OnCall API health. %v. Status code: %d", err, healthStatus),
+		}
+		return nil
+	}
+
 	statusURL, err := url.JoinPath(settings.OnCallAPIURL, "api/internal/v1/plugin/v2/status")
 	if err != nil {
 		return fmt.Errorf("error joining path: %v", err)
@@ -209,6 +220,11 @@ func (a *App) ValidateOnCallStatus(ctx context.Context, settings *OnCallPluginSe
 		return &status, nil
 	}
 
+	err := a.ValidateOnCallConnection(ctx, &status, settings)
+	if err != nil {
+		return &status, err
+	}
+
 	grafanaOK, err := a.ValidateGrafanaConnectionFromPlugin(&status, settings)
 	if err != nil {
 		return &status, err
@@ -216,10 +232,6 @@ func (a *App) ValidateOnCallStatus(ctx context.Context, settings *OnCallPluginSe
 		return &status, nil
 	}
 
-	err = a.ValidateOnCallConnection(ctx, &status, settings)
-	if err != nil {
-		return &status, err
-	}
 	return &status, nil
 }
 

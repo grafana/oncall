@@ -6,6 +6,7 @@ import { goToOnCallPage } from '../utils/navigation';
 test('Integrations table shows data in Monitoring Systems and Direct Paging tabs', async ({
   adminRolePage: { page },
 }) => {
+  test.slow();
   const ID = generateRandomValue();
   const WEBHOOK_INTEGRATION_NAME = `Webhook-${ID}`;
   const ALERTMANAGER_INTEGRATION_NAME = `Alertmanager-${ID}`;

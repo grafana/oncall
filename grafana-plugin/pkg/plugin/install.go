@@ -3,9 +3,10 @@ package plugin
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"io"
 	"net/url"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 
 	"net/http"
 )
@@ -19,6 +20,13 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
 		log.DefaultLogger.Error("Error getting settings from context: ", err)
+		return
+	}
+
+	healthStatus, err := a.CheckOnCallApiHealthStatus(onCallPluginSettings)
+	if err != nil {
+		log.DefaultLogger.Error("Error checking on-call API health: ", err)
+		http.Error(w, err.Error(), healthStatus)
 		return
 	}
 

@@ -1,3 +1,5 @@
+import semver from 'semver';
+
 import { test, expect } from '../fixtures';
 import { OrgRole } from '../utils/constants';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
@@ -34,6 +36,11 @@ test.describe('Plugin initialization', () => {
     adminRolePage: { page },
     browser,
   }) => {
+    test.skip(
+      semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.3.0'),
+      'Extension is only available in Grafana 10.3.0 and above'
+    );
+
     // Create new editor user
     const USER_NAME = `editor-${new Date().getTime()}`;
     await createGrafanaUser({ page, username: USER_NAME, role: OrgRole.Editor });

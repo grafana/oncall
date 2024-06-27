@@ -15,7 +15,6 @@ import { rootStore } from 'state/rootStore';
 import {
   DOCS_ONCALL_OSS_INSTALL,
   DOCS_SERVICE_ACCOUNTS,
-  getOnCallApiUrl,
   PLUGIN_CONFIG,
   PLUGIN_ROOT,
   REQUEST_HELP_URL,
@@ -30,10 +29,13 @@ type PluginConfigFormValues = {
 
 export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
   const {
-    pluginStore: { verifyPluginConnection },
+    pluginStore: { verifyPluginConnection, refreshAppliedOnCallApiUrl },
   } = rootStore;
 
-  useOnMount(verifyPluginConnection);
+  useOnMount(() => {
+    refreshAppliedOnCallApiUrl();
+    verifyPluginConnection();
+  });
 
   return (
     <VerticalGroup>
@@ -70,22 +72,19 @@ const OSSPluginConfigPage = observer(
         connectionStatus,
         recreateServiceAccountAndRecheckPluginStatus,
         isPluginConnected,
+        appliedOnCallApiUrl,
       },
       loaderStore,
     } = rootStore;
     const styles = useStyles2(getStyles);
     const { handleSubmit, control, formState } = useForm<PluginConfigFormValues>({
       mode: 'onChange',
-      defaultValues: { onCallApiUrl: getOnCallApiUrl(meta) },
+      values: { onCallApiUrl: appliedOnCallApiUrl },
     });
     const isReinitializating = loaderStore.isLoading(ActionKey.PLUGIN_UPDATE_SETTINGS_AND_REINITIALIZE);
     const isRecreatingServiceAccount = loaderStore.isLoading(ActionKey.PLUGIN_RECREATE_SERVICE_ACCOUNT);
 
-    const isSubmitButtonDisabled =
-      !formState.isValid ||
-      !meta.enabled ||
-      isReinitializating ||
-      !(getIsExternalServiceAccountFeatureAvailable() || connectionStatus?.service_account_token?.ok);
+    const isSubmitButtonDisabled = !formState.isValid || !meta.enabled || isReinitializating;
 
     const onSubmit = async (values: PluginConfigFormValues) => {
       await updatePluginSettingsAndReinitializePlugin({
@@ -115,7 +114,11 @@ const OSSPluginConfigPage = observer(
           </a>
         </Text>
         <HorizontalGroup>
-          <Button variant="secondary" onClick={recreateServiceAccountAndRecheckPluginStatus}>
+          <Button
+            variant="secondary"
+            onClick={recreateServiceAccountAndRecheckPluginStatus}
+            data-testid="recreate-service-account"
+          >
             Re-create
           </Button>
           {isRecreatingServiceAccount && <LoadingPlaceholder text="" className={styles.spinner} />}
@@ -138,7 +141,7 @@ const OSSPluginConfigPage = observer(
           <Controller
             name={'onCallApiUrl'}
             control={control}
-            rules={{ required: 'OnCall API URL is required', validate: validateURL }}
+            rules={{ required: 'URL is required', validate: validateURL }}
             render={({ field }) => (
               <Field
                 key={'Name'}
@@ -151,7 +154,7 @@ const OSSPluginConfigPage = observer(
             )}
           />
           <HorizontalGroup>
-            <Button type="submit" disabled={isSubmitButtonDisabled}>
+            <Button type="submit" disabled={isSubmitButtonDisabled} data-testid="connect-plugin">
               {isPluginConnected ? 'Reconnect' : 'Connect'}
             </Button>
             {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
@@ -217,10 +220,8 @@ const PluginConfigAlert = observer(() => {
       <ol className="u-margin-bottom-md">
         {Object.values(connectionStatus)
           .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
-          .map(({ error }, idx) => (
-            <li key={error}>
-              {idx + 1}. {error}
-            </li>
+          .map(({ error }) => (
+            <li key={error}>{error}</li>
           ))}
       </ol>
       <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>

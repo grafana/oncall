@@ -1,4 +1,5 @@
 import { getBackendSrv } from '@grafana/runtime';
+import { OnCallPluginMetaJSONData } from 'types';
 
 import {
   ApiAuthKeyDTO,
@@ -57,6 +58,9 @@ export class GrafanaApiClient {
 
   static updateGrafanaPluginSettings = async (data: UpdateGrafanaPluginSettingsProps, enabled = true) =>
     this.grafanaBackend.post(GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
+
+  static getGrafanaPluginSettings = async () =>
+    this.grafanaBackend.get<{ jsonData: OnCallPluginMetaJSONData }>(GRAFANA_PLUGIN_SETTINGS_URL);
 
   static recreateGrafanaTokenAndSaveInPluginSettings = async () => {
     const serviceAccount = await this.getOrCreateServiceAccount();
