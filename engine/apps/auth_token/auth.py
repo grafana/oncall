@@ -11,9 +11,11 @@ from rest_framework.request import Request
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
+from apps.grafana_plugin.sync_data import SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from apps.user_management.sync import get_or_create_user
 from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -158,8 +160,26 @@ class PluginAuthentication(BasePluginAuthentication):
             else:
                 raise exceptions.AuthenticationFailed("Grafana context must specify a User or UserID.")
         except User.DoesNotExist:
-            logger.debug(f"Could not get user from grafana request. Context {context}")
-            raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+            try:
+                user_data = dict(json.loads(request.headers.get("X-Oncall-User-Context")))
+            except (ValueError, TypeError):
+                raise exceptions.AuthenticationFailed("User context must be JSON dict.")
+            if user_data:
+                user_sync_data = SyncUser(
+                    id=user_data["id"],
+                    name=user_data["name"],
+                    login=user_data["login"],
+                    email=user_data["email"],
+                    role=user_data["role"],
+                    avatar_url=user_data["avatar_url"],
+                    permissions=user_data["permissions"] or [],
+                    teams=None,  # TODO: we don't have teams data here
+                )
+                # TODO: should we trigger an async sync at this point?
+                return get_or_create_user(organization, user_sync_data)
+            else:
+                logger.debug("Could not get user from grafana request.")
+                raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
 
 
 class PluginAuthenticationSchema(OpenApiAuthenticationExtension):

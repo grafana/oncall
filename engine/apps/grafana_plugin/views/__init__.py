@@ -5,3 +5,4 @@ from .self_hosted_install import SelfHostedInstallView  # noqa: F401
 from .status import StatusView  # noqa: F401
 from .status_v2 import StatusV2View  # noqa: F401
 from .sync_organization import SyncOrganizationView  # noqa: F401
+from .sync_v2 import SyncV2View  # noqa: F401
