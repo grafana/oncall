@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -69,10 +70,18 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 
 	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
 	cfg := backend.GrafanaConfigFromContext(ctx)
-	if settings.GrafanaURL == "" {
-		return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData): %v", settings)
+	// cfg.AppURL() is returning localhost when GF_APP_URL is set, directly access instead
+	grafanaURL := strings.TrimRight(os.Getenv("GF_APP_URL"), "/")
+	if grafanaURL == "" {
+		// Fallback to GrafanaURL already being set in settings outside backend plugin from provisioning or UI
+		log.DefaultLogger.Info(fmt.Sprintf("Using provisioned GrafanaURL url=%s", settings.GrafanaURL))
+		if settings.GrafanaURL == "" {
+			return &settings, fmt.Errorf("Fallback GrafanaURL failed (not set in jsonData): %v", settings)
+		}
+	} else {
+		log.DefaultLogger.Info(fmt.Sprintf("Using GF_APP_URL env var GrafanaURL url=%s", settings.GrafanaURL))
+		settings.GrafanaURL = grafanaURL
 	}
-	log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 
 	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
 	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
