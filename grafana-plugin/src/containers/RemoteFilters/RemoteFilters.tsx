@@ -169,19 +169,20 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             />
           </div>
         ))}
-        <Select
-          menuShouldPortal
-          key={filters.length}
-          className={styles.filterOptions}
-          placeholder="Search or filter results..."
-          value={undefined}
-          onChange={this.handleAddFilter}
-          getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
-          options={options}
-          allowCustomValue={allowFreeSearch}
-          onCreateOption={this.handleSearch}
-          formatCreateLabel={(str) => `Search ${str}`}
-        />
+        <div className={styles.filterOptions}>
+          <Select
+            menuShouldPortal
+            key={filters.length}
+            placeholder="Search or filter results..."
+            value={undefined}
+            onChange={this.handleAddFilter}
+            getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
+            options={options}
+            allowCustomValue={allowFreeSearch}
+            onCreateOption={this.handleSearch}
+            formatCreateLabel={(str) => `Search ${str}`}
+          />
+        </div>
       </div>
     );
   };
