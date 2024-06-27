@@ -8,11 +8,13 @@ from apps.grafana_plugin.views import (
     StatusV2View,
     StatusView,
     SyncOrganizationView,
+    SyncV2View,
 )
 
 app_name = "grafana-plugin"
 
 urlpatterns = [
+    re_path(r"v2/sync/?", SyncV2View().as_view(), name="sync-v2"),
     re_path(r"v2/status/?", StatusV2View().as_view(), name="status-v2"),
     re_path(r"v2/install/?", InstallV2View().as_view(), name="install-v2"),
     re_path(r"self-hosted/install/?", SelfHostedInstallView().as_view(), name="self-hosted-install"),

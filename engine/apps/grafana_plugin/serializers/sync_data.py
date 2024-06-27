@@ -20,7 +20,7 @@ class SyncUserSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField(allow_blank=True)
     login = serializers.CharField()
-    email = serializers.EmailField()
+    email = serializers.CharField()
     role = serializers.CharField()
     avatar_url = serializers.CharField()
     permissions = SyncPermissionSerializer(many=True, allow_empty=True, allow_null=True)
@@ -36,7 +36,7 @@ class SyncUserSerializer(serializers.Serializer):
 class SyncTeamSerializer(serializers.Serializer):
     team_id = serializers.IntegerField()
     name = serializers.CharField()
-    email = serializers.EmailField()
+    email = serializers.EmailField(allow_blank=True)
     avatar_url = serializers.CharField()
 
     def create(self, validated_data):
