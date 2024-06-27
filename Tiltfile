@@ -46,7 +46,7 @@ docker_build_sub(
     "localhost:63628/oncall/engine:dev",
     context="./engine",
     cache_from=["grafana/oncall:latest", "grafana/oncall:dev"],
-    ignore=["./test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/"],
+    ignore=["./test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/", "./grafana-plugin/node_modules/"],
     child_context=".",
     target="dev",
     extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src/plugin.json"],
