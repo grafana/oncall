@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -71,7 +72,7 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 
 // Check OnCallApi health
 func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSettings) (int, error) {
-	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/health")
+	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/health/")
 	if err != nil {
 		log.DefaultLogger.Error("Error joining path: %v", err)
 		return http.StatusInternalServerError, err
@@ -99,8 +100,8 @@ func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSetti
 	}
 
 	if healthRes.StatusCode != http.StatusOK {
-		log.DefaultLogger.Error("Error request to oncall: ", err)
-		return http.StatusBadRequest, err
+		log.DefaultLogger.Error("Error request to oncall: ", healthRes.Status)
+		return healthRes.StatusCode, errors.New("Error request to oncall: " + healthRes.Status)
 	}
 
 	return http.StatusOK, nil

@@ -133,7 +133,7 @@ func (a *App) ValidateOnCallConnection(ctx context.Context, status *OnCallStatus
 		log.DefaultLogger.Error("Error checking on-call API health: ", err)
 		status.PluginConnection.OnCallAPIURL = OnCallPluginConnectionEntry{
 			Ok:    false,
-			Error: fmt.Sprintf("Error connecting to OnCall engine: %v, status code: %d", err, healthStatus),
+			Error: fmt.Sprintf("OnCall engine health check failed with status code: %d", healthStatus),
 		}
 		return nil
 	}
