@@ -1,8 +1,9 @@
 import typing
+from datetime import timedelta
 
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
@@ -228,6 +229,22 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
 
+class AlertGroupSearchFilter(SearchFilter):
+    SEARCH_CUTOFF_DAYS = 30
+
+    def filter_queryset(self, request, queryset, view):
+        search_fields = self.get_search_fields(view, request)
+        search_terms = self.get_search_terms(request)
+        if not search_fields or not search_terms:
+            return queryset
+
+        started_at = request.query_params.get("started_at")
+        end = DateRangeFilterMixin.parse_custom_datetime_range(started_at)[1] if started_at else timezone.now()
+
+        queryset = super().filter_queryset(request, queryset, view)
+        return queryset.filter(started_at__gte=end - timedelta(days=self.SEARCH_CUTOFF_DAYS))
+
+
 class AlertGroupView(
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
@@ -275,12 +292,8 @@ class AlertGroupView(
 
     pagination_class = AlertGroupCursorPaginator
 
-    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    search_fields = (
-        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
-        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
-        else []
-    )
+    filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
+    search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -747,7 +760,11 @@ class AlertGroupView(
                 "href": api_root + "teams/",
                 "global": True,
             },
-            {"name": "search", "type": "search"},
+            {
+                "name": "search",
+                "type": "search",
+                "description": f"Search by alert group ID, number or title. The search is limited to the last {AlertGroupSearchFilter.SEARCH_CUTOFF_DAYS} days.",
+            },
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
             {"name": "escalation_chain", "type": "options", "href": api_root + "escalation_chains/?filters=true"},
             {
