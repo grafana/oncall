@@ -173,7 +173,7 @@ class PluginAuthentication(BasePluginAuthentication):
                     role=user_data["role"],
                     avatar_url=user_data["avatar_url"],
                     permissions=user_data["permissions"] or [],
-                    teams=None,  # TODO: we don't have teams data here
+                    teams=user_data.get("teams", None),
                 )
                 # TODO: should we trigger an async sync at this point?
                 return get_or_create_user(organization, user_sync_data)
