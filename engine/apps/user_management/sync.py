@@ -277,7 +277,18 @@ def get_or_create_organization(
 
 def get_or_create_user(organization: Organization, sync_user: SyncUser) -> User:
     _sync_users_data(organization, [sync_user], delete_extra=False)
-    return organization.users.get(user_id=sync_user.id)
+    user = organization.users.get(user_id=sync_user.id)
+
+    # update team membership if needed
+    # (not removing user from teams, assuming this is called on user creation/first login only;
+    # periodic sync will keep teams updated)
+    membership = sync_user.teams or []
+    for team_id in membership:
+        team = organization.teams.filter(team_id=team_id).first()
+        if team:
+            user.teams.add(team)
+
+    return user
 
 
 def _sync_organization_data(organization: Organization, sync_settings: SyncSettings):
