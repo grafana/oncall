@@ -58,6 +58,8 @@ const _Labels = observer(
 
       const groups = splitToGroups(result);
 
+      console.log({ groups });
+
       return groups;
     };
 
