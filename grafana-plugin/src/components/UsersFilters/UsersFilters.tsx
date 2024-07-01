@@ -1,13 +1,10 @@
 import React, { ChangeEvent, useCallback, useEffect, useRef } from 'react';
 
-import { Icon, Input } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Icon, Input, useStyles2 } from '@grafana/ui';
 
 import { useDebouncedCallback } from 'utils/hooks';
-
-import styles from './UsersFilters.module.css';
-
-const cx = cn.bind(styles);
 
 interface UsersFiltersProps {
   value: any;
@@ -19,6 +16,7 @@ interface UsersFiltersProps {
 const DEBOUNCE_MS = 500;
 
 export const UsersFilters = (props: UsersFiltersProps) => {
+  const styles = useStyles2(getStyles);
   const { value = { searchTerm: '' }, onChange: onChangeProp, className, isLoading } = props;
 
   // useRef instead of useState so that we don't get into closure when checking for last id
@@ -59,11 +57,11 @@ export const UsersFilters = (props: UsersFiltersProps) => {
   }, []);
 
   return (
-    <div className={cx('root', className)}>
+    <div className={cx(styles.root, className)}>
       <Input
         loading={isLoading}
         prefix={<Icon name="search" />}
-        className={cx('search', 'control')}
+        className={cx(styles.search, styles.control)}
         placeholder="Search users..."
         value={value.searchTerm}
         onChange={onSearchTermChangeCallback}
@@ -75,4 +73,27 @@ export const UsersFilters = (props: UsersFiltersProps) => {
   function getNewRequestId() {
     return Math.random().toString(36).slice(-6);
   }
+};
+
+const getStyles = (_theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      display: inline-flex;
+      align-items: center;
+    `,
+
+    search: css`
+      width: 300px;
+
+      &:focus {
+        width: 500px;
+      }
+    `,
+
+    control: css`
+      &:not(:last-child) {
+        margin-right: 20px;
+      }
+    `,
+  };
 };

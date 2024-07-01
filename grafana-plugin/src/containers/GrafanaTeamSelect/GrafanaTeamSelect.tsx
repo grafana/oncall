@@ -53,7 +53,6 @@ export const GrafanaTeamSelect = observer(
 
     const select = (
       <GSelect<GrafanaTeam>
-        showSearch
         items={grafanaTeamStore.items}
         fetchItemsFn={grafanaTeamStore.updateItems}
         fetchItemFn={grafanaTeamStore.fetchItemById}

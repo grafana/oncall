@@ -123,9 +123,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     useEffect(() => {
       setIsLoading(true);
-      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
-        setIsLoading(false)
-      );
+      (async () => {
+        await Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]);
+        setIsLoading(false);
+      })();
     }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -271,6 +272,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   <HorizontalGroup spacing={'xs'}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
+                        isClearable
                         isSearchable
                         width={'auto'}
                         menuShouldPortal
@@ -394,15 +396,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       onRouteDelete(routeIdForDeletion);
     }
 
-    function onEscalationChainChange({ id }) {
-      alertReceiveChannelStore
-        .saveChannelFilter(channelFilterId, {
-          escalation_chain: id,
-        })
-        .then(() => {
-          escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
-          escalationPolicyStore.updateEscalationPolicies(id);
-        });
+    async function onEscalationChainChange(value: { id: string }) {
+      const newEscalationChainId = value ? value.id : null;
+      await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
+        escalation_chain: newEscalationChainId,
+      });
+      escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
+      escalationPolicyStore.updateEscalationPolicies(newEscalationChainId);
     }
 
     async function onEscalationChainsRefresh() {

@@ -99,7 +99,6 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
             getSearchResult={grafanaTeamStore.getSearchResult}
             displayField="name"
             valueField="id"
-            showSearch
             allowClear
             placeholder="Select a team"
             className={cx('team-select')}

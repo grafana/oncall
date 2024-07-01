@@ -170,6 +170,27 @@ def test_update_or_create_slack_usergroup_from_slack(
 
 @patch.object(
     SlackClient,
+    "usergroups_list",
+    return_value=build_slack_response(
+        {
+            "ok": True,
+            "usergroups": [{"id": "test_slack_id", "name": "test_name", "handle": "test_handle", "date_delete": 0}],
+        }
+    ),
+)
+@pytest.mark.django_db
+def test_update_or_create_slack_usergroup_from_slack_group_not_found(
+    mock_usergroups_list, make_organization_with_slack_team_identity
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    SlackUserGroup.update_or_create_slack_usergroup_from_slack("other_id", slack_team_identity)
+
+    # no group is created, no error is raised
+    assert SlackUserGroup.objects.count() == 0
+
+
+@patch.object(
+    SlackClient,
     "usergroups_users_list",
     return_value=build_slack_response({"ok": True, "users": ["test_user_1", "test_user_2"]}),
 )

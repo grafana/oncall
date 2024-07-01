@@ -118,9 +118,6 @@ class EscalationPolicyView(
     def escalation_options(self, request):
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
-            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-                continue
-
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
             can_change_importance = (
                 step in EscalationPolicy.IMPORTANT_STEPS_SET or step in EscalationPolicy.DEFAULT_STEPS_SET
@@ -141,6 +138,7 @@ class EscalationPolicyView(
 
     @action(detail=False, methods=["get"])
     def delay_options(self, request):
+        # TODO: DEPRECATED, REMOVE IN A FUTURE RELEASE
         choices = []
         for item in EscalationPolicy.WEB_DURATION_CHOICES:
             choices.append({"value": str(item[0]), "sec_value": item[0], "display_name": item[1]})
@@ -148,6 +146,7 @@ class EscalationPolicyView(
 
     @action(detail=False, methods=["get"])
     def num_minutes_in_window_options(self, request):
+        # TODO: DEPRECATED, REMOVE IN A FUTURE RELEASE
         choices = [
             {"value": choice[0], "display_name": choice[1]} for choice in EscalationPolicy.WEB_DURATION_CHOICES_MINUTES
         ]

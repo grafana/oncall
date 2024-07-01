@@ -1,166 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MobileAppConnection if we disconnect the app, it disconnects and fetches a new QR code 1`] = `
-<div>
-  <div
-    class="css-gjl87o-vertical-group"
-    style="width: 100%; height: 100%;"
-  >
-    <div
-      class="css-gxt817-layoutChildrenWrapper"
-    >
-      <div
-        class="container"
-      >
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <div
-            class="css-gjl87o-vertical-group"
-            style="width: 100%; height: 100%;"
-          >
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <span
-                class="root text text--primary text--medium text--strong"
-              >
-                Download
-              </span>
-            </div>
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <span
-                class="root text text--primary text--medium"
-              >
-                The Grafana OnCall app is available on both the App Store and Google Play Store.
-              </span>
-            </div>
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <div
-                class="css-gjl87o-vertical-group"
-                style="width: 100%; height: 100%;"
-              >
-                <div
-                  class="css-gxt817-layoutChildrenWrapper"
-                >
-                  <a
-                    href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
-                    rel="noreferrer"
-                    style="width: 100%;"
-                    target="_blank"
-                  >
-                    <div
-                      class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
-                    >
-                      <img
-                        alt="Apple"
-                        class="icon"
-                        src="[object Object]"
-                      />
-                      <span
-                        class="root text text--primary text--medium icon-text"
-                      >
-                        iOS
-                      </span>
-                    </div>
-                  </a>
-                </div>
-                <div
-                  class="css-gxt817-layoutChildrenWrapper"
-                >
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
-                    rel="noreferrer"
-                    style="width: 100%;"
-                    target="_blank"
-                  >
-                    <div
-                      class="root root_bordered root--fullWidth root--hover icon-block"
-                    >
-                      <img
-                        alt="Play Store"
-                        class="icon"
-                        src="[object Object]"
-                      />
-                      <span
-                        class="root text text--primary text--medium icon-text"
-                      >
-                        Android
-                      </span>
-                    </div>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <div
-            class="css-gjl87o-vertical-group"
-            style="width: 100%; height: 100%;"
-          >
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <span
-                class="root text text--primary text--medium text--strong"
-              >
-                Sign In
-              </span>
-            </div>
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <span
-                class="root text text--primary text--medium"
-              >
-                Open the Grafana OnCall mobile application and scan this code to sync it with your account.
-              </span>
-            </div>
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <div
-                class="u-width-100 u-flex u-flex-center u-position-relative"
-              >
-                <div
-                  class="root root_bordered qr-code"
-                >
-                  <svg
-                    height="256"
-                    viewBox="0 0 21 21"
-                    width="256"
-                  >
-                    <path
-                      d="M0,0 h21v21H0z"
-                      fill="#FFFFFF"
-                      shape-rendering="crispEdges"
-                    />
-                    <path
-                      d="M0 0h7v1H0zM9 0h3v1H9zM14,0 h7v1H14zM0 1h1v1H0zM6 1h1v1H6zM8 1h2v1H8zM12 1h1v1H12zM14 1h1v1H14zM20,1 h1v1H20zM0 2h1v1H0zM2 2h3v1H2zM6 2h1v1H6zM8 2h1v1H8zM11 2h2v1H11zM14 2h1v1H14zM16 2h3v1H16zM20,2 h1v1H20zM0 3h1v1H0zM2 3h3v1H2zM6 3h1v1H6zM8 3h1v1H8zM10 3h2v1H10zM14 3h1v1H14zM16 3h3v1H16zM20,3 h1v1H20zM0 4h1v1H0zM2 4h3v1H2zM6 4h1v1H6zM8 4h1v1H8zM10 4h2v1H10zM14 4h1v1H14zM16 4h3v1H16zM20,4 h1v1H20zM0 5h1v1H0zM6 5h1v1H6zM8 5h1v1H8zM10 5h1v1H10zM12 5h1v1H12zM14 5h1v1H14zM20,5 h1v1H20zM0 6h7v1H0zM8 6h1v1H8zM10 6h1v1H10zM12 6h1v1H12zM14,6 h7v1H14zM10 7h2v1H10zM2 8h1v1H2zM5 8h5v1H5zM11 8h1v1H11zM13 8h1v1H13zM15 8h5v1H15zM5 9h1v1H5zM9 9h1v1H9zM13 9h1v1H13zM15 9h1v1H15zM17 9h1v1H17zM20,9 h1v1H20zM0 10h3v1H0zM4 10h1v1H4zM6 10h5v1H6zM13 10h5v1H13zM20,10 h1v1H20zM0 11h1v1H0zM2 11h2v1H2zM7 11h1v1H7zM10 11h1v1H10zM12 11h4v1H12zM17 11h1v1H17zM2 12h2v1H2zM5 12h7v1H5zM13 12h5v1H13zM20,12 h1v1H20zM8 13h1v1H8zM10 13h1v1H10zM17 13h1v1H17zM20,13 h1v1H20zM0 14h7v1H0zM8 14h7v1H8zM17 14h2v1H17zM20,14 h1v1H20zM0 15h1v1H0zM6 15h1v1H6zM8 15h2v1H8zM12 15h3v1H12zM16 15h1v1H16zM19,15 h2v1H19zM0 16h1v1H0zM2 16h3v1H2zM6 16h1v1H6zM9 16h2v1H9zM13 16h1v1H13zM17,16 h4v1H17zM0 17h1v1H0zM2 17h3v1H2zM6 17h1v1H6zM9 17h1v1H9zM12 17h2v1H12zM15 17h1v1H15zM17 17h2v1H17zM0 18h1v1H0zM2 18h3v1H2zM6 18h1v1H6zM8 18h1v1H8zM10 18h2v1H10zM13 18h1v1H13zM15 18h3v1H15zM19,18 h2v1H19zM0 19h1v1H0zM6 19h1v1H6zM10 19h1v1H10zM13 19h3v1H13zM17 19h2v1H17zM0 20h7v1H0zM10 20h1v1H10zM14 20h5v1H14zM20,20 h1v1H20z"
-                      fill="#000000"
-                      shape-rendering="crispEdges"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`MobileAppConnection it shows a QR code if the app isn't already connected 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -172,93 +16,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
         class="container"
       >
         <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <div
-            class="css-gjl87o-vertical-group"
-            style="width: 100%; height: 100%;"
-          >
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <span
-                class="root text text--primary text--medium text--strong"
-              >
-                Download
-              </span>
-            </div>
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <span
-                class="root text text--primary text--medium"
-              >
-                The Grafana OnCall app is available on both the App Store and Google Play Store.
-              </span>
-            </div>
-            <div
-              class="css-12oo3x0-layoutChildrenWrapper"
-            >
-              <div
-                class="css-gjl87o-vertical-group"
-                style="width: 100%; height: 100%;"
-              >
-                <div
-                  class="css-gxt817-layoutChildrenWrapper"
-                >
-                  <a
-                    href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
-                    rel="noreferrer"
-                    style="width: 100%;"
-                    target="_blank"
-                  >
-                    <div
-                      class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
-                    >
-                      <img
-                        alt="Apple"
-                        class="icon"
-                        src="[object Object]"
-                      />
-                      <span
-                        class="root text text--primary text--medium icon-text"
-                      >
-                        iOS
-                      </span>
-                    </div>
-                  </a>
-                </div>
-                <div
-                  class="css-gxt817-layoutChildrenWrapper"
-                >
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
-                    rel="noreferrer"
-                    style="width: 100%;"
-                    target="_blank"
-                  >
-                    <div
-                      class="root root_bordered root--fullWidth root--hover icon-block"
-                    >
-                      <img
-                        alt="Play Store"
-                        class="icon"
-                        src="[object Object]"
-                      />
-                      <span
-                        class="root text text--primary text--medium icon-text"
-                      >
-                        Android
-                      </span>
-                    </div>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <div
             class="css-1yjvs5a"
@@ -273,6 +31,92 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                 aria-label="loading spinner"
                 class="fa fa-spinner fa-spin fa-spin"
               />
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
+        >
+          <div
+            class="css-gjl87o-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-12oo3x0-layoutChildrenWrapper"
+            >
+              <span
+                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+              >
+                Download
+              </span>
+            </div>
+            <div
+              class="css-12oo3x0-layoutChildrenWrapper"
+            >
+              <span
+                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              >
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
+              </span>
+            </div>
+            <div
+              class="css-12oo3x0-layoutChildrenWrapper"
+            >
+              <div
+                class="css-gjl87o-vertical-group"
+                style="width: 100%; height: 100%;"
+              >
+                <div
+                  class="css-gxt817-layoutChildrenWrapper"
+                >
+                  <a
+                    href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                    rel="noreferrer"
+                    style="width: 100%;"
+                    target="_blank"
+                  >
+                    <div
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--withBackGround css-1x53p5e--hover icon-block"
+                    >
+                      <img
+                        alt="Apple"
+                        class="icon"
+                        src="[object Object]"
+                      />
+                      <span
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                      >
+                        iOS
+                      </span>
+                    </div>
+                  </a>
+                </div>
+                <div
+                  class="css-gxt817-layoutChildrenWrapper"
+                >
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                    rel="noreferrer"
+                    style="width: 100%;"
+                    target="_blank"
+                  >
+                    <div
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--hover icon-block"
+                    >
+                      <img
+                        alt="Play Store"
+                        class="icon"
+                        src="[object Object]"
+                      />
+                      <span
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
+                      >
+                        Android
+                      </span>
+                    </div>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -284,6 +128,9 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
 
 exports[`MobileAppConnection it shows a loading message if it is currently disconnecting 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -295,7 +142,26 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
         class="container"
       >
         <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
+        >
+          <div
+            class="css-1yjvs5a"
+          >
+            Loading...
+             
+            <div
+              class="css-1tqtz24"
+              data-testid="Spinner"
+            >
+              <i
+                aria-label="loading spinner"
+                class="fa fa-spinner fa-spin fa-spin"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <div
             class="css-gjl87o-vertical-group"
@@ -305,7 +171,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium text--strong"
+                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
               >
                 Download
               </span>
@@ -314,7 +180,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium"
+                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -336,7 +202,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--withBackGround css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Apple"
@@ -344,7 +210,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         iOS
                       </span>
@@ -361,7 +227,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Play Store"
@@ -369,7 +235,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         Android
                       </span>
@@ -377,25 +243,6 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                   </a>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <div
-            class="css-1yjvs5a"
-          >
-            Loading...
-             
-            <div
-              class="css-1tqtz24"
-              data-testid="Spinner"
-            >
-              <i
-                aria-label="loading spinner"
-                class="fa fa-spinner fa-spin fa-spin"
-              />
             </div>
           </div>
         </div>
@@ -407,6 +254,9 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
 
 exports[`MobileAppConnection it shows a loading message if it is currently fetching the QR code 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -418,7 +268,26 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
         class="container"
       >
         <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
+        >
+          <div
+            class="css-1yjvs5a"
+          >
+            Loading...
+             
+            <div
+              class="css-1tqtz24"
+              data-testid="Spinner"
+            >
+              <i
+                aria-label="loading spinner"
+                class="fa fa-spinner fa-spin fa-spin"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <div
             class="css-gjl87o-vertical-group"
@@ -428,7 +297,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium text--strong"
+                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
               >
                 Download
               </span>
@@ -437,7 +306,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium"
+                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -459,7 +328,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--withBackGround css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Apple"
@@ -467,7 +336,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         iOS
                       </span>
@@ -484,7 +353,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Play Store"
@@ -492,7 +361,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         Android
                       </span>
@@ -500,25 +369,6 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                   </a>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <div
-            class="css-1yjvs5a"
-          >
-            Loading...
-             
-            <div
-              class="css-1tqtz24"
-              data-testid="Spinner"
-            >
-              <i
-                aria-label="loading spinner"
-                class="fa fa-spinner fa-spin fa-spin"
-              />
             </div>
           </div>
         </div>
@@ -538,7 +388,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <span
-        class="root text text--secondary text--medium"
+        class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
       >
         Please connect Grafana Cloud OnCall to use the mobile app
       </span>
@@ -547,7 +397,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <a
-        class="root"
+        class="css-1xyvdh3"
         href="/a/grafana-oncall-app/cloud"
       >
         <button
@@ -571,6 +421,9 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
 
 exports[`MobileAppConnection it shows an error message if there was an error disconnecting the mobile app 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -582,7 +435,16 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
         class="container"
       >
         <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
+        >
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+          >
+            There was an error disconnecting your mobile app. Please try again.
+          </span>
+        </div>
+        <div
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <div
             class="css-gjl87o-vertical-group"
@@ -592,7 +454,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium text--strong"
+                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
               >
                 Download
               </span>
@@ -601,7 +463,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium"
+                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -623,7 +485,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--withBackGround css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Apple"
@@ -631,7 +493,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         iOS
                       </span>
@@ -648,7 +510,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Play Store"
@@ -656,7 +518,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         Android
                       </span>
@@ -666,15 +528,6 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <span
-            class="root text text--primary text--medium"
-          >
-            There was an error disconnecting your mobile app. Please try again.
-          </span>
         </div>
       </div>
     </div>
@@ -684,6 +537,9 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
 
 exports[`MobileAppConnection it shows an error message if there was an error fetching the QR code 1`] = `
 <div>
+  <h3>
+    Mobile App Connection
+  </h3>
   <div
     class="css-gjl87o-vertical-group"
     style="width: 100%; height: 100%;"
@@ -695,7 +551,16 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
         class="container"
       >
         <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
+        >
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+          >
+            There was an error fetching your QR code. Please try again.
+          </span>
+        </div>
+        <div
+          class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--shadowed css-1x53p5e--withBackGround container__box"
         >
           <div
             class="css-gjl87o-vertical-group"
@@ -705,7 +570,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium text--strong"
+                class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
               >
                 Download
               </span>
@@ -714,7 +579,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               class="css-12oo3x0-layoutChildrenWrapper"
             >
               <span
-                class="root text text--primary text--medium"
+                class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
               >
                 The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
@@ -736,7 +601,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--withBackGround css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Apple"
@@ -744,7 +609,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         iOS
                       </span>
@@ -761,7 +626,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                     target="_blank"
                   >
                     <div
-                      class="root root_bordered root--fullWidth root--hover icon-block"
+                      class="css-1x53p5e css-1x53p5e--bordered css-1x53p5e--fullWidth css-1x53p5e--hover icon-block"
                     >
                       <img
                         alt="Play Store"
@@ -769,7 +634,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                         src="[object Object]"
                       />
                       <span
-                        class="root text text--primary text--medium icon-text"
+                        class="css-77ouhj--primary css-77ouhj--medium icon-text css-1287p17"
                       >
                         Android
                       </span>
@@ -779,15 +644,6 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="root root_bordered root_shadowed root--withBackGround container__box"
-        >
-          <span
-            class="root text text--primary text--medium"
-          >
-            There was an error fetching your QR code. Please try again.
-          </span>
         </div>
       </div>
     </div>

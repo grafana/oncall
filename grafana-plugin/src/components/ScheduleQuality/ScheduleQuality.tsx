@@ -1,26 +1,28 @@
 import React, { FC, useEffect } from 'react';
 
-import { Tooltip, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import { Tag } from 'components/Tag/Tag';
+import { Tag, TagColor } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
-import styles from './ScheduleQuality.module.scss';
-
-const cx = cn.bind(styles);
+import { getScheduleQualityStyles } from './ScheduleQuality.styles';
 
 interface ScheduleQualityProps {
   schedule: Schedule;
 }
 
 export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule }) => {
+  const styles = useStyles2(getScheduleQualityStyles);
+  const utils = useStyles2(getUtilStyles);
+
   const {
     scheduleStore: { getScoreQuality, relatedEscalationChains, quality },
   } = useStore();
@@ -39,7 +41,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
 
   return (
     <>
-      <div className={cx('root')} data-testid="schedule-quality">
+      <div className={styles.root} data-testid="schedule-quality">
         {relatedScheduleEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
           <TooltipBadge
             borderType="success"
@@ -85,8 +87,8 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
           interactive
           content={<ScheduleQualityDetails quality={quality} getScheduleQualityString={getScheduleQualityString} />}
         >
-          <div className={cx('u-cursor-default')}>
-            <Tag className={cx('tag', getTagClass())}>
+          <div className={cx(utils.cursorDefault)}>
+            <Tag className={styles.tag} color={getTagSeverity()}>
               Quality: <strong>{getScheduleQualityString(quality.total_score)}</strong>
             </Tag>
           </div>
@@ -111,13 +113,13 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
     return ScheduleScoreQualityResult.Great;
   }
 
-  function getTagClass() {
+  function getTagSeverity() {
     if (quality?.total_score < 20) {
-      return 'tag--danger';
+      return TagColor.ERROR_LABEL;
     }
     if (quality?.total_score < 60) {
-      return 'tag--warning';
+      return TagColor.WARNING_LABEL;
     }
-    return 'tag--primary';
+    return TagColor.SUCCESS_LABEL;
   }
 });

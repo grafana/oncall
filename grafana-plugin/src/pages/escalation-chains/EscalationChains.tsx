@@ -1,9 +1,10 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { Collapse } from 'components/Collapse/Collapse';
 import { Block } from 'components/GBlock/Block';
@@ -30,11 +31,11 @@ import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
-import styles from './EscalationChains.module.css';
+import { getEscalationChainStyles } from './EscalationChains.styles';
 
-const cx = cn.bind(styles);
-
-interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+  theme: GrafanaTheme2;
+}
 
 interface EscalationChainsPageState extends PageBaseState {
   modeToShowEscalationChainForm?: EscalationChainFormMode;
@@ -73,9 +74,13 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
         modeToShowEscalationChainForm: EscalationChainFormMode.Create,
       });
     } else if (id) {
-      let escalationChain = await escalationChainStore
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+      let escalationChain: EscalationChain;
+
+      try {
+        escalationChain = await escalationChainStore.loadItem(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+      }
 
       await escalationChainStore.updateEscalationChainDetails(id);
       if (!escalationChain) {
@@ -125,6 +130,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       match: {
         params: { id },
       },
+      theme,
     } = this.props;
 
     const { extraEscalationChains } = this.state;
@@ -139,6 +145,9 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       data = [...extraEscalationChains, ...searchResult];
     }
 
+    const styles = getEscalationChainStyles(theme);
+    const utilStyles = getUtilStyles(theme);
+
     return (
       <PageErrorHandlingWrapper
         errorData={errorData}
@@ -148,23 +157,23 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       >
         {() => (
           <>
-            <div className={cx('root')}>
+            <div>
               {this.renderFilters()}
               {!data || data.length ? (
-                <div className={cx('escalations')}>
-                  <div className={cx('left-column')}>
+                <div className={styles.escalations}>
+                  <div className={styles.leftColumn}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ modeToShowEscalationChainForm: EscalationChainFormMode.Create });
                         }}
                         icon="plus"
-                        className={cx('new-escalation-chain')}
+                        className={styles.newEscalationChain}
                       >
                         New escalation chain
                       </Button>
                     </WithPermissionControlTooltip>
-                    <div className={cx('escalations-list')} data-testid="escalation-chains-list">
+                    <div className={styles.escalationsList} data-testid="escalation-chains-list">
                       {data ? (
                         <GList
                           autoScroll
@@ -177,14 +186,14 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                         </GList>
                       ) : (
                         <VerticalGroup>
-                          <Text type="primary" className={cx('loadingPlaceholder')}>
+                          <Text type="primary" className={utilStyles.loadingPlaceholder}>
                             Loading...
                           </Text>
                         </VerticalGroup>
                       )}
                     </div>
                   </div>
-                  <div className={cx('escalation')}>{this.renderEscalation()}</div>
+                  <div className={styles.escalation}>{this.renderEscalation()}</div>
                 </div>
               ) : (
                 <Tutorial
@@ -230,9 +239,11 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   }
 
   renderFilters() {
-    const { query, store } = this.props;
+    const { query, store, theme } = this.props;
+    const styles = getEscalationChainStyles(theme);
+
     return (
-      <div className={cx('filters')}>
+      <div className={styles.filters}>
         <RemoteFilters
           query={query}
           page={PAGE.Escalations}
@@ -250,11 +261,12 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       },
     } = this.props;
 
-    this.setState({ escalationChainsFilters: filters, extraEscalationChains: undefined }, () => {
+    this.setState({ escalationChainsFilters: filters, extraEscalationChains: undefined }, async () => {
+      await this.applyFilters();
       if (isOnMount && id) {
-        this.applyFilters().then(this.parseQueryParams);
+        this.parseQueryParams();
       } else {
-        this.applyFilters().then(this.autoSelectEscalationChain);
+        this.autoSelectEscalationChain();
       }
     });
   };
@@ -281,7 +293,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 
   renderEscalation = () => {
-    const { store } = this.props;
+    const { store, theme } = this.props;
     const { selectedEscalationChain } = this.state;
 
     const { escalationChainStore } = store;
@@ -292,14 +304,15 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
     const escalationChain = escalationChainStore.items[selectedEscalationChain];
     const escalationChainDetails = escalationChainStore.details[selectedEscalationChain];
+    const styles = getEscalationChainStyles(theme);
 
     return (
       <>
-        <Block withBackground className={cx('header')}>
+        <Block withBackground className={styles.header}>
           <Text size="large" onTextChange={this.handleEscalationChainNameChange} data-testid="escalation-chain-name">
             {escalationChain.name}
           </Text>
-          <div className={cx('buttons')}>
+          <div className={styles.buttons}>
             <HorizontalGroup>
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
@@ -354,14 +367,14 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
             isOpen
           >
             {escalationChainDetails.length ? (
-              <ul className={cx('list')}>
+              <ul className={styles.list}>
                 {escalationChainDetails.map((alertReceiveChannel) => (
                   <li key={alertReceiveChannel.id}>
                     <HorizontalGroup align="flex-start">
                       <PluginLink query={{ page: 'integrations', id: alertReceiveChannel.id }}>
                         {alertReceiveChannel.display_name}
                       </PluginLink>
-                      <ul className={cx('list')}>
+                      <ul className={styles.list}>
                         {alertReceiveChannel.channel_filters.map((channelFilter) => (
                           <li key={channelFilter.id}>
                             <Icon name="arrow-right" />
@@ -412,9 +425,13 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       (!extraEscalationChains ||
         (extraEscalationChains && !extraEscalationChains.some((escalationChain) => escalationChain.id === id)))
     ) {
-      let escalationChain = await escalationChainStore
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+      let escalationChain: EscalationChain;
+
+      try {
+        escalationChain = await escalationChainStore.loadItem(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } });
+      }
 
       if (escalationChain) {
         this.setState({ extraEscalationChains: [...(this.state.extraEscalationChains || []), escalationChain] }, () => {
@@ -426,7 +443,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
     }
   };
 
-  handleDeleteEscalationChain = () => {
+  handleDeleteEscalationChain = async () => {
     const { store, history } = this.props;
     const { escalationChainStore } = store;
     const { selectedEscalationChain, extraEscalationChains } = this.state;
@@ -435,24 +452,22 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
       .getSearchResult()
       .findIndex((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain);
 
-    escalationChainStore
-      .delete(selectedEscalationChain)
-      .then(this.applyFilters)
-      .then(() => {
-        if (extraEscalationChains) {
-          const newExtraEscalationChains = extraEscalationChains.filter(
-            (scalationChain) => scalationChain.id !== selectedEscalationChain
-          );
+    await escalationChainStore.delete(selectedEscalationChain);
+    await this.applyFilters();
 
-          this.setState({ extraEscalationChains: newExtraEscalationChains });
-        }
+    if (extraEscalationChains) {
+      const newExtraEscalationChains = extraEscalationChains.filter(
+        (scalationChain) => scalationChain.id !== selectedEscalationChain
+      );
 
-        const escalationChains = escalationChainStore.getSearchResult();
+      this.setState({ extraEscalationChains: newExtraEscalationChains });
+    }
 
-        const newSelected = escalationChains[index - 1] || escalationChains[0];
+    const escalationChains = escalationChainStore.getSearchResult();
 
-        history.push(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
-      });
+    const newSelected = escalationChains[index - 1] || escalationChains[0];
+
+    history.push(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
   };
 
   handleEscalationChainNameChange = (value: string) => {
@@ -465,4 +480,4 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 }
 
-export const EscalationChainsPage = withRouter(withMobXProviderContext(_EscalationChainsPage));
+export const EscalationChainsPage = withRouter(withMobXProviderContext(withTheme2(_EscalationChainsPage)));

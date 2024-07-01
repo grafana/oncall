@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -9,10 +9,9 @@ import hash from 'object-hash';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { Text } from 'components/Text/Text';
 import { ScheduleSlot } from 'containers/ScheduleSlot/ScheduleSlot';
-import { Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
+import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
+import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-
-import { RotationTutorial } from './RotationTutorial';
 
 import styles from './Rotation.module.css';
 
@@ -28,27 +27,26 @@ interface RotationProps {
   handleAddShiftSwap?: (id: 'new', params: Partial<ShiftSwap>) => void;
   handleOpenSchedule?: (event: Event) => void;
   onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
-  days?: number;
   transparent?: boolean;
-  tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
   getColor?: (event: Event) => string;
   onSlotClick?: (event: Event) => void;
   emptyText?: string;
   showScheduleNameAsSlotTitle?: boolean;
+  startDate?: dayjs.Dayjs;
+  scheduleView?: ScheduleView;
 }
 
 export const Rotation: FC<RotationProps> = observer((props) => {
   const {
-    timezoneStore: { calendarStartDate, getDateInSelectedTimezone },
+    timezoneStore: { calendarStartDate, getDateInSelectedTimezone, selectedTimezoneOffset },
+    scheduleStore: { scheduleView: storeScheduleView },
   } = useStore();
   const {
     events,
     color: propsColor,
-    days = 7,
     transparent = false,
-    tutorialParams,
     onClick,
     handleAddOverride,
     handleAddShiftSwap,
@@ -60,18 +58,24 @@ export const Rotation: FC<RotationProps> = observer((props) => {
     onSlotClick,
     emptyText,
     showScheduleNameAsSlotTitle,
+    startDate: propsStartDate,
+    scheduleView: propsScheduleView,
   } = props;
 
-  const [animate, _setAnimate] = useState<boolean>(true);
+  const scheduleView = propsScheduleView || storeScheduleView;
+
+  const startDate = propsStartDate || calendarStartDate;
+
+  const days = scheduleViewToDaysInOneRow[scheduleView];
 
   const handleRotationClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left; //x position within the element.
     const width = event.currentTarget.offsetWidth;
 
-    const dayOffset = Math.floor((x / width) * 7);
+    const dayOffset = Math.floor((x / width) * scheduleViewToDaysInOneRow[scheduleView]);
 
-    const shiftStart = calendarStartDate.add(dayOffset, 'day');
+    const shiftStart = startDate.add(dayOffset, 'day');
     const shiftEnd = shiftStart.add(1, 'day');
 
     onClick(shiftStart, shiftEnd);
@@ -134,27 +138,27 @@ export const Rotation: FC<RotationProps> = observer((props) => {
 
     const firstShift = events[0];
     const firstShiftOffset = getDateInSelectedTimezone(firstShift.start).diff(
-      getDateInSelectedTimezone(calendarStartDate),
+      getDateInSelectedTimezone(startDate),
       'seconds'
     );
     const base = 60 * 60 * 24 * days;
 
     return firstShiftOffset / base;
-  }, [events, calendarStartDate]);
+  }, [events, startDate, selectedTimezoneOffset]);
 
   return (
     <div className={cx('root')} onClick={onClick && handleRotationClick}>
       <div className={cx('timeline')}>
-        {tutorialParams && <RotationTutorial {...tutorialParams} />}
         {events ? (
           events.length ? (
             <div
-              className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
+              className={cx('slots', { slots__transparent: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
             >
               {events.map((event) => {
                 return (
                   <ScheduleSlot
+                    scheduleView={scheduleView}
                     key={hash(event)}
                     event={event}
                     color={propsColor || getColor(event)}

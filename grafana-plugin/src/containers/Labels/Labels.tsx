@@ -8,6 +8,7 @@ import { observer } from 'mobx-react';
 import { splitToGroups } from 'models/label/label.helpers';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
+import { GENERIC_ERROR } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
 export interface LabelsProps {
@@ -128,7 +129,7 @@ function onUpdateError(res) {
   if (res?.response?.status === 409) {
     openErrorNotification(`Duplicate values are not allowed`);
   } else {
-    openErrorNotification('An error has occurred. Please try again');
+    openErrorNotification(GENERIC_ERROR);
   }
 }
 

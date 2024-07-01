@@ -36,21 +36,12 @@ class EscalationPolicyTypeField(fields.CharField):
         return step_type
 
 
-class WebhookTransitionField(OrganizationFilteredPrimaryKeyRelatedField):
-    def get_attribute(self, instance):
-        value = super().get_attribute(instance)
-        if value is None:
-            # fallback to the custom button old value
-            value = instance.custom_button_trigger
-        return value
-
-
 class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects, source="escalation_chain"
     )
-    type = EscalationPolicyTypeField(source="step", allow_null=True)
+    type = EscalationPolicyTypeField(source="step")
     duration = serializers.ChoiceField(required=False, source="wait_delay", choices=EscalationPolicy.DURATION_CHOICES)
     persons_to_notify = UsersFilteredByOrganizationField(
         queryset=User.objects,
@@ -76,7 +67,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         source="notify_to_group",
         filter_field="slack_team_identity__organizations",
     )
-    action_to_trigger = WebhookTransitionField(
+    action_to_trigger = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=Webhook.objects,
         required=False,
         source="custom_webhook",
@@ -99,6 +90,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "type",
             "duration",
             "important",
+            "action_to_trigger",
             "persons_to_notify",
             "team_to_notify",
             "persons_to_notify_next_each_time",
@@ -190,7 +182,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             fields_to_remove.remove("persons_to_notify_next_each_time")
         elif step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
             fields_to_remove.remove("group_to_notify")
-        elif step in (EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON, EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK):
+        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
             fields_to_remove.remove("action_to_trigger")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             fields_to_remove.remove("notify_if_time_from")
@@ -216,7 +208,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_schedule",
             "notify_to_group",
             "notify_to_team_members",
-            "custom_button_trigger",
             "custom_webhook",
             "from_time",
             "to_time",
@@ -226,7 +217,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         step = validated_data.get("step")
         important = validated_data.pop("important", None)
 
-        if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and validated_data.get("custom_webhook"):
+        if step == EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON and validated_data.get("custom_webhook"):
             # migrate step to webhook
             step = validated_data["step"] = EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK
 
@@ -244,8 +235,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             validated_data_fields_to_remove.remove("notify_to_group")
         elif step in [EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS, EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT]:
             validated_data_fields_to_remove.remove("notify_to_team_members")
-        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-            validated_data_fields_to_remove.remove("custom_button_trigger")
         elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
             validated_data_fields_to_remove.remove("custom_webhook")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
@@ -302,8 +291,6 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.notify_to_team_members = None
                 if step not in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
                     instance.notify_to_group = None
-                if step != EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-                    instance.custom_button_trigger = None
                 if step != EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
                     instance.custom_webhook = None
                 if step != EscalationPolicy.STEP_NOTIFY_IF_TIME:

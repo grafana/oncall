@@ -95,3 +95,17 @@ if settings.PYROSCOPE_PROFILER_ENABLED:
             detect_subprocesses=True,  # detect subprocesses started by the main process; default is False
             tags={"type": "celery", "celery_worker": os.environ.get("CELERY_WORKER_QUEUE", "no_queue_specified")},
         )
+
+
+if settings.LOG_CELERY_TASK_ARGUMENTS:
+    """
+    Note: Task ID and name are already provided in TaskFormatter prefix, arguments get listed in message
+    """
+
+    @celery.signals.task_prerun.connect
+    def log_started_task_arguments(sender=None, task_id=None, task=None, args=None, kwargs=None, **extras):
+        logger.info(f"task started args={args}")
+
+    @celery.signals.task_postrun.connect
+    def log_finished_task_arguments(sender=None, task_id=None, task=None, args=None, kwargs=None, **extras):
+        logger.info(f"task finished args={args}")

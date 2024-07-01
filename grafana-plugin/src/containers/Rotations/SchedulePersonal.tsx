@@ -1,33 +1,41 @@
 import React, { FC, useEffect } from 'react';
 
-import { Badge, Button, HorizontalGroup, Icon } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Badge, BadgeColor, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { Avatar } from 'components/Avatar/Avatar';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { ActionKey } from 'models/loader/action-keys';
-import { getColorForSchedule, getPersonalShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Event } from 'models/schedule/schedule.types';
+import {
+  getColorForSchedule,
+  getPersonalShiftsFromStore,
+  getTotalDaysToDisplay,
+  scheduleViewToDaysInOneRow,
+} from 'models/schedule/schedule.helpers';
+import { Event, ScheduleView } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
+import { getCurrentTimeX, getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
+import { getRotationsStyles } from './Rotations.styles';
 
-import styles from './Rotations.module.css';
-
-const cx = cn.bind(styles);
+import animationStyles from './Rotations.module.css';
 
 interface SchedulePersonalProps extends RouteComponentProps {
   userPk: ApiSchemas['User']['pk'];
   onSlotClick?: (event: Event) => void;
+  theme: GrafanaTheme2;
 }
 
 const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
@@ -40,20 +48,31 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   }, [timezoneStore.selectedTimezoneOffset]);
 
   const updatePersonalEvents = () => {
-    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate, 9, true);
+    scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate, true);
   };
 
   const handleTodayClick = () => {
-    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(timezoneStore.currentDateInSelectedTimezone));
+    // TODAY
+    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(dayjs()));
   };
 
   const handleLeftClick = () => {
-    timezoneStore.setCalendarStartDate(timezoneStore.calendarStartDate.subtract(7, 'day'));
+    timezoneStore.setCalendarStartDate(
+      timezoneStore.calendarStartDate.subtract(
+        getTotalDaysToDisplay(ScheduleView.OneWeek, store.timezoneStore.calendarStartDate),
+        'day'
+      )
+    );
     scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate);
   };
 
   const handleRightClick = () => {
-    timezoneStore.setCalendarStartDate(timezoneStore.calendarStartDate.add(7, 'day'));
+    timezoneStore.setCalendarStartDate(
+      timezoneStore.calendarStartDate.add(
+        getTotalDaysToDisplay(ScheduleView.OneWeek, store.timezoneStore.calendarStartDate),
+        'day'
+      )
+    );
     scheduleStore.updatePersonalEvents(userStore.currentUserPk, timezoneStore.calendarStartDate);
   };
 
@@ -61,10 +80,11 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
     history.push(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
   };
 
-  const base = 7 * 24 * 60; // in minutes
-  const diff = timezoneStore.currentDateInSelectedTimezone.diff(timezoneStore.calendarStartDate, 'minutes');
-
-  const currentTimeX = diff / base;
+  const currentTimeX = getCurrentTimeX(
+    timezoneStore.currentDateInSelectedTimezone,
+    timezoneStore.calendarStartDate,
+    scheduleViewToDaysInOneRow[ScheduleView.OneWeek] * 24 * 60
+  );
 
   const shifts = getPersonalShiftsFromStore(store, userPk, timezoneStore.calendarStartDate);
 
@@ -78,53 +98,58 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
 
   const emptyRotationsText = updatePersonalEventsLoading ? 'Loading ...' : 'There are no schedules relevant to user';
 
+  const styles = useStyles2(getRotationsStyles);
+
   return (
-    <div className={cx('root')}>
-      <div className={cx('header')}>
-        <div className={cx('title')}>
-          <HorizontalGroup justify="space-between">
+    <div className={styles.root}>
+      <div className={styles.header}>
+        <HorizontalGroup justify="space-between">
+          <HorizontalGroup>
+            <RenderConditionally
+              shouldRender={Boolean(storeUser)}
+              render={() => (
+                <Text type="secondary">
+                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                </Text>
+              )}
+            />
+            {isOncall ? (
+              <Badge text="On-call now" color="green" />
+            ) : (
+              <Badge text="Not on-call now" color={'gray' as BadgeColor} />
+            )}
+          </HorizontalGroup>
+          <HorizontalGroup>
             <HorizontalGroup>
               <Text type="secondary">
-                On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                {timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
+                {timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
               </Text>
-              {isOncall ? (
-                <Badge text="On-call now" color="green" />
-              ) : (
-                /*  @ts-ignore */
-                <Badge text="Not on-call now" color="gray" />
-              )}
-            </HorizontalGroup>
-            <HorizontalGroup>
-              <HorizontalGroup>
-                <Text type="secondary">
-                  {timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
-                  {timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
-                </Text>
-                <Button variant="secondary" size="sm" onClick={handleTodayClick}>
-                  Today
+              <Button variant="secondary" size="sm" onClick={handleTodayClick}>
+                Today
+              </Button>
+              <HorizontalGroup spacing="xs">
+                <Button variant="secondary" size="sm" onClick={handleLeftClick}>
+                  <Icon name="angle-left" />
                 </Button>
-                <HorizontalGroup spacing="xs">
-                  <Button variant="secondary" size="sm" onClick={handleLeftClick}>
-                    <Icon name="angle-left" />
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={handleRightClick}>
-                    <Icon name="angle-right" />
-                  </Button>
-                </HorizontalGroup>
+                <Button variant="secondary" size="sm" onClick={handleRightClick}>
+                  <Icon name="angle-right" />
+                </Button>
               </HorizontalGroup>
             </HorizontalGroup>
           </HorizontalGroup>
-        </div>
+        </HorizontalGroup>
       </div>
-      <div className={cx('header-plus-content')}>
-        {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-        <TimelineMarks />
-        <TransitionGroup className={cx('rotations')}>
+      <div className={'u-position-relative'}>
+        {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
+        <TimelineMarks scheduleView={ScheduleView.OneWeek} />
+        <TransitionGroup className={cx(styles.layer, styles.layerFirst)}>
           {shifts?.length ? (
             shifts.map(({ events }, index) => {
               return (
-                <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
                   <Rotation
+                    scheduleView={ScheduleView.OneWeek}
                     simplified
                     key={index}
                     events={events}
@@ -137,7 +162,7 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
               );
             })
           ) : (
-            <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+            <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
               <Rotation events={[]} emptyText={emptyRotationsText} />
             </CSSTransition>
           )}
@@ -147,4 +172,4 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   );
 });
 
-export const SchedulePersonal = withRouter(_SchedulePersonal);
+export const SchedulePersonal = withRouter(withTheme2(_SchedulePersonal));

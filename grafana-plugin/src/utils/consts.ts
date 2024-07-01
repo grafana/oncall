@@ -35,12 +35,23 @@ export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall'
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
+export const getProcessEnvVarSafely = (name: string) => {
+  try {
+    return process.env[name];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
+
+export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
+
 // Single source of truth on the frontend for OnCall API URL
 export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   if (meta?.jsonData?.onCallApiUrl) {
     return meta?.jsonData?.onCallApiUrl;
   } else if (typeof window === 'undefined') {
-    return process.env.ONCALL_API_URL;
+    return getProcessEnvVarSafely('ONCALL_API_URL');
   }
   return undefined;
 };
@@ -77,4 +88,13 @@ export const TEXT_ELLIPSIS_CLASS = 'overflow-child';
 export const INCIDENT_HORIZONTAL_SCROLLING_STORAGE = 'isIncidentalTableHorizontalScrolling';
 export const IRM_TAB = 'IRM';
 
-export const URL_REGEX = /^((https?|ftp|smtp):\/\/)?(www.)?[a-z0-9]+\.[a-z]+(\/[a-zA-Z0-9#]+\/?)*$/;
+export enum OnCallAGStatus {
+  Firing = 'firing',
+  Resolved = 'resolved',
+  Silenced = 'silenced',
+  Acknowledged = 'acknowledged',
+}
+
+export const GENERIC_ERROR = 'An error has occurred. Please try again';
+
+export const INTEGRATION_SERVICENOW = 'servicenow';

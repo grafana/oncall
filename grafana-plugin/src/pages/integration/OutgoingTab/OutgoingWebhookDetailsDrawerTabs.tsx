@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 
 import { Button, ConfirmModal, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui';
-import { observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -20,24 +20,26 @@ import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 interface OutgoingWebhookDetailsDrawerTabsProps {
   closeDrawer: () => void;
 }
-export const OutgoingWebhookDetailsDrawerTabs: FC<OutgoingWebhookDetailsDrawerTabsProps> = ({ closeDrawer }) => {
-  const styles = useStyles2(getStyles);
-  const webhook = useDrawerWebhook();
+export const OutgoingWebhookDetailsDrawerTabs: FC<OutgoingWebhookDetailsDrawerTabsProps> = observer(
+  ({ closeDrawer }) => {
+    const styles = useStyles2(getStyles);
+    const webhook = useDrawerWebhook();
 
-  return (
-    <RenderConditionally shouldRender={Boolean(webhook)}>
-      <div className={styles.tabsWrapper}>
-        <Tabs
-          queryStringKey={TriggerDetailsQueryStringKey.ActiveTab}
-          tabs={[
-            { label: TriggerDetailsTab.Settings, content: <Settings closeDrawer={closeDrawer} /> },
-            { label: TriggerDetailsTab.LastEvent, content: <LastEventDetails closeDrawer={closeDrawer} /> },
-          ]}
-        />
-      </div>
-    </RenderConditionally>
-  );
-};
+    return (
+      <RenderConditionally shouldRender={Boolean(webhook)}>
+        <div className={styles.tabsWrapper}>
+          <Tabs
+            queryStringKey={TriggerDetailsQueryStringKey.ActiveTab}
+            tabs={[
+              { label: TriggerDetailsTab.Settings, content: <Settings closeDrawer={closeDrawer} /> },
+              { label: TriggerDetailsTab.LastEvent, content: <LastEventDetails closeDrawer={closeDrawer} /> },
+            ]}
+          />
+        </div>
+      </RenderConditionally>
+    );
+  }
+);
 
 interface SettingsProps {
   closeDrawer: () => void;

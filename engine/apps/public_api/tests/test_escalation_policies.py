@@ -149,6 +149,27 @@ def test_create_escalation_policy(
 
 
 @pytest.mark.django_db
+def test_create_empty_escalation_policy(
+    make_organization_and_user_with_token,
+    escalation_policies_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+
+    data_for_create = {
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "type": None,
+    }
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["type"][0] == "This field may not be null."
+
+
+@pytest.mark.django_db
 def test_create_escalation_policy_manual_order_duplicated_position(
     make_organization_and_user_with_token,
     escalation_policies_setup,
@@ -322,7 +343,7 @@ def test_create_escalation_policy_using_webhooks(
 
     data_for_create = {
         "escalation_chain_id": escalation_chain.public_primary_key,
-        "type": "trigger_action",
+        "type": "trigger_webhook",
         "position": 0,
         "action_to_trigger": webhook.public_primary_key,
     }
@@ -336,88 +357,6 @@ def test_create_escalation_policy_using_webhooks(
     escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
     serializer = EscalationPolicySerializer(escalation_policy)
     assert response.data == serializer.data
-
-
-@pytest.mark.django_db
-def test_retrieve_escalation_policy_using_button(
-    make_organization_and_user_with_token,
-    make_custom_action,
-    escalation_policies_setup,
-):
-    organization, user, token = make_organization_and_user_with_token()
-    action = make_custom_action(organization)
-    escalation_chain, _, _ = escalation_policies_setup(organization, user)
-
-    escalation_policy_action = escalation_chain.escalation_policies.create(
-        step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
-        custom_button_trigger=action,
-    )
-
-    client = APIClient()
-    url = reverse("api-public:escalation_policies-detail", kwargs={"pk": escalation_policy_action.public_primary_key})
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
-
-    assert response.status_code == status.HTTP_200_OK
-
-    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
-    serializer = EscalationPolicySerializer(escalation_policy)
-    assert response.data == serializer.data
-    assert response.data["action_to_trigger"] == action.public_primary_key
-
-
-@pytest.mark.django_db
-def test_update_escalation_policy_using_button_disabled(
-    make_organization_and_user_with_token,
-    make_custom_action,
-    escalation_policies_setup,
-):
-    organization, user, token = make_organization_and_user_with_token()
-    action = make_custom_action(organization)
-    other_action = make_custom_action(organization)
-    escalation_chain, _, _ = escalation_policies_setup(organization, user)
-
-    escalation_policy_action = escalation_chain.escalation_policies.create(
-        step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
-        custom_button_trigger=action,
-    )
-
-    client = APIClient()
-    data_to_change = {"action_to_trigger": other_action.public_primary_key}
-    url = reverse("api-public:escalation_policies-detail", kwargs={"pk": escalation_policy_action.public_primary_key})
-    response = client.put(url, data=data_to_change, format="json", HTTP_AUTHORIZATION=token)
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-def test_update_escalation_policy_using_button_to_webhook(
-    make_organization_and_user_with_token,
-    make_custom_action,
-    make_custom_webhook,
-    escalation_policies_setup,
-):
-    organization, user, token = make_organization_and_user_with_token()
-    action = make_custom_action(organization)
-    webhook = make_custom_webhook(organization)
-    escalation_chain, _, _ = escalation_policies_setup(organization, user)
-
-    escalation_policy_action = escalation_chain.escalation_policies.create(
-        step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
-        custom_button_trigger=action,
-    )
-
-    client = APIClient()
-    data_to_change = {"action_to_trigger": webhook.public_primary_key}
-    url = reverse("api-public:escalation_policies-detail", kwargs={"pk": escalation_policy_action.public_primary_key})
-    response = client.put(url, data=data_to_change, format="json", HTTP_AUTHORIZATION=token)
-
-    assert response.status_code == status.HTTP_200_OK
-
-    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
-    serializer = EscalationPolicySerializer(escalation_policy)
-    assert response.data == serializer.data
-    # step is migrated
-    assert escalation_policy.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK
 
 
 @pytest.mark.django_db

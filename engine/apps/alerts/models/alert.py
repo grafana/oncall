@@ -136,7 +136,7 @@ class Alert(models.Model):
             is_the_first_alert_in_group=group_created,
         )
         alert.save()
-        logger.debug(f"alert {alert.pk} created")
+        logger.debug(f"alert {alert.pk} created for alert group {group.pk}")
 
         transaction.on_commit(partial(send_alert_create_signal.apply_async, (alert.pk,)))
 

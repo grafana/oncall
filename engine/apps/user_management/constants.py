@@ -2,6 +2,8 @@ import typing
 
 from django.db.models import TextChoices
 
+from apps.user_management.types import AlertGroupTableColumn
+
 
 class AlertGroupTableDefaultColumnChoices(TextChoices):
     STATUS = "status", "Status"
@@ -18,18 +20,6 @@ class AlertGroupTableDefaultColumnChoices(TextChoices):
 class AlertGroupTableColumnTypeChoices(TextChoices):
     DEFAULT = "default"
     LABEL = "label"
-
-
-class AlertGroupTableColumn(typing.TypedDict):
-    id: str
-    name: str
-    type: str
-
-
-class AlertGroupTableColumns(typing.TypedDict):
-    visible: typing.List[AlertGroupTableColumn]
-    hidden: typing.List[AlertGroupTableColumn]
-    default: bool
 
 
 def default_columns() -> typing.List[AlertGroupTableColumn]:

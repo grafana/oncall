@@ -172,7 +172,7 @@ The Alert Group Labeling feature allows users to:
 - Assign labels to alert groups
 - Filter alert groups by labels
 - Customize the Alert Group table
-- Pass labels in [webhooks][webhook-labels]
+- Pass labels in [Webhooks]
 
 ##### Label Assignment Limits
 
@@ -351,8 +351,8 @@ Users with admin permissions have the ability to add custom columns based on lab
 [Routing template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
 [Routing template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
 
-[webhook-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks#labels"
-[webhook-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#labels"
+[Webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
+[Webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
 
 [integration-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/#labels"
 [integration-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#labels"

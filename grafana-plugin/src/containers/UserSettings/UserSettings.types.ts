@@ -1,6 +1,7 @@
 export enum UserSettingsTab {
   UserInfo,
   NotificationSettings,
+  GoogleCalendar,
   PhoneVerification,
   SlackInfo,
   TelegramInfo,

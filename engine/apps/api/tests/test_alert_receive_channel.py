@@ -44,7 +44,7 @@ def alert_receive_channel_internal_api_setup(
 
 @pytest.fixture
 def setup_additional_settings_for_integration():
-    integration_config = AlertReceiveChannel._config[0]
+    integration_config = AlertReceiveChannel._config[2]  # It points to alertmanager
     previous_value = getattr(integration_config, "additional_settings_serializer", None)
     integration_config.additional_settings_serializer = AdditionalSettingsTestSerializer
     try:
@@ -145,10 +145,10 @@ def test_list_alert_receive_channel_skip_pagination_for_grafana_alerting(
     assert response.status_code == status.HTTP_200_OK
 
     if should_be_unpaginated:
-        assert type(results) == list
+        assert type(results) is list
         assert len(results) > 0
     else:
-        assert type(results["results"]) == list
+        assert type(results["results"]) is list
         assert len(results["results"]) > 0
 
 
@@ -267,6 +267,63 @@ def test_alert_receive_channel_name_uniqueness(
         **make_user_auth_headers(user, token),
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_name_uniqueness_validation_optional_team_field(
+    alert_receive_channel_internal_api_setup, make_team, make_user_auth_headers, make_alert_receive_channel
+):
+    """
+    Test the uniqueness validation for alert receive channel names with optional team field.
+
+    Creates two alert receive channels with the same name, where the first has no team and the second has a team. It
+    checks if updating the second channel with a request without the "team" field passes the uniqueness validation
+    based on team+name. (The team field is optional in the API).
+
+    Related issue: https://github.com/grafana/oncall/issues/4118
+    """
+    user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
+    team = make_team(alert_receive_channel.organization)
+    alert_receive_channel_with_team = make_alert_receive_channel(
+        alert_receive_channel.organization, team=team, verbal_name=alert_receive_channel.verbal_name
+    )
+
+    client = APIClient()
+
+    # update works when team is not present in request data
+    url = reverse(
+        "api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel_with_team.public_primary_key}
+    )
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # update works when team is present
+    url = reverse(
+        "api-internal:alert_receive_channel-detail", kwargs={"pk": alert_receive_channel_with_team.public_primary_key}
+    )
+    response = client.put(
+        url,
+        data=json.dumps(
+            {
+                "verbal_name": alert_receive_channel.verbal_name,
+                "description": "update description",
+                "team": team.public_primary_key,
+            }
+        ),
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -1817,6 +1874,8 @@ def test_update_additional_settings_integration(
 
     # set up additional settings for an integration
     integration_config = setup_additional_settings_for_integration
+    integration_config.update_default_webhooks = Mock()
+
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=integration_config.slug, additional_settings=settings
     )
@@ -1859,6 +1918,7 @@ def test_update_additional_settings_integration(
 
     alert_receive_channel.refresh_from_db()
     assert alert_receive_channel.additional_settings == data["additional_settings"]
+    integration_config.update_default_webhooks.assert_called_once_with(alert_receive_channel)
 
 
 @pytest.mark.django_db
@@ -2529,11 +2589,11 @@ def test_alert_receive_channel_api_token_post(
 def test_integration_api_token(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    make_alert_receive_channel_connection,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(organization)
+    integration_config = AlertReceiveChannel._config[0]
+    alert_receive_channel = make_alert_receive_channel(organization, integration=integration_config.slug)
     client = APIClient()
     get_token_url = reverse(
         "api-internal:alert_receive_channel-backsync-token-get",
@@ -2547,14 +2607,22 @@ def test_integration_api_token(
             "pk": alert_receive_channel.public_primary_key,
         },
     )
+
     # token does not exist
     response = client.get(get_token_url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
     # create token
-    response = client.post(post_token_url, **make_user_auth_headers(user, token))
+    def mock_token_usage(instance, token):
+        return f"token:{token}"
+
+    with patch.object(integration_config, "get_token_usage", side_effect=mock_token_usage, create=True):
+        response = client.post(post_token_url, **make_user_auth_headers(user, token))
+
     assert response.status_code == status.HTTP_201_CREATED
-    integration_token_string = response.json().get("token")
+    response_data = response.json()
+    integration_token_string = response_data.get("token")
+    assert response_data.get("usage") == f"token:{integration_token_string}"
     integration_token_1 = alert_receive_channel.auth_tokens.first()
 
     # token was found
@@ -2569,3 +2637,32 @@ def test_integration_api_token(
     assert integration_token_2 != integration_token_1
     assert integration_token_1.revoked_at is not None
     assert integration_token_string != response.json().get("token")
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_integration_options_search(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-integration-options")
+
+    search_url = f"{url}?search=graf"
+    response = client.get(search_url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    returned_choices = [i["display_name"] for i in response.json()]
+    assert returned_choices == ["Grafana Alerting", "Grafana Legacy Alerting", "(Deprecated) Grafana Alerting"]
+
+    search_url = f"{url}?search=notfound"
+    response = client.get(search_url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    returned_choices = [i["display_name"] for i in response.json()]
+    assert returned_choices == []
+
+    search_url = f"{url}?search=webhook"
+    response = client.get(search_url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    returned_choices = [i["display_name"] for i in response.json()]
+    assert returned_choices == ["Webhook", "Formatted webhook"]

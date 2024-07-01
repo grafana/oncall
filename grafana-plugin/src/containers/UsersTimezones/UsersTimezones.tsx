@@ -83,7 +83,7 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
           <HorizontalGroup justify="space-between">
             <HorizontalGroup>
               <div className={cx('title')}>
-                <Text.Title level={4} type="primary">
+                <Text.Title level={5} type="primary">
                   Schedule team and timezones
                 </Text.Title>
               </div>

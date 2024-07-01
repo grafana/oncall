@@ -2,7 +2,7 @@ import React, { FC, useMemo } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { VerticalGroup, HorizontalGroup, Badge, useStyles2, Tooltip, Icon, useTheme2 } from '@grafana/ui';
+import { VerticalGroup, HorizontalGroup, Badge, useStyles2, useTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { SourceCode } from 'components/SourceCode/SourceCode';
@@ -94,16 +94,7 @@ const getEventDetailsRows = (theme: GrafanaTheme2, webhook?: ApiSchemas['Webhook
         },
         {
           title: 'URL',
-          value: (
-            <HorizontalGroup align="center">
-              <span>{webhook.url}</span>
-              {webhook.last_response_log?.url && webhook.url !== webhook.last_response_log?.url && (
-                <Tooltip content={webhook.last_response_log?.url}>
-                  <Icon name="exclamation-triangle" color={theme.colors.error.main} />
-                </Tooltip>
-              )}
-            </HorizontalGroup>
-          ),
+          value: <span>{webhook.last_response_log?.url || 'No data'}</span>,
         },
         {
           title: 'Method',

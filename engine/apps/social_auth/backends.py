@@ -1,10 +1,11 @@
 from urllib.parse import urljoin
 
+from social_core.backends.google import GoogleOAuth2 as BaseGoogleOAuth2
 from social_core.backends.slack import SlackOAuth2
 from social_core.utils import handle_http_errors
 
 from apps.auth_token.constants import SLACK_AUTH_TOKEN_NAME
-from apps.auth_token.models import SlackAuthToken
+from apps.auth_token.models import GoogleOAuth2Token, SlackAuthToken
 
 # Scopes for slack user token.
 # It is main purpose - retrieve user data in SlackOAuth2V2 but we are using it in legacy code or weird Slack api cases.
@@ -39,11 +40,37 @@ BOT_SCOPE = [
     "users:write",
 ]
 
-# Reference to Slack tokens: https://api.slack.com/authentication/token-types
+
+class GoogleOAuth2(BaseGoogleOAuth2):
+    REDIRECT_STATE = False
+    """
+    Remove redirect state because we lose session during redirects
+    """
+    STATE_PARAMETER = False
+    """
+    keep `False` to avoid having `BaseGoogleOAuth2` check the `state` query param against a session value
+    """
+
+    def auth_params(self, state=None):
+        """
+        Override to generate `GoogleOAuth2Token` token to include as `state` query parameter.
+
+        https://developers.google.com/identity/protocols/oauth2/web-server#:~:text=Specifies%20any%20string%20value%20that%20your%20application%20uses%20to%20maintain%20state%20between%20your%20authorization%20request%20and%20the%20authorization%20server%27s%20response
+        """
+
+        params = super().auth_params(state)
+
+        _, token_string = GoogleOAuth2Token.create_auth_token(
+            self.strategy.request.user, self.strategy.request.auth.organization
+        )
+        params["state"] = token_string
+        return params
 
 
 class SlackOAuth2V2(SlackOAuth2):
     """
+    Reference to Slack tokens: https://api.slack.com/authentication/token-types
+
     Slack app with granular permissions require using SlackOauth2.0 V2.
     SlackOAuth2V2 and its inheritors tune SlackOAuth2 implementation from social core to fit new endpoints
     and response shapes.
@@ -54,15 +81,20 @@ class SlackOAuth2V2(SlackOAuth2):
     ACCESS_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
     AUTH_TOKEN_NAME = SLACK_AUTH_TOKEN_NAME
 
-    # Remove redirect state because we lose session during redirects
     REDIRECT_STATE = False
+    """
+    Remove redirect state because we lose session during redirects
+    """
     STATE_PARAMETER = False
 
     EXTRA_DATA = [("id", "id"), ("name", "name"), ("real_name", "real_name"), ("team", "team")]
 
     @handle_http_errors
     def auth_complete(self, *args, **kwargs):
-        """Completes login process, must return user instance"""
+        """
+        Override original method to include auth token in redirect uri and adjust response shape to slack Oauth2.0 V2.
+        Access token is in the ["authed_user"]["access_token"] field, not in the root of the response.
+        """
         self.process_error(self.data)
         state = self.validate_state()
         # add auth token to redirect uri, because it must be the same in all slack auth requests
@@ -84,6 +116,7 @@ class SlackOAuth2V2(SlackOAuth2):
             method=self.ACCESS_TOKEN_METHOD,
         )
         self.process_error(response)
+        # Take access token from the authed_user field, not from the root
         access_token = response["authed_user"]["access_token"]
         kwargs.update(response=response)
         return self.do_auth(access_token, *args, **kwargs)
@@ -158,8 +191,13 @@ class LoginSlackOAuth2V2(SlackOAuth2V2):
         return {"user_scope": USER_SCOPE}
 
 
+# it's named slack-install-free because it was used to install free version of Slack App.
+# There is no free/paid version of Slack App anymore, so it's just a name.
+SLACK_INSTALLATION_BACKEND = "slack-install-free"
+
+
 class InstallSlackOAuth2V2(SlackOAuth2V2):
-    name = "slack-install-free"
+    name = SLACK_INSTALLATION_BACKEND
 
     def get_scope(self):
         return {"user_scope": USER_SCOPE, "scope": BOT_SCOPE}

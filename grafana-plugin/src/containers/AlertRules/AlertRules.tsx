@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { VerticalGroup } from '@grafana/ui';
+import { VerticalGroup, useTheme2 } from '@grafana/ui';
 
 import { Timeline } from 'components/Timeline/Timeline';
 import { MSTeamsConnector } from 'containers/AlertRules/parts/connectors/MSTeamsConnector';
@@ -9,7 +9,6 @@ import { TelegramConnector } from 'containers/AlertRules/parts/connectors/Telegr
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 
 interface ChatOpsConnectorsProps {
   channelFilterId: ChannelFilter['id'];
@@ -20,6 +19,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   const { channelFilterId, showLineNumber = true } = props;
 
   const store = useStore();
+  const theme = useTheme2();
   const { organizationStore, telegramChannelStore, msteamsChannelStore } = store;
 
   const isSlackInstalled = Boolean(organizationStore.currentOrganization?.slack_team_identity);
@@ -37,7 +37,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   }
 
   return (
-    <Timeline.Item number={0} backgroundHexNumber={getVar('--tag-secondary')} isDisabled={!showLineNumber}>
+    <Timeline.Item number={0} backgroundHexNumber={theme.colors.secondary.main} isDisabled={!showLineNumber}>
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}

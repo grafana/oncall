@@ -6,10 +6,10 @@ djangorestframework-stubs[compatible-mypy]==3.14.2
 httpretty==1.1.4
 mypy==1.4.1
 pre-commit==2.15.0
-pytest==7.3.1
-pytest-django==4.5.2
-pytest-xdist[psutil]==3.5.0
-pytest_factoryboy==2.5.1
+pytest==8.2.2
+pytest-django==4.8.0
+pytest-xdist[psutil]==3.6.1
+pytest_factoryboy==2.7.0
 types-beautifulsoup4==4.12.0.5
 types-PyMySQL==1.0.19.7
 types-python-dateutil==2.8.19.13

@@ -32,6 +32,7 @@ from apps.schedules.constants import (
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
+    PREFETCHED_SHIFT_SWAPS,
 )
 from apps.schedules.ical_utils import (
     EmptyShifts,
@@ -388,7 +389,7 @@ class OnCallSchedule(PolymorphicModel):
         events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
-            all_day = type(start) == datetime.date
+            all_day = type(start) is datetime.date
             # fix confusing end date for all-day event
             end = shift["end"] - datetime.timedelta(days=1) if all_day else shift["end"]
             if all_day and all_day_datetime:
@@ -465,7 +466,7 @@ class OnCallSchedule(PolymorphicModel):
         return events
 
     def filter_swap_requests(
-        self, datetime_start: datetime.datetime, datetime_end: datetime.time
+        self, datetime_start: datetime.datetime, datetime_end: datetime.datetime
     ) -> "RelatedManager['ShiftSwapRequest']":
         swap_requests = self.shift_swap_requests.filter(  # starting before but ongoing
             swap_start__lt=datetime_start, swap_end__gte=datetime_start
@@ -513,7 +514,7 @@ class OnCallSchedule(PolymorphicModel):
                     # check if event was ended or cancelled, update ical
                     dtend = component.get(ICAL_DATETIME_END)
                     dtend_datetime = dtend.dt if dtend else None
-                    if dtend_datetime and type(dtend_datetime) == datetime.date:
+                    if dtend_datetime and type(dtend_datetime) is datetime.date:
                         # shift or overrides coming from ical calendars can be all day events, change to datetime
                         dtend_datetime = datetime.datetime.combine(
                             dtend.dt, datetime.datetime.min.time(), tzinfo=pytz.UTC
@@ -542,10 +543,23 @@ class OnCallSchedule(PolymorphicModel):
         self.save(update_fields=["cached_ical_final_schedule"])
 
     def shifts_for_user(
-        self, user: User, datetime_start: datetime.datetime, days: int = 7
+        self,
+        user: User,
+        datetime_start: datetime.datetime,
+        datetime_end: typing.Optional[datetime.datetime] = None,
+        days: typing.Optional[int] = None,
     ) -> typing.Tuple[ScheduleEvents, ScheduleEvents, ScheduleEvents]:
+        """
+        NOTE: must specify at least `datetime_end` or `days`
+        """
+        if not datetime_end and not days:
+            raise ValueError("Must specify at least `datetime_end` or `days`")
+
         now = timezone.now()
-        datetime_end = datetime_start + datetime.timedelta(days=days)
+
+        if days is not None:
+            datetime_end = datetime_start + datetime.timedelta(days=days)
+
         passed_shifts: ScheduleEvents = []
         current_shifts: ScheduleEvents = []
         upcoming_shifts: ScheduleEvents = []
@@ -703,7 +717,12 @@ class OnCallSchedule(PolymorphicModel):
     ) -> ScheduleEvents:
         """Apply swap requests details to schedule events."""
         # get swaps requests affecting this schedule / time range
-        swaps = self.filter_swap_requests(datetime_start, datetime_end)
+        prefetched_swaps = getattr(self, PREFETCHED_SHIFT_SWAPS, None)
+        swaps = (
+            prefetched_swaps
+            if prefetched_swaps is not None
+            else self.filter_swap_requests(datetime_start, datetime_end)
+        )
 
         def _insert_event(index: int, event: ScheduleEvent) -> int:
             # add event, if any, to events list in the specified index

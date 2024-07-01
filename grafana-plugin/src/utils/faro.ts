@@ -1,4 +1,5 @@
-import { Faro, initializeFaro, LogLevel, InternalLoggerLevel, getWebInstrumentations } from '@grafana/faro-web-sdk';
+import { Faro, initializeFaro, LogLevel, getWebInstrumentations, BrowserConfig } from '@grafana/faro-web-sdk';
+import { AxiosResponse } from 'axios';
 
 import plugin from '../../package.json'; // eslint-disable-line
 import {
@@ -8,7 +9,9 @@ import {
   ONCALL_DEV,
   ONCALL_OPS,
   ONCALL_PROD,
+  getIsDevelopmentEnv,
 } from './consts';
+import { safeJSONStringify } from './string';
 
 export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
   const baseName = 'grafana-oncall';
@@ -29,14 +32,14 @@ class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    if (this.faro) {
+    if (this.faro || getIsDevelopmentEnv()) {
       return undefined;
     }
 
     try {
       const { appName, url } = getAppNameUrlPair(onCallApiUrl);
 
-      const faroOptions = {
+      const faroOptions: BrowserConfig = {
         url: url,
         isolate: true,
         instrumentations: [
@@ -44,7 +47,6 @@ class BaseFaroHelper {
             captureConsoleDisabledLevels: [LogLevel.TRACE, LogLevel.ERROR],
           }),
         ],
-        internalLoggerLevel: InternalLoggerLevel.VERBOSE,
         app: {
           name: appName,
           version: plugin?.version,
@@ -68,6 +70,59 @@ class BaseFaroHelper {
 
     return this.faro;
   }
+
+  pushReactError = (error: Error) => {
+    this.faro?.api.pushError(error, { context: { type: 'react' } });
+  };
+
+  pushNetworkRequestEvent = (config: { method: string; url: string; body: string }) => {
+    this.faro?.api.pushEvent('Request sent', config);
+  };
+
+  pushFetchNetworkResponseEvent = ({ name, res, method }: { name: string; res: Response; method: string }) => {
+    this.faro?.api.pushEvent(name, {
+      method,
+      url: res.url,
+      status: `${res.status}`,
+      statusText: `${res.statusText}`,
+    });
+  };
+
+  pushFetchNetworkError = ({ res, responseData, method }: { res: Response; responseData: unknown; method: string }) => {
+    this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
+      context: {
+        method,
+        type: 'network',
+        url: res.url,
+        data: `${safeJSONStringify(responseData)}`,
+        status: `${res.status}`,
+        statusText: `${res.statusText}`,
+        timestamp: new Date().toUTCString(),
+      },
+    });
+  };
+
+  pushAxiosNetworkResponseEvent = ({ name, res }: { name: string; res?: AxiosResponse }) => {
+    this.faro?.api.pushEvent(name, {
+      url: res?.config?.url,
+      status: `${res?.status}`,
+      statusText: `${res?.statusText}`,
+      method: res?.config?.method.toUpperCase(),
+    });
+  };
+
+  pushAxiosNetworkError = (res?: AxiosResponse) => {
+    this.faro?.api.pushError(new Error(`Network error: ${res?.status}`), {
+      context: {
+        url: res?.config?.url,
+        type: 'network',
+        data: `${safeJSONStringify(res?.data)}`,
+        status: `${res?.status}`,
+        statusText: `${res?.statusText}`,
+        timestamp: new Date().toUTCString(),
+      },
+    });
+  };
 }
 
 export const FaroHelper = new BaseFaroHelper();

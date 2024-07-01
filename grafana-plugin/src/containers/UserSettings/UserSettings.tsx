@@ -55,12 +55,14 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     showTelegramConnectionTab,
     showMobileAppConnectionTab,
     showMsTeamsConnectionTab,
+    showGoogleCalendarTab,
   ] = [
     !isDesktopOrLaptop,
     isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
     isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
     isCurrent,
     store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
+    isCurrent && store.hasFeature(AppFeature.GoogleOauth2),
   ];
 
   const title = (
@@ -81,6 +83,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
             showTelegramConnectionTab={showTelegramConnectionTab}
             showMobileAppConnectionTab={showMobileAppConnectionTab}
             showMsTeamsConnectionTab={showMsTeamsConnectionTab}
+            showGoogleCalendarTab={showGoogleCalendarTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

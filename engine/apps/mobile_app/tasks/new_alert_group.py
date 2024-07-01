@@ -78,7 +78,7 @@ def _get_fcm_message(alert_group: AlertGroup, user: User, device_to_notify: "FCM
         aps=Aps(
             thread_id=thread_id,
             badge=number_of_alerts,
-            alert=ApsAlert(title=alert_title, subtitle=alert_subtitle),
+            alert=ApsAlert(title=alert_title, body=alert_subtitle),
             sound=CriticalSound(
                 # The notification shouldn't be critical if the user has disabled "override DND" setting
                 critical=overrideDND,

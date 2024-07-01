@@ -36,3 +36,28 @@ def test_send_slack_notification(
 
     log_record = notification_policy.personal_log_records.last()
     assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+
+
+@pytest.mark.django_db
+def test_slack_message_deep_link(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_channel,
+    make_slack_message,
+):
+    organization, _, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
+
+    expected = (
+        f"https://slack.com/app_redirect?channel={slack_channel.slack_id}"
+        f"&team={slack_team_identity.slack_id}&message={slack_message.slack_id}"
+    )
+    assert slack_message.deep_link == expected

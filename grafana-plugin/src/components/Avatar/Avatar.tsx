@@ -1,8 +1,10 @@
 import React, { FC } from 'react';
 
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
+import { bem } from 'styles/utils.styles';
 
-import styles from './Avatar.module.css';
+import { getAvatarStyles } from './Avatar.styles';
 
 interface AvatarProps {
   src: string;
@@ -10,14 +12,21 @@ interface AvatarProps {
   className?: string;
 }
 
-const cx = cn.bind(styles);
-
 export const Avatar: FC<AvatarProps> = (props) => {
   const { src, size, className, ...rest } = props;
+
+  const styles = useStyles2(getAvatarStyles);
 
   if (!src) {
     return null;
   }
 
-  return <img src={src} className={cx('root', `avatarSize-${size}`, className)} data-testid="test__avatar" {...rest} />;
+  return (
+    <img
+      src={src}
+      className={cx(styles.avatar, bem(styles.avatar, size), className)}
+      data-testid="test__avatar"
+      {...rest}
+    />
+  );
 };

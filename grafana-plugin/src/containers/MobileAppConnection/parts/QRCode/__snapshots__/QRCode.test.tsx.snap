@@ -3,7 +3,7 @@
 exports[`QRCode it renders properly 1`] = `
 <div>
   <div
-    class="root root_bordered"
+    class="css-1x53p5e css-1x53p5e--bordered"
   >
     <svg
       height="256"

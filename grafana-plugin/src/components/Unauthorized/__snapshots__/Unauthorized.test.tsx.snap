@@ -2,7 +2,7 @@
 
 exports[`Unauthorized renders properly - access control enabled: false 1`] = `
 <div
-  className="not-found"
+  className="css-rs5aad"
 >
   <div
     className="css-8tu8mo-vertical-group"
@@ -17,10 +17,10 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
-        className="title error-code"
+        className="css-1fmhfo9"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -35,10 +35,10 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
-        className="title"
+        className="css-u023fv"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -60,7 +60,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
 
 exports[`Unauthorized renders properly - access control enabled: true 1`] = `
 <div
-  className="not-found"
+  className="css-rs5aad"
 >
   <div
     className="css-8tu8mo-vertical-group"
@@ -75,10 +75,10 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
-        className="title error-code"
+        className="css-1fmhfo9"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -93,10 +93,10 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
-        className="title"
+        className="css-u023fv"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -118,7 +118,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
 
 exports[`Unauthorized renders properly the grammar for different roles - Admin 1`] = `
 <div
-  className="not-found"
+  className="css-rs5aad"
 >
   <div
     className="css-8tu8mo-vertical-group"
@@ -133,10 +133,10 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
-        className="title error-code"
+        className="css-1fmhfo9"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -151,10 +151,10 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
-        className="title"
+        className="css-u023fv"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -176,7 +176,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
 
 exports[`Unauthorized renders properly the grammar for different roles - Editor 1`] = `
 <div
-  className="not-found"
+  className="css-rs5aad"
 >
   <div
     className="css-8tu8mo-vertical-group"
@@ -191,10 +191,10 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
-        className="title error-code"
+        className="css-1fmhfo9"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -209,10 +209,10 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
-        className="title"
+        className="css-u023fv"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -234,7 +234,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
 
 exports[`Unauthorized renders properly the grammar for different roles - Viewer 1`] = `
 <div
-  className="not-found"
+  className="css-rs5aad"
 >
   <div
     className="css-8tu8mo-vertical-group"
@@ -249,10 +249,10 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h1
-        className="title error-code"
+        className="css-1fmhfo9"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,
@@ -267,10 +267,10 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
       className="css-qxdyop-layoutChildrenWrapper"
     >
       <h4
-        className="title"
+        className="css-u023fv"
       >
         <span
-          className="root text text--undefined text--medium"
+          className="css-77ouhj--undefined css-77ouhj--medium css-1287p17"
           style={
             {
               "maxWidth": undefined,

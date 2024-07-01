@@ -1,4 +1,6 @@
+import { KeyValue } from '@grafana/data';
 import type { Page } from '@playwright/test';
+import qs from 'query-string';
 
 import { BASE_URL } from './constants';
 
@@ -17,8 +19,9 @@ const _goToPage = async (page: Page, url = '') => page.goto(`${BASE_URL}${url}`)
 
 export const goToGrafanaPage = async (page: Page, url = '') => _goToPage(page, url);
 
-export const goToOnCallPage = async (page: Page, onCallPage: OnCallPage) => {
-  await _goToPage(page, `/a/grafana-oncall-app/${onCallPage}`);
+export const goToOnCallPage = async (page: Page, onCallPage: OnCallPage, queryParams?: KeyValue) => {
+  const queryParamsString = queryParams ? `?${qs.stringify(queryParams)}` : '';
+  await _goToPage(page, `/a/grafana-oncall-app/${onCallPage}${queryParamsString}`);
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 };

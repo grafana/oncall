@@ -554,16 +554,13 @@ class IncidentLogBuilder:
                 # notification_plan_dict structure - {timedelta: [{"user_id": user.pk, "plan_lines": []}]
                 for timedelta, notification_plan in notification_plan_dict.items():
                     escalation_plan_dict.setdefault(timedelta, []).extend(notification_plan)
-        elif escalation_policy_snapshot.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
+        elif escalation_policy_snapshot.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
             if future_step:
-                custom_button = escalation_policy_snapshot.custom_button_trigger
-                if custom_button is not None:
-                    plan_line = f"trigger outgoing webhook `{custom_button.name}`"
+                custom_webhook = escalation_policy_snapshot.custom_webhook
+                if custom_webhook is not None:
+                    plan_line = f'trigger outgoing webhook "{custom_webhook.name}"'
                 else:
-                    plan_line = (
-                        f'escalation step "{escalation_policy_snapshot.step_display}", '
-                        f"but outgoing webhook is unspecified. Skipping"
-                    )
+                    plan_line = f'escalation step "{escalation_policy_snapshot.step_display}" but outgoing webhook is unspecified. Skipping'
                 plan = {"plan_lines": [plan_line]}
                 escalation_plan_dict.setdefault(timedelta, []).append(plan)
         elif escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:

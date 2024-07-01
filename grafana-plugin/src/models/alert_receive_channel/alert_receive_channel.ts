@@ -14,7 +14,7 @@ import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 import { OmitReadonlyMembers } from 'utils/types';
 
-import { AlertReceiveChannelCounters, ContactPoint, ServiceNowStatus } from './alert_receive_channel.types';
+import { AlertReceiveChannelCounters, ContactPoint } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore {
   rootStore: RootBaseStore;
@@ -37,7 +37,7 @@ export class AlertReceiveChannelStore {
   alertReceiveChannelOptions: Array<ApiSchemas['AlertReceiveChannelIntegrationOptions']> = [];
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
   connectedContactPoints: { [id: string]: ContactPoint[] } = {};
-  serviceNowStatusList: ServiceNowStatus[];
+  serviceNowStatusList: string[][];
 
   constructor(rootStore: RootBaseStore) {
     makeAutoObservable(this, undefined, { autoBind: true });
@@ -105,26 +105,23 @@ export class AlertReceiveChannelStore {
     return alertReceiveChannel.data;
   }
 
-  async fetchServiceNowListOfStatus(): Promise<void> {
-    this.serviceNowStatusList = [
-      {
-        id: 1,
-        name: 'Resolved',
-      },
-      {
-        id: 2,
-        name: 'In Progress',
-      },
-      {
-        id: 3,
-        name: 'New',
-      },
-    ];
+  async fetchServiceNowStatusList({
+    id,
+    skipErrorHandling,
+  }: {
+    id: ApiSchemas['AlertReceiveChannel']['id'];
+    skipErrorHandling?: boolean;
+  }): Promise<void> {
+    const statusList = await onCallApi({ skipErrorHandling }).GET('/alert_receive_channels/{id}/status_options/', {
+      params: { path: { id } },
+    });
 
-    return Promise.resolve();
+    runInAction(() => {
+      this.serviceNowStatusList = statusList.data;
+    });
   }
 
-  async fetchItems(query: any = '') {
+  async fetchItems(query: any = ''): Promise<Array<ApiSchemas['AlertReceiveChannel']>> {
     const {
       data: { results },
     } = await onCallApi().GET('/alert_receive_channels/', {
@@ -152,7 +149,7 @@ export class AlertReceiveChannelStore {
 
     this.fetchCounters();
 
-    return results;
+    return results as Array<ApiSchemas['AlertReceiveChannel']>;
   }
 
   @AutoLoadingState(ActionKey.FETCH_INTEGRATIONS)

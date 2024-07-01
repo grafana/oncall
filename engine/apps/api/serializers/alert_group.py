@@ -22,6 +22,13 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+class ExternalURL(typing.TypedDict):
+    integration: str
+    integration_type: str
+    external_id: str
+    url: str
+
+
 class RenderForWeb(typing.TypedDict):
     title: str
     message: str
@@ -213,6 +220,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
     alerts = serializers.SerializerMethodField("get_limited_alerts")
     last_alert_at = serializers.SerializerMethodField()
     paged_users = serializers.SerializerMethodField()
+    external_urls = serializers.SerializerMethodField()
 
     class Meta(AlertGroupListSerializer.Meta):
         fields = AlertGroupListSerializer.Meta.fields + [
@@ -221,6 +229,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "slack_permalink",  # TODO: make plugin frontend use "permalinks" field to get Slack link
             "last_alert_at",
             "paged_users",
+            "external_urls",
         ]
 
     def get_last_alert_at(self, obj: "AlertGroup") -> datetime.datetime:
@@ -242,3 +251,21 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
     def get_paged_users(self, obj: "AlertGroup") -> typing.List[PagedUser]:
         return obj.get_paged_users()
+
+    def get_external_urls(self, obj: "AlertGroup") -> typing.List[ExternalURL]:
+        external_urls = []
+        external_ids = obj.external_ids.all()
+        for external_id in external_ids:
+            source_integration = external_id.source_alert_receive_channel
+            get_url = getattr(source_integration.config, "get_url", None)
+            if get_url:
+                url = source_integration.config.get_url(source_integration, external_id.value)
+                external_urls.append(
+                    {
+                        "integration": source_integration.public_primary_key,
+                        "integration_type": source_integration.integration,
+                        "external_id": external_id.value,
+                        "url": url,
+                    }
+                )
+        return external_urls

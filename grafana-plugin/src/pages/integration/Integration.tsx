@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { LabelTag } from '@grafana/labels';
 import {
@@ -48,6 +48,7 @@ import { IntegrationFormContainer } from 'containers/IntegrationForm/Integration
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
+import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
 import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
@@ -61,12 +62,13 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
-import { PageProps, SelectOption, WithStoreProps } from 'state/types';
+import { PageProps, SelectOption, WithDrawerConfig, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { withDrawer } from 'utils/hoc';
 import { useDrawer } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
@@ -76,7 +78,11 @@ import { OutgoingTab } from './OutgoingTab/OutgoingTab';
 
 const cx = cn.bind(styles);
 
-interface IntegrationProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IntegrationProps
+  extends WithDrawerConfig<IntegrationDrawerKey>,
+    WithStoreProps,
+    PageProps,
+    RouteComponentProps<{ id: string }> {}
 
 interface IntegrationState extends PageBaseState {
   isLoading: boolean;
@@ -137,6 +143,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       match: {
         params: { id },
       },
+      drawerConfig,
     } = this.props;
 
     const { alertReceiveChannelStore } = store;
@@ -179,7 +186,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
             }}
             channelFilterId={channelFilterIdForEdit}
             onUpdateTemplates={this.onUpdateTemplatesCallback}
-            onUpdateRoute={this.onUpdateRoutesCallback}
+            onUpdateRoute={(values, channelFilterId) => this.onUpdateRoutesCallback(values, channelFilterId, 1)}
             template={selectedTemplate}
             templateBody={
               selectedTemplate?.name === 'route_template'
@@ -226,6 +233,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                 alertReceiveChannel={alertReceiveChannel}
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
                 isLegacyIntegration={isLegacyIntegration}
+                drawerConfig={drawerConfig}
               />
             </div>
 
@@ -265,7 +273,14 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               <Tabs
                 tabs={[
                   { label: 'Incoming', content: incomingPart },
-                  { label: 'Outgoing', content: <OutgoingTab /> },
+                  {
+                    label: 'Outgoing',
+                    content: (
+                      <OutgoingTab
+                        openSnowConfigurationDrawer={() => drawerConfig.openDrawer(INTEGRATION_SERVICENOW)}
+                      />
+                    ),
+                  },
                 ]}
               />
             ) : (
@@ -577,31 +592,28 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       {
         isAddingRoute: true,
       },
-      () => {
-        AlertReceiveChannelHelper.createChannelFilter({
-          alert_receive_channel: id,
-          filtering_term: NEW_ROUTE_DEFAULT,
-          filtering_term_type: 1, // non-regex
-        })
-          .then(async (channelFilter: ChannelFilter) => {
-            await alertReceiveChannelStore.fetchChannelFilters(id);
-
-            this.setState(
-              (prevState) => ({
-                isAddingRoute: false,
-                openRoutes: prevState.openRoutes.concat(channelFilter.id),
-              }),
-              () => this.forceUpdate()
-            );
-
-            openNotification('A new route has been added');
-          })
-          .catch((err) => {
-            const errors = get(err, 'response.data');
-            if (errors?.non_field_errors) {
-              openErrorNotification(errors.non_field_errors);
-            }
+      async () => {
+        try {
+          const channelFilter: ChannelFilter = await AlertReceiveChannelHelper.createChannelFilter({
+            alert_receive_channel: id,
+            filtering_term: NEW_ROUTE_DEFAULT,
+            filtering_term_type: 1, // non-regex
           });
+          await alertReceiveChannelStore.fetchChannelFilters(id);
+          this.setState(
+            (prevState) => ({
+              isAddingRoute: false,
+              openRoutes: prevState.openRoutes.concat(channelFilter.id),
+            }),
+            () => this.forceUpdate()
+          );
+          openNotification('A new route has been added');
+        } catch (err) {
+          const errors = get(err, 'response.data');
+          if (errors?.non_field_errors) {
+            openErrorNotification(errors.non_field_errors);
+          }
+        }
       }
     );
   };
@@ -620,7 +632,8 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
     const onRouteDelete = async (routeId: string) => {
-      await alertReceiveChannelStore.deleteChannelFilter(routeId).then(() => this.forceUpdate());
+      await alertReceiveChannelStore.deleteChannelFilter(routeId);
+      this.forceUpdate();
       openNotification('Route has been deleted');
     };
 
@@ -671,7 +684,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
-  onUpdateRoutesCallback = (
+  onUpdateRoutesCallback = async (
     { route_template }: { route_template: string },
     channelFilterId: ChannelFilter['id'],
     filteringTermType?: number
@@ -681,29 +694,26 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       params: { id },
     } = this.props.match;
 
-    alertReceiveChannelStore
-      .saveChannelFilter(channelFilterId, {
+    try {
+      const channelFilter: ChannelFilter = await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
         filtering_term: route_template,
         filtering_term_type: filteringTermType,
-      })
-      .then((channelFilter: ChannelFilter) => {
-        alertReceiveChannelStore.fetchChannelFilters(id, true).then(() => {
-          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
-        });
-        this.setState({
-          isEditTemplateModalOpen: undefined,
-        });
-        LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-      })
-      .catch((err) => {
-        const errors = get(err, 'response.data');
-        if (errors?.non_field_errors) {
-          openErrorNotification(errors.non_field_errors);
-        }
       });
+      await alertReceiveChannelStore.fetchChannelFilters(id, true);
+      escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+      this.setState({
+        isEditTemplateModalOpen: undefined,
+      });
+      LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+    } catch (err) {
+      const errors = get(err, 'response.data');
+      if (errors?.non_field_errors) {
+        openErrorNotification(errors.non_field_errors);
+      }
+    }
   };
 
-  onUpdateTemplatesCallback = (data) => {
+  onUpdateTemplatesCallback = async (data) => {
     const {
       store,
       match: {
@@ -711,21 +721,19 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       },
     } = this.props;
 
-    store.alertReceiveChannelStore
-      .saveTemplates(id, data)
-      .then(() => {
-        openNotification('The Alert templates have been updated');
-        this.setState({ isEditTemplateModalOpen: undefined });
-        this.setState({ isTemplateSettingsOpen: true });
-        LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-      })
-      .catch((err) => {
-        if (err.response?.data?.length > 0) {
-          openErrorNotification(err.response.data);
-        } else {
-          openErrorNotification('Template is not valid. Please check your template and try again');
-        }
-      });
+    try {
+      await store.alertReceiveChannelStore.saveTemplates(id, data);
+      openNotification('The Alert templates have been updated');
+      this.setState({ isEditTemplateModalOpen: undefined });
+      this.setState({ isTemplateSettingsOpen: true });
+      LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+    } catch (err) {
+      if (err.response?.data?.length > 0) {
+        openErrorNotification(err.response.data);
+      } else {
+        openErrorNotification('Template is not valid. Please check your template and try again');
+      }
+    }
   };
 
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
@@ -747,10 +755,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
   };
 
-  onRemovalFn = (id: ApiSchemas['AlertReceiveChannel']['id']) => {
-    AlertReceiveChannelHelper.deleteAlertReceiveChannel(id).then(() =>
-      this.props.history.push(`${PLUGIN_ROOT}/integrations/`)
-    );
+  onRemovalFn = async (id: ApiSchemas['AlertReceiveChannel']['id']) => {
+    await AlertReceiveChannelHelper.deleteAlertReceiveChannel(id);
+    this.props.history.push(`${PLUGIN_ROOT}/integrations/`);
   };
 
   async loadData() {
@@ -762,10 +769,15 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       history,
     } = this.props;
 
-    const promises = [];
+    const promises: Array<Promise<void | { [key: string]: { alerts_count: number; alert_groups_count: number } }>> = [];
+
+    const fetchItemAndLoadExtraData = async () => {
+      await alertReceiveChannelStore.fetchItemById(id);
+      await this.loadExtraData(id);
+    };
 
     if (!alertReceiveChannelStore.items[id]) {
-      promises.push(alertReceiveChannelStore.fetchItemById(id).then(() => this.loadExtraData(id)));
+      promises.push(fetchItemAndLoadExtraData());
     } else {
       promises.push(this.loadExtraData(id));
     }
@@ -780,14 +792,16 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
     promises.push(alertReceiveChannelStore.fetchCountersForIntegration(id));
 
-    await Promise.all(promises)
-      .catch(() => {
-        if (!alertReceiveChannelStore.items[id]) {
-          // failed fetching the integration (most likely it's not existent)
-          history.push(`${PLUGIN_ROOT}/integrations`);
-        }
-      })
-      .finally(() => this.setState({ isLoading: false }));
+    try {
+      await Promise.all(promises);
+    } catch (_err) {
+      if (!alertReceiveChannelStore.items[id]) {
+        // failed fetching the integration (most likely it's not existent)
+        history.push(`${PLUGIN_ROOT}/integrations`);
+      }
+    } finally {
+      this.setState({ isLoading: false });
+    }
   }
 
   async loadExtraData(id: ApiSchemas['AlertReceiveChannel']['id']) {
@@ -806,14 +820,16 @@ interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
   alertReceiveChannel: ApiSchemas['AlertReceiveChannel'];
   changeIsTemplateSettingsOpen: () => void;
+  drawerConfig: ReturnType<typeof useDrawer<IntegrationDrawerKey>>;
 }
 
-type IntegrationDrawerKey = 'servicenow';
+type IntegrationDrawerKey = typeof INTEGRATION_SERVICENOW | 'completeConfig';
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   isLegacyIntegration,
   changeIsTemplateSettingsOpen,
+  drawerConfig,
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
@@ -831,18 +847,23 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     onConfirm: () => void;
   }>(undefined);
 
+  const [isCompleteServiceNowConfigOpen, setIsCompleteServiceNowConfigOpen] = useState(false);
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
   const [isLabelsFormOpen, setLabelsFormOpen] = useState(false);
   const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
-    disabled: boolean;
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
 
-  const { closeDrawer, openDrawer, getIsDrawerOpened } = useDrawer<IntegrationDrawerKey>();
+  const { closeDrawer, openDrawer, getIsDrawerOpened } = drawerConfig;
 
   const { id } = alertReceiveChannel;
+
+  useEffect(() => {
+    /* ServiceNow Only */
+    openServiceNowCompleteConfigurationDrawer();
+  }, []);
 
   return (
     <>
@@ -868,7 +889,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {getIsDrawerOpened('servicenow') && <ServiceNowConfigDrawer onHide={() => closeDrawer()} />}
+      {getIsDrawerOpened(INTEGRATION_SERVICENOW) && <ServiceNowConfigDrawer onHide={closeDrawer} />}
+
+      {isCompleteServiceNowConfigOpen && (
+        <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />
+      )}
 
       {isIntegrationSettingsOpen && (
         <IntegrationFormContainer
@@ -937,7 +962,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               {
                 label: 'ServiceNow configuration',
                 hidden: !getIsBidirectionalIntegration(alertReceiveChannel),
-                onClick: () => openDrawer('servicenow'),
+                onClick: () => openDrawer(INTEGRATION_SERVICENOW),
               },
               {
                 onClick: openLabelsForm,
@@ -1060,6 +1085,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     </>
   );
 
+  function openServiceNowCompleteConfigurationDrawer() {
+    const isServiceNow = getIsBidirectionalIntegration(alertReceiveChannel);
+    const isConfigured = alertReceiveChannel.additional_settings?.is_configured;
+    if (isServiceNow && !isConfigured) {
+      setIsCompleteServiceNowConfigOpen(true);
+    }
+  }
+
   function getMigrationDisplayName() {
     const name = alertReceiveChannel.integration.toLowerCase().replace('legacy_', '');
     switch (name) {
@@ -1071,30 +1104,32 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     }
   }
 
-  function onIntegrationMigrate() {
-    AlertReceiveChannelHelper.migrateChannel(alertReceiveChannel.id)
-      .then(() => {
-        setConfirmModal(undefined);
-        openNotification('Integration has been successfully migrated.');
-      })
-      .then(() =>
-        Promise.all([
-          alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id),
-          alertReceiveChannelStore.fetchTemplates(alertReceiveChannel.id),
-        ])
-      )
-      .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+  async function onIntegrationMigrate() {
+    try {
+      await AlertReceiveChannelHelper.migrateChannel(alertReceiveChannel.id);
+      setConfirmModal(undefined);
+      openNotification('Integration has been successfully migrated.');
+      await Promise.all([
+        alertReceiveChannelStore.fetchItemById(alertReceiveChannel.id),
+        alertReceiveChannelStore.fetchTemplates(alertReceiveChannel.id),
+      ]);
+    } catch (_err) {
+      openErrorNotification(GENERIC_ERROR);
+    }
   }
 
   function showHeartbeatSettings() {
     return alertReceiveChannel.is_available_for_integration_heartbeat;
   }
 
-  function deleteIntegration() {
-    AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannel.id)
-      .then(() => history.push(`${PLUGIN_ROOT}/integrations`))
-      .then(() => openNotification('Integration has been succesfully deleted.'))
-      .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+  async function deleteIntegration() {
+    try {
+      await AlertReceiveChannelHelper.deleteAlertReceiveChannel(alertReceiveChannel.id);
+      history.push(`${PLUGIN_ROOT}/integrations`);
+      openNotification('Integration has been succesfully deleted.');
+    } catch (_err) {
+      openErrorNotification(GENERIC_ERROR);
+    }
   }
 
   function openIntegrationSettings() {
@@ -1106,7 +1141,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 
   function openStartMaintenance() {
-    setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
+    setMaintenanceData({ alert_receive_channel_id: alertReceiveChannel.id });
   }
 
   async function onStopMaintenance() {
@@ -1255,4 +1290,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export const IntegrationPage = withRouter(withMobXProviderContext(_IntegrationPage));
+export const IntegrationPage = withRouter(withMobXProviderContext(withDrawer<IntegrationDrawerKey>(_IntegrationPage)));

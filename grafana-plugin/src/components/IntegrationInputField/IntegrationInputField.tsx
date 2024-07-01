@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { HorizontalGroup, IconButton, Input, useStyles2 } from '@grafana/ui';
 
 import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
-import styles from './IntegrationInputField.module.scss';
+import { getIntegrationInputFieldStyles } from './IntegrationInputField.styles';
 
 interface IntegrationInputFieldProps {
   value: string;
@@ -16,9 +16,8 @@ interface IntegrationInputFieldProps {
   className?: string;
   inputClassName?: string;
   iconsClassName?: string;
+  placeholder?: string;
 }
-
-const cx = cn.bind(styles);
 
 export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   isMasked = false,
@@ -27,16 +26,18 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   showCopy = true,
   showExternal = true,
   className,
+  placeholder = '',
   inputClassName = '',
   iconsClassName = '',
 }) => {
+  const styles = useStyles2(getIntegrationInputFieldStyles);
   const [isInputMasked, setIsMasked] = useState(isMasked);
 
   return (
-    <div className={cx('root', { [className]: !!className })}>
-      <div className={cx('input-container')}>{renderInputField()}</div>
+    <div className={cx(styles.root, { [className]: !!className })}>
+      <div className={styles.inputContainer}>{renderInputField()}</div>
 
-      <div className={cx('icons', iconsClassName)}>
+      <div className={cx(styles.icons, iconsClassName)}>
         <HorizontalGroup spacing={'xs'}>
           {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
           {showCopy && <CopyToClipboardIcon text={value} iconButtonProps={{ size: 'xs' }} />}
@@ -47,7 +48,14 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   );
 
   function renderInputField() {
-    return <Input className={inputClassName} value={isInputMasked ? value?.replace(/./g, '*') : value} disabled />;
+    return (
+      <Input
+        className={cx(inputClassName)}
+        value={isInputMasked ? value?.replace(/./g, '*') : value}
+        placeholder={placeholder}
+        disabled
+      />
+    );
   }
 
   function onInputReveal() {

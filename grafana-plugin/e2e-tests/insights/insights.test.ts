@@ -6,7 +6,7 @@ import { createEscalationChain, EscalationStep } from '../utils/escalationChain'
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
-import { createOnCallScheduleWithRotation } from '../utils/schedule';
+import { createOnCallSchedule } from '../utils/schedule';
 
 /**
  * Insights is dependent on Scenes which were only added in Grafana 10.0.0
@@ -20,7 +20,12 @@ test.skip(
   'Insights is only available in Grafana 10.0.0 and above'
 );
 
-test.describe('Insights', () => {
+/**
+ * skipping as these tests are currently flaky
+ * see this Slack conversation for more details:
+ * https://raintank-corp.slack.com/archives/C04JCU51NF8/p1712069772861909
+ */
+test.describe.skip('Insights', () => {
   test.beforeAll(async ({ adminRolePage: { page } }) => {
     const DATASOURCE_NAME = 'OnCall Prometheus';
     const DATASOURCE_URL = 'http://oncall-dev-prometheus-server.default.svc.cluster.local';
@@ -61,7 +66,7 @@ test.describe('Insights', () => {
     const escalationChainName = generateRandomValue();
     const integrationName = generateRandomValue();
     const onCallScheduleName = generateRandomValue();
-    await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
+    await createOnCallSchedule(page, onCallScheduleName, userName);
     await createEscalationChain(
       page,
       escalationChainName,

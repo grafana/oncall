@@ -99,12 +99,14 @@ def check_alert_group_personal_notifications_task(alert_group_id) -> None:
         alert_group_id=alert_group_id,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         notification_step=UserNotificationPolicy.Step.NOTIFY,
+        notification_policy__isnull=False,  # filter out deleted policies
         created_at__lte=timezone.now() - timezone.timedelta(minutes=5),
     ).count()
     completed = UserNotificationPolicyLogRecord.objects.filter(
         Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED)
         | Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS),
         alert_group_id=alert_group_id,
+        notification_policy__isnull=False,  # filter out deleted policies
         notification_step=UserNotificationPolicy.Step.NOTIFY,
     ).count()
 
@@ -227,6 +229,9 @@ def check_escalation_finished_task() -> None:
         if total_alert_groups_count == 0
         else (total_alert_groups_count - failed_alert_groups_count) / total_alert_groups_count * 100
     )
+    task_logger.info(f"Alert groups failing escalation: {failed_alert_groups_count}")
+    task_logger.info(f"Alert groups succeeding escalation: {total_alert_groups_count - failed_alert_groups_count}")
+    task_logger.info(f"Alert groups total escalations: {total_alert_groups_count}")
     task_logger.info(f"Alert group notifications success ratio: {success_ratio:.2f}")
 
     if alert_group_ids_that_failed_audit:

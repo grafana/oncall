@@ -10,7 +10,7 @@ def test_detached_integrations_startupprobe_populates_integrations_cache():
     client = APIClient()
 
     with patch(
-        "apps.integrations.mixins.AlertChannelDefiningMixin.update_alert_receive_channel_cache"
+        "apps.integrations.mixins.AlertChannelDefiningMixin.update_alert_receive_channel_fallback_cache"
     ) as mock_update_cache:
         response = client.get("/startupprobe/")
 
@@ -22,7 +22,7 @@ def test_startupprobe_populates_integrations_cache():
     client = APIClient()
 
     with patch(
-        "apps.integrations.mixins.AlertChannelDefiningMixin.update_alert_receive_channel_cache"
+        "apps.integrations.mixins.AlertChannelDefiningMixin.update_alert_receive_channel_fallback_cache"
     ) as mock_update_cache:
         response = client.get("/startupprobe/")
 

@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -65,6 +66,26 @@ def test_create_notification_policy(user_notification_policy_internal_api_setup,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("wait_delay", (timedelta(seconds=59), timedelta(hours=24, seconds=1)))
+def test_create_notification_policy_wait_delay_invalid(
+    user_notification_policy_internal_api_setup, make_user_auth_headers, wait_delay
+):
+    token, _, users = user_notification_policy_internal_api_setup
+    admin, _ = users
+    client = APIClient()
+    url = reverse("api-internal:notification_policy-list")
+
+    data = {
+        "step": UserNotificationPolicy.Step.WAIT,
+        "wait_delay": str(wait_delay.total_seconds()),
+        "important": False,
+        "user": admin.public_primary_key,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

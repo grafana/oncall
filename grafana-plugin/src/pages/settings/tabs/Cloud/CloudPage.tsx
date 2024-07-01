@@ -40,13 +40,14 @@ const _CloudPage = observer((props: CloudPageProps) => {
   const { history } = props;
 
   useEffect(() => {
-    store.cloudStore.updateItems(page);
-    store.cloudStore.getCloudConnectionStatus().then((cloudStatus) => {
+    (async () => {
+      store.cloudStore.updateItems(page);
+      const cloudStatus = await store.cloudStore.getCloudConnectionStatus();
       setCloudIsConnected(cloudStatus.cloud_connection_status);
       setheartbeatEnabled(cloudStatus.cloud_heartbeat_enabled);
       setheartbeatLink(cloudStatus.cloud_heartbeat_link);
       setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
-    });
+    })();
   }, [cloudIsConnected, page, store.cloudStore]);
 
   const { matched_users_count, results } = store.cloudStore.getSearchResult();
@@ -70,21 +71,22 @@ const _CloudPage = observer((props: CloudPageProps) => {
   const connectToCloud = async () => {
     setShowConfirmationModal(false);
     const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
-    store.globalSettingStore
-      .update(globalSettingItem?.id, { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey }, { sync_users: false })
-      .then(async (response) => {
-        if (response.error) {
-          setCloudIsConnected(false);
-          setApiKeyError(true);
-          openErrorNotification(response.error);
-        } else {
-          setCloudIsConnected(true);
-          syncUsers();
-          const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
-          setheartbeatLink(heartbeatData?.link);
-        }
-        await store.cloudStore.loadCloudConnectionStatus();
-      });
+    const response = await store.globalSettingStore.update(
+      globalSettingItem?.id,
+      { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey },
+      { sync_users: false }
+    );
+    if (response.error) {
+      setCloudIsConnected(false);
+      setApiKeyError(true);
+      openErrorNotification(response.error);
+    } else {
+      setCloudIsConnected(true);
+      syncUsers();
+      const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
+      setheartbeatLink(heartbeatData?.link);
+    }
+    await store.cloudStore.loadCloudConnectionStatus();
   };
 
   const syncUsers = async () => {

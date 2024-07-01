@@ -53,6 +53,12 @@ def generate_public_primary_key_for_webhook():
     return new_public_primary_key
 
 
+class WebhookSession(requests.Session):
+    def send(self, request, **kwargs):
+        parse_url(request.url)  # validate URL on every redirect
+        return super().send(request, **kwargs)
+
+
 class WebhookQueryset(models.QuerySet):
     def delete(self):
         self.update(deleted_at=timezone.now(), name=F("name") + "_deleted_" + F("public_primary_key"))
@@ -181,6 +187,20 @@ class Webhook(models.Model):
     def hard_delete(self):
         super().delete()
 
+    def get_source_alert_receive_channel(self):
+        """Return the webhook source channel if it is connected to an integration."""
+        result = None
+        if self.is_from_connected_integration:
+            filtered_integration = (
+                Webhook.filtered_integrations.through.objects.filter(
+                    alertreceivechannel__additional_settings__isnull=False, webhook=self
+                )
+                .order_by("id")
+                .first()
+            )
+            result = filtered_integration.alertreceivechannel if filtered_integration else None
+        return result
+
     def build_request_kwargs(self, event_data, raise_data_errors=False):
         request_kwargs = {}
         if self.username and self.password:
@@ -262,21 +282,15 @@ class Webhook(models.Model):
             raise InvalidWebhookTrigger(e.fallback_message)
 
     def make_request(self, url, request_kwargs):
-        if self.http_method == "GET":
-            r = requests.get(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "POST":
-            r = requests.post(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "PUT":
-            r = requests.put(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "DELETE":
-            r = requests.delete(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "OPTIONS":
-            r = requests.options(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        elif self.http_method == "PATCH":
-            r = requests.patch(url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
-        else:
+        if self.http_method not in ("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"):
             raise ValueError(f"Unsupported http method: {self.http_method}")
-        return r
+
+        with WebhookSession() as session:
+            response = session.request(
+                self.http_method, url, timeout=settings.OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs
+            )
+
+        return response
 
     # Insight logs
     @property
@@ -346,8 +360,6 @@ def webhook_response_post_save(sender, instance, created, *args, **kwargs):
     if not created:
         return
 
-    source_alert_receive_channel = instance.webhook.filtered_integrations.filter(
-        additional_settings__isnull=False
-    ).first()  # TODO: is it possible to have more than one?
+    source_alert_receive_channel = instance.webhook.get_source_alert_receive_channel()
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "on_webhook_response_created"):
         source_alert_receive_channel.config.on_webhook_response_created(instance, source_alert_receive_channel)

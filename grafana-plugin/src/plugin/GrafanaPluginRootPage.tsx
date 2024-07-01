@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { LoadingPlaceholder } from '@grafana/ui';
+import { ErrorBoundary, LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
 import { Header } from 'navbar/Header/Header';
@@ -31,20 +31,30 @@ import { PluginSetup } from 'plugin/PluginSetup/PluginSetup';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization/authorization';
-import { DEFAULT_PAGE } from 'utils/consts';
+import { DEFAULT_PAGE, getOnCallApiUrl } from 'utils/consts';
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
+import { FaroHelper } from 'utils/faro';
+import { useOnMount } from 'utils/hooks';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
+  useOnMount(() => {
+    FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
+  });
+
   return (
-    <Provider store={rootStore}>
-      <PluginSetup InitializedComponent={Root} {...props} />
-    </Provider>
+    <ErrorBoundary onError={FaroHelper.pushReactError}>
+      {() => (
+        <Provider store={rootStore}>
+          <PluginSetup InitializedComponent={Root} {...props} />
+        </Provider>
+      )}
+    </ErrorBoundary>
   );
 };
 

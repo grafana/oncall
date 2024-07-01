@@ -28,16 +28,26 @@ def sync_organization(organization: Organization) -> None:
 
 def _sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+    rbac_is_enabled = organization.is_rbac_permissions_enabled
 
     # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
-    # stack. For Cloud we should make a call to the GCOM API, using an admin API token, and get the list of
-    # feature_toggles enabled for the stack. For open-source, simply make a HEAD request to the grafana instance's API
-    # and consider RBAC enabled if the list RBAC permissions endpoint returns 200. We cannot simply rely on the HEAD
-    # call in cloud because if an instance is not active, the grafana gateway will still return 200 for the
-    # HEAD request.
+    # stack. For open-source, simply make a HEAD request to the grafana instance's API and consider RBAC enabled if
+    # the list RBAC permissions endpoint returns 200.
+    #
+    # For cloud, we need to check the stack's status first. If the stack is active, we can make the same HEAD request
+    # to the grafana instance's API. If the stack is not active, we will simply rely on the org's previous state of
+    # org.is_rbac_permissions_enabled
     if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+        # We cannot simply rely on the HEAD call in cloud because if an instance is not active
+        # the grafana gateway will still return 200 for the HEAD request.
+        stack_id = organization.stack_id
         gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
-        rbac_is_enabled = gcom_client.is_rbac_enabled_for_stack(organization.stack_id)
+
+        if gcom_client.is_stack_active(stack_id):
+            # the stack MUST be active for this check.. if it is in any other state
+            # the Grafana API risks returning an HTTP 200 but the actual permissions data that is
+            # synced later on will be empty (and we'd erase all RBAC permissions stored in OnCall)
+            rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
     else:
         rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 

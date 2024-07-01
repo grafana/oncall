@@ -2,7 +2,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import { observable, action, computed, makeObservable } from 'mobx';
 
 // TODO: move utils from Schedule.helpers to common place
-import { getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
+import { ScheduleView } from 'models/schedule/schedule.types';
+import { getCalendarStartDate, toDateWithTimezoneOffsetAtMidnight } from 'pages/schedule/Schedule.helpers';
 import { RootStore } from 'state/rootStore';
 
 import { getOffsetOfCurrentUser, getGMTTimezoneLabelBasedOnOffset } from './timezone.helpers';
@@ -20,12 +21,17 @@ export class TimezoneStore {
   selectedTimezoneOffset = getOffsetOfCurrentUser();
 
   @observable
-  calendarStartDate = getStartOfWeekBasedOnCurrentDate(this.currentDateInSelectedTimezone);
+  calendarStartDate = getCalendarStartDate(
+    this.currentDateInSelectedTimezone,
+    ScheduleView.OneWeek,
+    this.selectedTimezoneOffset
+  );
 
   @action.bound
   setSelectedTimezoneOffset(offset: number) {
     this.selectedTimezoneOffset = offset;
-    this.calendarStartDate = getStartOfWeekBasedOnCurrentDate(this.currentDateInSelectedTimezone);
+
+    this.calendarStartDate = toDateWithTimezoneOffsetAtMidnight(this.calendarStartDate, offset);
   }
 
   @action.bound

@@ -41,15 +41,12 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
     const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
     const [autoresolveValue, setAutoresolveValue] = useState(alertReceiveChannelAllowSourceBasedResolving);
 
-    const handleSaveClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSaveClick = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
       setAutoresolveValue(event.target.checked);
-      alertReceiveChannelStore
-        .saveAlertReceiveChannel(alertReceiveChannelId, {
-          allow_source_based_resolving: event.target.checked,
-        })
-        .then(() => {
-          openNotification('Autoresolve ' + (event.target.checked ? 'enabled' : 'disabled'));
-        });
+      await alertReceiveChannelStore.saveAlertReceiveChannel(alertReceiveChannelId, {
+        allow_source_based_resolving: event.target.checked,
+      });
+      openNotification('Autoresolve ' + (event.target.checked ? 'enabled' : 'disabled'));
     }, []);
 
     const templatesToRender = getTemplatesToRender(features);
@@ -128,22 +125,20 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
       return templateName === 'grouping_id_template';
     }
 
-    function onResetTemplate(templateName: string) {
+    async function onResetTemplate(templateName: string) {
       setTemplateRestoreName(undefined);
       setIsRestoringTemplate(true);
 
-      alertReceiveChannelStore
-        .saveTemplates(alertReceiveChannelId, { [templateName]: '' })
-        .then(() => {
-          openNotification('The Alert template has been updated');
-        })
-        .catch((err) => {
-          if (err.response?.data?.length > 0) {
-            openErrorNotification(err.response.data);
-          } else {
-            openErrorNotification(err.message);
-          }
-        });
+      try {
+        await alertReceiveChannelStore.saveTemplates(alertReceiveChannelId, { [templateName]: '' });
+        openNotification('The Alert template has been updated');
+      } catch (err) {
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
+        } else {
+          openErrorNotification(err.message);
+        }
+      }
     }
   }
 );

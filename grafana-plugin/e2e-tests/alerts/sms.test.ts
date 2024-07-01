@@ -6,6 +6,8 @@ import { waitForSms } from '../utils/phone';
 import { configureUserNotificationSettings, verifyUserPhoneNumber } from '../utils/userSettings';
 
 test('we can verify our phone number + receive an SMS alert @expensive', async ({ adminRolePage }) => {
+  test.slow();
+
   const { page, userName } = adminRolePage;
   const escalationChainName = generateRandomValue();
   const integrationName = generateRandomValue();

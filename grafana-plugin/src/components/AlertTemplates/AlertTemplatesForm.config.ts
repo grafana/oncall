@@ -3,7 +3,7 @@ import { AppFeature } from 'state/features';
 import { TemplateForEdit, commonTemplateForEdit } from './CommonAlertTemplatesForm.config';
 
 export const getTemplatesForEdit = (features: Record<string, boolean>) => {
-  if (features[AppFeature.MsTeams]) {
+  if (features?.[AppFeature.MsTeams]) {
     return { ...commonTemplateForEdit, ...additionalTemplateForEdit };
   }
   return commonTemplateForEdit;

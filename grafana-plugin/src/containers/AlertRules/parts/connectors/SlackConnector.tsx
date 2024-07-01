@@ -55,7 +55,6 @@ export const SlackConnector = (props: SlackConnectorProps) => {
         Slack Channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect<SlackChannel>
-            showSearch
             allowClear
             className={cx('select', 'control')}
             items={slackChannelStore.items}
@@ -84,8 +83,12 @@ export const SlackConnector = (props: SlackConnectorProps) => {
       // if there's any default channel id, put it first in the list
       const defaultChannel = results.find((res) => res.id === defaultChannelId);
       const newList = results.filter((channel) => channel.id !== defaultChannelId);
-      defaultChannel.display_name += ` (Default)`;
-      newList.unshift(defaultChannel);
+
+      if (defaultChannel) {
+        defaultChannel.display_name += ` (Default)`;
+        newList.unshift(defaultChannel);
+      }
+
       return newList;
     }
 

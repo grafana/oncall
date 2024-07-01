@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { GTable } from 'components/GTable/GTable';
 import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
@@ -33,15 +35,11 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
-import styles from './OutgoingWebhooks.module.scss';
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
 
-const cx = cn.bind(styles);
-
-interface OutgoingWebhooksProps
-  extends WithStoreProps,
-    PageProps,
-    RouteComponentProps<{ id: string; action: string }> {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string; action: string }> {
+  theme: GrafanaTheme2;
+}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookAction?: WebhookFormActionType;
@@ -87,11 +85,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     if (isNewWebhook) {
       this.setState({ outgoingWebhookId: id, outgoingWebhookAction: WebhookFormActionType.NEW });
     } else if (id) {
-      await store.outgoingWebhookStore
-        .loadItem(id, true)
-        .catch((error) =>
-          this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhookAction: undefined })
-        );
+      try {
+        await store.outgoingWebhookStore.loadItem(id, true);
+      } catch (error) {
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhookAction: undefined });
+      }
     }
   };
 
@@ -172,6 +170,8 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       },
     ];
 
+    const styles = getStyles();
+
     return (
       <PageErrorHandlingWrapper
         errorData={errorData}
@@ -191,7 +191,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 }
               />
             )}
-            <div className={cx('newWebhookButton')}>
+            <div className={styles.newWebhookButton}>
               <PluginLink
                 query={{ page: 'outgoing_webhooks', id: 'new' }}
                 disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
@@ -204,13 +204,13 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               </PluginLink>
             </div>
 
-            <div className={cx('root')} data-testid="outgoing-webhooks-table">
+            <div data-testid="outgoing-webhooks-table">
               {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
-                  <div className={cx('header')}>
-                    <div className="header__title">
+                  <div className={styles.header}>
+                    <div className={styles.headerTitle}>
                       <LegacyNavHeading>
                         <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       </LegacyNavHeading>
@@ -229,11 +229,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 action={outgoingWebhookAction}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
-                onDelete={() => {
-                  this.onDeleteClick(outgoingWebhookId).then(() => {
-                    this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
-                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
-                  });
+                onDelete={async () => {
+                  await this.onDeleteClick(outgoingWebhookId);
+                  this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
+                  history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
                 }}
               />
             )}
@@ -245,8 +244,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   renderOutgoingWebhooksFilters() {
     const { query, store } = this.props;
+
     return (
-      <div className={cx('filters')}>
+      <div>
         <RemoteFilters
           query={query}
           page={PAGE.Webhooks}
@@ -257,16 +257,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  handleFiltersChange = (filters: FiltersValues, isOnMount: boolean) => {
+  handleFiltersChange = async (filters: FiltersValues, isOnMount: boolean) => {
     const { store } = this.props;
 
     const { outgoingWebhookStore } = store;
 
-    outgoingWebhookStore.updateItems(filters).then(() => {
-      if (isOnMount) {
-        this.parseQueryParams();
-      }
-    });
+    await outgoingWebhookStore.updateItems(filters);
+    if (isOnMount) {
+      this.parseQueryParams();
+    }
   };
 
   renderTeam(record: ApiSchemas['Webhook'], teams: any) {
@@ -344,22 +343,28 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  renderUrl(url: string) {
+  renderUrl = (url: string) => {
+    const { theme } = this.props;
+    const utilStyles = getUtilStyles(theme);
+
     return (
       <TextEllipsisTooltip content={url} placement="top">
-        <Text className={cx(TEXT_ELLIPSIS_CLASS, 'line-clamp-3')}>{url}</Text>
+        <Text className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-3'))}>{url}</Text>
       </TextEllipsisTooltip>
     );
-  }
+  };
 
-  onDeleteClick = (id: ApiSchemas['Webhook']['id']): Promise<void> => {
+  onDeleteClick = async (id: ApiSchemas['Webhook']['id']): Promise<void> => {
     const { store } = this.props;
-    return store.outgoingWebhookStore
-      .delete(id)
-      .then(this.update)
-      .then(() => openNotification('Webhook has been removed'))
-      .catch(() => openNotification('Webook could not been removed'))
-      .finally(() => this.setState({ confirmationModal: undefined }));
+    try {
+      await store.outgoingWebhookStore.delete(id);
+      await this.update();
+      openNotification('Webhook has been removed');
+    } catch (_err) {
+      openNotification('Webook could not been removed');
+    } finally {
+      this.setState({ confirmationModal: undefined });
+    }
   };
 
   onEditClick = (id: ApiSchemas['Webhook']['id']) => {
@@ -378,7 +383,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   };
 
-  onDisableWebhook = (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
+  onDisableWebhook = async (id: ApiSchemas['Webhook']['id'], isEnabled: boolean) => {
     const {
       store: { outgoingWebhookStore },
     } = this.props;
@@ -391,12 +396,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     // don't pass trigger_type to backend as it's not editable
     delete data.trigger_type;
 
-    outgoingWebhookStore
-      .update(id, data)
-      .then(() => this.update())
-      .then(() => openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`))
-      .catch(() => openErrorNotification('Webhook could not been updated'))
-      .finally(() => this.setState({ confirmationModal: undefined }));
+    try {
+      await outgoingWebhookStore.update(id, data);
+      await this.update();
+      openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`);
+    } catch (_err) {
+      openErrorNotification('Webhook could not been updated');
+    }
+    this.setState({ confirmationModal: undefined });
   };
 
   onLastRunClick = (id: ApiSchemas['Webhook']['id']) => {
@@ -430,4 +437,26 @@ function convertWebhookUrlToAction(urlAction: string) {
 
 export { OutgoingWebhooks };
 
-export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(OutgoingWebhooks));
+const getStyles = () => {
+  return {
+    header: css`
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding-top: 12px;
+    `,
+
+    headerTitle: css`
+      display: flex;
+      align-items: baseline;
+    `,
+
+    newWebhookButton: css`
+      position: absolute;
+      right: 0;
+      top: -48px;
+    `,
+  };
+};
+
+export const OutgoingWebhooksPage = withRouter(withMobXProviderContext(withTheme2(OutgoingWebhooks)));

@@ -33,11 +33,10 @@ class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
     this.update();
   }
 
-  update = () => {
+  update = async () => {
     const { store } = this.props;
-    store.msteamsChannelStore.getMSTeamsChannelVerificationCode().then((data) => {
-      this.setState({ verificationCode: data });
-    });
+    const data = await store.msteamsChannelStore.getMSTeamsChannelVerificationCode();
+    this.setState({ verificationCode: data });
     store.msteamsChannelStore.updateItems();
   };
 

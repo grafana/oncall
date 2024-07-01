@@ -75,22 +75,30 @@ export class DirectPagingStore extends BaseStore {
   }
 
   async createManualAlertRule(data: ManualAlertGroupPayload): Promise<DirectPagingResponse | void> {
-    return await makeRequest<DirectPagingResponse>(this.path, {
-      method: 'POST',
-      data,
-    }).catch(this.onApiError);
+    try {
+      return await makeRequest<DirectPagingResponse>(this.path, {
+        method: 'POST',
+        data,
+      });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 
   async updateAlertGroup(
     alertId: ApiSchemas['AlertGroup']['pk'],
     data: ManualAlertGroupPayload
   ): Promise<DirectPagingResponse | void> {
-    return await makeRequest<DirectPagingResponse>(this.path, {
-      method: 'POST',
-      data: {
-        alert_group_id: alertId,
-        ...data,
-      },
-    }).catch(this.onApiError);
+    try {
+      return await makeRequest<DirectPagingResponse>(this.path, {
+        method: 'POST',
+        data: {
+          alert_group_id: alertId,
+          ...data,
+        },
+      });
+    } catch (err) {
+      this.onApiError(err);
+    }
   }
 }

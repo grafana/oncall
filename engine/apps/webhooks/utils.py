@@ -85,10 +85,10 @@ def escape_string(string: str):
 
 class EscapeDoubleQuotesDict(dict):
     """
-    Warning: Please, do not use this dict anywhere except CustomButton._escape_alert_payload.
-    This custom dict escapes double quotes to produce string which is safe to pass to json.loads()
-    It fixes case when CustomButton.build_post_kwargs failing on payloads which contains string with single quote.
-    In this case built-in dict's str method will surround value with double quotes.
+    Warning: Please, do not use this dict anywhere except `apps.webhooks.utils.escape_payload`.
+    This custom dict escapes double quotes to produce string which is safe to pass to `json.loads()`
+    It fixes issues originating from payloads which contains strings with single quote.
+    In this case, built-in `dict`'s `str` method will surround value with double quotes.
 
     For example:
 
@@ -175,6 +175,8 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
             for user in set(notification.author for notification in alert_group.sent_notifications)
         ],
         "users_to_be_notified": _extract_users_from_escalation_snapshot(alert_group.escalation_snapshot),
+        "alert_group_acknowledged_by": _serialize_event_user(alert_group.acknowledged_by_user),
+        "alert_group_resolved_by": _serialize_event_user(alert_group.resolved_by_user),
     }
     if responses:
         data["responses"] = responses
@@ -187,9 +189,7 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
         data["alert_group"]["labels"] = get_alert_group_labels_dict(alert_group)
 
     # Add additional webhook data if the integration has it
-    source_alert_receive_channel = webhook.filtered_integrations.filter(
-        additional_settings__isnull=False
-    ).first()  # TODO: is it possible to have more than one?
+    source_alert_receive_channel = webhook.get_source_alert_receive_channel()
     if source_alert_receive_channel and hasattr(source_alert_receive_channel.config, "additional_webhook_data"):
         data.update(source_alert_receive_channel.config.additional_webhook_data(source_alert_receive_channel))
 

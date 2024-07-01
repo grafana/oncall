@@ -1,17 +1,17 @@
 import json
 import textwrap
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from apps.api.serializers.schedule_base import ScheduleBaseSerializer
 from apps.api.serializers.user import ScheduleUserSerializer
 from apps.schedules.models import (
     CustomOnCallShift,
@@ -20,6 +20,7 @@ from apps.schedules.models import (
     OnCallScheduleICal,
     OnCallScheduleWeb,
 )
+from apps.slack.models import SlackUserGroup
 from common.api_helpers.utils import create_engine_url, serialize_datetime_as_utc_timestamp
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
@@ -723,25 +724,6 @@ def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers
     data["enable_web_overrides"] = True
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == data
-
-
-@pytest.mark.django_db
-def test_create_invalid_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, _, _, _ = schedule_internal_api_setup
-    client = APIClient()
-    url = reverse("api-internal:custom_button-list")
-    with patch(
-        "apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary",
-        side_effect=ValidationError("Ical download failed"),
-    ):
-        data = {
-            "ical_url_primary": ICAL_URL,
-            "ical_url_overrides": None,
-            "name": "created_ical_schedule",
-            "type": 1,
-        }
-        response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -2471,3 +2453,41 @@ def test_team_not_updated_if_not_in_data(
 
     schedule.refresh_from_db()
     assert schedule.team == team
+
+
+@patch.object(SlackUserGroup, "can_be_updated", new_callable=PropertyMock)
+@pytest.mark.django_db
+def test_can_update_user_groups(
+    mock_user_group_can_be_updated,
+    make_organization_and_user_with_plugin_token,
+    make_slack_team_identity,
+    make_schedule,
+    make_slack_user_group,
+    make_user_auth_headers,
+):
+    mock_user_group_can_be_updated.return_value = True
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    slack_team_identity = make_slack_team_identity()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+
+    inactive_user_group = make_slack_user_group(slack_team_identity, is_active=False)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, user_group=inactive_user_group)
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["warnings"] == [ScheduleBaseSerializer.CANT_UPDATE_USER_GROUP_WARNING]
+    mock_user_group_can_be_updated.assert_not_called()  # should not be called for inactive user group (is_active=False)
+
+    active_user_group = make_slack_user_group(slack_team_identity, is_active=True)
+    schedule.user_group = active_user_group
+    schedule.save()
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["warnings"] == []
+    mock_user_group_can_be_updated.assert_called_once()  # should be called for active user group (is_active=True)

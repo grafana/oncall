@@ -1,18 +1,19 @@
 name: "Publish Technical Documentation (next)"
 
-"on":
+on:
   push:
     branches:
       - "main"
     paths:
       - "docs/sources/**"
   workflow_dispatch:
+
 jobs:
   test:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
       - name: "Build website"
         # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
         # that no refs to external content can be used as these refs will not resolve in the
@@ -29,7 +30,7 @@ jobs:
     needs: "test"
     steps:
       - name: "Check out code"
-        uses: "actions/checkout@v3"
+        uses: "actions/checkout@v4"
 
       - name: "Clone website-sync Action"
         # WEBSITE_SYNC_TOKEN is a fine-grained GitHub Personal Access Token that expires.

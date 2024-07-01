@@ -1,8 +1,9 @@
 name: e2e tests
-"on":
+
+on:
   workflow_call:
     inputs:
-      grafana-image-tag:
+      grafana_version:
         required: true
         type: string
       browsers:
@@ -34,34 +35,32 @@ jobs:
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
     runs-on: ubuntu-latest-16-cores
-    name: "Grafana: ${{ inputs.grafana-image-tag }}"
+    name: "Grafana: ${{ inputs.grafana_version }}"
     environment:
       name: github-pages
     permissions:
       id-token: write
-      pages: "write"
+      pages: write
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Collect Workflow Telemetry
-        uses: runforesight/workflow-telemetry-action@v1
+        uses: catchpoint/workflow-telemetry-action@v2
         with:
           comment_on_pr: false
           proc_trace_chart_show: false
           proc_trace_table_show: false
 
       - name: Install Kind
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.10.0
         with:
           config: ./dev/kind.yml
           install_only: true
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.16.0
-          cache: "yarn"
-          cache-dependency-path: grafana-plugin/yarn.lock
+      - name: Install frontend dependencies
+        uses: ./.github/actions/install-frontend-dependencies
 
       - name: Install Tilt
         run: |
@@ -74,21 +73,9 @@ jobs:
           curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v$CTLPTL_VERSION/$CTLPTL_FILE_NAME | \
             tar -xzv -C /usr/local/bin ctlptl
 
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
-
-      - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
-        working-directory: grafana-plugin
-        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
-
       - name: Use cached plugin frontend build
         id: cache-plugin-frontend
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: grafana-plugin/dist
           key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
@@ -109,31 +96,64 @@ jobs:
 
       - name: Cache Playwright binaries/dependencies
         id: playwright-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: "~/.cache/ms-playwright"
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       - name: Create cluster
-        run: |
-          make cluster/up
+        run: make cluster/up
 
       - name: Install Playwright deps
         uses: docker://mcr.microsoft.com/playwright:next-jammy
 
-      - name: Tilt CI
-        shell: bash
-        env:
-          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
-          BROWSERS: ${{ inputs.browsers }}
-        run: tilt ci
+      # ---------- Expensive e2e tests steps start -----------
+      - name: Install Go
+        if: inputs.run-expensive-tests
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.5"
 
-      - name: Tilt CI - expensive E2E tests
+      - name: Install Mage
+        if: inputs.run-expensive-tests
+        run: go install github.com/magefile/mage@v1.15.0
+
+      - name: Get Vault secrets
+        if: inputs.run-expensive-tests
+        id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GH_APP_ID=github-app:app-id
+            GH_APP_INSTALLATION_ID=github-app:app-installation-id
+            GH_APP_PRIVATE_KEY=github-app:private-key
+
+      - name: Generate Github App token
+        if: inputs.run-expensive-tests
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+          owner: grafana
+          repositories: "ops-devenv,gops-labels"
+
+      - name: Clone other repos needed for cross-plugin e2e tests
+        if: inputs.run-expensive-tests
+        shell: bash
+        run: |
+          cd ..
+          git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
+          git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
+
+      - name: Tilt CI - standard and expensive E2E tests
         if: inputs.run-expensive-tests
         shell: bash
         env:
           E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
-          GRAFANA_IMAGE_TAG: ${{ inputs.grafana-image-tag }}
+          GRAFANA_VERSION: ${{ inputs.grafana_version }}
+          GRAFANA_ADMIN_USERNAME: "irm"
+          GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
@@ -141,6 +161,15 @@ jobs:
           # wrapping single quotes are required to prevent stripping leading "+" from the number
           TWILIO_PHONE_NUMBER: '"${{ secrets.TWILIO_PHONE_NUMBER }}"'
           TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
+        run: cd ../ops-devenv && tilt ci gops-labels oncall
+      # ---------- Expensive e2e tests steps end -----------
+
+      - name: Tilt CI - standard E2E tests
+        shell: bash
+        if: ${{ inputs.run-expensive-tests == false }}
+        env:
+          GRAFANA_VERSION: ${{ inputs.grafana_version }}
+          BROWSERS: ${{ inputs.browsers }}
         run: tilt ci
 
       - name: Setup Pages

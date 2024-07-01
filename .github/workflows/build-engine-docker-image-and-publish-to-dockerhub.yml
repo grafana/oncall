@@ -1,0 +1,47 @@
+name: Build engine Docker image and publish to Dockerhub
+
+on:
+  workflow_call:
+    inputs:
+      engine_version:
+        required: false
+        type: string
+      docker_image_tags:
+        required: true
+        type: string
+
+jobs:
+  build-engine-docker-image-and-publish-to-dockerhub:
+    name: Build engine Docker image and publish to Dockerhub
+    runs-on: ubuntu-latest-16-cores
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/build-push-to-dockerhub
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          # we have one large .whl file which is referenced in the engine Dockerfile.. we need to
+          # fetch that file to be able to properly build the image
+          lfs: true
+      - name: Set engine version number in settings file
+        if: inputs.engine_version
+        uses: ./.github/actions/set-engine-version-in-settings
+        with:
+          working_directory: .
+          engine_version_number: ${{ inputs.engine_version }}
+          settings_file_path: engine/settings/base.py
+      - name: Build engine Docker image and push to Dockerhub
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
+        with:
+          context: engine/
+          push: true
+          platforms: linux/arm64/v8,linux/amd64
+          repository: grafana/oncall
+          tags: ${{ inputs.docker_image_tags }}
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+          target: prod
+          cache-from: grafana/oncall:latest

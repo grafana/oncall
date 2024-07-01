@@ -29,10 +29,21 @@ Mobile app download:
 - [Google Play Store](https://play.google.com/store/apps/details?id=com.grafana.oncall.prod)
 - [Apple App Store](https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048)
 
-## Connect your Grafana OnCall account
+## Connect your Grafana OnCall account using deeplink authentication
 
-The OnCall mobile app uses a QR code authentication to connect to your Grafana OnCall instance.
-You can associate one Grafana OnCall user with your OnCall mobile app.
+You can connect your Grafana OnCall account to the mobile app using a deeplink authentication.
+This method is useful because it allows you to connect your account using only your mobile device.
+
+To connect your account in the mobile app:
+
+1. Open Grafana OnCall from your mobile device
+2. Click on your profile icon in the top right corner
+3. Click on the **IRM** tab
+4. Click on the **Sign in** button
+
+## Connect your Grafana OnCall account using QR code authentication
+
+Another way to connect your Grafana OnCall account to the mobile app is by using a QR code authentication.
 
 To connect your account in the mobile app:
 
@@ -48,8 +59,8 @@ To connect your account in the mobile app:
 To access your QR code:
 
 1. Open Grafana OnCall from your desktop
-1. Navigate to the **Users** tab, then tap **View my profile**
-1. tap **Mobile app connection** in your profile
+2. Click on your profile icon in the top right corner
+3. Click on the **IRM** tab
 
 > **Note**: The QR code will timeout for security purposes - Screenshots of the QR code are unlikely to work for authentication.
 

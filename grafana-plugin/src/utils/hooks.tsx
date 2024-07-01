@@ -47,6 +47,16 @@ export function useQueryParams(): URLSearchParams {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
+export function useResize(onResizeHandler: () => void) {
+  useEffect(() => {
+    window.addEventListener('resize', onResizeHandler);
+
+    return () => {
+      window.removeEventListener('resize', onResizeHandler);
+    };
+  }, []);
+}
+
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {
   // track args & timeout handle between calls
   const argsRef = useRef<A>();
@@ -131,4 +141,10 @@ export const useCommonStyles = () => useStyles2(getCommonStyles);
 export const useIsLoading = (actionKey: ActionKey) => {
   const { loaderStore } = useStore();
   return LoaderHelper.isLoading(loaderStore, actionKey);
+};
+
+export const useOnMount = (callback: () => void) => {
+  useEffect(() => {
+    callback();
+  }, []);
 };

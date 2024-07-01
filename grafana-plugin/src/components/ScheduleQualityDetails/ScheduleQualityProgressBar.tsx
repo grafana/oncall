@@ -1,8 +1,10 @@
 import React from 'react';
 
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
+import { bem } from 'styles/utils.styles';
 
-import styles from './ScheduleQualityProgressBar.module.scss';
+import { getScheduleQualityProgressBarStyles } from './ScheduleQualityProgressBar.styles';
 
 interface ProgressBarProps {
   completed: number;
@@ -10,13 +12,12 @@ interface ProgressBarProps {
   numTotalSteps?: number;
 }
 
-const cx = cn.bind(styles);
-
 export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ className, completed, numTotalSteps }) => {
-  const classList = ['c-progressBar__bar', className || ''];
+  const styles = useStyles2(getScheduleQualityProgressBarStyles);
+  const classList = [styles.bar, className || ''];
 
   return (
-    <div className={cx('c-progressBar__wrapper')}>
+    <div className={styles.wrapper}>
       {!numTotalSteps && <div className={classList.join(' ')} style={{ width: `${completed}%` }} />}
       {renderSteps(numTotalSteps, completed)}
     </div>
@@ -36,12 +37,12 @@ export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ classNa
       return (
         <div
           key={index}
-          className={cx('c-progressBar__row', 'c-progressBar__row--progress')}
+          className={cx(styles.row, bem(styles.row, 'progress'))}
           data-testid="progressBar__row"
           style={{ width: `${maxFillPerRow}%` }}
         >
           <div
-            className={cx('c-progressBar__bar', getClassForCompletionLevel())}
+            className={cx(styles.bar, getClassForCompletionLevel())}
             data-testid="progressBar__bar"
             style={{ width: `${percentWidth}%` }}
           />
@@ -52,12 +53,12 @@ export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ classNa
 
   function getClassForCompletionLevel() {
     if (completed < 20) {
-      return 'c-progressBar__bar--danger';
+      return bem(styles.bar, 'danger');
     }
     if (completed < 60) {
-      return 'c-progressBar__bar--warning';
+      return bem(styles.bar, 'warning');
     }
-    return 'c-progressBar__bar--primary';
+    return bem(styles.bar, 'primary');
   }
 
   function calculateRowFill(numTotalSteps: number, completed: number): number[] {

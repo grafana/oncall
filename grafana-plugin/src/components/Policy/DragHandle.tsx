@@ -1,17 +1,20 @@
 import React from 'react';
 
-import { Icon } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Icon, useStyles2 } from '@grafana/ui';
 import { SortableHandle } from 'react-sortable-hoc';
+import { bem } from 'styles/utils.styles';
 
-import styles from './Policy.module.css';
+import { getPolicyStyles } from './Policy.styles';
 
-const cx = cn.bind(styles);
+const _DragHandle = ({ disabled }: { disabled?: boolean }) => {
+  const styles = useStyles2(getPolicyStyles);
 
-const _DragHandle = ({ disabled }: { disabled?: boolean }) => (
-  <div className={cx('control', 'handle', { handle_disabled: disabled })}>
-    <Icon name="draggabledots" />
-  </div>
-);
+  return (
+    <div className={cx(styles.control, styles.handle, { [bem(styles.handle, 'disabled')]: disabled })}>
+      <Icon name="draggabledots" />
+    </div>
+  );
+};
 
 export const DragHandle = SortableHandle(_DragHandle);

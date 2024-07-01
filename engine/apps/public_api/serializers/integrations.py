@@ -147,11 +147,15 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def validate(self, attrs):
+        self.validate_name_uniqueness(attrs)
+        return attrs
+
+    def validate_name_uniqueness(self, attrs):
         organization = self.context["request"].auth.organization
         verbal_name = attrs.get("verbal_name", None)
-        team = attrs.get("team", None)
         if verbal_name is None:
-            return attrs
+            return
+        team = attrs.get("team", self.instance.team) if self.instance else attrs.get("team")
         try:
             obj = AlertReceiveChannel.objects.get(
                 organization=organization,
@@ -159,12 +163,12 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 verbal_name=verbal_name,
             )
         except AlertReceiveChannel.DoesNotExist:
-            return attrs
+            return
         except AlertReceiveChannel.MultipleObjectsReturned:
             raise BadRequest(detail="An integration with this name already exists for this team")
 
         if self.instance and obj.id == self.instance.id:
-            return attrs
+            return
         else:
             raise BadRequest(detail="An integration with this name already exists for this team")
 

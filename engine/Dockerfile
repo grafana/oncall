@@ -1,4 +1,4 @@
-FROM python:3.11.4-alpine3.18 AS base
+FROM python:3.12.3-alpine3.18 AS base
 ARG TARGETPLATFORM
 
 # Create a group and user to run an app
@@ -18,19 +18,21 @@ RUN apk add bash \
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
-COPY ./grpcio-1.57.0-cp311-cp311-linux_aarch64.whl ./
+COPY ./grpcio-1.64.1-cp312-cp312-linux_aarch64.whl ./
 
 # grpcio is not available for arm64 on pypi, so we need to install it from a local wheel
 # this can be removed once https://github.com/grpc/grpc/issues/34998 is resolved
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    pip install grpcio-1.57.0-cp311-cp311-linux_aarch64.whl  \
-    && rm grpcio-1.57.0-cp311-cp311-linux_aarch64.whl; \
+    pip install grpcio-1.64.1-cp312-cp312-linux_aarch64.whl  \
+    && rm grpcio-1.64.1-cp312-cp312-linux_aarch64.whl; \
     fi
+
+RUN pip install uv
 
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527
 # RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements.txt
-RUN pip install -r requirements.txt
+RUN uv pip install --system -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
 # which only invalidates when the requirements.txt actually changes. This avoids having to unneccasrily reinstall deps (which is time-consuming)
@@ -63,13 +65,13 @@ RUN apk add sqlite mysql-client postgresql-client
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527
 # RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements-dev.txt
-RUN pip install -r requirements-dev.txt
+RUN uv pip install --system -r requirements-dev.txt
 
 FROM dev AS dev-enterprise
 # TODO: figure out how to get this to work.. see comment in .github/workflows/e2e-tests.yml
 # https://stackoverflow.com/a/71846527
 # RUN --mount=type=cache,target=/root/.cache/pip,from=pip_cache pip install -r requirements-enterprise-docker.txt
-RUN pip install -r requirements-enterprise-docker.txt
+RUN uv pip install --system -r requirements-enterprise-docker.txt
 
 FROM base AS prod
 

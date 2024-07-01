@@ -1,11 +1,9 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 
-import { LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 
-import styles from './GList.module.css';
-
-const cx = cn.bind(styles);
+import { getGListStyles } from './GList.styles';
 
 export interface GListProps<T> {
   selectedId: string;
@@ -22,6 +20,7 @@ interface WithId {
 
 export const GList = <T extends WithId>(props: GListProps<T>) => {
   const { selectedId, items, onSelect, children, autoScroll } = props;
+  const styles = useStyles2(getGListStyles);
 
   const getitemClickHandler = useCallback((id: string) => {
     return () => {
@@ -65,7 +64,7 @@ export const GList = <T extends WithId>(props: GListProps<T>) => {
   }
 
   return (
-    <div className={cx('root')}>
+    <div className={styles.root}>
       {items ? (
         items.map((item) => (
           <div
@@ -78,7 +77,7 @@ export const GList = <T extends WithId>(props: GListProps<T>) => {
               }
             }}
             key={item.id}
-            className={cx('item', { item_selected: item.id === selectedId })}
+            className={cx(styles.item, { [styles.item_selected]: item.id === selectedId })}
             onClick={getitemClickHandler(item.id)}
           >
             {children(item)}

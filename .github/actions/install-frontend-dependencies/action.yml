@@ -1,0 +1,38 @@
+name: "Install frontend dependencies"
+description: "Setup node + install frontend dependencies"
+inputs:
+  working-directory:
+    description: "Relative path to oncall/grafana-plugin directory"
+    required: false
+    default: "."
+runs:
+  using: "composite"
+  steps:
+    - name: Determine grafana-plugin directory location
+      id: grafana-plugin-directory
+      shell: bash
+      run: echo "grafana-plugin-directory=${{ inputs.working-directory }}/grafana-plugin" >> $GITHUB_OUTPUT
+    - name: Determine yarn.lock location
+      id: yarn-lock-location
+      shell: bash
+      # yamllint disable rule:line-length
+      run: echo "yarn-lock-location=${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}/yarn.lock" >> $GITHUB_OUTPUT
+      # yamllint enable rule:line-length
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 18.16.0
+        cache: "yarn"
+        cache-dependency-path: ${{ steps.yarn-lock-location.outputs.yarn-lock-location }}
+    - name: Use cached frontend dependencies
+      id: cache-frontend-dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.working-directory }}/grafana-plugin/node_modules
+        # yamllint disable rule:line-length
+        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles(steps.yarn-lock-location.outputs.yarn-lock-location) }}
+        # yamllint enable rule:line-length
+    - name: Install frontend dependencies
+      if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}
+      run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000

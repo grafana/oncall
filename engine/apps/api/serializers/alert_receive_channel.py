@@ -359,9 +359,13 @@ class AlertReceiveChannelSerializer(
 
     def validate(self, data):
         validated_data = super().validate(data)
+        self.validate_name_uniqueness(validated_data)
+        return validated_data
+
+    def validate_name_uniqueness(self, validated_data):
         organization = self.context["request"].auth.organization
         verbal_name = validated_data.get("verbal_name")
-        team = validated_data.get("team")
+        team = validated_data.get("team", self.instance.team) if self.instance else validated_data.get("team")
         try:
             obj = AlertReceiveChannel.objects.get(organization=organization, team=team, verbal_name=verbal_name)
         except AlertReceiveChannel.DoesNotExist:
@@ -375,8 +379,6 @@ class AlertReceiveChannelSerializer(
                 raise serializers.ValidationError(
                     {"verbal_name": "An integration with this name already exists for this team"}
                 )
-
-        return validated_data
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
@@ -427,9 +429,15 @@ class AlertReceiveChannelSerializer(
         )
 
         try:
-            return super().update(instance, validated_data)
+            updated_instance = super().update(instance, validated_data)
         except AlertReceiveChannel.DuplicateDirectPagingError:
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
+        # update webhooks if needed, using updated instance
+        if hasattr(instance.config, "update_default_webhooks"):
+            instance.config.update_default_webhooks(updated_instance)
+
+        return updated_instance
 
     def get_instructions(self, obj: "AlertReceiveChannel") -> str:
         # Deprecated, kept for api-backward compatibility
@@ -566,7 +574,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 raise serializers.ValidationError("Unable to retrieve example payload for this alert group")
         else:
             try:
-                return obj.alert_groups.last().alerts.first().raw_request_data
+                return obj.alert_groups.only("id").last().alerts.first().raw_request_data
             except AttributeError:
                 return None
 

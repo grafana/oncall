@@ -48,19 +48,24 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   componentDidMount() {
-    const { store } = this.props;
-    if (store.hasFeature(AppFeature.LiveSettings)) {
-      this.getSlackLiveSettings().then(() => {
-        this.update();
-      });
-    } else {
-      this.update();
-    }
+    this.onDidMount();
   }
 
-  handleOpenSlackInstructions = () => {
+  onDidMount = async () => {
     const { store } = this.props;
-    store.slackStore.installSlackIntegration().catch(showApiError);
+    if (store.hasFeature(AppFeature.LiveSettings)) {
+      await this.getSlackLiveSettings();
+    }
+    this.update();
+  };
+
+  handleOpenSlackInstructions = async () => {
+    const { store } = this.props;
+    try {
+      await store.slackStore.installSlackIntegration();
+    } catch (err) {
+      showApiError(err);
+    }
   };
 
   update = () => {
@@ -113,7 +118,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       <div className={cx('root')}>
         <Legend>Slack App settings</Legend>
         <InlineField label="Slack Workspace" grow disabled>
-          <Input value={currentOrganization.slack_team_identity?.cached_name} />
+          <Input value={currentOrganization?.slack_team_identity?.cached_name} />
         </InlineField>
         <InlineField
           label="Default channel for Slack notifications"
@@ -121,7 +126,6 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         >
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
             <GSelect<SlackChannel>
-              showSearch
               items={slackChannelStore.items}
               fetchItemsFn={slackChannelStore.updateItems}
               fetchItemFn={slackChannelStore.updateItem}
@@ -199,43 +203,14 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     );
   };
 
-  renderSlackWorkspace = () => {
+  removeSlackIntegration = async () => {
     const { store } = this.props;
-    return <Text>{store.organizationStore.currentOrganization.slack_team_identity?.cached_name}</Text>;
-  };
-
-  renderSlackChannels = () => {
-    const {
-      store: { organizationStore, slackChannelStore },
-    } = this.props;
-    return (
-      <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-        <GSelect<SlackChannel>
-          showSearch
-          className={cx('select', 'control')}
-          items={slackChannelStore.items}
-          fetchItemsFn={slackChannelStore.updateItems}
-          fetchItemFn={slackChannelStore.updateItem}
-          getSearchResult={slackChannelStore.getSearchResult}
-          displayField="display_name"
-          valueField="id"
-          placeholder="Select Slack Channel"
-          value={organizationStore.currentOrganization?.slack_channel?.id}
-          onChange={this.handleSlackChannelChange}
-          nullItemName={PRIVATE_CHANNEL_NAME}
-        />
-      </WithPermissionControlTooltip>
-    );
-  };
-
-  removeSlackIntegration = () => {
-    const { store } = this.props;
-    store.slackStore
-      .removeSlackIntegration()
-      .then(() => {
-        store.organizationStore.loadCurrentOrganization();
-      })
-      .catch(showApiError);
+    try {
+      await store.slackStore.removeSlackIntegration();
+      store.organizationStore.loadCurrentOrganization();
+    } catch (err) {
+      showApiError(err);
+    }
   };
 
   getSlackSettingsChangeHandler = (field: string) => {

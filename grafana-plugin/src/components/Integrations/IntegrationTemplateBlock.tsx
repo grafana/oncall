@@ -1,15 +1,12 @@
 import React from 'react';
 
-import { Button, InlineLabel, LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, InlineLabel, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserActions } from 'utils/authorization/authorization';
-
-import styles from './IntegrationTemplateBlock.module.scss';
-
-const cx = cn.bind(styles);
 
 interface IntegrationTemplateBlockProps {
   label: string;
@@ -35,6 +32,8 @@ export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> =
   isLoading,
   warningOnEdit,
 }) => {
+  const styles = useStyles2(getStyles);
+
   let tooltip = labelTooltip;
   let inlineLabelProps = { tooltip };
   if (!tooltip) {
@@ -42,11 +41,11 @@ export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> =
   }
 
   return (
-    <div className={cx('container')}>
+    <div className={styles.container}>
       <InlineLabel width={20} {...inlineLabelProps}>
         {label}
       </InlineLabel>
-      <div className={cx('container__item')}>
+      <div className={styles.item}>
         {renderInput()}
         {isTemplateEditable && (
           <>
@@ -77,4 +76,27 @@ export const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> =
       </div>
     </div>
   );
+};
+
+const getStyles = (_theme: GrafanaTheme2) => {
+  return {
+    container: css`
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+
+      label {
+        margin-right: 0;
+      }
+    `,
+
+    item: css`
+      flex-grow: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+    `,
+  };
 };

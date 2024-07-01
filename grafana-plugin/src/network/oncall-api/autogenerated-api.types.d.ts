@@ -271,7 +271,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Internal API endpoints for alert receive channels (integrations). */
-    get: operations['alert_receive_channels_status_options_list'];
+    get: operations['alert_receive_channels_status_options_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -291,6 +291,23 @@ export interface paths {
     put?: never;
     /** @description Internal API endpoints for alert receive channels (integrations). */
     post: operations['alert_receive_channels_stop_maintenance_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/alert_receive_channels/{id}/test_connection/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for alert receive channels (integrations). */
+    post: operations['alert_receive_channels_test_connection_create_2'];
     delete?: never;
     options?: never;
     head?: never;
@@ -806,7 +823,7 @@ export interface paths {
       cookie?: never;
     };
     /** @description Retrieve a list of valid silence options */
-    get: operations['alertgroups_silence_options_retrieve'];
+    get: operations['alertgroups_silence_options_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -824,6 +841,39 @@ export interface paths {
     };
     /** @description Return number of alert groups capped at 100001 */
     get: operations['alertgroups_stats_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/complete/{backend}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Authentication complete view */
+    get: operations['complete_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/disconnect/{backend}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['disconnect_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -929,6 +979,38 @@ export interface paths {
     };
     /** @description List of labels keys */
     get: operations['labels_keys_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/login/{backend}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['login_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/login/{backend}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['login_retrieve_2'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1296,6 +1378,12 @@ export interface components {
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly permalinks: {
+        slack: string | null;
+        slack_app: string | null;
+        telegram: string | null;
+        web: string;
+      };
       readonly alerts: components['schemas']['Alert'][];
       readonly render_after_resolve_report_json: {
         time: string;
@@ -1312,11 +1400,6 @@ export interface components {
         };
       }[];
       readonly slack_permalink: string | null;
-      readonly permalinks: {
-        slack: string | null;
-        telegram: string | null;
-        web: string;
-      };
       /** Format: date-time */
       readonly last_alert_at: string;
       readonly paged_users: {
@@ -1327,6 +1410,12 @@ export interface components {
         avatar: string;
         avatar_full: string;
         important: boolean;
+      }[];
+      readonly external_urls: {
+        integration: string;
+        integration_type: string;
+        external_id: string;
+        url: string;
       }[];
     };
     AlertGroupAttach: {
@@ -1401,6 +1490,12 @@ export interface components {
       team: string | null;
       grafana_incident_id?: string | null;
       readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly permalinks: {
+        slack: string | null;
+        slack_app: string | null;
+        telegram: string | null;
+        web: string;
+      };
     };
     AlertGroupResolve: {
       resolution_note?: string | null;
@@ -1499,10 +1594,6 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
-    };
-    AlertReceiveChannelBacksyncStatusOptions: {
-      value: string;
-      display_name: string;
     };
     AlertReceiveChannelConnectContactPoint: {
       datasource_uid: string;
@@ -1714,6 +1805,9 @@ export interface components {
       value: string;
       display_name: string;
     };
+    GoogleCalendarSettings: {
+      oncall_schedules_to_consider_for_shift_swaps?: string[] | null;
+    };
     /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
     IntegrationAlertGroupLabels: {
       inheritable: {
@@ -1739,6 +1833,7 @@ export interface components {
      *     * `slack_channel` - Slack Channel
      *     * `zabbix` - Zabbix
      *     * `direct_paging` - Direct paging
+     *     * `servicenow` - ServiceNow
      *     * `amazon_sns` - Amazon SNS
      *     * `stackdriver` - Stackdriver
      *     * `curler` - Curler
@@ -1754,7 +1849,6 @@ export interface components {
      *     * `jira` - Jira
      *     * `zendesk` - Zendesk
      *     * `appdynamics` - AppDynamics
-     *     * `servicenow` - ServiceNow
      * @enum {string}
      */
     IntegrationEnum:
@@ -1774,6 +1868,7 @@ export interface components {
       | 'slack_channel'
       | 'zabbix'
       | 'direct_paging'
+      | 'servicenow'
       | 'amazon_sns'
       | 'stackdriver'
       | 'curler'
@@ -1788,8 +1883,7 @@ export interface components {
       | 'uptimerobot'
       | 'jira'
       | 'zendesk'
-      | 'appdynamics'
-      | 'servicenow';
+      | 'appdynamics';
     IntegrationHeartBeat: {
       readonly id: string;
       timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
@@ -1804,6 +1898,7 @@ export interface components {
     };
     IntegrationTokenPostResponse: {
       token: string;
+      usage: string;
     };
     Key: {
       id: string;
@@ -1869,6 +1964,7 @@ export interface components {
       };
       readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
     };
     /**
      * @description * `0` - Debug
@@ -2000,7 +2096,9 @@ export interface components {
       };
       readonly cloud_connection_status?: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected?: boolean;
       readonly is_currently_oncall?: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
     };
     PreviewTemplateRequest: {
       template_body?: string | null;
@@ -2125,7 +2223,9 @@ export interface components {
       };
       readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
       hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
       readonly is_currently_oncall: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
     };
     UserExportTokenGetResponse: {
       /** Format: date-time */
@@ -2232,6 +2332,7 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
          *     * `curler` - Curler
@@ -2246,8 +2347,7 @@ export interface operations {
          *     * `uptimerobot` - UptimeRobot
          *     * `jira` - Jira
          *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics
-         *     * `servicenow` - ServiceNow */
+         *     * `appdynamics` - AppDynamics */
         integration?: (
           | 'alertmanager'
           | 'amazon_sns'
@@ -2298,6 +2398,7 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
          *     * `curler` - Curler
@@ -2312,8 +2413,7 @@ export interface operations {
          *     * `uptimerobot` - UptimeRobot
          *     * `jira` - Jira
          *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics
-         *     * `servicenow` - ServiceNow */
+         *     * `appdynamics` - AppDynamics */
         integration_ne?: (
           | 'alertmanager'
           | 'amazon_sns'
@@ -2901,7 +3001,7 @@ export interface operations {
       };
     };
   };
-  alert_receive_channels_status_options_list: {
+  alert_receive_channels_status_options_retrieve: {
     parameters: {
       query?: never;
       header?: never;
@@ -2918,7 +3018,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelBacksyncStatusOptions'][];
+          'application/json': string[][];
         };
       };
     };
@@ -2934,6 +3034,33 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  alert_receive_channels_test_connection_create_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this alert receive channel. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['AlertReceiveChannelUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelUpdate'];
+        'multipart/form-data': components['schemas']['AlertReceiveChannelUpdate'];
+      };
+    };
     responses: {
       /** @description No response body */
       200: {
@@ -3638,7 +3765,7 @@ export interface operations {
       };
     };
   };
-  alertgroups_silence_options_retrieve: {
+  alertgroups_silence_options_list: {
     parameters: {
       query?: never;
       header?: never;
@@ -3652,7 +3779,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroupSilenceOptions'];
+          'application/json': components['schemas']['AlertGroupSilenceOptions'][];
         };
       };
     };
@@ -3696,6 +3823,46 @@ export interface operations {
       };
     };
   };
+  complete_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  disconnect_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   features_retrieve: {
     parameters: {
       query?: never;
@@ -3719,6 +3886,7 @@ export interface operations {
             | 'grafana_cloud_connection'
             | 'grafana_alerting_v2'
             | 'labels'
+            | 'google_oauth2'
           )[];
         };
       };
@@ -3890,6 +4058,46 @@ export interface operations {
         content: {
           'application/json': components['schemas']['LabelKey'][];
         };
+      };
+    };
+  };
+  login_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  login_retrieve_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backend: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

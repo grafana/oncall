@@ -14,7 +14,7 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
           1. Launch the OnCall backend
         </p>
         <span
-          class="root text text--secondary text--medium"
+          class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
         >
           Run hobby, dev or production backend. See
            
@@ -24,7 +24,7 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
             target="_blank"
           >
             <span
-              class="root text text--link text--medium"
+              class="css-77ouhj--link css-77ouhj--medium css-1287p17"
             >
               here
             </span>
@@ -40,7 +40,7 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
           2. Let us know the base URL of your OnCall API
         </p>
         <span
-          class="root text text--secondary text--medium"
+          class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
         >
           The OnCall backend must be reachable from your Grafana installation. Some examples are:
           <br />
@@ -125,7 +125,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
           1. Launch the OnCall backend
         </p>
         <span
-          class="root text text--secondary text--medium"
+          class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
         >
           Run hobby, dev or production backend. See
            
@@ -135,7 +135,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
             target="_blank"
           >
             <span
-              class="root text text--link text--medium"
+              class="css-77ouhj--link css-77ouhj--medium css-1287p17"
             >
               here
             </span>
@@ -151,7 +151,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
           2. Let us know the base URL of your OnCall API
         </p>
         <span
-          class="root text text--secondary text--medium"
+          class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
         >
           The OnCall backend must be reachable from your Grafana installation. Some examples are:
           <br />
@@ -195,16 +195,16 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
       </div>
       <pre>
         <span
-          class="root text text--link text--medium"
+          class="css-77ouhj--link css-77ouhj--medium css-1287p17"
         >
           ohhh nooo there was an error from the OnCall API
         </span>
       </pre>
       <div
-        class="root root--withBackGround info-block"
+        class="css-1x53p5e css-1x53p5e--withBackGround info-block"
       >
         <span
-          class="root text text--secondary text--medium"
+          class="css-77ouhj--secondary css-77ouhj--medium css-1287p17"
         >
           Need help?
           <br />
@@ -216,7 +216,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
             target="_blank"
           >
             <span
-              class="root text text--link text--medium"
+              class="css-77ouhj--link css-77ouhj--medium css-1287p17"
             >
               #grafana-oncall
             </span>
@@ -232,7 +232,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
             target="_blank"
           >
             <span
-              class="root text text--link text--medium"
+              class="css-77ouhj--link css-77ouhj--medium css-1287p17"
             >
               here
             </span>
@@ -247,7 +247,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
             target="_blank"
           >
             <span
-              class="root text text--link text--medium"
+              class="css-77ouhj--link css-77ouhj--medium css-1287p17"
             >
               here
             </span>

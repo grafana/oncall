@@ -24,14 +24,13 @@ export const LabelsFilterComponent: FC<LabelsFilterProps> = (props) => {
     onChange(value.map((v) => v.data));
   }, []);
 
-  const handleLoadOptions = (search) => {
-    return onLoadOptions(search).then((options) =>
-      options.map((v) => ({
-        label: `${v.key[FieldName]} : ${v.value[FieldName]}`,
-        value: `${v.key[FieldName]} : ${v.value[FieldName]}`,
-        data: v,
-      }))
-    );
+  const handleLoadOptions = async (search) => {
+    const options = await onLoadOptions(search);
+    return options.map((v) => ({
+      label: `${v.key[FieldName]} : ${v.value[FieldName]}`,
+      value: `${v.key[FieldName]} : ${v.value[FieldName]}`,
+      data: v,
+    }));
   };
 
   const value = useMemo(

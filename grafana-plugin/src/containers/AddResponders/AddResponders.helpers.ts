@@ -1,4 +1,4 @@
-import { ManualAlertGroupFormData } from 'components/ManualAlertGroup/ManualAlertGroup.config';
+import { FormData as ManualAlertGroupFormData } from 'components/ManualAlertGroup/ManualAlertGroup';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 
 import { UserResponders } from './AddResponders.types';
