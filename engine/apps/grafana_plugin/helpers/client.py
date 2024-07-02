@@ -268,6 +268,14 @@ class GrafanaAPIClient(APIClient):
             user["permissions"] = user_permissions.get(str(user["userId"]), [])
         return users
 
+    def get_user(self, rbac_is_enabled_for_org: bool, user_id: int) -> GrafanaUserWithPermissions:
+        users = self.get_users(rbac_is_enabled_for_org)
+        try:
+            user = [user for user in users if user["userId"] == user_id][0]
+        except IndexError:
+            return None
+        return user
+
     def get_teams(self, **kwargs) -> APIClientResponse["GrafanaAPIClient.Types.TeamsResponse"]:
         """
         [Grafana API Docs](https://grafana.com/docs/grafana/latest/developers/http_api/team/#team-search-with-paging)

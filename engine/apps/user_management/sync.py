@@ -1,9 +1,11 @@
+import json
 import logging
 import uuid
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import timezone
+from rest_framework.request import Request
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
@@ -130,6 +132,17 @@ def _sync_grafana_incident_plugin(organization: Organization, grafana_api_client
         organization.grafana_incident_backend_url = (grafana_incident_settings.get("jsonData") or {}).get(
             GrafanaAPIClient.GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY
         )
+
+
+def sync_user_from_request(organization: Organization, request: Request) -> User:
+    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+    context = dict(json.loads(request.headers.get("X-Grafana-Context")))
+    user_id = context.get("UserId") or context.get("UserID")
+    user_data = grafana_api_client.get_user(organization.is_rbac_permissions_enabled, user_id)
+    if user_data is None:
+        raise ValueError(f"User with id {user_id} not found in Grafana")
+    user, _ = User.objects.update_or_create_user(organization, user_data)
+    return user
 
 
 def sync_users_and_teams(client: GrafanaAPIClient, organization: Organization) -> None:

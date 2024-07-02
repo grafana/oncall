@@ -156,6 +156,23 @@ class UserManager(models.Manager["User"]):
             users_to_update, ["email", "name", "username", "role", "avatar_url", "permissions"], batch_size=5000
         )
 
+    # unique_together = ("user_id", "organization", "is_active")
+    def update_or_create_user(self, organization, user_data):
+        user, created = self.update_or_create(
+            organization=organization,
+            user_id=user_data["userId"],
+            is_active=True,
+            defaults={
+                "email": user_data["email"],
+                "name": user_data["name"],
+                "username": user_data["login"],
+                "role": getattr(LegacyAccessControlRole, user_data["role"].upper(), LegacyAccessControlRole.NONE),
+                "avatar_url": user_data["avatarUrl"],
+                "permissions": user_data["permissions"],
+            },
+        )
+        return user, created
+
 
 class UserQuerySet(models.QuerySet):
     def filter(self, *args, **kwargs):
