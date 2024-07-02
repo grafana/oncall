@@ -88,8 +88,6 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
     }));
   };
 
-  console.log('We are here!');
-
   return (
     <>
       <Drawer
@@ -259,8 +257,6 @@ interface CustomLabelsProps {
 const CustomLabels = (props: CustomLabelsProps) => {
   const { alertGroupLabels, onChange, onShowTemplateEditor, customLabelsErrors } = props;
 
-  console.log({ props });
-
   const { labelsStore } = useStore();
 
   const handleStaticLabelAdd = () => {
@@ -316,13 +312,6 @@ const CustomLabels = (props: CustomLabelsProps) => {
 
     return groups;
   };
-
-  console.log('Custom Labels [!]');
-  console.log({
-    value: toJS(alertGroupLabels.custom),
-    alertGroupLabels: toJS(alertGroupLabels),
-    inheritable: toJS(alertGroupLabels.inheritable),
-  });
 
   return (
     <VerticalGroup>

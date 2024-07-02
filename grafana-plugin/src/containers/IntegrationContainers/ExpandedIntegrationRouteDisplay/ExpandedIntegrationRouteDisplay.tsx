@@ -72,18 +72,18 @@ interface ExpandedIntegrationRouteDisplayState {
 }
 
 enum LABEL_OPTION {
-  BUILDER = 'Builder',
-  CODE = 'Code',
+  LABELS = 'Labels',
+  TEMPLATE = 'Template',
 }
 
 const QueryBuilderOptions = [
   {
-    label: LABEL_OPTION.BUILDER,
-    value: LABEL_OPTION.BUILDER,
+    label: 'Labels matching',
+    value: LABEL_OPTION.LABELS,
   },
   {
-    label: LABEL_OPTION.CODE,
-    value: LABEL_OPTION.CODE,
+    label: 'Template matching',
+    value: LABEL_OPTION.TEMPLATE,
   },
 ];
 
@@ -108,12 +108,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     } = store;
 
     const [isLoading, setIsLoading] = useState(false);
-    const [isExplainEnabled, setIsExplainEnabled] = useState(false);
-    const [labelOption, setLabelOption] = useState<string>(QueryBuilderOptions[0].label);
+    const [labelOption, setLabelOption] = useState<string>(QueryBuilderOptions[0].value);
     const [labels, setLabels] = useState([]);
     const [labelErrors, setLabelErrors] = useState([]);
-    const { id } = useCurrentIntegration();
     const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(undefined);
+
+    const { id } = useCurrentIntegration();
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -173,23 +173,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
               ) : (
                 <VerticalGroup spacing="sm">
                   <Text customTag="h6" type="primary">
-                    Use routing template
+                    Alerts matched by
                   </Text>
 
                   {store.hasFeature(AppFeature.Labels) && (
                     <VerticalGroup>
                       <div className={cx('labels-panel')}>
-                        <HorizontalGroup>
-                          <Text type="secondary">Explain</Text>
-                          <InlineSwitch
-                            value={isExplainEnabled}
-                            onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
-                              setIsExplainEnabled(ev.target.checked)
-                            }
-                            transparent
-                          />
-                        </HorizontalGroup>
-
                         <RadioButtonGroup
                           options={QueryBuilderOptions}
                           value={labelOption}
@@ -197,23 +186,18 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         ></RadioButtonGroup>
                       </div>
 
-                      <RenderConditionally shouldRender={labelOption === LABEL_OPTION.BUILDER}>
+                      <RenderConditionally shouldRender={labelOption === LABEL_OPTION.LABELS}>
                         <VerticalGroup>
                           <Block className={cx('block')} onClick={noop}>
-                            <VerticalGroup>
-                              <Text type="primary">Labels to route</Text>
-
-                              <LabelsQueryDisplay
-                                labels={labels}
-                                onChange={(val) => {
-                                  console.log({ val })
-                                  setLabelErrors([]);
-                                  setLabels(val);
-                                }}
-                                onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
-                                labelErrors={labelErrors}
-                              />
-                            </VerticalGroup>
+                            <LabelsQueryDisplay
+                              labels={labels}
+                              onChange={(val) => {
+                                setLabelErrors([]);
+                                setLabels(val);
+                              }}
+                              onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
+                              labelErrors={labelErrors}
+                            />
                           </Block>
 
                           <Block className={cx('block')} onClick={noop}>
@@ -227,7 +211,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                     </VerticalGroup>
                   )}
 
-                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.CODE}>
+                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.TEMPLATE}>
                     <HorizontalGroup spacing="xs">
                       <div className={cx('input', 'input--align')}>
                         <MonacoEditor

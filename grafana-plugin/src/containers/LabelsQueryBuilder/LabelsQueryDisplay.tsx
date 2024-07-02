@@ -23,8 +23,6 @@ export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
 }) => {
   const { labelsStore } = useStore();
 
-  console.log({ labels });
-
   // TODO: these 2 can be merged into one
   const handleStaticLabelAdd = () => {
     onChange([
