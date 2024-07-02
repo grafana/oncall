@@ -10,7 +10,8 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
-    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.user_management.models import User
 
 
 class IncidentLogBuilder:
@@ -578,7 +579,8 @@ class IncidentLogBuilder:
                 escalation_plan_dict.setdefault(timedelta, []).append(plan)
         return escalation_plan_dict
 
-    def _render_user_notification_line(self, user_to_notify, notification_policy, for_slack=False):
+    def _render_user_notification_line(self, user_to_notify: "User", notification_policy: "UserNotificationPolicy",
+                                       for_slack=False):
         """
         Renders user notification plan line
         :param user_to_notify:
@@ -611,7 +613,8 @@ class IncidentLogBuilder:
             result += f"inviting {user_verbal} but notification channel is unspecified"
         return result
 
-    def _get_notification_plan_for_user(self, user_to_notify, future_step=False, important=False, for_slack=False):
+    def _get_notification_plan_for_user(self, user_to_notify: "User", future_step=False, important=False,
+                                        for_slack=False):
         """
         Renders user notification plan
         :param user_to_notify:
@@ -665,7 +668,7 @@ class IncidentLogBuilder:
                     # last passed step order + 1
                     notification_policy_order = last_user_log.notification_policy.order + 1
 
-        notification_policies = user_to_notify.get_or_create_notification_policies(important=important)
+        notification_policies = user_to_notify.get_notification_policies_or_use_default_fallback(important=important)
 
         for notification_policy in notification_policies:
             future_notification = notification_policy.order >= notification_policy_order

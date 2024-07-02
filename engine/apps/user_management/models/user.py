@@ -105,21 +105,7 @@ class UserManager(models.Manager["User"]):
             if user["userId"] not in existing_user_ids
         )
 
-        with transaction.atomic():
-            organization.users.bulk_create(users_to_create, batch_size=5000)
-            # Retrieve primary keys for the newly created users
-            #
-            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
-            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
-            # On other databases, it will not be set.
-            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            created_users = organization.users.exclude(user_id__in=existing_user_ids)
-
-            policies_to_create = ()
-            for user in created_users:
-                policies_to_create = policies_to_create + user.default_notification_policies_defaults
-                policies_to_create = policies_to_create + user.important_notification_policies_defaults
-            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
+        organization.users.bulk_create(users_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()
@@ -429,43 +415,22 @@ class User(models.Model):
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
-    def get_or_create_notification_policies(self, important=False):
+    def get_notification_policies_or_use_default_fallback(self,
+                                                          important=False) -> typing.List["UserNotificationPolicy"]:
+        """
+        If the user has no notification policies defined, fallback to using e-mail as the notification channel.
+        """
         if not self.notification_policies.filter(important=important).exists():
-            if important:
-                self.notification_policies.create_important_policies_for_user(self)
-            else:
-                self.notification_policies.create_default_policies_for_user(self)
-        notification_policies = self.notification_policies.filter(important=important)
-        return notification_policies
-
-    @property
-    def default_notification_policies_defaults(self):
-        from apps.base.models import UserNotificationPolicy
-
-        print(self)
-
-        return (
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                order=0,
-            ),
-        )
-
-    @property
-    def important_notification_policies_defaults(self):
-        from apps.base.models import UserNotificationPolicy
-
-        return (
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                important=True,
-                order=0,
-            ),
-        )
+            return [
+                UserNotificationPolicy(
+                    user=self,
+                    step=UserNotificationPolicy.Step.NOTIFY,
+                    notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                    important=important,
+                    order=0,
+                ),
+            ]
+        return list(self.notification_policies.filter(important=important).all())
 
     def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if self.alert_group_table_selected_columns != columns:
