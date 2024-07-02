@@ -1,5 +1,7 @@
 from django.urls import path
 
+from common.api_helpers.optional_slash_router import optional_slash_path
+
 from .views import (
     InstallLinkRedirectView,
     OAuthSlackView,
@@ -13,8 +15,8 @@ urlpatterns = [
     path("event_api_endpoint/", SlackEventApiEndpointView.as_view()),
     path("interactive_api_endpoint/", SlackEventApiEndpointView.as_view()),
     # New urls used in cloud via chatops-proxy v3.
-    path("events/", SlackEventApiEndpointView.as_view()),
-    path("interactive/", SlackEventApiEndpointView.as_view()),
+    optional_slash_path("events", SlackEventApiEndpointView.as_view()),
+    optional_slash_path("interactive", SlackEventApiEndpointView.as_view()),
     # Trailing / is missing here on purpose. QA the feature if you want to add it. No idea why doesn't it work with it.
     path("reset_slack", ResetSlackView.as_view(), name="reset-slack"),
     # Deprecated.
