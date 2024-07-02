@@ -10,12 +10,15 @@ import {
   ConfirmModal,
   LoadingPlaceholder,
   Select,
-  Alert,
+  InlineSwitch,
+  RadioButtonGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import { Block } from 'components/GBlock/Block';
 import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import {
   IntegrationCollapsibleTreeView,
@@ -25,12 +28,15 @@ import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { ChatOpsConnectors } from 'containers/AlertRules/AlertRules';
 import { EscalationChainSteps } from 'containers/EscalationChainSteps/EscalationChainSteps';
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
+import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
+import { LabelsQueryDisplay } from 'containers/LabelsQueryBuilder/LabelsQueryDisplay';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
@@ -39,7 +45,9 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
-import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
+import { LabelTemplateOptions, MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { openNotification } from 'utils/utils';
@@ -63,6 +71,22 @@ interface ExpandedIntegrationRouteDisplayState {
   routeIdForDeletion: string;
 }
 
+enum LABEL_OPTION {
+  LABELS = 'Labels',
+  TEMPLATE = 'Template',
+}
+
+const QueryBuilderOptions = [
+  {
+    label: 'Labels matching',
+    value: LABEL_OPTION.LABELS,
+  },
+  {
+    label: 'Template matching',
+    value: LABEL_OPTION.TEMPLATE,
+  },
+];
+
 export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
   ({
     alertReceiveChannelId,
@@ -84,6 +108,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     } = store;
 
     const [isLoading, setIsLoading] = useState(false);
+    const [labelOption, setLabelOption] = useState<string>(QueryBuilderOptions[0].value);
+    const [labels, setLabels] = useState([]);
+    const [labelErrors, setLabelErrors] = useState([]);
+    const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(undefined);
+
+    const { id } = useCurrentIntegration();
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -143,41 +173,64 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
               ) : (
                 <VerticalGroup spacing="sm">
                   <Text customTag="h6" type="primary">
-                    Use routing template
+                    Alerts matched by
                   </Text>
 
-                  <HorizontalGroup spacing="xs">
-                    <div className={cx('input', 'input--align')}>
-                      <MonacoEditor
-                        value={channelFilterTemplate}
-                        disabled={true}
-                        height={MONACO_INPUT_HEIGHT_SMALL}
-                        data={templates}
-                        showLineNumbers={false}
-                        monacoOptions={MONACO_READONLY_CONFIG}
-                      />
-                    </div>
-                    <Button
-                      variant={'secondary'}
-                      icon="edit"
-                      size={'md'}
-                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
-                    />
-                  </HorizontalGroup>
+                  {store.hasFeature(AppFeature.Labels) && (
+                    <VerticalGroup>
+                      <div className={cx('labels-panel')}>
+                        <RadioButtonGroup
+                          options={QueryBuilderOptions}
+                          value={labelOption}
+                          onChange={setLabelOption}
+                        ></RadioButtonGroup>
+                      </div>
 
-                  <div className={cx('routing-alert')}>
-                    <Alert
-                      severity="info"
-                      title={
-                        (
-                          <Text type="primary">
-                            If the Routing template evaluates to True, the alert will be grouped with the Grouping
-                            template and proceed to the following steps
-                          </Text>
-                        ) as any
-                      }
-                    />
-                  </div>
+                      <RenderConditionally shouldRender={labelOption === LABEL_OPTION.LABELS}>
+                        <VerticalGroup>
+                          <Block className={cx('block')} onClick={noop}>
+                            <LabelsQueryDisplay
+                              labels={labels}
+                              onChange={(val) => {
+                                setLabelErrors([]);
+                                setLabels(val);
+                              }}
+                              onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
+                              labelErrors={labelErrors}
+                            />
+                          </Block>
+
+                          <Block className={cx('block')} onClick={noop}>
+                            <Text type="secondary">
+                              If the Routing template evaluates to True, the alert will be grouped with the Grouping
+                              template and proceed to the following steps
+                            </Text>
+                          </Block>
+                        </VerticalGroup>
+                      </RenderConditionally>
+                    </VerticalGroup>
+                  )}
+
+                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.TEMPLATE}>
+                    <HorizontalGroup spacing="xs">
+                      <div className={cx('input', 'input--align')}>
+                        <MonacoEditor
+                          value={channelFilterTemplate}
+                          disabled={true}
+                          height={MONACO_INPUT_HEIGHT_SMALL}
+                          data={templates}
+                          showLineNumbers={false}
+                          monacoOptions={MONACO_READONLY_CONFIG}
+                        />
+                      </div>
+                      <Button
+                        variant={'secondary'}
+                        icon="edit"
+                        size={'md'}
+                        onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                      />
+                    </HorizontalGroup>
+                  </RenderConditionally>
                 </VerticalGroup>
               )}
             </div>
@@ -316,11 +369,34 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
             </HorizontalGroup>
           }
           content={
-            <IntegrationCollapsibleTreeView
-              configElements={getTreeViewElements() as any}
-              isRouteView
-              startingElemPosition="0%"
-            />
+            <>
+              {customLabelIndexToShowTemplateEditor !== undefined && (
+                <IntegrationTemplate
+                  id={id}
+                  template={{
+                    name: LabelTemplateOptions.AlertGroupDynamicLabel.key,
+                    displayName: LabelTemplateOptions.AlertGroupDynamicLabel.value,
+                  }}
+                  templates={templates}
+                  templateBody={labels[customLabelIndexToShowTemplateEditor].value.name}
+                  onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
+                  onUpdateTemplates={(templates) => {
+                    const newCustom = [...labels];
+                    newCustom[customLabelIndexToShowTemplateEditor].value.name =
+                      templates[LabelTemplateOptions.AlertGroupDynamicLabel.key];
+
+                    setLabels([...labels, newCustom]);
+
+                    setCustomLabelIndexToShowTemplateEditor(undefined);
+                  }}
+                />
+              )}
+              <IntegrationCollapsibleTreeView
+                configElements={getTreeViewElements() as any}
+                isRouteView
+                startingElemPosition="0%"
+              />
+            </>
           }
         />
         {routeIdForDeletion && (
