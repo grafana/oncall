@@ -13,6 +13,7 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -86,6 +87,8 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
       inheritable: { ...alertGroupLabels.inheritable, [keyId]: !alertGroupLabels.inheritable[keyId] },
     }));
   };
+
+  console.log('We are here!');
 
   return (
     <>
@@ -256,6 +259,8 @@ interface CustomLabelsProps {
 const CustomLabels = (props: CustomLabelsProps) => {
   const { alertGroupLabels, onChange, onShowTemplateEditor, customLabelsErrors } = props;
 
+  console.log({ props });
+
   const { labelsStore } = useStore();
 
   const handleStaticLabelAdd = () => {
@@ -311,6 +316,13 @@ const CustomLabels = (props: CustomLabelsProps) => {
 
     return groups;
   };
+
+  console.log('Custom Labels [!]');
+  console.log({
+    value: toJS(alertGroupLabels.custom),
+    alertGroupLabels: toJS(alertGroupLabels),
+    inheritable: toJS(alertGroupLabels.inheritable),
+  });
 
   return (
     <VerticalGroup>

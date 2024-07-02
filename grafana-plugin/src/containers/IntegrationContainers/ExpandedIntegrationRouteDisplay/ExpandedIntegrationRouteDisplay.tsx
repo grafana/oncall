@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -16,8 +16,10 @@ import {
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { Block } from 'components/GBlock/Block';
+import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import {
   IntegrationCollapsibleTreeView,
   IntegrationCollapsibleItem,
@@ -29,8 +31,12 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { ChatOpsConnectors } from 'containers/AlertRules/AlertRules';
+import { EscalationChainSteps } from 'containers/EscalationChainSteps/EscalationChainSteps';
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
+import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
+import { LabelsQueryDisplay } from 'containers/LabelsQueryBuilder/LabelsQueryDisplay';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
@@ -39,16 +45,12 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
-import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
+import { LabelTemplateOptions, MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
+import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
-import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import { openNotification } from 'utils/utils';
-import { EscalationChainSteps } from 'containers/EscalationChainSteps/EscalationChainSteps';
-import { LabelsQueryBuilder } from 'containers/LabelsQueryBuilder/LabelsQueryBuilder';
 
 const cx = cn.bind(styles);
 
@@ -106,9 +108,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     } = store;
 
     const [isLoading, setIsLoading] = useState(false);
-    const [routeLabelValues, setRouteLabelValues] = useState(INITIAL_LABELS_OPTIONS);
     const [isExplainEnabled, setIsExplainEnabled] = useState(false);
     const [labelOption, setLabelOption] = useState<string>(QueryBuilderOptions[0].label);
+    const [labels, setLabels] = useState([]);
+    const [labelErrors, setLabelErrors] = useState([]);
+    const { id } = useCurrentIntegration();
+    const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(undefined);
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -198,7 +203,16 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                             <VerticalGroup>
                               <Text type="primary">Labels to route</Text>
 
-                              <LabelsQueryBuilder values={routeLabelValues} setValues={setRouteLabelValues} />
+                              <LabelsQueryDisplay
+                                labels={labels}
+                                onChange={(val) => {
+                                  console.log({ val })
+                                  setLabelErrors([]);
+                                  setLabels(val);
+                                }}
+                                onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
+                                labelErrors={labelErrors}
+                              />
                             </VerticalGroup>
                           </Block>
 
@@ -371,11 +385,34 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
             </HorizontalGroup>
           }
           content={
-            <IntegrationCollapsibleTreeView
-              configElements={getTreeViewElements() as any}
-              isRouteView
-              startingElemPosition="0%"
-            />
+            <>
+              {customLabelIndexToShowTemplateEditor !== undefined && (
+                <IntegrationTemplate
+                  id={id}
+                  template={{
+                    name: LabelTemplateOptions.AlertGroupDynamicLabel.key,
+                    displayName: LabelTemplateOptions.AlertGroupDynamicLabel.value,
+                  }}
+                  templates={templates}
+                  templateBody={labels[customLabelIndexToShowTemplateEditor].value.name}
+                  onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
+                  onUpdateTemplates={(templates) => {
+                    const newCustom = [...labels];
+                    newCustom[customLabelIndexToShowTemplateEditor].value.name =
+                      templates[LabelTemplateOptions.AlertGroupDynamicLabel.key];
+
+                    setLabels([...labels, newCustom]);
+
+                    setCustomLabelIndexToShowTemplateEditor(undefined);
+                  }}
+                />
+              )}
+              <IntegrationCollapsibleTreeView
+                configElements={getTreeViewElements() as any}
+                isRouteView
+                startingElemPosition="0%"
+              />
+            </>
           }
         />
         {routeIdForDeletion && (
