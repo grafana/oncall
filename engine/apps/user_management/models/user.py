@@ -9,7 +9,7 @@ import pytz
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -463,9 +463,6 @@ class User(models.Model):
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender: User, instance: User, created: bool, *args, **kwargs) -> None:
-    if created:
-        instance.notification_policies.create_default_policies_for_user(instance)
-        instance.notification_policies.create_important_policies_for_user(instance)
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )
