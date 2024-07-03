@@ -219,12 +219,9 @@ def notify_user_task(
                         settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED
                         and UserNotificationBundle.notification_is_bundleable(notification_policy.notify_by)
                     ):
-                        user_notification_bundle, _ = UserNotificationBundle.objects.get_or_create(
+                        user_notification_bundle, _ = UserNotificationBundle.objects.select_for_update().get_or_create(
                             user=user, important=important, notification_channel=notification_policy.notify_by
                         )
-                        user_notification_bundle = UserNotificationBundle.objects.filter(
-                            pk=user_notification_bundle.pk
-                        ).select_for_update()[0]
                         # check if notification needs to be bundled
                         if user_notification_bundle.notified_recently():
                             user_notification_bundle.append_notification(alert_group, notification_policy)
@@ -597,16 +594,7 @@ def send_bundled_notification(user_notification_bundle_id):
                     f"bundle_uuid: {bundle_uuid}"
                 )
                 if user_notification_bundle.notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-                    # todo:
-                    #  notify_by_sms_bundle:
-                    #  - call send sms async
-                    #  - filter notifications by bundle_uuid
-                    #  - send sms
-                    #  - create logs
-                    #  - delete notifications
-                    # phone_backend = PhoneBackend()
-                    # phone_backend.notify_by_sms_bundle(user_notification_bundle.user_id, bundle_uuid)
-                    pass
+                    PhoneBackend.notify_by_sms_bundle_async(user_notification_bundle.user, bundle_uuid)
 
         user_notification_bundle.notification_task_id = None
         user_notification_bundle.last_notified_at = timezone.now()
