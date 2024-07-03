@@ -298,6 +298,8 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
     organization.is_grafana_labels_enabled = sync_settings.labels_enabled
     organization.is_grafana_incident_enabled = sync_settings.incident_enabled
     organization.grafana_incident_backend_url = sync_settings.incident_backend_url
+    organization.grafana_url = sync_settings.grafana_url
+    organization.api_token = sync_settings.grafana_token
     organization.last_time_synced = timezone.now()
 
     _sync_instance_info(organization)
@@ -313,6 +315,7 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
 
     organization.save(
         update_fields=[
+            "api_token",
             "cluster_slug",
             "stack_slug",
             "org_slug",

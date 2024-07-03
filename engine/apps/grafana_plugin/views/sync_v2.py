@@ -2,10 +2,13 @@ import logging
 
 from django.conf import settings
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import PluginAuthentication
 from apps.grafana_plugin.serializers.sync_data import SyncDataSerializer
 from apps.user_management.models import Organization
 from apps.user_management.sync import apply_sync_data, get_or_create_organization
@@ -20,6 +23,12 @@ class SyncException(Exception):
 
 
 class SyncV2View(APIView):
+    authentication_classes = (PluginAuthentication,)
+    permission_classes = [IsAuthenticated, RBACPermission]
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.USER_SETTINGS_ADMIN],
+    }
+
     def do_sync(self, request: Request) -> Organization:
         serializer = SyncDataSerializer(data=request.data)
         if not serializer.is_valid():

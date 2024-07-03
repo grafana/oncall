@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class InstallV2View(SyncV2View):
+    authentication_classes = ()
+    permission_classes = ()
+
     def post(self, request: Request) -> Response:
         if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
             return Response(data=SELF_HOSTED_ONLY_FEATURE_ERROR, status=status.HTTP_403_FORBIDDEN)
