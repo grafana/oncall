@@ -523,7 +523,7 @@ def test_notify_user_task_notification_bundle_eta_is_outdated(
         UserNotificationPolicy.NotificationChannel.SMS,
         eta=outdated_eta,
         notification_task_id=test_task_id,
-        last_notified=now,
+        last_notified_at=now,
     )
     notification_bundle.append_notification(alert_group_1, notification_policy)
     assert not notification_bundle.eta_is_valid()
