@@ -13,7 +13,6 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';

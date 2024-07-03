@@ -6,7 +6,7 @@ import { openErrorNotification } from 'utils/utils';
 import { useStore } from 'state/useStore';
 import { splitToGroups } from 'models/label/label.helpers';
 
-interface LabelsQueryDisplay {
+interface RouteLabelsDisplayProps {
   labels: any;
   labelErrors: any;
   onChange: (value: any) => void;
@@ -14,8 +14,9 @@ interface LabelsQueryDisplay {
 }
 
 const INPUT_WIDTH = 280;
+const DUPLICATE_ERROR = 'Duplicate values are not allowed';
 
-export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
+export const RouteLabelsDisplay: React.FC<RouteLabelsDisplayProps> = ({
   labels,
   labelErrors,
   onChange,
@@ -23,23 +24,13 @@ export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
 }) => {
   const { labelsStore } = useStore();
 
-  // TODO: these 2 can be merged into one
-  const handleStaticLabelAdd = () => {
+  const onLabelAdd = (isDynamic: boolean = false) => {
     onChange([
       ...labels,
       {
         key: { id: undefined, name: undefined, prescribed: false },
-        value: { id: undefined, name: undefined, prescribed: false },
-      },
-    ]);
-  };
-
-  const handleDynamicLabelAdd = () => {
-    onChange([
-      ...labels,
-      {
-        key: { id: undefined, name: undefined, prescribed: false },
-        value: { id: null, name: undefined, prescribed: false }, // id = null means it's a templated value
+        // id = null being a templated value
+        value: { id: isDynamic ? null : undefined, name: undefined, prescribed: false },
       },
     ]);
   };
@@ -53,9 +44,7 @@ export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
       openErrorNotification('There was an error processing your request. Please try again');
     }
 
-    const groups = splitToGroups(result);
-
-    return groups;
+    return splitToGroups(result);
   };
 
   const onLoadValuesForKey = async (key: string, search?: string) => {
@@ -68,9 +57,7 @@ export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
       openErrorNotification('There was an error processing your request. Please try again');
     }
 
-    const groups = splitToGroups(result);
-
-    return groups;
+    return splitToGroups(result);
   };
 
   return (
@@ -89,7 +76,7 @@ export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
         onUpdateValue={labelsStore.updateKeyValue}
         onUpdateError={(res) => {
           if (res?.response?.status === 409) {
-            openErrorNotification(`Duplicate values are not allowed`);
+            openErrorNotification(DUPLICATE_ERROR);
           } else {
             openErrorNotification(GENERIC_ERROR);
           }
@@ -133,8 +120,8 @@ export const LabelsQueryDisplay: React.FC<LabelsQueryDisplay> = ({
       <Dropdown
         overlay={
           <Menu>
-            <Menu.Item label="Static label" onClick={handleStaticLabelAdd} />
-            <Menu.Item label="Dynamic label" onClick={handleDynamicLabelAdd} />
+            <Menu.Item label="Static label" onClick={() => onLabelAdd(false)} />
+            <Menu.Item label="Dynamic label" onClick={() => onLabelAdd(true)} />
           </Menu>
         }
       >

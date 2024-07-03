@@ -10,7 +10,6 @@ import {
   ConfirmModal,
   LoadingPlaceholder,
   Select,
-  InlineSwitch,
   RadioButtonGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -36,7 +35,7 @@ import { ChatOpsConnectors } from 'containers/AlertRules/AlertRules';
 import { EscalationChainSteps } from 'containers/EscalationChainSteps/EscalationChainSteps';
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
-import { LabelsQueryDisplay } from 'containers/LabelsQueryBuilder/LabelsQueryDisplay';
+import { RouteLabelsDisplay } from 'containers/RouteLabelsDisplay/RouteLabelsDisplay';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
@@ -188,48 +187,47 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
 
                       <RenderConditionally shouldRender={labelOption === LABEL_OPTION.LABELS}>
                         <VerticalGroup>
-                          <Block className={cx('block')} onClick={noop}>
-                            <LabelsQueryDisplay
-                              labels={labels}
-                              onChange={(val) => {
-                                setLabelErrors([]);
-                                setLabels(val);
-                              }}
-                              onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
-                              labelErrors={labelErrors}
-                            />
-                          </Block>
-
-                          <Block className={cx('block')} onClick={noop}>
-                            <Text type="secondary">
-                              If the Routing template evaluates to True, the alert will be grouped with the Grouping
-                              template and proceed to the following steps
-                            </Text>
-                          </Block>
+                          <RouteLabelsDisplay
+                            labels={labels}
+                            onChange={(val) => {
+                              setLabelErrors([]);
+                              setLabels(val);
+                            }}
+                            onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
+                            labelErrors={labelErrors}
+                          />
                         </VerticalGroup>
                       </RenderConditionally>
                     </VerticalGroup>
                   )}
 
                   <RenderConditionally shouldRender={labelOption === LABEL_OPTION.TEMPLATE}>
-                    <HorizontalGroup spacing="xs">
-                      <div className={cx('input', 'input--align')}>
-                        <MonacoEditor
-                          value={channelFilterTemplate}
-                          disabled={true}
-                          height={MONACO_INPUT_HEIGHT_SMALL}
-                          data={templates}
-                          showLineNumbers={false}
-                          monacoOptions={MONACO_READONLY_CONFIG}
+                    <VerticalGroup>
+                      <HorizontalGroup spacing="xs">
+                        <div className={cx('input', 'input--align')}>
+                          <MonacoEditor
+                            value={channelFilterTemplate}
+                            disabled={true}
+                            height={MONACO_INPUT_HEIGHT_SMALL}
+                            data={templates}
+                            showLineNumbers={false}
+                            monacoOptions={MONACO_READONLY_CONFIG}
+                          />
+                        </div>
+                        <Button
+                          variant={'secondary'}
+                          icon="edit"
+                          size={'md'}
+                          onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                         />
-                      </div>
-                      <Button
-                        variant={'secondary'}
-                        icon="edit"
-                        size={'md'}
-                        onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
-                      />
-                    </HorizontalGroup>
+                      </HorizontalGroup>
+                      <Block className={cx('block')} onClick={noop}>
+                        <Text type="secondary">
+                          If the Routing template evaluates to True, the alert will be grouped with the Grouping
+                          template and proceed to the following steps
+                        </Text>
+                      </Block>
+                    </VerticalGroup>
                   </RenderConditionally>
                 </VerticalGroup>
               )}
