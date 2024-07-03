@@ -52,7 +52,9 @@ class UserNotificationBundle(models.Model):
         return last_notified + timezone.timedelta(seconds=BUNDLED_NOTIFICATION_DELAY_SECONDS)
 
     def append_notification(self, alert_group, notification_policy):
-        self.notifications.create(alert_group=alert_group, notification_policy=notification_policy)
+        self.notifications.create(
+            alert_group=alert_group, notification_policy=notification_policy, alert_receive_channel=alert_group.channel
+        )
 
     @classmethod
     def notification_is_bundleable(cls, notification_channel):
@@ -61,6 +63,7 @@ class UserNotificationBundle(models.Model):
 
 class BundledNotification(models.Model):
     alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE)
+    alert_receive_channel = models.ForeignKey("alerts.AlertReceiveChannel", on_delete=models.CASCADE)  # todo?
     notification_policy = models.ForeignKey("base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True)
     notification_bundle = models.ForeignKey(
         UserNotificationBundle, on_delete=models.CASCADE, related_name="notifications"

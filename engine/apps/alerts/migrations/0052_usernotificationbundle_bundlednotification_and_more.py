@@ -33,6 +33,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('bundle_uuid', models.CharField(db_index=True, default=None, max_length=100, null=True)),
                 ('alert_group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='alerts.alertgroup')),
+                ('alert_receive_channel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='alerts.alertreceivechannel')),
                 ('notification_bundle', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to='alerts.usernotificationbundle')),
                 ('notification_policy', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='base.usernotificationpolicy')),
             ],
