@@ -279,7 +279,7 @@ def notify_user_task(
                 transaction.on_commit(partial(schedule_perform_notification_task, log_record.pk, alert_group_pk))
 
                 if user_notification_bundle:
-                    user_notification_bundle.last_notified = timezone.now()
+                    user_notification_bundle.last_notified_at = timezone.now()
                     user_notification_bundle.save(update_fields=["last_notified_at"])
 
             task_id = celery_uuid()
