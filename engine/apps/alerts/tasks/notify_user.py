@@ -602,7 +602,7 @@ def send_bundled_notification(user_notification_bundle_id):
         user_notification_bundle.save(update_fields=["notification_task_id", "last_notified_at", "eta"])
 
     for alert_group_id in active_alert_group_ids:
-        transaction.on_commit(partial(send_update_log_report_signal.apply_async, {"alert_group_pk": alert_group_id}))
+        transaction.on_commit(partial(send_update_log_report_signal.apply_async, (None, alert_group_id)))
 
     # update metric
     transaction.on_commit(partial(update_metric_if_needed, user_notification_bundle.user, active_alert_group_ids))
