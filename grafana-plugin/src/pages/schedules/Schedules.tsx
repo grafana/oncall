@@ -118,7 +118,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               tableLayout="fixed"
               rowKey="id"
               expandable={{
-                expandedRowKeys: expandedRowKeys,
+                expandedRowKeys,
                 onExpand: this.handleExpandRow,
                 expandedRowRender: this.renderSchedule,
                 expandRowByClick: true,
@@ -412,6 +412,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const styles = getSchedulesStyles();
 
     return [
+      {
+        // Allow space for icon (>)
+        width: '20px',
+        title: '',
+        render: () => <></>,
+      },
       {
         width: '10%',
         title: 'Type',

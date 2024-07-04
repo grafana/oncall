@@ -135,7 +135,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   }, [rowSelection, columnsProp, data]);
 
   return (
-    <div className={cx(styles.root, { [styles.fixed]: props.tableLayout === 'fixed' })} data-testid="test__gTable">
+    <div className={styles.root} data-testid="test__gTable">
       <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
@@ -159,12 +159,6 @@ const getGTableStyles = () => ({
   root: css`
     table {
       width: 100%;
-    }
-  `,
-
-  fixed: css`
-    table {
-      table-layout: fixed;
     }
   `,
 
