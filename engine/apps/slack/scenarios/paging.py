@@ -423,10 +423,7 @@ def render_dialog(
     submit_routing_uid = private_metadata.get("submit_routing_uid")
 
     predefined_org = _get_predefined_org_from_private_metadata(private_metadata, slack_team_identity)
-
-    available_organizations = None
-    if predefined_org is None:
-        available_organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
+    available_organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
 
     if initial:
         # setup initial form
