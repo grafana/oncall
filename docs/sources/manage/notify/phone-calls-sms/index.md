@@ -31,8 +31,8 @@ There are no specific limits, but we reserve the right to stop sending sms/calls
 
 ## Route incoming calls to the engineer who is on-call
 
-See our docs on [Advanced SMS & call routing configuration][] (and [blog post](https://grafana.com/blog/2024/06/10/a-guide-to-grafana-oncall-sms-and-call-routing/))
-for a guide on how to configure incoming call routing.
+See our [docs][Incoming Call Routing], and [blog post](https://grafana.com/blog/2024/06/10/a-guide-to-grafana-oncall-sms-and-call-routing/),
+on Advanced SMS & call routing configuration, for a guide on how to configure incoming call routing.
 
 ## Is there a list of pre-defined phone numbers?
 
@@ -52,6 +52,6 @@ is able to notify you. Also we suggest to back up Phone Calls and SMS with other
 [Grafana OSS-Cloud Setup]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#grafana-oss-cloud-setup"
 [Grafana OSS-Cloud Setup]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#grafana-oss-cloud-setup"
 
-[Advanced SMS & call routing configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/live-call-routing/#advanced-sms--call-routing-configuration"
-[Advanced SMS & call routing configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/live-call-routing/#advanced-sms--call-routing-configuration"
+[Incoming Call Routing]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/live-call-routing/#advanced-sms--call-routing-configuration"
+[Incoming Call Routing]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/live-call-routing/#advanced-sms--call-routing-configuration"
 {{% /docs/reference %}}
