@@ -21,7 +21,7 @@ class ImOpenStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         logger.info("InOpenStep, doing nothing.")
 
@@ -32,7 +32,7 @@ class AppHomeOpenedStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         pass
 

@@ -16,7 +16,7 @@ class SlackUserGroupEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Triggered by action: creation user groups or changes in user groups except its members.
@@ -48,7 +48,7 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Triggered by action: changed members in user group.

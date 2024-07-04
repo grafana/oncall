@@ -18,7 +18,7 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Triggered by action: Create or rename channel
@@ -44,7 +44,7 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Triggered by action: Delete channel
@@ -67,7 +67,7 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Triggered by action: Archive channel
@@ -89,7 +89,7 @@ class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Triggered by action: UnArchive channel

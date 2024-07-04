@@ -48,7 +48,7 @@ class ScenarioStep(object):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         process_scenario executes the logic of the step on slack interaction.

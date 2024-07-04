@@ -14,7 +14,7 @@ class DeclareIncidentStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         """
         Slack sends a POST request to the backend upon clicking a button with a redirect link to Incident.

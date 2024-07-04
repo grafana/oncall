@@ -34,7 +34,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: "EventPayload",
-        predefined_org: typing.Union["Organization", None] = None,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         action_type = payload["actions"][0]["type"]
         if action_type == BlockActionType.BUTTON:
