@@ -36,9 +36,14 @@ class SyncV2View(APIView):
 
         sync_data = serializer.save()
 
-        settings_stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
-        settings_org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
-        if sync_data.settings.org_id != settings_org_id or sync_data.settings.stack_id != settings_stack_id:
+        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+            stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
+            org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
+        else:
+            org_id = request.auth.organization
+            stack_id = request.auth.organization.stack_id
+
+        if sync_data.settings.org_id != org_id or sync_data.settings.stack_id != stack_id:
             raise SyncException(INVALID_SELF_HOSTED_ID)
 
         organization = get_or_create_organization(sync_data.settings.org_id, sync_data.settings.stack_id, sync_data)
