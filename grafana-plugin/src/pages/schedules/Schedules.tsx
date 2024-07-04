@@ -105,7 +105,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               onChange={this.handleSchedulesFiltersChange}
             />
           </div>
-          <div data-testid="schedules-table">
+          <div className={cx(styles.tableRoot)} data-testid="schedules-table">
             <GTable
               className={styles.table}
               columns={this.getTableColumns()}
@@ -414,7 +414,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     return [
       {
         // Allow space for icon (>)
-        width: '20px',
+        width: '40px',
         title: '',
         render: () => <></>,
       },
