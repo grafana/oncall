@@ -41,7 +41,7 @@ export const DaysSelector = ({ value, onChange, options: optionsProp, weekStart,
         <div
           key={display_name}
           onClick={getDayClickHandler(itemValue as string)}
-          className={cx('day', { day__selected: value.includes(itemValue as string) })}
+          className={cx('day', { day__selected: value?.includes(itemValue as string) })}
         >
           {display_name.substring(0, 2)}
         </div>
