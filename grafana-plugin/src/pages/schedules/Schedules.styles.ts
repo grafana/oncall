@@ -9,7 +9,7 @@ export const getSchedulesStyles = () => {
     tableRoot: css`
       td.rc-table-row-expand-icon-cell {
         position: relative;
-        top: 6px;
+        top: 5px;
         left: 3px;
       }
     `,

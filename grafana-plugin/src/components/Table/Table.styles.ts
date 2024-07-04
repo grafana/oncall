@@ -10,10 +10,6 @@ export const getTableStyles = (theme: GrafanaTheme2) => {
         width: 100%;
       }
 
-      table :global(.rc-table-row-expand-icon-cell) > span {
-        pointer-events: none;
-      }
-
       tr {
         min-height: 56px;
       }
@@ -43,7 +39,7 @@ export const getTableStyles = (theme: GrafanaTheme2) => {
       transition: transform 0.2s;
 
       &--expanded {
-        transform: rotate(0deg);
+        transform: rotate(0deg) translateY(-5px); // to manually compensate for top: 3px
       }
     `,
 

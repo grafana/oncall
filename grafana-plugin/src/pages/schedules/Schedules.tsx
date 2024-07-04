@@ -115,7 +115,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
                 total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handlePageChange,
               }}
-              tableLayout="fixed"
               rowKey="id"
               expandable={{
                 expandedRowKeys,
