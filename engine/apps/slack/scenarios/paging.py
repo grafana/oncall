@@ -609,10 +609,10 @@ def _get_predefined_org_from_private_metadata(
     Returns organization from private metadata.
     """
     org_id = private_metadata.get("organization_id")
-    org = None
-    if org_id:
-        org = slack_team_identity.organizations.filter(pk=org_id).first()
-    return org
+    if not org_id:
+        return None
+
+    return slack_team_identity.organizations.filter(pk=org_id).first()
 
 
 def _get_team_select_blocks(
