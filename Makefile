@@ -156,7 +156,8 @@ build:  ## rebuild images (e.g. when changing requirements.txt)
 cleanup: stop  ## this will remove all of the images, containers, volumes, and networks
                ## associated with your local OnCall developer setup
 	$(call echo_deprecation_message)
-	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
+	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes --force
+	docker volume prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --force
 
 install-pre-commit:
 	@if [ ! -x "$$(command -v pre-commit)" ]; then \
