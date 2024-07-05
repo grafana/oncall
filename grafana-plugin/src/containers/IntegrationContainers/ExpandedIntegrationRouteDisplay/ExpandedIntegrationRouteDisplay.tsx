@@ -150,6 +150,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       return <LoadingPlaceholder text="Loading..." />;
     }
 
+    const hasLabels = store.hasFeature(AppFeature.Labels);
     const escChainDisplayName = escalationChainStore.items[channelFilter.escalation_chain]?.name;
     const getTreeViewElements = () => {
       const configs: IntegrationCollapsibleItem[] = [
@@ -172,10 +173,10 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
               ) : (
                 <VerticalGroup spacing="sm">
                   <Text customTag="h6" type="primary">
-                    Alerts matched by
+                    {hasLabels ? 'Alerts matched by' : 'Use routing template'}
                   </Text>
 
-                  {store.hasFeature(AppFeature.Labels) && (
+                  <RenderConditionally shouldRender={hasLabels}>
                     <VerticalGroup>
                       <div className={cx('labels-panel')}>
                         <RadioButtonGroup
@@ -199,9 +200,9 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         </VerticalGroup>
                       </RenderConditionally>
                     </VerticalGroup>
-                  )}
+                  </RenderConditionally>
 
-                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.TEMPLATE}>
+                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.TEMPLATE || !hasLabels}>
                     <VerticalGroup>
                       <HorizontalGroup spacing="xs">
                         <div className={cx('input', 'input--align')}>
