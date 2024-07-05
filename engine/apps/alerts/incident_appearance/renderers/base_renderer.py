@@ -1,10 +1,11 @@
 import typing
 from abc import ABC, abstractmethod
 
+from django.db.models import QuerySet
 from django.utils.functional import cached_property
 
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import Alert, AlertGroup
+    from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
 
 class AlertBaseRenderer(ABC):
@@ -33,3 +34,17 @@ class AlertGroupBaseRenderer(ABC):
     @abstractmethod
     def alert_renderer_class(self):
         raise NotImplementedError
+
+
+class AlertGroupBundleBaseRenderer:
+    def __init__(
+        self,
+        alert_groups_to_render: QuerySet["AlertGroup"],
+        alert_groups_count: int,
+        channels_to_render: QuerySet["AlertReceiveChannel"],
+        channels_count: int,
+    ):
+        self.alert_groups_to_render = alert_groups_to_render
+        self.alert_groups_count = alert_groups_count
+        self.channels_to_render = channels_to_render
+        self.channels_count = channels_count
