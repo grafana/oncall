@@ -60,7 +60,6 @@ import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
 import { IncidentDropdown } from './parts/IncidentDropdown';
-import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
 import { SilenceSelect } from './parts/SilenceSelect';
 
 interface Pagination {

@@ -11,10 +11,9 @@ import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsis
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
+import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization/authorization';
-import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 
 export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']; isFull: boolean }) => {
   const { incident, isFull } = props;
