@@ -9,8 +9,16 @@ from django.test import override_settings
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
+from apps.grafana_plugin.sync_data import SyncUser
 from apps.user_management.models import User
-from apps.user_management.sync import cleanup_organization, sync_organization, sync_team_members, sync_teams, sync_users
+from apps.user_management.sync import (
+    cleanup_organization,
+    get_or_create_user,
+    sync_organization,
+    sync_team_members,
+    sync_teams,
+    sync_users,
+)
 
 MOCK_GRAFANA_INCIDENT_BACKEND_URL = "https://grafana-incident.test"
 
@@ -435,7 +443,6 @@ class TestSyncGrafanaLabelsPluginParams:
         TestSyncGrafanaLabelsPluginParams(({"enabled": False}, None), False),
     ],
 )
-@pytest.mark.django_db
 def test_sync_grafana_labels_plugin(make_organization, test_params: TestSyncGrafanaLabelsPluginParams):
     organization = make_organization()
     organization.is_grafana_labels_enabled = False  # by default in tests it's true, so setting to false
@@ -471,7 +478,6 @@ class TestSyncGrafanaIncidentParams:
         TestSyncGrafanaIncidentParams(({"enabled": False}, None), False, None),  # plugin is disabled for some reason
     ],
 )
-@pytest.mark.django_db
 def test_sync_grafana_incident_plugin(make_organization, test_params: TestSyncGrafanaIncidentParams):
     organization = make_organization()
     with patched_grafana_api_client(organization) as mock_grafana_api_client:
@@ -480,3 +486,44 @@ def test_sync_grafana_incident_plugin(make_organization, test_params: TestSyncGr
     organization.refresh_from_db()
     assert organization.is_grafana_incident_enabled is test_params.expected_flag
     assert organization.grafana_incident_backend_url == test_params.expected_url
+
+
+@pytest.mark.django_db
+def test_get_or_create_user(make_organization, make_team, make_user_for_organization):
+    organization = make_organization()
+    team = make_team(organization)
+    # add an existing_user
+    existing_user = make_user_for_organization(organization)
+    team.users.add(existing_user)
+
+    assert organization.users.count() == 1
+    assert team.users.count() == 1
+
+    sync_user = SyncUser(
+        id=42,
+        email="test@test.com",
+        name="Test",
+        login="test",
+        avatar_url="https://test.com/test",
+        role="admin",
+        permissions=[],
+        teams=None,
+    )
+
+    # create user
+    user = get_or_create_user(organization, sync_user)
+
+    assert user.user_id == sync_user.id
+    assert user.name == sync_user.name
+    assert user.email == sync_user.email
+    assert user.avatar_full_url == sync_user.avatar_url
+    assert organization.users.count() == 2
+    assert team.users.count() == 1
+
+    # update user
+    sync_user.teams = [team.team_id]
+    user = get_or_create_user(organization, sync_user)
+
+    assert organization.users.count() == 2
+    assert team.users.count() == 2
+    assert team.users.filter(pk=user.pk).exists()

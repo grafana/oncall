@@ -175,7 +175,6 @@ class PluginAuthentication(BasePluginAuthentication):
                     permissions=user_data["permissions"] or [],
                     teams=user_data.get("teams", None),
                 )
-                # TODO: should we trigger an async sync at this point?
                 return get_or_create_user(organization, user_sync_data)
             else:
                 logger.debug("Could not get user from grafana request.")
