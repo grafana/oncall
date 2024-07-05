@@ -579,8 +579,9 @@ class IncidentLogBuilder:
                 escalation_plan_dict.setdefault(timedelta, []).append(plan)
         return escalation_plan_dict
 
-    def _render_user_notification_line(self, user_to_notify: "User", notification_policy: "UserNotificationPolicy",
-                                       for_slack=False):
+    def _render_user_notification_line(
+        self, user_to_notify: "User", notification_policy: "UserNotificationPolicy", for_slack=False
+    ):
         """
         Renders user notification plan line
         :param user_to_notify:
@@ -613,8 +614,9 @@ class IncidentLogBuilder:
             result += f"inviting {user_verbal} but notification channel is unspecified"
         return result
 
-    def _get_notification_plan_for_user(self, user_to_notify: "User", future_step=False, important=False,
-                                        for_slack=False):
+    def _get_notification_plan_for_user(
+        self, user_to_notify: "User", future_step=False, important=False, for_slack=False
+    ):
         """
         Renders user notification plan
         :param user_to_notify:

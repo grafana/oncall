@@ -84,8 +84,6 @@ class UserManager(models.Manager["User"]):
 
     @staticmethod
     def sync_for_organization(organization, api_users: list[dict]):
-        from apps.base.models import UserNotificationPolicy
-
         grafana_users = {user["userId"]: user for user in api_users}
         existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
 
@@ -415,11 +413,14 @@ class User(models.Model):
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
-    def get_notification_policies_or_use_default_fallback(self,
-                                                          important=False) -> typing.List["UserNotificationPolicy"]:
+    def get_notification_policies_or_use_default_fallback(
+        self, important=False
+    ) -> typing.List["UserNotificationPolicy"]:
         """
         If the user has no notification policies defined, fallback to using e-mail as the notification channel.
         """
+        from apps.base.models import UserNotificationPolicy
+
         if not self.notification_policies.filter(important=important).exists():
             return [
                 UserNotificationPolicy(
