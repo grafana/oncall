@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import typing
+import urllib.parse
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -87,9 +88,11 @@ class ChannelFilter(OrderedModel):
 
     FILTERING_TERM_TYPE_REGEX = 0
     FILTERING_TERM_TYPE_JINJA2 = 1
+    FILTERING_TERM_TYPE_LABELS = 2
     FILTERING_TERM_TYPE_CHOICES = [
         (FILTERING_TERM_TYPE_REGEX, "regex"),
         (FILTERING_TERM_TYPE_JINJA2, "jinja2"),
+        (FILTERING_TERM_TYPE_LABELS, "labels"),
     ]
     filtering_term_type = models.IntegerField(choices=FILTERING_TERM_TYPE_CHOICES, default=FILTERING_TERM_TYPE_REGEX)
 
@@ -145,7 +148,21 @@ class ChannelFilter(OrderedModel):
             except re.error:
                 logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
                 return False
+        if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            for key, value in self.filtering_labels:
+                if key not in alert_labels:
+                    return False
+                if value and alert_labels[key] != value:
+                    return False
+            return True
         return False
+
+    @property
+    def filtering_labels(self):
+        labels = None
+        if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            labels = urllib.parse.parse_qsl(self.filtering_term, keep_blank_values=True)
+        return labels
 
     @property
     def slack_channel_id_or_general_log_id(self):
@@ -166,6 +183,8 @@ class ChannelFilter(OrderedModel):
             return str(self.filtering_term)
         elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or self.filtering_term_type is None:
             return str(self.filtering_term).replace("`", "")
+        elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            return str(self.filtering_term)
         raise Exception("Unknown filtering term")
 
     # Insight logs

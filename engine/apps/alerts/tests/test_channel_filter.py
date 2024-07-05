@@ -101,3 +101,40 @@ def test_channel_filter_select_filter_labels(
     assert ChannelFilter.select_filter(alert_receive_channel, {"title": "Test Title", "value": 5}, labels) == (
         custom_channel_filter if should_match else default_channel_filter
     )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "filtering_term,filtering_labels,labels,should_match",
+    [
+        ("foo=", [("foo", "")], {"foo": "bar"}, True),
+        ("foo=bar", [("foo", "bar")], {"foo": "bar"}, True),
+        ("foo=bar&bar=baz", [("foo", "bar"), ("bar", "baz")], {"foo": "bar", "bar": "baz"}, True),
+        ("bar=", [("bar", "")], {"foo": "bar"}, False),
+        ("foo=bar&bar=bar", [("foo", "bar"), ("bar", "bar")], {"foo": "bar", "bar": "baz"}, False),
+    ],
+)
+def test_channel_filter_using_filter_labels(
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    filtering_term,
+    filtering_labels,
+    labels,
+    should_match,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)  # default channel filter
+    custom_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        filtering_term=filtering_term,
+        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_LABELS,
+        is_default=False,
+    )
+
+    assert custom_channel_filter.filtering_labels == filtering_labels
+
+    assert ChannelFilter.select_filter(alert_receive_channel, {"title": "Test Title", "value": 5}, labels) == (
+        custom_channel_filter if should_match else default_channel_filter
+    )

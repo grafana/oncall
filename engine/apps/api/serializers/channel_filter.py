@@ -1,4 +1,5 @@
 import typing
+import urllib.parse
 
 from rest_framework import serializers
 
@@ -30,6 +31,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     telegram_channel_details = serializers.SerializerMethodField()
     filtering_term_as_jinja2 = serializers.SerializerMethodField()
     filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    filtering_labels = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["escalation_chain", "alert_receive_channel"]
 
@@ -41,6 +43,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "escalation_chain",
             "slack_channel",
             "created_at",
+            "filtering_labels",
             "filtering_term",
             "filtering_term_type",
             "telegram_channel",
@@ -75,6 +78,13 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             if filtering_term is not None:
                 if not is_regex_valid(filtering_term):
                     raise serializers.ValidationError(["Regular expression is incorrect"])
+        elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            if filtering_term is not None:
+                try:
+                    # make sure that the filtering term is a valid query string
+                    urllib.parse.parse_qsl(filtering_term, strict_parsing=True)
+                except ValueError:
+                    raise serializers.ValidationError(["Filtering labels are incorrect"])
         else:
             raise serializers.ValidationError(["Expression type is incorrect"])
         return data
@@ -133,15 +143,25 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             notification_backends = updated
         return notification_backends
 
+    def get_filtering_labels(self, obj):
+        """Return filtering (key, value) labels list if set."""
+        return obj.filtering_labels
+
     def get_filtering_term_as_jinja2(self, obj):
-        """
-        Returns the regex filtering term as a jinja2, for the preview before migration from regex to jinja2"""
+        """Returns the regex or labels filtering term as a jinja2, for preview purposes."""
         if obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             return obj.filtering_term
         elif obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             # Four curly braces will result in two curly braces in the final string
             # rf"..." is a raw f string, to keep original filtering_term
             return rf'{{{{ payload | json_dumps | regex_search("{obj.filtering_term}") }}}}'
+        elif obj.filtering_term and obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            # required labels
+            keys = [f"labels.{k}" for k, _ in obj.filtering_labels]
+            # check expected values
+            values = [f"labels.{k} == '{v}'" for k, v in obj.filtering_labels if v]
+            template = "{{{{ {conditions} }}}}".format(conditions=" and ".join(keys + values))
+            return template
 
 
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):
@@ -156,6 +176,7 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "escalation_chain",
             "slack_channel",
             "created_at",
+            "filtering_labels",
             "filtering_term",
             "filtering_term_type",
             "telegram_channel",

@@ -555,6 +555,84 @@ def test_channel_filter_convert_from_regex_to_jinja2(
 
 
 @pytest.mark.django_db
+def test_channel_filter_labels_filter(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    label_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        is_default=False,
+        filtering_term="key1=value1&key2=value2&key3=&key4=value4",
+        filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_LABELS,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    response_data = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    expected_jinja2_template = (
+        "{{ labels.key1 and labels.key2 and labels.key3 and labels.key4 and "
+        "labels.key1 == 'value1' and labels.key2 == 'value2' and labels.key4 == 'value4' }}"
+    )
+    assert response_data["filtering_term_as_jinja2"] == expected_jinja2_template
+    assert response_data["filtering_term_type"] == ChannelFilter.FILTERING_TERM_TYPE_LABELS
+    assert response_data["filtering_labels"] == [
+        ["key1", "value1"],
+        ["key2", "value2"],
+        ["key3", ""],
+        ["key4", "value4"],
+    ]
+
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": default_channel_filter.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    response_data = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert response_data["filtering_labels"] is None
+
+
+@pytest.mark.django_db
+def test_updated_channel_filter_labels_filter(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    make_channel_filter(alert_receive_channel, is_default=True)
+    label_channel_filter = make_channel_filter(alert_receive_channel, is_default=False)
+
+    client = APIClient()
+    data = {
+        "filtering_term": "key1=&key2=value2",
+        "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
+    }
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
+    response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+    response_data = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert response_data["filtering_term_type"] == ChannelFilter.FILTERING_TERM_TYPE_LABELS
+    assert response_data["filtering_labels"] == [["key1", ""], ["key2", "value2"]]
+
+    invalid_data = {
+        "filtering_term": "key1&key2=value2",
+        "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
+    }
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
+    response = client.put(url, data=invalid_data, format="json", **make_user_auth_headers(user, token))
+    response_data = response.json()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_channel_filter_long_filtering_term(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
