@@ -14,6 +14,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization/authorization';
+import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 
 export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']; isFull: boolean }) => {
   const { incident, isFull } = props;
@@ -153,7 +154,7 @@ export function getActionButtons(
 
   const silenceButton = (
     <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
-      <SilenceButtonCascader disabled={incident?.loading} onSelect={onSilence} />
+      <SilenceSelect disabled={incident?.loading} onSelect={onSilence} />
     </WithPermissionControlTooltip>
   );
 

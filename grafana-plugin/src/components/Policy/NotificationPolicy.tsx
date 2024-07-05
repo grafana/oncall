@@ -203,7 +203,6 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
         <div className={this.styles.container}>
           <Select
             key="wait-delay"
-            placeholder="Wait Delay"
             className={cx(this.styles.delay, this.styles.control)}
             value={wait_delay ? optionValue : undefined}
             disabled={disabled}
