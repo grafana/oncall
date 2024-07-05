@@ -87,7 +87,7 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
 
             if notification_policies:
                 usergroup_notification_plan += "\n_{} (".format(
-                    step.get_user_notification_message_for_thread_for_usergroup(user, notification_policies.first())
+                    step.get_user_notification_message_for_thread_for_usergroup(user, notification_policies[0])
                 )
             else:
                 usergroup_notification_plan += "Empty notifications"
