@@ -12,7 +12,7 @@ import { openErrorNotification } from 'utils/utils';
 interface RouteLabelsDisplayProps {
   labels: Array<components['schemas']['LabelPair']>;
   labelErrors: any;
-  onChange: (value: any) => void;
+  onChange: (value: components['schemas']['LabelPair'][]) => void;
   onShowTemplateEditor: (index: number) => void;
 }
 
@@ -95,6 +95,7 @@ export const RouteLabelsDisplay: React.FC<RouteLabelsDisplayProps> = ({
                 value={option.value.name}
                 addonAfter={
                   <Button
+                    disabled={!labels[index].key.id}
                     variant="secondary"
                     icon="edit"
                     onClick={() => {
@@ -138,5 +139,5 @@ export const RouteLabelsDisplay: React.FC<RouteLabelsDisplayProps> = ({
 
 const getIsAddBtnDisabled = (labels: Array<components['schemas']['LabelPair']> = []) => {
   const lastItem = labels.at(-1);
-  return lastItem && (lastItem?.key.id === undefined || lastItem?.value.id === undefined);
+  return lastItem && (lastItem.key?.id === undefined || lastItem.value?.id === undefined);
 };

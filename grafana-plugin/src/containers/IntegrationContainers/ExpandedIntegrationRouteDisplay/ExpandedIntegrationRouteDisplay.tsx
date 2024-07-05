@@ -39,7 +39,7 @@ import { RouteLabelsDisplay } from 'containers/RouteLabelsDisplay/RouteLabelsDis
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
@@ -190,9 +190,24 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         <VerticalGroup>
                           <RouteLabelsDisplay
                             labels={labels}
-                            onChange={(val) => {
+                            onChange={async (val) => {
                               setLabelErrors([]);
                               setLabels(val);
+
+                              const allKeysValidated = val.every(
+                                (v) => v.key?.id !== undefined && v.value?.id !== undefined
+                              );
+
+                              if (!allKeysValidated) return;
+
+                              const labelQueryString = val.map((v) => `${v.key.name}=${v.value.name}`).join('&');
+                              await alertReceiveChannelStore.saveChannelFilter(
+                                channelFilterId,
+                                {
+                                  filtering_term: labelQueryString,
+                                  filtering_term_type: FilteringTermType.labels,
+                                }
+                              );
                             }}
                             onShowTemplateEditor={setCustomLabelIndexToShowTemplateEditor}
                             labelErrors={labelErrors}
@@ -380,11 +395,11 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   templateBody={labels[customLabelIndexToShowTemplateEditor].value.name}
                   onHide={() => setCustomLabelIndexToShowTemplateEditor(undefined)}
                   onUpdateTemplates={(templates) => {
-                    const newCustom = [...labels];
-                    newCustom[customLabelIndexToShowTemplateEditor].value.name =
+                    const newLabels = [...labels];
+                    newLabels[customLabelIndexToShowTemplateEditor].value.name =
                       templates[LabelTemplateOptions.AlertGroupDynamicLabel.key];
 
-                    setLabels([...labels, newCustom]);
+                    setLabels([...newLabels]);
 
                     setCustomLabelIndexToShowTemplateEditor(undefined);
                   }}

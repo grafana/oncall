@@ -6,6 +6,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 export enum FilteringTermType {
   regex,
   jinja2,
+  labels
 }
 
 export interface ChannelFilter {
