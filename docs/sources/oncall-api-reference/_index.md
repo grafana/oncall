@@ -37,6 +37,8 @@ Grafana OnCall uses API keys to allow access to the API. You can request a new O
 An API key is specific to a user and a Grafana stack. If you want to switch to a different stack configuration,
 request a different API key.
 
+The endpoint refers to the OnCall Application endpoint and can be found on the OnCall -> Settings page as well.
+
 ## Pagination
 
 List endpoints such as List Integrations or List Alert Groups return multiple objects.

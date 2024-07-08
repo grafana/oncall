@@ -156,7 +156,8 @@ build:  ## rebuild images (e.g. when changing requirements.txt)
 cleanup: stop  ## this will remove all of the images, containers, volumes, and networks
                ## associated with your local OnCall developer setup
 	$(call echo_deprecation_message)
-	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
+	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes --force
+	docker volume prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --force
 
 install-pre-commit:
 	@if [ ! -x "$$(command -v pre-commit)" ]; then \
@@ -245,7 +246,7 @@ pip-compile-locked-dependencies:  ## compile engine requirements.txt files
 define backend_command
 	export `grep -v '^#' $(DEV_ENV_FILE) | xargs -0` && \
 	export BROKER_TYPE=$(BROKER_TYPE) && \
-	. ./venv/bin/activate && \
+	. $(VENV_DIR)/bin/activate && \
 	cd engine && \
 	$(1)
 endef
@@ -253,9 +254,9 @@ endef
 backend-bootstrap:
 	python3.12 -m venv $(VENV_DIR)
 	$(VENV_DIR)/bin/pip install -U pip wheel uv
-	$(VENV_DIR)/bin/uv pip sync $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
+	$(VENV_DIR)/bin/uv pip sync --python=$(VENV_DIR)/bin/python $(REQUIREMENTS_TXT) $(REQUIREMENTS_DEV_TXT)
 	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
-		$(VENV_DIR)/bin/uv pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+		$(VENV_DIR)/bin/uv pip install --python=$(VENV_DIR)/bin/python -r $(REQUIREMENTS_ENTERPRISE_TXT); \
 	fi
 
 backend-migrate:

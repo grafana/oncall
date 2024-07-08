@@ -9,18 +9,20 @@ import { UserActions } from 'utils/authorization/authorization';
 
 interface SilenceSelectProps {
   placeholder?: string;
+  disabled?: boolean;
 
   onSelect: (value: number) => void;
 }
 
 export const SilenceSelect = observer((props: SilenceSelectProps) => {
-  const { placeholder = 'Silence for', onSelect } = props;
+  const { placeholder = 'Silence for', disabled = false, onSelect } = props;
 
   return (
     <>
       {' '}
       <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
         <Select
+          disabled={disabled}
           menuShouldPortal
           placeholder={placeholder}
           value={undefined}

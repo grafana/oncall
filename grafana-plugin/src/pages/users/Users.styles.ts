@@ -3,6 +3,10 @@ import { GrafanaTheme2 } from '@grafana/data';
 
 export const getUsersStyles = (theme: GrafanaTheme2) => {
   return {
+    filters: css`
+      margin-bottom: 20px;
+    `,
+
     usersTtitle: css`
       display: flex;
       align-items: center;

@@ -87,7 +87,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
         ...shiftSwap,
       });
     }
-  }, [shiftSwap, store.timezoneStore.calendarStartDate]);
+  }, [shiftSwap, store.timezoneStore.calendarStartDate, store.timezoneStore.selectedTimezoneOffset]);
 
   const handleDescriptionChange = useCallback(
     (event) => {

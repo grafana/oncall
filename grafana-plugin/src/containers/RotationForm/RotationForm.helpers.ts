@@ -1,6 +1,8 @@
-import dayjs, { Dayjs, ManipulateType } from 'dayjs';
+import { Dayjs, ManipulateType } from 'dayjs';
+import { DraggableData } from 'react-draggable';
 
-import { Timezone } from 'models/timezone/timezone.types';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
+import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 
@@ -9,19 +11,6 @@ export const getRepeatShiftsEveryOptions = (repeatEveryPeriod: number) => {
   return Array.from(Array(count + 1).keys())
     .slice(1)
     .map((i) => ({ label: String(i), value: i }));
-};
-
-export const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
-  const localMoment = moment.tz(timezone);
-
-  return new Date(
-    localMoment.get('year'),
-    localMoment.get('month'),
-    localMoment.get('date'),
-    localMoment.get('hour'),
-    localMoment.get('minute'),
-    localMoment.get('second')
-  );
 };
 
 export interface TimeUnit {
@@ -171,23 +160,6 @@ export const repeatEveryInSeconds = (repeatEveryPeriod: RepeatEveryPeriod, repea
   return repeatEveryPeriodMultiplier[repeatEveryPeriod] * repeatEveryValue;
 };
 
-export const getDateForDatePicker = (dayJsDate: Dayjs) => {
-  const date = new Date();
-  // Day of the month needs to be set to 1st day at first to prevent incorrect month increment
-  // when selected day of month doesn't exist in current month
-  // E.g. selected date is 30th March and current month is Feb, so in this case date.setMonth(2) results in April
-
-  date.setDate(1); // temporary selection to prevent incorrect month increment
-
-  date.setFullYear(dayJsDate.year());
-  date.setMonth(dayJsDate.month());
-  date.setDate(dayJsDate.date());
-  date.setHours(dayJsDate.hour());
-  date.setMinutes(dayJsDate.minute());
-  date.setSeconds(dayJsDate.second());
-  return date;
-};
-
 export const dayJSAddWithDSTFixed = ({
   baseDate,
   addParams,
@@ -205,3 +177,40 @@ export const dayJSAddWithDSTFixed = ({
 
   return newDateCandidate.add(diff, 'minutes');
 };
+
+export function getDraggableModalCoordinatesOnInit(
+  data: DraggableData,
+  offsetTop: number
+): {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+} {
+  if (!data) {
+    return undefined;
+  }
+
+  const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
+  // top navbar display has 2 scrollbar-view elements (navbar & content)
+  const baseReferenceElRect = (
+    scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
+  ).getBoundingClientRect();
+
+  const { right, bottom } = baseReferenceElRect;
+
+  return isTopNavbar()
+    ? {
+        // values are adjusted by any padding/margin differences
+        left: -data.node.offsetLeft + 4,
+        right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+        top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
+        bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+      }
+    : {
+        left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
+        right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+        top: -offsetTop + 4,
+        bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+      };
+}

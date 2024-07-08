@@ -9,6 +9,7 @@ import {
   ONCALL_DEV,
   ONCALL_OPS,
   ONCALL_PROD,
+  getIsDevelopmentEnv,
 } from './consts';
 import { safeJSONStringify } from './string';
 
@@ -31,7 +32,7 @@ class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    if (this.faro) {
+    if (this.faro || getIsDevelopmentEnv()) {
       return undefined;
     }
 
@@ -105,19 +106,19 @@ class BaseFaroHelper {
     this.faro?.api.pushEvent(name, {
       url: res?.config?.url,
       status: `${res?.status}`,
-      statusText: `${res.statusText}`,
-      method: res.config?.method.toUpperCase(),
+      statusText: `${res?.statusText}`,
+      method: res?.config?.method.toUpperCase(),
     });
   };
 
-  pushAxiosNetworkError = (res: AxiosResponse) => {
-    this.faro?.api.pushError(new Error(`Network error: ${res.status}`), {
+  pushAxiosNetworkError = (res?: AxiosResponse) => {
+    this.faro?.api.pushError(new Error(`Network error: ${res?.status}`), {
       context: {
-        url: res.config?.url,
+        url: res?.config?.url,
         type: 'network',
-        data: `${safeJSONStringify(res.data)}`,
-        status: `${res.status}`,
-        statusText: `${res.statusText}`,
+        data: `${safeJSONStringify(res?.data)}`,
+        status: `${res?.status}`,
+        statusText: `${res?.statusText}`,
         timestamp: new Date().toUTCString(),
       },
     });

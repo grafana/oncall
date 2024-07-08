@@ -1,9 +1,11 @@
-name: Helm Release
+name: Update grafana/helm-charts repo
 
-"on":
+on:
   push:
     branches:
       - main
+    paths:
+      - helm/oncall/Chart.yaml
 
 jobs:
   call-update-helm-repo:

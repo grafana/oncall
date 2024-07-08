@@ -1,12 +1,14 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/user_groups/
-title: OnCall User Groups HTTP API
+title: OnCall user groups HTTP API
 weight: 1400
 ---
 
 <!--Used in escalation policies with type = `notify_user_group` and in schedules.-->
 
-# List user groups
+# OnCall user groups HTTP API
+
+## List user groups
 
 ```shell
 curl "{{API_URL}}/api/v1/user_groups/" \
