@@ -28,6 +28,9 @@ var (
 type App struct {
 	backend.CallResourceHandler
 	httpClient *http.Client
+	backend.AppInstanceSettings
+	backend.PluginContext
+	*backend.GrafanaCfg
 }
 
 // NewApp creates a new example *App instance.
@@ -40,6 +43,9 @@ func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (instance
 	mux := http.NewServeMux()
 	app.registerRoutes(mux)
 	app.CallResourceHandler = httpadapter.New(mux)
+	app.AppInstanceSettings = settings
+	app.PluginContext = httpadapter.PluginConfigFromContext(ctx)
+	app.GrafanaCfg = backend.GrafanaConfigFromContext(ctx)
 
 	opts, err := settings.HTTPClientOptions(ctx)
 	if err != nil {
@@ -82,7 +88,7 @@ func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSetti
 		log.DefaultLogger.Error("Error parsing path: %v", err)
 		return http.StatusInternalServerError, err
 	}
-	
+
 	healthReq, err := http.NewRequest("GET", parsedHealthURL.String(), nil)
 	if err != nil {
 		log.DefaultLogger.Error("Error creating request: ", err)

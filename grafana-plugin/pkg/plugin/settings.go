@@ -51,8 +51,18 @@ type OnCallPluginSettings struct {
 
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
 	pluginContext := httpadapter.PluginConfigFromContext(ctx)
+	cfg := backend.GrafanaConfigFromContext(ctx)
+	return a.OnCallSettingsFromPluginContext(&pluginContext, cfg)
+}
+
+func (a *App) OnCallSettingsFromPluginContext(pluginContext *backend.PluginContext, grafanaCfg *backend.GrafanaCfg) (*OnCallPluginSettings, error) {
+	return a.OnCallSettingsFromAppInstanceSettings(pluginContext.AppInstanceSettings, grafanaCfg)
+}
+
+func (a *App) OnCallSettingsFromAppInstanceSettings(appInstanceSettings *backend.AppInstanceSettings, grafanaCfg *backend.GrafanaCfg) (*OnCallPluginSettings, error) {
+
 	var pluginSettingsJson OnCallPluginSettingsJSONData
-	err := json.Unmarshal(pluginContext.AppInstanceSettings.JSONData, &pluginSettingsJson)
+	err := json.Unmarshal(appInstanceSettings.JSONData, &pluginSettingsJson)
 	if err != nil {
 		err = fmt.Errorf("OnCallSettingsFromContext: json.Unmarshal: %w", err)
 		log.DefaultLogger.Error(err.Error())
@@ -67,21 +77,20 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		GrafanaURL:   pluginSettingsJson.GrafanaURL,
 	}
 
-	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
-	cfg := backend.GrafanaConfigFromContext(ctx)
+	settings.OnCallToken = strings.TrimSpace(appInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
 	if settings.GrafanaURL == "" {
 		return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData): %v", settings)
 	}
 	log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 
-	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
-	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
-		settings.GrafanaToken, err = cfg.PluginAppClientSecret()
+	settings.RBACEnabled = grafanaCfg.FeatureToggles().IsEnabled("accessControlOnCall")
+	if grafanaCfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
+		settings.GrafanaToken, err = grafanaCfg.PluginAppClientSecret()
 		if err != nil {
 			return &settings, err
 		}
 	} else {
-		settings.GrafanaToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["grafanaToken"])
+		settings.GrafanaToken = strings.TrimSpace(appInstanceSettings.DecryptedSecureJSONData["grafanaToken"])
 	}
 
 	var jsonData map[string]interface{}
