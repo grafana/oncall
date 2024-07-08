@@ -19,7 +19,7 @@ export interface GTableProps<RecordType = unknown> extends TableProps<RecordType
   expandable?: {
     expandedRowKeys: string[];
     expandedRowRender: (item: any) => React.ReactNode;
-    onExpandedRowsChange: (rows: string[]) => void;
+    onExpandedRowsChange?: (rows: string[]) => void;
     expandRowByClick: boolean;
     expandIcon?: (props: { expanded: boolean; record: any }) => React.ReactNode;
     onExpand?: (expanded: boolean, item: any) => void;
@@ -47,7 +47,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
       const { expanded, record } = props;
       return (
         <Icon
-          style={{ cursor: 'pointer' }}
+          className={styles.expandIcon}
           name={expanded ? 'angle-down' : 'angle-right'}
           onClick={(event) => {
             event.stopPropagation();
@@ -62,7 +62,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
             }
 
             expandable.onExpand && expandable.onExpand(newExpanded, record);
-            expandable.onExpandedRowsChange(newExpandedRowKeys);
+            expandable.onExpandedRowsChange && expandable.onExpandedRowsChange(newExpandedRowKeys);
           }}
         />
       );
@@ -161,12 +161,13 @@ const getGTableStyles = () => ({
       width: 100%;
     }
   `,
-
   pagination: css`
     margin-top: 20px;
   `,
-
   checkbox: css`
     display: inline-flex;
+  `,
+  expandIcon: css`
+    cursor: pointer;
   `,
 });
