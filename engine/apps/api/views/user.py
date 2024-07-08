@@ -59,6 +59,7 @@ from apps.phone_notifications.exceptions import (
     FailedToStartVerification,
     NumberAlreadyVerified,
     NumberNotVerified,
+    PhoneNumberBanned,
     ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
@@ -479,6 +480,8 @@ class UserView(
             phone_backend.send_verification_sms(user)
         except NumberAlreadyVerified:
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+        except PhoneNumberBanned:
+            return Response("Phone number has been banned", status=status.HTTP_403_FORBIDDEN)
         except FailedToStartVerification as e:
             return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
@@ -506,6 +509,8 @@ class UserView(
             phone_backend.make_verification_call(user)
         except NumberAlreadyVerified:
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+        except PhoneNumberBanned:
+            return Response("Phone number has been banned", status=status.HTTP_403_FORBIDDEN)
         except FailedToStartVerification as e:
             return handle_phone_notificator_failed(e)
         except ProviderNotSupports:

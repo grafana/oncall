@@ -11,7 +11,11 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
-from apps.chatops_proxy.utils import register_oncall_tenant, unlink_slack_team, unregister_oncall_tenant
+from apps.chatops_proxy.utils import (
+    register_oncall_tenant_with_async_fallback,
+    unlink_slack_team,
+    unregister_oncall_tenant,
+)
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.types import AlertGroupTableColumn
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
@@ -61,9 +65,7 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            register_oncall_tenant(
-                str(instance.uuid), settings.ONCALL_BACKEND_REGION, instance.stack_id, instance.stack_slug
-            )
+            register_oncall_tenant_with_async_fallback(instance)
         return instance
 
     def delete(self):

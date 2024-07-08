@@ -377,7 +377,7 @@ class PhoneBackend:
 
     def _notify_connected_number(self, user):
         text = (
-            f"This phone number has been connected to Grafana OnCall team"
+            f"This phone number has been connected to Grafana OnCall team "
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
@@ -392,7 +392,7 @@ class PhoneBackend:
 
     def _notify_disconnected_number(self, user, number):
         text = (
-            f"This phone number has been disconnected from Grafana OnCall team"
+            f"This phone number has been disconnected from Grafana OnCall team "
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
