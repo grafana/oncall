@@ -82,39 +82,6 @@ if not is_ci:
     )
 
 local_resource(
-    "jest-tests",
-    labels=["Tests"],
-    cmd="cd grafana-plugin && yarn test:report",
-    trigger_mode=TRIGGER_MODE_MANUAL,
-    auto_init=False,
-    resource_deps=["build-ui"]
-)
-
-cmd_button(
-    name="Run Jest",
-    argv=["sh", "-c", "yarn --cwd grafana-plugin test:report"],
-    text="Run frontend unit tests",
-    resource="jest-tests",
-    icon_name="replay",
-)
-
-cmd_button(
-    name="Run Jest in watch mode",
-    argv=["sh", "-c", "yarn --cwd grafana-plugin test --watch"],
-    text="Run frontend unit tests in watch mode",
-    resource="jest-tests",
-    icon_name="visibility",
-)
-
-cmd_button(
-    name="Stop Jest",
-    argv=["sh", "-c", "kill -9 $(pgrep -f \"yarn --cwd grafana-plugin test\")"],
-    text="Stop",
-    resource="jest-tests",
-    icon_name="dangerous",
-)
-
-local_resource(
     "e2e-tests",
     labels=["E2eTests"],
     cmd=e2e_tests_cmd,
