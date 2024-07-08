@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -94,11 +95,10 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
     userStore.sendTestSms(userPk);
   }, [userPk, userStore.sendTestSms]);
 
-  const handleForgetNumberClick = useCallback(() => {
-    UserHelper.forgetPhone(userPk).then(async () => {
-      await userStore.fetchItemById({ userPk });
-      setState({ phone: '', showForgetScreen: false, isCodeSent: false, isPhoneCallInitiated: false });
-    });
+  const handleForgetNumberClick = useCallback(async () => {
+    await UserHelper.forgetPhone(userPk);
+    await userStore.fetchItemById({ userPk });
+    setState({ phone: '', showForgetScreen: false, isCodeSent: false, isPhoneCallInitiated: false });
   }, [userPk, UserHelper.forgetPhone, userStore.fetchItemById]);
 
   const onSubmitCallback = useCallback(
@@ -108,39 +108,35 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
         codeVerification = isPhoneCallInitiated;
       }
       if (codeVerification) {
-        UserHelper.verifyPhone(userPk, code).then(() => {
-          userStore.fetchItemById({ userPk });
-        });
+        await UserHelper.verifyPhone(userPk, code);
+        userStore.fetchItemById({ userPk });
       } else {
-        window.grecaptcha.ready(function () {
-          window.grecaptcha
-            .execute(rootStore.recaptchaSiteKey, { action: 'mobile_verification_code' })
-            .then(async function (token) {
-              await userStore.updateUser({
-                pk: userPk,
-                email: user.email,
-                unverified_phone_number: phone,
-              });
+        window.grecaptcha.ready(async function () {
+          const token = await window.grecaptcha.execute(rootStore.recaptchaSiteKey, {
+            action: 'mobile_verification_code',
+          });
+          await userStore.updateUser({
+            pk: userPk,
+            email: user.email,
+            unverified_phone_number: phone,
+          });
 
-              switch (type) {
-                case 'verification_call':
-                  UserHelper.fetchVerificationCall(userPk, token).then(() => {
-                    setState({ isPhoneCallInitiated: true });
-                    if (codeInputRef.current) {
-                      codeInputRef.current.focus();
-                    }
-                  });
-                  break;
-                case 'verification_sms':
-                  UserHelper.fetchVerificationCode(userPk, token).then(() => {
-                    setState({ isCodeSent: true });
-                    if (codeInputRef.current) {
-                      codeInputRef.current.focus();
-                    }
-                  });
-                  break;
+          switch (type) {
+            case 'verification_call':
+              await UserHelper.fetchVerificationCall(userPk, token);
+              setState({ isPhoneCallInitiated: true });
+              if (codeInputRef.current) {
+                codeInputRef.current.focus();
               }
-            });
+              break;
+            case 'verification_sms':
+              await UserHelper.fetchVerificationCode(userPk, token);
+              setState({ isCodeSent: true });
+              if (codeInputRef.current) {
+                codeInputRef.current.focus();
+              }
+              break;
+          }
         });
       }
     },
@@ -157,9 +153,8 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   );
 
   const onVerifyCallback = useCallback(async () => {
-    UserHelper.verifyPhone(userPk, code).then(() => {
-      userStore.fetchItemById({ userPk });
-    });
+    await UserHelper.verifyPhone(userPk, code);
+    userStore.fetchItemById({ userPk });
   }, [code, userPk, UserHelper.verifyPhone, userStore.fetchItemById]);
 
   const providerConfiguration = organizationStore.currentOrganization?.env_status.phone_provider;
@@ -174,7 +169,9 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const isButtonDisabled =
     phone === user.verified_phone_number ||
     (!isCodeSent && !isPhoneValid && !isPhoneCallInitiated) ||
-    !isPhoneProviderConfigured;
+    !isPhoneProviderConfigured ||
+    !window.grecaptcha;
+  const disabledButtonTooltipText = window.grecaptcha ? undefined : 'reCAPTCHA has not been loaded';
 
   const isPhoneDisabled = !!user.verified_phone_number;
   const isCodeFieldDisabled = (!isCodeSent && !isPhoneCallInitiated) || !isUserActionAllowed(action);
@@ -269,6 +266,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
           isCodeSent={isCodeSent}
           isPhoneCallInitiated={isPhoneCallInitiated}
           isButtonDisabled={isButtonDisabled}
+          disabledButtonTooltipText={disabledButtonTooltipText}
           providerConfiguration={providerConfiguration}
           onSubmitCallback={onSubmitCallback}
           onVerifyCallback={onVerifyCallback}
@@ -312,6 +310,7 @@ interface PhoneVerificationButtonsGroupProps {
   isCodeSent: boolean;
   isPhoneCallInitiated: boolean;
   isButtonDisabled: boolean;
+  disabledButtonTooltipText?: string;
   providerConfiguration: {
     configured: boolean;
     test_call: boolean;
@@ -334,6 +333,7 @@ const PhoneVerificationButtonsGroup = observer(
     isCodeSent,
     isPhoneCallInitiated,
     isButtonDisabled,
+    disabledButtonTooltipText,
     providerConfiguration,
     onSubmitCallback,
     onVerifyCallback,
@@ -359,30 +359,37 @@ const PhoneVerificationButtonsGroup = observer(
                 </WithPermissionControlTooltip>
               </>
             ) : (
-              <HorizontalGroup>
-                {providerConfiguration.verification_sms && (
-                  <WithPermissionControlTooltip userAction={action}>
-                    <Button
-                      variant="primary"
-                      onClick={() => onSubmitCallback('verification_sms')}
-                      disabled={isButtonDisabled}
-                    >
-                      Send Code
-                    </Button>
-                  </WithPermissionControlTooltip>
+              <RenderConditionally
+                shouldRender={Boolean(providerConfiguration)}
+                render={() => (
+                  <HorizontalGroup>
+                    {providerConfiguration.verification_sms && (
+                      <WithPermissionControlTooltip userAction={action}>
+                        <Button
+                          variant="primary"
+                          onClick={() => onSubmitCallback('verification_sms')}
+                          disabled={isButtonDisabled}
+                          tooltip={disabledButtonTooltipText}
+                        >
+                          Send Code
+                        </Button>
+                      </WithPermissionControlTooltip>
+                    )}
+                    {providerConfiguration.verification_call && (
+                      <WithPermissionControlTooltip userAction={action}>
+                        <Button
+                          variant="primary"
+                          onClick={() => onSubmitCallback('verification_call')}
+                          disabled={isButtonDisabled}
+                          tooltip={disabledButtonTooltipText}
+                        >
+                          Call to get the code
+                        </Button>
+                      </WithPermissionControlTooltip>
+                    )}
+                  </HorizontalGroup>
                 )}
-                {providerConfiguration.verification_call && (
-                  <WithPermissionControlTooltip userAction={action}>
-                    <Button
-                      variant="primary"
-                      onClick={() => onSubmitCallback('verification_call')}
-                      disabled={isButtonDisabled}
-                    >
-                      Call to get the code
-                    </Button>
-                  </WithPermissionControlTooltip>
-                )}
-              </HorizontalGroup>
+              ></RenderConditionally>
             )}
           </HorizontalGroup>
         )}

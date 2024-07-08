@@ -4,7 +4,7 @@ import operator
 
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, OuterRef, Subquery
+from django.db.models import Count, OuterRef, Prefetch, Q, Subquery
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import dateparse, timezone
@@ -34,8 +34,9 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.schedules.constants import PREFETCHED_SHIFT_SWAPS
 from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
-from apps.schedules.models import OnCallSchedule
+from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -125,7 +126,7 @@ class ScheduleView(
         if slack_team_identity is None:
             return False
 
-        user_group = slack_team_identity.usergroups.first()
+        user_group = slack_team_identity.usergroups.filter(is_active=True).first()
         if user_group is None:
             return False
 
@@ -138,13 +139,29 @@ class ScheduleView(
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
         current_schedules = self.get_queryset(annotate=False).none()
+        events_datetime = datetime.datetime.now(datetime.timezone.utc)
         if self.action == "list":
-            # listing page, only get oncall users for current page schedules
-            current_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset(annotate=False)))
+            # listing page, only get oncall users for current page schedules, prefetch shift swap requests
+            current_schedules = self.filter_queryset(self.get_queryset(annotate=False)).prefetch_related(
+                self.prefetch_shift_swaps(
+                    queryset=ShiftSwapRequest.objects.filter(
+                        swap_start__lte=events_datetime, swap_end__gte=events_datetime
+                    )
+                )
+            )
+            current_schedules = self.paginate_queryset(current_schedules)
         elif self.kwargs.get("pk"):
             # if this is a particular schedule detail, only consider it as current
             current_schedules = [self.get_object(annotate=False)]
-        return get_oncall_users_for_multiple_schedules(current_schedules)
+        return get_oncall_users_for_multiple_schedules(current_schedules, events_datetime)
+
+    @staticmethod
+    def prefetch_shift_swaps(queryset):
+        return Prefetch(
+            "shift_swap_requests",
+            queryset=queryset.select_related("benefactor", "beneficiary").order_by("created_at"),
+            to_attr=PREFETCHED_SHIFT_SWAPS,
+        )
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -186,8 +203,9 @@ class ScheduleView(
         )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-        if not is_short_request or annotate:
-            queryset = self._annotate_queryset(queryset)
+        if not is_short_request:
+            if annotate:
+                queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
         if filter_by_type:
             valid_types = [i for i in filter_by_type if i in SCHEDULE_TYPE_TO_CLASS]
@@ -425,8 +443,19 @@ class ScheduleView(
         user_tz, starting_date, days = get_date_range_from_request(self.request)
         pytz_tz = pytz.timezone(user_tz)
         datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
-
-        schedules = OnCallSchedule.objects.related_to_user(self.request.user)
+        datetime_end = datetime_start + datetime.timedelta(days=days)
+        schedules = (
+            OnCallSchedule.objects.related_to_user(self.request.user)
+            .select_related("organization")
+            .prefetch_related(
+                self.prefetch_shift_swaps(
+                    queryset=ShiftSwapRequest.objects.filter(
+                        Q(swap_start__lt=datetime_start, swap_end__gte=datetime_start)
+                        | Q(swap_start__gte=datetime_start, swap_start__lte=datetime_end)
+                    )
+                )
+            )
+        )
         schedules_events = []
         is_oncall = False
         for schedule in schedules:

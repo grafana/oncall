@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.organization import CurrentOrganizationSerializer
+from apps.api.serializers.organization import CurrentOrganizationConfigChecksSerializer, CurrentOrganizationSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
@@ -47,6 +47,20 @@ class CurrentOrganizationView(APIView):
             prev_state=prev_state,
             new_state=new_state,
         )
+        return Response(serializer.data)
+
+
+class OrganizationConfigChecksView(APIView):
+    authentication_classes = (PluginAuthentication,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
+    }
+
+    def get(self, request):
+        organization = request.auth.organization
+        serializer = CurrentOrganizationConfigChecksSerializer(organization)
         return Response(serializer.data)
 
 

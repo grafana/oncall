@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
+from apps.slack.chatops_proxy_routing import make_value
 from apps.slack.client import SlackClient
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.errors import SlackAPIViewNotFoundError
@@ -26,26 +27,15 @@ def test_get_resolution_notes_blocks_default_if_empty(
 
     blocks = step.get_resolution_notes_blocks(alert_group, "", False)
 
-    link_to_instruction = create_engine_url("static/images/postmortem.gif")
     expected_blocks = [
-        {
-            "type": "divider",
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": ":bulb: You can add a message to the resolution notes via context menu:",
-            },
-        },
         {
             "type": "image",
             "title": {
                 "type": "plain_text",
-                "text": "Add a resolution note",
+                "text": SlackResolutionNoteModalStep.MESSAGE_SHORTCUT_INSTRUCTION,
             },
-            "image_url": link_to_instruction,
-            "alt_text": "Add to postmortem context menu",
+            "image_url": create_engine_url("static/images/resolution_note.gif"),
+            "alt_text": SlackResolutionNoteModalStep.MESSAGE_SHORTCUT_INSTRUCTION,
         },
     ]
     assert blocks == expected_blocks
@@ -91,14 +81,15 @@ def test_get_resolution_notes_blocks_non_empty(
                     "emoji": True,
                 },
                 "action_id": "AddRemoveThreadMessageStep",
-                "value": json.dumps(
+                "value": make_value(
                     {
                         "resolution_note_window_action": "edit",
                         "msg_value": "add",
                         "message_pk": resolution_note.pk,
                         "resolution_note_pk": None,
                         "alert_group_pk": alert_group.pk,
-                    }
+                    },
+                    organization,
                 ),
             },
         },
@@ -281,14 +272,15 @@ def test_get_resolution_notes_blocks_latest_limit(
                         "emoji": True,
                     },
                     "action_id": "AddRemoveThreadMessageStep",
-                    "value": json.dumps(
+                    "value": make_value(
                         {
                             "resolution_note_window_action": "edit",
                             "msg_value": "add",
                             "message_pk": m.pk,
                             "resolution_note_pk": None,
                             "alert_group_pk": alert_group.pk,
-                        }
+                        },
+                        organization,
                     ),
                 },
             },
@@ -342,3 +334,111 @@ def test_resolution_notes_modal_closed_before_update(
     # Check that "views.update" API call was made
     call_args, _ = mock_slack_api_call.call_args
     assert call_args[0] == "views.update"
+
+
+@patch.object(SlackClient, "chat_getPermalink", return_value={"permalink": "https://example.com"})
+@pytest.mark.django_db
+def test_add_to_resolution_note(
+    _,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    settings,
+):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+    slack_message = make_slack_message(alert_group=alert_group)
+
+    payload = {
+        "channel": {"id": slack_message.channel_id},
+        "message_ts": "random_ts",
+        "message": {
+            "type": "message",
+            "text": "Test resolution note",
+            "ts": "random_ts",
+            "thread_ts": slack_message.slack_id,
+            "user": slack_user_identity.slack_id,
+        },
+        "trigger_id": "random_trigger_id",
+    }
+
+    AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
+    step = AddToResolutionNoteStep(organization=organization, user=user, slack_team_identity=slack_team_identity)
+    with patch.object(SlackClient, "reactions_add") as mock_reactions_add:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_reactions_add.assert_called_once()
+    assert alert_group.resolution_notes.get().text == "Test resolution note"
+
+
+@pytest.mark.django_db
+def test_add_to_resolution_note_broadcast(make_organization_and_user_with_slack_identities, settings):
+    settings.UNIFIED_SLACK_APP_ENABLED = True
+
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+
+    payload = {
+        "channel": {"id": "TEST"},
+        "message_ts": "TEST",
+        "message": {"thread_ts": "TEST"},
+        "trigger_id": "TEST",
+    }
+
+    AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
+    step = AddToResolutionNoteStep(organization=organization, user=user, slack_team_identity=slack_team_identity)
+    with patch.object(SlackClient, "api_call") as mock_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_api_call.assert_not_called()  # no Slack API calls should be made
+
+
+@patch.object(SlackClient, "chat_getPermalink", return_value={"permalink": "https://example.com"})
+@pytest.mark.django_db
+def test_add_to_resolution_note_deleted_org(
+    _,
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    make_organization,
+    make_user_for_organization,
+    settings,
+):
+    settings.UNIFIED_SLACK_APP_ENABLED = True
+
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+    slack_message = make_slack_message(alert_group=alert_group)
+    organization.delete()
+
+    other_organization = make_organization(slack_team_identity=slack_team_identity)
+    other_user = make_user_for_organization(organization=other_organization, slack_user_identity=slack_user_identity)
+
+    payload = {
+        "channel": {"id": slack_message.channel_id},
+        "message_ts": "random_ts",
+        "message": {
+            "type": "message",
+            "text": "Test resolution note",
+            "ts": "random_ts",
+            "thread_ts": slack_message.slack_id,
+            "user": slack_user_identity.slack_id,
+        },
+        "trigger_id": "random_trigger_id",
+    }
+
+    AddToResolutionNoteStep = ScenarioStep.get_step("resolution_note", "AddToResolutionNoteStep")
+    step = AddToResolutionNoteStep(
+        organization=other_organization, user=other_user, slack_team_identity=slack_team_identity
+    )
+    with patch.object(SlackClient, "api_call") as mock_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    mock_api_call.assert_not_called()  # no Slack API calls should be made

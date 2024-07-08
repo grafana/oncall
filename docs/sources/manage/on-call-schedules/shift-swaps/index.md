@@ -98,6 +98,32 @@ You can also check (and take) a swap request details in the web UI.
 
 Once a swap is taken, the affected rotations and the final schedule will reflect the changes.
 
+## Google Calendar Integration
+
+Grafana OnCall allows you to connect your Google user to your OnCall user, giving us read-only access to your
+Google Calendar's Out of Office events. We periodically check your Out of Office events to see if these overlap
+with any of your on-call shifts. If so, we'll go ahead and automatically generate a shift swap request for you!
+
+To link your Google user, simply head over to "View my profile" on the OnCall "Users" page. From there, follow the steps
+under the Google Calendar tab. Once linked, you can further configure things, such as which OnCall schedules you would
+like us to consider for automatic shift swap generation (by default we will consider all of the schedules that you
+are involved in).
+
+### Ignoring events
+
+If you would like to have Grafana OnCall ignore a specific Out of Office event from being considered for
+Shift Swap Request generation, simply add `#grafana-oncall-ignore` to the Out of Office event's title.
+
+Additionally, if we generate a shift swap request for you from a Google Calendar event, and you delete the shift swap
+request, we will not attempt to regenerate a new shift swap request.
+
+### Configuring for open source
+
+1. Follow the instructions [here](https://developers.google.com/identity/protocols/oauth2) to setup your Google OAuth2
+application.
+2. Create a Client ID for your OAuth2 app and set the `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY` and `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`
+environment variables accordingly.
+
 {{% docs/reference %}}
 [mobile push notification]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app/push-notifications#shift-swap-notifications"
 [mobile push notification]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications#shift-swap-notifications"

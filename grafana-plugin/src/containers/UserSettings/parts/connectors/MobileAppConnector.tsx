@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { Button, InlineField } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -11,7 +12,7 @@ interface MobileAppConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const MobileAppConnector = (props: MobileAppConnectorProps) => {
+export const MobileAppConnector = observer((props: MobileAppConnectorProps) => {
   const { onTabChange, id } = props;
   const store = useStore();
   const { userStore } = store;
@@ -35,4 +36,4 @@ export const MobileAppConnector = (props: MobileAppConnectorProps) => {
       )}
     </InlineField>
   );
-};
+});

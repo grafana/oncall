@@ -1,5 +1,6 @@
 import enum
 import logging
+import time
 import typing
 
 import requests
@@ -20,6 +21,9 @@ from common.cloud_auth_api.client import CloudAuthApiClient, CloudAuthApiExcepti
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, User
+
+
+PROXY_REQUESTS_TIMEOUT = 5
 
 
 logger = logging.getLogger(__name__)
@@ -153,20 +157,11 @@ class MobileAppGatewayView(APIView):
         HS256 = symmetric = shared secret (don't use this)
         """
         org = user.organization
-        token_claims = {
-            "user_id": user.user_id,  # grafana user ID
-            "user_email": user.email,
-            "stack_id": org.stack_id,
-            "organization_id": org.org_id,  # grafana org ID
-            "stack_slug": org.stack_slug,
-            "org_slug": org.org_slug,
-        }
-
         token_scopes = {
             cls.SupportedDownstreamBackends.INCIDENT: [CloudAuthApiClient.Scopes.INCIDENT_WRITE],
         }[downstream_backend]
 
-        return f"{org.stack_id}:{CloudAuthApiClient().request_signed_token(org, token_scopes, token_claims)}"
+        return f"{org.stack_id}:{CloudAuthApiClient().request_signed_token(user, token_scopes)}"
 
     @classmethod
     def _get_downstream_headers(
@@ -197,6 +192,7 @@ class MobileAppGatewayView(APIView):
         return f"{downstream_url}/{downstream_path}"
 
     def _proxy_request(self, request: Request, *args, **kwargs) -> Response:
+        request_start = time.perf_counter()
         downstream_backend = kwargs["downstream_backend"]
         downstream_path = kwargs["downstream_path"]
         method = request.method
@@ -218,17 +214,21 @@ class MobileAppGatewayView(APIView):
                 data=request.body,
                 params=request.query_params.dict(),
                 headers=self._get_downstream_headers(request, downstream_backend, user),
+                timeout=PROXY_REQUESTS_TIMEOUT,  # set a timeout to prevent hanging
             )
-
+            final_status = downstream_response.status_code
             logger.info(f"Successfully proxied {log_msg_common}")
             return Response(status=downstream_response.status_code, data=downstream_response.json())
         except (
             requests.exceptions.RequestException,
             requests.exceptions.JSONDecodeError,
+            requests.exceptions.Timeout,
             CloudAuthApiException,
         ) as e:
             if isinstance(e, requests.exceptions.JSONDecodeError):
                 final_status = status.HTTP_400_BAD_REQUEST
+            elif isinstance(e, requests.exceptions.Timeout):
+                final_status = status.HTTP_504_GATEWAY_TIMEOUT
             else:
                 final_status = status.HTTP_502_BAD_GATEWAY
 
@@ -244,6 +244,14 @@ class MobileAppGatewayView(APIView):
                 exc_info=True,
             )
             return Response(status=final_status)
+        finally:
+            request_end = time.perf_counter()
+            seconds = request_end - request_start
+            logging.info(
+                f"outbound latency={str(seconds)} status={final_status} "
+                f"method={method.upper()} url={downstream_url} "
+                f"slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
+            )
 
 
 """

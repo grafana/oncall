@@ -1,4 +1,4 @@
-export const waitForElement = (selector: string) => {
+export const waitForElement = (selector: string): Promise<Element> => {
   return new Promise((resolve) => {
     if (document.querySelector(selector)) {
       return resolve(document.querySelector(selector));
@@ -18,8 +18,8 @@ export const waitForElement = (selector: string) => {
   });
 };
 
-export const getVar = (cssVar: string): string => {
-  return getComputedStyle(document.documentElement).getPropertyValue(cssVar);
+export const scrollToElement = (element: Element, behavior: ScrollBehavior = 'instant' as ScrollBehavior) => {
+  element.scrollIntoView({ behavior, block: 'center' });
 };
 
 export const getCoords = (elem) => {
@@ -40,3 +40,9 @@ export const getCoords = (elem) => {
 
   return { top: Math.round(top), left: Math.round(left) };
 };
+
+export const HTML_ID = {
+  SCHEDULE_FINAL: 'oncall-schedule-final',
+  SCHEDULE_ROTATIONS: 'oncall-schedule-rotations',
+  SCHEDULE_OVERRIDES_AND_SWAPS: 'oncall-schedule-overrides-and-swaps',
+} as const;

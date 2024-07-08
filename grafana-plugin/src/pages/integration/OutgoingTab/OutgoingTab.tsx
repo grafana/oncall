@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useStyles2, Input, IconButton, Drawer, Badge, HorizontalGroup } from '@grafana/ui';
+import { useStyles2, Input, IconButton, Drawer, HorizontalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
@@ -19,7 +19,7 @@ import { OutgoingTabDrawerKey } from './OutgoingTab.types';
 import { OutgoingWebhookDetailsDrawerTabs } from './OutgoingWebhookDetailsDrawerTabs';
 import { OutgoingWebhooksTable } from './OutgoingWebhooksTable';
 
-export const OutgoingTab = () => {
+export const OutgoingTab = ({ openSnowConfigurationDrawer }: { openSnowConfigurationDrawer: () => void }) => {
   const { openDrawer, closeDrawer, getIsDrawerOpened } = useDrawer<OutgoingTabDrawerKey>();
   const styles = useStyles2(getStyles);
 
@@ -45,7 +45,7 @@ export const OutgoingTab = () => {
           {
             customIcon: 'plug',
             startingElemPosition: '50%',
-            expandedView: () => <Connection />,
+            expandedView: () => <Connection openSnowConfigurationDrawer={openSnowConfigurationDrawer} />,
           },
           {
             customIcon: 'plus',
@@ -79,9 +79,8 @@ export const OutgoingTab = () => {
   );
 };
 
-const Connection = observer(() => {
+const Connection = observer(({ openSnowConfigurationDrawer }: { openSnowConfigurationDrawer: () => void }) => {
   const styles = useStyles2(getStyles);
-
   const integration = useCurrentIntegration();
   // TODO: remove casting once backend narrows down the types
   const url = integration?.additional_settings?.instance_url as string;
@@ -94,7 +93,6 @@ const Connection = observer(() => {
         heading={
           <div className={styles.horizontalGroup}>
             <IntegrationTag>ServiceNow connection</IntegrationTag>
-            <Badge text="OK" color="green" />
             <Input
               value={url}
               disabled
@@ -118,6 +116,7 @@ const Connection = observer(() => {
               name="cog"
               aria-label="Open ServiceNow configuration"
               className={styles.openConfigurationBtn}
+              onClick={openSnowConfigurationDrawer}
             />
           </div>
         }

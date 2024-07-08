@@ -26,6 +26,7 @@ import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
+import { GENERIC_ERROR } from 'utils/consts';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -224,7 +225,7 @@ export const IntegrationContactPoint: React.FC<{
         ) : (
           <Input
             value={selectedContactPoint}
-            placeholder="Choose Contact Point"
+            placeholder="Enter New Contact Point Name"
             onChange={({ target }) => {
               const value = (target as HTMLInputElement).value;
               setState({ selectedContactPoint: value });
@@ -250,6 +251,17 @@ export const IntegrationContactPoint: React.FC<{
   }
 
   function renderActions(item: ContactPoint) {
+    const onDisconnect = async () => {
+      try {
+        await AlertReceiveChannelHelper.disconnectContactPoint(id, item.dataSourceId, item.contactPoint);
+        closeDrawer();
+        openNotification('Contact point has been removed');
+        alertReceiveChannelStore.fetchConnectedContactPoints(id);
+      } catch (_err) {
+        openErrorNotification(GENERIC_ERROR);
+      }
+    };
+
     return (
       <HorizontalGroup spacing="md">
         <IconButton
@@ -274,19 +286,7 @@ export const IntegrationContactPoint: React.FC<{
             </VerticalGroup>
           }
         >
-          <IconButton
-            aria-label="Disconnect Contact Point"
-            name="trash-alt"
-            onClick={() => {
-              AlertReceiveChannelHelper.disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
-                .then(() => {
-                  closeDrawer();
-                  openNotification('Contact point has been removed');
-                  alertReceiveChannelStore.fetchConnectedContactPoints(id);
-                })
-                .catch(() => openErrorNotification('An error has occurred. Please try again.'));
-            }}
-          />
+          <IconButton aria-label="Disconnect Contact Point" name="trash-alt" onClick={onDisconnect} />
         </WithConfirm>
       </HorizontalGroup>
     );
@@ -330,23 +330,21 @@ export const IntegrationContactPoint: React.FC<{
     });
   }
 
-  function onContactPointConnect() {
+  async function onContactPointConnect() {
     setState({ isLoading: true });
-
-    (isExistingContactPoint
-      ? AlertReceiveChannelHelper.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
-      : AlertReceiveChannelHelper.createContactPoint(id, selectedAlertManager, selectedContactPoint)
-    )
-      .then(() => {
-        closeDrawer();
-        openNotification('A new contact point has been connected to your integration');
-        alertReceiveChannelStore.fetchConnectedContactPoints(id);
-      })
-      .catch((ex) => {
-        const error = ex.response?.data?.detail ?? 'An error has occurred. Please try again.';
-        openErrorNotification(error);
-      })
-      .finally(() => setState({ isLoading: false }));
+    try {
+      await (isExistingContactPoint
+        ? AlertReceiveChannelHelper.connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+        : AlertReceiveChannelHelper.createContactPoint(id, selectedAlertManager, selectedContactPoint));
+      closeDrawer();
+      openNotification('A new contact point has been connected to your integration');
+      alertReceiveChannelStore.fetchConnectedContactPoints(id);
+    } catch (ex) {
+      const error = ex.response?.data?.detail ?? GENERIC_ERROR;
+      openErrorNotification(error);
+    } finally {
+      setState({ isLoading: false });
+    }
   }
 
   function onAlertManagerChange(option: SelectableValue<string>) {

@@ -12,7 +12,8 @@ from apps.api.serializers.alert_group_table_settings import (
 )
 from apps.api.views.labels import LabelsFeatureFlagViewSet
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.constants import AlertGroupTableColumn, default_columns
+from apps.user_management.constants import default_columns
+from apps.user_management.types import AlertGroupTableColumn
 
 
 class AlertGroupTableColumnsViewSet(LabelsFeatureFlagViewSet):

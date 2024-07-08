@@ -17,7 +17,6 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
-from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
 
@@ -73,7 +72,7 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
                 target_user = User.objects.get(public_primary_key=user_id)
             except User.DoesNotExist:
                 raise BadRequest(detail="User does not exist")
-        queryset = target_user.get_or_create_notification_policies(important=important)
+        queryset = UserNotificationPolicy.objects.filter(user=target_user, important=important)
         return self.serializer_class.setup_eager_loading(queryset)
 
     def get_object(self):
@@ -119,10 +118,7 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
     def perform_destroy(self, instance):
         user = instance.user
         prev_state = user.insight_logs_serialized
-        try:
-            instance.delete()
-        except UserNotificationPolicyCouldNotBeDeleted:
-            raise BadRequest(detail="Can't delete last user notification policy")
+        instance.delete()
         new_state = user.insight_logs_serialized
         write_resource_insight_log(
             instance=user,

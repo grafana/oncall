@@ -176,8 +176,8 @@ def test_retrieve_permissions(
     assert response.status_code == expected_status
 
 
-@patch("apps.api.views.shift_swap.write_resource_insight_log")
-@patch("apps.api.views.shift_swap.create_shift_swap_request_message")
+@patch("apps.schedules.models.shift_swap_request.write_resource_insight_log")
+@patch("apps.schedules.tasks.shift_swaps.create_shift_swap_request_message")
 @pytest.mark.django_db
 def test_create(
     mock_create_shift_swap_request_message,

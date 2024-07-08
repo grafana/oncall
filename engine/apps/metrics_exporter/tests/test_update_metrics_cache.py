@@ -7,6 +7,7 @@ from django.test import override_settings
 from apps.alerts.signals import alert_group_created_signal
 from apps.alerts.tasks import notify_user_task
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+from apps.metrics_exporter.constants import NO_SERVICE_VALUE, SERVICE_LABEL
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
@@ -20,6 +21,7 @@ from apps.metrics_exporter.tests.conftest import (
     METRICS_TEST_INSTANCE_SLUG,
     METRICS_TEST_INTEGRATION_NAME,
     METRICS_TEST_ORG_ID,
+    METRICS_TEST_SERVICE_NAME,
     METRICS_TEST_USER_USERNAME,
 )
 
@@ -44,6 +46,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
     make_alert_group,
     make_alert,
     make_metrics_cache_params,
+    make_alert_group_label_association,
     monkeypatch,
 ):
     organization = make_organization(
@@ -64,11 +67,22 @@ def test_update_metric_alert_groups_total_cache_on_action(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "firing": 0,
-            "silenced": 0,
-            "acknowledged": 0,
-            "resolved": 0,
+            "services": {
+                NO_SERVICE_VALUE: {
+                    "firing": 0,
+                    "silenced": 0,
+                    "acknowledged": 0,
+                    "resolved": 0,
+                },
+            },
         }
+    }
+
+    default_state = {
+        "firing": 0,
+        "silenced": 0,
+        "acknowledged": 0,
+        "resolved": 0,
     }
 
     expected_result_firing = {
@@ -102,17 +116,21 @@ def test_update_metric_alert_groups_total_cache_on_action(
     metrics_cache = make_metrics_cache_params(alert_receive_channel.id, organization.id)
     monkeypatch.setattr(cache, "get", metrics_cache)
 
-    def get_called_arg_index_and_compare_results(update_expected_result):
+    def get_called_arg_index_and_compare_results(update_expected_result, service_name=NO_SERVICE_VALUE):
         """find index for the metric argument, that was set in cache"""
         for idx, called_arg in enumerate(mock_cache_set_called_args):
             if idx >= arg_idx and called_arg.args[0] == metric_alert_groups_total_key:
-                expected_result_metric_alert_groups_total[alert_receive_channel.id].update(update_expected_result)
+                expected_result_metric_alert_groups_total[alert_receive_channel.id]["services"].setdefault(
+                    service_name, {}
+                ).update(update_expected_result)
                 assert called_arg.args[1] == expected_result_metric_alert_groups_total
                 return idx + 1
         raise AssertionError
 
     with patch("apps.metrics_exporter.tasks.cache.set") as mock_cache_set:
         arg_idx = 0
+
+        # create alert group without service label
         alert_group = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group, raw_request_data={})
         # this signal is normally called in get_or_create_grouping on create alert
@@ -122,23 +140,41 @@ def test_update_metric_alert_groups_total_cache_on_action(
         mock_cache_set_called_args = mock_cache_set.call_args_list
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        alert_group.acknowledge_by_user(user)
+        alert_group.acknowledge_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_acked)
 
-        alert_group.un_acknowledge_by_user(user)
+        alert_group.un_acknowledge_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        alert_group.resolve_by_user(user)
+        alert_group.resolve_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_resolved)
 
-        alert_group.un_resolve_by_user(user)
+        alert_group.un_resolve_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
 
-        alert_group.silence_by_user(user, silence_delay=None)
+        alert_group.silence_by_user_or_backsync(user, silence_delay=None)
         arg_idx = get_called_arg_index_and_compare_results(expected_result_silenced)
 
-        alert_group.un_silence_by_user(user)
-        get_called_arg_index_and_compare_results(expected_result_firing)
+        alert_group.un_silence_by_user_or_backsync(user)
+        arg_idx = get_called_arg_index_and_compare_results(expected_result_firing)
+
+        # set state values to default
+        expected_result_metric_alert_groups_total[alert_receive_channel.id]["services"][NO_SERVICE_VALUE].update(
+            default_state
+        )
+        # create alert group with service label and check metric cache is updated properly
+        alert_group_with_service = make_alert_group(alert_receive_channel)
+        make_alert(alert_group=alert_group_with_service, raw_request_data={})
+        make_alert_group_label_association(
+            organization, alert_group_with_service, key_name=SERVICE_LABEL, value_name=METRICS_TEST_SERVICE_NAME
+        )
+        alert_group_created_signal.send(sender=alert_group_with_service.__class__, alert_group=alert_group_with_service)
+
+        # check alert_groups_total metric cache, get called args
+        arg_idx = get_called_arg_index_and_compare_results(expected_result_firing, METRICS_TEST_SERVICE_NAME)
+
+        alert_group_with_service.resolve_by_user_or_backsync(user)
+        get_called_arg_index_and_compare_results(expected_result_resolved, METRICS_TEST_SERVICE_NAME)
 
 
 @patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
@@ -156,6 +192,7 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
     make_alert,
     monkeypatch,
     make_metrics_cache_params,
+    make_alert_group_label_association,
 ):
     organization = make_organization(
         org_id=METRICS_TEST_ORG_ID,
@@ -175,21 +212,21 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "response_time": [],
+            "services": {NO_SERVICE_VALUE: []},
         }
     }
 
     metrics_cache = make_metrics_cache_params(alert_receive_channel.id, organization.id)
     monkeypatch.setattr(cache, "get", metrics_cache)
 
-    def get_called_arg_index_and_compare_results():
+    def get_called_arg_index_and_compare_results(service_name=NO_SERVICE_VALUE):
         """find index for related to the metric argument, that was set in cache"""
         for idx, called_arg in enumerate(mock_cache_set_called_args):
             if idx >= arg_idx and called_arg.args[0] == metric_alert_groups_response_time_key:
-                response_time_values = called_arg.args[1][alert_receive_channel.id]["response_time"]
-                expected_result_metric_alert_groups_response_time[alert_receive_channel.id].update(
-                    {"response_time": response_time_values}
-                )
+                response_time_values = called_arg.args[1][alert_receive_channel.id]["services"][service_name]
+                expected_result_metric_alert_groups_response_time[alert_receive_channel.id]["services"][
+                    service_name
+                ] = response_time_values
                 # response time values len always will be 1 here since cache is mocked and refreshed on every call
                 assert len(response_time_values) == 1
                 assert called_arg.args[1] == expected_result_metric_alert_groups_response_time
@@ -212,31 +249,43 @@ def test_update_metric_alert_groups_response_time_cache_on_action(
         # alert_groups_response_time cache shouldn't be updated on create alert group
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.acknowledge_by_user(user)
+        alert_group_1.acknowledge_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results()
 
         # assert that only the first action counts
-        alert_group_1.un_acknowledge_by_user(user)
+        alert_group_1.un_acknowledge_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.resolve_by_user(user)
+        alert_group_1.resolve_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.un_resolve_by_user(user)
+        alert_group_1.un_resolve_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.silence_by_user(user, silence_delay=None)
+        alert_group_1.silence_by_user_or_backsync(user, silence_delay=None)
         assert_cache_was_not_changed_by_response_time_metric()
 
-        alert_group_1.un_silence_by_user(user)
+        alert_group_1.un_silence_by_user_or_backsync(user)
         assert_cache_was_not_changed_by_response_time_metric()
 
         # check that response_time cache updates on other actions with other alert groups
-        alert_group_2.resolve_by_user(user)
+        alert_group_2.resolve_by_user_or_backsync(user)
         arg_idx = get_called_arg_index_and_compare_results()
 
-        alert_group_3.silence_by_user(user, silence_delay=None)
-        get_called_arg_index_and_compare_results()
+        alert_group_3.silence_by_user_or_backsync(user, silence_delay=None)
+        arg_idx = get_called_arg_index_and_compare_results()
+
+        # create alert group with service label and check metric cache is updated properly
+        expected_result_metric_alert_groups_response_time[alert_receive_channel.id]["services"][NO_SERVICE_VALUE] = []
+
+        alert_group_with_service = make_alert_group(alert_receive_channel)
+        make_alert(alert_group=alert_group_with_service, raw_request_data={})
+        make_alert_group_label_association(
+            organization, alert_group_with_service, key_name=SERVICE_LABEL, value_name=METRICS_TEST_SERVICE_NAME
+        )
+        assert_cache_was_not_changed_by_response_time_metric()
+        alert_group_with_service.acknowledge_by_user_or_backsync(user)
+        get_called_arg_index_and_compare_results(METRICS_TEST_SERVICE_NAME)
 
 
 @pytest.mark.django_db
@@ -296,10 +345,14 @@ def test_update_metrics_cache_on_update_integration(
                 "org_id": organization.org_id,
                 "slug": organization.stack_slug,
                 "id": organization.stack_id,
-                "firing": 0,
-                "silenced": 0,
-                "acknowledged": 0,
-                "resolved": 0,
+                "services": {
+                    NO_SERVICE_VALUE: {
+                        "firing": 0,
+                        "silenced": 0,
+                        "acknowledged": 0,
+                        "resolved": 0,
+                    },
+                },
             }
         }
         expected_result_metric_alert_groups_response_time = {
@@ -310,7 +363,7 @@ def test_update_metrics_cache_on_update_integration(
                 "org_id": organization.org_id,
                 "slug": organization.stack_slug,
                 "id": organization.stack_id,
-                "response_time": [],
+                "services": {NO_SERVICE_VALUE: []},
             }
         }
 
@@ -409,10 +462,14 @@ def test_update_metrics_cache_on_update_team(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "firing": 0,
-            "silenced": 0,
-            "acknowledged": 0,
-            "resolved": 0,
+            "services": {
+                NO_SERVICE_VALUE: {
+                    "firing": 0,
+                    "silenced": 0,
+                    "acknowledged": 0,
+                    "resolved": 0,
+                },
+            },
         }
     }
     expected_result_metric_alert_groups_response_time = {
@@ -423,7 +480,7 @@ def test_update_metrics_cache_on_update_team(
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "response_time": [],
+            "services": {NO_SERVICE_VALUE: []},
         }
     }
 
@@ -568,10 +625,14 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "firing": firing,
-            "silenced": 0,
-            "acknowledged": 0,
-            "resolved": 0,
+            "services": {
+                NO_SERVICE_VALUE: {
+                    "firing": firing,
+                    "silenced": 0,
+                    "acknowledged": 0,
+                    "resolved": 0,
+                },
+            },
         }
 
     def _expected_alert_groups_response_time(alert_receive_channel, response_time=None):
@@ -585,7 +646,9 @@ def test_metrics_add_integrations_to_cache(make_organization, make_alert_receive
             "org_id": organization.org_id,
             "slug": organization.stack_slug,
             "id": organization.stack_id,
-            "response_time": response_time,
+            "services": {
+                NO_SERVICE_VALUE: response_time,
+            },
         }
 
     # clear cache, add some data

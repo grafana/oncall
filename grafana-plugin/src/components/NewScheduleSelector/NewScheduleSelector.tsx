@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup, useStyles2 } from '@grafana/ui';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
@@ -10,18 +10,15 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { UserActions } from 'utils/authorization/authorization';
 
-import styles from './NewScheduleSelector.module.css';
-
 interface NewScheduleSelectorProps {
   onHide: () => void;
   onCreate: (data: Schedule) => void;
 }
 
-const cx = cn.bind(styles);
-
 export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate }) => {
   const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
   const [type, setType] = useState<ScheduleType | undefined>();
+  const styles = useStyles2(getStyles);
 
   const getCreateScheduleClickHandler = useCallback((type: ScheduleType) => {
     return () => {
@@ -36,9 +33,9 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
 
   return (
     <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick={false}>
-      <div className={cx('content')}>
+      <div className={styles.content}>
         <VerticalGroup spacing="lg">
-          <Block bordered withBackground className={cx('block')}>
+          <Block bordered withBackground className={styles.block}>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup spacing="md">
                 <Icon name="calendar-alt" size="xl" />
@@ -56,7 +53,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </Block>
-          <Block bordered withBackground className={cx('block')}>
+          <Block bordered withBackground className={styles.block}>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup spacing="md">
                 <Icon name="download-alt" size="xl" />
@@ -72,7 +69,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
               </Button>
             </HorizontalGroup>
           </Block>
-          <Block bordered withBackground className={cx('block')}>
+          <Block bordered withBackground className={styles.block}>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup spacing="md">
                 <Icon name="cog" size="xl" />
@@ -96,4 +93,20 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
       </div>
     </Drawer>
   );
+};
+
+export const getStyles = () => {
+  return {
+    root: css`
+      display: block;
+    `,
+
+    block: css`
+      width: 100%;
+    `,
+
+    content: css`
+      padding-bottom: 24px;
+    `,
+  };
 };

@@ -11,7 +11,7 @@ import { useDebouncedCallback } from 'utils/hooks';
 interface RemoteSelectProps {
   autoFocus?: boolean;
   href: string;
-  value: string | string[] | number | number[] | null;
+  value: string | string[] | number | number[] | boolean | null;
   onChange: (value: any, item: any) => void;
   fieldToShow?: string;
   getFieldToShow?: (item: any) => string;

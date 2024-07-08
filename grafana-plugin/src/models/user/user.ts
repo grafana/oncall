@@ -52,6 +52,7 @@ export class UserStore {
           (acc: { [key: number]: ApiSchemas['User'] }, item: ApiSchemas['User']) => ({
             ...acc,
             [item.pk]: {
+              ...this.items[item.pk],
               ...item,
               timezone: UserHelper.getTimezone(item),
             },
@@ -100,8 +101,8 @@ export class UserStore {
   }
 
   async loadCurrentUser() {
-    const response = await makeRequest('/user/', {});
-    const timezone = await this.refreshTimezone(response.pk);
+    const response = await makeRequest<ApiSchemas['User']>('/user/', {});
+    const timezone = await this.refreshTimezoneIfNeeded(response);
 
     runInAction(() => {
       this.items = {
@@ -112,13 +113,13 @@ export class UserStore {
     });
   }
 
-  async refreshTimezone(id: ApiSchemas['User']['pk']) {
+  async refreshTimezoneIfNeeded(user: ApiSchemas['User']) {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
 
-    if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (user.timezone !== timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       await onCallApi().PUT('/users/{id}/', {
-        params: { path: { id } },
+        params: { path: { id: user.pk } },
         body: { timezone } as ApiSchemas['User'],
       });
     }
@@ -129,17 +130,23 @@ export class UserStore {
   }
 
   async unlinkSlack(userPk: ApiSchemas['User']['pk']) {
-    await onCallApi().POST('/users/{id}/unlink_slack/', undefined);
+    await onCallApi().POST('/users/{id}/unlink_slack/', { params: { path: { id: userPk } } });
     await this.fetchItemById({ userPk });
   }
 
   async unlinkTelegram(userPk: ApiSchemas['User']['pk']) {
-    await onCallApi().POST('/users/{id}/unlink_telegram/', undefined);
+    await onCallApi().POST('/users/{id}/unlink_telegram/', { params: { path: { id: userPk } } });
     await this.fetchItemById({ userPk });
   }
 
   async unlinkBackend(userPk: ApiSchemas['User']['pk'], backend: string) {
     await onCallApi().POST('/users/{id}/unlink_backend/', { params: { path: { id: userPk }, query: { backend } } });
+    this.loadCurrentUser();
+  }
+
+  async disconnectGoogle() {
+    await onCallApi().GET('/disconnect/{backend}', { params: { path: { backend: 'google-oauth2' } } });
+
     this.loadCurrentUser();
   }
 

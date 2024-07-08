@@ -37,7 +37,7 @@ export const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
     <div className={cx('root')}>
       <div
         className={cx('bg', {
-          [`bg_${integration.display_name.replace(' ', '')}`]: true,
+          [`bg_${integration.display_name.replace(new RegExp(' ', 'g'), '')}`]: true,
         })}
         style={bgStyle}
       />

@@ -1,0 +1,27 @@
+name: "Setup Python"
+description: "Setup Python + optionally install dependencies from a set of requirements file(s)"
+inputs:
+  install-dependencies:
+    description: "Whether to install dependencies from the Python requirements file(s)"
+    required: false
+    default: "true"
+  python-requirements-paths:
+    description: "The path(s) to the Python requirements file(s) to install"
+    required: false
+    default: "engine/requirements.txt engine/requirements-dev.txt"
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      id: setup-python
+      uses: actions/setup-python@v5.1.0
+      with:
+        python-version: "3.12.3"
+        cache: "pip"
+        cache-dependency-path: ${{ inputs.python-requirements-paths }}
+    - name: Install Python dependencies
+      if: ${{ inputs.install-dependencies == 'true' }}
+      shell: bash
+      run: |
+        pip install uv
+        uv pip sync --system ${{ inputs.python-requirements-paths }}

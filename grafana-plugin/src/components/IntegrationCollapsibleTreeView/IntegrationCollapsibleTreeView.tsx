@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import { Icon, IconButton, IconName } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Icon, IconButton, IconName, useStyles2 } from '@grafana/ui';
 import { isArray, isUndefined } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { bem } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 
-import styles from './IntegrationCollapsibleTreeView.module.scss';
-
-const cx = cn.bind(styles);
+import { getIntegrationCollapsibleTreeStyles } from './IntegrationCollapsibleTreeView.styles';
 
 export interface IntegrationCollapsibleItem {
   isHidden?: boolean;
@@ -33,6 +32,7 @@ interface IntegrationCollapsibleTreeViewProps {
 export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = observer((props) => {
   const { configElements, isRouteView } = props;
 
+  const styles = useStyles2(getIntegrationCollapsibleTreeStyles);
   const [expandedList, setExpandedList] = useState(getStartingExpandedState());
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTree
   }, [configElements]);
 
   return (
-    <div className={cx('integrationTree__container', isRouteView ? 'integrationTree__container--timeline-view' : '')}>
+    <div className={cx(styles.container, isRouteView ? styles.timeline : '')}>
       {configElements
         .filter((config) => config) // filter out falsy values
         .map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
@@ -114,22 +114,23 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   isExpanded: boolean;
   onClick: () => void;
 }> = ({ item, elementPosition, isExpanded, onClick }) => {
+  const styles = useStyles2(getIntegrationCollapsibleTreeStyles);
   const handleIconClick = !item.isCollapsible ? undefined : onClick;
 
   return (
-    <div className={cx('integrationTree__group', { 'integrationTree__group--hidden': item.isHidden })}>
+    <div className={cx(styles.group, { [bem(styles.group, 'hidden')]: item.isHidden }, 'group')} data-emotion="group">
       <div
-        className={cx('integrationTree__icon')}
+        className={styles.icon}
         style={{
           transform: `translateY(${item.startingElemPosition || 0})`,
         }}
       >
         {renderIcon()}
       </div>
-      <div className={cx('integrationTree__element', { 'integrationTree__element--visible': isExpanded })}>
+      <div className={cx(styles.element, { [bem(styles.element, 'visible')]: isExpanded })}>
         {item.expandedView?.()}
       </div>
-      <div className={cx('integrationTree__element', { 'integrationTree__element--visible': !isExpanded })}>
+      <div className={cx(styles.element, { [bem(styles.element, 'visible')]: !isExpanded })}>
         {item.collapsedView?.(onClick)}
       </div>
     </div>
@@ -138,7 +139,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   function renderIcon() {
     if (item.isTextIcon && elementPosition) {
       return (
-        <Text type="primary" customTag="h6" className={cx('number-icon')}>
+        <Text type="primary" customTag="h6" className={styles.numberIcon}>
           {elementPosition}
         </Text>
       );

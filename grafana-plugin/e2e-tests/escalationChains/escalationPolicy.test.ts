@@ -1,15 +1,13 @@
 import { Locator, expect, test } from '../fixtures';
-import { createEscalationChain, EscalationStep, selectEscalationStepValue } from '../utils/escalationChain';
+import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { generateRandomValue } from '../utils/forms';
 
 test('escalation policy does not go back to "Default" after adding users to notify', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
   const escalationChainName = generateRandomValue();
 
-  // create important escalation step
-  await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, null, true);
-  // add user to notify
-  await selectEscalationStepValue(page, EscalationStep.NotifyUsers, userName);
+  // create important escalation step + add user to notif
+  await createEscalationChain(page, escalationChainName, EscalationStep.NotifyUsers, userName, true);
 
   // reload and check if important is still selected
   await page.reload();

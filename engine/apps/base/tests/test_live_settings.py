@@ -40,7 +40,7 @@ def test_multi_type_support(value):
         LiveSetting.objects.create(name="SOME_NEW_FEATURE_ENABLED", value=value)
         setting_value = LiveSetting.get_setting("SOME_NEW_FEATURE_ENABLED")
 
-        assert type(setting_value) == type(value)
+        assert type(setting_value) is type(value)
         assert setting_value == value
 
 

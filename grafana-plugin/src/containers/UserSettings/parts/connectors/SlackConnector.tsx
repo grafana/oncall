@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
@@ -13,7 +14,7 @@ interface SlackConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const SlackConnector = (props: SlackConnectorProps) => {
+export const SlackConnector = observer((props: SlackConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
@@ -93,4 +94,4 @@ export const SlackConnector = (props: SlackConnectorProps) => {
       )}
     </>
   );
-};
+});

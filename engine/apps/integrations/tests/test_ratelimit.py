@@ -4,8 +4,11 @@ import pytest
 from django.core.cache import cache
 from django.test import Client
 from django.urls import reverse
+from rest_framework import status
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.integrations.mixins import IntegrationRateLimitMixin
+from apps.integrations.mixins.ratelimit_mixin import RATELIMIT_INTEGRATION
 
 
 @pytest.fixture(autouse=True)
@@ -96,3 +99,54 @@ def test_ratelimit_integration_heartbeats(
 
     response = c.get(url)
     assert response.status_code == 429
+
+
+# mocking rate limits to 1/m per integration and 3/m per organization
+@mock.patch("ratelimit.utils._split_rate", new=lambda rate: (1, 60) if rate == RATELIMIT_INTEGRATION else (3, 60))
+@pytest.mark.django_db
+def test_ratelimit_integration_and_organization(
+    make_organization,
+    make_alert_receive_channel,
+):
+    organization = make_organization()
+
+    integrations = [
+        make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_WEBHOOK) for _ in range(4)
+    ]
+    urls = [
+        reverse(
+            "integrations:universal",
+            kwargs={
+                "integration_type": AlertReceiveChannel.INTEGRATION_WEBHOOK,
+                "alert_channel_key": integration.token,
+            },
+        )
+        for integration in integrations
+    ]
+
+    client = Client()
+
+    response = client.post(urls[0])
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.post(urls[0])
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+    assert response.content.decode() == IntegrationRateLimitMixin.TEXT_INTEGRATION.format(
+        integration=integrations[0].verbal_name
+    )
+
+    response = client.post(urls[1])
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.post(urls[1])
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+    assert response.content.decode() == IntegrationRateLimitMixin.TEXT_INTEGRATION.format(
+        integration=integrations[1].verbal_name
+    )
+
+    response = client.post(urls[2])
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.post(urls[3])
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+    assert response.content.decode() == IntegrationRateLimitMixin.TEXT_WORKSPACE

@@ -3,7 +3,7 @@ import { AxiosError } from 'axios';
 import { sentenceCase } from 'change-case';
 // @ts-ignore
 import appEvents from 'grafana/app/core/app_events';
-import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
+import { isArray, concat, every, isEmpty, isObject, isPlainObject, flatMap, map, keys } from 'lodash-es';
 
 import { isNetworkError } from 'network/network';
 import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
@@ -107,3 +107,14 @@ export function isUseProfileExtensionPointEnabled(): boolean {
 
   return isRequiredGrafanaVersion;
 }
+
+function isFieldEmpty(value: any): boolean {
+  if (isObject(value)) {
+    return isEmpty(value);
+  }
+  return value === '' || value === null || value === undefined;
+}
+
+export const allFieldsEmpty = (obj: any) => every(obj, isFieldEmpty);
+
+export const isMobile = window.matchMedia('(max-width: 768px)').matches;

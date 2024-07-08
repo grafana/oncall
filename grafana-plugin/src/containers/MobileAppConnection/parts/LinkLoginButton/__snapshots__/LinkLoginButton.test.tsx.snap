@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LinkLoginButton it renders properly 1`] = `
+<div>
+  <div
+    class="css-gjl87o-vertical-group"
+    style="width: 100%; height: 100%;"
+  >
+    <div
+      class="css-12oo3x0-layoutChildrenWrapper"
+    >
+      <span
+        class="css-77ouhj--primary css-77ouhj--medium css-77ouhj--strong css-1287p17"
+      >
+        Sign in via deeplink
+      </span>
+    </div>
+    <div
+      class="css-12oo3x0-layoutChildrenWrapper"
+    >
+      <span
+        class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+      >
+        Make sure to have the app installed
+      </span>
+    </div>
+    <div
+      class="css-12oo3x0-layoutChildrenWrapper"
+    >
+      <button
+        class="css-td06pi-button"
+        type="button"
+      >
+        <span
+          class="css-1riaxdn"
+        >
+          Connect Mobile App
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

@@ -9,7 +9,6 @@ from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
 from .views.channel_filter import ChannelFilterView
-from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
@@ -21,6 +20,7 @@ from .views.organization import (
     CurrentOrganizationView,
     GetChannelVerificationCode,
     GetTelegramVerificationCode,
+    OrganizationConfigChecksView,
     SetGeneralChannel,
 )
 from .views.paging import DirectPagingAPIView
@@ -57,7 +57,6 @@ router.register(
 )
 router.register(r"channel_filters", ChannelFilterView, basename="channel_filter")
 router.register(r"schedules", ScheduleView, basename="schedule")
-router.register(r"custom_buttons", CustomButtonView, basename="custom_button")
 router.register(r"webhooks", WebhooksView, basename="webhooks")
 router.register(r"resolution_notes", ResolutionNoteView, basename="resolution_note")
 router.register(r"telegram_channels", TelegramChannelViewSet, basename="telegram_channel")
@@ -74,6 +73,11 @@ urlpatterns = [
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
     optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
+    optional_slash_path(
+        "organization/config-checks",
+        OrganizationConfigChecksView.as_view(),
+        name="api-organization-config-checks",
+    ),
     # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
@@ -108,9 +112,12 @@ urlpatterns = [
 
 urlpatterns += [
     # For some reason frontend is using url without / at the end. Hacking here to avoid 301's :(
-    path(r"login/<backend>", auth.overridden_login_slack_auth, name="slack-auth-with-no-slash"),
-    path(r"login/<backend>/", auth.overridden_login_slack_auth, name="slack-auth"),
-    path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
+    # TODO: I'm fairly certain this is not needed anymore, it looks like the frontend instead
+    # makes calls w/ a trailing slash.. we can probably get rid of social-auth-with-no-slash
+    path(r"login/<backend>", auth.overridden_login_social_auth, name="social-auth-with-no-slash"),
+    path(r"login/<backend>/", auth.overridden_login_social_auth, name="social-auth"),
+    path(r"complete/<backend>/", auth.overridden_complete_social_auth, name="complete-social-auth"),
+    path(r"disconnect/<backend>", auth.overridden_disconnect_social_auth, name="disconnect-social-auth"),
 ]
 
 urlpatterns += [

@@ -9,6 +9,7 @@
 !add_env_var.sh
 !prometheus.yml
 !README.md
+!frontend_guidelines.md
 !scripts/
 !scripts/*
 !helm-local.yml

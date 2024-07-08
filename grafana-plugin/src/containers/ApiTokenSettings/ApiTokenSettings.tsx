@@ -142,10 +142,9 @@ class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
       store: { apiTokenStore },
     } = this.props;
 
-    return () => {
-      apiTokenStore.revokeApiToken(id).then(() => {
-        apiTokenStore.updateItems();
-      });
+    return async () => {
+      await apiTokenStore.revokeApiToken(id);
+      apiTokenStore.updateItems();
     };
   };
 

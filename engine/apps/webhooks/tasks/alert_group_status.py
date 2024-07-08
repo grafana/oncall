@@ -28,7 +28,7 @@ ACTION_TO_TRIGGER_TYPE = {
 @shared_dedicated_queue_retry_task(
     bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
 )
-def alert_group_created(self, alert_group_id):
+def alert_group_created(self, alert_group_id, is_backsync=False):
     try:
         alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
@@ -38,17 +38,24 @@ def alert_group_created(self, alert_group_id):
     organization_id = alert_group.channel.organization_id
     webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id)
 
+    if is_backsync:
+        # only consider non-connected integration webhooks for backsync events
+        webhooks = webhooks.filter(is_from_connected_integration=False)
+
     # check if there are any webhooks before going on
     if not webhooks:
         return
 
-    send_webhook_event.apply_async((trigger_type, alert_group_id), kwargs={"organization_id": organization_id})
+    send_webhook_event.apply_async(
+        (trigger_type, alert_group_id),
+        kwargs={"organization_id": organization_id, "is_backsync": is_backsync},
+    )
 
 
 @shared_dedicated_queue_retry_task(
     bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
 )
-def alert_group_status_change(self, action_type, alert_group_id, user_id):
+def alert_group_status_change(self, action_type, alert_group_id, user_id, is_backsync=False):
     try:
         alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
@@ -63,11 +70,15 @@ def alert_group_status_change(self, action_type, alert_group_id, user_id):
         trigger_type=trigger_type, organization_id=organization_id
     ) | Webhook.objects.filter(trigger_type=Webhook.TRIGGER_STATUS_CHANGE, organization_id=organization_id)
 
+    if is_backsync:
+        # only consider non-connected integration webhooks for backsync events
+        webhooks = webhooks.filter(is_from_connected_integration=False)
+
     # check if there are any webhooks before going on
     if not webhooks:
         return
 
     send_webhook_event.apply_async(
         (trigger_type, alert_group_id),
-        kwargs={"organization_id": organization_id, "user_id": user_id},
+        kwargs={"organization_id": organization_id, "user_id": user_id, "is_backsync": is_backsync},
     )

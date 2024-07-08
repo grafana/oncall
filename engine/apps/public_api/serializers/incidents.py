@@ -1,8 +1,6 @@
-from django.db.models import Prefetch
 from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup
-from apps.telegram.models.message import TelegramMessage
 from common.api_helpers.custom_fields import UserIdField
 from common.api_helpers.mixins import EagerLoadingMixin
 
@@ -19,14 +17,6 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     resolved_by = UserIdField(read_only=True, source="resolved_by_user")
 
     SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization"]
-    PREFETCH_RELATED = [
-        "alerts",
-        Prefetch(
-            "telegram_messages",
-            TelegramMessage.objects.filter(chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE),
-            to_attr="prefetched_telegram_messages",
-        ),
-    ]
 
     class Meta:
         model = AlertGroup
@@ -50,7 +40,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         return obj.web_title_cache
 
     def get_alerts_count(self, obj):
-        return len(obj.alerts.all())
+        return obj.alerts.count()
 
     def get_state(self, obj):
         return obj.state

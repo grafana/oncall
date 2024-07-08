@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Card, HorizontalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Card, HorizontalGroup, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
@@ -11,22 +11,21 @@ import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { APP_SUBTITLE } from 'utils/consts';
 
-import styles from './Header.module.scss';
-
-const cx = cn.bind(styles);
+import { getHeaderStyles } from './Header.styles';
 
 export const Header = observer(() => {
   const store = useStore();
+  const styles = useStyles2(getHeaderStyles);
 
   return (
     <>
-      <div className={cx('root')}>
-        <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
-          <div className={cx('navbar-left')}>
-            <span className={cx('page-header__logo', 'logo-container')}>
-              <img className={cx('page-header__img')} src={logo} alt="Grafana OnCall" />
+      <div>
+        <div className={cx('page-header__inner', { [styles.headerTopNavbar]: isTopNavbar() })}>
+          <div className={styles.navbarLeft}>
+            <span className={cx('page-header__logo', styles.logoContainer)}>
+              <img className={styles.pageHeaderImage} src={logo} alt="Grafana OnCall" />
             </span>
-            <div className="page-header__info-block">{renderHeading()}</div>
+            <div className={cx('page-header__info-block')}>{renderHeading()}</div>
           </div>
         </div>
       </div>
@@ -38,18 +37,18 @@ export const Header = observer(() => {
     if (store.isOpenSource) {
       return (
         <div className={cx('heading')}>
-          <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
-          <div className={cx('navbar-heading-container')}>
+          <h1 className={styles.pageHeaderTitle}>Grafana OnCall</h1>
+          <div className={styles.navbarHeadingContainer}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
 
-            <Card heading={undefined} className={cx('navbar-heading')}>
+            <Card heading={undefined} className={styles.navbarHeading}>
               <a
                 href="https://github.com/grafana/oncall"
-                className={cx('navbar-link')}
+                className={styles.navbarLink}
                 target="_blank"
                 rel="noreferrer"
               >
-                <img src={gitHubStarSVG} className={cx('navbar-star-icon')} alt="" /> Star us on GitHub
+                <img src={gitHubStarSVG} className={styles.navbarStarIcon} alt="" /> Star us on GitHub
               </a>
             </Card>
           </div>
@@ -60,7 +59,7 @@ export const Header = observer(() => {
     return (
       <>
         <HorizontalGroup>
-          <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
+          <h1 className={styles.pageHeaderTitle}>Grafana OnCall</h1>
         </HorizontalGroup>
         <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
       </>
@@ -69,8 +68,9 @@ export const Header = observer(() => {
 });
 
 const Banners: React.FC = () => {
+  const styles = useStyles2(getHeaderStyles);
   return (
-    <div className={cx('banners')}>
+    <div className={styles.banners}>
       <Alerts />
     </div>
   );

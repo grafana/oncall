@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 from rest_framework import serializers
 
+from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import LiveSetting
 from apps.phone_notifications.phone_provider import get_phone_provider
 from apps.slack.models import SlackTeamIdentity
@@ -23,6 +24,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_channel = serializers.SerializerMethodField()
 
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
+    grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")
 
     SELECT_RELATED = ["slack_team_identity"]
 
@@ -35,11 +37,13 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_team_identity",
             "slack_channel",
             "rbac_enabled",
+            "grafana_incident_enabled",
         ]
         read_only_fields = [
             "stack_slug",
             "slack_team_identity",
             "rbac_enabled",
+            "grafana_incident_enabled",
         ]
 
     def get_slack_channel(self, obj):
@@ -104,3 +108,33 @@ class FastOrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ["pk", "name"]
+
+
+class CurrentOrganizationConfigChecksSerializer(serializers.ModelSerializer):
+    is_chatops_connected = serializers.SerializerMethodField()
+    is_integration_chatops_connected = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = [
+            "is_chatops_connected",
+            "is_integration_chatops_connected",
+        ]
+
+    def get_is_chatops_connected(self, obj):
+        msteams_backend = get_messaging_backend_from_id("MSTEAMS")
+        return bool(
+            obj.slack_team_identity_id is not None  # slack is connected
+            or obj.telegram_channel.exists()  # telegram is connected
+            or (msteams_backend and msteams_backend.is_configured_for_organization(obj))  # msteams is connected
+        )
+
+    def get_is_integration_chatops_connected(self, obj):
+        return (
+            (
+                obj.slack_team_identity_id is not None
+                and obj.alert_receive_channels.filter(channel_filters__notify_in_slack=True).exists()
+            )
+            or obj.alert_receive_channels.filter(channel_filters__notify_in_telegram=True).exists()
+            or obj.alert_receive_channels.filter(channel_filters__notification_backends__MSTEAMS__enabled=True).exists()
+        )

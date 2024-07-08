@@ -44,7 +44,7 @@ class StartupProbeView(View):
 
     def get(self, request):
         if cache.get(AlertChannelDefiningMixin.CACHE_KEY_DB_FALLBACK) is None:
-            AlertChannelDefiningMixin().update_alert_receive_channel_cache()
+            AlertChannelDefiningMixin().update_alert_receive_channel_fallback_cache()
 
         return HttpResponse("Ok")
 

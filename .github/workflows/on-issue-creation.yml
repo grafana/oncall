@@ -1,6 +1,6 @@
 name: On issue creation
 
-"on":
+on:
   issues:
     types:
       - opened
@@ -30,6 +30,16 @@ jobs:
             The current version of Grafana OnCall, at the time this issue was opened,
             is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall,
             please be sure to list it in the PR description. Thank you :smile:!
+
+  add-needs-triage-label:
+    name: Add "needs triage" label
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add "needs triage" label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: needs triage
 
   map-selected-product-areas-to-labels-and-assignees:
     name: Map selected product areas to labels and assignees
@@ -69,9 +79,12 @@ jobs:
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Auth') && 'part:auth/teams' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Chatops') && 'part:chatops' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Helm') && 'part:deployment/helm' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App') && 'part:mobile' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Schedules') && 'part:schedules' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform') && 'part:API/Terraform' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'API') && 'part:API' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Metrics') && 'part:metrics/logging' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform/Crossplane') && 'part:Terraform/Crossplane' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Helm/Kubernetes/Docker') && 'part:helm/kubernetes/docker' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'CI/CD') && 'part:ci/cd' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'more info needed' || '' }}
           # yamllint enable rule:line-length

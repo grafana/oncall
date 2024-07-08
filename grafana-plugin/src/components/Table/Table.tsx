@@ -1,15 +1,14 @@
 import React, { FC, useMemo } from 'react';
 
-import { Pagination, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Pagination, VerticalGroup, useStyles2 } from '@grafana/ui';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
+import { bem } from 'styles/utils.styles';
 
 import { ExpandIcon } from 'icons/Icons';
 
-import styles from './Table.module.css';
-
-const cx = cn.bind(styles);
+import { getTableStyles } from './Table.styles';
 
 export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   loading?: boolean;
@@ -36,18 +35,20 @@ export const GTable: FC<Props> = (props) => {
   const { columns, data, className, pagination, loading, rowKey, expandable, ...restProps } = props;
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
 
+  const styles = useStyles2(getTableStyles);
+
   const expandableFn = useMemo(() => {
     return expandable
       ? {
           ...expandable,
           expandIcon: ({ expanded }) => {
             return (
-              <div className={cx('expand-icon', { [`expand-icon__expanded`]: expanded })}>
+              <div className={cx(styles.expandIcon, { [bem(styles.expandIcon, 'expanded')]: expanded })}>
                 <ExpandIcon />
               </div>
             );
           },
-          expandedRowClassName: (_record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd')),
+          expandedRowClassName: (_record, index) => (index % 2 === 0 ? styles.rowEven : ''),
         }
       : null;
   }, [expandable]);
@@ -56,15 +57,15 @@ export const GTable: FC<Props> = (props) => {
     <VerticalGroup justify="flex-end">
       <Table
         rowKey={rowKey}
-        className={cx('root', className)}
+        className={cx(styles.root, className)}
         columns={columns}
         data={data}
         expandable={expandableFn}
-        rowClassName={(_record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd'))}
+        rowClassName={(_record, index) => (index % 2 === 0 ? styles.rowEven : '')}
         {...restProps}
       />
       {pagination && (
-        <div className={cx('pagination')}>
+        <div className={styles.pagination}>
           <Pagination hideWhenSinglePage currentPage={page} numberOfPages={numberOfPages} onNavigate={onNavigate} />
         </div>
       )}

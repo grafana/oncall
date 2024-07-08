@@ -7,6 +7,8 @@ keywords:
   - OnCall
   - Migration
   - Pagerduty
+  - Splunk OnCall
+  - VictorOps
   - on-call tools
 canonical: https://grafana.com/docs/oncall/latest/set-up/migration-from-other-tools/
 aliases:
@@ -17,7 +19,9 @@ aliases:
 
 # Migration from other tools
 
-## Migration from PagerDuty to Grafana OnCall
+We currently support automated migration from the following on-call tools:
 
-Migration from PagerDuty to Grafana OnCall could be performed in automated way using
-[OSS Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator).
+- PagerDuty
+- Splunk OnCall (VictorOps)
+
+See our [OSS Migrator](https://github.com/grafana/oncall/tree/dev/tools/migrators) for more details.

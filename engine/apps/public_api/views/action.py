@@ -13,6 +13,11 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class ActionView(RateLimitHeadersMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
+    """
+    This endpoint is deprecated and webhooks should be used instead. This view should remain in the
+    codebase in order to support terraform configurations that are still referencing it.
+    """
+
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     pagination_class = FiftyPageSizePaginator

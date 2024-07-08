@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
@@ -23,9 +23,10 @@ interface TimezoneOption {
 
 interface UserTimezoneSelectProps {
   scheduleId?: string;
+  onChange: (value: number) => void;
 }
 
-export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId }) => {
+export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ scheduleId, onChange }) => {
   const store = useStore();
   const users = UserHelper.getSearchResult(store.userStore).results || [];
 
@@ -66,6 +67,8 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
     );
   }, [users, extraOptions]);
 
+  const selectedOption = options.find(({ value }) => value === store.timezoneStore.selectedTimezoneOffset);
+
   const filterOption = useCallback((item: SelectableValue<number>, searchQuery: string) => {
     const { data } = item;
 
@@ -76,6 +79,12 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
       return data[key]?.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedOption?.value) {
+      store.timezoneStore.setSelectedTimezoneOffset(selectedOption.value);
+    }
+  }, [options]);
 
   const handleCreateOption = useCallback(
     (value: string) => {
@@ -99,9 +108,6 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
             description: '',
           },
         ]);
-
-        store.timezoneStore.setSelectedTimezoneOffset(utcOffset);
-        store.scheduleStore.refreshEvents(scheduleId);
       }
     },
     [options]
@@ -110,8 +116,12 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
   return (
     <div className={cx('root')} data-testid="timezone-select">
       <Select
-        value={options.find(({ value }) => value === store.timezoneStore.selectedTimezoneOffset)}
-        onChange={(option) => store.timezoneStore.setSelectedTimezoneOffset(option.value)}
+        value={selectedOption}
+        onChange={(option) => {
+          store.timezoneStore.setSelectedTimezoneOffset(option.value);
+
+          onChange(option.value);
+        }}
         width={30}
         options={options}
         filterOption={filterOption}

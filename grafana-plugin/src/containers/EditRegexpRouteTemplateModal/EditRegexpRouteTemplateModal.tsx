@@ -59,20 +59,14 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
     }
   }, [regexpTemplateBody]);
 
-  const handleConvertToJinja2 = useCallback(() => {
-    AlertReceiveChannelHelper.convertRegexpTemplateToJinja2Template(channelFilterId).then((response) => {
-      alertReceiveChannelStore
-        .saveChannelFilter(channelFilterId, {
-          filtering_term: response?.filtering_term_as_jinja2,
-          filtering_term_type: 1,
-        })
-        .then(() => {
-          alertReceiveChannelStore.fetchChannelFilters(alertReceiveChannelId, true).then(() => {
-            onOpenEditIntegrationTemplate('route_template', channelFilterId);
-          });
-        });
+  const handleConvertToJinja2 = useCallback(async () => {
+    const response = await AlertReceiveChannelHelper.convertRegexpTemplateToJinja2Template(channelFilterId);
+    await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
+      filtering_term: response?.filtering_term_as_jinja2,
+      filtering_term_type: 1,
     });
-
+    await alertReceiveChannelStore.fetchChannelFilters(alertReceiveChannelId, true);
+    onOpenEditIntegrationTemplate('route_template', channelFilterId);
     onHide();
   }, []);
 

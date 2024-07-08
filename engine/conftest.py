@@ -45,7 +45,13 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, IntegrationBacksyncAuthToken, PluginAuthToken, SlackAuthToken
+from apps.auth_token.models import (
+    ApiAuthToken,
+    GoogleOAuth2Token,
+    IntegrationBacksyncAuthToken,
+    PluginAuthToken,
+    SlackAuthToken,
+)
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -56,6 +62,7 @@ from apps.base.tests.factories import (
     UserNotificationPolicyLogRecordFactory,
 )
 from apps.email.tests.factories import EmailMessageFactory
+from apps.google.tests.factories import GoogleOAuth2UserFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.labels.tests.factories import (
     AlertGroupAssociatedLabelFactory,
@@ -96,13 +103,16 @@ from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
-from apps.webhooks.tests.test_webhook_presets import TEST_WEBHOOK_PRESET_ID, TestWebhookPreset
+from apps.webhooks.tests.test_webhook_presets import (
+    ADVANCED_WEBHOOK_PRESET_ID,
+    TEST_WEBHOOK_PRESET_ID,
+    TestAdvancedWebhookPreset,
+    TestWebhookPreset,
+)
 
 register(OrganizationFactory)
 register(UserFactory)
 register(TeamFactory)
-
-
 register(AlertReceiveChannelFactory)
 register(AlertReceiveChannelConnectionFactory)
 register(ChannelFilterFactory)
@@ -117,29 +127,24 @@ register(AlertGroupLogRecordFactory)
 register(InvitationFactory)
 register(CustomActionFactory)
 register(SlackUserGroupFactory)
-
 register(SlackUserIdentityFactory)
 register(SlackTeamIdentityFactory)
 register(SlackMessageFactory)
-
 register(TelegramToUserConnectorFactory)
 register(TelegramChannelFactory)
 register(TelegramVerificationCodeFactory)
 register(TelegramChannelVerificationCodeFactory)
 register(TelegramMessageFactory)
-
 register(ResolutionNoteSlackMessageFactory)
-
 register(PhoneCallRecordFactory)
 register(SMSRecordFactory)
 register(EmailMessageFactory)
-
 register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
-
 register(LabelKeyFactory)
 register(LabelValueFactory)
 register(AlertReceiveChannelAssociatedLabelFactory)
+register(GoogleOAuth2UserFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
@@ -225,9 +230,9 @@ def mock_is_labels_feature_enabled_for_org(settings):
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        return OrganizationFactory(
-            **kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED, is_grafana_labels_enabled=True
-        )
+        if "is_rbac_permissions_enabled" not in kwargs:
+            kwargs["is_rbac_permissions_enabled"] = IS_RBAC_ENABLED
+        return OrganizationFactory(**kwargs, is_grafana_labels_enabled=True)
 
     return _make_organization
 
@@ -281,6 +286,14 @@ def make_slack_token_for_user():
         return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
 
     return _make_slack_token_for_user
+
+
+@pytest.fixture
+def make_google_oauth2_token_for_user():
+    def _make_google_oauth2_token_for_user(user):
+        return GoogleOAuth2Token.create_auth_token(organization=user.organization, user=user)
+
+    return _make_google_oauth2_token_for_user
 
 
 @pytest.fixture
@@ -979,7 +992,10 @@ def shift_swap_request_setup(
 
 @pytest.fixture()
 def webhook_preset_api_setup():
-    WebhookPresetOptions.WEBHOOK_PRESETS = {TEST_WEBHOOK_PRESET_ID: TestWebhookPreset()}
+    WebhookPresetOptions.WEBHOOK_PRESETS = {
+        TEST_WEBHOOK_PRESET_ID: TestWebhookPreset(),
+        ADVANCED_WEBHOOK_PRESET_ID: TestAdvancedWebhookPreset(),
+    }
     WebhookPresetOptions.WEBHOOK_PRESET_CHOICES = [
         preset.metadata for preset in WebhookPresetOptions.WEBHOOK_PRESETS.values()
     ]
@@ -1053,3 +1069,11 @@ def make_webhook_label_association(make_label_key_and_value):
         return WebhookAssociatedLabelFactory(webhook=webhook, organization=organization, key=key, value=value, **kwargs)
 
     return _make_integration_label_association
+
+
+@pytest.fixture
+def make_google_oauth2_user_for_user():
+    def _make_google_oauth2_user_for_user(user):
+        return GoogleOAuth2UserFactory(user=user)
+
+    return _make_google_oauth2_user_for_user

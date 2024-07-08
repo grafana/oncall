@@ -16,6 +16,22 @@
   }
 }
 
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  
+    &__box:first-child {
+      margin-right: 0px;
+      margin-bottom: 8px;
+    }
+  
+    &__box:last-child {
+      margin-left: 0px;
+      margin-top: 8px;
+    }
+  } 
+}
+
 .notification-buttons {
   width: 100%;
   padding-top: 12px;

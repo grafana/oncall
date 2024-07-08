@@ -5,6 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
+from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from common.api_helpers.custom_fields import IntegrationFilteredByOrganizationField, TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
@@ -158,7 +159,13 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
 
     def validate(self, data):
-        if self.instance and self.instance.preset:
+        if (
+            self.instance
+            and self.instance.preset
+            and WebhookPresetOptions.ADVANCED_PRESET_META_DATA
+            and WebhookPresetOptions.ADVANCED_PRESET_META_DATA.id
+            and self.instance.preset != WebhookPresetOptions.ADVANCED_PRESET_META_DATA.id
+        ):
             raise serializers.ValidationError(PRESET_VALIDATION_MESSAGE)
         return data
 

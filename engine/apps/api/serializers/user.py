@@ -31,6 +31,25 @@ class UserPermissionSerializer(serializers.Serializer):
     action = serializers.CharField(read_only=True)
 
 
+class GoogleCalendarSettingsSerializer(serializers.Serializer):
+    # # TODO: figure out how to get OrganizationFilteredPrimaryKeyRelatedField to work with many=True
+    # oncall_schedules_to_consider_for_shift_swaps =
+    # oncall_schedules_to_consider_for_shift_swaps = serializers.ListField(
+    #     child=OrganizationFilteredPrimaryKeyRelatedField(
+    #         queryset=OnCallSchedule.objects,
+    #         required=False,
+    #         allow_null=True,
+    #     ),
+    #     required=False,
+    #     allow_null=True,
+    # )
+    oncall_schedules_to_consider_for_shift_swaps = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_null=True,
+    )
+
+
 class NotificationChainVerbal(typing.TypedDict):
     default: str
     important: str
@@ -69,7 +88,14 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     cloud_connection_status = serializers.SerializerMethodField()
     working_hours = WorkingHoursSerializer(required=False)
 
-    SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
+    SELECT_RELATED = [
+        "telegram_verification_code",
+        "telegram_connection",
+        "organization",
+        "slack_user_identity",
+        "mobileappauthtoken",
+        "google_oauth2_user",
+    ]
 
     class Meta:
         model = User
@@ -93,6 +119,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
+            "has_google_oauth2_connected",
         ]
         read_only_fields = [
             "email",
@@ -100,6 +127,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "name",
             "role",
             "verified_phone_number",
+            "has_google_oauth2_connected",
         ]
 
     def validate_working_hours(self, working_hours):
@@ -138,7 +166,13 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
     def get_cloud_connection_status(self, obj: User) -> CloudSyncStatus | None:
-        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        is_open_source_with_cloud_notifications = self.context.get("is_open_source_with_cloud_notifications", None)
+        is_open_source_with_cloud_notifications = (
+            is_open_source_with_cloud_notifications
+            if is_open_source_with_cloud_notifications is not None
+            else settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+        )
+        if is_open_source_with_cloud_notifications:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
             identity = identities.get(obj.email, None)
@@ -169,10 +203,12 @@ class UserSerializer(ListUserSerializer):
     context: UserSerializerContext
 
     is_currently_oncall = serializers.SerializerMethodField()
+    google_calendar_settings = GoogleCalendarSettingsSerializer(required=False)
 
     class Meta(ListUserSerializer.Meta):
         fields = ListUserSerializer.Meta.fields + [
             "is_currently_oncall",
+            "google_calendar_settings",
         ]
         read_only_fields = ListUserSerializer.Meta.read_only_fields + [
             "is_currently_oncall",

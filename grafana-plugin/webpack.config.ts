@@ -23,6 +23,37 @@ const config = async (env): Promise<Configuration> => {
             },
           },
         },
+        {
+          test: /\.s[ac]ss$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                modules: {
+                  auto: true,
+                  localIdentName: env.development ? '[path][name]__[local]' : '[name]__[hash:base64]',
+                },
+              },
+            },
+            'sass-loader',
+          ],
+        },
+        {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                modules: {
+                  auto: true,
+                  localIdentName: env.development ? '[path][name]__[local]' : '[name]__[hash:base64]',
+                },
+              },
+            },
+          ],
+        },
       ],
     },
     watchOptions: {
@@ -33,6 +64,7 @@ const config = async (env): Promise<Configuration> => {
       ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
       new EnvironmentPlugin({
         ONCALL_API_URL: null,
+        NODE_ENV: 'development',
       }),
       new DefinePlugin({
         'process.env': JSON.stringify(dotenv.config().parsed),

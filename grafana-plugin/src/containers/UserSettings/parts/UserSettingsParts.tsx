@@ -10,6 +10,7 @@ import { MobileAppConnectionTab } from 'containers/MobileAppConnection/MobileApp
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
 import { CloudPhoneSettings } from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
+import { GoogleCalendar } from 'containers/UserSettings/parts/tabs/GoogleCalendar/GoogleCalendar';
 import { MSTeamsInfo } from 'containers/UserSettings/parts/tabs/MSTeamsInfo/MSTeamsInfo';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
 import { PhoneVerification } from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
@@ -29,6 +30,7 @@ interface TabsProps {
   onTabChange: (tab: UserSettingsTab) => void;
   showNotificationSettingsTab: boolean;
   showMobileAppConnectionTab: boolean;
+  showGoogleCalendarTab: boolean;
   showSlackConnectionTab: boolean;
   showTelegramConnectionTab: boolean;
   showMsTeamsConnectionTab: boolean;
@@ -38,6 +40,7 @@ export const Tabs = ({
   activeTab,
   onTabChange,
   showNotificationSettingsTab,
+  showGoogleCalendarTab,
   showMobileAppConnectionTab,
   showSlackConnectionTab,
   showTelegramConnectionTab,
@@ -68,6 +71,15 @@ export const Tabs = ({
           key={UserSettingsTab.NotificationSettings}
           onChangeTab={getTabClickHandler(UserSettingsTab.NotificationSettings)}
           data-testid="tab-notification-settings"
+        />
+      )}
+      {showGoogleCalendarTab && (
+        <Tab
+          active={activeTab === UserSettingsTab.GoogleCalendar}
+          label="Google Calendar"
+          key={UserSettingsTab.GoogleCalendar}
+          onChangeTab={getTabClickHandler(UserSettingsTab.GoogleCalendar)}
+          data-testid="google-calendar-tab"
         />
       )}
       <Tab
@@ -147,6 +159,7 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
           <UserInfoTab id={id} onTabChange={onTabChange} />
         ))}
       {activeTab === UserSettingsTab.NotificationSettings && <NotificationSettingsTab id={id} />}
+      {activeTab === UserSettingsTab.GoogleCalendar && <GoogleCalendar id={id} />}
       {activeTab === UserSettingsTab.PhoneVerification &&
         (store.hasFeature(AppFeature.CloudNotifications) ? (
           <CloudPhoneSettings userPk={id} />

@@ -74,7 +74,7 @@ def test_alert_group_message(make_organization, make_alert_receive_channel, make
     assert text == (
         f"<a href='{organization.web_link_with_uuid}'>&#8205;</a>🔴 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
         "Firing, alerts: 1\n"
-        "Source: Test integration - Grafana\n"
+        "Source: Test integration - Grafana Legacy Alerting\n"
         f"{alert_group.web_link}\n\n"
         f"{alert_receive_channel.config.tests['telegram']['message']}"
     )
@@ -150,7 +150,7 @@ def test_personal_message(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=default_channel_filter)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.tests["payload"])
 
-    alert_group.acknowledge_by_user(user)
+    alert_group.acknowledge_by_user_or_backsync(user)
 
     renderer = TelegramMessageRenderer(alert_group=alert_group)
     text = renderer.render_personal_message()
@@ -158,7 +158,7 @@ def test_personal_message(
     assert text == (
         f"<a href='{organization.web_link_with_uuid}'>&#8205;</a>🟠 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
         f"Acknowledged by {user_name}, alerts: 1\n"
-        "Source: Test integration - Grafana\n"
+        "Source: Test integration - Grafana Legacy Alerting\n"
         f"{alert_group.web_link}\n\n"
         f"{alert_receive_channel.config.tests['telegram']['message']}\n\n\n"
         "Alert group log:\n"

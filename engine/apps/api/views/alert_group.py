@@ -1,9 +1,8 @@
 import typing
-from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
-from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
@@ -277,6 +276,11 @@ class AlertGroupView(
     pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = (
+        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
+        else []
+    )
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -469,7 +473,7 @@ class AlertGroupView(
             raise BadRequest(detail="Can't acknowledge maintenance alert group")
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't acknowledge an attached alert group")
-        alert_group.acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
+        alert_group.acknowledge_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -492,7 +496,7 @@ class AlertGroupView(
         if alert_group.resolved:
             raise BadRequest(detail="Can't unacknowledge a resolved alert group")
 
-        alert_group.un_acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
+        alert_group.un_acknowledge_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -544,7 +548,7 @@ class AlertGroupView(
                         },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
-            alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
+            alert_group.resolve_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @extend_schema(responses=AlertGroupSerializer)
@@ -563,7 +567,7 @@ class AlertGroupView(
         if not alert_group.resolved:
             raise BadRequest(detail="The alert group is not resolved")
 
-        alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
+        alert_group.un_resolve_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @extend_schema(
@@ -628,7 +632,7 @@ class AlertGroupView(
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't silence an attached alert group")
 
-        alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
+        alert_group.silence_by_user_or_backsync(request.user, silence_delay=delay, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
     @extend_schema(
@@ -640,10 +644,13 @@ class AlertGroupView(
                     choices=[display_name for _, display_name in AlertGroup.SILENCE_DELAY_OPTIONS]
                 ),
             },
+            many=True,
         )
     )
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
+        # TODO: DEPRECATED, REMOVE IN A FUTURE RELEASE
+
         """
         Retrieve a list of valid silence options
         """
@@ -672,7 +679,7 @@ class AlertGroupView(
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't unsilence an attached alert group")
 
-        alert_group.un_silence_by_user(request.user, action_source=ActionSource.WEB)
+        alert_group.un_silence_by_user_or_backsync(request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
@@ -729,14 +736,9 @@ class AlertGroupView(
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
         api_root = "/api/internal/v1/"
+        default_day_range = 30
 
-        now = timezone.now()
-        week_ago = now - timedelta(days=7)
-
-        default_datetime_range = "{}/{}".format(
-            week_ago.strftime(DateRangeFilterMixin.DATE_FORMAT),
-            now.strftime(DateRangeFilterMixin.DATE_FORMAT),
-        )
+        default_datetime_range = f"now-{default_day_range}d_now"
 
         filter_options = [
             {

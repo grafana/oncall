@@ -9,7 +9,6 @@ from apps.base.models.user_notification_policy import (
     validate_channel_choice,
 )
 from apps.base.tests.messaging_backend import TestOnlyBackend
-from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 
 
 @pytest.mark.parametrize(
@@ -84,7 +83,7 @@ def test_extra_messaging_backends_details():
 
 
 @pytest.mark.django_db
-def test_unable_to_delete_last_notification_policy(
+def test_can_delete_last_notification_policy(
     make_organization,
     make_user_for_organization,
     make_user_notification_policy,
@@ -101,5 +100,4 @@ def test_unable_to_delete_last_notification_policy(
     )
 
     first_policy.delete()
-    with pytest.raises(UserNotificationPolicyCouldNotBeDeleted):
-        second_policy.delete()
+    second_policy.delete()

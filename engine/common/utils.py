@@ -139,6 +139,16 @@ def getenv_integer(variable_name: str, default: int) -> int:
         return default
 
 
+def getenv_float(variable_name: str, default: float) -> float:
+    value = os.environ.get(variable_name)
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except ValueError:
+        return default
+
+
 def getenv_list(variable_name: str, default: list) -> list:
     value = os.environ.get(variable_name)
     if value is None:
@@ -176,7 +186,7 @@ def isoformat_with_tz_suffix(value):
 
 
 def is_string_with_visible_characters(string):
-    return type(string) == str and not string.isspace() and not string == ""
+    return type(string) is str and not string.isspace() and not string == ""
 
 
 def str_or_backup(string, backup):

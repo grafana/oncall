@@ -13,6 +13,9 @@ env:
     value: "True"
   - name: SLACK_SLASH_COMMAND_NAME
     value: "/oncall"
+  # enabled to be able to test docker.host.internal in the webhook e2e tests
+  - name: DANGEROUS_WEBHOOKS_ENABLED
+    value: "True"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev
@@ -36,14 +39,7 @@ engine:
   replicaCount: 1
 celery:
   replicaCount: 1
-
-ui:
-  enabled: false
-  image:
-    repository: localhost:63628/oncall/ui
-  env:
-    ONCALL_API_URL: http://oncall-dev-engine:8080
-    MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
+  worker_beat_enabled: false
 
 externalGrafana:
   url: http://grafana:3000
@@ -55,8 +51,6 @@ grafana:
       domain: localhost:3000
       root_url: "%(protocol)s://%(domain)s"
   replicas: 1
-  image:
-    tag: 10.0.2
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
@@ -145,6 +139,7 @@ service:
   nodePort: 30001
 prometheus:
   enabled: true
+<<<<<<< HEAD
   alertmanager:
     enabled: false
   kube-state-metrics:
@@ -153,6 +148,11 @@ prometheus:
     enabled: false
   prometheus-pushgateway:
     enabled: false
+=======
+  server:
+    global:
+      scrape_interval: 10s
+>>>>>>> dev
   extraScrapeConfigs: |
     - job_name: 'oncall-exporter'
       metrics_path: /metrics/

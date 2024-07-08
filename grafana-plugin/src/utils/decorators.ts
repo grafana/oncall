@@ -9,7 +9,7 @@ export function AutoLoadingState(actionKey: string) {
       LoaderStore.setLoadingAction(actionKey, true);
       nbOfPendingActions++;
       try {
-        await originalFunction.apply(this, args);
+        return await originalFunction.apply(this, args);
       } finally {
         nbOfPendingActions--;
         // if there are other pending actions with the same key, wait till the last one is done
@@ -36,7 +36,7 @@ export function WrapAutoLoadingState(callback: Function, actionKey: string): (..
 type GlobalNotificationConfig = {
   success?: string;
   failure?: string;
-  composeFailureMessageFn?: (error: unknown) => string;
+  composeFailureMessageFn?: (error: Response) => Promise<string>;
   failureType?: 'error' | 'warning';
 };
 
@@ -50,7 +50,7 @@ export function WrapWithGlobalNotification(
       success && openNotification(success);
     } catch (err) {
       const open = failureType === 'error' ? openErrorNotification : openWarningNotification;
-      const message = composeFailureMessageFn ? composeFailureMessageFn(err) : failure;
+      const message = composeFailureMessageFn ? await composeFailureMessageFn(err) : failure;
       open(message);
       throw err;
     }
@@ -73,7 +73,7 @@ export function WithGlobalNotification({
         return response;
       } catch (err) {
         const open = failureType === 'error' ? openErrorNotification : openWarningNotification;
-        const message = composeFailureMessageFn ? composeFailureMessageFn(err) : failure;
+        const message = composeFailureMessageFn ? await composeFailureMessageFn(err) : failure;
         open(message);
         throw err;
       }

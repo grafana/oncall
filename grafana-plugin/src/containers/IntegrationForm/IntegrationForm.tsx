@@ -27,6 +27,7 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { Text } from 'components/Text/Text';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { Labels } from 'containers/Labels/Labels';
+import { ServiceNowAuthSection } from 'containers/ServiceNowConfigDrawer/ServiceNowAuthSection';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
@@ -36,14 +37,15 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, URL_REGEX, generateAssignToTeamInputDescription } from 'utils/consts';
+import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
+import { validateURL } from 'utils/string';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
 
-interface FormFields {
+export interface IntegrationFormFields {
   verbal_name?: string;
   description_short?: string;
   team?: string;
@@ -54,6 +56,10 @@ interface FormFields {
   create_default_webhooks: boolean;
 
   additional_settings: ApiSchemas['AlertReceiveChannel']['additional_settings'];
+}
+
+interface AuthSection {
+  testConnection(): Promise<boolean>;
 }
 
 interface IntegrationFormProps {
@@ -115,11 +121,12 @@ export const IntegrationForm = observer(
 
     const { integration } = data;
 
-    const formMethods = useForm<FormFields>({
+    const formMethods = useForm<IntegrationFormFields>({
       defaultValues: isNew
         ? {
             // these are the default values for creating an integration
             integration,
+            create_default_webhooks: true,
             additional_settings: {},
           }
         : {
@@ -171,6 +178,7 @@ export const IntegrationForm = observer(
     }, []);
 
     const labelsRef = useRef(null);
+    const authSectionRef = useRef<AuthSection>(null);
 
     const [labelsErrors, setLabelErrors] = useState([]);
     const isServiceNow = getIsBidirectionalIntegration(data as Partial<ApiSchemas['AlertReceiveChannel']>);
@@ -232,7 +240,6 @@ export const IntegrationForm = observer(
                     getSearchResult: grafanaTeamStore.getSearchResult,
                     displayField: 'name',
                     valueField: 'id',
-                    showSearch: true,
                     allowClear: true,
                   }}
                   onChange={(value) => {
@@ -281,9 +288,19 @@ export const IntegrationForm = observer(
 
           {isTableView && <HowTheIntegrationWorks selectedOption={selectedIntegration} />}
 
-          <RenderConditionally shouldRender={isServiceNow}>
+          <RenderConditionally shouldRender={isServiceNow && isNew}>
             <div className={styles.serviceNowHeading}>
-              <Text type="primary">ServiceNow configuration</Text>
+              <HorizontalGroup>
+                <Text type="primary">ServiceNow configuration</Text>
+              </HorizontalGroup>
+              <HorizontalGroup>
+                <Text type={'primary'} size={'small'}>
+                  Fill in ServiceNow credentials to be used by Grafana OnCall.{' '}
+                  <a href={`${DOCS_ROOT}/integrations/servicenow/`} target="_blank" rel="noreferrer">
+                    <Text type="link">Read setup guide</Text>
+                  </a>
+                </Text>
+              </HorizontalGroup>
             </div>
 
             <Controller
@@ -334,9 +351,7 @@ export const IntegrationForm = observer(
               )}
             />
 
-            <Button className={styles.webhookTest} variant="secondary" onClick={onWebhookTestClick}>
-              Test
-            </Button>
+            <ServiceNowAuthSection ref={authSectionRef} />
 
             <Controller
               name={'create_default_webhooks'}
@@ -344,7 +359,17 @@ export const IntegrationForm = observer(
               render={({ field }) => (
                 <div className={styles.webhookSwitch}>
                   <Switch value={field.value} onChange={field.onChange} />
-                  <Text type="primary"> Create default outgoing webhook events</Text>
+                  <Text type="primary"> Create default outgoing webhooks</Text>
+                  <Tooltip
+                    content={
+                      <>
+                        If enabled, all the necessary webhooks will be created automatically. It's highly recommended to
+                        keep this option enabled.
+                      </>
+                    }
+                  >
+                    <Icon name={'info-circle'} />
+                  </Tooltip>
                 </div>
               )}
             />
@@ -381,29 +406,29 @@ export const IntegrationForm = observer(
       );
     }
 
-    function validateURL(urlFieldValue: string): string | boolean {
-      const regex = new RegExp(URL_REGEX, 'i');
-      return !regex.test(urlFieldValue) ? 'Instance URL is invalid' : true;
-    }
-
-    async function onWebhookTestClick(): Promise<void> {}
-
-    async function onFormSubmit(formData: FormFields): Promise<void> {
+    async function onFormSubmit(formData: IntegrationFormFields): Promise<void> {
       const labels = labelsRef.current?.getValue();
 
       const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelCreate']> = {
-        labels,
         ...formData,
+        labels: labels ? [...labels] : undefined,
       };
 
-      if (formData.integration !== 'servicenow') {
+      const isServiceNow = formData.integration === INTEGRATION_SERVICENOW;
+
+      if (!isServiceNow) {
         delete data.additional_settings;
       }
 
-      const isCreate = id === 'new';
+      if (isServiceNow && isNew) {
+        const testResult = await authSectionRef?.current?.testConnection();
+        if (!testResult) {
+          return;
+        }
+      }
 
       try {
-        if (isCreate) {
+        if (isNew) {
           await createNewIntegration();
         } else {
           await alertReceiveChannelStore.update({ id, data, skipErrorHandling: true });
@@ -427,13 +452,15 @@ export const IntegrationForm = observer(
           return;
         }
 
-        if (!IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting')) {
-          pushHistory(response.id);
+        if (IntegrationHelper.isSpecificIntegration(selectedIntegration.value, 'grafana_alerting')) {
+          await (formData.is_existing
+            ? AlertReceiveChannelHelper.connectContactPoint
+            : AlertReceiveChannelHelper.createContactPoint)(
+            response.id,
+            formData.alert_manager,
+            formData.contact_point
+          );
         }
-
-        await (formData.is_existing
-          ? AlertReceiveChannelHelper.connectContactPoint
-          : AlertReceiveChannelHelper.createContactPoint)(response.id, formData.alert_manager, formData.contact_point);
 
         pushHistory(response.id);
       }
@@ -489,7 +516,7 @@ const GrafanaContactPoint = observer(
       setValue,
       formState: { errors },
       register,
-    } = useFormContext<FormFields>();
+    } = useFormContext<IntegrationFormFields>();
 
     useEffect(() => {
       (async function () {
@@ -617,7 +644,7 @@ const GrafanaContactPoint = observer(
       // filter contact points for current alert manager
       const contactPointsForCurrentOption = allContactPoints
         .find((opt) => opt.uid === option.value)
-        .contact_points?.map((cp) => ({ value: cp, label: cp }));
+        ?.contact_points?.map((cp) => ({ value: cp, label: cp }));
 
       const newState: Partial<GrafanaContactPointState> = {
         selectedAlertManagerOption: option.value,

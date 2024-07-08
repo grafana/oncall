@@ -10,7 +10,8 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
-    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.user_management.models import User
 
 
 class IncidentLogBuilder:
@@ -554,16 +555,13 @@ class IncidentLogBuilder:
                 # notification_plan_dict structure - {timedelta: [{"user_id": user.pk, "plan_lines": []}]
                 for timedelta, notification_plan in notification_plan_dict.items():
                     escalation_plan_dict.setdefault(timedelta, []).extend(notification_plan)
-        elif escalation_policy_snapshot.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
+        elif escalation_policy_snapshot.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
             if future_step:
-                custom_button = escalation_policy_snapshot.custom_button_trigger
-                if custom_button is not None:
-                    plan_line = f"trigger outgoing webhook `{custom_button.name}`"
+                custom_webhook = escalation_policy_snapshot.custom_webhook
+                if custom_webhook is not None:
+                    plan_line = f'trigger outgoing webhook "{custom_webhook.name}"'
                 else:
-                    plan_line = (
-                        f'escalation step "{escalation_policy_snapshot.step_display}", '
-                        f"but outgoing webhook is unspecified. Skipping"
-                    )
+                    plan_line = f'escalation step "{escalation_policy_snapshot.step_display}" but outgoing webhook is unspecified. Skipping'
                 plan = {"plan_lines": [plan_line]}
                 escalation_plan_dict.setdefault(timedelta, []).append(plan)
         elif escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
@@ -581,7 +579,9 @@ class IncidentLogBuilder:
                 escalation_plan_dict.setdefault(timedelta, []).append(plan)
         return escalation_plan_dict
 
-    def _render_user_notification_line(self, user_to_notify, notification_policy, for_slack=False):
+    def _render_user_notification_line(
+        self, user_to_notify: "User", notification_policy: "UserNotificationPolicy", for_slack=False
+    ):
         """
         Renders user notification plan line
         :param user_to_notify:
@@ -614,7 +614,9 @@ class IncidentLogBuilder:
             result += f"inviting {user_verbal} but notification channel is unspecified"
         return result
 
-    def _get_notification_plan_for_user(self, user_to_notify, future_step=False, important=False, for_slack=False):
+    def _get_notification_plan_for_user(
+        self, user_to_notify: "User", future_step=False, important=False, for_slack=False
+    ):
         """
         Renders user notification plan
         :param user_to_notify:
@@ -668,7 +670,7 @@ class IncidentLogBuilder:
                     # last passed step order + 1
                     notification_policy_order = last_user_log.notification_policy.order + 1
 
-        notification_policies = user_to_notify.get_or_create_notification_policies(important=important)
+        notification_policies = user_to_notify.get_notification_policies_or_use_default_fallback(important=important)
 
         for notification_policy in notification_policies:
             future_notification = notification_policy.order >= notification_policy_order

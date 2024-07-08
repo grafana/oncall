@@ -1,13 +1,13 @@
 import React from 'react';
 
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 import { noop } from 'lodash-es';
+import { bem } from 'styles/utils.styles';
 
 import { Block } from 'components/GBlock/Block';
 
-import styles from './IntegrationBlock.module.scss';
-
-const cx = cn.bind(styles);
+import { getIntegrationBlockStyles } from './IntegrationBlock.styles';
 
 interface IntegrationBlockProps {
   className?: string;
@@ -24,14 +24,16 @@ export const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
   className,
   toggle = noop,
 }) => {
+  const styles = useStyles2(getIntegrationBlockStyles);
+
   return (
-    <div className={cx('integrationBlock', className)}>
+    <div className={cx(className)}>
       {heading && (
         <Block
           bordered
           shadowed
-          className={cx('integrationBlock__heading', {
-            'integrationBlock__heading--noBorderBottom': !noContent,
+          className={cx(styles.integrationBlockHeading, {
+            [bem(styles.integrationBlockHeading, 'noBorderBottom')]: !noContent,
           })}
           onClick={toggle}
         >
@@ -39,7 +41,7 @@ export const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
         </Block>
       )}
       {content && (
-        <div className={cx('integrationBlock__content')} onClick={toggle}>
+        <div className={styles.integrationBlockContent} onClick={toggle}>
           {content}
         </div>
       )}

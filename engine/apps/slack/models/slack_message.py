@@ -11,6 +11,7 @@ from apps.slack.errors import (
     SlackAPIError,
     SlackAPIFetchMembersFailedError,
     SlackAPIMethodNotSupportedForChannelTypeError,
+    SlackAPIRatelimitError,
     SlackAPITokenError,
 )
 
@@ -96,6 +97,10 @@ class SlackMessage(models.Model):
 
         return self.cached_permalink
 
+    @property
+    def deep_link(self) -> str:
+        return f"https://slack.com/app_redirect?channel={self.channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
+
     def send_slack_notification(self, user, alert_group, notification_policy):
         from apps.base.models import UserNotificationPolicyLogRecord
 
@@ -142,6 +147,18 @@ class SlackMessage(models.Model):
                 thread_ts=slack_message.slack_id,
                 unfurl_links=True,
             )
+        except SlackAPIRatelimitError:
+            UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                notification_policy=notification_policy,
+                alert_group=alert_group,
+                reason="Slack API rate limit error",
+                notification_step=notification_policy.step,
+                notification_channel=notification_policy.notify_by,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT,
+            ).save()
+            return
         except SlackAPITokenError:
             UserNotificationPolicyLogRecord(
                 author=user,

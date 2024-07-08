@@ -37,3 +37,37 @@ def test_escalation_plan_messaging_backends(
     log_builder = IncidentLogBuilder(alert_group=alert_group)
     plan = log_builder.get_incident_escalation_plan()
     assert list(plan.values()) == [["send test only backend message to {}".format(user.username)]]
+
+
+@pytest.mark.django_db
+def test_escalation_plan_custom_webhooks(
+    make_organization_and_user,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_custom_webhook,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+):
+    organization, user = make_organization_and_user()
+    escalation_chain = make_escalation_chain(organization=organization)
+    custom_webhook = make_custom_webhook(organization=organization)
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.FIFTEEN_MINUTES,
+    )
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
+        custom_webhook=custom_webhook,
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+    alert_group.save()
+
+    log_builder = IncidentLogBuilder(alert_group=alert_group)
+    plan = log_builder.get_incident_escalation_plan()
+    assert list(plan.values()) == [[f'trigger outgoing webhook "{custom_webhook.name}"']]

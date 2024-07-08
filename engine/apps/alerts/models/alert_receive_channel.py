@@ -780,6 +780,11 @@ def listen_for_alertreceivechannel_model_save(
         # delete alert receive channel connections
         instance.connected_alert_receive_channels.all().delete()
         instance.source_alert_receive_channels.all().delete()
+        # delete connected webhooks
+        if instance.additional_settings is not None:
+            for webhook in instance.webhooks.filter(is_from_connected_integration=True):
+                if webhook.get_source_alert_receive_channel() == instance:
+                    webhook.delete()
         # delete connected auth tokens
         instance.auth_tokens.all().delete()
 

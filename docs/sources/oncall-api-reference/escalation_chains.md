@@ -1,10 +1,12 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/
-title: Escalation Chains HTTP API
+title: Escalation chains HTTP API
 weight: 200
 ---
 
-# Create an escalation chain
+# Escalation chains HTTP API
+
+## Create an escalation chain
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/" \
@@ -35,7 +37,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/escalation_chains/`
 
-# Get an escalation chain
+## Get an escalation chain
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/F5JU6KJET33FE/" \
@@ -58,7 +60,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/escalation_chains/<ESCALATION_CHAIN_ID>/`
 
-# List escalation chains
+## List escalation chains
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/" \
@@ -91,7 +93,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/escalation_chains/`
 
-# Delete an escalation chain
+## Delete an escalation chain
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_chains/F5JU6KJET33FE/" \

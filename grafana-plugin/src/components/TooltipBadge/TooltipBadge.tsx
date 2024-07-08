@@ -1,11 +1,12 @@
 import React, { FC } from 'react';
 
-import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup, useStyles2 } from '@grafana/ui';
+import { bem } from 'styles/utils.styles';
 
 import { Text, TextType } from 'components/Text/Text';
 
-import styles from './TooltipBadge.module.scss';
+import { getTooltipBadgeStyles } from './TooltipBadge.styles';
 
 interface TooltipBadgeProps {
   className?: string;
@@ -23,8 +24,6 @@ interface TooltipBadgeProps {
   onHover?: () => void;
 }
 
-const cx = cn.bind(styles);
-
 export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
   const {
     borderType,
@@ -40,12 +39,14 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
     testId,
   } = props;
 
+  const styles = useStyles2(getTooltipBadgeStyles);
+
   return (
     <Tooltip
       placement={placement || 'bottom-start'}
       interactive
       content={
-        <div className={cx('tooltip')}>
+        <div className={styles.tooltip}>
           <VerticalGroup spacing="xs">
             <Text type="primary">{tooltipTitle}</Text>
             {tooltipContent && <Text type="secondary">{tooltipContent}</Text>}
@@ -54,26 +55,13 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       }
     >
       <div
-        className={cx(
-          'root',
-          'element',
-          { [`element--${borderType}`]: true },
-          { 'element--padding': addPadding },
-          className
-        )}
+        className={cx(styles.element, styles[borderType], { [bem(styles.element, 'padding')]: addPadding }, className)}
         onMouseEnter={onHover}
         {...(testId ? { 'data-testid': testId } : {})}
       >
         <HorizontalGroup spacing="xs">
           {renderIcon()}
-          {text !== undefined && (
-            <Text
-              className={cx('element__text', { [`element__text--${borderType}`]: true })}
-              {...(testId ? { 'data-testid': `${testId}-text` } : {})}
-            >
-              {text}
-            </Text>
-          )}
+          {text !== undefined && <Text {...(testId ? { 'data-testid': `${testId}-text` } : {})}>{text}</Text>}
         </HorizontalGroup>
       </div>
     </Tooltip>
@@ -87,6 +75,6 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       return null;
     }
 
-    return <Icon className={cx('element__icon', { [`element__icon--${borderType}`]: true })} name={icon as IconName} />;
+    return <Icon name={icon as IconName} />;
   }
 };

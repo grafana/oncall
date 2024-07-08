@@ -1,12 +1,13 @@
 import React, { FC, HTMLAttributes, ChangeEvent, useState, useCallback } from 'react';
 
-import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { bem } from 'styles/utils.styles';
 
 import { openNotification } from 'utils/utils';
 
-import styles from './Text.module.scss';
+import { getTextStyles } from './Text.styles';
 
 export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning' | 'danger';
 
@@ -15,7 +16,6 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   strong?: boolean;
   underline?: boolean;
   size?: 'xs' | 'small' | 'medium' | 'large';
-  keyboard?: boolean;
   className?: string;
   wrap?: boolean;
   copyable?: boolean;
@@ -27,6 +27,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   maxWidth?: string;
   clickable?: boolean;
   customTag?: 'h6' | 'span';
+  withBackground?: boolean;
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -34,8 +35,6 @@ interface TextInterface extends React.FC<TextProps> {
 }
 
 const PLACEHOLDER = '**********';
-
-const cx = cn.bind(styles);
 
 export const Text: TextInterface = (props) => {
   const {
@@ -45,7 +44,6 @@ export const Text: TextInterface = (props) => {
     underline = false,
     children,
     onClick,
-    keyboard = false,
     className,
     wrap = true,
     copyable = false,
@@ -54,12 +52,15 @@ export const Text: TextInterface = (props) => {
     clearBeforeEdit = false,
     hidden = false,
     editModalTitle = 'New value',
+    withBackground = false,
     style,
     maxWidth,
     clickable,
     customTag,
     ...rest
   } = props;
+
+  const styles = useStyles2(getTextStyles);
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [value, setValue] = useState<string | undefined>();
@@ -89,18 +90,16 @@ export const Text: TextInterface = (props) => {
     <CustomTag
       onClick={onClick}
       className={cx(
-        'root',
-        'text',
-        {
-          'with-maxWidth': Boolean(maxWidth),
-          [`text--${type}`]: true,
-          [`text--${size}`]: true,
-          'text--strong': strong,
-          'text--underline': underline,
-          'text--clickable': clickable,
-          'no-wrap': !wrap,
-          keyboard,
-        },
+        styles.root,
+        styles.text,
+        { [styles.maxWidth]: Boolean(maxWidth) },
+        { [bem(styles.text, type)]: true },
+        { [bem(styles.text, size)]: true },
+        { [bem(styles.text, `strong`)]: strong },
+        { [bem(styles.text, `underline`)]: underline },
+        { [bem(styles.text, 'clickable')]: clickable },
+        { [styles.noWrap]: !wrap },
+        { [styles.withBackground]: withBackground },
         className
       )}
       style={{ ...style, maxWidth }}
@@ -110,9 +109,10 @@ export const Text: TextInterface = (props) => {
       {editable && (
         <IconButton
           onClick={handleEditClick}
-          className={cx('icon-button')}
+          className={styles.iconButton}
           tooltip="Edit"
           tooltipPlacement="top"
+          data-emotion="iconButton"
           name="pen"
         />
       )}
@@ -125,9 +125,10 @@ export const Text: TextInterface = (props) => {
         >
           <IconButton
             variant="primary"
-            className={cx('icon-button')}
+            className={styles.iconButton}
             tooltip="Copy to clipboard"
             tooltipPlacement="top"
+            data-emotion="iconButton"
             name="copy"
           />
         </CopyToClipboard>
@@ -165,12 +166,14 @@ interface TitleProps extends TextProps {
 }
 
 const Title: FC<TitleProps> = (props) => {
+  const styles = useStyles2(getTextStyles);
+
   const { level, className, style, ...restProps } = props;
   // @ts-ignore
   const Tag: keyof JSX.IntrinsicElements = `h${level}`;
 
   return (
-    <Tag className={cx('title', className)} style={style}>
+    <Tag className={cx(styles.title, className)} style={style}>
       <Text {...restProps} />
     </Tag>
   );

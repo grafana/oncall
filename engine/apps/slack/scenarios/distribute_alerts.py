@@ -1,22 +1,20 @@
 import json
 import logging
 import typing
-from contextlib import suppress
 from datetime import datetime
 
 from django.core.cache import cache
 from django.utils import timezone
-from jinja2 import TemplateError
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackRenderer
 from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
-from apps.alerts.tasks import custom_button_result
-from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
+from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
+    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
     SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
@@ -291,7 +289,9 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
             silence_delay = int(value)
 
-        alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
+        alert_group.silence_by_user_or_backsync(
+            self.user, silence_delay=silence_delay, action_source=ActionSource.SLACK
+        )
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -311,7 +311,7 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_silence_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -340,11 +340,12 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                 "type": "plain_text",
                 "text": "Attach to Alert Group",
             },
-            "private_metadata": json.dumps(
+            "private_metadata": make_private_metadata(
                 {
                     "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
                     "alert_group_pk": alert_group.pk,
-                }
+                },
+                self.organization,
             ),
             "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
         }
@@ -399,9 +400,8 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         collected_options: typing.List[CompositionObjectOption] = []
         blocks: Block.AnyBlocks = []
 
-        alert_receive_channel_ids = AlertReceiveChannel.objects.filter(
-            organization=alert_group.channel.organization
-        ).values_list("id", flat=True)
+        org = alert_group.channel.organization
+        alert_receive_channel_ids = AlertReceiveChannel.objects.filter(organization=org).values_list("id", flat=True)
 
         alert_groups_queryset = (
             AlertGroup.objects.prefetch_related(
@@ -413,6 +413,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             .order_by("-pk")
         )
 
+        sf = SlackFormatter(org)
         for alert_group_to_attach in alert_groups_queryset[:ATTACH_TO_ALERT_GROUPS_LIMIT]:
             # long_verbose_name_without_formatting was removed from here because it increases queries count due to
             # alerts.first().
@@ -420,7 +421,6 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             # prefetch_related.
             first_alert = alert_group_to_attach.alerts.all()[0]
             templated_alert = AlertSlackRenderer(first_alert).templated_alert
-            sf = SlackFormatter(alert_group_to_attach.channel.organization)
             if is_string_with_visible_characters(templated_alert.title):
                 alert_name = templated_alert.title
                 alert_name = sf.format(alert_name)
@@ -435,7 +435,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             collected_options.append(
                 {
                     "text": {"type": "plain_text", "text": f"{alert_name}", "emoji": True},
-                    "value": str(alert_group_to_attach.pk),
+                    "value": make_value({root_ag_id_value_key: alert_group_to_attach.pk}, org),
                 }
             )
         if len(collected_options) > 0:
@@ -496,21 +496,43 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         if payload["type"] == PayloadType.VIEW_SUBMISSION:
             alert_group_pk = json.loads(payload["view"]["private_metadata"])["alert_group_pk"]
             alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-            root_alert_group_pk = payload["view"]["state"]["values"][SelectAttachGroupStep.routing_uid()][
-                AttachGroupStep.routing_uid()
-            ]["selected_option"]["value"]
+            root_alert_group_pk = _get_root_alert_group_id_from_value(
+                payload["view"]["state"]["values"][SelectAttachGroupStep.routing_uid()][AttachGroupStep.routing_uid()][
+                    "selected_option"
+                ]["value"]
+            )
             root_alert_group = AlertGroup.objects.get(pk=root_alert_group_pk)
         # old version of attach selection by dropdown
         else:
             try:
-                root_alert_group_pk = int(payload["actions"][0]["selected_options"][0]["value"])
+                root_alert_group_pk = int(
+                    _get_root_alert_group_id_from_value(payload["actions"][0]["selected_options"][0]["value"])
+                )
             except KeyError:
-                root_alert_group_pk = int(payload["actions"][0]["selected_option"]["value"])
+                root_alert_group_pk = int(
+                    _get_root_alert_group_id_from_value(payload["actions"][0]["selected_option"]["value"])
+                )
 
             root_alert_group = AlertGroup.objects.get(pk=root_alert_group_pk)
             alert_group = self.get_alert_group(slack_team_identity, payload)
 
         alert_group.attach_by_user(self.user, root_alert_group, action_source=ActionSource.SLACK)
+
+
+root_ag_id_value_key = "ag_id"
+
+
+def _get_root_alert_group_id_from_value(value: str) -> str:
+    """
+    Extract ag ID from value string.
+    It might be either JSON-encoded object or just a user ID.
+    Json encoded object introduced for Chatops-Proxy routing, plain string with user ID is legacy.
+    """
+    try:
+        data = json.loads(value)
+        return data[root_ag_id_value_key]
+    except json.JSONDecodeError:
+        return value
 
 
 class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -565,69 +587,6 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
 
 
-class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
-
-    def process_scenario(
-        self,
-        slack_user_identity: "SlackUserIdentity",
-        slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-    ) -> None:
-        from apps.alerts.models import CustomButton
-
-        alert_group = self.get_alert_group(slack_team_identity, payload)
-        if not self.is_authorized(alert_group):
-            self.open_unauthorized_warning(payload)
-            return
-
-        custom_button_pk = payload["actions"][0]["name"].split("_")[1]
-        alert_group_pk = payload["actions"][0]["name"].split("_")[2]
-        try:
-            CustomButton.objects.get(pk=custom_button_pk)
-        except CustomButton.DoesNotExist:
-            warning_text = "Oops! This button was deleted"
-            self.open_warning_window(payload, warning_text=warning_text)
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
-        else:
-            custom_button_result.apply_async(
-                args=(
-                    custom_button_pk,
-                    alert_group_pk,
-                ),
-                kwargs={"user_pk": self.user.pk},
-            )
-
-    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        result_message = log_record.reason
-        custom_button = log_record.custom_button
-        debug_message = ""
-        if not log_record.step_specific_info["is_request_successful"]:
-            with suppress(TemplateError, json.JSONDecodeError):
-                post_kwargs = custom_button.build_post_kwargs(log_record.alert_group.alerts.first())
-                curl_request = render_curl_command(log_record.custom_button.webhook, "POST", post_kwargs)
-                debug_message = f"```{curl_request}```"
-
-        if log_record.author is not None:
-            user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
-            text = (
-                f"{user_verbal} sent a request from an outgoing webhook `{log_record.custom_button.name}` "
-                f"with the result `{result_message}`"
-            )
-        else:
-            text = (
-                f"A request from an outgoing webhook `{log_record.custom_button.name}` was sent "
-                f"according to escalation policy with the result `{result_message}`"
-            )
-        attachments = [
-            {"callback_id": "alert", "text": debug_message},
-        ]
-        self.alert_group_slack_service.publish_message_to_alert_group_thread(
-            alert_group, attachments=attachments, text=text
-        )
-
-
 class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.ALERT_GROUPS_WRITE]
 
@@ -659,7 +618,7 @@ class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
                 )
                 return
 
-            alert_group.resolve_by_user(self.user, action_source=ActionSource.SLACK)
+            alert_group.resolve_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
@@ -683,7 +642,7 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_resolve_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -703,7 +662,7 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.acknowledge_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
@@ -723,7 +682,7 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
             self.open_unauthorized_warning(payload)
             return
 
-        alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_acknowledge_by_user_or_backsync(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         from apps.alerts.models import AlertGroupLogRecord
@@ -781,8 +740,14 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
     ) -> None:
         from apps.alerts.models import AlertGroup
 
-        alert_group_id = payload["actions"][0]["value"].split("_")[1]
-        alert_group = AlertGroup.objects.get(pk=alert_group_id)
+        value = payload["actions"][0]["value"]
+        try:
+            alert_group_pk = json.loads(value)["alert_group_pk"]
+        except json.JSONDecodeError:
+            # Deprecated and kept for backward compatibility (so older Slack messages can still be processed)
+            alert_group_pk = value.split("_")[1]
+
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
         channel = payload["channel"]["id"]
         message_ts = payload["message_ts"]
 
@@ -840,10 +805,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                             "text": "Confirm",
                             "type": "button",
                             "style": "primary",
-                            "value": scenario_step.ScenarioStep.get_step(
-                                "distribute_alerts", "AcknowledgeConfirmationStep"
-                            ).routing_uid()
-                            + ("_" + str(alert_group.pk)),
+                            "value": make_value({"alert_group_pk": alert_group.pk}, alert_group.channel.organization),
                         },
                     ],
                 }
@@ -1012,6 +974,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 SlackAPIChannelArchivedError,
                 SlackAPIChannelInactiveError,
                 SlackAPIInvalidAuthError,
+                SlackAPICantUpdateMessageError,
             ):
                 pass
             else:
@@ -1161,11 +1124,5 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
         "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": StopInvitationProcess.routing_uid(),
         "step": StopInvitationProcess,
-    },
-    {
-        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": InteractiveMessageActionType.BUTTON,
-        "action_name": CustomButtonProcessStep.routing_uid(),
-        "step": CustomButtonProcessStep,
     },
 ]

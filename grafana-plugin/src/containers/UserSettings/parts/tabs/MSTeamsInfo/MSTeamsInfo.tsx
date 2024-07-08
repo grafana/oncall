@@ -19,13 +19,17 @@ export const MSTeamsInfo = observer(() => {
   const [onCallisAdded, setOnCallisAdded] = useState(false);
 
   useEffect(() => {
-    UserHelper.fetchBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS').then(setVerificationCode);
-    msteamsChannelStore.updateItems().then(() => {
+    (async () => {
+      const res = await UserHelper.fetchBackendConfirmationCode(userStore.currentUserPk, 'MSTEAMS');
+      setVerificationCode(res);
+
+      await msteamsChannelStore.updateItems();
+
       const connectedChannels = msteamsChannelStore.getSearchResult();
       if (connectedChannels?.length) {
         setOnCallisAdded(true);
       }
-    });
+    })();
   }, []);
 
   useEffect(() => {

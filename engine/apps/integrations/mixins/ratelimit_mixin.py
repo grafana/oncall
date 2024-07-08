@@ -14,10 +14,13 @@ from apps.integrations.tasks import start_notify_about_integration_ratelimit
 logger = logging.getLogger(__name__)
 
 
-RATELIMIT_INTEGRATION = 300
-RATELIMIT_TEAM = 900
+RATELIMIT_INTEGRATION = "300/5m"
+RATELIMIT_TEAM = "900/5m"
 RATELIMIT_REASON_INTEGRATION = "channel"
 RATELIMIT_REASON_TEAM = "team"
+INTEGRATION_TOKEN_TO_IGNORE_KEY = "integration_tokens_to_ignore_ratelimit"
+RATELIMIT_BYPASS_CACHE_KEY = f"{INTEGRATION_TOKEN_TO_IGNORE_KEY}_cache_key"
+RATELIMIT_BYPASS_CACHE_TIMEOUT = 5
 
 
 def get_rate_limit_per_channel_key(_, request):
@@ -85,17 +88,21 @@ def ratelimit(group=None, key=None, rate=None, method=ALL, block=False, reason=N
 
 
 def is_ratelimit_ignored(alert_receive_channel):
-    from apps.base.models import DynamicSetting
+    integration_tokens_to_ignore_ratelimit = cache.get(RATELIMIT_BYPASS_CACHE_KEY)
+    if not integration_tokens_to_ignore_ratelimit:
+        from apps.base.models import DynamicSetting
 
-    integration_token_to_ignore_ratelimit = DynamicSetting.objects.get_or_create(
-        name="integration_tokens_to_ignore_ratelimit",
-        defaults={
-            "json_value": [
-                "dummytoken_uniq_1213kj1h3",
-            ]
-        },
-    )[0]
-    return alert_receive_channel.token in integration_token_to_ignore_ratelimit.json_value
+        dynamic_setting = DynamicSetting.objects.get_or_create(
+            name=INTEGRATION_TOKEN_TO_IGNORE_KEY,
+            defaults={
+                "json_value": [
+                    "dummytoken_uniq_1213kj1h3",
+                ]
+            },
+        )[0]
+        integration_tokens_to_ignore_ratelimit = dynamic_setting.json_value
+        cache.set(RATELIMIT_BYPASS_CACHE_KEY, integration_tokens_to_ignore_ratelimit, RATELIMIT_BYPASS_CACHE_TIMEOUT)
+    return alert_receive_channel.token in integration_tokens_to_ignore_ratelimit
 
 
 class RateLimitMixin(ABC, View):
@@ -124,7 +131,10 @@ class RateLimitMixin(ABC, View):
         raise NotImplementedError
 
     def execute_rate_limit_with_notification_logic(self, *args, **kwargs):
-        self.execute_rate_limit(self.request)
+        try:
+            self.execute_rate_limit(self.request)
+        except Ratelimited:
+            pass
         self.notify()
 
     @property
@@ -155,12 +165,13 @@ class IntegrationHeartBeatRateLimitMixin(RateLimitMixin, View):
 
     @ratelimit(
         key=get_rate_limit_per_channel_key,
-        rate=str(RATELIMIT_INTEGRATION) + "/5m",
+        rate=RATELIMIT_INTEGRATION,
         group="integration",
         reason=RATELIMIT_REASON_INTEGRATION,
+        block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=str(RATELIMIT_TEAM) + "/5m", group="team", reason=RATELIMIT_REASON_TEAM
+        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass
@@ -190,12 +201,13 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
 
     @ratelimit(
         key=get_rate_limit_per_channel_key,
-        rate=str(RATELIMIT_INTEGRATION) + "/5m",
+        rate=RATELIMIT_INTEGRATION,
         group="integration",
         reason=RATELIMIT_REASON_INTEGRATION,
+        block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=str(RATELIMIT_TEAM) + "/5m", group="team", reason=RATELIMIT_REASON_TEAM
+        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass

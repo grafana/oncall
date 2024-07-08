@@ -24,6 +24,7 @@ class Feature(enum.StrEnum):
     # On OnCall side it do nothing, just indicating if OnCall API is ready to that integration.
     GRAFANA_ALERTING_V2 = "grafana_alerting_v2"
     LABELS = "labels"
+    GOOGLE_OAUTH2 = "google_oauth2"
 
 
 class FeaturesAPIView(APIView):
@@ -63,5 +64,8 @@ class FeaturesAPIView(APIView):
 
         if is_labels_feature_enabled(self.request.auth.organization):
             enabled_features.append(Feature.LABELS)
+
+        if settings.GOOGLE_OAUTH2_ENABLED:
+            enabled_features.append(Feature.GOOGLE_OAUTH2)
 
         return enabled_features

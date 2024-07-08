@@ -15,4 +15,11 @@ export const WebhookFormFieldName = {
   ForwardAll: 'forward_all',
   Data: 'data',
 } as const;
+
 export type WebhookFormFieldName = (typeof WebhookFormFieldName)[keyof typeof WebhookFormFieldName];
+
+export interface TemplateParams {
+  name: WebhookFormFieldName;
+  value: string;
+  displayName: string;
+}

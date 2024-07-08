@@ -34,7 +34,13 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
 
     escalation_snapshot = alert_group.escalation_snapshot
     try:
-        escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+        # escalation_policy_snapshot_order refers to order as defined in the policy,
+        # which is unique but not necessarily sequential and may not start from zero
+        escalation_policy_snapshot = [
+            policy
+            for policy in escalation_snapshot.escalation_policies_snapshots
+            if policy.order == escalation_policy_snapshot_order
+        ][0]
     except IndexError:
         escalation_policy_snapshot = None
 
@@ -77,22 +83,22 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
                 continue
 
             important = escalation_policy_step == EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT
-            notification_policies = user.get_or_create_notification_policies(important=important)
+            notification_policies = user.get_notification_policies_or_use_default_fallback(important=important)
 
             if notification_policies:
                 usergroup_notification_plan += "\n_{} (".format(
-                    step.get_user_notification_message_for_thread_for_usergroup(user, notification_policies.first())
+                    step.get_user_notification_message_for_thread_for_usergroup(user, notification_policies[0])
                 )
-
-            notification_channels = []
-            if notification_policies.filter(step=UserNotificationPolicy.Step.NOTIFY).count() == 0:
+            else:
                 usergroup_notification_plan += "Empty notifications"
 
+            notification_channels = []
             for notification_policy in notification_policies:
                 if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
                     notification_channels.append(
                         UserNotificationPolicy.NotificationChannel(notification_policy.notify_by).label
                     )
+
             usergroup_notification_plan += "→".join(notification_channels) + ")_"
             reason = f"Membership in <!subteam^{usergroup.slack_id}> User Group"
 

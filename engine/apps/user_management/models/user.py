@@ -7,8 +7,9 @@ from urllib.parse import urljoin
 
 import pytz
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -20,8 +21,9 @@ from apps.api.permissions import (
     RBACPermission,
     user_is_authorized,
 )
+from apps.google.models import GoogleOAuth2User
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
-from apps.user_management.constants import AlertGroupTableColumn
+from apps.user_management.types import AlertGroupTableColumn, GoogleCalendarSettings
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -31,6 +33,7 @@ if typing.TYPE_CHECKING:
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
     from apps.base.models import UserNotificationPolicy
     from apps.slack.models import SlackUserIdentity
+    from apps.social_auth.types import GoogleOauth2Response
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -81,8 +84,6 @@ class UserManager(models.Manager["User"]):
 
     @staticmethod
     def sync_for_organization(organization, api_users: list[dict]):
-        from apps.base.models import UserNotificationPolicy
-
         grafana_users = {user["userId"]: user for user in api_users}
         existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
 
@@ -102,21 +103,7 @@ class UserManager(models.Manager["User"]):
             if user["userId"] not in existing_user_ids
         )
 
-        with transaction.atomic():
-            organization.users.bulk_create(users_to_create, batch_size=5000)
-            # Retrieve primary keys for the newly created users
-            #
-            # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
-            # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
-            # On other databases, it will not be set.
-            # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-            created_users = organization.users.exclude(user_id__in=existing_user_ids)
-
-            policies_to_create = ()
-            for user in created_users:
-                policies_to_create = policies_to_create + user.default_notification_policies_defaults
-                policies_to_create = policies_to_create + user.important_notification_policies_defaults
-            UserNotificationPolicy.objects.bulk_create(policies_to_create, batch_size=5000)
+        organization.users.bulk_create(users_to_create, batch_size=5000)
 
         # delete excess users
         user_ids_to_delete = existing_user_ids - grafana_users.keys()
@@ -174,6 +161,7 @@ class User(models.Model):
     auth_tokens: "RelatedManager['ApiAuthToken']"
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
+    google_oauth2_user: typing.Optional[GoogleOAuth2User]
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
@@ -239,6 +227,8 @@ class User(models.Model):
 
     alert_group_table_selected_columns: list[AlertGroupTableColumn] | None = models.JSONField(default=None, null=True)
 
+    google_calendar_settings: GoogleCalendarSettings | None = models.JSONField(default=None, null=True)
+
     def __str__(self):
         return f"{self.pk}: {self.username}"
 
@@ -251,6 +241,14 @@ class User(models.Model):
     @property
     def is_authenticated(self):
         return True
+
+    @property
+    def has_google_oauth2_connected(self) -> bool:
+        try:
+            # https://stackoverflow.com/a/35005034/3902555
+            return self.google_oauth2_user is not None
+        except ObjectDoesNotExist:
+            return False
 
     @property
     def avatar_full_url(self):
@@ -415,56 +413,57 @@ class User(models.Model):
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
-    def get_or_create_notification_policies(self, important=False):
+    def get_notification_policies_or_use_default_fallback(
+        self, important=False
+    ) -> typing.List["UserNotificationPolicy"]:
+        """
+        If the user has no notification policies defined, fallback to using e-mail as the notification channel.
+        """
+        from apps.base.models import UserNotificationPolicy
+
         if not self.notification_policies.filter(important=important).exists():
-            if important:
-                self.notification_policies.create_important_policies_for_user(self)
-            else:
-                self.notification_policies.create_default_policies_for_user(self)
-        notification_policies = self.notification_policies.filter(important=important)
-        return notification_policies
-
-    @property
-    def default_notification_policies_defaults(self):
-        from apps.base.models import UserNotificationPolicy
-
-        print(self)
-
-        return (
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                order=0,
-            ),
-        )
-
-    @property
-    def important_notification_policies_defaults(self):
-        from apps.base.models import UserNotificationPolicy
-
-        return (
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                important=True,
-                order=0,
-            ),
-        )
+            return [
+                UserNotificationPolicy(
+                    user=self,
+                    step=UserNotificationPolicy.Step.NOTIFY,
+                    notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                    important=important,
+                    order=0,
+                ),
+            ]
+        return list(self.notification_policies.filter(important=important).all())
 
     def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if self.alert_group_table_selected_columns != columns:
             self.alert_group_table_selected_columns = columns
             self.save(update_fields=["alert_group_table_selected_columns"])
 
+    def finish_google_oauth2_connection_flow(self, google_oauth2_response: "GoogleOauth2Response") -> None:
+        _obj, created = GoogleOAuth2User.objects.update_or_create(
+            user=self,
+            defaults={
+                "google_user_id": google_oauth2_response.get("sub"),
+                "access_token": google_oauth2_response.get("access_token"),
+                "refresh_token": google_oauth2_response.get("refresh_token"),
+                "oauth_scope": google_oauth2_response.get("scope"),
+            },
+        )
+        if created:
+            self.google_calendar_settings = {
+                "oncall_schedules_to_consider_for_shift_swaps": [],
+            }
+            self.save(update_fields=["google_calendar_settings"])
+
+    def finish_google_oauth2_disconnection_flow(self) -> None:
+        GoogleOAuth2User.objects.filter(user=self).delete()
+
+        self.google_calendar_settings = None
+        self.save(update_fields=["google_calendar_settings"])
+
 
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender: User, instance: User, created: bool, *args, **kwargs) -> None:
-    if created:
-        instance.notification_policies.create_default_policies_for_user(instance)
-        instance.notification_policies.create_important_policies_for_user(instance)
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )

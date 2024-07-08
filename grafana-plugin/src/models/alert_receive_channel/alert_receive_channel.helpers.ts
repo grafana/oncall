@@ -1,9 +1,12 @@
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { SelectOption } from 'state/types';
+import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
+import { OmitReadonlyMembers } from 'utils/types';
 import { showApiError } from 'utils/utils';
 
 import { AlertReceiveChannelStore } from './alert_receive_channel';
@@ -41,6 +44,55 @@ export class AlertReceiveChannelHelper {
           ),
         }
       : undefined;
+  }
+
+  static async checkIfServiceNowHasToken({ id }: { id: ApiSchemas['AlertReceiveChannel']['id'] }) {
+    try {
+      const response = await onCallApi({ skipErrorHandling: true }).GET('/alert_receive_channels/{id}/api_token/', {
+        params: { path: { id } },
+      });
+      return response?.response.status === 200;
+    } catch (ex) {
+      return false;
+    }
+  }
+
+  @AutoLoadingState(ActionKey.UPDATE_SERVICENOW_TOKEN)
+  @WithGlobalNotification({ failure: 'There was an error generating the token. Please try again' })
+  static async generateServiceNowToken({
+    id,
+    skipErrorHandling,
+  }: {
+    id: ApiSchemas['AlertReceiveChannel']['id'];
+    skipErrorHandling?: boolean;
+  }): Promise<ApiSchemas['IntegrationTokenPostResponse']> {
+    const result = await onCallApi({ skipErrorHandling }).POST('/alert_receive_channels/{id}/api_token/', {
+      params: { path: { id } },
+    });
+
+    return result.data;
+  }
+
+  static async testServiceNowAuthentication({
+    id,
+    data,
+  }: {
+    id: ApiSchemas['AlertReceiveChannel']['id'];
+    data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannelUpdate']>;
+  }) {
+    try {
+      const endpoint = id
+        ? '/alert_receive_channels/{id}/test_connection/'
+        : '/alert_receive_channels/test_connection/';
+
+      const result = await onCallApi({ skipErrorHandling: true }).POST(endpoint, {
+        body: data as ApiSchemas['AlertReceiveChannelUpdate'],
+        params: { path: { id } },
+      });
+      return result?.response.status === 200;
+    } catch (ex) {
+      return false;
+    }
   }
 
   static getIntegrationSelectOption(
@@ -167,14 +219,19 @@ export class AlertReceiveChannelHelper {
   }
 
   static async sendDemoAlertToParticularRoute(id: ChannelFilter['id']) {
-    await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
+    try {
+      await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' });
+    } catch (err) {
+      showApiError(err);
+    }
   }
 
   static async convertRegexpTemplateToJinja2Template(id: ChannelFilter['id']) {
-    const result = await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' }).catch(
-      showApiError
-    );
-    return result;
+    try {
+      return await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' });
+    } catch (err) {
+      showApiError(err);
+    }
   }
 
   static async createChannelFilter(data: Partial<ChannelFilter>) {

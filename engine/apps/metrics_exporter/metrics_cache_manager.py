@@ -40,56 +40,60 @@ class MetricsCacheManager:
         return default_dict
 
     @staticmethod
-    def update_integration_states_diff(metrics_dict, integration_id, previous_state=None, new_state=None):
-        metrics_dict.setdefault(integration_id, MetricsCacheManager.get_default_states_diff_dict())
+    def update_integration_states_diff(metrics_dict, integration_id, service_name, previous_state=None, new_state=None):
+        state_per_service = metrics_dict.setdefault(
+            integration_id, {service_name: MetricsCacheManager.get_default_states_diff_dict()}
+        )
         if previous_state:
             state_value = previous_state
-            metrics_dict[integration_id]["previous_states"][state_value] += 1
+            state_per_service[service_name]["previous_states"][state_value] += 1
         if new_state:
             state_value = new_state
-            metrics_dict[integration_id]["new_states"][state_value] += 1
+            state_per_service[service_name]["new_states"][state_value] += 1
         return metrics_dict
 
     @staticmethod
-    def update_integration_response_time_diff(metrics_dict, integration_id, response_time_seconds):
-        metrics_dict.setdefault(integration_id, [])
-        metrics_dict[integration_id].append(response_time_seconds)
-        return metrics_dict
-
-    @staticmethod
-    def metrics_update_state_cache_for_alert_group(integration_id, organization_id, old_state=None, new_state=None):
+    def metrics_update_state_cache_for_alert_group(
+        integration_id, organization_id, service_name, old_state=None, new_state=None
+    ):
         """
         Update state metric cache for one alert group.
-        Run the task to update async if organization_id is None due to an additional request to db
         """
         metrics_state_diff = MetricsCacheManager.update_integration_states_diff(
-            {}, integration_id, previous_state=old_state, new_state=new_state
+            {}, integration_id, service_name, previous_state=old_state, new_state=new_state
         )
         metrics_update_alert_groups_state_cache(metrics_state_diff, organization_id)
 
     @staticmethod
-    def metrics_update_response_time_cache_for_alert_group(integration_id, organization_id, response_time_seconds):
+    def metrics_update_response_time_cache_for_alert_group(
+        integration_id, organization_id, response_time_seconds, service_name
+    ):
         """
         Update response time metric cache for one alert group.
-        Run the task to update async if organization_id is None due to an additional request to db
         """
-        metrics_response_time = MetricsCacheManager.update_integration_response_time_diff(
-            {}, integration_id, response_time_seconds
-        )
+        metrics_response_time: typing.Dict[int, typing.Dict[str, typing.List[int]]] = {
+            integration_id: {service_name: [response_time_seconds]}
+        }
         metrics_update_alert_groups_response_time_cache(metrics_response_time, organization_id)
 
     @staticmethod
     def metrics_update_cache_for_alert_group(
-        integration_id, organization_id, old_state=None, new_state=None, response_time=None, started_at=None
+        integration_id,
+        organization_id,
+        old_state=None,
+        new_state=None,
+        response_time=None,
+        started_at=None,
+        service_name=None,
     ):
         """Call methods to update state and response time metrics cache for one alert group."""
 
         if response_time and old_state == AlertGroupState.FIRING and started_at > get_response_time_period():
             response_time_seconds = int(response_time.total_seconds())
             MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
-                integration_id, organization_id, response_time_seconds
+                integration_id, organization_id, response_time_seconds, service_name
             )
         if old_state or new_state:
             MetricsCacheManager.metrics_update_state_cache_for_alert_group(
-                integration_id, organization_id, old_state, new_state
+                integration_id, organization_id, service_name, old_state, new_state
             )

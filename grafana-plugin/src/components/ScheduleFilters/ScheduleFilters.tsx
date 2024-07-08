@@ -1,14 +1,12 @@
 import React, { useCallback } from 'react';
 
-import { InlineSwitch } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { InlineSwitch, useStyles2 } from '@grafana/ui';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
-import styles from './ScheduleFilters.module.scss';
 import { ScheduleFiltersType } from './ScheduleFilters.types';
-
-const cx = cn.bind(styles);
 
 interface SchedulesFiltersProps {
   value: ScheduleFiltersType;
@@ -18,6 +16,7 @@ interface SchedulesFiltersProps {
 
 export const ScheduleFilters = (props: SchedulesFiltersProps) => {
   const { value, currentUserPk, onChange } = props;
+  const styles = useStyles2(getStyles);
 
   const handleShowMyShiftsOnlyClick = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,7 +35,7 @@ export const ScheduleFilters = (props: SchedulesFiltersProps) => {
   );
 
   return (
-    <div className={cx('root')}>
+    <div className={styles.root}>
       <InlineSwitch
         showLabel
         label="Highlight my shifts"
@@ -45,4 +44,12 @@ export const ScheduleFilters = (props: SchedulesFiltersProps) => {
       />
     </div>
   );
+};
+
+const getStyles = (_theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      display: block;
+    `,
+  };
 };

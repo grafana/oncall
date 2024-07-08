@@ -89,7 +89,11 @@ export class UserHelper {
   }
 
   static async getiCalLink(userPk: ApiSchemas['User']['pk']) {
-    return (await onCallApi().GET('/users/{id}/export_token/', { params: { path: { id: userPk } } })).data;
+    return (
+      await onCallApi({ skipErrorHandling: true }).GET('/users/{id}/export_token/', {
+        params: { path: { id: userPk } },
+      })
+    ).data;
   }
 
   static async createiCalLink(userPk: ApiSchemas['User']['pk']) {
@@ -106,5 +110,10 @@ export class UserHelper {
         params: { path: { id: userId }, query: { critical: isCritical } },
       })
     ).data;
+  }
+
+  static async handleConnectGoogle() {
+    const { data } = await onCallApi().GET('/login/{backend}', { params: { path: { backend: 'google-oauth2' } } });
+    window.location = data;
   }
 }

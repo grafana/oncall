@@ -62,7 +62,7 @@ class WebhookRequestStatus(typing.TypedDict):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
+def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None, is_backsync=False):
     from apps.webhooks.models import Webhook
 
     webhooks_qs = Webhook.objects.filter(
@@ -75,6 +75,9 @@ def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_
             trigger_type=Webhook.TRIGGER_STATUS_CHANGE,
             organization_id=organization_id,
         ).exclude(is_webhook_enabled=False)
+
+    if is_backsync:
+        webhooks_qs = webhooks_qs.filter(is_from_connected_integration=False)
 
     for webhook in webhooks_qs:
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None), kwargs={"trigger_type": trigger_type})
@@ -237,12 +240,16 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     data = _build_payload(webhook, alert_group, user, trigger_type)
     triggered, status, error, exception = make_request(webhook, alert_group, data)
 
-    # create response entry
-    WebhookResponse.objects.create(
-        alert_group=alert_group,
-        trigger_type=trigger_type or webhook.trigger_type,
-        **status,
-    )
+    # create response entry only if webhook was triggered
+    if triggered:
+        WebhookResponse.objects.create(
+            alert_group=alert_group,
+            trigger_type=trigger_type or webhook.trigger_type,
+            **status,
+        )
+    else:
+        reason = status.get("request_trigger", "Unknown")
+        logger.info(f"Webhook {webhook_pk} was not triggered: {reason}")
 
     escalation_policy = step = None
     if escalation_policy_id:
@@ -251,8 +258,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
 
     # create log record
     error_code = None
-    # reuse existing webhooks record type (TODO: rename after migration)
-    log_type = AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    log_type = AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
     reason = str(status["status_code"])
     if error is not None:
         log_type = AlertGroupLogRecord.TYPE_ESCALATION_FAILED
@@ -284,7 +290,8 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
             retry_num = manual_retry_num + 1
             logger.warning(f"Manually retrying execute_webhook for {msg_details} manual_retry_num={retry_num}")
             execute_webhook.apply_async(
-                (webhook_pk, alert_group_id, user_id, escalation_policy_id, retry_num),
+                (webhook_pk, alert_group_id, user_id, escalation_policy_id),
+                kwargs={"trigger_type": trigger_type, "manual_retry_num": retry_num},
                 countdown=10,
             )
         else:

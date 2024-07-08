@@ -3,10 +3,10 @@
 exports[`AddResponders should properly display the add responders button when hideAddResponderButton is false 1`] = `
 <div>
   <div
-    class="body"
+    class="css-1si66qn"
   >
     <div
-      class="root root_bordered"
+      class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
         class="css-1mhys9y-horizontal-group"
@@ -16,10 +16,10 @@ exports[`AddResponders should properly display the add responders button when hi
           class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
-            class="title"
+            class="css-u023fv"
           >
             <span
-              class="root text text--primary text--medium"
+              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
             >
               Participants
             </span>
@@ -56,10 +56,10 @@ exports[`AddResponders should properly display the add responders button when hi
 exports[`AddResponders should properly display the add responders button when hideAddResponderButton is true 1`] = `
 <div>
   <div
-    class="body"
+    class="css-1si66qn"
   >
     <div
-      class="root root_bordered"
+      class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
         class="css-1mhys9y-horizontal-group"
@@ -69,10 +69,10 @@ exports[`AddResponders should properly display the add responders button when hi
           class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
-            class="title"
+            class="css-u023fv"
           >
             <span
-              class="root text text--primary text--medium"
+              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
             >
               Participants
             </span>
@@ -90,10 +90,10 @@ exports[`AddResponders should properly display the add responders button when hi
 exports[`AddResponders should render properly in create mode 1`] = `
 <div>
   <div
-    class="body"
+    class="css-1si66qn"
   >
     <div
-      class="root root_bordered"
+      class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
         class="css-1mhys9y-horizontal-group"
@@ -103,10 +103,10 @@ exports[`AddResponders should render properly in create mode 1`] = `
           class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
-            class="title"
+            class="css-u023fv"
           >
             <span
-              class="root text text--primary text--medium"
+              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
             >
               Participants
             </span>
@@ -143,10 +143,10 @@ exports[`AddResponders should render properly in create mode 1`] = `
 exports[`AddResponders should render properly in update mode 1`] = `
 <div>
   <div
-    class="body"
+    class="css-1si66qn"
   >
     <div
-      class="root root_bordered"
+      class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
         class="css-1mhys9y-horizontal-group"
@@ -156,10 +156,10 @@ exports[`AddResponders should render properly in update mode 1`] = `
           class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
-            class="title"
+            class="css-u023fv"
           >
             <span
-              class="root text text--primary text--medium"
+              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
             >
               Participants
             </span>
@@ -196,10 +196,10 @@ exports[`AddResponders should render properly in update mode 1`] = `
 exports[`AddResponders should render selected team and users properly 1`] = `
 <div>
   <div
-    class="body"
+    class="css-1si66qn"
   >
     <div
-      class="root root_bordered"
+      class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
         class="css-1mhys9y-horizontal-group"
@@ -209,10 +209,10 @@ exports[`AddResponders should render selected team and users properly 1`] = `
           class="css-18qv8yz-layoutChildrenWrapper"
         >
           <h4
-            class="title"
+            class="css-u023fv"
           >
             <span
-              class="root text text--primary text--medium"
+              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
             >
               Participants
             </span>
@@ -239,7 +239,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         </div>
       </div>
       <ul
-        class="responders-list"
+        class="css-xp2upo"
       >
         <li>
           <div
@@ -257,10 +257,10 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="timeline-icon-background"
+                    class="css-1yiiywv"
                   >
                     <img
-                      class="root avatarSize-medium"
+                      class="css-m6de9j css-m6de9j--medium"
                       data-testid="test__avatar"
                       src="https://example.com"
                     />
@@ -270,7 +270,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="root text text--undefined text--medium responder-name"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
                   >
                     my test team
                   </span>
@@ -310,10 +310,10 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="timeline-icon-background timeline-icon-background--green"
+                    class="css-1yiiywv timeline-icon-background--green"
                   >
                     <img
-                      class="root avatarSize-medium"
+                      class="css-m6de9j css-m6de9j--medium"
                       data-testid="test__avatar"
                       src="https://example.com/user9995.png"
                     />
@@ -323,7 +323,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="root text text--undefined text--medium responder-name"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
                   >
                     my test user3
                   </span>
@@ -425,10 +425,10 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="timeline-icon-background timeline-icon-background--green"
+                    class="css-1yiiywv timeline-icon-background--green"
                   >
                     <img
-                      class="root avatarSize-medium"
+                      class="css-m6de9j css-m6de9j--medium"
                       data-testid="test__avatar"
                       src="https://example.com/user123.png"
                     />
@@ -438,7 +438,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="root text text--undefined text--medium responder-name"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
                   >
                     my test user
                   </span>
@@ -539,10 +539,10 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="timeline-icon-background timeline-icon-background--green"
+                    class="css-1yiiywv timeline-icon-background--green"
                   >
                     <img
-                      class="root avatarSize-medium"
+                      class="css-m6de9j css-m6de9j--medium"
                       data-testid="test__avatar"
                       src="https://example.com/user456.png"
                     />
@@ -552,7 +552,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="root text text--undefined text--medium responder-name"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
                   >
                     my test user2
                   </span>
@@ -639,7 +639,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         </li>
         <div
           aria-label="[object Object]"
-          class="css-10yjoiw"
+          class="css-10yjoiw css-182y09v"
           data-testid="data-testid Alert info"
           role="status"
         >
@@ -664,16 +664,16 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                 class="css-9om60p"
               >
                 <span
-                  class="root text text--primary text--medium"
+                  class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
                 >
                   <a
-                    class="learn-more-link"
+                    class="css-1cvxpvr"
                     href="https://grafana.com/docs/oncall/latest/notify/#configure-user-notification-policies"
                     rel="noreferrer"
                     target="_blank"
                   >
                     <span
-                      class="root text text--link text--medium"
+                      class="css-77ouhj--link css-77ouhj--medium css-1287p17"
                     >
                       <div
                         class="css-ffyaiw-horizontal-group"

@@ -11,7 +11,6 @@ from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify
 from apps.alerts.models.alert_group_log_record import AlertGroupLogRecord
 from apps.alerts.models.escalation_policy import EscalationPolicy
 from apps.alerts.tasks import (
-    custom_button_result,
     custom_webhook_result,
     notify_all_task,
     notify_group_task,
@@ -37,7 +36,6 @@ class EscalationPolicySnapshot:
         "to_time",
         "num_alerts_in_window",
         "num_minutes_in_window",
-        "custom_button_trigger",
         "custom_webhook",
         "notify_schedule",
         "notify_to_group",
@@ -66,7 +64,6 @@ class EscalationPolicySnapshot:
         to_time,
         num_alerts_in_window,
         num_minutes_in_window,
-        custom_button_trigger,
         custom_webhook,
         notify_schedule,
         notify_to_group,
@@ -85,7 +82,6 @@ class EscalationPolicySnapshot:
         self.to_time = to_time
         self.num_alerts_in_window = num_alerts_in_window
         self.num_minutes_in_window = num_minutes_in_window
-        self.custom_button_trigger = custom_button_trigger
         self.custom_webhook = custom_webhook
         self.notify_schedule = notify_schedule
         self.notify_to_group = notify_to_group
@@ -131,7 +127,6 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT: self._escalation_step_notify_team_members,
             EscalationPolicy.STEP_NOTIFY_SCHEDULE: self._escalation_step_notify_on_call_schedule,
             EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT: self._escalation_step_notify_on_call_schedule,
-            EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON: self._escalation_step_trigger_custom_button,
             EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: self._escalation_step_trigger_custom_webhook,
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE: self._escalation_step_notify_users_queue,
             EscalationPolicy.STEP_NOTIFY_IF_TIME: self._escalation_step_notify_if_time,
@@ -474,50 +469,35 @@ class EscalationPolicySnapshot:
             return self._get_result_tuple(pause_escalation=True)
         return None
 
-    def _escalation_step_trigger_custom_button(self, alert_group: "AlertGroup", _reason: str) -> None:
-        tasks = []
-        custom_button = self.custom_button_trigger
-        if custom_button is not None:
-            custom_button_task = custom_button_result.signature(
-                (custom_button.pk, alert_group.pk),
-                {
-                    "escalation_policy_pk": self.id,
-                },
-                immutable=True,
-            )
-            tasks.append(custom_button_task)
-        else:
-            log_record = AlertGroupLogRecord(
-                type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
-                alert_group=alert_group,
-                escalation_policy=self.escalation_policy,
-                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED,
-                escalation_policy_step=self.step,
-            )
-            log_record.save()
-        self._execute_tasks(tasks)
-
     def _escalation_step_trigger_custom_webhook(self, alert_group: "AlertGroup", _reason: str) -> None:
         tasks = []
         webhook = self.custom_webhook
+        failure_reason = None
         if webhook is not None:
-            custom_webhook_task = custom_webhook_result.signature(
-                (webhook.pk, alert_group.pk),
-                {
-                    "escalation_policy_pk": self.id,
-                },
-                immutable=True,
-            )
-            tasks.append(custom_webhook_task)
+            if webhook.is_webhook_enabled:
+                custom_webhook_task = custom_webhook_result.signature(
+                    (webhook.pk, alert_group.pk),
+                    {
+                        "escalation_policy_pk": self.id,
+                    },
+                    immutable=True,
+                )
+                tasks.append(custom_webhook_task)
+            else:
+                failure_reason = AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED
         else:
+            failure_reason = AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_STEP_IS_NOT_CONFIGURED
+
+        if failure_reason:
             log_record = AlertGroupLogRecord(
                 type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
                 alert_group=alert_group,
                 escalation_policy=self.escalation_policy,
-                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED,
+                escalation_error_code=failure_reason,
                 escalation_policy_step=self.step,
             )
             log_record.save()
+
         self._execute_tasks(tasks)
 
     def _escalation_step_repeat_escalation_n_times(

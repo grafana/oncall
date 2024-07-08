@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 
-import { Alert, Button, HorizontalGroup, InlineField, Input, VerticalGroup } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, InlineField, Input, VerticalGroup, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
@@ -10,7 +11,6 @@ import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 
 import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 
@@ -21,10 +21,11 @@ interface PhoneConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const PhoneConnector = (props: PhoneConnectorProps) => {
+export const PhoneConnector = observer((props: PhoneConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
+  const theme = useTheme2();
   const { userStore } = store;
 
   const storeUser = userStore.items[id];
@@ -133,8 +134,8 @@ export const PhoneConnector = (props: PhoneConnectorProps) => {
             <VerticalGroup spacing="xs">
               <div className={cx('tag-container')}>
                 <Tag
-                  color={getVar('--tag-secondary-transparent')}
-                  border={getVar('--border-weak')}
+                  color={'rgba(204, 204, 220, 0.04)'}
+                  border={theme.colors.border.weak}
                   className={cx('tag', 'tag-left')}
                 >
                   <Text type="primary" size="small">
@@ -174,4 +175,4 @@ export const PhoneConnector = (props: PhoneConnectorProps) => {
       )}
     </div>
   );
-};
+});

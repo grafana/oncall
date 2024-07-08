@@ -1,9 +1,14 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 
-import { findColor } from 'containers/Rotations/Rotations.helpers';
-import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Event, Layer } from 'models/schedule/schedule.types';
+import { findColor, getCalendarStartDateInTimezone } from 'containers/Rotations/Rotations.helpers';
+import {
+  getLayersFromStore,
+  getOverridesFromStore,
+  getShiftsFromStore,
+  getTotalDaysToDisplay,
+} from 'models/schedule/schedule.helpers';
+import { Event, Layer, ScheduleView } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
@@ -35,8 +40,39 @@ export const getStartOfWeekBasedOnCurrentDate = (date: dayjs.Dayjs) => {
   return date.startOf('isoWeek'); // it's Monday always
 };
 
-export const getUTCString = (moment: dayjs.Dayjs) => {
-  return moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
+export const getCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView, timezoneOffset: number) => {
+  const offsetedDate = getCalendarStartDateInTimezone(date, timezoneOffset);
+
+  switch (scheduleView) {
+    case ScheduleView.OneMonth:
+      const startOfMonth = offsetedDate.startOf('month');
+      return startOfMonth.startOf('isoWeek');
+    default:
+      return offsetedDate.startOf('isoWeek');
+  }
+};
+
+export const getNewCalendarStartDate = (date: dayjs.Dayjs, scheduleView: ScheduleView, direction: 'prev' | 'next') => {
+  switch (scheduleView) {
+    case ScheduleView.OneMonth:
+      return direction === 'prev'
+        ? date.subtract(1, 'day').startOf('month').startOf('isoWeek')
+        : date.add(10, 'days').endOf('month').add(1, 'day').startOf('month').startOf('isoWeek');
+    default:
+      return direction === 'prev'
+        ? date.subtract(getTotalDaysToDisplay(scheduleView, date), 'days')
+        : date.add(getTotalDaysToDisplay(scheduleView, date), 'days');
+  }
+};
+
+export const getCurrentTimeX = (currentDate: dayjs.Dayjs, startDate: dayjs.Dayjs, baseInMinutes: number) => {
+  const diff = currentDate.diff(startDate, 'minutes');
+
+  return diff / baseInMinutes;
+};
+
+export const getUTCString = (date: dayjs.Dayjs) => {
+  return date.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 };
 
 export const getDateTime = (date: string) => {
@@ -169,4 +205,25 @@ export const getColorSchemeMappingForUsers = (
       });
     });
   }
+};
+
+export const toDateWithTimezoneOffset = (date: dayjs.Dayjs, timezoneOffset?: number) => {
+  if (!date) {
+    return undefined;
+  }
+  if (timezoneOffset === undefined) {
+    return date;
+  }
+  return date.utcOffset() === timezoneOffset ? date : date.tz().utcOffset(timezoneOffset);
+};
+
+export const toDateWithTimezoneOffsetAtMidnight = (date: dayjs.Dayjs, timezoneOffset?: number) => {
+  return toDateWithTimezoneOffset(date, timezoneOffset)
+    .set('date', 1)
+    .set('year', date.year())
+    .set('month', date.month())
+    .set('date', date.date())
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0);
 };

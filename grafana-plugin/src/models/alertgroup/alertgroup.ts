@@ -1,6 +1,7 @@
 import { runInAction, makeAutoObservable } from 'mobx';
 import qs from 'query-string';
 
+import { convertFiltersToBackendFormat } from 'models/filters/filters.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -8,16 +9,21 @@ import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { LocationHelper } from 'utils/LocationHelper';
+import { GENERIC_ERROR, PAGE } from 'utils/consts';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { AlertGroupHelper } from './alertgroup.helpers';
 import { AlertGroupColumn, AlertAction, IncidentStatus } from './alertgroup.types';
 
+const composeFailureMessageFn = async (error: Response) => {
+  let errorData = await error.json();
+  return errorData?.detail || GENERIC_ERROR;
+};
+
 export class AlertGroupStore {
   rootStore: RootStore;
   alerts = new Map<string, ApiSchemas['AlertGroup']>();
   bulkActions: any = [];
-  silenceOptions: any;
   searchResult: { [key: string]: Array<ApiSchemas['AlertGroup']['pk']> } = {};
   incidentFilters: any;
   initialQuery = qs.parse(window.location.search);
@@ -47,13 +53,19 @@ export class AlertGroupStore {
     );
     const timestamp = new Date().getTime();
     this.latestFetchAlertGroupsTimestamp = timestamp;
+
+    const incidentFilters = convertFiltersToBackendFormat(
+      this.incidentFilters,
+      this.rootStore.filtersStore.options[PAGE.Incidents]
+    );
+
     const {
       data: { results, next: nextRaw, previous: previousRaw, page_size },
     } = await onCallApi().GET('/alertgroups/', {
       params: {
         query: {
-          ...this.incidentFilters,
-          search,
+          ...incidentFilters,
+          search: incidentFilters?.search || search,
           perpage: this.alertsSearchResult?.page_size,
           cursor: this.incidentsCursor,
           is_root: true,
@@ -67,7 +79,7 @@ export class AlertGroupStore {
     const newAlerts = new Map(
       results.map((alert: ApiSchemas['AlertGroup']) => {
         const oldAlert = this.alerts.get(alert.pk) || {};
-        const mergedAlertData = { ...oldAlert, ...alert, undoAction: alert.undoAction };
+        const mergedAlertData = { ...oldAlert, ...alert };
         return [alert.pk, mergedAlertData];
       })
     );
@@ -102,7 +114,8 @@ export class AlertGroupStore {
     this.rootStore.setPageTitle(`#${alertGroup.inside_organization_number} ${alertGroup.render_for_web.title}`);
   }
 
-  async fetchIncidentsAndStats(isPollingJob = false) {
+  @AutoLoadingState(ActionKey.FETCH_INCIDENTS_AND_STATS)
+  async fetchIncidentsAndStats(isPollingJob = false): Promise<void> {
     await Promise.all([
       this.fetchStats(IncidentStatus.Firing),
       this.fetchStats(IncidentStatus.Acknowledged),
@@ -111,14 +124,6 @@ export class AlertGroupStore {
       this.fetchAlertGroups(isPollingJob),
     ]);
     this.setLiveUpdatesPaused(false);
-  }
-
-  async fetchSilenceOptions() {
-    const { data } = await onCallApi().GET('/alertgroups/silence_options/', undefined);
-
-    runInAction(() => {
-      this.silenceOptions = data;
-    });
   }
 
   @AutoLoadingState(ActionKey.RESET_COLUMNS_FROM_ALERT_GROUP)
@@ -195,8 +200,13 @@ export class AlertGroupStore {
   }
 
   async fetchStats(status: IncidentStatus) {
+    const incidentFilters = convertFiltersToBackendFormat(
+      this.incidentFilters,
+      this.rootStore.filtersStore.options[PAGE.Incidents]
+    );
+
     const { data } = await onCallApi().GET('/alertgroups/stats/', {
-      params: { query: { ...this.incidentFilters, status: [status] } },
+      params: { query: { ...incidentFilters, status: [status] } },
     });
 
     runInAction(() => {
@@ -204,62 +214,74 @@ export class AlertGroupStore {
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn,
+  })
   async resolve(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
-    const { data } = await onCallApi().POST('/alertgroups/{id}/resolve/', {
+    const { data } = await onCallApi({ skipErrorHandling: true }).POST('/alertgroups/{id}/resolve/', {
       params: { path: { id } },
     });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.Resolve,
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn,
+  })
   async unresolve(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unresolve/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.unResolve,
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn,
+  })
   async acknowledge(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/acknowledge/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.Acknowledge,
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn,
+  })
   async unacknowledge(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unacknowledge/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.unAcknowledge,
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn,
+  })
   async silence(id: ApiSchemas['AlertGroup']['pk'], delay: number) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/silence/', {
       params: { path: { id } },
       body: { delay },
     });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.Silence,
     });
   }
 
+  @WithGlobalNotification({
+    failure: 'Failure',
+    composeFailureMessageFn,
+  })
   async unsilence(id: ApiSchemas['AlertGroup']['pk']) {
-    this.setLiveUpdatesPaused(true);
     const { data } = await onCallApi().POST('/alertgroups/{id}/unsilence/', { params: { path: { id } } });
     this.updateAlert(id, {
       ...data,
-      undoAction: AlertAction.unSilence,
     });
   }
 
@@ -272,8 +294,14 @@ export class AlertGroupStore {
       [AlertAction.Resolve]: this.resolve,
       [AlertAction.unResolve]: this.unresolve,
     };
+
     if (actionToMethodMap[action]) {
-      await actionToMethodMap[action](id, delay);
+      try {
+        this.setLiveUpdatesPaused(true);
+        await actionToMethodMap[action](id, delay);
+      } finally {
+        this.setLiveUpdatesPaused(false);
+      }
     }
   }
 
@@ -287,7 +315,7 @@ export class AlertGroupStore {
   async fetchTableSettings(): Promise<void> {
     const tableSettings = await makeRequest('/alertgroup_table_settings', {});
 
-    const { hidden, visible, default: isDefaultOrder } = tableSettings;
+    const { hidden = [], visible = [], default: isDefaultOrder } = tableSettings;
 
     runInAction(() => {
       this.isDefaultColumnOrder = isDefaultOrder;

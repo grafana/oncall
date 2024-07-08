@@ -1,10 +1,12 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_policies/
-title: Escalation Policies HTTP API
+title: Escalation policies HTTP API
 weight: 300
 ---
 
-# Create an escalation policy
+# Escalation policies HTTP API
+
+## Create an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/" \
@@ -34,10 +36,10 @@ The above command returns JSON structured in the following way:
 | ---------------------------------- | :--------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `escalation_chain_id`              |                   Yes                    | Each escalation policy is assigned to a specific escalation chain.                                                                                                                                                                                                                          |
 | `position`                         |                 Optional                 | Escalation policies execute one after another starting from `position=0`. `Position=-1` will put the escalation policy to the end of the list. A new escalation policy created with a position of an existing escalation policy will move the old one (and all following) down in the list. |
-| `type`                             |                   Yes                    | One of: `wait`, `notify_persons`, `notify_person_next_each_time`, `notify_on_call_from_schedule`, `notify_user_group`, `trigger_action`, `resolve`, `notify_whole_channel`, `notify_if_time_from_to`.                                                                                       |
+| `type`                             |                   Yes                    | One of: `wait`, `notify_persons`, `notify_person_next_each_time`, `notify_on_call_from_schedule`, `notify_user_group`, `trigger_webhook`, `resolve`, `notify_whole_channel`, `notify_if_time_from_to`.                                                                                       |
 | `important`                        |                 Optional                 | Default is `false`. Will assign "important" to personal notification rules if `true`. This can be used to distinguish alerts on which you want to be notified immediately by phone. Applicable for types `notify_persons`, `notify_team_members`, `notify_on_call_from_schedule`, and `notify_user_group`.         |
 | `duration`                         |            If type = `wait`              | The duration, in seconds, when type `wait` is chosen. Valid values are: `60`, `300`, `900`, `1800`, `3600`.                                                                                                                                                                                 |
-| `action_to_trigger`                |        If type = `trigger_action`        | ID of a webhook.                                                                                                                                                                                                                                                                |
+| `action_to_trigger`                |        If type = `trigger_webhook`        | ID of a webhook.                                                                                                                                                                                                                                                                |
 | `group_to_notify`                  |      If type = `notify_user_group`       | ID of a `User Group`.                                                                                                                                                                                                                                                                       |
 | `persons_to_notify`                |        If type = `notify_persons`        | List of user IDs.                                                                                                                                                                                                                                                                           |
 | `persons_to_notify_next_each_time` | If type = `notify_person_next_each_time` | List of user IDs.                                                                                                                                                                                                                                                                           |
@@ -50,7 +52,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/escalation_policies/`
 
-# Get an escalation policy
+## Get an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \
@@ -71,7 +73,7 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-# Update an escalation policy
+## Update an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \
@@ -104,7 +106,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/escalation_policies/<ESCALATION_POLICY_ID>/`
 
-# List escalation policies
+## List escalation policies
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/" \
@@ -150,7 +152,7 @@ The following available filter parameter should be provided as a `GET` argument:
 
 `GET {{API_URL}}/api/v1/escalation_policies/`
 
-# Delete an escalation policy
+## Delete an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \

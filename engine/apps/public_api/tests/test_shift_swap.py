@@ -80,7 +80,7 @@ def test_list_filters(
     def assert_expected(response, expected):
         assert response.status_code == status.HTTP_200_OK
         returned = [s["id"] for s in response.json().get("results", [])]
-        assert returned == [s.public_primary_key for s in expected]
+        assert sorted(returned) == sorted([s.public_primary_key for s in expected])
 
     client = APIClient()
     base_url = reverse("api-public:shift_swap-list")
@@ -112,8 +112,8 @@ def test_list_filters(
     assert_expected(response, (swap4,))
 
 
-@patch("apps.api.views.shift_swap.write_resource_insight_log")
-@patch("apps.api.views.shift_swap.create_shift_swap_request_message")
+@patch("apps.schedules.models.shift_swap_request.write_resource_insight_log")
+@patch("apps.schedules.tasks.shift_swaps.create_shift_swap_request_message")
 @pytest.mark.django_db
 def test_create(
     mock_create_shift_swap_request_message,
@@ -122,7 +122,7 @@ def test_create(
     make_user_for_organization,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     another_user = make_user_for_organization(organization)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -145,7 +145,9 @@ def test_create(
     assert_swap_response(response, data)
 
     ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
-    mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
+    mock_write_resource_insight_log.assert_called_once_with(
+        instance=ssr, author=another_user, event=EntityEvent.CREATED
+    )
     mock_create_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 

@@ -2663,7 +2663,7 @@ def test_shifts_for_user(
     schedule.refresh_ical_file()
     schedule.refresh_ical_final_schedule()
 
-    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(admin, now)
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(admin, now, days=7)
     assert len(passed_shifts) == 0
     assert len(current_shifts) == 1
     assert len(upcoming_shifts) == 7
@@ -2678,7 +2678,7 @@ def test_shifts_for_user(
             users = {u["pk"] for u in shift["users"]}
             assert admin.public_primary_key in users
 
-    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(other_user, now)
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(other_user, now, days=7)
     assert len(passed_shifts) == 0
     assert len(current_shifts) == 0
     assert len(upcoming_shifts) == 0
@@ -2731,7 +2731,7 @@ def test_shifts_for_user_only_two_users_with_shifts(
 
     schedule.refresh_ical_final_schedule()
 
-    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days)
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days=days)
     assert len(passed_shifts) == 0
     assert len(current_shifts) == 0
     assert len(upcoming_shifts) == 4
@@ -2740,7 +2740,7 @@ def test_shifts_for_user_only_two_users_with_shifts(
         assert current_user.public_primary_key in users
         assert shift["start"] > now
 
-    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user2, start_date, days)
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user2, start_date, days=days)
     assert len(passed_shifts) > 0
     assert len(current_shifts) > 0
     assert len(upcoming_shifts) > 0
@@ -2774,7 +2774,7 @@ def test_shifts_for_user_no_events(
     start_date = today - timezone.timedelta(days=2)
     days = 7
 
-    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days)
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(current_user, start_date, days=days)
     assert len(passed_shifts) == 0
     assert len(current_shifts) == 0
     assert len(upcoming_shifts) == 0
@@ -2795,7 +2795,7 @@ def test_shifts_for_user_without_final_ical(
     start_date = today - timezone.timedelta(days=2)
     days = 7
 
-    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user, start_date, days)
+    passed_shifts, current_shifts, upcoming_shifts = schedule.shifts_for_user(user, start_date, days=days)
     assert len(passed_shifts) == 0
     assert len(current_shifts) == 0
     assert len(upcoming_shifts) == 0
