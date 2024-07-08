@@ -415,11 +415,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   handleOutgoingWebhookFormHide = () => {
-    const { history } = this.props;
-
     this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
-
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
 }
 

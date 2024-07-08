@@ -1,12 +1,13 @@
 import React from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Field, Input, Select, Switch, useStyles2 } from '@grafana/ui';
+import { Button, Field, Input, RadioButtonList, Select, Switch, useStyles2 } from '@grafana/ui';
 import Emoji from 'react-emoji-render';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { GSelect } from 'containers/GSelect/GSelect';
 import { Labels } from 'containers/Labels/Labels';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
@@ -29,6 +30,21 @@ interface OutgoingWebhookFormFieldsProps {
   onTemplateEditClick: (params: TemplateParams) => void;
 }
 
+const FORWARD = 'forward';
+const CUSTOMIZE = 'customise';
+const FORWARD_RADIO_OPTIONS = [
+  {
+    label: 'Forward whole payload data',
+    value: FORWARD,
+    boolean: true,
+  },
+  {
+    label: 'Customise forwarded data',
+    value: CUSTOMIZE,
+    boolean: false,
+  },
+];
+
 export const OutgoingWebhookFormFields = ({
   preset,
   hasLabelsFeature,
@@ -42,7 +58,6 @@ export const OutgoingWebhookFormFields = ({
   } = useFormContext<ApiSchemas['Webhook']>();
 
   const forwardAll = watch(WebhookFormFieldName.ForwardAll);
-
   const styles = useStyles2(getStyles);
 
   const controls = (
@@ -299,53 +314,63 @@ export const OutgoingWebhookFormFields = ({
           </Field>
         )}
       />
-      <Controller
-        name={WebhookFormFieldName.ForwardAll}
-        control={control}
-        render={({ field }) => (
-          <Field
-            label="Forward All"
-            description="Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data"
-            invalid={Boolean(errors.forward_all)}
-            error={errors.forward_all?.message}
-          >
-            <Switch value={field.value} onChange={field.onChange} />
-          </Field>
-        )}
-      />
-      <Controller
-        name={WebhookFormFieldName.Data}
-        control={control}
-        render={({ field }) => (
-          <Field
-            label="Data"
-            description={`Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}${
-              hasLabelsFeature ? ' {{ webhook }}' : ''
-            }`}
-          >
-            <div className={styles.formRow}>
-              <div className={styles.formField}>
-                <MonacoEditor
-                  data={{}}
-                  showLineNumbers={false}
-                  monacoOptions={{ ...MONACO_EDITABLE_CONFIG, readOnly: forwardAll }}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              </div>
-              <Button
-                icon="edit"
-                variant="secondary"
-                onClick={() =>
-                  onTemplateEditClick({
-                    name: field.name,
-                    value: field.value,
-                    displayName: 'Webhook Data',
-                  })
-                }
-              />
-            </div>
-          </Field>
+
+      <Field>
+        <Controller
+          name={WebhookFormFieldName.ForwardAll}
+          control={control}
+          render={({ field }) => (
+            <RadioButtonList
+              name="forwardData"
+              options={FORWARD_RADIO_OPTIONS}
+              value={FORWARD_RADIO_OPTIONS.find((opt) => opt.boolean === field.value)?.value}
+              onChange={(value) => field.onChange(value === FORWARD)}
+            />
+          )}
+        />
+      </Field>
+
+      <RenderConditionally
+        shouldRender={!forwardAll}
+        render={() => (
+          <Controller
+            name={WebhookFormFieldName.Data}
+            rules={{ required: 'Data is required' }}
+            control={control}
+            render={({ field }) => (
+              <Field
+                label="Data"
+                invalid={Boolean(errors.data)}
+                error={errors.data?.message}
+                description={`Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}${
+                  hasLabelsFeature ? ' {{ webhook }}' : ''
+                }`}
+              >
+                <div className={styles.formRow}>
+                  <div className={styles.formField}>
+                    <MonacoEditor
+                      data={{}}
+                      showLineNumbers={false}
+                      monacoOptions={{ ...MONACO_EDITABLE_CONFIG }}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </div>
+                  <Button
+                    icon="edit"
+                    variant="secondary"
+                    onClick={() =>
+                      onTemplateEditClick({
+                        name: field.name,
+                        value: field.value,
+                        displayName: 'Webhook Data',
+                      })
+                    }
+                  />
+                </div>
+              </Field>
+            )}
+          />
         )}
       />
     </>
