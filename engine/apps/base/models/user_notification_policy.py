@@ -129,6 +129,19 @@ class UserNotificationPolicy(OrderedModel):
 
         return default, important
 
+    @staticmethod
+    def get_default_fallback_policy(user: User) -> "UserNotificationPolicy":
+        return UserNotificationPolicy(
+            user=user,
+            step=UserNotificationPolicy.Step.NOTIFY,
+            notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+            # The important flag doesn't really matter here.. since we're just using this as a transient/fallacbk
+            # in-memory object (important is really only used for allowing users to group their
+            # notification policy steps)
+            important=False,
+            order=0,
+        )
+
     @property
     def short_verbal(self) -> str:
         if self.step == UserNotificationPolicy.Step.NOTIFY:

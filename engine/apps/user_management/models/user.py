@@ -413,30 +413,29 @@ class User(models.Model):
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
+    def get_default_fallback_notification_policy(self) -> "UserNotificationPolicy":
+        from apps.base.models import UserNotificationPolicy
+        return UserNotificationPolicy.get_default_fallback_policy(self)
+
     def get_notification_policies_or_use_default_fallback(
         self, important=False
     ) -> typing.Tuple[bool, typing.List["UserNotificationPolicy"]]:
         """
         If the user has no notification policies defined, fallback to using e-mail as the notification channel.
-        """
-        from apps.base.models import UserNotificationPolicy
 
-        if not self.notification_policies.filter(important=important).exists():
+        The 1st tuple element is a boolean indicating if we are falling back to using a "fallback"/default
+        notification policy step (which occurs when the user has no notification policies defined).
+        """
+        notification_polices = self.notification_policies.filter(important=important)
+
+        if not notification_polices.exists():
             return (
                 True,
-                [
-                    UserNotificationPolicy(
-                        user=self,
-                        step=UserNotificationPolicy.Step.NOTIFY,
-                        notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                        important=important,
-                        order=0,
-                    ),
-                ],
+                [self.get_default_fallback_notification_policy()],
             )
         return (
             False,
-            list(self.notification_policies.filter(important=important).all()),
+            list(notification_polices.all()),
         )
 
     def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:

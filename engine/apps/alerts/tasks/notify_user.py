@@ -121,9 +121,7 @@ def notify_user_task(
             reason = None
 
         def _create_user_notification_policy_log_record(**kwargs):
-            if using_fallback_default_notification_policy_step and "notification_policy" in kwargs:
-                kwargs["notification_policy"] = None
-            return UserNotificationPolicyLogRecord(**kwargs)
+            return UserNotificationPolicyLogRecord(**kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step)
 
         if notification_policy is None:
             stop_escalation = True
@@ -211,14 +209,25 @@ def notify_user_task(
         if not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
 
-                def _create_perform_notification_task(log_record_pk, alert_group_pk):
-                    task = perform_notification.apply_async((log_record_pk,))
+                def _create_perform_notification_task(
+                    log_record_pk, alert_group_pk, use_default_notification_policy_fallback
+                ):
+                    task = perform_notification.apply_async(
+                        (log_record_pk, use_default_notification_policy_fallback)
+                    )
                     task_logger.info(
                         f"Created perform_notification task {task} log_record={log_record_pk} "
                         f"alert_group={alert_group_pk}"
                     )
 
-                transaction.on_commit(partial(_create_perform_notification_task, log_record.pk, alert_group_pk))
+                transaction.on_commit(
+                    partial(
+                        _create_perform_notification_task,
+                        log_record.pk,
+                        alert_group_pk,
+                        using_fallback_default_notification_policy_step,
+                    )
+                )
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
@@ -253,7 +262,7 @@ def notify_user_task(
     dont_autoretry_for=(Retry,),
     max_retries=1 if settings.DEBUG else None,
 )
-def perform_notification(log_record_pk):
+def perform_notification(log_record_pk, use_default_notification_policy_fallback):
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.telegram.models import TelegramToUserConnector
 
@@ -272,8 +281,13 @@ def perform_notification(log_record_pk):
 
     user = log_record.author
     alert_group = log_record.alert_group
-    notification_policy = log_record.notification_policy
+    notification_policy = (
+        UserNotificationPolicy.get_default_fallback_policy(user)
+        if use_default_notification_policy_fallback
+        else log_record.notification_policy
+    )
     notification_channel = notification_policy.notify_by if notification_policy else None
+
     if user is None or notification_policy is None:
         UserNotificationPolicyLogRecord(
             author=user,
@@ -310,7 +324,9 @@ def perform_notification(log_record_pk):
             TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
         except RetryAfter as e:
             countdown = getattr(e, "retry_after", 3)
-            raise perform_notification.retry((log_record_pk,), countdown=countdown, exc=e)
+            raise perform_notification.retry(
+                (log_record_pk, use_default_notification_policy_fallback), countdown=countdown, exc=e
+            )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack
@@ -390,7 +406,9 @@ def perform_notification(log_record_pk):
                     f"does not exist. Restarting perform_notification."
                 )
                 restart_delay_seconds = 60
-                perform_notification.apply_async((log_record_pk,), countdown=restart_delay_seconds)
+                perform_notification.apply_async(
+                    (log_record_pk, use_default_notification_policy_fallback), countdown=restart_delay_seconds
+                )
             else:
                 task_logger.debug(
                     f"send_slack_notification for alert_group {alert_group.pk} failed because slack message "

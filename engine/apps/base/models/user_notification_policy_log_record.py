@@ -306,6 +306,34 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"escalation triggered for {user_verbal}"
         return result
 
+    def _check_if_notification_policy_is_transient_fallback(self, kwargs):
+        """
+        If `using_fallback_default_notification_policy_step` is present, and `True`, then the `notification_policy`
+        field should be set to `None`. This is because we do not persist default notification policies in the
+        database. It only exists as a transient/in-memory object, and therefore has no foreign key to reference.
+        """
+        using_fallback_default_notification_policy_step = kwargs.pop("using_fallback_default_notification_policy_step", False)
+
+        if using_fallback_default_notification_policy_step:
+            kwargs["notification_policy"] = None
+
+    def __init__(self, *args, **kwargs):
+        """
+        Needed for when we do something like this:
+        notification_policy = UserNotificationPolicy(arg1="foo", ...)
+        notification_policy.save()
+        """
+        self._check_if_notification_policy_is_transient_fallback(kwargs)
+        super().__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        """
+        Needed for when we do something like this:
+        notification_policy = UserNotificationPolicy.objects.create(arg1="foo", ...)
+        """
+        self._check_if_notification_policy_is_transient_fallback(kwargs)
+        return super().save(*args, **kwargs)
+
 
 @receiver(post_save, sender=UserNotificationPolicyLogRecord)
 def listen_for_usernotificationpolicylogrecord_model_save(sender, instance, created, *args, **kwargs):
