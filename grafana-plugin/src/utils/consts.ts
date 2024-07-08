@@ -39,20 +39,30 @@ export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall'
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
-export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => meta?.jsonData?.onCallApiUrl;
-
-export const getProcessEnvVarSafely = (name: string) => {
+export const getIsDevelopmentEnv = () => {
   try {
-    return process.env[name];
+    return process.env.NODE_ENV === 'development';
   } catch (error) {
-    console.error(error);
-    return undefined;
+    return false;
   }
 };
 
-export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
+// Single source of truth on the frontend for OnCall API URL
+export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
+  if (meta?.jsonData?.onCallApiUrl) {
+    return meta?.jsonData?.onCallApiUrl;
+  } else if (typeof window === 'undefined') {
+    try {
+      return process.env.ONCALL_API_URL;
+    } catch (error) {
+      return undefined;
+    }
+  }
+  return undefined;
+};
 
-export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
+// If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
+export const hasPluginBeenConfigured = (meta?: OnCallAppPluginMeta) => Boolean(meta?.jsonData?.onCallApiUrl);
 
 // Faro
 export const FARO_ENDPOINT_DEV =

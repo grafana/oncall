@@ -113,18 +113,6 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
     assert created_user.name == api_users[1]["name"]
     assert created_user.avatar_full_url == "https://test.test/test/1234"
 
-    assert created_user.notification_policies.filter(important=False).count() == 1
-    assert (
-        created_user.notification_policies.filter(important=False).first().notify_by
-        == settings.EMAIL_BACKEND_INTERNAL_ID
-    )
-
-    assert created_user.notification_policies.filter(important=True).count() == 1
-    assert (
-        created_user.notification_policies.filter(important=True).first().notify_by
-        == settings.EMAIL_BACKEND_INTERNAL_ID
-    )
-
 
 @pytest.mark.django_db
 def test_sync_users_for_organization_role_none(make_organization, make_user_for_organization):

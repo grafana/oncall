@@ -350,43 +350,25 @@ class User(models.Model):
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
-    def get_or_create_notification_policies(self, important=False):
+    def get_notification_policies_or_use_default_fallback(
+        self, important=False
+    ) -> typing.List["UserNotificationPolicy"]:
+        """
+        If the user has no notification policies defined, fallback to using e-mail as the notification channel.
+        """
+        from apps.base.models import UserNotificationPolicy
+
         if not self.notification_policies.filter(important=important).exists():
-            if important:
-                self.notification_policies.create_important_policies_for_user(self)
-            else:
-                self.notification_policies.create_default_policies_for_user(self)
-        notification_policies = self.notification_policies.filter(important=important)
-        return notification_policies
-
-    @property
-    def default_notification_policies_defaults(self):
-        from apps.base.models import UserNotificationPolicy
-
-        print(self)
-
-        return (
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                order=0,
-            ),
-        )
-
-    @property
-    def important_notification_policies_defaults(self):
-        from apps.base.models import UserNotificationPolicy
-
-        return (
-            UserNotificationPolicy(
-                user=self,
-                step=UserNotificationPolicy.Step.NOTIFY,
-                notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                important=True,
-                order=0,
-            ),
-        )
+            return [
+                UserNotificationPolicy(
+                    user=self,
+                    step=UserNotificationPolicy.Step.NOTIFY,
+                    notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                    important=important,
+                    order=0,
+                ),
+            ]
+        return list(self.notification_policies.filter(important=important).all())
 
     def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if self.alert_group_table_selected_columns != columns:
@@ -419,9 +401,6 @@ class User(models.Model):
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender: User, instance: User, created: bool, *args, **kwargs) -> None:
-    if created:
-        instance.notification_policies.create_default_policies_for_user(instance)
-        instance.notification_policies.create_important_policies_for_user(instance)
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )

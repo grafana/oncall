@@ -117,7 +117,7 @@ class BaseFaroHelper {
       context: {
         url: res?.config?.url,
         type: 'network',
-        data: `${safeJSONStringify(res.data)}`,
+        data: `${safeJSONStringify(res?.data)}`,
         status: `${res?.status}`,
         statusText: `${res?.statusText}`,
         timestamp: new Date().toUTCString(),
