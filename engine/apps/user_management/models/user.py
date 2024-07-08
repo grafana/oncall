@@ -415,23 +415,29 @@ class User(models.Model):
 
     def get_notification_policies_or_use_default_fallback(
         self, important=False
-    ) -> typing.List["UserNotificationPolicy"]:
+    ) -> typing.Tuple[bool, typing.List["UserNotificationPolicy"]]:
         """
         If the user has no notification policies defined, fallback to using e-mail as the notification channel.
         """
         from apps.base.models import UserNotificationPolicy
 
         if not self.notification_policies.filter(important=important).exists():
-            return [
-                UserNotificationPolicy(
-                    user=self,
-                    step=UserNotificationPolicy.Step.NOTIFY,
-                    notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                    important=important,
-                    order=0,
-                ),
-            ]
-        return list(self.notification_policies.filter(important=important).all())
+            return (
+                True,
+                [
+                    UserNotificationPolicy(
+                        user=self,
+                        step=UserNotificationPolicy.Step.NOTIFY,
+                        notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+                        important=important,
+                        order=0,
+                    ),
+                ],
+            )
+        return (
+            False,
+            list(self.notification_policies.filter(important=important).all()),
+        )
 
     def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if self.alert_group_table_selected_columns != columns:

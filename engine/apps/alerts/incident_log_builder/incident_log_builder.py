@@ -670,7 +670,7 @@ class IncidentLogBuilder:
                     # last passed step order + 1
                     notification_policy_order = last_user_log.notification_policy.order + 1
 
-        notification_policies = user_to_notify.get_notification_policies_or_use_default_fallback(important=important)
+        _, notification_policies = user_to_notify.get_notification_policies_or_use_default_fallback(important=important)
 
         for notification_policy in notification_policies:
             future_notification = notification_policy.order >= notification_policy_order
