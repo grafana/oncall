@@ -87,7 +87,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
 
   function renderGenerateButton() {
     return (
-      <Button variant="secondary" onClick={onTokenGenerate} disabled={isLoading} className={'aaaa'}>
+      <Button variant="secondary" onClick={onTokenGenerate} disabled={isLoading}>
         {isExistingToken ? 'Regenerate' : 'Generate'}
       </Button>
     );
