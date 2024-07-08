@@ -1,4 +1,5 @@
 import datetime
+import typing
 from enum import unique
 from typing import Tuple
 
@@ -7,11 +8,15 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q
+from django.db.models.manager import RelatedManager
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
 from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from apps.base.models import UserNotificationPolicyLogRecord
 
 
 def generate_public_primary_key_for_notification_policy():
@@ -66,6 +71,9 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicy(OrderedModel):
+    personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
+    user: typing.Optional[User]
+
     order_with_respect_to = ("user_id", "important")
 
     public_primary_key = models.CharField(
