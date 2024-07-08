@@ -139,7 +139,6 @@ service:
   nodePort: 30001
 prometheus:
   enabled: true
-<<<<<<< HEAD
   alertmanager:
     enabled: false
   kube-state-metrics:
@@ -148,11 +147,9 @@ prometheus:
     enabled: false
   prometheus-pushgateway:
     enabled: false
-=======
   server:
     global:
       scrape_interval: 10s
->>>>>>> dev
   extraScrapeConfigs: |
     - job_name: 'oncall-exporter'
       metrics_path: /metrics/
