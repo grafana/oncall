@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import AlertGroup, EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
-    from apps.base.models import UserNotificationPolicy
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.slack.models import SlackUserIdentity
     from apps.social_auth.types import GoogleOauth2Response
     from apps.user_management.models import Organization, Team
@@ -165,6 +165,7 @@ class User(models.Model):
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
+    personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
     resolved_alert_groups: "RelatedManager['AlertGroup']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     silenced_alert_groups: "RelatedManager['AlertGroup']"
