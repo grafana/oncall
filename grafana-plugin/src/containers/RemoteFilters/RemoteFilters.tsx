@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import { KeyValue, SelectableValue, TimeRange } from '@grafana/data';
+import { css } from '@emotion/css';
+import { GrafanaTheme2, KeyValue, SelectableValue, TimeRange } from '@grafana/data';
 import {
   InlineSwitch,
   MultiSelect,
@@ -11,9 +12,10 @@ import {
   Icon,
   Tooltip,
   Button,
+  withTheme2,
+  Themeable2,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
-import cn from 'classnames/bind';
 import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -35,11 +37,7 @@ import { allFieldsEmpty } from 'utils/utils';
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
 
-import styles from './RemoteFilters.module.css';
-
-const cx = cn.bind(styles);
-
-interface RemoteFiltersProps extends WithStoreProps {
+interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
@@ -48,7 +46,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   grafanaTeamStore: GrafanaTeamStore;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
-interface RemoteFiltersState {
+export interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
   values: Record<string, any>;
@@ -112,21 +110,21 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   }
 
   render() {
-    const { extraFilters } = this.props;
+    const { extraFilters, theme } = this.props;
+    const styles = getStyles(theme);
 
     return (
-      <div className={cx('root')}>
+      <div className={styles.root}>
         {this.renderFilters()}
         {extraFilters && (
-          <div className={cx('extra-filters')}>
-            {extraFilters(this.state, this.setState.bind(this), this.onFiltersValueChange.bind(this))}
-          </div>
+          <div>{extraFilters(this.state, this.setState.bind(this), this.onFiltersValueChange.bind(this))}</div>
         )}
       </div>
     );
   }
 
   renderFilters = () => {
+    const { theme } = this.props;
     const { filters, filterOptions } = this.state;
 
     if (!filterOptions) {
@@ -145,20 +143,25 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       }));
 
     const allowFreeSearch = filterOptions.some((filter: FilterOption) => filter.name === 'search');
+    const styles = getStyles(theme);
 
     return (
-      <div className={cx('filters')}>
+      <div className={styles.filters}>
         {filters.map((filterOption: FilterOption) => (
-          <div key={filterOption.name} className={cx('filter')}>
-            <Text type="secondary">{filterOption.display_name || capitalCase(filterOption.name)}</Text>
-            {filterOption.description && (
-              <Tooltip content={filterOption.description}>
-                <Icon name="info-circle" />
-              </Tooltip>
-            )}
-            <Text type="secondary">:</Text> {this.renderFilterOption(filterOption)}
+          <div key={filterOption.name} className={styles.filter}>
+            <Text withBackground wrap={false} type="primary">
+              {filterOption.display_name || capitalCase(filterOption.name)}
+              {filterOption.description && (
+                <span className={styles.infoIcon}>
+                  <Tooltip content={filterOption.description}>
+                    <Icon name="info-circle" />
+                  </Tooltip>
+                </span>
+              )}
+            </Text>
+            {this.renderFilterOption(filterOption)}
             <Button
-              size="sm"
+              size="md"
               icon="times"
               tooltip="Remove filter"
               variant="secondary"
@@ -166,19 +169,20 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             />
           </div>
         ))}
-        <Select
-          menuShouldPortal
-          key={filters.length}
-          className={cx('filter-options')}
-          placeholder="Search or filter results..."
-          value={undefined}
-          onChange={this.handleAddFilter}
-          getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
-          options={options}
-          allowCustomValue={allowFreeSearch}
-          onCreateOption={this.handleSearch}
-          formatCreateLabel={(str) => `Search ${str}`}
-        />
+        <div className={styles.filterOptions}>
+          <Select
+            menuShouldPortal
+            key={filters.length}
+            placeholder="Search or filter results..."
+            value={undefined}
+            onChange={this.handleAddFilter}
+            getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
+            options={options}
+            allowCustomValue={allowFreeSearch}
+            onCreateOption={this.handleSearch}
+            formatCreateLabel={(str) => `Search ${str}`}
+          />
+        </div>
       </div>
     );
   };
@@ -243,7 +247,8 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   renderFilterOption = (filter: FilterOption) => {
     const { values, hadInteraction } = this.state;
-    const { grafanaTeamStore } = this.props;
+    const { grafanaTeamStore, theme } = this.props;
+    const styles = getStyles(theme);
 
     const autoFocus = Boolean(hadInteraction);
     switch (filter.type) {
@@ -253,7 +258,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             <MultiSelect
               autoFocus={autoFocus}
               openMenuOnFocus
-              className={cx('filter-select')}
+              className={styles.filterSelect}
               options={filter.options.map((option: SelectOption) => ({
                 label: option.display_name,
                 value: option.value,
@@ -267,7 +272,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         return (
           <RemoteSelect
             autoFocus={autoFocus}
-            className={cx('filter-select')}
+            className={styles.filterSelect}
             isMulti
             fieldToShow="display_name"
             valueField="value"
@@ -286,6 +291,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             transparent
             value={values[filter.name]}
             onChange={this.getBooleanFilterChangeHandler(filter.name)}
+            className={styles.border}
           />
         );
 
@@ -303,7 +309,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         return (
           <RemoteSelect
             autoFocus={autoFocus}
-            className={cx('filter-select')}
+            className={styles.filterSelect}
             isMulti
             fieldToShow="name"
             valueField="id"
@@ -333,7 +339,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
           <LabelsFilter
             filterType={filter.type}
             autoFocus={autoFocus}
-            className={cx('filter-select')}
+            className={styles.filterSelect}
             value={values[filter.name]}
             onChange={this.getLabelsFilterChangeHandler(filter.name)}
           />
@@ -444,6 +450,52 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   debouncedOnChange = debounce(this.onChange, 500);
 }
 
-export const RemoteFilters = withMobXProviderContext(_RemoteFilters) as unknown as React.ComponentClass<
-  Omit<RemoteFiltersProps, 'store'>
+export const RemoteFilters = withMobXProviderContext(withTheme2(_RemoteFilters)) as unknown as React.ComponentClass<
+  Omit<RemoteFiltersProps, 'store' | 'theme'>
 >;
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    `,
+
+    filters: css`
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid ${theme.colors.border.weak}
+      border-radius: 2px;
+      flex-wrap: wrap;
+    `,
+
+    filter: css`
+      display: flex;
+      align-items: center;
+      gap: 0;
+    `,
+
+    filterOptions: css`
+      width: 250px;
+    `,
+
+    filterSelect: css`
+      min-width: 250px;
+      width: fit-content;
+    `,
+
+    infoIcon: css`
+      margin-left: 4px;
+    `,
+
+    border: css`
+      border: 1px solid ${theme.colors.border.medium};
+
+      &:hover {
+        border: 1px solid ${theme.colors.border.strong};
+      }
+    `,
+  };
+};

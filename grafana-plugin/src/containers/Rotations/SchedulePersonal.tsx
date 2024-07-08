@@ -2,12 +2,14 @@ import React, { FC, useEffect } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Badge, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
+import { Badge, BadgeColor, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { Avatar } from 'components/Avatar/Avatar';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
@@ -50,7 +52,8 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   };
 
   const handleTodayClick = () => {
-    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(timezoneStore.currentDateInSelectedTimezone));
+    // TODAY
+    timezoneStore.setCalendarStartDate(getStartOfWeekBasedOnCurrentDate(dayjs()));
   };
 
   const handleLeftClick = () => {
@@ -102,14 +105,18 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
       <div className={styles.header}>
         <HorizontalGroup justify="space-between">
           <HorizontalGroup>
-            <Text type="secondary">
-              On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
-            </Text>
+            <RenderConditionally
+              shouldRender={Boolean(storeUser)}
+              render={() => (
+                <Text type="secondary">
+                  On-call schedule <Avatar src={storeUser.avatar} size="small" /> {storeUser.username}
+                </Text>
+              )}
+            />
             {isOncall ? (
               <Badge text="On-call now" color="green" />
             ) : (
-              /*  @ts-ignore */
-              <Badge text="Not on-call now" color="gray" />
+              <Badge text="Not on-call now" color={'gray' as BadgeColor} />
             )}
           </HorizontalGroup>
           <HorizontalGroup>

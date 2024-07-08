@@ -3,6 +3,7 @@ import json
 import logging
 import typing
 
+from django.conf import settings
 from django.db.models import Q
 from django.utils.text import Truncator
 
@@ -76,16 +77,28 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
 
         warning_text = "Unable to add this message to resolution note, this command works only in incident threads."
 
+        # thread_ts is only present for thread messages
+        thread_ts = payload.get("message", {}).get("thread_ts")
+        if not thread_ts:
+            if settings.UNIFIED_SLACK_APP_ENABLED:
+                # Message shortcut events are broadcasted to multiple regions by chatops-proxy
+                # Do not open a warning window to avoid multiple regions opening the same window multiple times
+                return
+
+            self.open_warning_window(payload, warning_text)
+            return
+
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=payload["message"]["thread_ts"],
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
             )
-        except KeyError:
-            self.open_warning_window(payload, warning_text)
-            return
         except SlackMessage.DoesNotExist:
+            if settings.UNIFIED_SLACK_APP_ENABLED:
+                # Message shortcut events are broadcasted to multiple regions by chatops-proxy
+                # Don't open a warning window as this event could be handled by another region
+                return
             self.open_warning_window(payload, warning_text)
             return
 
@@ -99,9 +112,17 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
             )
             return
 
+        if alert_group.channel.organization.deleted_at is not None:
+            if settings.UNIFIED_SLACK_APP_ENABLED:
+                # Message shortcut events are broadcasted to multiple regions by chatops-proxy
+                # Don't open a warning window as this event could be handled by another region
+                return
+
+            self.open_warning_window(payload, warning_text)
+            return
+
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
-            thread_ts = payload["message"]["thread_ts"]
 
             result = self._slack_client.chat_getPermalink(channel=channel_id, message_ts=message_ts)
             permalink = None
@@ -324,6 +345,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
+    MESSAGE_SHORTCUT_INSTRUCTION = "You can add thread messages as resolution notes using the message shortcut"
 
     class ScenarioData(typing.TypedDict):
         resolution_note_window_action: str
@@ -576,29 +598,17 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         if not blocks:
             # there aren't any resolution notes yet, display a hint instead
-            link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
-                DIVIDER,
-                typing.cast(
-                    Block.Section,
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": ":bulb: You can add a message to the resolution notes via context menu:",
-                        },
-                    },
-                ),
                 typing.cast(
                     Block.Image,
                     {
                         "type": "image",
                         "title": {
                             "type": "plain_text",
-                            "text": "Add a resolution note",
+                            "text": self.MESSAGE_SHORTCUT_INSTRUCTION,
                         },
-                        "image_url": link_to_instruction,
-                        "alt_text": "Add to postmortem context menu",
+                        "image_url": create_engine_url("static/images/resolution_note.gif"),
+                        "alt_text": self.MESSAGE_SHORTCUT_INSTRUCTION,
                     },
                 ),
             ]
@@ -606,9 +616,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         return blocks
 
     def get_invite_bot_tip_blocks(self, channel: str) -> Block.AnyBlocks:
-        link_to_instruction = create_engine_url("static/images/postmortem.gif")
-        blocks: Block.AnyBlocks = [
-            DIVIDER,
+        return [
             typing.cast(
                 Block.Context,
                 {
@@ -616,15 +624,12 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": f":bulb: To include messages from thread to resolution note `/invite` Grafana OnCall to "
-                            f"<#{channel}>. Or you can add a message via "
-                            f"<{link_to_instruction}|context menu>.",
+                            "text": f"To enable this feature, `/invite` Grafana OnCall to <#{channel}>.",
                         },
                     ],
                 },
             ),
         ]
-        return blocks
 
 
 class ReadEditPostmortemStep(ResolutionNoteModalStep):

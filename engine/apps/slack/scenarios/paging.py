@@ -681,7 +681,7 @@ def _create_user_option_groups(
                 "text": f"{user.name or user.username}",
                 "emoji": True,
             },
-            "value": make_value({"id": user.pk}, organization),
+            "value": json.dumps({"id": user.pk}),
         }
         for user in users
     ]
@@ -704,6 +704,13 @@ def _create_user_option_groups(
                 "label": {"type": "plain_text", "text": label_text},
                 "options": group,
             }
+        )
+
+    # Only inject chatops-proxy metadata into the first dropdown option to reduce payload size
+    # so the 250kb Slack limit is not exceeded for orgs with many users
+    if option_groups:
+        option_groups[0]["options"][0]["value"] = make_value(
+            json.loads(option_groups[0]["options"][0]["value"]), organization
         )
 
     return option_groups

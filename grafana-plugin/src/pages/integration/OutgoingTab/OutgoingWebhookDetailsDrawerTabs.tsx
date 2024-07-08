@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 
 import { Button, ConfirmModal, HorizontalGroup, useStyles2, VerticalGroup } from '@grafana/ui';
-import { observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';

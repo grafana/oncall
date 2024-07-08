@@ -41,17 +41,16 @@ def schedule_perform_notification_task(log_record_pk, alert_group_pk):
     )
 
 
-def build_notification_reason_for_log_record(notification_policy, reason):
+def build_notification_reason_for_log_record(notification_policies, reason):
     from apps.base.models import UserNotificationPolicy
 
     # Here we collect a brief overview of notification steps configured for user to send it to thread.
     collected_steps_ids = []
-    next_notification_policy = notification_policy.next()
-    while next_notification_policy is not None:
-        if next_notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
-            if next_notification_policy.notify_by not in collected_steps_ids:
-                collected_steps_ids.append(next_notification_policy.notify_by)
-        next_notification_policy = next_notification_policy.next()
+    for notification_policy in notification_policies:
+        if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
+            if notification_policy.notify_by not in collected_steps_ids:
+                collected_steps_ids.append(notification_policy.notify_by)
+
     collected_steps = ", ".join(
         UserNotificationPolicy.NotificationChannel(step_id).label for step_id in collected_steps_ids
     )
@@ -132,13 +131,13 @@ def notify_user_task(
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
 
         if previous_notification_policy_pk is None:
-            notification_policy = user.get_or_create_notification_policies(important=important).first()
-            if notification_policy is None:
+            notification_policies = user.get_notification_policies_or_use_default_fallback(important=important)
+            if not notification_policies:
                 task_logger.info(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
                 )
                 return
-            reason = build_notification_reason_for_log_record(notification_policy, reason)
+            reason = build_notification_reason_for_log_record(notification_policies, reason)
         else:
             if notify_user_task.request.id != user_has_notification.active_notification_policy_id:
                 task_logger.info(

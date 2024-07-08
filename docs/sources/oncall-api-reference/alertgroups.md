@@ -4,7 +4,9 @@ title: Alert groups HTTP API
 weight: 400
 ---
 
-# List alert groups
+# Alert groups HTTP API
+
+## List alert groups
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/" \
@@ -57,7 +59,7 @@ These available filter parameters should be provided as `GET` arguments:
 
 `GET {{API_URL}}/api/v1/alert_groups/`
 
-# Alert group details
+## Alert group details
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1" \
@@ -69,7 +71,7 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1" \
 
 `GET {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>`
 
-# Acknowledge an alert group
+## Acknowledge an alert group
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/acknowledge" \
@@ -81,7 +83,7 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/acknowledge" \
 
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/acknowledge`
 
-# Unacknowledge an alert group
+## Unacknowledge an alert group
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unacknowledge" \
@@ -93,7 +95,7 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unacknowledge" \
 
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unacknowledge`
 
-# Resolve an alert group
+## Resolve an alert group
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/resolve" \
@@ -105,7 +107,7 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/resolve" \
 
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/resolve`
 
-# Unresolve an alert group
+## Unresolve an alert group
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
@@ -117,7 +119,7 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
 
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unresolve`
 
-# Delete an alert group
+## Delete an alert group
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/" \

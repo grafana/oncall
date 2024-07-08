@@ -46,7 +46,7 @@ OnCall is available in Grafana Cloud automatically:
 3. Choose **Alerts and IRM** from the left menu
 4. Click **OnCall** to access Grafana OnCall
 
-Otherwise, to install Grafaana OnCall, refer to [Install Grafana OnCall OSS][].
+Otherwise, to install Grafana OnCall, refer to [Install Grafana OnCall OSS][].
 
 ## How to configure Grafana OnCall
 

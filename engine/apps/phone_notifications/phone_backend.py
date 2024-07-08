@@ -21,6 +21,7 @@ from .exceptions import (
     SMSLimitExceeded,
 )
 from .models import PhoneCallRecord, ProviderPhoneCall, ProviderSMS, SMSRecord
+from .models.banned_phone_number import check_banned_phone_number
 from .phone_provider import PhoneProvider, get_phone_provider
 
 logger = logging.getLogger(__name__)
@@ -320,6 +321,7 @@ class PhoneBackend:
         if self._validate_user_number(user):
             logger.info(f"PhoneBackend.send_verification_sms: number already verified for user {user.id}")
             raise NumberAlreadyVerified
+        check_banned_phone_number(user.unverified_phone_number)
         self.phone_provider.send_verification_sms(user.unverified_phone_number)
 
     def make_verification_call(self, user):
@@ -331,6 +333,7 @@ class PhoneBackend:
         if self._validate_user_number(user):
             logger.info(f"PhoneBackend.make_verification_call: number already verified user_id={user.id}")
             raise NumberAlreadyVerified
+        check_banned_phone_number(user.unverified_phone_number)
         self.phone_provider.make_verification_call(user.unverified_phone_number)
 
     def verify_phone_number(self, user, code) -> bool:
@@ -378,7 +381,7 @@ class PhoneBackend:
 
     def _notify_connected_number(self, user):
         text = (
-            f"This phone number has been connected to Grafana OnCall team"
+            f"This phone number has been connected to Grafana OnCall team "
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
@@ -393,7 +396,7 @@ class PhoneBackend:
 
     def _notify_disconnected_number(self, user, number):
         text = (
-            f"This phone number has been disconnected from Grafana OnCall team"
+            f"This phone number has been disconnected from Grafana OnCall team "
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:

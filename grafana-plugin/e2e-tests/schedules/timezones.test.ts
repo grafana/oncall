@@ -4,14 +4,13 @@ import isoWeek from 'dayjs/plugin/isoWeek';
 import utc from 'dayjs/plugin/utc';
 
 import { test } from '../fixtures';
+import { MOSCOW_TIMEZONE } from '../utils/constants';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { setTimezoneInProfile } from '../utils/grafanaProfile';
-import { createOnCallScheduleWithRotation } from '../utils/schedule';
+import { createOnCallSchedule } from '../utils/schedule';
 
 dayjs.extend(utc);
 dayjs.extend(isoWeek);
-
-const MOSCOW_TIMEZONE = 'Europe/Moscow';
 
 test.use({ timezoneId: MOSCOW_TIMEZONE }); // GMT+3 the whole year
 const currentUtcTimeHour = dayjs().utc().format('HH');
@@ -25,7 +24,7 @@ test('dates in schedule are correct according to selected current timezone', asy
   await setTimezoneInProfile(page, MOSCOW_TIMEZONE);
 
   const onCallScheduleName = generateRandomValue();
-  await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
+  await createOnCallSchedule(page, onCallScheduleName, userName);
 
   // Current timezone is selected by default to currently logged in user timezone
   await expect(page.getByTestId('timezone-select')).toHaveText('GMT+3');
