@@ -89,7 +89,7 @@ def run_organization_sync(organization_pk, force_sync):
     logger.info(f"Finish sync Organization {organization_pk}")
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=0)
 def start_cleanup_deleted_organizations():
     sync_threshold = timezone.now() - INACTIVE_PERIOD
 
@@ -113,7 +113,7 @@ def start_cleanup_deleted_organizations():
         cleanup_organization_async.apply_async((organization_pk,), countdown=countdown)
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=0)
 def cleanup_organization_async(organization_pk):
     cleanup_organization(organization_pk)
 
@@ -166,9 +166,11 @@ def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
             integration.hard_delete()
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=0)
 def start_cleanup_organizations():
-    organization_pks = Organization.objects.all().values_list("pk", flat=True)
+    cleanup_threshold = timezone.now() - INACTIVE_PERIOD
+    organization_qs = Organization.objects.filter(last_time_synced__lte=cleanup_threshold)
+    organization_pks = organization_qs.values_list("pk", flat=True)
     logger.debug(f"Found {len(organization_pks)} organizations")
     max_countdown = CLEANUP_PERIOD.seconds
     for idx, organization_pk in enumerate(organization_pks):
