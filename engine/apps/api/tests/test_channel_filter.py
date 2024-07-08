@@ -565,10 +565,14 @@ def test_channel_filter_labels_filter(
     alert_receive_channel = make_alert_receive_channel(organization)
 
     default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    filtering_labels = [
+        {"key": {"id": "1", "name": "foo", "prescribed": True}, "value": {"id": "2", "name": "bar"}},
+        {"key": {"id": "3", "name": "bar"}, "value": {"id": "4", "name": "baz", "prescribed": True}},
+    ]
     label_channel_filter = make_channel_filter(
         alert_receive_channel,
         is_default=False,
-        filtering_term="key1=value1&key2=value2&key3=&key4=value4",
+        filtering_labels=filtering_labels,
         filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_LABELS,
     )
 
@@ -577,18 +581,16 @@ def test_channel_filter_labels_filter(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK
-    expected_jinja2_template = (
-        "{{ labels.key1 and labels.key2 and labels.key3 and labels.key4 and "
-        "labels.key1 == 'value1' and labels.key2 == 'value2' and labels.key4 == 'value4' }}"
-    )
+    expected_jinja2_template = "{{ labels.foo and labels.foo == 'bar' and labels.bar and labels.bar == 'baz' }}"
     assert response_data["filtering_term_as_jinja2"] == expected_jinja2_template
     assert response_data["filtering_term_type"] == ChannelFilter.FILTERING_TERM_TYPE_LABELS
-    assert response_data["filtering_labels"] == [
-        ["key1", "value1"],
-        ["key2", "value2"],
-        ["key3", ""],
-        ["key4", "value4"],
-    ]
+    # returned labels key/value will have a prescribed=False if not set
+    for item in filtering_labels:
+        if "prescribed" not in item["key"]:
+            item["key"]["prescribed"] = False
+        if "prescribed" not in item["value"]:
+            item["value"]["prescribed"] = False
+    assert response_data["filtering_labels"] == filtering_labels
 
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": default_channel_filter.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -611,8 +613,9 @@ def test_updated_channel_filter_labels_filter(
     label_channel_filter = make_channel_filter(alert_receive_channel, is_default=False)
 
     client = APIClient()
+    filtering_labels = [{"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}}]
     data = {
-        "filtering_term": "key1=&key2=value2",
+        "filtering_labels": filtering_labels,
         "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
     }
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
@@ -620,14 +623,25 @@ def test_updated_channel_filter_labels_filter(
     response_data = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert response_data["filtering_term_type"] == ChannelFilter.FILTERING_TERM_TYPE_LABELS
-    assert response_data["filtering_labels"] == [["key1", ""], ["key2", "value2"]]
+    filtering_labels[0]["key"]["prescribed"] = False
+    filtering_labels[0]["value"]["prescribed"] = False
+    assert response_data["filtering_labels"] == filtering_labels
 
     invalid_data = {
-        "filtering_term": "key1&key2=value2",
+        "filtering_labels": "key1&key2=value2",
         "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
     }
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
     response = client.put(url, data=invalid_data, format="json", **make_user_auth_headers(user, token))
+    response_data = response.json()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    empty_labels = {
+        "filtering_labels": None,
+        "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
+    }
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
+    response = client.put(url, data=empty_labels, format="json", **make_user_auth_headers(user, token))
     response_data = response.json()
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

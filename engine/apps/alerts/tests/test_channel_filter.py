@@ -105,20 +105,33 @@ def test_channel_filter_select_filter_labels(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "filtering_term,filtering_labels,labels,should_match",
+    "filtering_labels,labels,should_match",
     [
-        ("foo=", [("foo", "")], {"foo": "bar"}, True),
-        ("foo=bar", [("foo", "bar")], {"foo": "bar"}, True),
-        ("foo=bar&bar=baz", [("foo", "bar"), ("bar", "baz")], {"foo": "bar", "bar": "baz"}, True),
-        ("bar=", [("bar", "")], {"foo": "bar"}, False),
-        ("foo=bar&bar=bar", [("foo", "bar"), ("bar", "bar")], {"foo": "bar", "bar": "baz"}, False),
+        ([{"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}}], {"foo": "bar"}, True),
+        ([{"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}}], None, False),
+        (None, {"foo": "bar"}, False),  # require filtering labels to be set
+        (
+            [
+                {"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}},
+                {"key": {"id": "3", "name": "bar"}, "value": {"id": "4", "name": "baz"}},
+            ],
+            {"foo": "bar", "bar": "baz"},
+            True,
+        ),
+        (
+            [
+                {"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}},
+                {"key": {"id": "3", "name": "bar"}, "value": {"id": "4", "name": "bar"}},
+            ],
+            {"foo": "bar", "bar": "baz"},
+            False,
+        ),
     ],
 )
 def test_channel_filter_using_filter_labels(
     make_organization,
     make_alert_receive_channel,
     make_channel_filter,
-    filtering_term,
     filtering_labels,
     labels,
     should_match,
@@ -128,7 +141,7 @@ def test_channel_filter_using_filter_labels(
     default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)  # default channel filter
     custom_channel_filter = make_channel_filter(
         alert_receive_channel,
-        filtering_term=filtering_term,
+        filtering_labels=filtering_labels,
         filtering_term_type=ChannelFilter.FILTERING_TERM_TYPE_LABELS,
         is_default=False,
     )
