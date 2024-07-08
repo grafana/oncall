@@ -105,7 +105,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               onChange={this.handleSchedulesFiltersChange}
             />
           </div>
-          <div data-testid="schedules-table">
+          <div className={cx(styles.tableRoot)} data-testid="schedules-table">
             <GTable
               className={styles.table}
               columns={this.getTableColumns()}
@@ -115,10 +115,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
                 total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handlePageChange,
               }}
-              tableLayout="fixed"
               rowKey="id"
               expandable={{
-                expandedRowKeys: expandedRowKeys,
+                expandedRowKeys,
                 onExpand: this.handleExpandRow,
                 expandedRowRender: this.renderSchedule,
                 expandRowByClick: true,
@@ -412,6 +411,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const styles = getSchedulesStyles();
 
     return [
+      {
+        // Allow space for icon (>)
+        width: '40px',
+        title: '',
+        render: () => <></>,
+      },
       {
         width: '10%',
         title: 'Type',
