@@ -280,8 +280,7 @@ def test_create_duplicate_direct_paging_integrations(make_organization, make_tea
     is_local_dev_env = os.environ.get("DJANGO_SETTINGS_MODULE") == "settings.dev"
     is_db_type_mysql = settings.DATABASE_TYPE == DatabaseTypes.MYSQL
     if is_local_dev_env and is_db_type_mysql:
-        print("Skipping test_create_duplicate_direct_paging_integrations due to MariaDB")
-        return
+        pytest.skip("This test is not supported by Mariadb (used by settings.dev)")
 
     organization = make_organization()
     team = make_team(organization)
