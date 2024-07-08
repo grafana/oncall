@@ -83,7 +83,7 @@ if not is_ci:
 
 local_resource(
     "e2e-tests",
-    labels=["E2eTests"],
+    labels=["allTests"],
     cmd=e2e_tests_cmd,
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
@@ -132,11 +132,11 @@ pod_engine_pytest_script = '''
 set -eu
 # get engine k8s pod name from tilt resource name
 POD_NAME="$(tilt get kubernetesdiscovery "engine" -ojsonpath='{.status.pods[0].name}')"
-kubectl exec "$POD_NAME" -- pytest .
+kubectl exec "$POD_NAME" -- pytest . $STOP_ON_FIRST_FAILURE $TESTS_FILTER
 '''
 local_resource(
     "pytest-tests",
-    labels=["Tests"],
+    labels=["allTests"],
     cmd=['sh', '-c', pod_engine_pytest_script],
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=False,
@@ -149,6 +149,10 @@ cmd_button(
     text="Run pytest",
     resource="pytest-tests",
     icon_name="replay",
+    inputs=[
+        text_input("TESTS_FILTER", "pytest optional arguments (e.g. \"apps/webhooks/tests/test_webhook.py::test_build_url_private_raises\")", "", "Test file names to run"), 
+        bool_input("STOP_ON_FIRST_FAILURE", "Stop on first failure", True, "-x", ""),
+    ]
 )
 
 helm_oncall_values = ["./dev/helm-local.yml", "./dev/helm-local.dev.yml"]
