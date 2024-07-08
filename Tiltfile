@@ -201,7 +201,6 @@ k8s_resource(
 k8s_resource(workload="engine-migrate", labels=["OnCallBackend"])
 
 k8s_resource(workload="redis-master", labels=["OnCallDeps"])
-k8s_resource(workload="rabbitmq", labels=["OnCallDeps"])
 k8s_resource(workload="prometheus-server", labels=["OnCallDeps"])
 k8s_resource(
     workload="mariadb",
