@@ -85,7 +85,7 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
                 {routeWording !== 'Default' &&
                   (channelFilter.filtering_term ? (
                     <Text type="primary" className={cx('heading-container__text')}>
-                      {channelFilter.filtering_term}
+                      {renderRouteHeadingDisplay(channelFilter)}
                     </Text>
                   ) : (
                     <>
@@ -180,6 +180,12 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
         )}
       </>
     );
+
+    function renderRouteHeadingDisplay(channelFilter: ChannelFilter) {
+      // TODO: check for labels here
+
+      return channelFilter.filtering_term;
+    }
 
     function handleEditRoutingTemplate(channelFilter, channelFilterId) {
       if (channelFilter.filtering_term_type === 0) {

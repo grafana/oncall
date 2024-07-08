@@ -6,7 +6,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 export enum FilteringTermType {
   regex,
   jinja2,
-  labels
+  labels,
 }
 
 export interface ChannelFilter {
@@ -16,6 +16,7 @@ export interface ChannelFilter {
   slack_channel?: SlackChannel;
   telegram_channel?: TelegramChannel['id'];
   telegram_channel_details?: TelegramChannelDetails;
+  filtering_labels?: Array<[string, string]>;
   created_at: string;
   filtering_term: string;
   filtering_term_as_jinja2: string;

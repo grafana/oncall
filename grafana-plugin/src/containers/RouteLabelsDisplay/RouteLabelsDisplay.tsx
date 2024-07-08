@@ -12,7 +12,7 @@ import { openErrorNotification } from 'utils/utils';
 interface RouteLabelsDisplayProps {
   labels: Array<components['schemas']['LabelPair']>;
   labelErrors: any;
-  onChange: (value: components['schemas']['LabelPair'][]) => void;
+  onChange: (value: Array<components['schemas']['LabelPair']>) => void;
   onShowTemplateEditor: (index: number) => void;
 }
 
