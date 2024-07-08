@@ -49,6 +49,13 @@ func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	err = a.SetupRequestHeadersForOnCall(req.Context(), onCallPluginSettings, syncReq)
+	if err != nil {
+		log.DefaultLogger.Error("Error setting up headers: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	syncReq.Header.Set("Content-Type", "application/json")
 
 	res, err := a.httpClient.Do(syncReq)

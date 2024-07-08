@@ -2,10 +2,13 @@ import logging
 
 from django.conf import settings
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import PluginAuthentication
 from apps.grafana_plugin.serializers.sync_data import SyncDataSerializer
 from apps.user_management.models import Organization
 from apps.user_management.sync import apply_sync_data, get_or_create_organization
@@ -20,6 +23,12 @@ class SyncException(Exception):
 
 
 class SyncV2View(APIView):
+    authentication_classes = (PluginAuthentication,)
+    permission_classes = [IsAuthenticated, RBACPermission]
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.USER_SETTINGS_ADMIN],
+    }
+
     def do_sync(self, request: Request) -> Organization:
         serializer = SyncDataSerializer(data=request.data)
         if not serializer.is_valid():
@@ -27,9 +36,14 @@ class SyncV2View(APIView):
 
         sync_data = serializer.save()
 
-        settings_stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
-        settings_org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
-        if sync_data.settings.org_id != settings_org_id or sync_data.settings.stack_id != settings_stack_id:
+        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+            stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
+            org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
+        else:
+            org_id = request.auth.organization
+            stack_id = request.auth.organization.stack_id
+
+        if sync_data.settings.org_id != org_id or sync_data.settings.stack_id != stack_id:
             raise SyncException(INVALID_SELF_HOSTED_ID)
 
         organization = get_or_create_organization(sync_data.settings.org_id, sync_data.settings.stack_id, sync_data)

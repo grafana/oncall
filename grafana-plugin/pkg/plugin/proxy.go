@@ -91,7 +91,7 @@ func SetOnCallUserHeader(onCallUser *OnCallUser, req *http.Request) error {
 
 func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCallPluginSettings, req *http.Request) error {
 	user := httpadapter.UserFromContext(ctx)
-	onCallUser, err := a.GetUser(settings, user)
+	onCallUser, err := a.GetUserForHeader(settings, user)
 	if err != nil {
 		log.DefaultLogger.Error("Error getting user: %v", err)
 		return err
