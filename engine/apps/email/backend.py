@@ -21,8 +21,9 @@ class EmailBackend(BaseMessagingBackend):
     def serialize_user(self, user: "User"):
         return {"email": user.email}
 
-    def notify_user(self, user: "User", alert_group: "AlertGroup",
-                    notification_policy: typing.Optional["UserNotificationPolicy"]):
+    def notify_user(
+        self, user: "User", alert_group: "AlertGroup", notification_policy: typing.Optional["UserNotificationPolicy"]
+    ):
         """
         NOTE: `notification_policy` may be None if the user has no notification policies defined, as
         email is the default backend used

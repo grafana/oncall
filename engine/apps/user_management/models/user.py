@@ -415,6 +415,7 @@ class User(models.Model):
 
     def get_default_fallback_notification_policy(self) -> "UserNotificationPolicy":
         from apps.base.models import UserNotificationPolicy
+
         return UserNotificationPolicy.get_default_fallback_policy(self)
 
     def get_notification_policies_or_use_default_fallback(

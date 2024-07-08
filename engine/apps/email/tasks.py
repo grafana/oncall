@@ -58,7 +58,9 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             return
 
     def _create_user_notification_policy_log_record(**kwargs):
-        return UserNotificationPolicyLogRecord.objects.create(**kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step)
+        return UserNotificationPolicyLogRecord.objects.create(
+            **kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step
+        )
 
     # create an error log in case EMAIL_HOST is not specified
     if not live_settings.EMAIL_HOST:

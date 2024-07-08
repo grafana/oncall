@@ -121,7 +121,10 @@ def notify_user_task(
             reason = None
 
         def _create_user_notification_policy_log_record(**kwargs):
-            return UserNotificationPolicyLogRecord(**kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step)
+            return UserNotificationPolicyLogRecord(
+                **kwargs,
+                using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step,
+            )
 
         if notification_policy is None:
             stop_escalation = True
@@ -212,9 +215,7 @@ def notify_user_task(
                 def _create_perform_notification_task(
                     log_record_pk, alert_group_pk, use_default_notification_policy_fallback
                 ):
-                    task = perform_notification.apply_async(
-                        (log_record_pk, use_default_notification_policy_fallback)
-                    )
+                    task = perform_notification.apply_async((log_record_pk, use_default_notification_policy_fallback))
                     task_logger.info(
                         f"Created perform_notification task {task} log_record={log_record_pk} "
                         f"alert_group={alert_group_pk}"
