@@ -70,9 +70,13 @@ def notify_user_task(
         )
 
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
+        using_fallback_default_notification_policy_step = False
 
         if previous_notification_policy_pk is None:
-            notification_policies = user.get_notification_policies_or_use_default_fallback(important=important)
+            (
+                using_fallback_default_notification_policy_step,
+                notification_policies,
+            ) = user.get_notification_policies_or_use_default_fallback(important=important)
             if not notification_policies:
                 task_logger.info(
                     f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
@@ -115,9 +119,15 @@ def notify_user_task(
                 )
                 return
             reason = None
+
+        def _create_user_notification_policy_log_record(**kwargs):
+            if using_fallback_default_notification_policy_step and "notification_policy" in kwargs:
+                kwargs["notification_policy"] = None
+            return UserNotificationPolicyLogRecord(**kwargs)
+
         if notification_policy is None:
             stop_escalation = True
-            log_record = UserNotificationPolicyLogRecord(
+            log_record = _create_user_notification_policy_log_record(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED,
                 notification_policy=notification_policy,
@@ -146,7 +156,7 @@ def notify_user_task(
                 else:
                     delay_in_seconds = 0
                 countdown = delay_in_seconds
-                log_record = UserNotificationPolicyLogRecord(
+                log_record = _create_user_notification_policy_log_record(
                     author=user,
                     type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
                     notification_policy=notification_policy,
@@ -160,7 +170,7 @@ def notify_user_task(
                     notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK
                 )
                 if user_to_be_notified_in_slack and alert_group.notify_in_slack_enabled is False:
-                    log_record = UserNotificationPolicyLogRecord(
+                    log_record = _create_user_notification_policy_log_record(
                         author=user,
                         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                         notification_policy=notification_policy,
@@ -172,7 +182,7 @@ def notify_user_task(
                         notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
                     )
                 else:
-                    log_record = UserNotificationPolicyLogRecord(
+                    log_record = _create_user_notification_policy_log_record(
                         author=user,
                         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
                         notification_policy=notification_policy,
