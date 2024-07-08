@@ -842,6 +842,27 @@ class UserView(
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="UserFilters",
+            fields={
+                "name": serializers.CharField(),
+                "type": serializers.CharField(),
+                "href": serializers.CharField(required=False),
+                "global": serializers.BooleanField(required=False),
+                "default": serializers.JSONField(required=False),
+                "description": serializers.CharField(required=False),
+                "options": inline_serializer(
+                    name="UserFiltersOptions",
+                    fields={
+                        "value": serializers.CharField(),
+                        "display_name": serializers.IntegerField(),
+                    },
+                ),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def filters(self, request):
         filter_name = request.query_params.get("search", None)
