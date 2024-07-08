@@ -168,6 +168,10 @@ def test_build_url_invalid_url(make_organization, make_custom_webhook):
 
 @pytest.mark.django_db
 def test_build_url_private_raises(make_organization, make_custom_webhook):
+
+    if settings.DANGEROUS_WEBHOOKS_ENABLED:
+        pytest.skip("Dangerous webhooks are enabled")
+
     organization = make_organization()
     webhook = make_custom_webhook(organization=organization, url="{{foo}}")
 
@@ -241,6 +245,10 @@ def test_make_request(make_organization, make_custom_webhook):
 @httpretty.activate(verbose=True, allow_net_connect=False)
 @pytest.mark.django_db
 def test_make_request_bad_redirect(make_organization, make_custom_webhook):
+
+    if settings.DANGEROUS_WEBHOOKS_ENABLED:
+        pytest.skip("Dangerous webhooks are enabled")
+
     organization = make_organization()
     webhook = make_custom_webhook(organization=organization, http_method="POST")
 

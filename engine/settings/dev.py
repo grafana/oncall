@@ -66,6 +66,13 @@ if TESTING:
     TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
     TWILIO_AUTH_TOKEN = "twilio_auth_token"
 
+    # charset/collation related tests don't work without this
+    TEST_SETTINGS = {
+        'CHARSET': 'utf8mb4',
+        'COLLATION': 'utf8mb4_unicode_ci',
+    }
+    DATABASES["default"]["TEST"] = TEST_SETTINGS
+
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
