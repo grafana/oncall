@@ -1,7 +1,6 @@
 import typing
 from abc import ABC, abstractmethod
 
-from django.db.models import QuerySet
 from django.utils.functional import cached_property
 
 if typing.TYPE_CHECKING:
@@ -39,9 +38,9 @@ class AlertGroupBaseRenderer(ABC):
 class AlertGroupBundleBaseRenderer:
     def __init__(
         self,
-        alert_groups_to_render: QuerySet["AlertGroup"],
+        alert_groups_to_render: typing.List["AlertGroup"],
         alert_groups_count: int,
-        channels_to_render: QuerySet["AlertReceiveChannel"],
+        channels_to_render: typing.List["AlertReceiveChannel"],
         channels_count: int,
     ):
         self.alert_groups_to_render = alert_groups_to_render
