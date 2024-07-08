@@ -61,8 +61,8 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
               newExpandedRowKeys.splice(index, 1);
             }
 
-            expandable.onExpand && expandable.onExpand(newExpanded, record);
-            expandable.onExpandedRowsChange && expandable.onExpandedRowsChange(newExpandedRowKeys);
+            expandable.onExpand?.(newExpanded, record);
+            expandable.onExpandedRowsChange?.(newExpandedRowKeys);
           }}
         />
       );
