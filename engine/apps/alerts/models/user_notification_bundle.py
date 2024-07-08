@@ -63,7 +63,7 @@ class UserNotificationBundle(models.Model):
 
 class BundledNotification(models.Model):
     alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE)
-    alert_receive_channel = models.ForeignKey("alerts.AlertReceiveChannel", on_delete=models.CASCADE)  # todo?
+    alert_receive_channel = models.ForeignKey("alerts.AlertReceiveChannel", on_delete=models.CASCADE)
     notification_policy = models.ForeignKey("base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True)
     notification_bundle = models.ForeignKey(
         UserNotificationBundle, on_delete=models.CASCADE, related_name="notifications"
