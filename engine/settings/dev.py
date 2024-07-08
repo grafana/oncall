@@ -68,8 +68,8 @@ if TESTING:
 
     # charset/collation related tests don't work without this
     TEST_SETTINGS = {
-        'CHARSET': 'utf8mb4',
-        'COLLATION': 'utf8mb4_unicode_ci',
+        "CHARSET": "utf8mb4",
+        "COLLATION": "utf8mb4_unicode_ci",
     }
     DATABASES["default"]["TEST"] = TEST_SETTINGS
 
