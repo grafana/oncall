@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import humanize
 from django.db import models
@@ -14,6 +15,10 @@ from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import validate_channel_choice
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+    from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -44,6 +49,10 @@ class UserNotificationPolicyLogRecordQuerySet(models.QuerySet):
 
 
 class UserNotificationPolicyLogRecord(models.Model):
+    alert_group: "AlertGroup"
+    author: typing.Optional["User"]
+    notification_policy: typing.Optional[UserNotificationPolicy]
+
     objects: models.Manager["UserNotificationPolicyLogRecord"] = UserNotificationPolicyLogRecordQuerySet.as_manager()
 
     (
