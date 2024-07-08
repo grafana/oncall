@@ -9,9 +9,9 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
+import { GTable, GTableProps } from 'components/GTable/GTable';
 import { NewScheduleSelector } from 'components/NewScheduleSelector/NewScheduleSelector';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { GTable } from 'components/Table/Table';
 import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
@@ -62,7 +62,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const {
       store: { userStore },
     } = this.props;
-
     userStore.fetchItems();
   }
 
@@ -281,7 +280,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     return <PluginLink query={{ page: 'schedules', id: item.id, ...query }}>{item.name}</PluginLink>;
   };
 
-  renderOncallNow = (item: Schedule, _index: number) => {
+  renderOncallNow = (item: Schedule) => {
     const { theme } = this.props;
     const utilsStyles = getUtilStyles(theme);
 
@@ -406,7 +405,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     };
   };
 
-  getTableColumns = () => {
+  getTableColumns = (): GTableProps<Schedule>['columns'] => {
     const { grafanaTeamStore } = this.props.store;
     const styles = getSchedulesStyles();
 

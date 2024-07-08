@@ -46,10 +46,10 @@ def build_notification_reason_for_log_record(notification_policies, reason):
 
     # Here we collect a brief overview of notification steps configured for user to send it to thread.
     collected_steps_ids = []
-    for notification_policy in notification_policies:
-        if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
-            if notification_policy.notify_by not in collected_steps_ids:
-                collected_steps_ids.append(notification_policy.notify_by)
+    for next_notification_policy in notification_policies:
+        if next_notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
+            if next_notification_policy.notify_by not in collected_steps_ids:
+                collected_steps_ids.append(next_notification_policy.notify_by)
 
     collected_steps = ", ".join(
         UserNotificationPolicy.NotificationChannel(step_id).label for step_id in collected_steps_ids
@@ -138,6 +138,7 @@ def notify_user_task(
                 )
                 return
             reason = build_notification_reason_for_log_record(notification_policies, reason)
+            notification_policy = notification_policies[0]
         else:
             if notify_user_task.request.id != user_has_notification.active_notification_policy_id:
                 task_logger.info(
