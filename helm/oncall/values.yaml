@@ -343,6 +343,9 @@ oncall:
     tls: ~
     ssl: ~
     fromEmail: ~
+    existingSecret: ""
+    usernameKey: ""
+    passwordKey: ""
   exporter:
     enabled: false
     authToken: ~
