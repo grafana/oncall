@@ -5,6 +5,14 @@ env:
     value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
+  - name: DJANGO_SETTINGS_MODULE
+    value: "settings.dev"
+  - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+    value: "True"
+  - name: FEATURE_SLACK_INTEGRATION_ENABLED
+    value: "True"
+  - name: SLACK_SLASH_COMMAND_NAME
+    value: "/oncall"
   # enabled to be able to test docker.host.internal in the webhook e2e tests
   - name: DANGEROUS_WEBHOOKS_ENABLED
     value: "True"
@@ -131,6 +139,14 @@ service:
   nodePort: 30001
 prometheus:
   enabled: true
+  alertmanager:
+    enabled: false
+  kube-state-metrics:
+    enabled: false
+  prometheus-node-exporter:
+    enabled: false
+  prometheus-pushgateway:
+    enabled: false
   server:
     global:
       scrape_interval: 10s
