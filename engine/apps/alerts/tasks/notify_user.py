@@ -212,13 +212,10 @@ def notify_user_task(
             if notify_user_task.request.retries == 0:
                 transaction.on_commit(partial(send_user_notification_signal.apply_async, (log_record.pk,)))
 
-        def _create_perform_notification_task(
-            log_record_pk, alert_group_pk, use_default_notification_policy_fallback
-        ):
+        def _create_perform_notification_task(log_record_pk, alert_group_pk, use_default_notification_policy_fallback):
             task = perform_notification.apply_async((log_record_pk, use_default_notification_policy_fallback))
             task_logger.info(
-                f"Created perform_notification task {task} log_record={log_record_pk} "
-                f"alert_group={alert_group_pk}"
+                f"Created perform_notification task {task} log_record={log_record_pk} " f"alert_group={alert_group_pk}"
             )
 
         def _update_user_has_notification_active_notification_policy_id(active_policy_id: typing.Optional[str]) -> None:
