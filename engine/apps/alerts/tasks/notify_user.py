@@ -1,4 +1,5 @@
 import time
+import typing
 from functools import partial
 
 from celery.exceptions import Retry
@@ -42,7 +43,6 @@ def notify_user_task(
 
     countdown = 0
     stop_escalation = False
-    log_message = ""
     log_record = None
 
     with transaction.atomic():
@@ -126,16 +126,18 @@ def notify_user_task(
                 using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step,
             )
 
-        if notification_policy is None:
-            stop_escalation = True
-            log_record = _create_user_notification_policy_log_record(
+        def _create_notification_finished_user_notification_policy_log_record():
+            return _create_user_notification_policy_log_record(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED,
                 notification_policy=notification_policy,
                 alert_group=alert_group,
                 slack_prevent_posting=prevent_posting_to_thread,
             )
-            log_message += "Personal escalation exceeded"
+
+        if notification_policy is None:
+            stop_escalation = True
+            log_record = _create_notification_finished_user_notification_policy_log_record()
         else:
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
@@ -193,6 +195,7 @@ def notify_user_task(
                         notification_step=notification_policy.step,
                         notification_channel=notification_policy.notify_by,
                     )
+
         if log_record:  # log_record is None if user notification policy step is unspecified
             # if this is the first notification step, and user hasn't been notified for this alert group - update metric
             if (
@@ -209,34 +212,46 @@ def notify_user_task(
             if notify_user_task.request.retries == 0:
                 transaction.on_commit(partial(send_user_notification_signal.apply_async, (log_record.pk,)))
 
-        if not stop_escalation:
+        def _create_perform_notification_task(
+            log_record_pk, alert_group_pk, use_default_notification_policy_fallback
+        ):
+            task = perform_notification.apply_async((log_record_pk, use_default_notification_policy_fallback))
+            task_logger.info(
+                f"Created perform_notification task {task} log_record={log_record_pk} "
+                f"alert_group={alert_group_pk}"
+            )
+
+        def _update_user_has_notification_active_notification_policy_id(active_policy_id: typing.Optional[str]) -> None:
+            user_has_notification.active_notification_policy_id = active_policy_id
+            user_has_notification.save(update_fields=["active_notification_policy_id"])
+
+        def _reset_user_has_notification_active_notification_policy_id() -> None:
+            _update_user_has_notification_active_notification_policy_id(None)
+
+        create_perform_notification_task = partial(
+            _create_perform_notification_task,
+            log_record.pk,
+            alert_group_pk,
+            using_fallback_default_notification_policy_step,
+        )
+
+        if using_fallback_default_notification_policy_step:
+            # if we are using default notification policy, we're done escalating.. there's no further notification
+            # policy steps in this case. Kick off the perform_notification task, create the
+            # TYPE_PERSONAL_NOTIFICATION_FINISHED log record, and reset the active_notification_policy_id
+            transaction.on_commit(create_perform_notification_task)
+            _create_notification_finished_user_notification_policy_log_record()
+            _reset_user_has_notification_active_notification_policy_id()
+        elif not stop_escalation:
             if notification_policy.step != UserNotificationPolicy.Step.WAIT:
-
-                def _create_perform_notification_task(
-                    log_record_pk, alert_group_pk, use_default_notification_policy_fallback
-                ):
-                    task = perform_notification.apply_async((log_record_pk, use_default_notification_policy_fallback))
-                    task_logger.info(
-                        f"Created perform_notification task {task} log_record={log_record_pk} "
-                        f"alert_group={alert_group_pk}"
-                    )
-
-                transaction.on_commit(
-                    partial(
-                        _create_perform_notification_task,
-                        log_record.pk,
-                        alert_group_pk,
-                        using_fallback_default_notification_policy_step,
-                    )
-                )
+                transaction.on_commit(create_perform_notification_task)
 
             delay = NEXT_ESCALATION_DELAY
             if countdown is not None:
                 delay += countdown
             task_id = celery_uuid()
 
-            user_has_notification.active_notification_policy_id = task_id
-            user_has_notification.save(update_fields=["active_notification_policy_id"])
+            _update_user_has_notification_active_notification_policy_id(task_id)
 
             transaction.on_commit(
                 partial(
@@ -251,10 +266,8 @@ def notify_user_task(
                     task_id=task_id,
                 )
             )
-
         else:
-            user_has_notification.active_notification_policy_id = None
-            user_has_notification.save(update_fields=["active_notification_policy_id"])
+            _reset_user_has_notification_active_notification_policy_id()
 
 
 @shared_dedicated_queue_retry_task(
