@@ -160,7 +160,7 @@ def notify_user_task(
 
             try:
                 notification_policy = UserNotificationPolicy.objects.get(pk=previous_notification_policy_pk)
-                if notification_policy.user != user:  # todo: how could it happen?
+                if notification_policy.user != user:
                     notification_policy = UserNotificationPolicy.objects.get(
                         order=notification_policy.order, user=user, important=important
                     )
