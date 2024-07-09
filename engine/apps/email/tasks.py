@@ -124,7 +124,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     except (gaierror, BadHeaderError) as e:
         # gaierror is raised when EMAIL_HOST is invalid
         # BadHeaderError is raised when there's newlines in the subject
-        UserNotificationPolicyLogRecord.objects.create(
+        _create_user_notification_policy_log_record(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             notification_policy=notification_policy,
@@ -137,7 +137,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         return
 
     # record success log
-    UserNotificationPolicyLogRecord.objects.create(
+    _create_user_notification_policy_log_record(
         author=user,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
         notification_policy=notification_policy,
