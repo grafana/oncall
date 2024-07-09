@@ -45,6 +45,8 @@ import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
+    // eslint-disable-next-line no-console
+    console.log('test successful');
   });
 
   return (
