@@ -3,11 +3,12 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 type LookupUser struct {
@@ -57,9 +58,12 @@ func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.Use
 	if err != nil {
 		return nil, err
 	}
-	onCallUser.Teams, err = a.GetTeamsForUser(settings, onCallUser)
-	if err != nil {
-		return nil, err
+
+	if settings.ExternalServiceAccountEnabled {
+		onCallUser.Teams, err = a.GetTeamsForUser(settings, onCallUser)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if settings.RBACEnabled {
 		onCallUser.Permissions, err = a.GetPermissions(settings, onCallUser)
