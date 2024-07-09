@@ -155,32 +155,28 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
         <Controller
           name={WebhookFormFieldName.IntegrationFilter}
           control={control}
-          render={({ field }) => {
-            console.log('field value', field);
-
-            return (
-              <Field
-                label="Integrations"
-                description="Integrations that this webhook applies to. If this is empty the webhook will execute for all integrations"
-                invalid={!!errors.integration_filter}
-                error={errors.integration_filter?.message}
-              >
-                <GSelect<ApiSchemas['AlertReceiveChannel']>
-                  isMulti
-                  placeholder="Choose (Optional)"
-                  items={alertReceiveChannelStore.items}
-                  fetchItemsFn={alertReceiveChannelStore.fetchItems}
-                  fetchItemFn={alertReceiveChannelStore.fetchItemById}
-                  getSearchResult={() => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore)}
-                  displayField="verbal_name"
-                  valueField="id"
-                  getOptionLabel={(item: SelectableValue) => <Emoji text={item?.label || ''} />}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              </Field>
-            );
-          }}
+          render={({ field }) => (
+            <Field
+              label="Integrations"
+              description="Integrations that this webhook applies to. If this is empty the webhook will execute for all integrations"
+              invalid={!!errors.integration_filter}
+              error={errors.integration_filter?.message}
+            >
+              <GSelect<ApiSchemas['AlertReceiveChannel']>
+                isMulti
+                placeholder="Choose (Optional)"
+                items={alertReceiveChannelStore.items}
+                fetchItemsFn={alertReceiveChannelStore.fetchItems}
+                fetchItemFn={alertReceiveChannelStore.fetchItemById}
+                getSearchResult={() => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore)}
+                displayField="verbal_name"
+                valueField="id"
+                getOptionLabel={(item: SelectableValue) => <Emoji text={item?.label || ''} />}
+                value={field.value}
+                onChange={field.onChange}
+              />
+            </Field>
+          )}
         />
         {hasLabelsFeature && (
           <Controller
