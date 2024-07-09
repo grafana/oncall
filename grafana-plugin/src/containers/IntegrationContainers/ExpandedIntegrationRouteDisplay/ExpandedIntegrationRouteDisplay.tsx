@@ -51,6 +51,7 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { openNotification } from 'utils/utils';
+import { renderRouteTitle } from 'pages/integration/Integration';
 
 const cx = cn.bind(styles);
 
@@ -115,6 +116,8 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
 
     const { id } = useCurrentIntegration();
 
+    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
         ...state,
@@ -135,7 +138,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       })();
     }, []);
 
-    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+    useEffect(() => {
+      if (channelFilter && !labels?.length) {
+        setLabels(channelFilter.filtering_labels);
+      }
+    }, [channelFilter]);
+
     if (!channelFilter) {
       return null;
     }
@@ -180,22 +188,18 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   <RenderConditionally shouldRender={hasLabels}>
                     <VerticalGroup>
                       <div className={cx('labels-panel')}>
-                        <RadioButtonGroup
-                          options={QueryBuilderOptions}
-                          value={labelOption}
-                          onChange={setLabelOption}
-                        ></RadioButtonGroup>
+                        <RadioButtonGroup options={QueryBuilderOptions} value={labelOption} onChange={setLabelOption} />
                       </div>
 
                       <RenderConditionally shouldRender={labelOption === LABEL_OPTION.LABELS}>
                         <VerticalGroup>
                           <RouteLabelsDisplay
                             labels={labels}
-                            onChange={async (val) => {
+                            onChange={async (labels) => {
                               setLabelErrors([]);
-                              setLabels(val);
+                              setLabels(labels);
 
-                              const allKeysValidated = val.every(
+                              const allKeysValidated = labels.every(
                                 (v) => v.key?.id !== undefined && v.value?.id !== undefined
                               );
 
@@ -203,9 +207,8 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                                 return;
                               }
 
-                              const labelQueryString = val.map((v) => `${v.key.name}=${v.value.name}`).join('&');
                               await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
-                                filtering_term: labelQueryString,
+                                filtering_labels: labels,
                                 filtering_term_type: FilteringTermType.labels,
                               });
                             }}
@@ -354,23 +357,31 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       return configs;
     };
 
+    const routeWording = CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex);
+
     return (
       <>
         <IntegrationBlock
           noContent={false}
           key={channelFilterId}
           heading={
-            <HorizontalGroup justify={'space-between'}>
-              <HorizontalGroup spacing={'md'}>
+            <div className={cx('heading-container')}>
+              <div className={cx('heading-container__item', 'heading-container__item--large')}>
                 <TooltipBadge
                   borderType="success"
                   text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
-                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
+                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
+                    channelFilterIds,
+                    routeIndex,
+                    channelFilter.filtering_labels
+                  )}
                   tooltipContent={undefined}
                   className={cx('u-margin-right-xs')}
                 />
-              </HorizontalGroup>
-              <HorizontalGroup spacing={'xs'}>
+                {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
+                {routeWording !== 'Default' && renderRouteTitle(channelFilter)}
+              </div>
+              <div className={cx('heading-container__item')}>
                 <RouteButtonsDisplay
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
@@ -379,8 +390,8 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
                   openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </div>
+            </div>
           }
           content={
             <>

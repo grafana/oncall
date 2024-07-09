@@ -1290,4 +1290,25 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
+export const renderRouteTitle = (channelFilter: ChannelFilter) => {
+  if (channelFilter?.filtering_term || channelFilter?.filtering_labels) {
+    return <Text type="primary" className={cx('route-heading')}>{renderRouteHeadingDisplay(channelFilter)}</Text>;
+  }
+
+  return (
+    <>
+      <div className={cx('icon-exclamation')}>
+        <Icon name="exclamation-triangle" />
+      </div>
+      <Text type="primary">Routing template not set</Text>
+    </>
+  );
+};
+
+const renderRouteHeadingDisplay = (channelFilter: ChannelFilter) => {
+  return channelFilter.filtering_term
+    ? channelFilter.filtering_term
+    : channelFilter.filtering_labels.map((opt) => `${opt.key.name}=${opt.value.name}`).join('&');
+};
+
 export const IntegrationPage = withRouter(withMobXProviderContext(withDrawer<IntegrationDrawerKey>(_IntegrationPage)));

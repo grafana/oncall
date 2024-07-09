@@ -15,6 +15,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
+import { renderRouteTitle } from 'pages/integration/Integration';
 
 const cx = cn.bind(styles);
 
@@ -76,27 +77,14 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
                   text={routeWording}
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
-                    routeIndex
+                    routeIndex,
+                    channelFilter?.filtering_labels
                   )}
                   className={cx('u-margin-right-xs')}
                   tooltipContent={undefined}
                 />
                 {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
-                {routeWording !== 'Default' &&
-                  (channelFilter.filtering_term ? (
-                    <Text type="primary" className={cx('heading-container__text')}>
-                      {renderRouteHeadingDisplay(channelFilter)}
-                    </Text>
-                  ) : (
-                    <>
-                      <div className={cx('icon-exclamation')}>
-                        <Icon name="exclamation-triangle" />
-                      </div>
-                      <Text type="primary" className={cx('heading-container__text')}>
-                        Routing template not set
-                      </Text>
-                    </>
-                  ))}
+                {routeWording !== 'Default' && renderRouteTitle(channelFilter)}
               </div>
 
               <div className={cx('heading-container__item')}>
@@ -180,12 +168,6 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
         )}
       </>
     );
-
-    function renderRouteHeadingDisplay(channelFilter: ChannelFilter) {
-      // TODO: check for labels here
-
-      return channelFilter.filtering_term;
-    }
 
     function handleEditRoutingTemplate(channelFilter, channelFilterId) {
       if (channelFilter.filtering_term_type === 0) {
