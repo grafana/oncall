@@ -2,7 +2,6 @@ import json
 import logging
 import re
 import typing
-import urllib.parse
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -21,7 +20,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
-    from apps.labels.types import AlertLabels
+    from apps.labels.types import AlertLabels, LabelPair
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +45,7 @@ class ChannelFilter(OrderedModel):
     """
 
     alert_groups: "RelatedManager['AlertGroup']"
+    filtering_labels: typing.Optional[list["LabelPair"]]
 
     order_with_respect_to = ["alert_receive_channel_id", "is_default"]
 
@@ -95,6 +95,7 @@ class ChannelFilter(OrderedModel):
         (FILTERING_TERM_TYPE_LABELS, "labels"),
     ]
     filtering_term_type = models.IntegerField(choices=FILTERING_TERM_TYPE_CHOICES, default=FILTERING_TERM_TYPE_REGEX)
+    filtering_labels = models.JSONField(null=True, default=None)
 
     is_default = models.BooleanField(default=False)
 
@@ -148,21 +149,16 @@ class ChannelFilter(OrderedModel):
             except re.error:
                 logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
                 return False
-        if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
-            for key, value in self.filtering_labels:
-                if key not in alert_labels:
-                    return False
-                if value and alert_labels[key] != value:
+        if self.filtering_labels is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            if alert_labels is None:
+                return False
+            for item in self.filtering_labels:
+                key = item["key"]["name"]
+                value = item["value"]["name"]
+                if key not in alert_labels or alert_labels[key] != value:
                     return False
             return True
         return False
-
-    @property
-    def filtering_labels(self):
-        labels = None
-        if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
-            labels = urllib.parse.parse_qsl(self.filtering_term, keep_blank_values=True)
-        return labels
 
     @property
     def slack_channel_id_or_general_log_id(self):
@@ -181,10 +177,12 @@ class ChannelFilter(OrderedModel):
             return "default"
         if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             return str(self.filtering_term)
+        elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            if not self.filtering_labels:
+                return "{}"
+            return ", ".join(f"{item['key']['name']}={item['value']['name']}" for item in self.filtering_labels)
         elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or self.filtering_term_type is None:
             return str(self.filtering_term).replace("`", "")
-        elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
-            return str(self.filtering_term)
         raise Exception("Unknown filtering term")
 
     # Insight logs
