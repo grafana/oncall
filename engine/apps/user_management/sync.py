@@ -4,13 +4,11 @@ import uuid
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import transaction
 from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.exceptions import InvalidToken
-from apps.base.models import UserNotificationPolicy
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GCOMInstanceInfo, GrafanaAPIClient
 from apps.grafana_plugin.sync_data import SyncData, SyncPermission, SyncSettings, SyncTeam, SyncUser
 from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
@@ -277,7 +275,18 @@ def get_or_create_organization(
 
 def get_or_create_user(organization: Organization, sync_user: SyncUser) -> User:
     _sync_users_data(organization, [sync_user], delete_extra=False)
-    return organization.users.get(user_id=sync_user.id)
+    user = organization.users.get(user_id=sync_user.id)
+
+    # update team membership if needed
+    # (not removing user from teams, assuming this is called on user creation/first login only;
+    # periodic sync will keep teams updated)
+    membership = sync_user.teams or []
+    for team_id in membership:
+        team = organization.teams.filter(team_id=team_id).first()
+        if team:
+            user.teams.add(team)
+
+    return user
 
 
 def _sync_organization_data(organization: Organization, sync_settings: SyncSettings):
@@ -287,6 +296,8 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
     organization.is_grafana_labels_enabled = sync_settings.labels_enabled
     organization.is_grafana_incident_enabled = sync_settings.incident_enabled
     organization.grafana_incident_backend_url = sync_settings.incident_backend_url
+    organization.grafana_url = sync_settings.grafana_url
+    organization.api_token = sync_settings.grafana_token
     organization.last_time_synced = timezone.now()
 
     _sync_instance_info(organization)
@@ -302,6 +313,7 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
 
     organization.save(
         update_fields=[
+            "api_token",
             "cluster_slug",
             "stack_slug",
             "org_slug",
@@ -334,32 +346,25 @@ def _sync_users_data(organization: Organization, sync_users: list[SyncUser], del
     )
 
     existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
-    with transaction.atomic():
-        kwargs = {}
-        if settings.DATABASE_TYPE in ("sqlite3", "postgresql"):
-            # unique_fields is required for sqlite and postgresql setups
-            kwargs["unique_fields"] = ("organization_id", "user_id", "is_active")
-        organization.users.bulk_create(
-            users_to_sync,
-            update_conflicts=True,
-            update_fields=("email", "name", "username", "role", "avatar_url", "permissions"),
-            batch_size=5000,
-            **kwargs,
-        )
+    kwargs = {}
+    if settings.DATABASE_TYPE in ("sqlite3", "postgresql"):
+        # unique_fields is required for sqlite and postgresql setups
+        kwargs["unique_fields"] = ("organization_id", "user_id", "is_active")
+    organization.users.bulk_create(
+        users_to_sync,
+        update_conflicts=True,
+        update_fields=("email", "name", "username", "role", "avatar_url", "permissions"),
+        batch_size=5000,
+        **kwargs,
+    )
 
-        # Retrieve primary keys for the newly created users
-        #
-        # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
-        # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
-        # On other databases, it will not be set.
-        # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
-        created_users = organization.users.exclude(user_id__in=existing_user_ids)
-
-        policies_to_create = ()
-        for user in created_users:
-            policies_to_create = policies_to_create + user.default_notification_policies_defaults
-            policies_to_create = policies_to_create + user.important_notification_policies_defaults
-        UserNotificationPolicy.objects.bulk_create(policies_to_create, ignore_conflicts=True, batch_size=5000)
+    # Retrieve primary keys for the newly created users
+    #
+    # If the model’s primary key is an AutoField, the primary key attribute can only be retrieved
+    # on certain databases (currently PostgreSQL, MariaDB 10.5+, and SQLite 3.35+).
+    # On other databases, it will not be set.
+    # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.bulk_create
+    created_users = organization.users.exclude(user_id__in=existing_user_ids)
 
     if delete_extra:
         # delete removed users

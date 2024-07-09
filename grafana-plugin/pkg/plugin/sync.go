@@ -54,6 +54,13 @@ func (a *App) makeSyncRequest(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error creating request: ", err)
 	}
+
+	err = a.SetupRequestHeadersForOnCall(req.Context(), onCallPluginSettings, syncReq)
+	if err != nil {
+		log.DefaultLogger.Error("Error setting up headers: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	syncReq.Header.Set("Content-Type", "application/json")
 
 	res, err := a.httpClient.Do(syncReq)

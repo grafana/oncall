@@ -28,6 +28,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   maxWidth?: string;
   clickable?: boolean;
   customTag?: 'h6' | 'span';
+  withBackground?: boolean;
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -53,6 +54,7 @@ export const Text: TextInterface = (props) => {
     clearBeforeEdit = false,
     hidden = false,
     editModalTitle = 'New value',
+    withBackground = false,
     style,
     maxWidth,
     clickable,
@@ -100,6 +102,7 @@ export const Text: TextInterface = (props) => {
         { [bem(styles.text, `underline`)]: underline },
         { [bem(styles.text, 'clickable')]: clickable },
         { [styles.noWrap]: !wrap },
+        { [styles.withBackground]: withBackground },
         className
       )}
       style={{ ...style, maxWidth }}
