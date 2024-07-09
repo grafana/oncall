@@ -80,7 +80,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     if emails_left <= 0:
         _create_user_notification_policy_log_record(
             author=user,
-            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED,
             notification_policy=notification_policy,
             alert_group=alert_group,
             reason="Error while sending email",
