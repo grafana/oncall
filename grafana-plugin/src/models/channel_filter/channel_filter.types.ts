@@ -17,7 +17,7 @@ export interface ChannelFilter {
   slack_channel?: SlackChannel;
   telegram_channel?: TelegramChannel['id'];
   telegram_channel_details?: TelegramChannelDetails;
-  filtering_labels?: components['schemas']['LabelPair'][];
+  filtering_labels?: Array<components['schemas']['LabelPair']>;
   created_at: string;
   filtering_term: string;
   filtering_term_as_jinja2: string;

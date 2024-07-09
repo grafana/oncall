@@ -1292,7 +1292,11 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
 export const renderRouteTitle = (channelFilter: ChannelFilter) => {
   if (channelFilter?.filtering_term || channelFilter?.filtering_labels) {
-    return <Text type="primary" className={cx('route-heading')}>{renderRouteHeadingDisplay(channelFilter)}</Text>;
+    return (
+      <Text type="primary" className={cx('route-heading')}>
+        {renderRouteHeadingDisplay(channelFilter)}
+      </Text>
+    );
   }
 
   return (

@@ -13,9 +13,9 @@ import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIn
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
+import { renderRouteTitle } from 'pages/integration/Integration';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
-import { renderRouteTitle } from 'pages/integration/Integration';
 
 const cx = cn.bind(styles);
 
