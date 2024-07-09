@@ -321,6 +321,16 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
                     },
                 )
+        buttons.append(
+            {
+                "text": {"type": "plain_text", "text": ":blue_book: Show Timeline", "emoji": True},
+                "type": "button",
+                "value": self._alert_group_action_value(),
+                "action_id": ScenarioStep.get_step(
+                    "alertgroup_timeline", "OpenAlertGroupTimelineDialogStep"
+                ).routing_uid(),
+            },
+        )
         blocks = [{"type": "actions", "elements": buttons}]
         return blocks
 
