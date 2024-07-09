@@ -157,7 +157,7 @@ def test_notify_user_no_emails_left(
 
     assert len(mail.outbox) == 0
     log_record = notification_policy.personal_log_records.last()
-    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED
     assert log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED
 
 
