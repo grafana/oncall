@@ -1,3 +1,4 @@
+import typing
 from functools import partial
 from uuid import uuid4
 
@@ -19,8 +20,15 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from .compare_escalations import compare_escalations
 from .task_logger import task_logger
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, UserNotificationBundle
+    from apps.base.models import UserNotificationPolicy
+    from apps.user_management.models import User
 
-def schedule_send_bundled_notification_task(user_notification_bundle, alert_group):
+
+def schedule_send_bundled_notification_task(
+    user_notification_bundle: "UserNotificationBundle", alert_group: "AlertGroup"
+):
     """Schedule a task to send bundled notifications"""
     send_bundled_notification.apply_async(
         (user_notification_bundle.id,),
@@ -34,14 +42,16 @@ def schedule_send_bundled_notification_task(user_notification_bundle, alert_grou
     )
 
 
-def schedule_perform_notification_task(log_record_pk, alert_group_pk):
+def schedule_perform_notification_task(log_record_pk: int, alert_group_pk: int):
     task = perform_notification.apply_async((log_record_pk,))
     task_logger.info(
         f"Created perform_notification task {task} log_record={log_record_pk} " f"alert_group={alert_group_pk}"
     )
 
 
-def build_notification_reason_for_log_record(notification_policies, reason):
+def build_notification_reason_for_log_record(
+    notification_policies: typing.List["UserNotificationPolicy"], reason: typing.Optional[str]
+) -> str:
     from apps.base.models import UserNotificationPolicy
 
     # Here we collect a brief overview of notification steps configured for user to send it to thread.
@@ -59,7 +69,7 @@ def build_notification_reason_for_log_record(notification_policies, reason):
     return reason
 
 
-def update_metric_if_needed(user, active_alert_group_ids):
+def update_metric_if_needed(user: "User", active_alert_group_ids: typing.List[int]):
     from apps.base.models import UserNotificationPolicyLogRecord
 
     # get count of alert groups with only one personal log record with type "triggered"
@@ -488,7 +498,7 @@ def perform_notification(log_record_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_bundled_notification(user_notification_bundle_id):
+def send_bundled_notification(user_notification_bundle_id: int):
     """
     The task filters bundled notifications, attached to the current user_notification_bundle, by active alert groups,
     creates notification log records and updates user_notification_bundle.
@@ -524,9 +534,9 @@ def send_bundled_notification(user_notification_bundle_id):
             "alert_group"
         )
 
-        log_records_to_create = []
-        skip_notification_ids = []
-        active_alert_group_ids = set()
+        log_records_to_create: typing.List["UserNotificationPolicyLogRecord"] = []
+        skip_notification_ids: typing.List[int] = []
+        active_alert_group_ids: typing.Set[int] = set()
         log_record_notification_triggered = None
         is_notification_allowed = user_notification_bundle.user.is_notification_allowed
 
