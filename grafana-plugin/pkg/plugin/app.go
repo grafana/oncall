@@ -69,6 +69,7 @@ func (a *App) Dispose() {
 
 // CheckHealth handles health checks sent from Grafana to the plugin.
 func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	log.DefaultLogger.Info("CheckHealth")
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "ok",
