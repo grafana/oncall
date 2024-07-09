@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import AlertGroup, EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
-    from apps.base.models import UserNotificationPolicy
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.slack.models import SlackUserIdentity
     from apps.social_auth.types import GoogleOauth2Response
     from apps.user_management.models import Organization, Team
@@ -165,6 +165,7 @@ class User(models.Model):
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
+    personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
     resolved_alert_groups: "RelatedManager['AlertGroup']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     silenced_alert_groups: "RelatedManager['AlertGroup']"
@@ -413,25 +414,31 @@ class User(models.Model):
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 
-    def get_notification_policies_or_use_default_fallback(
-        self, important=False
-    ) -> typing.List["UserNotificationPolicy"]:
-        """
-        If the user has no notification policies defined, fallback to using e-mail as the notification channel.
-        """
+    def get_default_fallback_notification_policy(self) -> "UserNotificationPolicy":
         from apps.base.models import UserNotificationPolicy
 
-        if not self.notification_policies.filter(important=important).exists():
-            return [
-                UserNotificationPolicy(
-                    user=self,
-                    step=UserNotificationPolicy.Step.NOTIFY,
-                    notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
-                    important=important,
-                    order=0,
-                ),
-            ]
-        return list(self.notification_policies.filter(important=important).all())
+        return UserNotificationPolicy.get_default_fallback_policy(self)
+
+    def get_notification_policies_or_use_default_fallback(
+        self, important=False
+    ) -> typing.Tuple[bool, typing.List["UserNotificationPolicy"]]:
+        """
+        If the user has no notification policies defined, fallback to using e-mail as the notification channel.
+
+        The 1st tuple element is a boolean indicating if we are falling back to using a "fallback"/default
+        notification policy step (which occurs when the user has no notification policies defined).
+        """
+        notification_polices = self.notification_policies.filter(important=important)
+
+        if not notification_polices.exists():
+            return (
+                True,
+                [self.get_default_fallback_notification_policy()],
+            )
+        return (
+            False,
+            list(notification_polices.all()),
+        )
 
     def update_alert_group_table_selected_columns(self, columns: typing.List[AlertGroupTableColumn]) -> None:
         if self.alert_group_table_selected_columns != columns:
