@@ -125,12 +125,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 attachments[0]["actions"] = []
             return attachments
 
-        # Attaching buttons
-        if self.alert_group.wiped_at is None:
-            attachment_alert_buttons = self._get_buttons_attachments()
-            if len(attachment_alert_buttons["blocks"][0]["elements"]) > 0:
-                attachments.append(attachment_alert_buttons)
-
         # Attaching resolve information
         if self.alert_group.resolved:
             resolve_attachment = {
@@ -147,6 +141,12 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     "callback_id": "alert",
                 }
                 attachments.append(ack_attachment)
+
+        # Attaching buttons
+        if self.alert_group.wiped_at is None:
+            attachment_alert_buttons = self._get_buttons_attachments()
+            if len(attachment_alert_buttons["blocks"][0]["elements"]) > 0:
+                attachments.append(attachment_alert_buttons)
 
         # Attaching invitation info
         if not self.alert_group.resolved:
@@ -194,6 +194,15 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         },
                     )
                 else:
+                    if True or self.alert_group.channel.organization.is_grafana_incident_enabled:
+                        incident_button = {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
+                            "value": "declare_incident",
+                            "url": self.alert_group.declare_incident_link,
+                            "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
+                        }
+                        buttons.append(incident_button)
                     buttons.append(
                         {
                             "text": {
@@ -301,7 +310,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             buttons.append(resolution_notes_button)
 
             # Declare incident button
-            if self.alert_group.channel.organization.is_grafana_incident_enabled:
+            if self.alert_group.channel.organization.is_grafana_incident_enabled and not self.alert_group.acknowledged:
                 incident_button = {
                     "type": "button",
                     "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
