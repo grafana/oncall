@@ -83,7 +83,7 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
                 continue
 
             important = escalation_policy_step == EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT
-            notification_policies = user.get_notification_policies_or_use_default_fallback(important=important)
+            _, notification_policies = user.get_notification_policies_or_use_default_fallback(important=important)
 
             if notification_policies:
                 usergroup_notification_plan += "\n_{} (".format(

@@ -83,7 +83,7 @@ if not is_ci:
 
 local_resource(
     "e2e-tests",
-    labels=["E2eTests"],
+    labels=["allTests"],
     cmd=e2e_tests_cmd,
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
@@ -125,6 +125,34 @@ cmd_button(
     text="Stop",
     resource="e2e-tests",
     icon_name="dangerous",
+)
+
+# Inspired by https://github.com/grafana/slo/blob/main/Tiltfile#L72
+pod_engine_pytest_script = '''
+set -eu
+# get engine k8s pod name from tilt resource name
+POD_NAME="$(tilt get kubernetesdiscovery "engine" -ojsonpath='{.status.pods[0].name}')"
+kubectl exec "$POD_NAME" -- pytest . $STOP_ON_FIRST_FAILURE $TESTS_FILTER
+'''
+local_resource(
+    "pytest-tests",
+    labels=["allTests"],
+    cmd=['sh', '-c', pod_engine_pytest_script],
+    trigger_mode=TRIGGER_MODE_MANUAL,
+    auto_init=False,
+    resource_deps=["engine"]
+)
+
+cmd_button(
+    name="pytest Tests - headless run",
+    argv=['sh', '-c', pod_engine_pytest_script],
+    text="Run pytest",
+    resource="pytest-tests",
+    icon_name="replay",
+    inputs=[
+        text_input("TESTS_FILTER", "pytest optional arguments (e.g. \"apps/webhooks/tests/test_webhook.py::test_build_url_private_raises\")", "", "Test file names to run"), 
+        bool_input("STOP_ON_FIRST_FAILURE", "Stop on first failure", True, "-x", ""),
+    ]
 )
 
 helm_oncall_values = ["./dev/helm-local.yml", "./dev/helm-local.dev.yml"]
@@ -174,7 +202,10 @@ k8s_resource(
     resource_deps=["mariadb", "redis-master"],
     labels=["OnCallBackend"],
 )
+k8s_resource(workload="engine-migrate", labels=["OnCallBackend"])
+
 k8s_resource(workload="redis-master", labels=["OnCallDeps"])
+k8s_resource(workload="prometheus-server", labels=["OnCallDeps"])
 k8s_resource(
     workload="mariadb",
     port_forwards='3307:3306', # <host_port>:<container_port>
@@ -184,6 +215,9 @@ k8s_resource(
 
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):
+    # Remove variable date from job name
+    if id.name.startswith(HELM_PREFIX + "-engine-migrate"):
+        return "engine-migrate"
     return id.name.replace(HELM_PREFIX + "-", "")
 
 workload_to_resource_function(resource_name)
