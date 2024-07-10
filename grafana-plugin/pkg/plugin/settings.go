@@ -36,17 +36,18 @@ type OnCallPluginJSONData struct {
 }
 
 type OnCallPluginSettings struct {
-	OnCallAPIURL       string `json:"oncall_api_url"`
-	OnCallToken        string `json:"oncall_token"`
-	StackID            int    `json:"stack_id"`
-	OrgID              int    `json:"org_id"`
-	License            string `json:"license"`
-	GrafanaURL         string `json:"grafana_url"`
-	GrafanaToken       string `json:"grafana_token"`
-	RBACEnabled        bool   `json:"rbac_enabled"`
-	IncidentEnabled    bool   `json:"incident_enabled"`
-	IncidentBackendURL string `json:"incident_backend_url"`
-	LabelsEnabled      bool   `json:"labels_enabled"`
+	OnCallAPIURL                  string `json:"oncall_api_url"`
+	OnCallToken                   string `json:"oncall_token"`
+	StackID                       int    `json:"stack_id"`
+	OrgID                         int    `json:"org_id"`
+	License                       string `json:"license"`
+	GrafanaURL                    string `json:"grafana_url"`
+	GrafanaToken                  string `json:"grafana_token"`
+	RBACEnabled                   bool   `json:"rbac_enabled"`
+	IncidentEnabled               bool   `json:"incident_enabled"`
+	IncidentBackendURL            string `json:"incident_backend_url"`
+	LabelsEnabled                 bool   `json:"labels_enabled"`
+	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
@@ -80,8 +81,10 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		if err != nil {
 			return &settings, err
 		}
+		settings.ExternalServiceAccountEnabled = true
 	} else {
 		settings.GrafanaToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["grafanaToken"])
+		settings.ExternalServiceAccountEnabled = false
 	}
 
 	var jsonData map[string]interface{}
