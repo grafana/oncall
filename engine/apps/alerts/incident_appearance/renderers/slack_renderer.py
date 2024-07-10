@@ -194,7 +194,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         },
                     )
                 else:
-                    if True or self.alert_group.channel.organization.is_grafana_incident_enabled:
+                    if self.alert_group.channel.organization.is_grafana_incident_enabled:
                         incident_button = {
                             "type": "button",
                             "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
