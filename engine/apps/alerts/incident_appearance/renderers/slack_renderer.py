@@ -91,19 +91,22 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
 
     def render_alert_group_attachments(self):
         attachments = self.alert_renderer.render_alert_attachments()
+        alert_group = self.alert_group
+        root_alert_group = alert_group.root_alert_group
 
-        if self.alert_group.root_alert_group is not None:
-            slack_message = self.alert_group.root_alert_group.slack_message
-            root_ag_name = self.alert_group.root_alert_group.long_verbose_name_without_formatting
-            if slack_message:
-                footer_text = f"Attached to *<{slack_message.permalink}|{root_ag_name}>*"
-            else:
-                footer_text = (f"Attached to *{root_ag_name}*",)
+        if root_alert_group is not None:
+            slack_message = root_alert_group.slack_message
+            root_ag_name = root_alert_group.long_verbose_name_without_formatting
+
             attachments.extend(
                 [
                     {
                         "fallback": "Subscription...",
-                        "footer": footer_text,
+                        "footer": (
+                            f"Attached to *<{slack_message.permalink}|{root_ag_name}>*"
+                            if slack_message
+                            else f"Attached to *{root_ag_name}*"
+                        ),
                         "color": "danger",
                         "mrkdwn": True,
                         "callback_id": "subscription notification",
@@ -118,42 +121,40 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     }
                 ]
             )
-            if self.alert_group.root_alert_group.acknowledged:
+
+            if root_alert_group.acknowledged:
                 attachments[0]["color"] = "warning"
-            if self.alert_group.root_alert_group.resolved:
+            if root_alert_group.resolved:
                 attachments[0]["color"] = "good"
                 attachments[0]["actions"] = []
+
             return attachments
 
         # Attaching resolve information
-        if self.alert_group.resolved:
-            resolve_attachment = {
+        if alert_group.resolved:
+            attachments.append({
                 "fallback": "Resolved...",
-                "text": self.alert_group.get_resolve_text(mention_user=True),
+                "text": alert_group.get_resolve_text(mention_user=True),
                 "callback_id": "alert",
-            }
-            attachments.append(resolve_attachment)
-        else:
-            if self.alert_group.acknowledged:
-                ack_attachment = {
-                    "fallback": "Acknowledged...",
-                    "text": self.alert_group.get_acknowledge_text(mention_user=True),
-                    "callback_id": "alert",
-                }
-                attachments.append(ack_attachment)
+            })
+        elif alert_group.acknowledged:
+            attachments.append({
+                "fallback": "Acknowledged...",
+                "text": alert_group.get_acknowledge_text(mention_user=True),
+                "callback_id": "alert",
+            })
 
         # Attaching buttons
-        if self.alert_group.wiped_at is None:
+        if alert_group.wiped_at is None:
             attachment_alert_buttons = self._get_buttons_attachments()
             if len(attachment_alert_buttons["blocks"][0]["elements"]) > 0:
                 attachments.append(attachment_alert_buttons)
 
         # Attaching invitation info
-        if not self.alert_group.resolved:
+        if not alert_group.resolved:
             attachments += self._get_invitation_attachment()
 
-        attachments = self._set_attachments_color(attachments)
-        return attachments
+        return self._set_attachments_color(attachments)
 
     def _set_attachments_color(self, attachments):
         color = "#a30200"  # danger
@@ -273,8 +274,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             if not alert_group.resolved:
                 buttons.append(resolve_button)
 
-        blocks = [{"type": "actions", "elements": buttons}]
-        return blocks
+        return [{"type": "actions", "elements": buttons}]
 
     def _get_invitation_attachment(self):
         from apps.alerts.models import Invitation
