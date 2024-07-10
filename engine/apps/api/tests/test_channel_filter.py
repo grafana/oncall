@@ -600,7 +600,7 @@ def test_channel_filter_labels_filter(
 
 
 @pytest.mark.django_db
-def test_updated_channel_filter_labels_filter(
+def test_update_channel_filter_labels_filter(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_channel_filter,
@@ -627,21 +627,22 @@ def test_updated_channel_filter_labels_filter(
     filtering_labels[0]["value"]["prescribed"] = False
     assert response_data["filtering_labels"] == filtering_labels
 
+    empty_labels = {
+        "filtering_labels": [],
+        "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
+    }
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
+    response = client.put(url, data=empty_labels, format="json", **make_user_auth_headers(user, token))
+    response_data = response.json()
+    assert response_data["filtering_labels"] == []
+    assert response.status_code == status.HTTP_200_OK
+
     invalid_data = {
         "filtering_labels": "key1&key2=value2",
         "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
     }
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
     response = client.put(url, data=invalid_data, format="json", **make_user_auth_headers(user, token))
-    response_data = response.json()
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    empty_labels = {
-        "filtering_labels": None,
-        "filtering_term_type": ChannelFilter.FILTERING_TERM_TYPE_LABELS,
-    }
-    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": label_channel_filter.public_primary_key})
-    response = client.put(url, data=empty_labels, format="json", **make_user_auth_headers(user, token))
     response_data = response.json()
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
