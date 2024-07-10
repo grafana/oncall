@@ -2,7 +2,7 @@ babel==2.12.1
 beautifulsoup4==4.12.2
 celery[redis]==5.3.1
 cryptography==42.0.8
-django==4.2.11
+django==4.2.14
 django-add-default-value==0.10.0
 django-amazon-ses==4.0.1
 django-anymail==8.6
