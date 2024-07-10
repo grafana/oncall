@@ -147,7 +147,10 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
 
       if (channelFilter && !routingOption) {
         setRoutingOption(
-          (channelFilter.filtering_term_as_jinja2 ? QueryBuilderOptions[1] : QueryBuilderOptions[0]).value
+          (channelFilter.filtering_term_type === FilteringTermType.labels
+            ? QueryBuilderOptions[0]
+            : QueryBuilderOptions[1]
+          ).value
         );
       }
     }, [channelFilter]);
@@ -199,15 +202,22 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         <RadioButtonGroup
                           options={QueryBuilderOptions}
                           value={routingOption}
-                          onChange={(option) => {
-                            openModal({
-                              onConfirm: () => {
-                                setRoutingOption(option);
-                              },
-                              onDismiss: () => closeModal(),
-                              title: 'Are you sure?',
-                              body: 'Switching between Labels and Template will override any existing data for selected  route. Continue?',
-                            });
+                          onChange={async (option) => {
+                            if (option === ROUTING_OPTION.TEMPLATE) {
+                              await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
+                                filtering_term: '',
+                                filtering_term_type: FilteringTermType.jinja2,
+                              });
+                            }
+
+                            if (option === ROUTING_OPTION.LABELS && channelFilter.filtering_labels?.length) {
+                              await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
+                                filtering_labels: channelFilter.filtering_labels,
+                                filtering_term_type: FilteringTermType.labels,
+                              });
+                            }
+
+                            setRoutingOption(option);
                           }}
                         />
                       </div>

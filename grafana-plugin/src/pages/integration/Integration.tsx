@@ -57,7 +57,7 @@ import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannelCounters } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
@@ -75,6 +75,7 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
+import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -1310,7 +1311,7 @@ export const renderRouteTitle = (channelFilter: ChannelFilter) => {
 };
 
 const renderRouteHeadingDisplay = (channelFilter: ChannelFilter) => {
-  return channelFilter.filtering_term
+  return channelFilter.filtering_term_type === FilteringTermType.jinja2
     ? channelFilter.filtering_term
     : channelFilter.filtering_labels.map((opt) => `${opt.key.name}=${opt.value.name}`).join('&');
 };
