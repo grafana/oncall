@@ -2,6 +2,7 @@ import React from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Button, Field, Input, RadioButtonList, Select, Switch, useStyles2 } from '@grafana/ui';
+import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -23,8 +24,6 @@ import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { getStyles } from './OutgoingWebhookForm.styles';
 import { TemplateParams, WebhookFormFieldName } from './OutgoingWebhookForm.types';
-import { ActionKey } from 'models/loader/action-keys';
-import { observer } from 'mobx-react';
 
 interface OutgoingWebhookFormFieldsProps {
   preset: OutgoingWebhookPreset;
@@ -49,7 +48,8 @@ const FORWARD_RADIO_OPTIONS = [
 
 export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps> = observer(
   ({ preset, hasLabelsFeature, onTemplateEditClick }) => {
-    const { grafanaTeamStore, alertReceiveChannelStore, loaderStore } = useStore();
+    const { grafanaTeamStore, alertReceiveChannelStore } = useStore();
+    const { items, fetchItems, fetchItemById } = alertReceiveChannelStore;
     const {
       control,
       formState: { errors },
@@ -58,10 +58,6 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
 
     const forwardAll = watch(WebhookFormFieldName.ForwardAll);
     const styles = useStyles2(getStyles);
-
-    if (loaderStore.isLoading(ActionKey.FETCH_INTEGRATION_CHANNELS)) {
-      return null;
-    }
 
     const controls = (
       <>
@@ -165,9 +161,9 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
               <GSelect<ApiSchemas['AlertReceiveChannel']>
                 isMulti
                 placeholder="Choose (Optional)"
-                items={alertReceiveChannelStore.items}
-                fetchItemsFn={alertReceiveChannelStore.fetchItems}
-                fetchItemFn={alertReceiveChannelStore.fetchItemById}
+                items={items}
+                fetchItemsFn={fetchItems}
+                fetchItemFn={fetchItemById}
                 getSearchResult={() => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore)}
                 displayField="verbal_name"
                 valueField="id"
