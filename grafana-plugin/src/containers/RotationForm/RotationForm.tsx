@@ -351,19 +351,15 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setRotationStart(value);
     setShiftStart(value);
 
-    setShiftEnd(
-      isLimitShiftEnabled
-        ? dayJSAddWithDSTFixed({
-            baseDate: value,
-            addParams: [activePeriod, 'seconds'],
-          })
-        : isMaskedByWeekdays
-        ? dayJSAddWithDSTFixed({ baseDate: value, addParams: [24, 'hours'] })
-        : dayJSAddWithDSTFixed({
-            baseDate: value,
-            addParams: [recurrenceNum, repeatEveryPeriodToUnitName[recurrencePeriod]],
-          })
-    );
+    let addParams;
+    if (isLimitShiftEnabled) {
+      addParams = [activePeriod, 'seconds'];
+    } else if (isMaskedByWeekdays) {
+      addParams = [24, 'hours'];
+    } else {
+      addParams = [recurrenceNum, repeatEveryPeriodToUnitName[recurrencePeriod]];
+    }
+    setShiftEnd(dayJSAddWithDSTFixed({ baseDate: value, addParams }));
   };
 
   const handleActivePeriodChange = useCallback(
