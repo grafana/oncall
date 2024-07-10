@@ -9,9 +9,9 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
+import { GTable, GTableProps } from 'components/GTable/GTable';
 import { NewScheduleSelector } from 'components/NewScheduleSelector/NewScheduleSelector';
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { GTable } from 'components/Table/Table';
 import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
@@ -62,7 +62,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     const {
       store: { userStore },
     } = this.props;
-
     userStore.fetchItems();
   }
 
@@ -105,7 +104,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               onChange={this.handleSchedulesFiltersChange}
             />
           </div>
-          <div data-testid="schedules-table">
+          <div className={cx(styles.tableRoot)} data-testid="schedules-table">
             <GTable
               className={styles.table}
               columns={this.getTableColumns()}
@@ -115,10 +114,9 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
                 total: results ? Math.ceil((count || 0) / page_size) : 0,
                 onChange: this.handlePageChange,
               }}
-              tableLayout="fixed"
               rowKey="id"
               expandable={{
-                expandedRowKeys: expandedRowKeys,
+                expandedRowKeys,
                 onExpand: this.handleExpandRow,
                 expandedRowRender: this.renderSchedule,
                 expandRowByClick: true,
@@ -282,7 +280,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     return <PluginLink query={{ page: 'schedules', id: item.id, ...query }}>{item.name}</PluginLink>;
   };
 
-  renderOncallNow = (item: Schedule, _index: number) => {
+  renderOncallNow = (item: Schedule) => {
     const { theme } = this.props;
     const utilsStyles = getUtilStyles(theme);
 
@@ -407,11 +405,17 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     };
   };
 
-  getTableColumns = () => {
+  getTableColumns = (): GTableProps<Schedule>['columns'] => {
     const { grafanaTeamStore } = this.props.store;
     const styles = getSchedulesStyles();
 
     return [
+      {
+        // Allow space for icon (>)
+        width: '40px',
+        title: '',
+        render: () => <></>,
+      },
       {
         width: '10%',
         title: 'Type',

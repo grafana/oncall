@@ -1,7 +1,9 @@
+import os
 from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.db import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
@@ -10,6 +12,7 @@ from apps.alerts.models import AlertReceiveChannel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import UnableToSendDemoAlert
 from engine.management.commands import alertmanager_v2_migrate
+from settings.base import DatabaseTypes
 
 
 @pytest.mark.django_db
@@ -271,6 +274,13 @@ def test_create_missing_direct_paging_integrations(
 @pytest.mark.django_db
 def test_create_duplicate_direct_paging_integrations(make_organization, make_team, make_alert_receive_channel):
     """Check that it's not possible to have more than one active direct paging integration per team."""
+
+    # MariaDB is not supported for this test
+    # See comment: https://github.com/grafana/oncall/commit/381a9ecf54bf0dd076f233b207c13d72ed792181#diff-9d96504027309f2bd1e95352bac1433b09b60eb4fafb611b52a6c15ed16cbc48R219-R223
+    is_local_dev_env = os.environ.get("DJANGO_SETTINGS_MODULE") == "settings.dev"
+    is_db_type_mysql = settings.DATABASE_TYPE == DatabaseTypes.MYSQL
+    if is_local_dev_env and is_db_type_mysql:
+        pytest.skip("This test is not supported by Mariadb (used by settings.dev)")
 
     organization = make_organization()
     team = make_team(organization)
