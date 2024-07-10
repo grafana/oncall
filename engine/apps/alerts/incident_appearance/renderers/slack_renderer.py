@@ -174,162 +174,105 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def _get_buttons_blocks(self):
         from apps.alerts.models import AlertGroup
 
-        buttons = []
-        if not self.alert_group.is_maintenance_incident:
-            if not self.alert_group.resolved:
-                if not self.alert_group.acknowledged:
-                    buttons.append(
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Acknowledge",
-                                "emoji": True,
-                            },
-                            "type": "button",
-                            "value": self._alert_group_action_value(),
-                            "action_id": ScenarioStep.get_step(
-                                "distribute_alerts",
-                                "AcknowledgeGroupStep",
-                            ).routing_uid(),
-                        },
-                    )
-                else:
-                    if self.alert_group.channel.organization.is_grafana_incident_enabled:
-                        incident_button = {
-                            "type": "button",
-                            "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
-                            "value": "declare_incident",
-                            "url": self.alert_group.declare_incident_link,
-                            "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
-                        }
-                        buttons.append(incident_button)
-                    buttons.append(
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Unacknowledge",
-                                "emoji": True,
-                            },
-                            "type": "button",
-                            "value": self._alert_group_action_value(),
-                            "action_id": ScenarioStep.get_step(
-                                "distribute_alerts",
-                                "UnAcknowledgeGroupStep",
-                            ).routing_uid(),
-                        },
-                    )
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Resolve", "emoji": True},
-                        "type": "button",
-                        "style": "primary",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
-                    },
-                )
+        alert_group = self.alert_group
+        integration = alert_group.channel
+        grafana_incident_enabled = integration.organization.is_grafana_incident_enabled
 
-                if not self.alert_group.silenced:
-                    silence_options = [
-                        {
-                            "text": {"type": "plain_text", "text": text, "emoji": True},
-                            "value": self._alert_group_action_value(delay=value),
-                        }
-                        for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
-                    ]
-                    buttons.append(
-                        {
-                            "placeholder": {"type": "plain_text", "text": "Silence", "emoji": True},
-                            "type": "static_select",
-                            "options": silence_options,
-                            "action_id": ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
-                        }
-                    )
-                else:
-                    buttons.append(
-                        {
-                            "text": {"type": "plain_text", "text": "Unsilence", "emoji": True},
-                            "type": "button",
-                            "value": self._alert_group_action_value(),
-                            "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
-                        },
-                    )
-
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
-                    },
-                )
-
-                attach_button = {
-                    "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
-                    "type": "button",
-                    "action_id": ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep").routing_uid(),
-                    "value": self._alert_group_action_value(),
-                }
-                buttons.append(attach_button)
-            else:
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Unresolve", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("distribute_alerts", "UnResolveGroupStep").routing_uid(),
-                    },
-                )
-
-            if self.alert_group.channel.is_available_for_custom_templates:
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": ":mag: Format Alert", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step(
-                            "alertgroup_appearance", "OpenAlertAppearanceDialogStep"
-                        ).routing_uid(),
-                    },
-                )
-
-            # Resolution notes button
-            resolution_notes_count = self.alert_group.resolution_notes.count()
-            resolution_notes_button = {
+        def _make_button(text, action_id_step_class_name, action_id_scenario_step = "distribute_alerts"):
+            return {
                 "text": {
                     "type": "plain_text",
-                    "text": "Resolution notes [{}]".format(resolution_notes_count),
+                    "text": text,
                     "emoji": True,
                 },
                 "type": "button",
-                "action_id": ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep").routing_uid(),
-                "value": self._alert_group_action_value(resolution_note_window_action="edit"),
+                "value": self._alert_group_action_value(),
+                "action_id": ScenarioStep.get_step(action_id_scenario_step, action_id_step_class_name).routing_uid(),
             }
-            if resolution_notes_count == 0:
-                resolution_notes_button["style"] = "primary"
-                resolution_notes_button["text"]["text"] = "Add Resolution notes"
+
+        acknowledge_button = _make_button("Acknowledge", "AcknowledgeGroupStep")
+        unacknowledge_button = _make_button("Unacknowledge", "UnAcknowledgeGroupStep")
+        resolve_button = _make_button("Resolve", "ResolveGroupStep")
+        unresolve_button = _make_button("Unresolve", "UnResolveGroupStep")
+        unsilence_button = _make_button("Unsilence", "UnSilenceGroupStep")
+        responders_button = _make_button("Responders", "StartManageResponders", "manage_responders")
+        attach_button = _make_button("Attach to ...", "SelectAttachGroupStep")
+        format_alert_button = _make_button(":mag: Format Alert", "OpenAlertAppearanceDialogStep", "alertgroup_appearance")
+
+        resolution_notes_count = alert_group.resolution_notes.count()
+        resolution_notes_button = {
+            "text": {
+                "type": "plain_text",
+                "text": f"Resolution notes [{resolution_notes_count}]",
+                "emoji": True,
+            },
+            "type": "button",
+            "action_id": ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep").routing_uid(),
+            "value": self._alert_group_action_value(resolution_note_window_action="edit"),
+        }
+        if resolution_notes_count == 0:
+            resolution_notes_button["style"] = "primary"
+            resolution_notes_button["text"]["text"] = "Add Resolution notes"
+
+        silence_button = {
+            "placeholder": {
+                "type": "plain_text",
+                "text": "Silence",
+                "emoji": True,
+            },
+            "type": "static_select",
+            "options": [
+                {
+                    "text": {"type": "plain_text", "text": text, "emoji": True},
+                    "value": self._alert_group_action_value(delay=value),
+                }
+                for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
+            ],
+            "action_id": ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
+        }
+
+        declare_incident_button = {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": ":fire: Declare incident",
+                "emoji": True,
+            },
+            "value": "declare_incident",
+            "url": self.alert_group.declare_incident_link,
+            "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
+        }
+
+        buttons = []
+        if not alert_group.is_maintenance_incident:
+            if not alert_group.resolved:
+                if not alert_group.acknowledged:
+                    buttons.append(acknowledge_button)
+                else:
+                    if grafana_incident_enabled:
+                        buttons.append(declare_incident_button)
+                    buttons.append(unacknowledge_button)
+
+                buttons.extend([
+                    resolve_button,
+                    unsilence_button if alert_group.silenced else silence_button,
+                    responders_button,
+                    attach_button,
+                ])
+            else:
+                buttons.append(unresolve_button)
+
+            if integration.is_available_for_custom_templates:
+                buttons.append(format_alert_button)
+
             buttons.append(resolution_notes_button)
 
-            # Declare incident button
-            if self.alert_group.channel.organization.is_grafana_incident_enabled and not self.alert_group.acknowledged:
-                incident_button = {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
-                    "value": "declare_incident",
-                    "url": self.alert_group.declare_incident_link,
-                    "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
-                }
-                buttons.append(incident_button)
+            if grafana_incident_enabled and not alert_group.acknowledged:
+                buttons.append(declare_incident_button)
         else:
-            if not self.alert_group.resolved:
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Resolve", "emoji": True},
-                        "type": "button",
-                        "style": "primary",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
-                    },
-                )
+            if not alert_group.resolved:
+                buttons.append(resolve_button)
+
         blocks = [{"type": "actions", "elements": buttons}]
         return blocks
 
