@@ -75,7 +75,6 @@ import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 

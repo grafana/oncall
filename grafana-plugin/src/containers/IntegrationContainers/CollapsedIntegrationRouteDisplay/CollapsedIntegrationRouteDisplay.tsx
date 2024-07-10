@@ -78,7 +78,7 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex,
-                    channelFilter?.filtering_labels
+                    channelFilter?.filtering_term_type
                   )}
                   className={cx('u-margin-right-xs')}
                   tooltipContent={undefined}

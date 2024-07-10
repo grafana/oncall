@@ -404,7 +404,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
                     channelFilterIds,
                     routeIndex,
-                    channelFilter.filtering_labels
+                    channelFilter?.filtering_term_type,
                   )}
                   tooltipContent={undefined}
                   className={cx('u-margin-right-xs')}
