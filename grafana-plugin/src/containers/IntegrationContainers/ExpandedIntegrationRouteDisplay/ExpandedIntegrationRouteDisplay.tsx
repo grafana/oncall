@@ -51,6 +51,7 @@ import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { useConfirmModal } from 'utils/hooks';
 import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -72,7 +73,7 @@ interface ExpandedIntegrationRouteDisplayState {
   routeIdForDeletion: string;
 }
 
-enum LABEL_OPTION {
+enum ROUTING_OPTION {
   LABELS = 'Labels',
   TEMPLATE = 'Template',
 }
@@ -80,11 +81,11 @@ enum LABEL_OPTION {
 const QueryBuilderOptions = [
   {
     label: 'Labels matching',
-    value: LABEL_OPTION.LABELS,
+    value: ROUTING_OPTION.LABELS,
   },
   {
     label: 'Template matching',
-    value: LABEL_OPTION.TEMPLATE,
+    value: ROUTING_OPTION.TEMPLATE,
   },
 ];
 
@@ -108,15 +109,16 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
       grafanaTeamStore,
     } = store;
 
+    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+
     const [isLoading, setIsLoading] = useState(false);
-    const [labelOption, setLabelOption] = useState<string>(QueryBuilderOptions[0].value);
+    const [routingOption, setRoutingOption] = useState<string>(undefined);
     const [labels, setLabels] = useState<Array<components['schemas']['LabelPair']>>([]);
     const [labelErrors, setLabelErrors] = useState([]);
     const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(undefined);
+    const { openModal, closeModal, modalProps } = useConfirmModal();
 
     const { id } = useCurrentIntegration();
-
-    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -141,6 +143,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     useEffect(() => {
       if (channelFilter && !labels?.length) {
         setLabels(channelFilter.filtering_labels);
+      }
+
+      if (channelFilter && !routingOption) {
+        setRoutingOption(
+          (channelFilter.filtering_term_as_jinja2 ? QueryBuilderOptions[1] : QueryBuilderOptions[0]).value
+        );
       }
     }, [channelFilter]);
 
@@ -188,10 +196,23 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   <RenderConditionally shouldRender={hasLabels}>
                     <VerticalGroup>
                       <div className={cx('labels-panel')}>
-                        <RadioButtonGroup options={QueryBuilderOptions} value={labelOption} onChange={setLabelOption} />
+                        <RadioButtonGroup
+                          options={QueryBuilderOptions}
+                          value={routingOption}
+                          onChange={(option) => {
+                            openModal({
+                              onConfirm: () => {
+                                setRoutingOption(option);
+                              },
+                              onDismiss: () => closeModal(),
+                              title: 'Are you sure?',
+                              body: 'Switching between Labels and Template will override any existing data for selected  route. Continue?',
+                            });
+                          }}
+                        />
                       </div>
 
-                      <RenderConditionally shouldRender={labelOption === LABEL_OPTION.LABELS}>
+                      <RenderConditionally shouldRender={routingOption === ROUTING_OPTION.LABELS}>
                         <VerticalGroup>
                           <RouteLabelsDisplay
                             labels={labels}
@@ -220,7 +241,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                     </VerticalGroup>
                   </RenderConditionally>
 
-                  <RenderConditionally shouldRender={labelOption === LABEL_OPTION.TEMPLATE || !hasLabels}>
+                  <RenderConditionally shouldRender={routingOption === ROUTING_OPTION.TEMPLATE || !hasLabels}>
                     <VerticalGroup>
                       <HorizontalGroup spacing="xs">
                         <div className={cx('input', 'input--align')}>
@@ -421,6 +442,8 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                 isRouteView
                 startingElemPosition="0%"
               />
+
+              <ConfirmModal {...modalProps} />
             </>
           }
         />
