@@ -42,8 +42,10 @@ def schedule_send_bundled_notification_task(
     )
 
 
-def schedule_perform_notification_task(log_record_pk: int, alert_group_pk: int):
-    task = perform_notification.apply_async((log_record_pk,))
+def schedule_perform_notification_task(
+    log_record_pk: int, alert_group_pk: int, use_default_notification_policy_fallback: bool
+):
+    task = perform_notification.apply_async((log_record_pk, use_default_notification_policy_fallback))
     task_logger.info(
         f"Created perform_notification task {task} log_record={log_record_pk} " f"alert_group={alert_group_pk}"
     )
@@ -295,45 +297,39 @@ def notify_user_task(
                 update_metrics_for_user.apply_async((user.id,))
             log_record.save()
 
-        def _create_perform_notification_task(log_record_pk, alert_group_pk, use_default_notification_policy_fallback):
-            task = perform_notification.apply_async((log_record_pk, use_default_notification_policy_fallback))
-            task_logger.info(
-                f"Created perform_notification task {task} log_record={log_record_pk} " f"alert_group={alert_group_pk}"
-            )
-
-        def _update_user_has_notification_active_notification_policy_id(active_policy_id: typing.Optional[str]) -> None:
-            user_has_notification.active_notification_policy_id = active_policy_id
-            user_has_notification.save(update_fields=["active_notification_policy_id"])
-
-        def _reset_user_has_notification_active_notification_policy_id() -> None:
-            _update_user_has_notification_active_notification_policy_id(None)
-
-        create_perform_notification_task = partial(
-            _create_perform_notification_task,
-            log_record.pk,
-            alert_group_pk,
-            using_fallback_default_notification_policy_step,
-        )
-
         if using_fallback_default_notification_policy_step:
             # if we are using default notification policy, we're done escalating.. there's no further notification
             # policy steps in this case. Kick off the perform_notification task, create the
             # TYPE_PERSONAL_NOTIFICATION_FINISHED log record, and reset the active_notification_policy_id
-            transaction.on_commit(create_perform_notification_task)
+            transaction.on_commit(
+                partial(
+                    schedule_perform_notification_task,
+                    log_record.pk,
+                    alert_group_pk,
+                    using_fallback_default_notification_policy_step,
+                )
+            )
             _create_notification_finished_user_notification_policy_log_record()
-            _reset_user_has_notification_active_notification_policy_id()
+            user_has_notification.update_active_task_id(None)
         elif not stop_escalation:
             # if the step is NOTIFY and notification was not not bundled, perform regular notification
             # and update time when user was notified
-            if notification_policy.step != UserNotificationPolicy.Step.WAIT:
-                transaction.on_commit(create_perform_notification_task)
+            if notification_policy.step != UserNotificationPolicy.Step.WAIT and not is_notification_bundled:
+                transaction.on_commit(
+                    partial(
+                        schedule_perform_notification_task,
+                        log_record.pk,
+                        alert_group_pk,
+                        using_fallback_default_notification_policy_step,
+                    )
+                )
 
                 if user_notification_bundle:
                     user_notification_bundle.last_notified_at = timezone.now()
                     user_notification_bundle.save(update_fields=["last_notified_at"])
 
             task_id = celery_uuid()
-            _update_user_has_notification_active_notification_policy_id(task_id)
+            user_has_notification.update_active_task_id(task_id)
 
             transaction.on_commit(
                 partial(
@@ -349,7 +345,7 @@ def notify_user_task(
                 )
             )
         else:
-            _reset_user_has_notification_active_notification_policy_id()
+            user_has_notification.update_active_task_id(None)
 
 
 @shared_dedicated_queue_retry_task(
@@ -612,7 +608,6 @@ def send_bundled_notification(user_notification_bundle_id: int):
             log_record_notification_triggered = UserNotificationPolicyLogRecord(
                 author=user_notification_bundle.user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
-                notification_policy=notification.notification_policy,
                 alert_group=notification.alert_group,
                 notification_step=UserNotificationPolicy.Step.NOTIFY,
                 notification_channel=user_notification_bundle.notification_channel,
