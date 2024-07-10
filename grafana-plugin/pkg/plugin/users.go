@@ -58,7 +58,8 @@ func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.Use
 	if err != nil {
 		return nil, err
 	}
-
+	
+	// manually created service account with Admin role doesn't have permission to get user teams
 	if settings.ExternalServiceAccountEnabled {
 		onCallUser.Teams, err = a.GetTeamsForUser(settings, onCallUser)
 		if err != nil {
