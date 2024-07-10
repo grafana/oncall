@@ -135,7 +135,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         if self.alert_group.resolved:
             resolve_attachment = {
                 "fallback": "Resolved...",
-                "text": self.alert_group.get_resolve_text(mention_user=True),
+                "text": self.alert_group.get_resolve_text(mention_user=False),
                 "callback_id": "alert",
             }
             attachments.append(resolve_attachment)
@@ -143,7 +143,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             if self.alert_group.acknowledged:
                 ack_attachment = {
                     "fallback": "Acknowledged...",
-                    "text": self.alert_group.get_acknowledge_text(mention_user=True),
+                    "text": self.alert_group.get_acknowledge_text(mention_user=False),
                     "callback_id": "alert",
                 }
                 attachments.append(ack_attachment)
