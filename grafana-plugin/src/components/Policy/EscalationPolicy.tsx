@@ -279,7 +279,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         <Select
           menuShouldPortal
           disabled={isDisabled}
-          placeholder="Select Wait Delay"
+          placeholder="Select or type"
           className={cx(styles.select, styles.control)}
           value={waitDelayInSeconds ? waitDelayOptionItem : undefined}
           onChange={(option: SelectableValue) =>
@@ -335,7 +335,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         <Select
           menuShouldPortal
           disabled={isDisabled}
-          placeholder="Period"
+          placeholder="Select or type"
           className={cx(styles.select, styles.control)}
           value={num_minutes_in_window ? optionValue : undefined}
           onChange={this.getOnSelectChangeHandler('num_minutes_in_window')}

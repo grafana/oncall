@@ -121,6 +121,7 @@ export class AlertReceiveChannelStore {
     });
   }
 
+  @AutoLoadingState(ActionKey.FETCH_INTEGRATIONS)
   async fetchItems(query: any = ''): Promise<Array<ApiSchemas['AlertReceiveChannel']>> {
     const {
       data: { results },
