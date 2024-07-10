@@ -38,8 +38,6 @@ def test_slack_renderer_unacknowledge_button(
     alert_group = make_alert_group(alert_receive_channel, acknowledged=True)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    pprint(AlertGroupSlackRenderer(alert_group).render_alert_group_attachments())
-
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[1]["blocks"][0]["elements"]
 
     button = elements[0]

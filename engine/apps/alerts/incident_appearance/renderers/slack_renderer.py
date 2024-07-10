@@ -132,17 +132,21 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
 
         # Attaching resolve information
         if alert_group.resolved:
-            attachments.append({
-                "fallback": "Resolved...",
-                "text": alert_group.get_resolve_text(mention_user=False),
-                "callback_id": "alert",
-            })
+            attachments.append(
+                {
+                    "fallback": "Resolved...",
+                    "text": alert_group.get_resolve_text(mention_user=False),
+                    "callback_id": "alert",
+                }
+            )
         elif alert_group.acknowledged:
-            attachments.append({
-                "fallback": "Acknowledged...",
-                "text": alert_group.get_acknowledge_text(mention_user=False),
-                "callback_id": "alert",
-            })
+            attachments.append(
+                {
+                    "fallback": "Acknowledged...",
+                    "text": alert_group.get_acknowledge_text(mention_user=False),
+                    "callback_id": "alert",
+                }
+            )
 
         # Attaching buttons
         if alert_group.wiped_at is None:
@@ -179,7 +183,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         integration = alert_group.channel
         grafana_incident_enabled = integration.organization.is_grafana_incident_enabled
 
-        def _make_button(text, action_id_step_class_name, action_id_scenario_step = "distribute_alerts"):
+        def _make_button(text, action_id_step_class_name, action_id_scenario_step="distribute_alerts"):
             return {
                 "text": {
                     "type": "plain_text",
@@ -198,7 +202,9 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         unsilence_button = _make_button("Unsilence", "UnSilenceGroupStep")
         responders_button = _make_button("Responders", "StartManageResponders", "manage_responders")
         attach_button = _make_button("Attach to ...", "SelectAttachGroupStep")
-        format_alert_button = _make_button(":mag: Format Alert", "OpenAlertAppearanceDialogStep", "alertgroup_appearance")
+        format_alert_button = _make_button(
+            ":mag: Format Alert", "OpenAlertAppearanceDialogStep", "alertgroup_appearance"
+        )
 
         resolution_notes_count = alert_group.resolution_notes.count()
         resolution_notes_button = {
@@ -254,12 +260,14 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         buttons.append(declare_incident_button)
                     buttons.append(unacknowledge_button)
 
-                buttons.extend([
-                    resolve_button,
-                    unsilence_button if alert_group.silenced else silence_button,
-                    responders_button,
-                    attach_button,
-                ])
+                buttons.extend(
+                    [
+                        resolve_button,
+                        unsilence_button if alert_group.silenced else silence_button,
+                        responders_button,
+                        attach_button,
+                    ]
+                )
             else:
                 buttons.append(unresolve_button)
 
