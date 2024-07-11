@@ -1,10 +1,19 @@
+import semver from 'semver';
+
 import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { ScheduleView } from 'models/schedule/schedule.types';
 import { HTML_ID } from 'utils/DOM';
 
-import { expect, test } from '../fixtures';
+import { expect, Page, test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule } from '../utils/schedule';
+
+const getNumberOfWeekdaysInFinalSchedule = async (page: Page) =>
+  await page.locator(`#${HTML_ID.SCHEDULE_FINAL}`).getByTestId('schedule-weekday').count();
+const getScheduleViewRadioButtonLocator = (page: Page, view: ScheduleView) =>
+  page
+    .getByTestId('schedule-view-picker')
+    [semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.2.0') ? 'getByText' : 'getByLabel'](view, { exact: true });
 
 test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
@@ -13,21 +22,21 @@ test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage 
   await createOnCallSchedule(page, onCallScheduleName, userName);
 
   // ScheduleView.OneWeek is selected by default
-  expect(await page.getByLabel(ScheduleView.OneWeek, { exact: true }).isChecked()).toBe(true);
+  expect(await getScheduleViewRadioButtonLocator(page, ScheduleView.OneWeek).isChecked()).toBe(true);
 
-  expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toStrictEqual(
+  expect(await getNumberOfWeekdaysInFinalSchedule(page)).toStrictEqual(
     scheduleViewToDaysInOneRow[ScheduleView.OneWeek]
   );
 
-  await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).locator('..').click();
-  await page.waitForTimeout(500);
-  expect(await page.getByLabel(ScheduleView.TwoWeeks, { exact: true }).isChecked()).toBe(true);
-  expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toStrictEqual(
+  await getScheduleViewRadioButtonLocator(page, ScheduleView.TwoWeeks).click();
+  await page.waitForTimeout(1000);
+  expect(await getScheduleViewRadioButtonLocator(page, ScheduleView.TwoWeeks).isChecked()).toBe(true);
+  expect(await getNumberOfWeekdaysInFinalSchedule(page)).toStrictEqual(
     scheduleViewToDaysInOneRow[ScheduleView.TwoWeeks]
   );
 
-  await page.getByLabel(ScheduleView.OneMonth, { exact: true }).locator('..').click();
-  await page.waitForTimeout(500);
-  expect(await page.getByLabel(ScheduleView.OneMonth, { exact: true }).isChecked()).toBe(true);
-  expect(await page.locator(`#${HTML_ID.SCHEDULE_FINAL} .TEST_weekday`).count()).toBeGreaterThanOrEqual(28);
+  await getScheduleViewRadioButtonLocator(page, ScheduleView.OneMonth).click();
+  await page.waitForTimeout(1000);
+  expect(await getScheduleViewRadioButtonLocator(page, ScheduleView.OneMonth).isChecked()).toBe(true);
+  expect(await getNumberOfWeekdaysInFinalSchedule(page)).toBeGreaterThanOrEqual(28);
 });
