@@ -337,7 +337,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setShiftPeriodDefaultValue(undefined);
     setRecurrenceNum(value);
 
-    if (!isLimitShiftEnabled) {
+    if (!isLimitShiftEnabled && !isMaskedByWeekdays) {
       setShiftEnd(
         dayJSAddWithDSTFixed({
           baseDate: rotationStart,
