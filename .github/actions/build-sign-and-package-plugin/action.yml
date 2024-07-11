@@ -27,6 +27,13 @@ runs:
       # yamllint disable rule:line-length
       run: |
         echo filename="grafana-oncall${{ inputs.is_enterprise == 'true' && '-ee' || '' }}-app-${{ inputs.plugin_version_number }}.zip" >> $GITHUB_OUTPUT
+    - name: Install Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: "1.21.5"
+    - name: Install Mage
+      shell: bash
+      run: go install github.com/magefile/mage@v1.15.0
     - name: Build, sign, and package plugin
       shell: bash
       working-directory: ${{ inputs.working_directory }}
@@ -35,6 +42,7 @@ runs:
       run: |
         jq --arg v "${{ inputs.plugin_version_number }}" '.version=$v' package.json > package.new && mv package.new package.json && jq '.version' package.json;
         yarn build
+        mage buildAll
         yarn sign
         if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
         mv dist grafana-oncall-app
