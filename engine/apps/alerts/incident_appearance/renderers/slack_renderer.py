@@ -91,19 +91,22 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
 
     def render_alert_group_attachments(self):
         attachments = self.alert_renderer.render_alert_attachments()
+        alert_group = self.alert_group
+        root_alert_group = alert_group.root_alert_group
 
-        if self.alert_group.root_alert_group is not None:
-            slack_message = self.alert_group.root_alert_group.slack_message
-            root_ag_name = self.alert_group.root_alert_group.long_verbose_name_without_formatting
-            if slack_message:
-                footer_text = f"Attached to *<{slack_message.permalink}|{root_ag_name}>*"
-            else:
-                footer_text = (f"Attached to *{root_ag_name}*",)
+        if root_alert_group is not None:
+            slack_message = root_alert_group.slack_message
+            root_ag_name = root_alert_group.long_verbose_name_without_formatting
+
             attachments.extend(
                 [
                     {
                         "fallback": "Subscription...",
-                        "footer": footer_text,
+                        "footer": (
+                            f"Attached to *<{slack_message.permalink}|{root_ag_name}>*"
+                            if slack_message
+                            else f"Attached to *{root_ag_name}*"
+                        ),
                         "color": "danger",
                         "mrkdwn": True,
                         "callback_id": "subscription notification",
@@ -118,42 +121,44 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     }
                 ]
             )
-            if self.alert_group.root_alert_group.acknowledged:
+
+            if root_alert_group.acknowledged:
                 attachments[0]["color"] = "warning"
-            if self.alert_group.root_alert_group.resolved:
+            if root_alert_group.resolved:
                 attachments[0]["color"] = "good"
                 attachments[0]["actions"] = []
+
             return attachments
 
+        # Attaching resolve information
+        if alert_group.resolved:
+            attachments.append(
+                {
+                    "fallback": "Resolved...",
+                    "text": alert_group.get_resolve_text(mention_user=False),
+                    "callback_id": "alert",
+                }
+            )
+        elif alert_group.acknowledged:
+            attachments.append(
+                {
+                    "fallback": "Acknowledged...",
+                    "text": alert_group.get_acknowledge_text(mention_user=False),
+                    "callback_id": "alert",
+                }
+            )
+
         # Attaching buttons
-        if self.alert_group.wiped_at is None:
+        if alert_group.wiped_at is None:
             attachment_alert_buttons = self._get_buttons_attachments()
             if len(attachment_alert_buttons["blocks"][0]["elements"]) > 0:
                 attachments.append(attachment_alert_buttons)
 
-        # Attaching resolve information
-        if self.alert_group.resolved:
-            resolve_attachment = {
-                "fallback": "Resolved...",
-                "text": self.alert_group.get_resolve_text(mention_user=True),
-                "callback_id": "alert",
-            }
-            attachments.append(resolve_attachment)
-        else:
-            if self.alert_group.acknowledged:
-                ack_attachment = {
-                    "fallback": "Acknowledged...",
-                    "text": self.alert_group.get_acknowledge_text(mention_user=True),
-                    "callback_id": "alert",
-                }
-                attachments.append(ack_attachment)
-
         # Attaching invitation info
-        if not self.alert_group.resolved:
+        if not alert_group.resolved:
             attachments += self._get_invitation_attachment()
 
-        attachments = self._set_attachments_color(attachments)
-        return attachments
+        return self._set_attachments_color(attachments)
 
     def _set_attachments_color(self, attachments):
         color = "#a30200"  # danger
@@ -174,155 +179,110 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def _get_buttons_blocks(self):
         from apps.alerts.models import AlertGroup
 
-        buttons = []
-        if not self.alert_group.is_maintenance_incident:
-            if not self.alert_group.resolved:
-                if not self.alert_group.acknowledged:
-                    buttons.append(
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Acknowledge",
-                                "emoji": True,
-                            },
-                            "type": "button",
-                            "value": self._alert_group_action_value(),
-                            "action_id": ScenarioStep.get_step(
-                                "distribute_alerts",
-                                "AcknowledgeGroupStep",
-                            ).routing_uid(),
-                        },
-                    )
-                else:
-                    buttons.append(
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Unacknowledge",
-                                "emoji": True,
-                            },
-                            "type": "button",
-                            "value": self._alert_group_action_value(),
-                            "action_id": ScenarioStep.get_step(
-                                "distribute_alerts",
-                                "UnAcknowledgeGroupStep",
-                            ).routing_uid(),
-                        },
-                    )
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Resolve", "emoji": True},
-                        "type": "button",
-                        "style": "primary",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
-                    },
-                )
+        alert_group = self.alert_group
+        integration = alert_group.channel
+        grafana_incident_enabled = integration.organization.is_grafana_incident_enabled
 
-                if not self.alert_group.silenced:
-                    silence_options = [
-                        {
-                            "text": {"type": "plain_text", "text": text, "emoji": True},
-                            "value": self._alert_group_action_value(delay=value),
-                        }
-                        for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
-                    ]
-                    buttons.append(
-                        {
-                            "placeholder": {"type": "plain_text", "text": "Silence", "emoji": True},
-                            "type": "static_select",
-                            "options": silence_options,
-                            "action_id": ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
-                        }
-                    )
-                else:
-                    buttons.append(
-                        {
-                            "text": {"type": "plain_text", "text": "Unsilence", "emoji": True},
-                            "type": "button",
-                            "value": self._alert_group_action_value(),
-                            "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
-                        },
-                    )
-
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
-                    },
-                )
-
-                attach_button = {
-                    "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
-                    "type": "button",
-                    "action_id": ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep").routing_uid(),
-                    "value": self._alert_group_action_value(),
-                }
-                buttons.append(attach_button)
-            else:
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Unresolve", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("distribute_alerts", "UnResolveGroupStep").routing_uid(),
-                    },
-                )
-
-            if self.alert_group.channel.is_available_for_custom_templates:
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": ":mag: Format Alert", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step(
-                            "alertgroup_appearance", "OpenAlertAppearanceDialogStep"
-                        ).routing_uid(),
-                    },
-                )
-
-            # Resolution notes button
-            resolution_notes_count = self.alert_group.resolution_notes.count()
-            resolution_notes_button = {
+        def _make_button(text, action_id_step_class_name, action_id_scenario_step="distribute_alerts"):
+            return {
                 "text": {
                     "type": "plain_text",
-                    "text": "Resolution notes [{}]".format(resolution_notes_count),
+                    "text": text,
                     "emoji": True,
                 },
                 "type": "button",
-                "action_id": ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep").routing_uid(),
-                "value": self._alert_group_action_value(resolution_note_window_action="edit"),
+                "value": self._alert_group_action_value(),
+                "action_id": ScenarioStep.get_step(action_id_scenario_step, action_id_step_class_name).routing_uid(),
             }
-            if resolution_notes_count == 0:
-                resolution_notes_button["style"] = "primary"
-                resolution_notes_button["text"]["text"] = "Add Resolution notes"
+
+        acknowledge_button = _make_button("Acknowledge", "AcknowledgeGroupStep")
+        unacknowledge_button = _make_button("Unacknowledge", "UnAcknowledgeGroupStep")
+        resolve_button = _make_button("Resolve", "ResolveGroupStep")
+        unresolve_button = _make_button("Unresolve", "UnResolveGroupStep")
+        unsilence_button = _make_button("Unsilence", "UnSilenceGroupStep")
+        responders_button = _make_button("Responders", "StartManageResponders", "manage_responders")
+        attach_button = _make_button("Attach to ...", "SelectAttachGroupStep")
+        format_alert_button = _make_button(
+            ":mag: Format Alert", "OpenAlertAppearanceDialogStep", "alertgroup_appearance"
+        )
+
+        resolution_notes_count = alert_group.resolution_notes.count()
+        resolution_notes_button = {
+            "text": {
+                "type": "plain_text",
+                "text": f"Resolution notes [{resolution_notes_count}]",
+                "emoji": True,
+            },
+            "type": "button",
+            "action_id": ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep").routing_uid(),
+            "value": self._alert_group_action_value(resolution_note_window_action="edit"),
+        }
+        if resolution_notes_count == 0:
+            resolution_notes_button["style"] = "primary"
+            resolution_notes_button["text"]["text"] = "Add Resolution notes"
+
+        silence_button = {
+            "placeholder": {
+                "type": "plain_text",
+                "text": "Silence",
+                "emoji": True,
+            },
+            "type": "static_select",
+            "options": [
+                {
+                    "text": {"type": "plain_text", "text": text, "emoji": True},
+                    "value": self._alert_group_action_value(delay=value),
+                }
+                for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
+            ],
+            "action_id": ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
+        }
+
+        declare_incident_button = {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": ":fire: Declare incident",
+                "emoji": True,
+            },
+            "value": "declare_incident",
+            "url": self.alert_group.declare_incident_link,
+            "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
+        }
+
+        buttons = []
+        if not alert_group.is_maintenance_incident:
+            if not alert_group.resolved:
+                if not alert_group.acknowledged:
+                    buttons.append(acknowledge_button)
+                else:
+                    if grafana_incident_enabled:
+                        buttons.append(declare_incident_button)
+                    buttons.append(unacknowledge_button)
+
+                buttons.extend(
+                    [
+                        resolve_button,
+                        unsilence_button if alert_group.silenced else silence_button,
+                        responders_button,
+                        attach_button,
+                    ]
+                )
+            else:
+                buttons.append(unresolve_button)
+
+            if integration.is_available_for_custom_templates:
+                buttons.append(format_alert_button)
+
             buttons.append(resolution_notes_button)
 
-            # Declare incident button
-            if self.alert_group.channel.organization.is_grafana_incident_enabled:
-                incident_button = {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": ":fire: Declare incident", "emoji": True},
-                    "value": "declare_incident",
-                    "url": self.alert_group.declare_incident_link,
-                    "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
-                }
-                buttons.append(incident_button)
+            if grafana_incident_enabled and not alert_group.acknowledged:
+                buttons.append(declare_incident_button)
         else:
-            if not self.alert_group.resolved:
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Resolve", "emoji": True},
-                        "type": "button",
-                        "style": "primary",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
-                    },
-                )
-        blocks = [{"type": "actions", "elements": buttons}]
-        return blocks
+            if not alert_group.resolved:
+                buttons.append(resolve_button)
+
+        return [{"type": "actions", "elements": buttons}]
 
     def _get_invitation_attachment(self):
         from apps.alerts.models import Invitation

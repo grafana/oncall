@@ -86,7 +86,13 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         # First try envelope_recipient field.
         # According to AnymailInboundMessage it's provided not by all ESPs.
         if message.envelope_recipient:
-            token, domain = message.envelope_recipient.split("@")
+            try:
+                token, domain = message.envelope_recipient.split("@")
+            except ValueError:
+                logger.error(
+                    f"get_integration_token_from_request: envelope_recipient field has unexpected format: {message.envelope_recipient}"
+                )
+                return None
             if domain == live_settings.INBOUND_EMAIL_DOMAIN:
                 return token
         else:

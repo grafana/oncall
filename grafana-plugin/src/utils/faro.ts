@@ -9,6 +9,7 @@ import {
   ONCALL_DEV,
   ONCALL_OPS,
   ONCALL_PROD,
+  getIsDevelopmentEnv,
 } from './consts';
 import { safeJSONStringify } from './string';
 
@@ -31,7 +32,7 @@ class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    if (this.faro) {
+    if (this.faro || getIsDevelopmentEnv()) {
       return undefined;
     }
 
@@ -115,7 +116,7 @@ class BaseFaroHelper {
       context: {
         url: res?.config?.url,
         type: 'network',
-        data: `${safeJSONStringify(res.data)}`,
+        data: `${safeJSONStringify(res?.data)}`,
         status: `${res?.status}`,
         statusText: `${res?.statusText}`,
         timestamp: new Date().toUTCString(),

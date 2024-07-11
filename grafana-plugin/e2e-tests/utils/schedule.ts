@@ -4,10 +4,11 @@ import dayjs from 'dayjs';
 import { clickButton, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
 
-export const createOnCallScheduleWithRotation = async (
+export const createOnCallSchedule = async (
   page: Page,
   scheduleName: string,
-  userName: string
+  userName: string,
+  withRotation = true
 ): Promise<void> => {
   // go to the schedules page
   await goToOnCallPage(page, 'schedules');
@@ -22,7 +23,9 @@ export const createOnCallScheduleWithRotation = async (
   // Add a new layer w/ the current user to it
   await clickButton({ page, buttonText: 'Create Schedule' });
 
-  await createRotation(page, userName);
+  if (withRotation) {
+    await createRotation(page, userName);
+  }
 };
 
 export const createRotation = async (page: Page, userName: string, isFirstScheduleRotation = true) => {

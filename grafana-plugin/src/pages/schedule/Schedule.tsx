@@ -356,28 +356,30 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                           </div>
                         </HorizontalGroup>
                         <HorizontalGroup>
-                          <RadioButtonGroup
-                            options={[
-                              { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
-                              { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },
-                              { label: ScheduleView.OneMonth, value: ScheduleView.OneMonth },
-                            ]}
-                            value={scheduleView}
-                            onChange={(value) => {
-                              scheduleStore.setScheduleView(value);
-                              if (value === ScheduleView.OneMonth) {
-                                timezoneStore.setCalendarStartDate(
-                                  getCalendarStartDate(
-                                    timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
-                                    value,
-                                    timezoneStore.selectedTimezoneOffset
-                                  )
-                                );
-                              }
+                          <div data-testid="schedule-view-picker">
+                            <RadioButtonGroup
+                              options={[
+                                { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
+                                { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },
+                                { label: ScheduleView.OneMonth, value: ScheduleView.OneMonth },
+                              ]}
+                              value={scheduleView}
+                              onChange={(value) => {
+                                scheduleStore.setScheduleView(value);
+                                if (value === ScheduleView.OneMonth) {
+                                  timezoneStore.setCalendarStartDate(
+                                    getCalendarStartDate(
+                                      timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
+                                      value,
+                                      timezoneStore.selectedTimezoneOffset
+                                    )
+                                  );
+                                }
 
-                              scheduleStore.refreshEvents(scheduleId);
-                            }}
-                          />
+                                scheduleStore.refreshEvents(scheduleId);
+                              }}
+                            />
+                          </div>
                           <ScheduleFilters
                             value={filters}
                             onChange={(value) => this.setState({ filters: value })}
@@ -417,7 +419,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         layerPriorityToShowRotationForm={layerPriorityToShowRotationForm}
                         onShowRotationForm={this.handleShowRotationForm}
                         onShowOverrideForm={this.handleShowOverridesForm}
-                        disabled={disabledRotationForm}
+                        disabled={Boolean(disabledRotationForm)}
                         filters={filters}
                         onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}
                         onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
@@ -431,9 +433,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         onUpdate={this.refreshEventsAndClearPreview}
                         onDelete={this.refreshEventsAndClearPreview}
                         shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
-                        onShowRotationForm={this.handleShowOverridesForm}
-                        disabled={disabledOverrideForm}
-                        disableShiftSwaps={disabledShiftSwaps}
+                        onShowOverridesForm={this.handleShowOverridesForm}
+                        disabled={Boolean(disabledOverrideForm)}
+                        disableShiftSwaps={Boolean(disabledShiftSwaps)}
                         shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                         shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
                         onShowShiftSwapForm={!shiftSwapIdToShowForm ? this.handleShowShiftSwapForm : undefined}

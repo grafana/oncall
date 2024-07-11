@@ -56,9 +56,13 @@ test.describe('Users screen actions', () => {
 
     await page.waitForTimeout(2000);
 
-    const searchInput = page.locator(`[data-testid="search-users"]`);
-
-    await searchInput.fill(userName);
+    await page
+    .locator('div')
+    .filter({ hasText: /^Search or filter results\.\.\.$/ })
+    .nth(1)
+    .click();
+    await page.keyboard.insertText(userName);
+    await page.keyboard.press('Enter');
     await page.waitForTimeout(2000);
 
     const result = page.locator(`[data-testid="users-username"]`);

@@ -78,6 +78,10 @@ function prepareForSave(rawData: Partial<ApiSchemas['Webhook']>, selectedPreset:
     delete data[field];
   });
 
+  if (data.forward_all) {
+    data.data = null;
+  }
+
   return data;
 }
 
