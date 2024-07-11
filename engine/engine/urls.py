@@ -23,6 +23,7 @@ from .views import HealthCheckView, MaintenanceModeStatusView, ReadinessCheckVie
 paths_to_work_even_when_maintenance_mode_is_active: list[URLPattern | URLResolver] = [
     path("", HealthCheckView.as_view()),
     path("health/", HealthCheckView.as_view()),
+    path("api/internal/v1/health/", HealthCheckView.as_view()),
     path("ready/", ReadinessCheckView.as_view()),
     path("startupprobe/", StartupProbeView.as_view()),
     path("api/internal/v1/maintenance-mode-status", MaintenanceModeStatusView.as_view()),
