@@ -351,17 +351,15 @@ export const RotationForm = observer((props: RotationFormProps) => {
     setRotationStart(value);
     setShiftStart(value);
 
-    setShiftEnd(
-      isLimitShiftEnabled
-        ? dayJSAddWithDSTFixed({
-            baseDate: value,
-            addParams: [activePeriod, 'seconds'],
-          })
-        : dayJSAddWithDSTFixed({
-            baseDate: value,
-            addParams: [recurrenceNum, repeatEveryPeriodToUnitName[recurrencePeriod]],
-          })
-    );
+    let addParams;
+    if (isLimitShiftEnabled) {
+      addParams = [activePeriod, 'seconds'];
+    } else if (isMaskedByWeekdays) {
+      addParams = [24, 'hours'];
+    } else {
+      addParams = [recurrenceNum, repeatEveryPeriodToUnitName[recurrencePeriod]];
+    }
+    setShiftEnd(dayJSAddWithDSTFixed({ baseDate: value, addParams }));
   };
 
   const handleActivePeriodChange = useCallback(
@@ -422,7 +420,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       setIsLimitShiftEnabled(value);
 
       if (!value) {
-        if (isMaskedByWeekdays && shiftEnd.diff(shiftStart, 'hours') > 24) {
+        if (isMaskedByWeekdays) {
           setShiftEnd(
             dayJSAddWithDSTFixed({
               baseDate: shiftStart,
@@ -477,7 +475,9 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
       const isMonthlyRecurrence = shift.frequency === RepeatEveryPeriod.MONTHS;
       const activeOnSelectedPartOfDay =
-        repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds') &&
+        ((!isMaskedByWeekdays &&
+          repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds')) ||
+          (isMaskedByWeekdays && shiftEnd.diff(shiftStart, 'hour') < 24)) &&
         // Disallow for Monthly view, except if it's masked by week days
         (!isMonthlyRecurrence || (isMonthlyRecurrence && isMaskedByWeekdays));
 
