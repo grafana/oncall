@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Count
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
-from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupBundleRenderer, AlertGroupSmsRenderer
+from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSMSBundleRenderer, AlertGroupSmsRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
 from common.api_helpers.utils import create_engine_url
@@ -218,7 +218,7 @@ class PhoneBackend:
 
         channels_to_render = [alert_groups_to_render[0].channel]
 
-        renderer = AlertGroupBundleRenderer(
+        renderer = AlertGroupSMSBundleRenderer(
             alert_groups_to_render,
             channels_and_alert_groups_count["alert_groups_count"],
             channels_to_render,

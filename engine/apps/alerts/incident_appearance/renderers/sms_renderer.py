@@ -30,7 +30,7 @@ class AlertGroupSmsRenderer(AlertGroupBaseRenderer):
         )
 
 
-class AlertGroupBundleRenderer(AlertGroupBundleBaseRenderer):
+class AlertGroupSMSBundleRenderer(AlertGroupBundleBaseRenderer):
     def render(self) -> str:
         alert_group_inside_organization_numbers = [
             alert_group.inside_organization_number for alert_group in self.alert_groups_to_render
