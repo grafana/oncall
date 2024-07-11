@@ -19,10 +19,6 @@ class UnableToSendDemoAlert(OperationCouldNotBePerformedError):
     pass
 
 
-class UserNotificationPolicyCouldNotBeDeleted(OperationCouldNotBePerformedError):
-    pass
-
-
 class BacksyncIntegrationRequestError(Exception):
     """Error making request to alert receive channel backsync connection."""
 

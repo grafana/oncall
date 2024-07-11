@@ -1,13 +1,13 @@
 import { expect, test } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { goToOnCallPage } from '../utils/navigation';
-import { createOnCallScheduleWithRotation } from '../utils/schedule';
+import { createOnCallSchedule } from '../utils/schedule';
 
 test('schedule calendar and list of schedules is correctly displayed', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
   const onCallScheduleName = generateRandomValue();
-  await createOnCallScheduleWithRotation(page, onCallScheduleName, userName);
+  await createOnCallSchedule(page, onCallScheduleName, userName);
 
   await goToOnCallPage(page, 'schedules');
 

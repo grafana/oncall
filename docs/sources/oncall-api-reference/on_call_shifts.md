@@ -4,7 +4,9 @@ title: OnCall shifts HTTP API
 weight: 600
 ---
 
-# Create an OnCall shift
+# OnCall shifts HTTP API
+
+## Create an OnCall shift
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/" \
@@ -67,7 +69,7 @@ For more information about recurrence rules, refer to [RFC 5545](https://tools.i
 
 `POST {{API_URL}}/api/v1/on_call_shifts/`
 
-# Get OnCall shifts
+## Get OnCall shifts
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
@@ -96,7 +98,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
 
-# List OnCall shifts
+## List OnCall shifts
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/" \
@@ -157,7 +159,7 @@ The following available filter parameters should be provided as `GET` arguments:
 
 `GET {{API_URL}}/api/v1/on_call_shifts/`
 
-# Update OnCall shift
+## Update OnCall shift
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
@@ -196,7 +198,7 @@ The above command returns JSON structured in the following way:
 
 `PUT {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
 
-# Delete OnCall shift
+## Delete OnCall shift
 
 ```shell
 curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \

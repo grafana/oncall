@@ -40,7 +40,7 @@ def test_custom_backend_call(
     )
 
     with patch("apps.base.tests.messaging_backend.TestOnlyBackend.notify_user") as mock_notify_user:
-        perform_notification(log_record.pk)
+        perform_notification(log_record.pk, False)
 
     mock_notify_user.assert_called_once_with(user_1, alert_group, user_notification_policy)
 
@@ -72,7 +72,7 @@ def test_custom_backend_error(
 
     with patch("apps.alerts.tasks.notify_user.get_messaging_backend_from_id") as mock_get_backend:
         mock_get_backend.return_value = None
-        perform_notification(log_record.pk)
+        perform_notification(log_record.pk, False)
 
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
@@ -119,7 +119,7 @@ def test_notify_user_missing_data_errors(
 
     with patch("apps.alerts.tasks.notify_user.get_messaging_backend_from_id") as mock_get_backend:
         mock_get_backend.return_value = None
-        perform_notification(log_record.pk)
+        perform_notification(log_record.pk, False)
 
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
@@ -154,7 +154,7 @@ def test_notify_user_perform_notification_error_if_viewer(
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
     )
 
-    perform_notification(log_record.pk)
+    perform_notification(log_record.pk, False)
 
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
@@ -230,7 +230,7 @@ def test_perform_notification_reason_to_skip_escalation_in_slack(
     if not error_code:
         make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
-        perform_notification(log_record.pk)
+        perform_notification(log_record.pk, False)
     last_log_record = UserNotificationPolicyLogRecord.objects.last()
 
     if error_code:
@@ -277,7 +277,7 @@ def test_perform_notification_slack_prevent_posting(
     make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
 
     with patch.object(SlackMessage, "send_slack_notification") as mocked_send_slack_notification:
-        perform_notification(log_record.pk)
+        perform_notification(log_record.pk, False)
 
     mocked_send_slack_notification.assert_not_called()
     last_log_record = UserNotificationPolicyLogRecord.objects.last()
@@ -292,7 +292,7 @@ def test_perform_notification_slack_prevent_posting(
 @pytest.mark.django_db
 def test_perform_notification_missing_user_notification_policy_log_record(caplog):
     invalid_pk = 12345
-    perform_notification(invalid_pk)
+    perform_notification(invalid_pk, False)
 
     assert (
         f"perform_notification: log_record {invalid_pk} doesn't exist. Skipping remainder of task. "
@@ -327,7 +327,45 @@ def test_perform_notification_telegram_retryafter_error(
     exc = RetryAfter(countdown)
     with patch.object(TelegramToUserConnector, "notify_user", side_effect=exc) as mock_notify_user:
         with pytest.raises(RetryAfter):
-            perform_notification(log_record.pk)
+            perform_notification(log_record.pk, False)
 
     mock_notify_user.assert_called_once_with(user, alert_group, user_notification_policy)
     assert alert_group.personal_log_records.last() == log_record
+
+
+@patch("apps.base.models.UserNotificationPolicy.get_default_fallback_policy")
+@patch("apps.base.tests.messaging_backend.TestOnlyBackend.notify_user")
+@pytest.mark.django_db
+def test_perform_notification_use_default_notification_policy_fallback(
+    mock_notify_user,
+    mock_get_default_fallback_policy,
+    make_organization,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+):
+    organization = make_organization()
+    user = make_user(organization=organization)
+    fallback_notification_policy = UserNotificationPolicy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TESTONLY,
+        important=False,
+        order=0,
+    )
+
+    mock_get_default_fallback_policy.return_value = fallback_notification_policy
+
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+    log_record = make_user_notification_policy_log_record(
+        author=user,
+        alert_group=alert_group,
+        notification_policy=None,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+    )
+
+    perform_notification(log_record.pk, True)
+
+    mock_notify_user.assert_called_once_with(user, alert_group, fallback_notification_policy)

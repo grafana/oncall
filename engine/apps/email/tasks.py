@@ -43,15 +43,28 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         logger.warning(f"Alert group {alert_group_pk} does not exist")
         return
 
-    try:
-        notification_policy = UserNotificationPolicy.objects.get(pk=notification_policy_pk)
-    except UserNotificationPolicy.DoesNotExist:
-        logger.warning(f"User notification policy {notification_policy_pk} does not exist")
-        return
+    using_fallback_default_notification_policy_step = False
+
+    if notification_policy_pk is None:
+        # NOTE: `notification_policy_pk` may be None if the user has no notification policies defined, as
+        # email is the default backend used. see `UserNotificationPolicy.get_default_fallback_policy` for more details
+        notification_policy = UserNotificationPolicy.get_default_fallback_policy(user)
+        using_fallback_default_notification_policy_step = True
+    else:
+        try:
+            notification_policy = UserNotificationPolicy.objects.get(pk=notification_policy_pk)
+        except UserNotificationPolicy.DoesNotExist:
+            logger.warning(f"User notification policy {notification_policy_pk} does not exist")
+            return
+
+    def _create_user_notification_policy_log_record(**kwargs):
+        return UserNotificationPolicyLogRecord.objects.create(
+            **kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step
+        )
 
     # create an error log in case EMAIL_HOST is not specified
     if not live_settings.EMAIL_HOST:
-        UserNotificationPolicyLogRecord.objects.create(
+        _create_user_notification_policy_log_record(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             notification_policy=notification_policy,
@@ -65,7 +78,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
 
     emails_left = user.organization.emails_left(user)
     if emails_left <= 0:
-        UserNotificationPolicyLogRecord.objects.create(
+        _create_user_notification_policy_log_record(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             notification_policy=notification_policy,
@@ -111,7 +124,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     except (gaierror, BadHeaderError) as e:
         # gaierror is raised when EMAIL_HOST is invalid
         # BadHeaderError is raised when there's newlines in the subject
-        UserNotificationPolicyLogRecord.objects.create(
+        _create_user_notification_policy_log_record(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             notification_policy=notification_policy,
@@ -124,7 +137,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         return
 
     # record success log
-    UserNotificationPolicyLogRecord.objects.create(
+    _create_user_notification_policy_log_record(
         author=user,
         type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
         notification_policy=notification_policy,

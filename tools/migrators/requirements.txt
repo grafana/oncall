@@ -6,7 +6,7 @@
 #
 attrs==23.2.0
     # via pytest
-certifi==2024.2.2
+certifi==2024.7.4
     # via requests
 charset-normalizer==3.3.2
     # via requests
@@ -34,7 +34,7 @@ requests==2.32.0
     #   pdpyras
 tomli==2.0.1
     # via pytest
-urllib3==2.2.1
+urllib3==2.2.2
     # via
     #   pdpyras
     #   requests

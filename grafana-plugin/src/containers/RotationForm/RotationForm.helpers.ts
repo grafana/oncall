@@ -1,4 +1,8 @@
 import { Dayjs, ManipulateType } from 'dayjs';
+import { DraggableData } from 'react-draggable';
+
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
+import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 
@@ -173,3 +177,40 @@ export const dayJSAddWithDSTFixed = ({
 
   return newDateCandidate.add(diff, 'minutes');
 };
+
+export function getDraggableModalCoordinatesOnInit(
+  data: DraggableData,
+  offsetTop: number
+): {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+} {
+  if (!data) {
+    return undefined;
+  }
+
+  const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
+  // top navbar display has 2 scrollbar-view elements (navbar & content)
+  const baseReferenceElRect = (
+    scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
+  ).getBoundingClientRect();
+
+  const { right, bottom } = baseReferenceElRect;
+
+  return isTopNavbar()
+    ? {
+        // values are adjusted by any padding/margin differences
+        left: -data.node.offsetLeft + 4,
+        right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+        top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
+        bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+      }
+    : {
+        left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
+        right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+        top: -offsetTop + 4,
+        bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+      };
+}

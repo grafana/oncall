@@ -1,10 +1,12 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/schedules/
-title: Schedule HTTP API
+title: Schedules HTTP API
 weight: 1200
 ---
 
-# Create a schedule
+# Schedules HTTP API
+
+## Create a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/" \
@@ -55,7 +57,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/schedules/`
 
-# Get a schedule
+## Get a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
@@ -86,7 +88,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
-# List schedules
+## List schedules
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/" \
@@ -145,7 +147,7 @@ The following available filter parameter should be provided as a `GET` argument:
 
 `GET {{API_URL}}/api/v1/schedules/`
 
-# Update a schedule
+## Update a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
@@ -183,7 +185,7 @@ The above command returns JSON structured in the following way:
 
 `PUT {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
-# Delete a schedule
+## Delete a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
@@ -196,7 +198,7 @@ curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
 
 `DELETE {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
-# Export a schedule's final shifts
+## Export a schedule's final shifts
 
 **HTTP request**
 
@@ -305,7 +307,7 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-## Caveats
+### Caveats
 
 Some notes on the `start_date` and `end_date` query parameters:
 
@@ -318,7 +320,7 @@ change the output you get from this endpoint. To get consistent information abou
 you must be sure to avoid updating rotations in-place but apply the changes as new rotations
 with the right starting dates.
 
-## Example script to transform data to .csv for all of your schedules
+### Example script to transform data to .csv for all of your schedules
 
 The following Python script will generate a `.csv` file, `oncall-report-2023-01-01-to-2023-01-31.csv`. This file will
 contain three columns, `user_pk`, `user_email`, and `hours_on_call`, which represents how many hours each user was

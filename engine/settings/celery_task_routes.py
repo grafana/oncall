@@ -139,6 +139,8 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_alert_group_personal_notifications_task": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task": {"queue": "long"},
+    "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy": {"queue": "long"},
+    "apps.chatops_proxy.tasks.sync_org_with_chatops_proxy": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_empty_deleted_integrations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_cleanup_organizations": {"queue": "long"},

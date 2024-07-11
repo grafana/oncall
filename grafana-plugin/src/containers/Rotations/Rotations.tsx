@@ -16,7 +16,6 @@ import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType, Shift, ShiftSwap, Event, Layer } from 'models/schedule/schedule.types';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getCurrentTimeX, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -34,13 +33,11 @@ interface RotationsProps extends WithStoreProps {
   layerPriorityToShowRotationForm?: Layer['priority'];
   scheduleId: Schedule['id'];
   onShowRotationForm: (shiftId: Shift['id'] | 'new', layerPriority?: Layer['priority']) => void;
-  onClick: (id: Shift['id'] | 'new') => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
   onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
-  onShiftSwapRequest: (beneficiary: ApiSchemas['User']['pk'], swap_start: string, swap_end: string) => void;
   disabled: boolean;
   filters: ScheduleFiltersType;
   onSlotClick?: (event: Event) => void;
@@ -362,4 +359,6 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
   };
 }
 
-export const Rotations = withMobXProviderContext(withTheme2(_Rotations));
+export const Rotations = withMobXProviderContext(withTheme2(_Rotations)) as unknown as React.ComponentClass<
+  Omit<RotationsProps, 'store' | 'theme'>
+>;
