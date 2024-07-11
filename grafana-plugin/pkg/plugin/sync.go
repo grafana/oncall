@@ -79,7 +79,7 @@ func (a *App) makeSyncRequest(ctx context.Context) error {
 
 	syncReq, err := http.NewRequest("POST", parsedSyncURL.String(), bytes.NewBuffer(onCallSyncJsonData))
 	if err != nil {
-		return fmt.Errorf("error creating request: ", err)
+		return fmt.Errorf("error creating request: %v", err)
 	}
 
 	err = a.SetupRequestHeadersForOnCall(ctx, onCallPluginSettings, syncReq)
@@ -90,7 +90,7 @@ func (a *App) makeSyncRequest(ctx context.Context) error {
 
 	res, err := a.httpClient.Do(syncReq)
 	if err != nil {
-		return fmt.Errorf("error request to oncall: ", err)
+		return fmt.Errorf("error request to oncall: %v", err)
 	}
 	defer res.Body.Close()
 
