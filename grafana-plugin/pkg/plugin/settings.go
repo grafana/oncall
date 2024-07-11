@@ -36,33 +36,24 @@ type OnCallPluginJSONData struct {
 }
 
 type OnCallPluginSettings struct {
-	OnCallAPIURL       string `json:"oncall_api_url"`
-	OnCallToken        string `json:"oncall_token"`
-	StackID            int    `json:"stack_id"`
-	OrgID              int    `json:"org_id"`
-	License            string `json:"license"`
-	GrafanaURL         string `json:"grafana_url"`
-	GrafanaToken       string `json:"grafana_token"`
-	RBACEnabled        bool   `json:"rbac_enabled"`
-	IncidentEnabled    bool   `json:"incident_enabled"`
-	IncidentBackendURL string `json:"incident_backend_url"`
-	LabelsEnabled      bool   `json:"labels_enabled"`
+	OnCallAPIURL                  string `json:"oncall_api_url"`
+	OnCallToken                   string `json:"oncall_token"`
+	StackID                       int    `json:"stack_id"`
+	OrgID                         int    `json:"org_id"`
+	License                       string `json:"license"`
+	GrafanaURL                    string `json:"grafana_url"`
+	GrafanaToken                  string `json:"grafana_token"`
+	RBACEnabled                   bool   `json:"rbac_enabled"`
+	IncidentEnabled               bool   `json:"incident_enabled"`
+	IncidentBackendURL            string `json:"incident_backend_url"`
+	LabelsEnabled                 bool   `json:"labels_enabled"`
+	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
 	pluginContext := httpadapter.PluginConfigFromContext(ctx)
-	cfg := backend.GrafanaConfigFromContext(ctx)
-	return a.OnCallSettingsFromPluginContext(&pluginContext, cfg)
-}
-
-func (a *App) OnCallSettingsFromPluginContext(pluginContext *backend.PluginContext, grafanaCfg *backend.GrafanaCfg) (*OnCallPluginSettings, error) {
-	return a.OnCallSettingsFromAppInstanceSettings(pluginContext.AppInstanceSettings, grafanaCfg)
-}
-
-func (a *App) OnCallSettingsFromAppInstanceSettings(appInstanceSettings *backend.AppInstanceSettings, grafanaCfg *backend.GrafanaCfg) (*OnCallPluginSettings, error) {
-
 	var pluginSettingsJson OnCallPluginSettingsJSONData
-	err := json.Unmarshal(appInstanceSettings.JSONData, &pluginSettingsJson)
+	err := json.Unmarshal(pluginContext.AppInstanceSettings.JSONData, &pluginSettingsJson)
 	if err != nil {
 		err = fmt.Errorf("OnCallSettingsFromContext: json.Unmarshal: %w", err)
 		log.DefaultLogger.Error(err.Error())
@@ -77,20 +68,23 @@ func (a *App) OnCallSettingsFromAppInstanceSettings(appInstanceSettings *backend
 		GrafanaURL:   pluginSettingsJson.GrafanaURL,
 	}
 
-	settings.OnCallToken = strings.TrimSpace(appInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
+	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
+	cfg := backend.GrafanaConfigFromContext(ctx)
 	if settings.GrafanaURL == "" {
 		return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData): %v", settings)
 	}
 	log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 
-	settings.RBACEnabled = grafanaCfg.FeatureToggles().IsEnabled("accessControlOnCall")
-	if grafanaCfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
-		settings.GrafanaToken, err = grafanaCfg.PluginAppClientSecret()
+	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
+	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
+		settings.GrafanaToken, err = cfg.PluginAppClientSecret()
 		if err != nil {
 			return &settings, err
 		}
+		settings.ExternalServiceAccountEnabled = true
 	} else {
-		settings.GrafanaToken = strings.TrimSpace(appInstanceSettings.DecryptedSecureJSONData["grafanaToken"])
+		settings.GrafanaToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["grafanaToken"])
+		settings.ExternalServiceAccountEnabled = false
 	}
 
 	var jsonData map[string]interface{}
