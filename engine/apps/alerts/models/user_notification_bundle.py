@@ -67,7 +67,7 @@ class UserNotificationBundle(models.Model):
         )
 
     @classmethod
-    def notification_is_bundleable(cls, notification_channel: UserNotificationPolicy.NotificationChannel):
+    def notification_is_bundleable(cls, notification_channel):
         return notification_channel in cls.NOTIFICATION_CHANNELS_TO_BUNDLE
 
 
