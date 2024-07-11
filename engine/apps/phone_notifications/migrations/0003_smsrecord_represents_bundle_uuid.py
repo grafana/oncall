@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('phone_notifications', '0001_initial'),
+        ('phone_notifications', '0002_bannedphonenumber'),
     ]
 
     operations = [
