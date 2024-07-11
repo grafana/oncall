@@ -149,8 +149,8 @@ class ChannelFilter(OrderedModel):
             except re.error:
                 logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
                 return False
-        if self.filtering_labels is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
-            if alert_labels is None:
+        if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
+            if not self.filtering_labels or alert_labels is None:
                 return False
             for item in self.filtering_labels:
                 key = item["key"]["name"]

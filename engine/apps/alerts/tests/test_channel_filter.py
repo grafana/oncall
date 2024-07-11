@@ -109,7 +109,8 @@ def test_channel_filter_select_filter_labels(
     [
         ([{"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}}], {"foo": "bar"}, True),
         ([{"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}}], None, False),
-        (None, {"foo": "bar"}, False),  # require filtering labels to be set
+        (None, {"foo": "bar"}, False),
+        ([], {"foo": "bar"}, False),
         (
             [
                 {"key": {"id": "1", "name": "foo"}, "value": {"id": "2", "name": "bar"}},

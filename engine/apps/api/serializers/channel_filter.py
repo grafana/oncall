@@ -80,8 +80,8 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                     raise serializers.ValidationError(["Regular expression is incorrect"])
         elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
             filtering_labels = data.get("filtering_labels")
-            if not filtering_labels:
-                raise serializers.ValidationError(["Filtering labels are incorrect"])
+            if filtering_labels is None:
+                raise serializers.ValidationError(["Filtering labels field is required"])
         else:
             raise serializers.ValidationError(["Expression type is incorrect"])
         return data
