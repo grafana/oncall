@@ -7,13 +7,12 @@ import { observer } from 'mobx-react';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import { RouteHeading } from 'containers/IntegrationContainers/RouteHeading';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
-import { renderRouteTitle } from 'pages/integration/Integration';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
 
@@ -71,21 +70,13 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
           toggle={toggle}
           heading={
             <div className={cx('heading-container')}>
-              <div className={cx('heading-container__item', 'heading-container__item--large')}>
-                <TooltipBadge
-                  borderType="success"
-                  text={routeWording}
-                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
-                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
-                    routeIndex,
-                    channelFilter?.filtering_term_type
-                  )}
-                  className={cx('u-margin-right-xs')}
-                  tooltipContent={undefined}
-                />
-                {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
-                {routeWording !== 'Default' && renderRouteTitle(channelFilter)}
-              </div>
+              <RouteHeading
+                className={cx('heading-container__item', 'heading-container__item--large')}
+                routeWording={routeWording}
+                routeIndex={routeIndex}
+                channelFilter={channelFilter}
+                channelFilterIds={alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId]}
+              />
 
               <div className={cx('heading-container__item')}>
                 <RouteButtonsDisplay

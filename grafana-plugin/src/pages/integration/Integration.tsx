@@ -57,7 +57,7 @@ import { HeartIcon, HeartRedIcon } from 'icons/Icons';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannelCounters } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
-import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
@@ -1288,31 +1288,6 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       />
     );
   }
-};
-
-export const renderRouteTitle = (channelFilter: ChannelFilter) => {
-  if (channelFilter?.filtering_term || channelFilter?.filtering_labels) {
-    return (
-      <Text type="primary" className={cx('route-heading')}>
-        {renderRouteHeadingDisplay(channelFilter)}
-      </Text>
-    );
-  }
-
-  return (
-    <>
-      <div className={cx('icon-exclamation')}>
-        <Icon name="exclamation-triangle" />
-      </div>
-      <Text type="primary">Routing template not set</Text>
-    </>
-  );
-};
-
-const renderRouteHeadingDisplay = (channelFilter: ChannelFilter) => {
-  return channelFilter.filtering_term_type === FilteringTermType.jinja2
-    ? channelFilter.filtering_term
-    : channelFilter.filtering_labels.map((opt) => `${opt.key.name}=${opt.value.name}`).join('&');
 };
 
 export const IntegrationPage = withRouter(withMobXProviderContext(withDrawer<IntegrationDrawerKey>(_IntegrationPage)));
