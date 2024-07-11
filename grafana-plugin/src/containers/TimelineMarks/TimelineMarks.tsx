@@ -84,7 +84,8 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
         return (
           <div
             key={i}
-            className={cx('weekday', 'TEST_weekday', { 'weekday--weekEnd': isWeekend })}
+            data-testid="schedule-weekday"
+            className={cx('weekday', { 'weekday--weekEnd': isWeekend })}
             style={{ width: `${100 / days}%` }}
           >
             <div className={cx('weekday-title')}>
