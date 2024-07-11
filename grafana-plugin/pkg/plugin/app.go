@@ -71,7 +71,7 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 
 // Check OnCallApi health
 func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSettings) (int, error) {
-	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/health/")
+	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/api/internal/v1/health/")
 	if err != nil {
 		log.DefaultLogger.Error("Error joining path: %v", err)
 		return http.StatusInternalServerError, err
