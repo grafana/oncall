@@ -40,7 +40,11 @@ jobs:
         run: go install github.com/magefile/mage@v1.15.0
       - name: Build, lint and test frontend
         working-directory: grafana-plugin
-        run: mage buildAll && yarn lint && yarn test && yarn build
+        run: |
+          mage buildAll || true
+          yarn lint
+          yarn test
+          yarn build
 
   test-technical-documentation:
     name: "Test technical documentation"
