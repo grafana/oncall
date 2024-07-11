@@ -91,7 +91,7 @@ via the method configured in their user profile.
 * `Notify users one by one (round robin)` - notify users sequentially, cycling through users for **different alert groups**.
 Example: if users A, B, and C are in the list, the first alert group notifies A, the second alert group notifies B, and
 the third alert group notifies C. Note: users are sorted alphabetically by their username.
-To notify multiple users within the same alert group until someone acknowledges, instead use `Notify users` policies with
+To notify multiple users **within the same alert group** until someone acknowledges, instead use `Notify users` policies with
 `Wait` policies between them in the escalation chain.
 * `Continue escalation if current time is in range` - continue escalation only if current
 time is in specified range. It will wait for the specfied time to continue escalation.
