@@ -151,6 +151,7 @@ CELERY_TASK_ROUTES = {
     "apps.grafana_plugin.tasks.sync.start_sync_regions": {"queue": "long"},
     "apps.metrics_exporter.tasks.calculate_and_cache_metrics": {"queue": "long"},
     "apps.metrics_exporter.tasks.calculate_and_cache_user_was_notified_metric": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync_v2.sync_organizations_v2": {"queue": "long"},
     # SLACK
     "apps.integrations.tasks.notify_about_integration_ratelimit_in_slack": {"queue": "slack"},
     "apps.slack.helpers.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},

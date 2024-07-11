@@ -4,26 +4,53 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
-	"net/url"
-	"time"
-
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
-	err := a.makeSyncRequest(req.Context())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	waitToCompleteParameter := req.URL.Query().Get("wait")
+	var waitToComplete bool
+	var err error
+	if waitToCompleteParameter == "" {
+		waitToComplete = false
+	} else {
+		waitToComplete, err = strconv.ParseBool(waitToCompleteParameter)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
+
+	if waitToComplete {
+		err := a.makeSyncRequest(req.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else {
+		go func() {
+			err := a.makeSyncRequest(req.Context())
+			if err != nil {
+				log.DefaultLogger.Error("Error making sync request", "error", err)
+			}
+		}()
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 
 func (a *App) makeSyncRequest(ctx context.Context) error {
 	log.DefaultLogger.Info("Start makeSyncRequest")
+	locked := a.syncMutex.TryLock()
+	if !locked {
+		return errors.New("sync already in progress")
+	}
+	defer a.syncMutex.Unlock()
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
 	if err != nil {
@@ -69,29 +96,4 @@ func (a *App) makeSyncRequest(ctx context.Context) error {
 
 	log.DefaultLogger.Info("Finish makeSyncRequest")
 	return nil
-}
-
-func (a *App) startSyncProcess(ctx context.Context) {
-	log.DefaultLogger.Info("Start startSyncProcess")
-	ticker := time.NewTicker(60 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			go func() {
-				log.DefaultLogger.Info(fmt.Sprintf("ctx1: %+v", ctx))
-				ctx2 := context.Background()
-
-				log.DefaultLogger.Info(fmt.Sprintf("ctx2: %+v", ctx2))
-				pluginCtx := httpadapter.PluginConfigFromContext(ctx2)
-				log.DefaultLogger.Info(fmt.Sprintf("pluginCtx: %+v", pluginCtx))
-
-				err := a.makeSyncRequest(ctx2)
-				if err != nil {
-					log.DefaultLogger.Error("error making sync request: ", err)
-				}
-			}()
-		}
-	}
 }

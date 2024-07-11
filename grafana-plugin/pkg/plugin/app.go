@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -28,9 +29,7 @@ var (
 type App struct {
 	backend.CallResourceHandler
 	httpClient *http.Client
-	backend.AppInstanceSettings
-	backend.PluginContext
-	*backend.GrafanaCfg
+	syncMutex  sync.Mutex
 }
 
 // NewApp creates a new example *App instance.
@@ -43,9 +42,6 @@ func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (instance
 	mux := http.NewServeMux()
 	app.registerRoutes(mux)
 	app.CallResourceHandler = httpadapter.New(mux)
-	app.AppInstanceSettings = settings
-	app.PluginContext = httpadapter.PluginConfigFromContext(ctx)
-	app.GrafanaCfg = backend.GrafanaConfigFromContext(ctx)
 
 	opts, err := settings.HTTPClientOptions(ctx)
 	if err != nil {

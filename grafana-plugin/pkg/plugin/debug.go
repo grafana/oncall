@@ -2,8 +2,6 @@ package plugin
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"net/http"
@@ -64,15 +62,5 @@ func (a *App) handleDebugSettings(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-}
-
-func (a *App) handleDebugStartSyncLoop(w http.ResponseWriter, req *http.Request) {
-
-	plugin_ctx := backend.PluginContext{}
-
-	log.DefaultLogger.Info(fmt.Sprintf("app instance settings: %+v", a.AppInstanceSettings))
-	log.DefaultLogger.Info(fmt.Sprintf("plugin context: %+v", plugin_ctx))
-	log.DefaultLogger.Info(fmt.Sprintf("grafana cfg: %+v", a.GrafanaConfig))
 	w.WriteHeader(http.StatusOK)
 }
