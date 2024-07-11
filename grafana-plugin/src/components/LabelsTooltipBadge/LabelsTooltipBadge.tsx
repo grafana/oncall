@@ -46,7 +46,7 @@ export const LabelBadges: React.FC<LabelBadgesProps> = ({ labels }) => {
   return (
     <HorizontalGroup spacing="sm">
       {labels.map((label) => (
-        <LabelTag label={label.key.name} value={label.value.name} />
+        <LabelTag key={label.key.id} label={label.key.name} value={label.value.name} />
       ))}
     </HorizontalGroup>
   );

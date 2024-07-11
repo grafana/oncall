@@ -1,14 +1,15 @@
+import React from 'react';
+
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
-import { LabelBadges, LabelsTooltipBadge } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
+
+import { LabelBadges } from 'components/LabelsTooltipBadge/LabelsTooltipBadge';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
-import { noop } from 'lodash';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
-import React from 'react';
 
 interface RouteHeadingProps {
   className: string;
@@ -74,12 +75,6 @@ const RouteHeadingDisplay: React.FC<{ channelFilter: ChannelFilter }> = ({ chann
       <Text type="primary">Routing template not set</Text>
     </>
   );
-
-  function renderDisplay(channelFilter: ChannelFilter) {
-    return channelFilter.filtering_term_type === FilteringTermType.jinja2
-      ? channelFilter.filtering_term
-      : channelFilter.filtering_labels.map((opt) => `${opt.key.name}=${opt.value.name}`).join('&');
-  }
 };
 
 const getStyles = (theme: GrafanaTheme2) => {
