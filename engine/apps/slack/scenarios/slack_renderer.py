@@ -26,6 +26,7 @@ class AlertGroupLogSlackRenderer:
 
         return result
 
+    @staticmethod
     def render_alert_group_future_log_report_text(alert_group: "AlertGroup"):
         log_builder = IncidentLogBuilder(alert_group)
         result = ""
@@ -42,7 +43,7 @@ class AlertGroupLogSlackRenderer:
     @staticmethod
     def render_incident_log_report_for_slack(alert_group: "AlertGroup"):
         attachments = []
-        past = AlertGroupLogSlackRenderer.render_incident_log_report_for_slack(alert_group)
+        past = AlertGroupLogSlackRenderer.render_alert_group_past_log_report_text(alert_group)
         future = AlertGroupLogSlackRenderer.render_alert_group_future_log_report_text(alert_group)
         text = past + future
         if len(text) > 0:
