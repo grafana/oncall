@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -93,7 +92,7 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 	user := httpadapter.UserFromContext(ctx)
 	onCallUser, err := a.GetUserForHeader(settings, user)
 	if err != nil {
-		log.DefaultLogger.Error("Error getting user: %v", err)
+		log.DefaultLogger.Error("Error getting user", "error", err)
 		return err
 	}
 
@@ -101,19 +100,19 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 
 	err = SetXInstanceContextHeader(settings, req)
 	if err != nil {
-		log.DefaultLogger.Error("Error setting instance header: %v", err)
+		log.DefaultLogger.Error("Error setting instance header", "error", err)
 		return err
 	}
 
 	err = SetXGrafanaContextHeader(user, onCallUser.ID, req)
 	if err != nil {
-		log.DefaultLogger.Error("Error setting context header: %v", err)
+		log.DefaultLogger.Error("Error setting context header", "error", err)
 		return err
 	}
 
 	err = SetOnCallUserHeader(onCallUser, req)
 	if err != nil {
-		log.DefaultLogger.Error("Error setting user header: %v", err)
+		log.DefaultLogger.Error("Error setting user header", "error", err)
 		return err
 	}
 
@@ -126,7 +125,7 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	if req.Body != nil {
 		proxyBody, err := io.ReadAll(req.Body)
 		if err != nil {
-			log.DefaultLogger.Error("Error reading original request: %v", err)
+			log.DefaultLogger.Error("Error reading original request", "error", err)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -137,21 +136,21 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
-		log.DefaultLogger.Error("Error getting plugin settings: %v", err)
+		log.DefaultLogger.Error("Error getting plugin settings", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	reqURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, pathPrefix, req.URL.Path)
 	if err != nil {
-		log.DefaultLogger.Error("Error joining path: %v", err)
+		log.DefaultLogger.Error("Error joining path", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	parsedReqURL, err := url.Parse(reqURL)
 	if err != nil {
-		log.DefaultLogger.Error("Error parsing path: %v", err)
+		log.DefaultLogger.Error("Error parsing path", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -159,7 +158,7 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 
 	proxyReq, err := http.NewRequest(proxyMethod, parsedReqURL.String(), bodyReader)
 	if err != nil {
-		log.DefaultLogger.Error("Error creating request: %v", err)
+		log.DefaultLogger.Error("Error creating request", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -167,7 +166,7 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	proxyReq.Header = req.Header
 	err = a.SetupRequestHeadersForOnCall(req.Context(), onCallPluginSettings, proxyReq)
 	if err != nil {
-		log.DefaultLogger.Error("Error setting up headers: %v", err)
+		log.DefaultLogger.Error("Error setting up headers", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -175,10 +174,10 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	if proxyMethod == "POST" || proxyMethod == "PUT" || proxyMethod == "PATCH" {
 		proxyReq.Header.Set("Content-Type", "application/json")
 	}
-	log.DefaultLogger.Info(fmt.Sprintf("Making request to oncall = %+v", onCallPluginSettings))
+	log.DefaultLogger.Info("Making request to oncall", "settings", onCallPluginSettings)
 	res, err := a.httpClient.Do(proxyReq)
 	if err != nil {
-		log.DefaultLogger.Error("Error request to oncall: ", err)
+		log.DefaultLogger.Error("Error request to oncall", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

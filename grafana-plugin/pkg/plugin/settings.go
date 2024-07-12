@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -192,6 +193,12 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 }
 
 func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (*OnCallSync, error) {
+	startGetSyncData := time.Now()
+	defer func() {
+		elapsed := time.Since(startGetSyncData)
+		log.DefaultLogger.Info("GetSyncData", "time", elapsed)
+	}()
+
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting settings from context = %v", err)

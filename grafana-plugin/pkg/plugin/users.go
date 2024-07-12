@@ -58,7 +58,7 @@ func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.Use
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// manually created service account with Admin role doesn't have permission to get user teams
 	if settings.ExternalServiceAccountEnabled {
 		onCallUser.Teams, err = a.GetTeamsForUser(settings, onCallUser)
@@ -142,7 +142,7 @@ func (a *App) GetAllUsersWithPermissions(settings *OnCallPluginSettings) ([]OnCa
 					onCallUsers[i].Permissions = append(onCallUsers[i].Permissions, OnCallPermission{Action: action})
 				}
 			} else {
-				log.DefaultLogger.Error(fmt.Sprintf("Did not find permissions for user %s", onCallUsers[i].Login))
+				log.DefaultLogger.Error("Did not find permissions for user", "user", onCallUsers[i].Login)
 			}
 		}
 	}

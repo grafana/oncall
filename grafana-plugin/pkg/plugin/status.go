@@ -130,7 +130,7 @@ func (a *App) ValidateGrafanaConnectionFromPlugin(status *OnCallStatus, settings
 func (a *App) ValidateOnCallConnection(ctx context.Context, status *OnCallStatus, settings *OnCallPluginSettings) error {
 	healthStatus, err := a.CheckOnCallApiHealthStatus(settings)
 	if err != nil {
-		log.DefaultLogger.Error("Error checking OnCall API health: ", err)
+		log.DefaultLogger.Error("Error checking OnCall API health", "error", err)
 		status.PluginConnection.OnCallAPIURL = OnCallPluginConnectionEntry{
 			Ok:    false,
 			Error: fmt.Sprintf("Error checking OnCall API health. %v. Status code: %d", err, healthStatus),
@@ -238,14 +238,14 @@ func (a *App) ValidateOnCallStatus(ctx context.Context, settings *OnCallPluginSe
 func (a *App) handleStatus(w http.ResponseWriter, req *http.Request) {
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
-		log.DefaultLogger.Error("Error getting settings from context: ", err)
+		log.DefaultLogger.Error("Error getting settings from context", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	status, err := a.ValidateOnCallStatus(req.Context(), onCallPluginSettings)
 	if err != nil {
-		log.DefaultLogger.Error("Error validating oncall plugin settings: ", err)
+		log.DefaultLogger.Error("Error validating oncall plugin settings", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
