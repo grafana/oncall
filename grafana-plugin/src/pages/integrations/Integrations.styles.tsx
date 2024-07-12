@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 export const getIntegrationsStyles = (theme: GrafanaTheme2) => {
   return {
@@ -56,7 +56,7 @@ export const getIntegrationsStyles = (theme: GrafanaTheme2) => {
       flex-direction: row;
 
       &:hover {
-        background: ${theme.isLight ? 'rgba(244, 245, 245)' : COLORS.GRAY_9};
+        background: ${theme.isLight ? 'rgba(244, 245, 245)' : Colors.GRAY_9};
       }
     `,
 

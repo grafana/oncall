@@ -45,7 +45,7 @@ interface LabelBadgesProps {
 }
 
 export const LabelBadges: React.FC<LabelBadgesProps> = ({ labels = [], maxCount = 3 }) => {
-  const renderer = (values: Array<components['schemas']['LabelPair']>) => {
+  const renderer = (values: LabelBadgesProps['labels']) => {
     return (
       <HorizontalGroup>
         {values.map((label) => (
