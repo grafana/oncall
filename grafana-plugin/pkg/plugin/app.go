@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -28,6 +29,7 @@ var (
 type App struct {
 	backend.CallResourceHandler
 	httpClient *http.Client
+	syncMutex  sync.Mutex
 }
 
 // NewApp creates a new example *App instance.
@@ -63,6 +65,7 @@ func (a *App) Dispose() {
 
 // CheckHealth handles health checks sent from Grafana to the plugin.
 func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	log.DefaultLogger.Info("CheckHealth")
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "ok",
@@ -82,7 +85,7 @@ func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSetti
 		log.DefaultLogger.Error("Error parsing path: %v", err)
 		return http.StatusInternalServerError, err
 	}
-	
+
 	healthReq, err := http.NewRequest("GET", parsedHealthURL.String(), nil)
 	if err != nil {
 		log.DefaultLogger.Error("Error creating request: ", err)
