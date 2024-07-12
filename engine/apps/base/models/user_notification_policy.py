@@ -1,4 +1,5 @@
 import datetime
+import typing
 from enum import unique
 from typing import Tuple
 
@@ -12,6 +13,11 @@ from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
 from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.base.models import UserNotificationPolicyLogRecord
 
 
 def generate_public_primary_key_for_notification_policy():
@@ -66,6 +72,9 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicy(OrderedModel):
+    personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
+    user: typing.Optional[User]
+
     order_with_respect_to = ("user_id", "important")
 
     public_primary_key = models.CharField(
@@ -128,6 +137,19 @@ class UserNotificationPolicy(OrderedModel):
         important = tuple(str(policy.short_verbal) for policy in policies if policy.important is True)
 
         return default, important
+
+    @staticmethod
+    def get_default_fallback_policy(user: User) -> "UserNotificationPolicy":
+        return UserNotificationPolicy(
+            user=user,
+            step=UserNotificationPolicy.Step.NOTIFY,
+            notify_by=settings.EMAIL_BACKEND_INTERNAL_ID,
+            # The important flag doesn't really matter here.. since we're just using this as a transient/fallacbk
+            # in-memory object (important is really only used for allowing users to group their
+            # notification policy steps)
+            important=False,
+            order=0,
+        )
 
     @property
     def short_verbal(self) -> str:

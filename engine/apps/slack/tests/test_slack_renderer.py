@@ -38,7 +38,7 @@ def test_slack_renderer_unacknowledge_button(
     alert_group = make_alert_group(alert_receive_channel, acknowledged=True)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
+    elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[1]["blocks"][0]["elements"]
 
     button = elements[0]
     assert button["text"]["text"] == "Unacknowledge"
@@ -82,7 +82,7 @@ def test_slack_renderer_unresolve_button(make_organization, make_alert_receive_c
     alert_group = make_alert_group(alert_receive_channel, resolved=True)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
+    elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[1]["blocks"][0]["elements"]
 
     button = elements[0]
     assert button["text"]["text"] == "Unresolve"
