@@ -249,8 +249,10 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             "url": self.alert_group.declare_incident_link,
             "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
         }
-        
-        show_timeline_button = _make_button(":blue_book: Show Timeline", "OpenAlertGroupTimelineDialogStep", "alertgroup_timeline")
+
+        show_timeline_button = _make_button(
+            ":blue_book: Show Timeline", "OpenAlertGroupTimelineDialogStep", "alertgroup_timeline"
+        )
 
         buttons = []
         if not alert_group.is_maintenance_incident:

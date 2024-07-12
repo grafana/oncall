@@ -9,7 +9,6 @@ if typing.TYPE_CHECKING:
 
 
 class AlertGroupLogSlackRenderer:
-
     @staticmethod
     def render_alert_group_past_log_report_text(alert_group: "AlertGroup"):
         from apps.alerts.models import AlertGroupLogRecord
