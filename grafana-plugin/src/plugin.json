@@ -111,49 +111,6 @@
       "name": "OnCall Insights"
     }
   ],
-  "routes": [
-    {
-      "path": "api/internal/v1/plugin/install",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/install",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallApiToken }}"
-        }
-      ]
-    },
-    {
-      "path": "api/internal/v1/plugin/self-hosted/install",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/self-hosted/install",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
-        }
-      ]
-    },
-    {
-      "path": "api/internal/v1/*",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallApiToken }}"
-        }
-      ]
-    }
-  ],
   "roles": [
     {
       "role": {
@@ -619,6 +576,10 @@
       },
       {
         "action": "orgs:read"
+      },
+      {
+        "action": "plugins.app:access",
+        "scope": "plugins:id:grafana-oncall-app"
       },
       {
         "action": "plugins:write",
