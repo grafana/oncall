@@ -206,9 +206,9 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                               });
                             }
 
-                            if (option === ROUTING_OPTION.LABELS && channelFilter.filtering_labels?.length) {
+                            if (option === ROUTING_OPTION.LABELS) {
                               await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
-                                filtering_labels: channelFilter.filtering_labels,
+                                filtering_labels: channelFilter.filtering_labels || [],
                                 filtering_term_type: FilteringTermType.labels,
                               });
                             }
