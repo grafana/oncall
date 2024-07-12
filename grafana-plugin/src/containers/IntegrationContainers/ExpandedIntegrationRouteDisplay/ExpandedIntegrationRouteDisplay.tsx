@@ -201,7 +201,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                           onChange={async (option) => {
                             if (option === ROUTING_OPTION.TEMPLATE) {
                               await alertReceiveChannelStore.saveChannelFilter(channelFilterId, {
-                                filtering_term: '',
+                                filtering_term: channelFilter.filtering_term || '',
                                 filtering_term_type: FilteringTermType.jinja2,
                               });
                             }
