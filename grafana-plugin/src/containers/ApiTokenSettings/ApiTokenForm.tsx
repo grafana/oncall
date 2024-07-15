@@ -134,7 +134,7 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
     } catch (error) {
       openErrorNotification(get(error, 'response.data.detail', 'error creating token'));
     }
-  };
+  }
 });
 
 function getCurlExample(token, onCallApiUrl) {
