@@ -31,10 +31,6 @@ export class LabelStore extends BaseStore {
     key: ApiSchemas['LabelKey']['id'],
     search = ''
   ): Promise<components['schemas']['LabelOption']> {
-    if (!key) {
-      return {} as components['schemas']['LabelOption'];
-    }
-
     const result = await makeRequest(`${this.path}id/${key}`, {
       params: { search },
     });
