@@ -1,5 +1,6 @@
 import React, { FC, useCallback } from 'react';
 
+import { css } from '@emotion/css';
 import { Button, Drawer, Field, HorizontalGroup, TextArea, useStyles2, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
@@ -11,7 +12,6 @@ import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_rec
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
-import { css } from '@emotion/css';
 
 export type FormData = {
   message: string;
