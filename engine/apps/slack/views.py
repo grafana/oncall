@@ -19,6 +19,7 @@ from apps.chatops_proxy.utils import uninstall_slack as uninstall_slack_from_cha
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
+from apps.slack.scenarios.alertgroup_timeline import STEPS_ROUTING as ALERTGROUP_TIMELINE_ROUTING
 
 # Importing routes from scenarios
 from apps.slack.scenarios.declare_incident import STEPS_ROUTING as DECLARE_INCIDENT_ROUTING
@@ -52,6 +53,7 @@ SCENARIOS_ROUTES.extend(SCHEDULES_ROUTING)
 SCENARIOS_ROUTES.extend(SHIFT_SWAP_REQUESTS_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_CHANNEL_INTEGRATION_ROUTING)
 SCENARIOS_ROUTES.extend(ALERTGROUP_APPEARANCE_ROUTING)
+SCENARIOS_ROUTES.extend(ALERTGROUP_TIMELINE_ROUTING)
 SCENARIOS_ROUTES.extend(RESOLUTION_NOTE_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_USERGROUP_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)

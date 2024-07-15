@@ -199,7 +199,11 @@ const FormFields = ({ scheduleType }: { scheduleType: Schedule['type'] }) => {
 };
 
 const ScheduleCommonFields = () => {
-  const { grafanaTeamStore } = useStore();
+  const {
+    grafanaTeamStore,
+    // dereferencing items is needed to rerender GSelect
+    grafanaTeamStore: { items: grafanaTeamItems },
+  } = useStore();
 
   const { control, formState } = useFormContext<FormFields>();
   const { errors } = formState;
@@ -222,7 +226,7 @@ const ScheduleCommonFields = () => {
         render={({ field }) => (
           <Field label="Assign to team" invalid={!!errors.team} error={errors.team?.message}>
             <GSelect<GrafanaTeam>
-              items={grafanaTeamStore.items}
+              items={grafanaTeamItems}
               fetchItemsFn={grafanaTeamStore.updateItems}
               fetchItemFn={grafanaTeamStore.fetchItemById}
               getSearchResult={grafanaTeamStore.getSearchResult}
@@ -239,12 +243,18 @@ const ScheduleCommonFields = () => {
   );
 };
 
-const ScheduleNotificationSettingsFields = () => {
+const ScheduleNotificationSettingsFields = observer(() => {
   const store = useStore();
 
   const styles = useStyles2(getStyles);
 
-  const { slackChannelStore, userGroupStore } = store;
+  const {
+    slackChannelStore,
+    userGroupStore,
+    // dereferencing items is needed to rerender GSelect
+    slackChannelStore: { items: slackChannelItems },
+    userGroupStore: { items: userGroupItems },
+  } = store;
 
   const {
     control,
@@ -265,7 +275,7 @@ const ScheduleNotificationSettingsFields = () => {
           >
             <GSelect<SlackChannel>
               allowClear
-              items={slackChannelStore.items}
+              items={slackChannelItems}
               fetchItemsFn={slackChannelStore.updateItems}
               fetchItemFn={slackChannelStore.updateItem}
               getSearchResult={slackChannelStore.getSearchResult}
@@ -291,7 +301,7 @@ const ScheduleNotificationSettingsFields = () => {
           >
             <GSelect<UserGroup>
               allowClear
-              items={userGroupStore.items}
+              items={userGroupItems}
               fetchItemsFn={userGroupStore.updateItems}
               fetchItemFn={userGroupStore.fetchItemById}
               getSearchResult={userGroupStore.getSearchResult}
@@ -395,7 +405,7 @@ const ScheduleNotificationSettingsFields = () => {
       />
     </Collapse>
   );
-};
+});
 
 export const getStyles = () => ({
   collapse: css`

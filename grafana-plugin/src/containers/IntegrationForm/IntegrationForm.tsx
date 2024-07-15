@@ -97,7 +97,13 @@ export const IntegrationForm = observer(
     const history = useHistory();
     const styles = useStyles2(getIntegrationFormStyles);
     const isNew = id === 'new';
-    const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
+    const {
+      userStore,
+      grafanaTeamStore,
+      // dereferencing items is needed to rerender GSelect
+      grafanaTeamStore: { items: grafanaTeamItems },
+      alertReceiveChannelStore,
+    } = store;
 
     const data: Partial<ApiSchemas['AlertReceiveChannel']> = isNew
       ? {
@@ -234,7 +240,7 @@ export const IntegrationForm = observer(
                   placeholder="Assign to team"
                   {...field}
                   {...{
-                    items: grafanaTeamStore.items,
+                    items: grafanaTeamItems,
                     fetchItemsFn: grafanaTeamStore.updateItems,
                     fetchItemFn: grafanaTeamStore.fetchItemById,
                     getSearchResult: grafanaTeamStore.getSearchResult,
