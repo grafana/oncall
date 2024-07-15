@@ -10,6 +10,8 @@ import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
+import { AppFeature } from 'state/features';
+import { useStore } from 'state/useStore';
 
 interface RouteHeadingProps {
   className: string;
@@ -49,18 +51,22 @@ export const RouteHeading: React.FC<RouteHeadingProps> = ({
 };
 
 const RouteHeadingDisplay: React.FC<{ channelFilter: ChannelFilter }> = ({ channelFilter }) => {
+  const store = useStore();
   const styles = useStyles2(getStyles);
+  const hasLabels = store.hasFeature(AppFeature.Labels);
 
   if (channelFilter?.filtering_term || channelFilter?.filtering_labels) {
     return (
       <>
-        <RenderConditionally shouldRender={channelFilter.filtering_term_type === FilteringTermType.jinja2}>
+        <RenderConditionally
+          shouldRender={channelFilter.filtering_term_type === FilteringTermType.jinja2 || !hasLabels}
+        >
           <Text type="primary" className={styles.routeHeading}>
             {channelFilter.filtering_term}
           </Text>
         </RenderConditionally>
 
-        <RenderConditionally shouldRender={channelFilter.filtering_term_type === FilteringTermType.labels}>
+        <RenderConditionally shouldRender={channelFilter.filtering_term_type === FilteringTermType.labels && hasLabels}>
           <LabelBadges labels={channelFilter.filtering_labels} />
         </RenderConditionally>
       </>
