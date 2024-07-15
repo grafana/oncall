@@ -2,6 +2,7 @@ import React, { ChangeEvent, FC, useCallback, useState } from 'react';
 
 import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
@@ -10,7 +11,6 @@ import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
-import { observer } from 'mobx-react';
 
 export enum EscalationChainFormMode {
   Create = 'Create',

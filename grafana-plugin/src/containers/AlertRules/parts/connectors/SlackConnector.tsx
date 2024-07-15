@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 
 import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -12,7 +13,6 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './Connectors.module.css';
-import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
