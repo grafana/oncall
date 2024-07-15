@@ -16,6 +16,11 @@ type OnCallInstall struct {
 }
 
 func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	locked := a.installMutex.TryLock()
 	if !locked {
 		http.Error(w, "Install is already in progress", http.StatusBadRequest)
