@@ -102,7 +102,7 @@ export const AddRespondersPopup = observer(
     const searchForUsers = useCallback(async () => {
       const _search = async (is_currently_oncall: boolean) => {
         const response = await UserHelper.search({
-          searchTerm,
+          search: searchTerm,
           is_currently_oncall,
         });
         return response.results;
