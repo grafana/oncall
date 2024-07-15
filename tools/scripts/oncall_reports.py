@@ -1,6 +1,6 @@
 # requires requests (pip install requests)
 
-# This script will output 3 .csv files:
+# This script will output 4 .csv files:
 #   - oncall.escalation_chains.csv: escalation chains names and their respective serialized steps
 #   - oncall.orphaned_schedules.csv: schedules ID and name for schedules not linked to any escalation chain
 #   - oncall.teams.csv: teams alert groups count, mean time to acknowledge and mean time to resolve
@@ -239,8 +239,8 @@ for chain in results:
 
 print("Checking shifts from non-orphaned schedules...")
 for schedule_id in schedules:
-    # if schedule_id in orphaned_schedules:
-    #     continue
+    if schedule_id in orphaned_schedules:
+        continue
     url = ONCALL_API_BASE_URL + "/api/v1/on_call_shifts/"
     r = requests.get(url, params={"schedule_id": schedule_id}, headers=headers)
     r.raise_for_status()
