@@ -33,8 +33,6 @@ interface EscalationFormFields {
 
 const cx = cn.bind(styles);
 
-  const store = useStore();
-
 export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props) => {
   const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
 
@@ -80,7 +78,7 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props
                 <Field label="Assign to team" invalid={Boolean(errors['team'])} error={errors['team']?.message}>
                   <GSelect<GrafanaTeam>
                     {...field}
-                    items={grafanaTeamStore.items}
+                    items={grafanaTeamItems}
                     fetchItemsFn={grafanaTeamStore.updateItems}
                     fetchItemFn={grafanaTeamStore.fetchItemById}
                     getSearchResult={grafanaTeamStore.getSearchResult}
@@ -175,4 +173,4 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props
       }
     }
   }
-};
+});
