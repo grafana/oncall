@@ -144,6 +144,7 @@ CELERY_TASK_ROUTES = {
     "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_empty_deleted_integrations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_cleanup_organizations": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_integrations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
