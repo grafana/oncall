@@ -28,8 +28,10 @@ var (
 // App is an example app backend plugin which can respond to data queries.
 type App struct {
 	backend.CallResourceHandler
-	httpClient *http.Client
-	syncMutex  sync.Mutex
+	httpClient     *http.Client
+	syncMutex      sync.Mutex
+	installMutex   sync.Mutex
+	lastOnCallSync *OnCallSync
 }
 
 // NewApp creates a new example *App instance.
@@ -76,19 +78,19 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSettings) (int, error) {
 	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/api/internal/v1/health/")
 	if err != nil {
-		log.DefaultLogger.Error("Error joining path: %v", err)
+		log.DefaultLogger.Error("Error joining path", "error", err)
 		return http.StatusInternalServerError, err
 	}
 
 	parsedHealthURL, err := url.Parse(healthURL)
 	if err != nil {
-		log.DefaultLogger.Error("Error parsing path: %v", err)
+		log.DefaultLogger.Error("Error parsing path", "error", err)
 		return http.StatusInternalServerError, err
 	}
 
 	healthReq, err := http.NewRequest("GET", parsedHealthURL.String(), nil)
 	if err != nil {
-		log.DefaultLogger.Error("Error creating request: ", err)
+		log.DefaultLogger.Error("Error creating request", "error", err)
 		return http.StatusBadRequest, err
 	}
 
@@ -97,12 +99,12 @@ func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSetti
 	}
 	healthRes, err := client.Do(healthReq)
 	if err != nil {
-		log.DefaultLogger.Error("Error request to oncall: ", err)
+		log.DefaultLogger.Error("Error request to oncall", "error", err)
 		return http.StatusBadRequest, err
 	}
 
 	if healthRes.StatusCode != http.StatusOK {
-		log.DefaultLogger.Error("Error request to oncall: ", healthRes.Status)
+		log.DefaultLogger.Error("Error request to oncall", "error", healthRes.Status)
 		return healthRes.StatusCode, fmt.Errorf(healthRes.Status)
 	}
 

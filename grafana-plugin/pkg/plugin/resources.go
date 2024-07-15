@@ -3,7 +3,6 @@ package plugin
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -54,21 +53,18 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 	var provisioningData OnCallProvisioningJSONData
 	err := json.Unmarshal(w.body.Bytes(), &provisioningData)
 	if err != nil {
-		log.DefaultLogger.Error("Error unmarshalling OnCallProvisioningJSONData: ", err)
+		log.DefaultLogger.Error("Error unmarshalling OnCallProvisioningJSONData", "error", err)
 		return
 	}
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
-		log.DefaultLogger.Error("Error getting settings from context: ", err)
+		log.DefaultLogger.Error("Error getting settings from context", "error", err)
 		return
 	}
 
-	log.DefaultLogger.Info(fmt.Sprintf("Settings = %+v", onCallPluginSettings))
-	log.DefaultLogger.Info(fmt.Sprintf("Provisioning data = %+v", provisioningData))
-
 	if provisioningData.Error != "" {
-		log.DefaultLogger.Error(fmt.Sprintf("Error installing OnCall = %s", provisioningData.Error))
+		log.DefaultLogger.Error("Error installing OnCall", "error", provisioningData.Error)
 		return
 	}
 	onCallPluginSettings.License = provisioningData.License
@@ -78,7 +74,7 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 
 	err = a.SaveOnCallSettings(onCallPluginSettings)
 	if err != nil {
-		log.DefaultLogger.Error("Error saving settings: ", err)
+		log.DefaultLogger.Error("Error saving settings", "error", err)
 		return
 	}
 }
