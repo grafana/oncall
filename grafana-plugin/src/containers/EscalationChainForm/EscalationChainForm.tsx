@@ -10,6 +10,7 @@ import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
+import { Controller, Form, FormProvider, useForm } from 'react-hook-form';
 
 export enum EscalationChainFormMode {
   Create = 'Create',
@@ -22,6 +23,11 @@ interface EscalationChainFormProps {
   mode: EscalationChainFormMode;
   onHide: () => void;
   onSubmit: (id: EscalationChain['id']) => Promise<void>;
+}
+
+interface EscalationFormFields {
+  team: string;
+  name: string;
 }
 
 const cx = cn.bind(styles);
@@ -39,23 +45,39 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const [name, setName] = useState<string | undefined>(
     mode === EscalationChainFormMode.Copy ? `${escalationChain?.name} copy` : escalationChain?.name
   );
-  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(escalationChain?.team || user.current_team);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const formMethods = useForm<EscalationFormFields>({
+    mode: 'onChange',
+    defaultValues: {
+      team: escalationChain?.team || user.current_team,
+    },
+  });
+
+  const {
+    control,
+    getValues,
+    formState: { errors },
+    handleSubmit,
+  } = formMethods;
+
+  const teamName = getValues('team');
 
   const onSubmit = useCallback(async () => {
+    console.log('here');
+    return;
     let escalationChain: EscalationChain | void;
 
     const isCreateMode = mode === EscalationChainFormMode.Create;
     const isCopyMode = mode === EscalationChainFormMode.Copy;
 
     if (isCreateMode) {
-      escalationChain = await escalationChainStore.create<EscalationChain>({ name, team: selectedTeam });
+      escalationChain = await escalationChainStore.create<EscalationChain>({ name, team: teamName });
     } else if (isCopyMode) {
-      escalationChain = await escalationChainStore.clone(escalationChainId, { name, team: selectedTeam });
+      escalationChain = await escalationChainStore.clone(escalationChainId, { name, team: teamName });
     } else {
       escalationChain = await escalationChainStore.update<EscalationChain>(escalationChainId, {
         name,
-        team: selectedTeam,
+        team: teamName,
       });
     }
 
@@ -78,11 +100,11 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
       await onSubmitProp(escalationChain.id);
       onHide();
     } catch (err) {
-      setErrors({
-        name: err.response.data.name || err.response.data.detail || err.response.data.non_field_errors,
-      });
+      // setErrors({
+      //   name: err.response.data.name || err.response.data.detail || err.response.data.non_field_errors,
+      // });
     }
-  }, [name, selectedTeam, mode, onSubmitProp]);
+  }, [name, teamName, mode, onSubmitProp]);
 
   const handleNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -91,37 +113,59 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   return (
     <Modal isOpen title={`${mode} Escalation Chain`} onDismiss={onHide}>
       <div className={cx('root')}>
-        <Field label="Assign to team">
-          <GSelect<GrafanaTeam>
-            items={grafanaTeamStore.items}
-            fetchItemsFn={grafanaTeamStore.updateItems}
-            fetchItemFn={grafanaTeamStore.fetchItemById}
-            getSearchResult={grafanaTeamStore.getSearchResult}
-            displayField="name"
-            valueField="id"
-            allowClear
-            placeholder="Select a team"
-            className={cx('team-select')}
-            onChange={setSelectedTeam}
-            value={selectedTeam}
-          />
-        </Field>
-        <Field
-          invalid={Boolean(errors['name'])}
-          error={errors['name']}
-          label="Escalation Chain name"
-          data-testid="create-escalation-chain-name-input-modal"
-        >
-          <Input autoFocus value={name} onChange={handleNameChange} />
-        </Field>
-        <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={onHide}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={onSubmit}>
-            {`${mode} Escalation Chain`}
-          </Button>
-        </HorizontalGroup>
+        <FormProvider {...formMethods}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Controller
+              name={'team'}
+              control={control}
+              rules={{ required: 'Team is required' }}
+              render={({ field }) => (
+                <Field label="Assign to team">
+                  <GSelect<GrafanaTeam>
+                    {...field}
+                    items={grafanaTeamStore.items}
+                    fetchItemsFn={grafanaTeamStore.updateItems}
+                    fetchItemFn={grafanaTeamStore.fetchItemById}
+                    getSearchResult={grafanaTeamStore.getSearchResult}
+                    displayField="name"
+                    valueField="id"
+                    allowClear
+                    placeholder="Select a team"
+                    className={cx('team-select')}
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                  />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name={'name'}
+              control={control}
+              rules={{ required: 'Name is required' }}
+              render={({ field }) => (
+                <Field
+                  invalid={Boolean(errors['name'])}
+                  error={errors['name']?.message}
+                  label="Escalation Chain name"
+                  data-testid="create-escalation-chain-name-input-modal"
+                >
+                  <Input autoFocus {...field} />
+                </Field>
+              )}
+            />
+
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={onHide}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary">
+                {`${mode} Escalation Chain`}
+              </Button>
+            </HorizontalGroup>
+          </form>
+        </FormProvider>
       </div>
     </Modal>
   );
