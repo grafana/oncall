@@ -19,7 +19,12 @@ import { UserActions } from 'utils/authorization/authorization';
 import { DOCS_ROOT } from 'utils/consts';
 
 const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ id }) => {
-  const { userStore, scheduleStore } = useStore();
+  const {
+    userStore,
+    scheduleStore,
+    // dereferencing items is needed to rerender GSelect
+    scheduleStore: { items: scheduleItems },
+  } = useStore();
 
   const utils = useStyles2(getUtilStyles);
 
@@ -92,7 +97,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
                     isMulti
                     allowClear
                     disabled={false}
-                    items={scheduleStore.items}
+                    items={scheduleItems}
                     fetchItemsFn={scheduleStore.updateItems}
                     fetchItemFn={scheduleStore.updateItem}
                     getSearchResult={scheduleStore.getSearchResult}
