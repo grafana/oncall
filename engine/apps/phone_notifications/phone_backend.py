@@ -3,7 +3,6 @@ from typing import Optional, Tuple
 
 import requests
 from django.conf import settings
-from django.db.models import Count
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSMSBundleRenderer, AlertGroupSmsRenderer
@@ -205,26 +204,7 @@ class PhoneBackend:
         if not notifications:
             logger.info("Notification bundle is empty, related alert groups might have been deleted")
             return
-        channels_and_alert_groups_count = notifications.aggregate(
-            channels_count=Count("alert_receive_channel", distinct=True),
-            alert_groups_count=Count("alert_group", distinct=True),
-        )
-        # get 3 unique alert groups from notifications
-        alert_groups_to_render = []
-        for notification in notifications:
-            if notification.alert_group not in alert_groups_to_render:
-                alert_groups_to_render.append(notification.alert_group)
-                if len(alert_groups_to_render) == 3:
-                    break
-
-        channels_to_render = [alert_groups_to_render[0].channel]
-
-        renderer = AlertGroupSMSBundleRenderer(
-            alert_groups_to_render,
-            channels_and_alert_groups_count["alert_groups_count"],
-            channels_to_render,
-            channels_and_alert_groups_count["channels_count"],
-        )
+        renderer = AlertGroupSMSBundleRenderer(notifications)
         message = renderer.render()
 
         _, log_record_error_code = self._send_sms(user=user, message=message, bundle_uuid=bundle_uuid)
