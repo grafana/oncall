@@ -112,6 +112,8 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       organizationStore: { currentOrganization },
       slackStore,
       slackChannelStore,
+      // dereferencing items is needed to rerender GSelect
+      slackChannelStore: { items: slackChannelItems },
     } = store;
 
     return (
@@ -126,7 +128,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         >
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
             <GSelect<SlackChannel>
-              items={slackChannelStore.items}
+              items={slackChannelItems}
               fetchItemsFn={slackChannelStore.updateItems}
               fetchItemFn={slackChannelStore.updateItem}
               getSearchResult={slackChannelStore.getSearchResult}

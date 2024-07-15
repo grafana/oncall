@@ -10,6 +10,7 @@ import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
+import { observer } from 'mobx-react';
 
 export enum EscalationChainFormMode {
   Create = 'Create',
@@ -26,11 +27,17 @@ interface EscalationChainFormProps {
 
 const cx = cn.bind(styles);
 
-export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
+export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props) => {
   const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
 
   const store = useStore();
-  const { escalationChainStore, userStore, grafanaTeamStore } = store;
+  const {
+    escalationChainStore,
+    userStore,
+    grafanaTeamStore,
+    // dereferencing items is needed to rerender GSelect
+    grafanaTeamStore: { items: grafanaTeamItems },
+  } = store;
 
   const user = userStore.currentUser;
 
@@ -93,7 +100,7 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
       <div className={cx('root')}>
         <Field label="Assign to team">
           <GSelect<GrafanaTeam>
-            items={grafanaTeamStore.items}
+            items={grafanaTeamItems}
             fetchItemsFn={grafanaTeamStore.updateItems}
             fetchItemFn={grafanaTeamStore.fetchItemById}
             getSearchResult={grafanaTeamStore.getSearchResult}
@@ -125,4 +132,4 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
       </div>
     </Modal>
   );
-};
+});

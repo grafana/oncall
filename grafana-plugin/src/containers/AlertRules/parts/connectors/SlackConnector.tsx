@@ -12,6 +12,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './Connectors.module.css';
+import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
@@ -19,7 +20,7 @@ interface SlackConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-export const SlackConnector = (props: SlackConnectorProps) => {
+export const SlackConnector = observer((props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
@@ -27,6 +28,8 @@ export const SlackConnector = (props: SlackConnectorProps) => {
     organizationStore: { currentOrganization },
     alertReceiveChannelStore,
     slackChannelStore,
+    // dereferencing items is needed to rerender GSelect
+    slackChannelStore: { items: slackChannelItems },
   } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -57,7 +60,7 @@ export const SlackConnector = (props: SlackConnectorProps) => {
           <GSelect<SlackChannel>
             allowClear
             className={cx('select', 'control')}
-            items={slackChannelStore.items}
+            items={slackChannelItems}
             fetchItemsFn={slackChannelStore.updateItems}
             fetchItemFn={slackChannelStore.updateItem}
             getSearchResult={getSearchResult}
@@ -94,4 +97,4 @@ export const SlackConnector = (props: SlackConnectorProps) => {
 
     return results;
   }
-};
+});

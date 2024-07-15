@@ -11,6 +11,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './Connectors.module.css';
+import { observer } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
@@ -18,9 +19,14 @@ interface TelegramConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
+export const TelegramConnector = observer(({ channelFilterId }: TelegramConnectorProps) => {
   const store = useStore();
-  const { alertReceiveChannelStore, telegramChannelStore } = store;
+  const {
+    alertReceiveChannelStore,
+    telegramChannelStore,
+    // dereferencing items is needed to rerender GSelect
+    telegramChannelStore: { items: telegramChannelItems },
+  } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -49,7 +55,7 @@ export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) =
           <GSelect<TelegramChannel>
             allowClear
             className={cx('select', 'control')}
-            items={telegramChannelStore.items}
+            items={telegramChannelItems}
             fetchItemsFn={telegramChannelStore.updateItems}
             fetchItemFn={telegramChannelStore.updateById}
             getSearchResult={telegramChannelStore.getSearchResult}
@@ -63,4 +69,4 @@ export const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) =
       </HorizontalGroup>
     </div>
   );
-};
+});
