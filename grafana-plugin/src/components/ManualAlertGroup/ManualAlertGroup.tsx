@@ -11,6 +11,7 @@ import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_rec
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils/utils';
+import { css } from '@emotion/css';
 
 export type FormData = {
   message: string;
@@ -50,7 +51,6 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
 
   const onSubmit = async (data: FormData) => {
     const transformedData = prepareForUpdate(selectedUserResponders, selectedTeamResponder, data);
-
     const resp = await directPagingStore.createManualAlertRule(transformedData);
 
     if (!resp) {
@@ -65,13 +65,14 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
     onHide();
   };
 
-  const utils = useStyles2(getUtilStyles);
+  const utilStyles = useStyles2(getUtilStyles);
+  const styles = useStyles2(getStyles);
 
   return (
     <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
         <FormProvider {...formMethods}>
-          <form id="Manual Alert Group" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
+          <form id="Manual Alert Group" onSubmit={handleSubmit(onSubmit)} className={utilStyles.width100}>
             <Controller
               name="message"
               control={control}
@@ -82,8 +83,10 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
                 </Field>
               )}
             />
+
             <AddResponders mode="create" />
-            <div className="buttons">
+
+            <div className={styles.buttons}>
               <HorizontalGroup justify="flex-end">
                 <Button variant="secondary" onClick={onHideDrawer}>
                   Cancel
@@ -99,3 +102,11 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
     </Drawer>
   );
 });
+
+const getStyles = () => {
+  return {
+    buttons: css`
+      padding-top: 12px;
+    `,
+  };
+};
