@@ -2,6 +2,7 @@ import React, { FC } from 'react';
 
 import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 import { GSelect } from 'containers/GSelect/GSelect';
@@ -32,11 +33,19 @@ interface EscalationFormFields {
 
 const cx = cn.bind(styles);
 
-export const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const store = useStore();
 
+export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props) => {
   const { escalationChainId, onHide, onSubmit: onSubmitProp, mode } = props;
-  const { escalationChainStore, userStore, grafanaTeamStore } = store;
+
+  const store = useStore();
+  const {
+    escalationChainStore,
+    userStore,
+    grafanaTeamStore,
+    // dereferencing items is needed to rerender GSelect
+    grafanaTeamStore: { items: grafanaTeamItems },
+  } = store;
 
   const user = userStore.currentUser;
   const escalationChain = escalationChainId ? escalationChainStore.items[escalationChainId] : undefined;

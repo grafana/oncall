@@ -159,7 +159,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
           {values.slice(0, 2).map((val) => (
             <LabelTag label={keyName} value={val.name} key={val.id} />
           ))}
-          <div className={styles.totalValuesCount}>{values.length > 2 ? `+ ${values.length - 2}` : ``}</div>
+          <div>{values.length > 2 ? `+ ${values.length - 2}` : ``}</div>
         </HorizontalGroup>
       );
     }
