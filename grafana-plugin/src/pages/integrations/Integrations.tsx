@@ -19,7 +19,6 @@ import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { GTable } from 'components/GTable/GTable';
@@ -58,6 +57,7 @@ import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import { getIntegrationsStyles } from './Integrations.styles';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 enum TabType {
   MonitoringSystems = 'monitoring-systems',
@@ -79,6 +79,10 @@ const TABS = [
 
 const FILTERS_DEBOUNCE_MS = 500;
 
+interface RouteProps {
+  id: string;
+}
+
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: operations['alert_receive_channels_list']['parameters']['query'];
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
@@ -96,7 +100,7 @@ interface IntegrationsState extends PageBaseState {
   activeTab: TabType;
 }
 
-interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+interface IntegrationsProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -118,7 +122,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
   }
 
   componentDidUpdate(prevProps: IntegrationsProps) {
-    if (prevProps.match.params.id !== this.props.match.params.id) {
+    if (prevProps.router.params.id !== this.props.router.params.id) {
       this.parseQueryParams();
     }
     if (prevProps.query[TAB_QUERY_PARAM_KEY] !== this.props.query[TAB_QUERY_PARAM_KEY]) {
@@ -133,7 +137,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
   parseQueryParams = async () => {
     const {
       store,
-      match: {
+      router: {
         params: { id },
       },
     } = this.props;
@@ -705,4 +709,6 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 }
 
-export const IntegrationsPage = withRouter(withMobXProviderContext(withTheme2(_IntegrationsPage)));
+export const IntegrationsPage = withRouter<RouteProps, Omit<IntegrationsProps, 'store' | 'meta' | 'theme'>>(
+  withMobXProviderContext(withTheme2(_IntegrationsPage))
+);

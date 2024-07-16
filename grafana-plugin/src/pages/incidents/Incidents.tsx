@@ -997,6 +997,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 }
 
-export const IncidentsPage = withRouter<RouteProps, IncidentsPageProps>(
+export const IncidentsPage = withRouter<RouteProps, Omit<IncidentsPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_IncidentsPage))
 );

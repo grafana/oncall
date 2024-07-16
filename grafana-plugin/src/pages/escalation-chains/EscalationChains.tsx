@@ -496,6 +496,6 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 }
 
-export const EscalationChainsPage = withRouter<RouteProps, EscalationChainsPageProps>(
+export const EscalationChainsPage = withRouter<RouteProps, Omit<EscalationChainsPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_EscalationChainsPage))
 ); // as unknown as React.ComponentClass<Omit<EscalationChainsPageProps, 'store'>>;

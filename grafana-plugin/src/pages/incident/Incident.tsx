@@ -909,6 +909,6 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   );
 };
 
-export const IncidentPage = withRouter<RouteProps, IncidentPageProps>(
+export const IncidentPage = withRouter<RouteProps, Omit<IncidentPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_IncidentPage))
 );

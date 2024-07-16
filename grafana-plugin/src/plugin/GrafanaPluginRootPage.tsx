@@ -130,7 +130,7 @@ export const Root = observer((props: AppRootProps) => {
           >
             <Routes>
               <Route path={getRoutesForPage('alert-groups')}>
-                <IncidentsPage query={query} />
+                <IncidentsPage query={query}  />
               </Route>
               <Route path={getRoutesForPage('alert-group')}>
                 <IncidentPage query={query} />
@@ -186,5 +186,3 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 });
-
-const;
