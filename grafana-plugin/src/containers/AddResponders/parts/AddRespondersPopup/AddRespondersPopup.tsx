@@ -236,10 +236,16 @@ export const AddRespondersPopup = observer(
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup>
                   <Avatar size="small" src={avatar} />
-                  <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
+                  <Text type={disabled ? 'disabled' : undefined} className={cx('responder-name')}>
+                    {name || username}
+                  </Text>
                 </HorizontalGroup>
                 {/* TODO: we should add an elippsis and/or tooltip in the event that the user has a ton of teams */}
-                {teams?.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
+                {teams?.length > 0 && (
+                  <Text type="secondary" className={cx('responder-team')}>
+                    {teams.map(({ name }) => name).join(', ')}
+                  </Text>
+                )}
               </HorizontalGroup>
             </div>
           );
