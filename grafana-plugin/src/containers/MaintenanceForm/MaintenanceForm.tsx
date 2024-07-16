@@ -37,7 +37,11 @@ interface FormFields {
 
 export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
-  const { alertReceiveChannelStore } = useStore();
+  const {
+    alertReceiveChannelStore,
+    // dereferencing items is needed to rerender GSelect
+    alertReceiveChannelStore: { items: alertReceiveChannelItems },
+  } = useStore();
 
   const onSubmit = useCallback(async (data) => {
     try {
@@ -87,7 +91,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
                   >
                     <GSelect<ApiSchemas['AlertReceiveChannel']>
                       disabled
-                      items={alertReceiveChannelStore.items}
+                      items={alertReceiveChannelItems}
                       fetchItemsFn={alertReceiveChannelStore.fetchItems}
                       fetchItemFn={alertReceiveChannelStore.fetchItemById}
                       getSearchResult={() => AlertReceiveChannelHelper.getSearchResult(alertReceiveChannelStore)}

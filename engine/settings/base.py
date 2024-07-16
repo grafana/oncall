@@ -595,7 +595,7 @@ START_SYNC_ORG_WITH_CHATOPS_PROXY_ENABLED = getenv_boolean("START_SYNC_ORG_WITH_
 if FEATURE_MULTIREGION_ENABLED and START_SYNC_ORG_WITH_CHATOPS_PROXY_ENABLED:
     CELERY_BEAT_SCHEDULE["start_sync_org_with_chatops_proxy"] = {
         "task": "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy",
-        "schedule": crontab(hour="*/24"),  # Every 24 hours, feel free to adjust
+        "schedule": crontab(minute=0, hour=12),  # Execute every day at noon
         "args": (),
     }
 

@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, Tooltip, useStyles2, VerticalGroup } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { COLORS, getLabelCss } from 'styles/utils.styles';
+import { Colors, getLabelCss } from 'styles/utils.styles';
 
 import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -535,7 +535,7 @@ const getStyles = (theme: GrafanaTheme2) => {
   return {
     root: css`
       height: 28px;
-      background: ${COLORS.GRAY_8};
+      background: ${Colors.GRAY_8};
       border-radius: 2px;
       position: relative;
       display: flex;

@@ -27,14 +27,14 @@ interface TemplatePreviewProps {
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   alertGroupId?: ApiSchemas['AlertGroup']['pk'];
   outgoingWebhookId?: ApiSchemas['Webhook']['id'];
-  templatePage: TEMPLATE_PAGE;
+  templatePage: TemplatePage;
 }
 interface ConditionalResult {
   isResult?: boolean;
   value?: string;
 }
 
-export enum TEMPLATE_PAGE {
+export enum TemplatePage {
   Integrations,
   Webhooks,
 }
@@ -62,7 +62,7 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
 
   const handleTemplateBodyChange = useDebouncedCallback(async () => {
     try {
-      const data = await (templatePage === TEMPLATE_PAGE.Webhooks
+      const data = await (templatePage === TemplatePage.Webhooks
         ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
         : alertGroupId
         ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
