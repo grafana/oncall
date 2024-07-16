@@ -72,6 +72,7 @@ FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL"
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
 FEATURE_ALERT_GROUP_SEARCH_ENABLED = getenv_boolean("FEATURE_ALERT_GROUP_SEARCH_ENABLED", default=False)
+FEATURE_NOTIFICATION_BUNDLE_ENABLED = getenv_boolean("FEATURE_NOTIFICATION_BUNDLE_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -509,7 +510,6 @@ ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
 )
 
 CELERY_BEAT_SCHEDULE_FILENAME = os.getenv("CELERY_BEAT_SCHEDULE_FILENAME", "celerybeat-schedule")
-CELERY_BEAT_SYNC_ORGANIZATIONS_INTERVAL_MINUTES = os.getenv("CELERY_BEAT_SYNC_ORGANIZATIONS_INTERVAL_MINUTES", 5)
 
 CELERY_BEAT_SCHEDULE = {
     "start_refresh_ical_final_schedules": {
@@ -547,14 +547,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour="*", minute=5),
         "args": (),
     },
-    #
-    # Disable for testing, TODO: Feature control for rollout
-    #
-    # "start_sync_organizations": {
-    #     "task": "apps.grafana_plugin.tasks.sync.start_sync_organizations",
-    #     "schedule": crontab(minute="*/30"),
-    #     "args": (),
-    # },
+    "start_sync_organizations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_sync_organizations",
+        "schedule": crontab(minute="*/30"),
+        "args": (),
+    },
     "start_cleanup_organizations": {
         "task": "apps.grafana_plugin.tasks.sync.start_cleanup_organizations",
         "schedule": crontab(hour="4, 16", minute=35),
@@ -590,11 +587,6 @@ CELERY_BEAT_SCHEDULE = {
     "check_heartbeats": {
         "task": "apps.heartbeat.tasks.check_heartbeats",
         "schedule": crontab(minute="*/2"),  # every 2 minutes
-        "args": (),
-    },
-    "sync_organizations_v2": {
-        "task": "apps.grafana_plugin.tasks.sync_v2.sync_organizations_v2",
-        "schedule": crontab(minute=f"*/{CELERY_BEAT_SYNC_ORGANIZATIONS_INTERVAL_MINUTES}"),
         "args": (),
     },
 }

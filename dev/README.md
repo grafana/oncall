@@ -11,7 +11,7 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 - [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
 - [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
 - [Kind](https://kind.sigs.k8s.io)
-- [Node.js v18.x](https://nodejs.org/en/download)
+- [Node.js v20.x](https://nodejs.org/en/download)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
 
 ### Launch the environment

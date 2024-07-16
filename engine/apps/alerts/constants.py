@@ -16,6 +16,8 @@ TASK_DELAY_SECONDS = 1
 
 NEXT_ESCALATION_DELAY = 5
 
+BUNDLED_NOTIFICATION_DELAY_SECONDS = 60 * 2  # 2 min
+
 
 # AlertGroup states verbal
 class AlertGroupState(str, Enum):
