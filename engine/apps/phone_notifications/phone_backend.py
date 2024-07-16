@@ -1,14 +1,15 @@
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
 import requests
 from django.conf import settings
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
-from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSmsRenderer
+from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSMSBundleRenderer, AlertGroupSmsRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
 from common.api_helpers.utils import create_engine_url
+from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.utils import clean_markup
 
 from .exceptions import (
@@ -25,6 +26,19 @@ from .models.banned_phone_number import check_banned_phone_number
 from .phone_provider import PhoneProvider, get_phone_provider
 
 logger = logging.getLogger(__name__)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=0 if settings.DEBUG else None
+)
+def notify_by_sms_bundle_async_task(user_id, bundle_uuid):
+    from apps.user_management.models import User
+
+    user = User.objects.filter(id=user_id).first()
+    if not user:
+        return
+    phone_backend = PhoneBackend()
+    phone_backend.notify_by_sms_bundle(user, bundle_uuid)
 
 
 class PhoneBackend:
@@ -148,16 +162,90 @@ class PhoneBackend:
 
         from apps.base.models import UserNotificationPolicyLogRecord
 
-        log_record_error_code = None
-
         renderer = AlertGroupSmsRenderer(alert_group)
         message = renderer.render()
+        _, log_record_error_code = self._send_sms(
+            user=user,
+            alert_group=alert_group,
+            notification_policy=notification_policy,
+            message=message,
+        )
 
+        if log_record_error_code is not None:
+            log_record = UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                notification_policy=notification_policy,
+                alert_group=alert_group,
+                notification_error_code=log_record_error_code,
+                notification_step=notification_policy.step if notification_policy else None,
+                notification_channel=notification_policy.notify_by if notification_policy else None,
+            )
+            log_record.save()
+            user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_sms, log_record=log_record)
+
+    @staticmethod
+    def notify_by_sms_bundle_async(user, bundle_uuid):
+        notify_by_sms_bundle_async_task.apply_async((user.id, bundle_uuid))
+
+    def notify_by_sms_bundle(self, user, bundle_uuid):
+        """
+        notify_by_sms_bundle sends an sms notification bundle to a user using configured phone provider.
+        It handles business logic - limits, cloud notifications and UserNotificationPolicyLogRecord creation.
+        It creates UserNotificationPolicyLogRecord for every notification in bundle, but only one SMSRecord.
+        SMS itself is handled by phone provider.
+        """
+
+        from apps.alerts.models import BundledNotification
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+
+        notifications = BundledNotification.objects.filter(bundle_uuid=bundle_uuid).select_related("alert_group")
+
+        if not notifications:
+            logger.info("Notification bundle is empty, related alert groups might have been deleted")
+            return
+        renderer = AlertGroupSMSBundleRenderer(notifications)
+        message = renderer.render()
+
+        _, log_record_error_code = self._send_sms(user=user, message=message, bundle_uuid=bundle_uuid)
+
+        if log_record_error_code is not None:
+            log_records_to_create = []
+            for notification in notifications:
+                log_record = UserNotificationPolicyLogRecord(
+                    author=user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    notification_policy=notification.notification_policy,
+                    alert_group=notification.alert_group,
+                    notification_error_code=log_record_error_code,
+                    notification_step=UserNotificationPolicy.Step.NOTIFY,
+                    notification_channel=UserNotificationPolicy.NotificationChannel.SMS,
+                )
+                log_records_to_create.append(log_record)
+            if log_records_to_create:
+                if log_record_error_code in UserNotificationPolicyLogRecord.ERRORS_TO_SEND_IN_SLACK_CHANNEL:
+                    # create last log record outside of the bulk_create to get it as an object to send
+                    # the user_notification_action_triggered_signal
+                    log_record = log_records_to_create.pop()
+                    log_record.save()
+                    user_notification_action_triggered_signal.send(
+                        sender=PhoneBackend.notify_by_sms_bundle, log_record=log_record
+                    )
+
+                UserNotificationPolicyLogRecord.objects.bulk_create(log_records_to_create, batch_size=5000)
+
+    def _send_sms(
+        self, user, message, alert_group=None, notification_policy=None, bundle_uuid=None
+    ) -> Tuple[bool, Optional[int]]:
+        from apps.base.models import UserNotificationPolicyLogRecord
+
+        log_record_error_code = None
         record = SMSRecord(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
             exceeded_limit=False,
+            represents_bundle_uuid=bundle_uuid,
         )
 
         try:
@@ -180,22 +268,7 @@ class PhoneBackend:
         except NumberNotVerified:
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED
 
-        if log_record_error_code is not None:
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=log_record_error_code,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
-            log_record.save()
-            user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_sms, log_record=log_record)
-
-    @staticmethod
-    def notify_by_sms_bundle_async(user, bundle_uuid):
-        pass  # todo: will be added in a separate PR
+        return log_record_error_code is None, log_record_error_code
 
     def _notify_by_provider_sms(self, user, message) -> Optional[ProviderSMS]:
         """

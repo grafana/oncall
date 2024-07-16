@@ -130,6 +130,7 @@ CELERY_TASK_ROUTES = {
         "queue": "critical"
     },
     "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "critical"},
+    "apps.phone_notifications.phone_backend.notify_by_sms_bundle_async_task": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # GRAFANA
