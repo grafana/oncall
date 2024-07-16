@@ -53,9 +53,7 @@ export class PluginStore {
 
   @AutoLoadingState(ActionKey.PLUGIN_VERIFY_CONNECTION)
   async verifyPluginConnection() {
-    const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {
-      method: 'POST',
-    });
+    const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {});
     runInAction(() => {
       this.connectionStatus = pluginConnection;
       this.isPluginConnected = Object.keys(pluginConnection).every(

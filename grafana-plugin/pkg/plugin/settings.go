@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -51,6 +52,12 @@ type OnCallPluginSettings struct {
 	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
+const CLOUD_VERSION_PATTERN = `^r\d+-v\d+\.\d+\.\d+$`
+const OSS_VERSION_PATTERN = `^v\d+\.\d+\.\d+$`
+const DEV_PATTERN = `dev-oss`
+const CLOUD_LICENSE_NAME = "Cloud"
+const OPEN_SOURCE_LICENSE_NAME = "OpenSource"
+
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
 	pluginContext := httpadapter.PluginConfigFromContext(ctx)
 	var pluginSettingsJson OnCallPluginSettingsJSONData
@@ -69,12 +76,32 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		GrafanaURL:   pluginSettingsJson.GrafanaURL,
 	}
 
+	if settings.License == "" {
+		cloudRe := regexp.MustCompile(CLOUD_VERSION_PATTERN)
+		ossRe := regexp.MustCompile(OSS_VERSION_PATTERN)
+		if pluginContext.PluginVersion == DEV_PATTERN {
+			return &settings, fmt.Errorf("plugin version is dev-oss license must be set in jsonData.license")
+		} else if cloudRe.MatchString(pluginContext.PluginVersion) {
+			settings.License = CLOUD_LICENSE_NAME
+		} else if ossRe.MatchString(pluginContext.PluginVersion) {
+			settings.License = OPEN_SOURCE_LICENSE_NAME
+		} else {
+			return &settings, fmt.Errorf("jsonData.license is not set and version %s did not match a known pattern", pluginContext.PluginVersion)
+		}
+	}
+
 	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])
 	cfg := backend.GrafanaConfigFromContext(ctx)
 	if settings.GrafanaURL == "" {
-		return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData): %v", settings)
+		appUrl, err := cfg.AppURL()
+		if err != nil {
+			return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData), unable to fallback to grafana cfg")
+		}
+		settings.GrafanaURL = appUrl
+		log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from grafana cfg app url: %s", settings.GrafanaURL))
+	} else {
+		log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 	}
-	log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 
 	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
 	if cfg.FeatureToggles().IsEnabled("externalServiceAccounts") {
@@ -163,7 +190,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 
 	res, err := a.httpClient.Do(req)
 	if err != nil {
-		return false, nil, fmt.Errorf("error making request: %v", err)
+		return false, nil, fmt.Errorf("error making request: %v, %v", err, reqURL)
 	}
 	defer res.Body.Close()
 

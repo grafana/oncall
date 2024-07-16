@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -115,6 +116,9 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 		log.DefaultLogger.Error("Error setting user header", "error", err)
 		return err
 	}
+
+	pluginContext := httpadapter.PluginConfigFromContext(ctx)
+	req.Header.Set("User-Agent", fmt.Sprintf("GrafanaOnCall/%s", pluginContext.PluginVersion))
 
 	return nil
 }
