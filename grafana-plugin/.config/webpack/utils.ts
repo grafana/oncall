@@ -29,6 +29,11 @@ export function getPluginJson() {
   return require(path.resolve(process.cwd(), `${SOURCE_DIR}/plugin.json`));
 }
 
+export function getCPConfigVersion() {
+  const cprcJson = path.resolve(__dirname, '../', '.cprc.json');
+  return fs.existsSync(cprcJson) ? require(cprcJson).version : { version: 'unknown' };
+}
+
 export function hasReadme() {
   return fs.existsSync(path.resolve(process.cwd(), SOURCE_DIR, 'README.md'));
 }

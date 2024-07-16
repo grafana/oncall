@@ -3,17 +3,17 @@
   "version": "dev-oss",
   "description": "Grafana OnCall Plugin",
   "scripts": {
-    "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 ./src ./e2e-tests",
-    "lint:fix": "eslint --max-warnings=0 --fix --cache --ext .js,.jsx,.ts,.tsx ./src ./e2e-tests",
+    "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
+    "lint:fix": "yarn run lint --fix",
     "stylelint": "stylelint ./src/**/*.{css,scss,module.css,module.scss}",
     "stylelint:fix": "stylelint --fix ./src/**/*.{css,scss,module.css,module.scss}",
-    "build": "NODE_ENV=production webpack -c ./webpack.config.ts --env production",
+    "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
     "build:dev": "NODE_ENV=development webpack -c ./webpack.config.ts --env development",
     "labels:link": "yarn --cwd ../../gops-labels/frontend link && yarn link \"@grafana/labels\" && yarn --cwd ../../gops-labels/frontend watch",
     "labels:unlink": "yarn --cwd ../../gops-labels/frontend unlink",
     "test-utc": "TZ=UTC jest --verbose --testNamePattern '^((?!@london-tz).)*$'",
     "test-london-tz": "TZ=Europe/London jest --verbose --testNamePattern '@london-tz'",
-    "test": "yarn test-utc && yarn test-london-tz",
+    "test": "jest --watch --onlyChanged",
     "test:report": "HTML_REPORT_ENABLED=true yarn test",
     "test:silent": "yarn test --silent",
     "test:e2e": "yarn playwright test --grep-invert @expensive",
@@ -30,7 +30,11 @@
     "setversion": "setversion",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "yarn typecheck --watch --preserveWatchOutput false",
-    "find-dead-code": "knip"
+    "find-dead-code": "knip",
+    "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
+    "test:ci": "jest --passWithNoTests --maxWorkers 4",
+    "e2e": "playwright test",
+    "server": "docker-compose up --build"
   },
   "repository": {
     "type": "git",
@@ -52,10 +56,10 @@
   "author": "Grafana Labs",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/eslint-config": "^6.0.0",
+    "@grafana/eslint-config": "^7.0.0",
     "@grafana/tsconfig": "^1.2.0-rc1",
     "@jest/globals": "^27.5.1",
-    "@playwright/test": "^1.41.0",
+    "@playwright/test": "^1.41.2",
     "@swc/core": "^1.3.90",
     "@swc/helpers": "^0.5.0",
     "@swc/jest": "^0.2.26",
@@ -125,7 +129,10 @@
     "webpack": "^5.86.0",
     "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "^5.1.4",
-    "webpack-livereload-plugin": "^3.0.2"
+    "webpack-livereload-plugin": "^3.0.2",
+    "@babel/core": "^7.21.4",
+    "@grafana/plugin-e2e": "^1.2.0",
+    "imports-loader": "^5.0.0"
   },
   "engines": {
     "node": "20.x"
@@ -136,14 +143,14 @@
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.1",
     "@emotion/css": "11.10.6",
-    "@grafana/data": "^10.2.3",
+    "@grafana/data": "^10.4.0",
     "@grafana/faro-web-sdk": "^1.4.2",
     "@grafana/faro-web-tracing": "^1.4.2",
     "@grafana/labels": "~1.5.1",
-    "@grafana/runtime": "^10.2.2",
+    "@grafana/runtime": "^10.4.0",
     "@grafana/scenes": "^1.28.0",
-    "@grafana/schema": "^10.2.2",
-    "@grafana/ui": "^10.2.0",
+    "@grafana/schema": "^10.4.0",
+    "@grafana/ui": "^10.4.0",
     "@lifeomic/attempt": "^3.0.3",
     "array-move": "^4.0.0",
     "axios": "^1.6.7",
@@ -171,7 +178,7 @@
     "react-hook-form": "^7.50.1",
     "react-modal": "^3.15.1",
     "react-responsive": "^8.1.0",
-    "react-router-dom": "5.3.3",
+    "react-router-dom": "^6.22.0",
     "react-sortable-hoc": "^1.11.0",
     "react-string-replace": "^0.4.4",
     "react-transition-group": "^4.4.5",
@@ -180,6 +187,7 @@
     "stylelint-config-standard": "^22.0.0",
     "throttle-debounce": "^2.1.0",
     "tinycolor2": "^1.6.0",
-    "tslib": "2.5.3"
+    "tslib": "2.5.3",
+    "rxjs": "7.8.1"
   }
 }
