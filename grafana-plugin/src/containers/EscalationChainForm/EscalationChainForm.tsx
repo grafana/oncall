@@ -1,8 +1,9 @@
-import React, { ChangeEvent, FC, useCallback, useState } from 'react';
+import React, { FC } from 'react';
 
 import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
@@ -25,6 +26,11 @@ interface EscalationChainFormProps {
   onSubmit: (id: EscalationChain['id']) => Promise<void>;
 }
 
+interface EscalationFormFields {
+  team: string;
+  name: string;
+}
+
 const cx = cn.bind(styles);
 
 export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props) => {
@@ -40,96 +46,131 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props
   } = store;
 
   const user = userStore.currentUser;
-
   const escalationChain = escalationChainId ? escalationChainStore.items[escalationChainId] : undefined;
+  const isCreateMode = mode === EscalationChainFormMode.Create;
+  const isCopyMode = mode === EscalationChainFormMode.Copy;
 
-  const [name, setName] = useState<string | undefined>(
-    mode === EscalationChainFormMode.Copy ? `${escalationChain?.name} copy` : escalationChain?.name
-  );
-  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(escalationChain?.team || user.current_team);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const formMethods = useForm<EscalationFormFields>({
+    mode: 'onChange',
+    defaultValues: {
+      team: escalationChain?.team || user.current_team,
+      name: isCopyMode ? `${escalationChain.name} copy` : '',
+    },
+  });
 
-  const onSubmit = useCallback(async () => {
-    let escalationChain: EscalationChain | void;
-
-    const isCreateMode = mode === EscalationChainFormMode.Create;
-    const isCopyMode = mode === EscalationChainFormMode.Copy;
-
-    if (isCreateMode) {
-      escalationChain = await escalationChainStore.create<EscalationChain>({ name, team: selectedTeam });
-    } else if (isCopyMode) {
-      escalationChain = await escalationChainStore.clone(escalationChainId, { name, team: selectedTeam });
-    } else {
-      escalationChain = await escalationChainStore.update<EscalationChain>(escalationChainId, {
-        name,
-        team: selectedTeam,
-      });
-    }
-
-    if (!escalationChain) {
-      let verb: string;
-
-      if (isCreateMode) {
-        verb = 'creating';
-      } else if (isCopyMode) {
-        verb = 'copying';
-      } else {
-        verb = 'updating';
-      }
-
-      openWarningNotification(`There was an issue ${verb} the escalation chain. Please try again`);
-      return;
-    }
-
-    try {
-      await onSubmitProp(escalationChain.id);
-      onHide();
-    } catch (err) {
-      setErrors({
-        name: err.response.data.name || err.response.data.detail || err.response.data.non_field_errors,
-      });
-    }
-  }, [name, selectedTeam, mode, onSubmitProp]);
-
-  const handleNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-  }, []);
+  const {
+    control,
+    setError,
+    getValues,
+    formState: { errors },
+    handleSubmit,
+  } = formMethods;
 
   return (
     <Modal isOpen title={`${mode} Escalation Chain`} onDismiss={onHide}>
       <div className={cx('root')}>
-        <Field label="Assign to team">
-          <GSelect<GrafanaTeam>
-            items={grafanaTeamItems}
-            fetchItemsFn={grafanaTeamStore.updateItems}
-            fetchItemFn={grafanaTeamStore.fetchItemById}
-            getSearchResult={grafanaTeamStore.getSearchResult}
-            displayField="name"
-            valueField="id"
-            allowClear
-            placeholder="Select a team"
-            className={cx('team-select')}
-            onChange={setSelectedTeam}
-            value={selectedTeam}
-          />
-        </Field>
-        <Field
-          invalid={Boolean(errors['name'])}
-          error={errors['name']}
-          label="Escalation Chain name"
-          data-testid="create-escalation-chain-name-input-modal"
-        >
-          <Input autoFocus value={name} onChange={handleNameChange} />
-        </Field>
-        <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={onHide}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={onSubmit}>
-            {`${mode} Escalation Chain`}
-          </Button>
-        </HorizontalGroup>
+        <FormProvider {...formMethods}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Controller
+              name={'team'}
+              control={control}
+              render={({ field }) => (
+                <Field label="Assign to team" invalid={Boolean(errors['team'])} error={errors['team']?.message}>
+                  <GSelect<GrafanaTeam>
+                    {...field}
+                    items={grafanaTeamItems}
+                    fetchItemsFn={grafanaTeamStore.updateItems}
+                    fetchItemFn={grafanaTeamStore.fetchItemById}
+                    getSearchResult={grafanaTeamStore.getSearchResult}
+                    displayField="name"
+                    valueField="id"
+                    allowClear
+                    placeholder="Select a team"
+                    className={cx('team-select')}
+                  />
+                </Field>
+              )}
+            />
+
+            <Controller
+              name={'name'}
+              control={control}
+              rules={{ required: 'Name is required' }}
+              render={({ field }) => (
+                <Field
+                  invalid={Boolean(errors['name'])}
+                  error={errors['name']?.message}
+                  label="Escalation Chain name"
+                  data-testid="create-escalation-chain-name-input-modal"
+                >
+                  <Input autoFocus {...field} />
+                </Field>
+              )}
+            />
+
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={onHide}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary">
+                {`${mode} Escalation Chain`}
+              </Button>
+            </HorizontalGroup>
+          </form>
+        </FormProvider>
       </div>
     </Modal>
   );
+
+  async function onSubmit() {
+    let escalationChain: EscalationChain | void;
+
+    const teamName = getValues('team');
+    const escalationChainName = getValues('name');
+
+    try {
+      if (isCreateMode) {
+        escalationChain = await escalationChainStore.create<EscalationChain>({
+          name: escalationChainName,
+          team: teamName,
+        });
+      } else if (isCopyMode) {
+        escalationChain = await escalationChainStore.clone(escalationChainId, {
+          name: escalationChainName,
+          team: teamName,
+        });
+      } else {
+        escalationChain = await escalationChainStore.update<EscalationChain>(escalationChainId, {
+          name: escalationChainName,
+          team: teamName,
+        });
+      }
+
+      if (!escalationChain) {
+        let verb: string;
+
+        if (isCreateMode) {
+          verb = 'creating';
+        } else if (isCopyMode) {
+          verb = 'copying';
+        } else {
+          verb = 'updating';
+        }
+
+        openWarningNotification(`There was an issue ${verb} the escalation chain. Please try again`);
+        return;
+      }
+
+      await onSubmitProp(escalationChain.id);
+      onHide();
+    } catch (err) {
+      if (err?.response?.data) {
+        const keys = Object.keys(err.response.data);
+        keys.forEach((key: keyof EscalationFormFields) => {
+          const message = Array.isArray(err.response.data[key]) ? err.response.data[key][0] : err.response.data[key];
+          setError('name', { message });
+        });
+      }
+    }
+  }
 });

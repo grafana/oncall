@@ -34,7 +34,7 @@ export class UserHelper {
   /**
    * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
    */
-  static async search(f: any = { searchTerm: '' }, page = 1) {
+  static async search(f: { search: string; is_currently_oncall?: boolean } | string = { search: '' }, page = 1) {
     const filters = typeof f === 'string' ? { search: f } : f; // for GSelect compatibility
     return (await onCallApi().GET('/users/', { params: { query: { ...filters, page } } })).data;
   }

@@ -2,7 +2,8 @@ import logging
 
 from django.urls import reverse
 
-from apps.alerts.signals import user_notification_action_triggered_signal
+from apps.alerts.models import BundledNotification
+from apps.alerts.tasks import send_update_log_report_signal
 from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS, TwilioSMSstatuses
 from common.api_helpers.utils import create_engine_url
 
@@ -20,7 +21,7 @@ def update_twilio_call_status(call_sid, call_status):
     Returns:
 
     """
-    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
     if call_sid and call_status:
         logger.info(f"twilioapp.update_twilio_call_status: processing sid={call_sid} status={call_status}")
@@ -68,19 +69,14 @@ def update_twilio_call_status(call_sid, call_status):
                 author=phone_call_record.receiver,
                 notification_policy=phone_call_record.notification_policy,
                 alert_group=phone_call_record.represents_alert_group,
-                notification_step=phone_call_record.notification_policy.step
-                if phone_call_record.notification_policy
-                else None,
-                notification_channel=phone_call_record.notification_policy.notify_by
-                if phone_call_record.notification_policy
-                else None,
+                notification_step=UserNotificationPolicy.Step.NOTIFY,
+                notification_channel=UserNotificationPolicy.NotificationChannel.PHONE_CALL,
             )
             log_record.save()
             logger.info(
                 f"twilioapp.update_twilio_call_status: created log_record log_record_id={log_record.id} "
                 f"type={log_record_type}"
             )
-            user_notification_action_triggered_signal.send(sender=update_twilio_call_status, log_record=log_record)
 
 
 def get_error_code_by_twilio_status(status):
@@ -106,7 +102,7 @@ def update_twilio_sms_status(message_sid, message_status):
     Returns:
 
     """
-    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
     if message_sid and message_status:
         logger.info(f"twilioapp.update_twilio_message_status: processing sid={message_sid} status={message_status}")
@@ -143,23 +139,44 @@ def update_twilio_sms_status(message_sid, message_status):
             log_record_type = UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
             log_record_error_code = get_sms_error_code_by_twilio_status(status_code)
         if log_record_type is not None:
-            log_record = UserNotificationPolicyLogRecord(
-                type=log_record_type,
-                notification_error_code=log_record_error_code,
-                author=sms_record.receiver,
-                notification_policy=sms_record.notification_policy,
-                alert_group=sms_record.represents_alert_group,
-                notification_step=sms_record.notification_policy.step if sms_record.notification_policy else None,
-                notification_channel=sms_record.notification_policy.notify_by
-                if sms_record.notification_policy
-                else None,
-            )
-            log_record.save()
-            logger.info(
-                f"twilioapp.update_twilio_sms_status: created log_record log_record_id={log_record.id} "
-                f"type={log_record_type}"
-            )
-            user_notification_action_triggered_signal.send(sender=update_twilio_sms_status, log_record=log_record)
+            if sms_record.represents_bundle_uuid:
+                notifications = BundledNotification.objects.filter(bundle_uuid=sms_record.represents_bundle_uuid)
+                log_records_to_create = []
+                for notification in notifications:
+                    log_record = UserNotificationPolicyLogRecord(
+                        type=log_record_type,
+                        notification_error_code=log_record_error_code,
+                        author=sms_record.receiver,
+                        notification_policy=notification.notification_policy,
+                        alert_group=notification.alert_group,
+                        notification_step=UserNotificationPolicy.Step.NOTIFY,
+                        notification_channel=UserNotificationPolicy.NotificationChannel.SMS,
+                    )
+                    log_records_to_create.append(log_record)
+                    # send send_update_log_report_signal with 10 seconds delay
+                    send_update_log_report_signal.apply_async(
+                        kwargs={"alert_group_pk": notification.alert_group_id}, countdown=10
+                    )
+                UserNotificationPolicyLogRecord.objects.bulk_create(log_records_to_create, batch_size=5000)
+                logger.info(
+                    f"twilioapp.update_twilio_sms_status: created log_records for sms bundle "
+                    f"{sms_record.represents_bundle_uuid} type={log_record_type}"
+                )
+            else:
+                log_record = UserNotificationPolicyLogRecord(
+                    type=log_record_type,
+                    notification_error_code=log_record_error_code,
+                    author=sms_record.receiver,
+                    notification_policy=sms_record.notification_policy,
+                    alert_group=sms_record.represents_alert_group,
+                    notification_step=UserNotificationPolicy.Step.NOTIFY,
+                    notification_channel=UserNotificationPolicy.NotificationChannel.SMS,
+                )
+                log_record.save()
+                logger.info(
+                    f"twilioapp.update_twilio_sms_status: created log_record log_record_id={log_record.id} "
+                    f"type={log_record_type}"
+                )
 
 
 def get_sms_error_code_by_twilio_status(status):
