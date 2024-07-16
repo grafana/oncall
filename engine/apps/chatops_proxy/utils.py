@@ -144,7 +144,9 @@ def uninstall_slack(stack_id: int, grafana_user_id: int) -> bool:
     """
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
-        removed, response = client.delete_oauth_installation(stack_id, PROVIDER_TYPE_SLACK, grafana_user_id)
+        removed, response = client.delete_oauth_installation(
+            stack_id, PROVIDER_TYPE_SLACK, grafana_user_id, SERVICE_TYPE_ONCALL
+        )
     except ChatopsProxyAPIException as api_exc:
         if api_exc.status == 404:
             return True
