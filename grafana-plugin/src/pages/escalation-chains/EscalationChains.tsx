@@ -3,7 +3,7 @@ import React from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -32,8 +32,13 @@ import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 import { getEscalationChainStyles } from './EscalationChains.styles';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
-interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+interface RouteProps {
+  id: string;
+}
+
+interface EscalationChainsPageProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -60,7 +65,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
     const {
       store,
-      match: {
+      router: {
         params: { id },
       },
     } = this.props;
@@ -101,9 +106,11 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 
   handleEsclalationSelect = (id: EscalationChain['id']) => {
-    const { history } = this.props;
+    const {
+      router: { navigate },
+    } = this.props;
 
-    history.push(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
+    navigate(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
   };
 
   setSelectedEscalationChain = async (escalationChainId: EscalationChain['id']) => {
@@ -119,7 +126,9 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 
   componentDidUpdate(prevProps: EscalationChainsPageProps) {
-    if (this.props.match.params.id !== prevProps.match.params.id) {
+    const { router } = this.props;
+
+    if (router.params.id !== prevProps.router.params.id) {
       this.parseQueryParams();
     }
   }
@@ -127,7 +136,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   render() {
     const {
       store,
-      match: {
+      router: {
         params: { id },
       },
       theme,
@@ -256,7 +265,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
   handleFiltersChange = (filters: FiltersValues, isOnMount = false) => {
     const {
-      match: {
+      router: {
         params: { id },
       },
     } = this.props;
@@ -272,7 +281,10 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 
   autoSelectEscalationChain = () => {
-    const { store, history } = this.props;
+    const {
+      store,
+      router: { navigate },
+    } = this.props;
     const { selectedEscalationChain } = this.state;
     const { escalationChainStore } = store;
 
@@ -280,7 +292,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
     if (!searchResult.find((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain)) {
       const id = searchResult[0]?.id;
-      history.push(`${PLUGIN_ROOT}/escalations/${id || ''}${window.location.search}`);
+      navigate(`${PLUGIN_ROOT}/escalations/${id || ''}${window.location.search}`);
     }
   };
 
@@ -400,11 +412,13 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 
   handleEscalationChainCreate = async (id: EscalationChain['id']) => {
     const { selectedEscalationChain } = this.state;
-    const { history } = this.props;
+    const {
+      router: { navigate },
+    } = this.props;
 
     await this.applyFilters();
 
-    history.push(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
+    navigate(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
 
     // because this page wouldn't detect query.id change
     if (selectedEscalationChain === id) {
@@ -444,7 +458,10 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 
   handleDeleteEscalationChain = async () => {
-    const { store, history } = this.props;
+    const {
+      store,
+      router: { navigate },
+    } = this.props;
     const { escalationChainStore } = store;
     const { selectedEscalationChain, extraEscalationChains } = this.state;
 
@@ -464,10 +481,9 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
     }
 
     const escalationChains = escalationChainStore.getSearchResult();
-
     const newSelected = escalationChains[index - 1] || escalationChains[0];
 
-    history.push(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
+    navigate(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
   };
 
   handleEscalationChainNameChange = (value: string) => {
@@ -480,4 +496,6 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
   };
 }
 
-export const EscalationChainsPage = withRouter(withMobXProviderContext(withTheme2(_EscalationChainsPage)));
+export const EscalationChainsPage = withRouter<RouteProps, EscalationChainsPageProps>(
+  withMobXProviderContext(withTheme2(_EscalationChainsPage))
+); // as unknown as React.ComponentClass<Omit<EscalationChainsPageProps, 'store'>>;

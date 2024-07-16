@@ -17,7 +17,6 @@ import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { CardButton } from 'components/CardButton/CardButton';
@@ -61,13 +60,19 @@ import { TableColumn } from 'utils/types';
 
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceSelect } from './parts/SilenceSelect';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
+import { getIncidentsStyles } from './Incidents.styles';
 
 interface Pagination {
   start: number;
   end: number;
 }
 
-interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {
+interface RouteProps {
+  id: string;
+}
+
+interface IncidentsPageProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -124,7 +129,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     store.alertGroupStore.incidentsCursor = cursorQuery || undefined;
 
     this.rootElRef = React.createRef<HTMLDivElement>();
-
     this.state = {
       selectedIncidentIds: [],
       showAddAlertGroupForm: false,
@@ -159,14 +163,16 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 
   render() {
-    const { history } = this.props;
+    const {
+      router: { navigate },
+    } = this.props;
     const { showAddAlertGroupForm } = this.state;
 
     const {
       theme,
       store: { alertReceiveChannelStore },
     } = this.props;
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     return (
       <>
@@ -191,7 +197,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
               this.setState({ showAddAlertGroupForm: false });
             }}
             onCreate={(id: ApiSchemas['AlertGroup']['pk']) => {
-              history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
+              navigate(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
             alertReceiveChannelStore={alertReceiveChannelStore}
           />
@@ -211,7 +217,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { stats } = store.alertGroupStore;
 
     const status = values.status || [];
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     return (
       <div className={cx(styles.cards, styles.row)}>
@@ -314,7 +320,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderIncidentFilters() {
     const { query, store, theme } = this.props;
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     return (
       <div className={styles.filters}>
@@ -445,7 +451,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       ActionKey.INCIDENTS_BULK_UPDATE,
     ]);
 
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
     const isBulkUpdate = LoaderHelper.isLoading(store.loaderStore, ActionKey.INCIDENTS_BULK_UPDATE);
 
     return (
@@ -528,7 +534,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const isLoading =
       LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     if (results && !results.length) {
       return (
@@ -991,119 +997,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 }
 
-const getStyles = (theme: GrafanaTheme2) => {
-  return {
-    select: css`
-      width: 400px;
-    `,
-
-    bau: css`
-      ${[1, 2, 3].map(
-        (num) => `
-      $--line-${num} {
-        -webkit-line-clamp: ${num}
-      }
-    `
-      )}
-    `,
-
-    actionButtons: css`
-      width: 100%;
-      justify-content: flex-end;
-    `,
-
-    filters: css`
-      margin-bottom: 20px;
-    `,
-
-    fieldsDropdown: css`
-      gap: 8px;
-      display: flex;
-      margin-left: auto;
-      align-items: center;
-      padding-left: 4px;
-    `,
-
-    aboveIncidentsTable: css`
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    `,
-
-    horizontalScrollTable: css`
-      table td:global(.rc-table-cell) {
-        white-space: nowrap;
-        padding-right: 16px;
-      }
-    `,
-
-    bulkActionsContainer: css`
-      margin: 10px 0 10px 0;
-      display: flex;
-      width: 100%;
-    `,
-
-    bulkActionsList: css`
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    `,
-
-    otherUsers: css`
-      color: ${theme.colors.secondary.text};
-    `,
-
-    pagination: css`
-      width: 100%;
-      margin-top: 20px;
-    `,
-
-    title: css`
-      margin-bottom: 24px;
-      right: 0;
-    `,
-
-    btnResults: css`
-      margin-left: 8px;
-    `,
-
-    /* filter cards */
-
-    cards: css`
-      margin-top: 25px;
-    `,
-
-    row: css`
-      display: flex;
-      flex-wrap: wrap;
-      margin-left: -8px;
-      margin-right: -8px;
-      row-gap: 16px;
-    `,
-
-    loadingPlaceholder: css`
-      margin-bottom: 0;
-      text-align: center;
-    `,
-
-    col: css`
-      padding-left: 8px;
-      padding-right: 8px;
-      display: block;
-      flex: 0 0 25%;
-      max-width: 25%;
-
-      @media (max-width: 1200px) {
-        flex: 0 0 50%;
-        max-width: 50%;
-      }
-
-      @media (max-width: 800px) {
-        flex: 0 0 100%;
-        max-width: 100%;
-      }
-    `,
-  };
-};
-
-export const IncidentsPage = withRouter(withMobXProviderContext(withTheme2(_IncidentsPage)));
+export const IncidentsPage = withRouter<RouteProps, IncidentsPageProps>(
+  withMobXProviderContext(withTheme2(_IncidentsPage))
+);

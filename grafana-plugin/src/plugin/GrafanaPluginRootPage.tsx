@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
 import { Header } from 'navbar/Header/Header';
 import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
-import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -128,82 +128,63 @@ export const Root = observer((props: AppRootProps) => {
             shouldRender={isBasicDataLoaded}
             backupChildren={<LoadingPlaceholder text="Loading..." />}
           >
-            <Switch>
-              <Route path={getRoutesForPage('alert-groups')} exact>
+            <Routes>
+              <Route path={getRoutesForPage('alert-groups')}>
                 <IncidentsPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('alert-group')} exact>
+              <Route path={getRoutesForPage('alert-group')}>
                 <IncidentPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('users')} exact>
+              <Route path={getRoutesForPage('users')}>
                 <UsersPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('integrations')} exact>
+              <Route path={getRoutesForPage('integrations')}>
                 <IntegrationsPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('integration')} exact>
+              <Route path={getRoutesForPage('integration')}>
                 <IntegrationPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('escalations')} exact>
+              <Route path={getRoutesForPage('escalations')}>
                 <EscalationChainsPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('schedules')} exact>
+              <Route path={getRoutesForPage('schedules')}>
                 <SchedulesPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('schedule')} exact>
+              <Route path={getRoutesForPage('schedule')}>
                 <SchedulePage query={query} />
               </Route>
-              <Route path={getRoutesForPage('outgoing_webhooks')} exact>
+              <Route path={getRoutesForPage('outgoing_webhooks')}>
                 <OutgoingWebhooksPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('settings')} exact>
+              <Route path={getRoutesForPage('settings')}>
                 <SettingsPage />
               </Route>
-              <Route path={getRoutesForPage('chat-ops')} exact>
+              <Route path={getRoutesForPage('chat-ops')}>
                 <ChatOpsPage query={query} />
               </Route>
-              <Route path={getRoutesForPage('live-settings')} exact>
+              <Route path={getRoutesForPage('live-settings')}>
                 <LiveSettings />
               </Route>
-              <Route path={getRoutesForPage('cloud')} exact>
+              <Route path={getRoutesForPage('cloud')}>
                 <CloudPage />
               </Route>
-              <Route path={getRoutesForPage('insights')} exact>
+              <Route path={getRoutesForPage('insights')}>
                 <Insights />
               </Route>
 
-              {/* Backwards compatibility redirect routes */}
-              <Route
-                path={getRoutesForPage('incident')}
-                exact
-                render={({ location }) => (
-                  <Redirect
-                    to={{
-                      ...location,
-                      pathname: location.pathname.replace(/incident/, 'alert-group'),
-                    }}
-                  ></Redirect>
-                )}
-              />
-              <Route
-                path={getRoutesForPage('incidents')}
-                exact
-                render={({ location }) => (
-                  <Redirect
-                    to={{
-                      ...location,
-                      pathname: location.pathname.replace(/incidents/, 'alert-groups'),
-                    }}
-                  ></Redirect>
-                )}
-              />
+              <Route path={getRoutesForPage('incident')} element={<Navigate to="alert-group" replace />} />
+
+              <Route path={getRoutesForPage('incidents')} element={<Navigate to="alert-groups" replace />} />
+
               <Route path="*">
                 <NoMatch />
               </Route>
-            </Switch>
+            </Routes>
           </RenderConditionally>
         </RenderConditionally>
       </div>
     </DefaultPageLayout>
   );
 });
+
+const;
