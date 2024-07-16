@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('base', '0005_drop_unused_dynamic_settings'),
         ('user_management', '0022_alter_team_unique_together'),
-        ('alerts', '0051_remove_escalationpolicy_custom_button_trigger'),
+        ('alerts', '0053_channelfilter_filtering_labels'),
     ]
 
     operations = [
