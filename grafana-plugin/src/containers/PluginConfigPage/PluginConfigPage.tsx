@@ -235,6 +235,11 @@ const PluginConfigAlert = observer(() => {
   if (!connectionStatus) {
     return null;
   }
+
+  const errors = Object.values(connectionStatus)
+    .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
+    .map(({ error }) => <li key={error}>{error}</li>);
+
   if (isPluginConnected) {
     return (
       <Alert severity="success" title="Plugin is connected">
@@ -250,13 +255,7 @@ const PluginConfigAlert = observer(() => {
       shouldRender={showAlert}
       render={() => (
         <Alert severity="error" title="Plugin is not connected" onRemove={() => setShowAlert(false)}>
-          <ol className="u-margin-bottom-md">
-            {Object.values(connectionStatus)
-              .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
-              .map(({ error }) => (
-                <li key={error}>{error}</li>
-              ))}
-          </ol>
+          <ol className="u-margin-bottom-md">{errors}</ol>
           <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
             <Text type="link">Reload</Text>
           </a>
