@@ -67,7 +67,7 @@
     "@types/jest": "^29.5.0",
     "@types/lodash": "^4.14.194",
     "@types/lodash-es": "^4.17.6",
-    "@types/node": "^20.8.7",
+    "@types/node": "^20.14.10",
     "@types/query-string": "^6.3.0",
     "@types/react-copy-to-clipboard": "^5.0.4",
     "@types/react-dom": "^18.0.6",
@@ -128,7 +128,7 @@
     "webpack-livereload-plugin": "^3.0.2"
   },
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.0.8",
@@ -181,5 +181,6 @@
     "throttle-debounce": "^2.1.0",
     "tinycolor2": "^1.6.0",
     "tslib": "2.5.3"
-  }
+  },
+  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
 }
