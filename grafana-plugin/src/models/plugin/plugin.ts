@@ -90,4 +90,9 @@ export class PluginStore {
     await GrafanaApiClient.recreateGrafanaTokenAndSaveInPluginSettings();
     await this.verifyPluginConnection();
   }
+
+  async enablePlugin() {
+    await GrafanaApiClient.updateGrafanaPluginSettings({}, true);
+    location.reload();
+  }
 }

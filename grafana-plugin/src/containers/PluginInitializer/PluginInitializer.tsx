@@ -49,7 +49,7 @@ const PluginNotConnectedFullPageError = observer(() => {
 
   return (
     <FullPageError
-      title="Oh Snap!"
+      title="Plugin not connected"
       subtitle={
         <>
           Looks like OnCall plugin hasn't been connected yet or has been misconfigured. <br />

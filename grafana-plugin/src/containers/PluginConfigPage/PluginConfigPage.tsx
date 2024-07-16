@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
 import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
+import { useHistory } from 'react-router-dom';
 import { OnCallPluginMetaJSONData } from 'types';
 
 import { Button } from 'components/Button/Button';
 import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleTreeView';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
 import { rootStore } from 'state/rootStore';
 import {
+  DEFAULT_PAGE,
   DOCS_ONCALL_OSS_INSTALL,
   DOCS_SERVICE_ACCOUNTS,
   PLUGIN_CONFIG,
@@ -42,27 +45,29 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
       <Text.Title level={3} className="u-margin-bottom-md">
         Configure Grafana OnCall
       </Text.Title>
-      {props.plugin.meta.enabled && <PluginConfigAlert />}
-      {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage />}
+      {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage {...props} />}
     </VerticalGroup>
   );
 });
 
-const CloudPluginConfigPage = observer(() => {
-  const {
-    pluginStore: { isPluginConnected },
-  } = rootStore;
-  const styles = useStyles2(getStyles);
+const CloudPluginConfigPage = observer(
+  ({ plugin: { meta } }: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
+    const {
+      pluginStore: { isPluginConnected },
+    } = rootStore;
+    const styles = useStyles2(getStyles);
 
-  return (
-    <>
-      <Text type="secondary" className={styles.secondaryTitle}>
-        This is a cloud-managed configuration.
-      </Text>
-      {!isPluginConnected && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
-    </>
-  );
-});
+    return (
+      <>
+        <Text type="secondary" className={styles.secondaryTitle}>
+          This is a cloud-managed configuration.
+        </Text>
+        {meta.enabled && <PluginConfigAlert />}
+        {!isPluginConnected && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
+      </>
+    );
+  }
+);
 
 const OSSPluginConfigPage = observer(
   ({ plugin: { meta } }: PluginConfigPageProps<PluginMeta<OnCallPluginMetaJSONData>>) => {
@@ -73,9 +78,12 @@ const OSSPluginConfigPage = observer(
         recreateServiceAccountAndRecheckPluginStatus,
         isPluginConnected,
         appliedOnCallApiUrl,
+        enablePlugin,
       },
       loaderStore,
     } = rootStore;
+    const [hasBeenReconnected, setHasBeenReconnected] = useState(false);
+    const { push } = useHistory();
     const styles = useStyles2(getStyles);
     const { handleSubmit, control, formState } = useForm<PluginConfigFormValues>({
       mode: 'onChange',
@@ -86,11 +94,14 @@ const OSSPluginConfigPage = observer(
 
     const isSubmitButtonDisabled = !formState.isValid || !meta.enabled || isReinitializating;
 
+    const showAlert = meta.enabled && (!isPluginConnected || hasBeenReconnected);
+
     const onSubmit = async (values: PluginConfigFormValues) => {
       await updatePluginSettingsAndReinitializePlugin({
         currentJsonData: meta.jsonData,
         newJsonData: { onCallApiUrl: values.onCallApiUrl },
       });
+      setHasBeenReconnected(true);
     };
 
     const getCheckOrTextIcon = (isOk: boolean) => (isOk ? { customIcon: 'check' as const } : { isTextIcon: true });
@@ -101,6 +112,11 @@ const OSSPluginConfigPage = observer(
         <Text type="secondary" className={styles.secondaryTitle}>
           Make sure that OnCall plugin has been enabled.
         </Text>
+        {!meta.enabled && (
+          <Button variant="secondary" onClick={enablePlugin}>
+            Enable
+          </Button>
+        )}
       </>
     );
 
@@ -154,7 +170,15 @@ const OSSPluginConfigPage = observer(
             )}
           />
           <HorizontalGroup>
-            <Button type="submit" disabled={isSubmitButtonDisabled} data-testid="connect-plugin">
+            {isPluginConnected && (
+              <Button onClick={() => push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>
+            )}
+            <Button
+              type="submit"
+              disabled={isSubmitButtonDisabled}
+              data-testid="connect-plugin"
+              variant={isPluginConnected ? 'secondary' : 'primary'}
+            >
               {isPluginConnected ? 'Reconnect' : 'Connect'}
             </Button>
             {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
@@ -191,6 +215,7 @@ const OSSPluginConfigPage = observer(
         <Text type="secondary" className={styles.secondaryTitle}>
           This page will help you to connect OnCall backend and OnCall Grafana plugin.
         </Text>
+        {showAlert && <PluginConfigAlert />}
         <CollapsibleTreeView className={styles.treeView} configElements={configElements} />
       </div>
     );
@@ -201,6 +226,11 @@ const PluginConfigAlert = observer(() => {
   const {
     pluginStore: { connectionStatus, isPluginConnected },
   } = rootStore;
+  const [showAlert, setShowAlert] = useState(true);
+
+  useEffect(() => {
+    setShowAlert(true);
+  }, [connectionStatus]);
 
   if (!connectionStatus) {
     return null;
@@ -216,18 +246,23 @@ const PluginConfigAlert = observer(() => {
     );
   }
   return (
-    <Alert severity="error" title="Plugin is not connected">
-      <ol className="u-margin-bottom-md">
-        {Object.values(connectionStatus)
-          .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
-          .map(({ error }) => (
-            <li key={error}>{error}</li>
-          ))}
-      </ol>
-      <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
-        <Text type="link">Reload</Text>
-      </a>
-    </Alert>
+    <RenderConditionally
+      shouldRender={showAlert}
+      render={() => (
+        <Alert severity="error" title="Plugin is not connected" onRemove={() => setShowAlert(false)}>
+          <ol className="u-margin-bottom-md">
+            {Object.values(connectionStatus)
+              .filter(({ ok, error }) => !ok && Boolean(error) && error !== 'Not validated')
+              .map(({ error }) => (
+                <li key={error}>{error}</li>
+              ))}
+          </ol>
+          <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
+            <Text type="link">Reload</Text>
+          </a>
+        </Alert>
+      )}
+    />
   );
 });
 
