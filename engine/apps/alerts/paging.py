@@ -187,8 +187,7 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
             user_has_notification = UserHasNotification.objects.filter(
                 user=user, alert_group=alert_group
             ).select_for_update()[0]
-            user_has_notification.active_notification_policy_id = None
-            user_has_notification.save(update_fields=["active_notification_policy_id"])
+            user_has_notification.update_active_task_id(task_id=None)
     except IndexError:
         return
     finally:

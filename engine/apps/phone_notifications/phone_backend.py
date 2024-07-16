@@ -270,6 +270,10 @@ class PhoneBackend:
 
         return log_record_error_code is None, log_record_error_code
 
+    @staticmethod
+    def notify_by_sms_bundle_async(user, bundle_uuid):
+        pass  # todo: will be added in a separate PR
+
     def _notify_by_provider_sms(self, user, message) -> Optional[ProviderSMS]:
         """
         _notify_by_provider_sms sends a notification sms using configured phone provider.

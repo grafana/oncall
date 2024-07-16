@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 const radius = '2px' as string;
 
@@ -30,7 +30,7 @@ export const getScheduleQualityProgressBarStyles = (theme: GrafanaTheme2) => {
     `,
 
     row: css`
-      background-color: ${COLORS.GRAY_8};
+      background-color: ${Colors.GRAY_8};
 
       &:first-child,
       &:first-child > .bar {

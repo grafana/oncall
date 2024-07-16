@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
   return {
@@ -54,7 +54,7 @@ export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
       position: absolute;
       top: 0;
       left: -30px;
-      color: ${COLORS.ALWAYS_GREY};
+      color: ${Colors.ALWAYS_GREY};
       width: 28px;
       height: 28px;
       text-align: center;
@@ -70,7 +70,7 @@ export const getIntegrationCollapsibleTreeStyles = (theme: GrafanaTheme2) => {
 
       path {
         // this will overwrite all icons below to be gray
-        fill: ${COLORS.ALWAYS_GREY};
+        fill: ${Colors.ALWAYS_GREY};
       }
     `,
 

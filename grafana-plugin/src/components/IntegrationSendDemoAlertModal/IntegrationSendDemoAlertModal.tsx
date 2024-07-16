@@ -6,7 +6,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { debounce } from 'throttle-debounce';
 
-import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MonacoLanguage } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
@@ -74,7 +74,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
             disabled={true}
             height={`60vh`}
             useAutoCompleteList={false}
-            language={MONACO_LANGUAGE.json}
+            language={MonacoLanguage.json}
             data={undefined}
             monacoOptions={MONACO_EDITABLE_CONFIG}
             showLineNumbers={false}
