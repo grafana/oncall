@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone
 from telegram.error import RetryAfter
 
 from apps.alerts.models import AlertGroup
-from apps.alerts.tasks.notify_user import notify_user_task, perform_notification
+from apps.alerts.tasks.notify_user import notify_user_task, perform_notification, send_bundled_notification
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models.user_notification_policy import UserNotificationPolicy
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
@@ -369,3 +370,207 @@ def test_perform_notification_use_default_notification_policy_fallback(
     perform_notification(log_record.pk, True)
 
     mock_notify_user.assert_called_once_with(user, alert_group, fallback_notification_policy)
+
+
+@pytest.mark.django_db
+def test_notify_user_task_notification_bundle_is_enabled(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_alert_group,
+    settings,
+):
+    settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED = True
+    organization, user_1 = make_organization_and_user()
+    user_2 = make_user_for_organization(organization)
+    make_user_notification_policy(
+        user=user_1,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,  # channel is in NOTIFICATION_CHANNELS_TO_BUNDLE
+    )
+    make_user_notification_policy(
+        user=user_1,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
+        important=True,
+    )
+    make_user_notification_policy(
+        user=user_2,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SLACK,  # channel is not in NOTIFICATION_CHANNELS_TO_BUNDLE
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group_1 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    assert not user_1.notification_bundles.exists()
+    # send 1st notification to user_1, check notification_bundle was created
+    # without scheduling send_bundled_notification task
+    notify_user_task(user_1.id, alert_group_1.id)
+    assert user_1.notification_bundles.count() == 1
+    notification_bundle = user_1.notification_bundles.first()
+    assert notification_bundle.notification_task_id is None
+    assert not notification_bundle.notifications.exists()
+    # send 2nd notification to user_1, check bundled notification was attached to notification_bundle
+    # and send_bundled_notification was scheduled
+    notify_user_task(user_1.id, alert_group_2.id)
+    notification_bundle.refresh_from_db()
+    assert notification_bundle.notifications.count() == 1
+    assert notification_bundle.notification_task_id is not None
+    # send important notification to user_1, check new notification_bundle was created
+    notify_user_task(user_1.id, alert_group_1.id, important=True)
+    assert user_1.notification_bundles.count() == 2
+    important_notification_bundle = user_1.notification_bundles.get(important=True)
+    assert important_notification_bundle.notification_task_id is None
+    assert not important_notification_bundle.notifications.exists()
+    # send notification to user_2 (notification channel is not in NOTIFICATION_CHANNELS_TO_BUNDLE),
+    # check notification_bundle was not created
+    notify_user_task(user_2.id, alert_group_1.id)
+    assert not user_2.notification_bundles.exists()
+
+
+@pytest.mark.django_db
+def test_notify_user_task_notification_bundle_is_not_enabled(
+    make_organization_and_user,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_alert_group,
+    settings,
+):
+    settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED = False
+    organization, user = make_organization_and_user()
+    make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,  # channel is in NOTIFICATION_CHANNELS_TO_BUNDLE
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+
+    # send notification, check notification_bundle was not created
+    notify_user_task(user.id, alert_group.id)
+    assert not user.notification_bundles.exists()
+
+
+@pytest.mark.django_db
+def test_send_bundle_notification(
+    make_organization_and_user,
+    make_user_notification_policy,
+    make_user_notification_bundle,
+    make_alert_receive_channel,
+    make_alert_group,
+    settings,
+    caplog,
+):
+    settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED = True
+    organization, user = make_organization_and_user()
+    notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,  # channel is in NOTIFICATION_CHANNELS_TO_BUNDLE
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group_1 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    alert_group_3 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    notification_bundle = make_user_notification_bundle(
+        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id="test_task_id", eta=timezone.now()
+    )
+    notification_bundle.append_notification(alert_group_1, notification_policy)
+    notification_bundle.append_notification(alert_group_2, notification_policy)
+    notification_bundle.append_notification(alert_group_3, notification_policy)
+    assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 3
+    alert_group_3.resolve()
+    with patch("apps.alerts.tasks.notify_user.compare_escalations", return_value=True):
+        # send notification for 2 active alert groups
+        send_bundled_notification(notification_bundle.id)
+        assert f"alert_group {alert_group_3.id} is not active, skip notification" in caplog.text
+        assert "perform bundled notification for alert groups with ids:" in caplog.text
+        # check bundle_uuid was set, notification for resolved alert group was deleted
+        assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
+        assert notification_bundle.notifications.all().count() == 2
+        assert not notification_bundle.notifications.filter(alert_group=alert_group_3).exists()
+
+        # send notification for 1 active alert group
+        notification_bundle.notifications.update(bundle_uuid=None)
+        alert_group_2.resolve()
+        send_bundled_notification(notification_bundle.id)
+        assert f"alert_group {alert_group_2.id} is not active, skip notification" in caplog.text
+        assert (
+            f"there is only one alert group in bundled notification, perform regular notification. "
+            f"alert_group {alert_group_1.id}"
+        ) in caplog.text
+        # check all notifications were deleted
+        assert notification_bundle.notifications.all().count() == 0
+
+        # send notification for 0 active alert group
+        notification_bundle.append_notification(alert_group_1, notification_policy)
+        alert_group_1.resolve()
+        send_bundled_notification(notification_bundle.id)
+        assert f"alert_group {alert_group_1.id} is not active, skip notification" in caplog.text
+        assert f"no alert groups to notify about or notification is not allowed for user {user.id}" in caplog.text
+        # check all notifications were deleted
+        assert notification_bundle.notifications.all().count() == 0
+
+
+@pytest.mark.django_db
+def test_send_bundle_notification_task_id_mismatch(
+    make_organization_and_user,
+    make_user_notification_bundle,
+    settings,
+    caplog,
+):
+    settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED = True
+    organization, user = make_organization_and_user()
+    notification_bundle = make_user_notification_bundle(
+        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id="test_task_id", eta=timezone.now()
+    )
+    send_bundled_notification(notification_bundle.id)
+    assert (
+        f"send_bundled_notification: notification_task_id mismatch. "
+        f"Duplication or non-active notification triggered. "
+        f"Active: {notification_bundle.notification_task_id}"
+    ) in caplog.text
+
+
+@pytest.mark.django_db
+def test_notify_user_task_notification_bundle_eta_is_outdated(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_user_notification_policy,
+    make_user_notification_bundle,
+    make_alert_receive_channel,
+    make_alert_group,
+    settings,
+):
+    settings.FEATURE_NOTIFICATION_BUNDLE_ENABLED = True
+    organization, user = make_organization_and_user()
+    notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,  # channel is in NOTIFICATION_CHANNELS_TO_BUNDLE
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group_1 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel=alert_receive_channel)
+    now = timezone.now()
+    outdated_eta = now - timezone.timedelta(minutes=5)
+    test_task_id = "test_task_id"
+    notification_bundle = make_user_notification_bundle(
+        user,
+        UserNotificationPolicy.NotificationChannel.SMS,
+        eta=outdated_eta,
+        notification_task_id=test_task_id,
+        last_notified_at=now,
+    )
+    notification_bundle.append_notification(alert_group_1, notification_policy)
+    assert not notification_bundle.eta_is_valid()
+    assert notification_bundle.notifications.count() == 1
+
+    # call notify_user_task and check that new notification task for notification_bundle was scheduled
+    notify_user_task(user.id, alert_group_2.id)
+    notification_bundle.refresh_from_db()
+    assert notification_bundle.eta_is_valid()
+    assert notification_bundle.notification_task_id != test_task_id
+    assert notification_bundle.last_notified_at == now
+    assert notification_bundle.notifications.count() == 2
