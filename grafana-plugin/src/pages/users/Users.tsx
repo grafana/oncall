@@ -46,7 +46,7 @@ interface UsersState extends PageBaseState {
   isWrongTeam: boolean;
   userPkToEdit?: ApiSchemas['User']['pk'] | 'new';
 
-  filters: RemoteFiltersType;
+  filters: { search: ''; type: undefined; used: undefined; mine: undefined };
 }
 
 @observer
@@ -62,7 +62,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.state = {
       isWrongTeam: false,
       userPkToEdit: undefined,
-      filters: { searchTerm: '', type: undefined, used: undefined, mine: undefined },
+      filters: { search: '', type: undefined, used: undefined, mine: undefined },
 
       errorData: initErrorDataState(),
     };
@@ -246,7 +246,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   }
 
-  handleFiltersChange = (filters: RemoteFiltersType, _isOnMount: boolean) => {
+  handleFiltersChange = (filters: UsersState['filters'], _isOnMount: boolean) => {
     const { filtersStore } = this.props.store;
     const currentTablePage = filtersStore.currentTablePageNum[PAGE.Users];
 

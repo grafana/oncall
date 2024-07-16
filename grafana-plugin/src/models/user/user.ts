@@ -38,7 +38,7 @@ export class UserStore {
   }
 
   async fetchItems(
-    f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    f: { search: ''; type?: string; used?: boolean; mine?: boolean } | string = { search: '' },
     page = 1,
     invalidateFn?: () => boolean
   ): Promise<any> {
