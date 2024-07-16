@@ -48,7 +48,12 @@ const FORWARD_RADIO_OPTIONS = [
 
 export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps> = observer(
   ({ preset, hasLabelsFeature, onTemplateEditClick }) => {
-    const { grafanaTeamStore, alertReceiveChannelStore } = useStore();
+    const {
+      grafanaTeamStore,
+      // dereferencing items is needed to rerender GSelect
+      grafanaTeamStore: { items: grafanaTeamItems },
+      alertReceiveChannelStore,
+    } = useStore();
     const { items, fetchItems, fetchItemById } = alertReceiveChannelStore;
     const {
       control,
@@ -98,7 +103,7 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
             >
               <GSelect<GrafanaTeam>
                 allowClear
-                items={grafanaTeamStore.items}
+                items={grafanaTeamItems}
                 fetchItemsFn={grafanaTeamStore.updateItems}
                 fetchItemFn={grafanaTeamStore.fetchItemById}
                 getSearchResult={grafanaTeamStore.getSearchResult}

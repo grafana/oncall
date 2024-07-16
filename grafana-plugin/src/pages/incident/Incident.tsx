@@ -27,7 +27,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
-import { COLORS, getLabelBackgroundTextColorObject } from 'styles/utils.styles';
+import { Colors, getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -984,7 +984,7 @@ const getStyles = (theme: GrafanaTheme2) => {
 
     incidentsContent: css`
       > div:not(:last-child) {
-        border-bottom: 1px solid ${COLORS.BORDER};
+        border-bottom: 1px solid ${Colors.BORDER};
         padding-bottom: 16px;
       }
 

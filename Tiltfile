@@ -175,7 +175,7 @@ cmd_button(
 helm_oncall_values = ["./dev/helm-local.yml", "./dev/helm-local.dev.yml"]
 if is_ci:
     helm_oncall_values = helm_oncall_values + ["./.github/helm-ci.yml"]
-yaml = helm("helm/oncall", name=HELM_PREFIX, values=helm_oncall_values, set=twilio_values)
+yaml = helm("helm/oncall", name=HELM_PREFIX, values=helm_oncall_values, set=twilio_values, namespace="default")
 
 k8s_yaml(yaml)
 

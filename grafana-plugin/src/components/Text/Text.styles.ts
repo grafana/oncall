@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 export const getTextStyles = (theme: GrafanaTheme2) => {
   return {
@@ -36,7 +36,7 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
       }
 
       &--success {
-        color: ${COLORS.GREEN_5};
+        color: ${Colors.GREEN_5};
       }
 
       &--strong {
