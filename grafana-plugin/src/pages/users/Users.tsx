@@ -19,7 +19,6 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
-import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserHelper } from 'models/user/user.helpers';
