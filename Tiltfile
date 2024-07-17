@@ -110,13 +110,13 @@ profiles = get_profiles()
 if 'grafana' in profiles:
     load_grafana()
 if 'plugin' in profiles:
-    include("tilt/plugin/Tiltfile")
+    include(".tilt/plugin/Tiltfile")
 if 'backend' in profiles:
     load_oncall_helm()
-    include("tilt/backend/Tiltfile")
-    include("tilt/deps/Tiltfile")
+    include(".tilt/backend/Tiltfile")
+    include(".tilt/deps/Tiltfile")
 if 'tests' in profiles:
-    include("tilt/tests/Tiltfile")
+    include(".tilt/tests/Tiltfile")
 
 # name all tilt resources after the k8s object namespace + name
 def resource_name(id):
