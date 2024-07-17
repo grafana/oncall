@@ -7,6 +7,8 @@ from rest_framework.test import APIRequestFactory
 
 from apps.auth_token.auth import PluginAuthentication
 
+INSTANCE_CONTEXT = '{"stack_id": 42, "org_id": 24, "grafana_token": "abc"}'
+
 
 @pytest.mark.django_db
 def test_plugin_authentication_self_hosted_success(make_organization, make_user, make_token_for_organization):
@@ -16,7 +18,7 @@ def test_plugin_authentication_self_hosted_success(make_organization, make_user,
 
     headers = {
         "HTTP_AUTHORIZATION": token_string,
-        "HTTP_X-Instance-Context": '{"stack_id": 42, "org_id": 24}',
+        "HTTP_X-Instance-Context": INSTANCE_CONTEXT,
         "HTTP_X-Grafana-Context": '{"UserId": 12}',
     }
     request = APIRequestFactory().get("/", **headers)
@@ -28,13 +30,13 @@ def test_plugin_authentication_self_hosted_success(make_organization, make_user,
 def test_plugin_authentication_gcom_success(make_organization, make_user, make_token_for_organization):
     # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
     organization = make_organization(
-        stack_id=42, org_id=24, gcom_token="123", gcom_token_org_last_time_synced=timezone.now()
+        stack_id=42, org_id=24, gcom_token="123", api_token="abc", gcom_token_org_last_time_synced=timezone.now()
     )
     user = make_user(organization=organization, user_id=12)
 
     headers = {
         "HTTP_AUTHORIZATION": "gcom:123",
-        "HTTP_X-Instance-Context": '{"stack_id": 42, "org_id": 24}',
+        "HTTP_X-Instance-Context": INSTANCE_CONTEXT,
         "HTTP_X-Grafana-Context": '{"UserId": 12}',
     }
     request = APIRequestFactory().get("/", **headers)
@@ -52,7 +54,7 @@ def test_plugin_authentication_fail_grafana_context(
     organization = make_organization(stack_id=42, org_id=24)
     token, token_string = make_token_for_organization(organization)
 
-    headers = {"HTTP_AUTHORIZATION": token_string, "HTTP_X-Instance-Context": '{"stack_id": 42, "org_id": 24}'}
+    headers = {"HTTP_AUTHORIZATION": token_string, "HTTP_X-Instance-Context": INSTANCE_CONTEXT}
     if grafana_context is not None:
         headers["HTTP_X-Grafana-Context"] = grafana_context
 
@@ -63,7 +65,9 @@ def test_plugin_authentication_fail_grafana_context(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("authorization", [None, "", "123", "gcom:123"])
-@pytest.mark.parametrize("instance_context", [None, "", "non-json", '"string"', "{}", '{"stack_id": 1, "org_id": 1}'])
+@pytest.mark.parametrize(
+    "instance_context", [None, "", "non-json", '"string"', "{}", '{"stack_id": 1, "org_id": 1, "grafana_token": "abc"}']
+)
 def test_plugin_authentication_fail(authorization, instance_context):
     headers = {}
 
@@ -83,7 +87,7 @@ def test_plugin_authentication_fail(authorization, instance_context):
 def test_plugin_authentication_gcom_setup_new_user(make_organization):
     # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
     organization = make_organization(
-        stack_id=42, org_id=24, gcom_token="123", gcom_token_org_last_time_synced=timezone.now()
+        stack_id=42, org_id=24, gcom_token="123", api_token="abc", gcom_token_org_last_time_synced=timezone.now()
     )
     assert organization.users.count() == 0
     # user = make_user(organization=organization, user_id=12)
@@ -102,7 +106,7 @@ def test_plugin_authentication_gcom_setup_new_user(make_organization):
 
     headers = {
         "HTTP_AUTHORIZATION": "gcom:123",
-        "HTTP_X-Instance-Context": '{"stack_id": 42, "org_id": 24}',
+        "HTTP_X-Instance-Context": INSTANCE_CONTEXT,
         "HTTP_X-Grafana-Context": '{"UserId": 12}',
         "HTTP_X-Oncall-User-Context": json.dumps(user_data),
     }
@@ -136,7 +140,7 @@ def test_plugin_authentication_self_hosted_setup_new_user(make_organization, mak
 
     headers = {
         "HTTP_AUTHORIZATION": token_string,
-        "HTTP_X-Instance-Context": '{"stack_id": 42, "org_id": 24}',
+        "HTTP_X-Instance-Context": INSTANCE_CONTEXT,
         "HTTP_X-Grafana-Context": '{"UserId": 12}',
         "HTTP_X-Oncall-User-Context": json.dumps(user_data),
     }
