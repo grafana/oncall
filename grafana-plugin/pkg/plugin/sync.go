@@ -15,6 +15,11 @@ import (
 )
 
 func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	waitToCompleteParameter := req.URL.Query().Get("wait")
 	var waitToComplete = false
 	var err error

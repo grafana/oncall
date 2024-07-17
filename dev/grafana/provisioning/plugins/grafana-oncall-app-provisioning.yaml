@@ -5,6 +5,4 @@ apps:
     jsonData:
       stackId: 5
       orgId: 100
-      license: OpenSource
       onCallApiUrl: $ONCALL_API_URL
-      grafanaUrl: http://grafana:3000

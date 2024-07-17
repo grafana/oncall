@@ -37,6 +37,7 @@ from apps.alerts.tests.factories import (
     InvitationFactory,
     ResolutionNoteFactory,
     ResolutionNoteSlackMessageFactory,
+    UserNotificationBundleFactory,
 )
 from apps.api.permissions import (
     ACTION_PREFIX,
@@ -145,6 +146,7 @@ register(LabelKeyFactory)
 register(LabelValueFactory)
 register(AlertReceiveChannelAssociatedLabelFactory)
 register(GoogleOAuth2UserFactory)
+register(UserNotificationBundleFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
@@ -1077,3 +1079,13 @@ def make_google_oauth2_user_for_user():
         return GoogleOAuth2UserFactory(user=user)
 
     return _make_google_oauth2_user_for_user
+
+
+@pytest.fixture
+def make_user_notification_bundle():
+    def _make_user_notification_bundle(user, notification_channel, important=False, **kwargs):
+        return UserNotificationBundleFactory(
+            user=user, notification_channel=notification_channel, important=important, **kwargs
+        )
+
+    return _make_user_notification_bundle

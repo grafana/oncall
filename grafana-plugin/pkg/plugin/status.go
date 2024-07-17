@@ -236,6 +236,11 @@ func (a *App) ValidateOnCallStatus(ctx context.Context, settings *OnCallPluginSe
 }
 
 func (a *App) handleStatus(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
 		log.DefaultLogger.Error("Error getting settings from context", "error", err)

@@ -13,6 +13,7 @@ from apps.alerts.models import (
     Invitation,
     ResolutionNote,
     ResolutionNoteSlackMessage,
+    UserNotificationBundle,
 )
 from common.utils import UniqueFaker
 
@@ -85,3 +86,8 @@ class CustomActionFactory(factory.DjangoModelFactory):
 class InvitationFactory(factory.DjangoModelFactory):
     class Meta:
         model = Invitation
+
+
+class UserNotificationBundleFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = UserNotificationBundle

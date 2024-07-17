@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def update_zvonok_call_status(call_id: str, call_status: str, user_choice: Optional[str] = None):
-    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
     status_code = ZvonokCallStatuses.DETERMINANT.get(call_status)
     if status_code is None:
@@ -57,12 +57,8 @@ def update_zvonok_call_status(call_id: str, call_status: str, user_choice: Optio
             author=phone_call_record.receiver,
             notification_policy=phone_call_record.notification_policy,
             alert_group=phone_call_record.represents_alert_group,
-            notification_step=phone_call_record.notification_policy.step
-            if phone_call_record.notification_policy
-            else None,
-            notification_channel=phone_call_record.notification_policy.notify_by
-            if phone_call_record.notification_policy
-            else None,
+            notification_step=UserNotificationPolicy.Step.NOTIFY,
+            notification_channel=UserNotificationPolicy.NotificationChannel.PHONE_CALL,
         )
         log_record.save()
         logger.info(
