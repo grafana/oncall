@@ -58,6 +58,7 @@ import { openNotification } from 'utils/utils';
 
 import { getIntegrationsStyles } from './Integrations.styles';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
+import { runInAction } from 'mobx';
 
 enum TabType {
   MonitoringSystems = 'monitoring-systems',
@@ -702,7 +703,9 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       invalidateFn: () => this.invalidateRequestFn(newPage),
     });
 
-    store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
+    runInAction(() => {
+      store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
+    });
     LocationHelper.update({ p: newPage }, 'partial');
   };
 

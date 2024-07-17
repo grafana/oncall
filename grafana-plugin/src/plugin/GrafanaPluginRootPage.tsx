@@ -129,15 +129,37 @@ export const Root = observer((props: AppRootProps) => {
             backupChildren={<LoadingPlaceholder text="Loading..." />}
           >
             <Routes>
-              <Route path="alert-groups" element={<IncidentsPage query={query} />} />
-              <Route path="alert-group" element={<IncidentPage query={query} />} />
-              <Route path="users" element={<UsersPage query={query} />} />
-              <Route path="integrations" element={<IntegrationsPage query={query} />} />
-              <Route path="integration" element={<IntegrationPage query={query} />} />
-              <Route path="escalations" element={<EscalationChainsPage query={query} />} />
-              <Route path="schedules" element={<SchedulesPage query={query} />} />
-              <Route path="schedule" element={<SchedulePage query={query} />} />
-              <Route path="outgoing_webhooks" element={<OutgoingWebhooksPage query={query} />} />
+              <Route path="alert-groups">
+                <Route path=":id" element={<IncidentPage query={query} />} />
+                <Route index element={<IncidentsPage query={query} />} />
+              </Route>
+
+              <Route path="users">
+                <Route path=":id" element={<UsersPage query={query} />} />
+                <Route index element={<UsersPage query={query} />} />
+              </Route>
+
+              <Route path="integrations">
+                <Route path=":id" element={<IntegrationPage query={query} />} />
+                <Route index element={<IntegrationsPage query={query} />} />
+              </Route>
+
+              <Route path="escalations">
+                <Route path=":id" element={<EscalationChainsPage query={query} />} />
+                <Route index element={<EscalationChainsPage query={query} />} />
+              </Route>
+
+              <Route path="schedules">
+                <Route path=":id" element={<SchedulePage query={query} />} />
+                <Route index element={<SchedulesPage query={query} />} />
+              </Route>
+
+              <Route path="outgoing_webhooks">
+                <Route path="edit/:id" element={<OutgoingWebhooksPage query={query} />} />
+                <Route path=":id" element={<OutgoingWebhooksPage query={query} />} />
+                <Route index element={<OutgoingWebhooksPage query={query} />} />
+              </Route>
+
               <Route path="settings" element={<SettingsPage />} />
               <Route path="chat-ops" element={<ChatOpsPage query={query} />} />
               <Route path="live-settings" element={<LiveSettings />} />
@@ -155,5 +177,3 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 });
-
-const TestRouteRender = () => <div>hello</div>;
