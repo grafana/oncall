@@ -179,10 +179,9 @@ const OSSPluginConfigPage = observer(
             )}
           />
           <HorizontalGroup>
-            <RenderConditionally
-              shouldRender={isPluginConnected}
-              render={() => <Button onClick={() => push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>}
-            />
+            {isPluginConnected && (
+              <Button onClick={() => push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>
+            )}
             <Button
               type="submit"
               disabled={isSubmitButtonDisabled}
