@@ -20,7 +20,6 @@ from apps.slack.errors import (
     SlackAPITokenError,
     SlackAPIUsergroupNotFoundError,
 )
-from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.utils import (
     get_cache_key_update_incident_slack_message,
     get_populate_slack_channel_task_id_key,
@@ -289,24 +288,7 @@ def populate_slack_user_identities(organization_pk):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_pk, update=False):
-    logger.debug(f"Start post_or_update_log_report_message_task for alert_group {alert_group_pk}")
-    from apps.alerts.models import AlertGroup
-    from apps.slack.models import SlackTeamIdentity
-
-    UpdateLogReportMessageStep = ScenarioStep.get_step("distribute_alerts", "UpdateLogReportMessageStep")
-
-    slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
-    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
-    step = UpdateLogReportMessageStep(slack_team_identity, alert_group.channel.organization)
-
-    if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
-        return
-
-    if update:  # flag to prevent multiple posting log message to slack
-        step.update_log_message(alert_group)
-    else:
-        step.post_log_message(alert_group)
-    logger.debug(f"Finish post_or_update_log_report_message_task for alert_group {alert_group_pk}")
+    return "Deprecated, will be removed after queue cleanup"
 
 
 @shared_dedicated_queue_retry_task(
