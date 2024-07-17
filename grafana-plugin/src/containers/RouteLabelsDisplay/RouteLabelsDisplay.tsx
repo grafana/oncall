@@ -37,7 +37,9 @@ export const RouteLabelsDisplay: React.FC<RouteLabelsDisplayProps> = ({ labels, 
   };
 
   const onLoadValuesForKey = async (key: string, search?: string) => {
-    if (!key) {return [];}
+    if (!key) {
+      return [];
+    }
 
     const { values } = await labelsStore.loadValuesForKey(key, search);
     return splitToGroups(values);

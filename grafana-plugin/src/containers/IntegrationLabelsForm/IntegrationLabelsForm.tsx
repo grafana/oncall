@@ -289,6 +289,9 @@ const CustomLabels = (props: CustomLabelsProps) => {
   };
 
   const onLoadValuesForKey = async (key: string, search?: string) => {
+    if (!key) {
+      return [];
+    }
     const { values } = await labelsStore.loadValuesForKey(key, search);
     return splitToGroups(values);
   };
