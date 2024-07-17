@@ -30,7 +30,7 @@ def test_plugin_authentication_self_hosted_success(make_organization, make_user,
 def test_plugin_authentication_gcom_success(make_organization, make_user, make_token_for_organization):
     # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
     organization = make_organization(
-        stack_id=42, org_id=24, gcom_token="123", gcom_token_org_last_time_synced=timezone.now()
+        stack_id=42, org_id=24, gcom_token="123", api_token="abc", gcom_token_org_last_time_synced=timezone.now()
     )
     user = make_user(organization=organization, user_id=12)
 
@@ -85,7 +85,7 @@ def test_plugin_authentication_fail(authorization, instance_context):
 def test_plugin_authentication_gcom_setup_new_user(make_organization):
     # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
     organization = make_organization(
-        stack_id=42, org_id=24, gcom_token="123", gcom_token_org_last_time_synced=timezone.now()
+        stack_id=42, org_id=24, gcom_token="123", api_token="abc", gcom_token_org_last_time_synced=timezone.now()
     )
     assert organization.users.count() == 0
     # user = make_user(organization=organization, user_id=12)
