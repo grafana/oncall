@@ -8,7 +8,7 @@ export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.ver
 
 export const APP_VERSION = `${plugin?.version}`;
 
-export const CLOUD_VERSION_REGEX = new RegExp('r[\\d]+-v[\\d]+.[\\d]+.[\\d]+');
+export const CLOUD_VERSION_REGEX = new RegExp('^(r[\\d]+-v[\\d]+.[\\d]+.[\\d]+|github-actions-[\\d]+)$');
 
 // License
 export const GRAFANA_LICENSE_OSS = 'OpenSource';
