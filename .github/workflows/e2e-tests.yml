@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Tilt
         run: |
-          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash || true
 
       - name: Install ctlptl
         run: |
