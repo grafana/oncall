@@ -37,9 +37,9 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
    ```
 
    You can also choose set of resources that will be installed in your local cluster, e.g.:
-
+   
+   ```bash
    ONCALL_PROFILES=grafana,plugin,backend tilt up
-
    ```
 
    Available profiles are: `grafana,plugin,backend,tests`, by default all the profiles are enabled.
