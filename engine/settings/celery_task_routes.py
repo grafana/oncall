@@ -176,6 +176,9 @@ CELERY_TASK_ROUTES = {
         "queue": "slack"
     },
     "apps.slack.representatives.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
+    "apps.slack.helpers.alert_group_representative.on_alert_group_update_log_report_async": {"queue": "slack"},
+    "apps.slack.tasks.post_or_update_log_report_message_task": {"queue": "slack"},
+    "apps.slack.representatives.alert_group_representative.on_alert_group_update_log_report_async": {"queue": "slack"},
     # TELEGRAM
     "apps.telegram.tasks.edit_message": {"queue": "telegram"},
     "apps.telegram.tasks.on_create_alert_telegram_representative_async": {"queue": "telegram"},
