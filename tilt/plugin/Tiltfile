@@ -1,4 +1,4 @@
-label = "OnCall.Frontend"
+label = "OnCall.Plugin"
 
 is_ci=config.tilt_subcommand == "ci"
 grafana_plugin_dir="../../grafana-plugin"

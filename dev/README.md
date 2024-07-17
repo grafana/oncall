@@ -38,11 +38,11 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
    You can also choose set of resources that will be installed in your local cluster, e.g.:
 
-   ONCALL_PROFILES=grafana,frontend,backend tilt up
+   ONCALL_PROFILES=grafana,plugin,backend tilt up
 
    ```
 
-   Available profiles are: `grafana,frontend,backend,tests`, by default all the profiles are enabled.
+   Available profiles are: `grafana,plugin,backend,tests`, by default all the profiles are enabled.
 
 3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
 

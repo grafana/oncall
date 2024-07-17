@@ -103,14 +103,14 @@ def load_grafana():
 
 
 def get_profiles():
-    profiles = os.getenv('ONCALL_PROFILES', 'grafana,frontend,backend,tests')
+    profiles = os.getenv('ONCALL_PROFILES', 'grafana,plugin,backend,tests')
     return profiles.split(',')
 profiles = get_profiles()
 
 if 'grafana' in profiles:
     load_grafana()
-if 'frontend' in profiles:
-    include("tilt/frontend/Tiltfile")
+if 'plugin' in profiles:
+    include("tilt/plugin/Tiltfile")
 if 'backend' in profiles:
     load_oncall_helm()
     include("tilt/backend/Tiltfile")
