@@ -51,6 +51,8 @@ def load_oncall_helm():
     yaml = helm("helm/oncall", name=HELM_PREFIX, values=helm_oncall_values, set=twilio_values, namespace="default")
     k8s_yaml(yaml)
 
+# --- GRAFANA START ----
+
 # Generate and load the grafana deploy yaml
 configmap_create(
     "grafana-oncall-app-provisioning",
@@ -58,7 +60,6 @@ configmap_create(
     from_file="dev/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml",
 )
 
-# --- GRAFANA START ----
 if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
