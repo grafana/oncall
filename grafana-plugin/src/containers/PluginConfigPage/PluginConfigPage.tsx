@@ -58,13 +58,16 @@ const CloudPluginConfigPage = observer(
     const styles = useStyles2(getStyles);
 
     return (
-      <>
+      <VerticalGroup>
         <Text type="secondary" className={styles.secondaryTitle}>
           This is a cloud-managed configuration.
         </Text>
-        {meta.enabled && <PluginConfigAlert />}
-        {!isPluginConnected && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
-      </>
+        <RenderConditionally shouldRender={meta.enabled} render={() => <PluginConfigAlert />} />
+        <RenderConditionally
+          shouldRender={!isPluginConnected}
+          render={() => <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
+        />
+      </VerticalGroup>
     );
   }
 );
@@ -112,11 +115,14 @@ const OSSPluginConfigPage = observer(
         <Text type="secondary" className={styles.secondaryTitle}>
           Make sure that OnCall plugin has been enabled.
         </Text>
-        {!meta.enabled && (
-          <Button variant="secondary" onClick={enablePlugin}>
-            Enable
-          </Button>
-        )}
+        <RenderConditionally
+          shouldRender={!meta.enabled}
+          render={() => (
+            <Button variant="secondary" onClick={enablePlugin}>
+              Enable
+            </Button>
+          )}
+        />
       </>
     );
 
@@ -137,7 +143,10 @@ const OSSPluginConfigPage = observer(
           >
             Re-create
           </Button>
-          {isRecreatingServiceAccount && <LoadingPlaceholder text="" className={styles.spinner} />}
+          <RenderConditionally
+            shouldRender={isRecreatingServiceAccount}
+            render={() => <LoadingPlaceholder text="" className={styles.spinner} />}
+          />
         </HorizontalGroup>
       </>
     );
@@ -170,9 +179,10 @@ const OSSPluginConfigPage = observer(
             )}
           />
           <HorizontalGroup>
-            {isPluginConnected && (
-              <Button onClick={() => push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>
-            )}
+            <RenderConditionally
+              shouldRender={isPluginConnected}
+              render={() => <Button onClick={() => push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>}
+            />
             <Button
               type="submit"
               disabled={isSubmitButtonDisabled}
@@ -181,7 +191,10 @@ const OSSPluginConfigPage = observer(
             >
               {isPluginConnected ? 'Reconnect' : 'Connect'}
             </Button>
-            {isReinitializating && <LoadingPlaceholder text="" className={styles.spinner} />}
+            <RenderConditionally
+              shouldRender={isReinitializating}
+              render={() => <LoadingPlaceholder text="" className={styles.spinner} />}
+            />
           </HorizontalGroup>
         </form>
       </>
@@ -211,7 +224,7 @@ const OSSPluginConfigPage = observer(
     ].map((elem) => ({ ...COMMON_CONFIG_ELEM_PARAMS, ...elem }));
 
     return (
-      <div>
+      <div className={styles.configurationWrapper}>
         <Text type="secondary" className={styles.secondaryTitle}>
           This page will help you to connect OnCall backend and OnCall Grafana plugin.
         </Text>
@@ -266,6 +279,9 @@ const PluginConfigAlert = observer(() => {
 });
 
 const getStyles = (theme: GrafanaTheme2) => ({
+  configurationWrapper: css`
+    width: 50vw;
+  `,
   secondaryTitle: css`
     display: block;
     margin-bottom: 12px;
