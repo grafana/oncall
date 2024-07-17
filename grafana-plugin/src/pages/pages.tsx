@@ -195,7 +195,7 @@ export const ROUTES = {
 };
 
 export const getRoutesForPage = (name: string) => {
-  return ROUTES[name].map((route) => `${PLUGIN_ROOT}/${route}`);
+  return ROUTES[name];
 };
 
 export function getMatchedPage(url: string) {

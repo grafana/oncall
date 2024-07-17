@@ -129,56 +129,25 @@ export const Root = observer((props: AppRootProps) => {
             backupChildren={<LoadingPlaceholder text="Loading..." />}
           >
             <Routes>
-              <Route path={getRoutesForPage('alert-groups')}>
-                <IncidentsPage query={query}  />
-              </Route>
-              <Route path={getRoutesForPage('alert-group')}>
-                <IncidentPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('users')}>
-                <UsersPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('integrations')}>
-                <IntegrationsPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('integration')}>
-                <IntegrationPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('escalations')}>
-                <EscalationChainsPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('schedules')}>
-                <SchedulesPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('schedule')}>
-                <SchedulePage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('outgoing_webhooks')}>
-                <OutgoingWebhooksPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('settings')}>
-                <SettingsPage />
-              </Route>
-              <Route path={getRoutesForPage('chat-ops')}>
-                <ChatOpsPage query={query} />
-              </Route>
-              <Route path={getRoutesForPage('live-settings')}>
-                <LiveSettings />
-              </Route>
-              <Route path={getRoutesForPage('cloud')}>
-                <CloudPage />
-              </Route>
-              <Route path={getRoutesForPage('insights')}>
-                <Insights />
-              </Route>
+              <Route path="alert-groups" element={<IncidentsPage query={query} />} />
+              <Route path="alert-group" element={<IncidentPage query={query} />} />
+              <Route path="users" element={<UsersPage query={query} />} />
+              <Route path="integrations" element={<IntegrationsPage query={query} />} />
+              <Route path="integration" element={<IntegrationPage query={query} />} />
+              <Route path="escalations" element={<EscalationChainsPage query={query} />} />
+              <Route path="schedules" element={<SchedulesPage query={query} />} />
+              <Route path="schedule" element={<SchedulePage query={query} />} />
+              <Route path="outgoing_webhooks" element={<OutgoingWebhooksPage query={query} />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="chat-ops" element={<ChatOpsPage query={query} />} />
+              <Route path="live-settings" element={<LiveSettings />} />
+              <Route path="cloud" element={<CloudPage />} />
+              <Route path="insights" element={<Insights />} />
 
-              <Route path={getRoutesForPage('incident')} element={<Navigate to="alert-group" replace />} />
+              <Route path="incident" element={<Navigate to="alert-group" replace />} />
+              <Route path="incidents" element={<Navigate to="alert-groups" replace />} />
 
-              <Route path={getRoutesForPage('incidents')} element={<Navigate to="alert-groups" replace />} />
-
-              <Route path="*">
-                <NoMatch />
-              </Route>
+              <Route path="*" element={<NoMatch />} />
             </Routes>
           </RenderConditionally>
         </RenderConditionally>
@@ -186,3 +155,5 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 });
+
+const TestRouteRender = () => <div>hello</div>;
