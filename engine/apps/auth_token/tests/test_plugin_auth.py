@@ -7,8 +7,8 @@ from rest_framework.test import APIRequestFactory
 
 from apps.auth_token.auth import PluginAuthentication
 
-
 INSTANCE_CONTEXT = '{"stack_id": 42, "org_id": 24, "grafana_token": "abc"}'
+
 
 @pytest.mark.django_db
 def test_plugin_authentication_self_hosted_success(make_organization, make_user, make_token_for_organization):
@@ -65,7 +65,9 @@ def test_plugin_authentication_fail_grafana_context(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("authorization", [None, "", "123", "gcom:123"])
-@pytest.mark.parametrize("instance_context", [None, "", "non-json", '"string"', "{}", '{"stack_id": 1, "org_id": 1, "grafana_token": "abc"}'])
+@pytest.mark.parametrize(
+    "instance_context", [None, "", "non-json", '"string"', "{}", '{"stack_id": 1, "org_id": 1, "grafana_token": "abc"}']
+)
 def test_plugin_authentication_fail(authorization, instance_context):
     headers = {}
 
