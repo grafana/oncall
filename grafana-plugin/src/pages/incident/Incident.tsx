@@ -498,7 +498,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   handleAddUserResponder = async (user: Omit<UserResponder, 'type'>) => {
     const {
       store,
-      match: {
+      router: {
         params: { id: alertId },
       },
     } = this.props;

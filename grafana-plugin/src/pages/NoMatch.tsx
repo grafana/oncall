@@ -1,22 +1,22 @@
 import React, { useEffect, useMemo } from 'react';
 
 import qs from 'query-string';
-import { useHistory } from 'react-router-dom';
 
 import { DEFAULT_PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getPathFromQueryParams } from 'utils/url';
+import { useNavigate } from 'react-router-dom';
 
 export const NoMatch = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const query = useMemo(() => qs.parse(window.location.search), [window.location.search]);
 
   useEffect(() => {
     if (query.page) {
       const path = getPathFromQueryParams(query);
-      history.push(path);
+      navigate(path);
     } else {
-      history.push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`);
+      navigate(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`);
     }
   }, [query]);
 

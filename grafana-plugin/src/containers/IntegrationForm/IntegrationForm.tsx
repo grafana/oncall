@@ -19,7 +19,6 @@ import {
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
-import { useHistory } from 'react-router-dom';
 
 import { HowTheIntegrationWorks } from 'components/HowTheIntegrationWorks/HowTheIntegrationWorks';
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -44,6 +43,7 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
+import { useNavigate } from 'react-router-dom';
 
 export interface IntegrationFormFields {
   verbal_name?: string;
@@ -94,7 +94,7 @@ export const IntegrationForm = observer(
     onBackClick,
   }: IntegrationFormProps) => {
     const store = useStore();
-    const history = useHistory();
+    const navigate = useNavigate();
     const styles = useStyles2(getIntegrationFormStyles);
     const isNew = id === 'new';
     const {
@@ -453,7 +453,8 @@ export const IntegrationForm = observer(
       async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannelCreate']> {
         const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
         const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
-          history.push(`${PLUGIN_ROOT}/integrations/${id}`);
+          navigate(`${PLUGIN_ROOT}/integrations/${id}`);
+
         if (!response) {
           return;
         }

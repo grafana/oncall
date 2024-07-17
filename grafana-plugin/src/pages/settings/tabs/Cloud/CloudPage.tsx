@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, Field, HorizontalGroup, Icon, Input, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Block } from 'components/GBlock/Block';
 import { GTable } from 'components/GTable/GTable';
@@ -19,10 +18,11 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
 import styles from './CloudPage.module.css';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 const cx = cn.bind(styles);
 
-interface CloudPageProps extends WithStoreProps, RouteComponentProps {}
+interface CloudPageProps extends WithStoreProps, PropsWithRouter<{}> {}
 const ITEMS_PER_PAGE = 50;
 
 const _CloudPage = observer((props: CloudPageProps) => {
@@ -37,7 +37,9 @@ const _CloudPage = observer((props: CloudPageProps) => {
   const [_showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
 
-  const { history } = props;
+  const {
+    router: { navigate },
+  } = props;
 
   useEffect(() => {
     (async () => {
@@ -124,7 +126,7 @@ const _CloudPage = observer((props: CloudPageProps) => {
             variant="secondary"
             size="sm"
             className={cx('table-button')}
-            onClick={() => history.push(`${PLUGIN_ROOT}/users/${user.id}`)}
+            onClick={() => navigate(`${PLUGIN_ROOT}/users/${user.id}`)}
           >
             Configure notifications
           </Button>
@@ -403,4 +405,4 @@ const _CloudPage = observer((props: CloudPageProps) => {
   );
 });
 
-export const CloudPage = withRouter(withMobXProviderContext(_CloudPage));
+export const CloudPage = withRouter<{}, PropsWithRouter<{}>>(withMobXProviderContext(_CloudPage));

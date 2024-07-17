@@ -5,7 +5,6 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -33,8 +32,9 @@ import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 import { getSchedulesStyles } from './Schedules.styles';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
-interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {
+interface SchedulesPageProps extends WithStoreProps, PageProps, PropsWithRouter<{}> {
   theme: GrafanaTheme2;
 }
 
@@ -160,9 +160,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   };
 
   handleCreateSchedule = (data: Schedule) => {
-    const { history, query } = this.props;
+    const {
+      router: { navigate },
+      query,
+    } = this.props;
 
-    history.push(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
+    navigate(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
   };
 
   handleExpandRow = (expanded: boolean, data: Schedule) => {
@@ -203,9 +206,12 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    const { history, query } = this.props;
+    const {
+      router: { navigate },
+      query,
+    } = this.props;
 
-    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}?${qs.stringify(query)}`);
+    return () => navigate(`${PLUGIN_ROOT}/schedules/${scheduleId}?${qs.stringify(query)}`);
   };
 
   renderType = (value: number) => {
@@ -465,4 +471,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
   };
 }
 
-export const SchedulesPage = withRouter(withMobXProviderContext(withTheme2(_SchedulesPage)));
+export const SchedulesPage = withRouter<{}, Omit<SchedulesPageProps, 'store' | 'meta' | 'theme'>>(
+  withMobXProviderContext(withTheme2(_SchedulesPage))
+);

@@ -200,12 +200,6 @@ export const getRoutesForPage = (name: string) => {
 
 export function getMatchedPage(url: string) {
   return Object.keys(ROUTES).find((key) => {
-    return ROUTES[key].find((route) =>
-      matchPath(url, {
-        path: `${PLUGIN_ROOT}/${route}`,
-        exact: true,
-        strict: false,
-      })
-    );
+    return ROUTES[key].find((route) => matchPath(url, `${PLUGIN_ROOT}/${route}`));
   });
 }
