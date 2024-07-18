@@ -284,32 +284,16 @@ const CustomLabels = (props: CustomLabelsProps) => {
   };
 
   const onLoadKeys = async (search?: string) => {
-    let result = undefined;
-
-    try {
-      result = await labelsStore.loadKeys(search);
-    } catch (error) {
-      openErrorNotification('There was an error processing your request. Please try again');
-    }
-
-    const groups = splitToGroups(result);
-
-    return groups;
+    const result = await labelsStore.loadKeys(search);
+    return splitToGroups(result);
   };
 
   const onLoadValuesForKey = async (key: string, search?: string) => {
-    let result = undefined;
-
-    try {
-      const { values } = await labelsStore.loadValuesForKey(key, search);
-      result = values;
-    } catch (error) {
-      openErrorNotification('There was an error processing your request. Please try again');
+    if (!key) {
+      return [];
     }
-
-    const groups = splitToGroups(result);
-
-    return groups;
+    const { values } = await labelsStore.loadValuesForKey(key, search);
+    return splitToGroups(values);
   };
 
   return (
