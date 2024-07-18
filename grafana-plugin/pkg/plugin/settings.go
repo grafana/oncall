@@ -52,10 +52,8 @@ type OnCallPluginSettings struct {
 	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
-const CLOUD_VERSION_PATTERN = `^r\d+-v\d+\.\d+\.\d+$`
-const CLOUD_DEV_VERSION_PATTERN = `^github-actions-\d+$`
-const OSS_VERSION_PATTERN = `^v\d+\.\d+\.\d+$`
-const DEV_PATTERN = `dev-oss`
+const CLOUD_VERSION_PATTERN = `^(r\d+-v\d+\.\d+\.\d+|^github-actions-\d+)$`
+const OSS_VERSION_PATTERN = `^(v\d+\.\d+\.\d+|dev-oss)$`
 const CLOUD_LICENSE_NAME = "Cloud"
 const OPEN_SOURCE_LICENSE_NAME = "OpenSource"
 
@@ -79,11 +77,10 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 
 	if settings.License == "" {
 		cloudRe := regexp.MustCompile(CLOUD_VERSION_PATTERN)
-		cloudDevRe := regexp.MustCompile(CLOUD_DEV_VERSION_PATTERN)
 		ossRe := regexp.MustCompile(OSS_VERSION_PATTERN)
-		if pluginContext.PluginVersion == DEV_PATTERN || ossRe.MatchString(pluginContext.PluginVersion) {
+		if ossRe.MatchString(pluginContext.PluginVersion) {
 			settings.License = OPEN_SOURCE_LICENSE_NAME
-		} else if cloudRe.MatchString(pluginContext.PluginVersion) || cloudDevRe.MatchString(pluginContext.PluginVersion) {
+		} else if cloudRe.MatchString(pluginContext.PluginVersion) {
 			settings.License = CLOUD_LICENSE_NAME
 		} else {
 			return &settings, fmt.Errorf("jsonData.license is not set and version %s did not match a known pattern", pluginContext.PluginVersion)
