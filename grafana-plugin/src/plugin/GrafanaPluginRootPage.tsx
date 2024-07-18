@@ -19,7 +19,7 @@ import { Insights } from 'pages/insights/Insights';
 import { IntegrationPage } from 'pages/integration/Integration';
 import { IntegrationsPage } from 'pages/integrations/Integrations';
 import { OutgoingWebhooksPage } from 'pages/outgoing_webhooks/OutgoingWebhooks';
-import { getMatchedPage, getRoutesForPage, pages } from 'pages/pages';
+import { getMatchedPage, pages } from 'pages/pages';
 import { SchedulePage } from 'pages/schedule/Schedule';
 import { SchedulesPage } from 'pages/schedules/Schedules';
 import { SettingsPage } from 'pages/settings/SettingsPage';
@@ -127,51 +127,52 @@ export const Root = observer((props: AppRootProps) => {
           <RenderConditionally
             shouldRender={isBasicDataLoaded}
             backupChildren={<LoadingPlaceholder text="Loading..." />}
-          >
-            <Routes>
-              <Route path="alert-groups">
-                <Route path=":id" element={<IncidentPage query={query} />} />
-                <Route index element={<IncidentsPage query={query} />} />
-              </Route>
+            render={() => (
+              <Routes>
+                <Route path="alert-groups">
+                  <Route path=":id" element={<IncidentPage query={query} />} />
+                  <Route index element={<IncidentsPage query={query} />} />
+                </Route>
 
-              <Route path="users">
-                <Route path=":id" element={<UsersPage query={query} />} />
-                <Route index element={<UsersPage query={query} />} />
-              </Route>
+                <Route path="users">
+                  <Route path=":id" element={<UsersPage query={query} />} />
+                  <Route index element={<UsersPage query={query} />} />
+                </Route>
 
-              <Route path="integrations">
-                <Route path=":id" element={<IntegrationPage query={query} />} />
-                <Route index element={<IntegrationsPage query={query} />} />
-              </Route>
+                <Route path="integrations">
+                  <Route path=":id" element={<IntegrationPage query={query} />} />
+                  <Route index element={<IntegrationsPage query={query} />} />
+                </Route>
 
-              <Route path="escalations">
-                <Route path=":id" element={<EscalationChainsPage query={query} />} />
-                <Route index element={<EscalationChainsPage query={query} />} />
-              </Route>
+                <Route path="escalations">
+                  <Route path=":id" element={<EscalationChainsPage query={query} />} />
+                  <Route index element={<EscalationChainsPage query={query} />} />
+                </Route>
 
-              <Route path="schedules">
-                <Route path=":id" element={<SchedulePage query={query} />} />
-                <Route index element={<SchedulesPage query={query} />} />
-              </Route>
+                <Route path="schedules">
+                  <Route path=":id" element={<SchedulePage query={query} />} />
+                  <Route index element={<SchedulesPage query={query} />} />
+                </Route>
 
-              <Route path="outgoing_webhooks">
-                <Route path="edit/:id" element={<OutgoingWebhooksPage query={query} />} />
-                <Route path=":id" element={<OutgoingWebhooksPage query={query} />} />
-                <Route index element={<OutgoingWebhooksPage query={query} />} />
-              </Route>
+                <Route path="outgoing_webhooks">
+                  <Route path=":action/:id" element={<OutgoingWebhooksPage query={query} />} />
+                  <Route path=":id" element={<OutgoingWebhooksPage query={query} />} />
+                  <Route index element={<OutgoingWebhooksPage query={query} />} />
+                </Route>
 
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="chat-ops" element={<ChatOpsPage query={query} />} />
-              <Route path="live-settings" element={<LiveSettings />} />
-              <Route path="cloud" element={<CloudPage />} />
-              <Route path="insights" element={<Insights />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="chat-ops" element={<ChatOpsPage query={query} />} />
+                <Route path="live-settings" element={<LiveSettings />} />
+                <Route path="cloud" element={<CloudPage />} />
+                <Route path="insights" element={<Insights />} />
 
-              <Route path="incident" element={<Navigate to="alert-group" replace />} />
-              <Route path="incidents" element={<Navigate to="alert-groups" replace />} />
+                <Route path="incident" element={<Navigate to="alert-group" replace />} />
+                <Route path="incidents" element={<Navigate to="alert-groups" replace />} />
 
-              <Route path="*" element={<NoMatch />} />
-            </Routes>
-          </RenderConditionally>
+                <Route path="*" element={<NoMatch />} />
+              </Routes>
+            )}
+          />
         </RenderConditionally>
       </div>
     </DefaultPageLayout>

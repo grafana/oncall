@@ -173,14 +173,11 @@ export const pages: { [id: string]: PageDefinition } = [
 }, {});
 
 export const ROUTES = {
-  'alert-groups': ['alert-groups'],
-  'alert-group': ['alert-groups/:id'],
+  'alert-groups': ['alert-groups', 'alert-groups/:id'],
   users: ['users', 'users/:id'],
-  integrations: ['integrations'],
-  integration: ['integrations/:id'],
+  integrations: ['integrations', 'integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],
-  schedules: ['schedules'],
-  schedule: ['schedules/:id'],
+  schedules: ['schedules', 'schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id', 'outgoing_webhooks/:action/:id'],
   settings: ['settings'],
   'chat-ops': ['chat-ops'],
@@ -194,13 +191,9 @@ export const ROUTES = {
   incidents: ['incidents'],
 };
 
-export const getRoutesForPage = (name: string) => {
-  return ROUTES[name];
-};
-
 export function getMatchedPage(url: string) {
   return Object.keys(ROUTES).find((key) => {
-    return ROUTES[key].find((route) => {
+    return ROUTES[key].find((route: string) => {
       const computedRoute = `${PLUGIN_ROOT}/${route}`;
       const isMatch = matchPath({ path: computedRoute, end: true }, url);
       return isMatch;
