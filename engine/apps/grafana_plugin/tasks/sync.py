@@ -172,7 +172,7 @@ def start_cleanup_deleted_integrations():
     channels_qs = AlertReceiveChannel.objects_with_deleted.filter(deleted_at__gte=cleanup_threshold)
     organization_pks = set(channels_qs.values_list("organization_id", flat=True))
     logger.debug(f"Found {len(organization_pks)} organizations")
-    for idx, organization_pk in enumerate(organization_pks):
+    for _, organization_pk in enumerate(organization_pks):
         cleanup_empty_deleted_integrations.apply_async(
             (organization_pk, False),
         )
