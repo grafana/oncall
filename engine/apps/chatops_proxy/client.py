@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
-SERVICE_TYPE_ONCALL = "oncall"
+APP_TYPE_ONCALL = "oncall"
 PROVIDER_TYPE_SLACK = "slack"
 
 
@@ -172,11 +172,7 @@ class ChatopsProxyAPIClient:
         return OAuthInstallation(**response.json()["oauth_installation"]), response
 
     def delete_oauth_installation(
-        self,
-        stack_id: int,
-        provider_type: str,
-        grafana_user_id: int,
-        app_type: str,
+        self, stack_id: int, provider_type: str, grafana_user_id: int, app_type: str
     ) -> tuple[bool, requests.models.Response]:
         url = f"{self.api_base_url}/oauth_installations/uninstall"
         d = {

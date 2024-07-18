@@ -626,6 +626,7 @@ def send_bundled_notification(user_notification_bundle_id: int):
                     schedule_perform_notification_task,
                     log_record_notification_triggered.pk,
                     log_record_notification_triggered.alert_group_id,
+                    False,
                 )
             )
             notifications.delete()

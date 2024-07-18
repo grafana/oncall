@@ -1,7 +1,9 @@
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.phone_notifications.exceptions import (
@@ -234,3 +236,62 @@ def test_notify_by_cloud_sms_handles_exceptions_from_cloud(
         ).count()
         == 1
     )
+
+
+@pytest.mark.django_db
+def test_notify_by_sms_bundle(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_bundle,
+    make_user_notification_policy,
+):
+    organization, user = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group_1 = make_alert_group(alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel)
+    notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
+    )
+    notification_bundle = make_user_notification_bundle(
+        user, UserNotificationPolicy.NotificationChannel.SMS, notification_task_id="test_task_id", eta=timezone.now()
+    )
+    notification_bundle.append_notification(alert_group_1, notification_policy)
+    notification_bundle.append_notification(alert_group_2, notification_policy)
+
+    bundle_uuid = "test_notifications_bundle"
+
+    notification_bundle.notifications.update(bundle_uuid=bundle_uuid)
+
+    assert not user.personal_log_records.exists()
+    assert not user.smsrecord_set.exists()
+
+    with patch(
+        "apps.phone_notifications.phone_backend.PhoneBackend._notify_by_cloud_sms", side_effect=SMSLimitExceeded
+    ):
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_sms_bundle(user, bundle_uuid)
+
+    # check that 2 error log records (1 for each bundled notification) and 1 sms record have been created
+    assert (
+        user.personal_log_records.filter(
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_LIMIT_EXCEEDED
+        ).count()
+        == notification_bundle.notifications.count()
+        == 2
+    )
+    assert user.smsrecord_set.count() == 1
+
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend._notify_by_cloud_sms"):
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_sms_bundle(user, bundle_uuid)
+
+    # check that 0 new error log records and 1 new sms record have been created
+    assert (
+        user.personal_log_records.filter(notification_error_code__isnull=False).count()
+        == notification_bundle.notifications.count()
+        == 2
+    )
+    assert user.smsrecord_set.count() == 2
