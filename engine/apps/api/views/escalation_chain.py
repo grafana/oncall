@@ -183,7 +183,6 @@ class EscalationChainViewSet(
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
-        filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
         filter_options = [
@@ -195,8 +194,5 @@ class EscalationChainViewSet(
                 "global": True,
             },
         ]
-
-        if filter_name is not None:
-            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
 
         return Response(filter_options)
