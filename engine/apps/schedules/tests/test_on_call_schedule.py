@@ -120,7 +120,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_override": True,
             "is_empty": False,
             "is_gap": False,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [
                 {
@@ -178,7 +178,7 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
             "is_override": False,
             "is_empty": False,
             "is_gap": True,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [],
             "shift": {"pk": None},
@@ -213,7 +213,7 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
             "is_override": False,
             "is_empty": False,
             "is_gap": True,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [],
             "shift": {"pk": None},
@@ -263,7 +263,7 @@ def test_filter_events_include_shift_info(
             "is_override": False,
             "is_empty": False,
             "is_gap": True,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [],
             "shift": {"pk": None},
@@ -302,7 +302,7 @@ def test_filter_events_include_shift_info(
             "is_override": False,
             "is_empty": False,
             "is_gap": True,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [],
             "shift": {"pk": None},
@@ -512,7 +512,7 @@ def test_final_schedule_events(
             "end": start_date + timezone.timedelta(hours=start + duration),
             "is_gap": is_gap,
             "is_override": is_override,
-            "priority_level": priority,
+            "priority_level": priority or 0,
             "start": start_date + timezone.timedelta(hours=start),
             "user": user,
             "shift": (
@@ -599,7 +599,7 @@ def test_final_schedule_override_no_priority_shift(
             "calendar_type": 1 if is_override else 0,
             "end": start_date + timezone.timedelta(hours=start + duration),
             "is_override": is_override,
-            "priority_level": priority,
+            "priority_level": priority or 0,
             "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
             "user": user,
         }
@@ -679,7 +679,7 @@ def test_final_schedule_override_split(
             "calendar_type": 1 if is_override else 0,
             "end": start_date + timezone.timedelta(hours=start + duration),
             "is_override": is_override,
-            "priority_level": priority,
+            "priority_level": priority or 0,
             "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
             "user": user,
         }
@@ -1051,7 +1051,7 @@ def test_preview_shift_no_user(make_organization, make_user_for_organization, ma
             "is_override": False,
             "is_empty": True,
             "is_gap": False,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [],
             "shift": {"pk": new_shift.public_primary_key},
@@ -1130,7 +1130,7 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
             "is_override": True,
             "is_empty": False,
             "is_gap": False,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [
                 {
@@ -1156,7 +1156,7 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
     expected_events = [
         {
             "end": start_date + timezone.timedelta(hours=start + duration),
-            "priority_level": priority,
+            "priority_level": priority or 0,
             "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
             "user": user,
             "is_override": is_override,

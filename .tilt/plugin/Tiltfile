@@ -1,0 +1,26 @@
+label = "OnCall.Plugin"
+
+is_ci=config.tilt_subcommand == "ci"
+grafana_plugin_dir="../../grafana-plugin"
+
+# On CI dependencies are installed separately so we just build prod bundle to be consumed by Grafana dev server
+if is_ci:
+    local_resource(
+        "build-ui",
+        labels=[label],
+        dir=grafana_plugin_dir,
+        cmd="yarn build",
+        allow_parallel=True,
+    )
+
+# Locally we install dependencies and we run watch mode
+if not is_ci:
+    local_resource(
+        "build-ui",
+        labels=[label],
+        dir=grafana_plugin_dir,
+        cmd="yarn install",
+        serve_dir=grafana_plugin_dir,
+        serve_cmd="yarn watch",
+        allow_parallel=True,
+    )
