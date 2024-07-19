@@ -13,7 +13,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 class FastSlackTeamIdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = SlackTeamIdentity
-        fields = ["cached_name"]
+        fields = ["cached_name", "needs_reinstall"]
 
 
 class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):

@@ -201,6 +201,20 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </WithPermissionControlTooltip>
           </HorizontalGroup>
         </InlineField>
+        {currentOrganization.slack_team_identity.needs_reinstall && (
+          <>
+            <Legend>Unified Slack App</Legend>
+            <InlineField>
+              <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
+                <Button onClick={this.handleOpenSlackInstructions}>
+                  <HorizontalGroup spacing="xs" align="center">
+                    <Icon name="external-link-alt" className={cx('external-link-style')} /> Reinstall Slack App
+                  </HorizontalGroup>
+                </Button>
+              </WithPermissionControlTooltip>
+            </InlineField>
+          </>
+        )}
       </div>
     );
   };

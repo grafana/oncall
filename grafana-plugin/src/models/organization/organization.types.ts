@@ -15,9 +15,8 @@ export interface Organization {
   name: string;
   stack_slug: string;
   slack_team_identity: {
-    general_log_channel_id: string;
-    general_log_channel_pk: string;
     cached_name: string;
+    needs_reinstall: boolean;
   };
   slack_channel: SlackChannel | null;
   is_resolution_note_required: boolean;
