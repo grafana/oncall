@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	grafana_plugin_build "github.com/grafana/grafana-plugin-sdk-go/build"
 )
 
 type OnCallPluginSettingsJSONData struct {
@@ -77,13 +78,25 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		GrafanaURL:   pluginSettingsJson.GrafanaURL,
 	}
 
+	version := pluginContext.PluginVersion
+	if version == "" {
+		// older Grafana versions do not have the plugin version in the context
+		buildInfo, err := grafana_plugin_build.GetBuildInfo()
+		if err != nil {
+			err = fmt.Errorf("OnCallSettingsFromContext: couldn't get plugin version: %w", err)
+			log.DefaultLogger.Error(err.Error())
+			return nil, err
+		}
+		version = buildInfo.Version
+	}
+
 	if settings.License == "" {
 		cloudRe := regexp.MustCompile(CLOUD_VERSION_PATTERN)
 		cloudDevRe := regexp.MustCompile(CLOUD_DEV_VERSION_PATTERN)
 		ossRe := regexp.MustCompile(OSS_VERSION_PATTERN)
-		if pluginContext.PluginVersion == DEV_PATTERN || ossRe.MatchString(pluginContext.PluginVersion) {
+		if version == DEV_PATTERN || ossRe.MatchString(version) {
 			settings.License = OPEN_SOURCE_LICENSE_NAME
-		} else if cloudRe.MatchString(pluginContext.PluginVersion) || cloudDevRe.MatchString(pluginContext.PluginVersion) {
+		} else if cloudRe.MatchString(version) || cloudDevRe.MatchString(version) {
 			settings.License = CLOUD_LICENSE_NAME
 		} else {
 			return &settings, fmt.Errorf("jsonData.license is not set and version %s did not match a known pattern", pluginContext.PluginVersion)
