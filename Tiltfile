@@ -97,6 +97,7 @@ def load_grafana():
                 "GF_SECURITY_ADMIN_PASSWORD": "oncall",
                 "GF_SECURITY_ADMIN_USER": "oncall",
                 "GF_AUTH_ANONYMOUS_ENABLED": "false",
+                "GF_SERVER_ROOT_URL": "http://grafana:3000",
                 "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
                 "ONCALL_API_URL": "http://oncall-dev-engine:8080"
             },
