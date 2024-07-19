@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 
 import qs from 'query-string';
+import { useNavigate } from 'react-router-dom';
 
 import { DEFAULT_PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getPathFromQueryParams } from 'utils/url';
-import { useNavigate } from 'react-router-dom';
 
 export const NoMatch = () => {
   const navigate = useNavigate();

@@ -44,11 +44,10 @@ import { withMobXProviderContext } from 'state/withStore';
 import { HTML_ID, scrollToElement } from 'utils/DOM';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getCalendarStartDate, getNewCalendarStartDate, getUTCString } from './Schedule.helpers';
 import { getScheduleStyles } from './Schedule.styles';
-import { StringIterator } from 'lodash';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 interface RouteProps {
   id: string;

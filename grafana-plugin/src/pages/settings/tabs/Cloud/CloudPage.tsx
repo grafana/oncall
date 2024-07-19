@@ -15,10 +15,10 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions, determineRequiredAuthString } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { openErrorNotification } from 'utils/utils';
 
 import styles from './CloudPage.module.css';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 const cx = cn.bind(styles);
 

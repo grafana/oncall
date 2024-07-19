@@ -32,10 +32,10 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 interface RouteProps {
   id: string;

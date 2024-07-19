@@ -1,13 +1,20 @@
+import React, { useEffect, useState } from 'react';
+
+import { Button, ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import Emoji from 'react-emoji-render';
+import { useNavigate } from 'react-router-dom';
+
+import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
+import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
+import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useDrawer } from 'utils/hooks';
 import { IntegrationDrawerKey } from './Integration';
-import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { useNavigate } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
-import { Button, ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
-import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
+
 import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
-import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
 import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
@@ -15,16 +22,14 @@ import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/Integ
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
 import { UserActions } from 'utils/authorization/authorization';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
+
 import { getIsBidirectionalIntegration } from './Integration.helper';
+
 import { AppFeature } from 'state/features';
 import { Text } from 'components/Text/Text';
-import Emoji from 'react-emoji-render';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import { openErrorNotification, openNotification } from 'utils/utils';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import styles from 'pages/integration/Integration.module.scss';
-import cn from 'classnames/bind';
 
 const cx = cn.bind(styles);
 

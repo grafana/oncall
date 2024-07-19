@@ -16,6 +16,7 @@ import {
   withTheme2,
 } from '@grafana/ui';
 import { debounce } from 'lodash-es';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -54,11 +55,10 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { openNotification } from 'utils/utils';
 
 import { getIntegrationsStyles } from './Integrations.styles';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { runInAction } from 'mobx';
 
 enum TabType {
   MonitoringSystems = 'monitoring-systems',

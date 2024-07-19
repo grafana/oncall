@@ -3,7 +3,6 @@ import React from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { useParams } from 'react-router-dom';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -30,9 +29,9 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getEscalationChainStyles } from './EscalationChains.styles';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 interface RouteProps {
   id: string;

@@ -19,6 +19,7 @@ import {
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import { HowTheIntegrationWorks } from 'components/HowTheIntegrationWorks/HowTheIntegrationWorks';
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -43,7 +44,6 @@ import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';
-import { useNavigate } from 'react-router-dom';
 
 export interface IntegrationFormFields {
   verbal_name?: string;

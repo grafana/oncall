@@ -30,9 +30,9 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getSchedulesStyles } from './Schedules.styles';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 interface SchedulesPageProps extends WithStoreProps, PageProps, PropsWithRouter<{}> {
   theme: GrafanaTheme2;

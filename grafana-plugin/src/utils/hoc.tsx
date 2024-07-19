@@ -1,7 +1,8 @@
 import React from 'react';
 
+import { NavigateFunction, useLocation, useNavigate, useParams } from 'react-router-dom';
+
 import { useDrawer } from './hooks';
-import { NavigateFunction, Params, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 export const withDrawer = <T extends string>(Component: React.ComponentType<any>) => {
   const ComponentWithDrawer = (props: any) => {

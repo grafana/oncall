@@ -1,6 +1,6 @@
-import { css } from "@emotion/css";
-import { GrafanaTheme2 } from "@grafana/data";
-import { Colors, getLabelBackgroundTextColorObject } from "styles/utils.styles";
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Colors, getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
 export const getIncidentStyles = (theme: GrafanaTheme2) => {
   return {

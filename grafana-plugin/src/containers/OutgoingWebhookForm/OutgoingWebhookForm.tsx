@@ -14,6 +14,7 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import { Text } from 'components/Text/Text';
 import { OutgoingWebhookStatus } from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
@@ -33,7 +34,6 @@ import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';
 import { WebhookPresetBlocks } from './WebhookPresetBlocks';
 
 import styles from './OutgoingWebhookForm.module.css';
-import { useNavigate } from 'react-router-dom';
 
 const cx = cn.bind(styles);
 

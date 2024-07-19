@@ -1,6 +1,6 @@
 import React, { useState, SyntheticEvent } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
@@ -26,7 +26,6 @@ import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
-import { Colors, getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
@@ -63,12 +62,12 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { getIncidentStyles } from './incident.styles';
 
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { GrafanaTheme2 } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import { Button, HorizontalGroup, VerticalGroup, LoadingPlaceholder, IconButton, Drawer, Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -53,9 +54,8 @@ import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
-import { OutgoingTab } from './OutgoingTab/OutgoingTab';
 import { IntegrationActions } from './IntegrationActions';
-import { GrafanaTheme2 } from '@grafana/data';
+import { OutgoingTab } from './OutgoingTab/OutgoingTab';
 
 const cx = cn.bind(styles);
 

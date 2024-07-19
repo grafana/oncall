@@ -1,6 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
@@ -55,13 +55,13 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
+import { getIncidentsStyles } from './Incidents.styles';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceSelect } from './parts/SilenceSelect';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { getIncidentsStyles } from './Incidents.styles';
 
 interface Pagination {
   start: number;

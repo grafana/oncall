@@ -28,10 +28,10 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 import { getUsersStyles } from './Users.styles';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 const DEBOUNCE_MS = 1000;
 
