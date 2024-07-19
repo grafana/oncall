@@ -167,25 +167,12 @@ def cleanup_empty_deleted_integrations(organization_pk, dry_run=True):
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=0)
-def start_cleanup_organizations():
-    # TODO: Remove next release after tasks revoked
-    cleanup_threshold = timezone.now() - INACTIVE_PERIOD
-    organization_qs = Organization.objects.filter(last_time_synced__lte=cleanup_threshold)
-    organization_pks = organization_qs.values_list("pk", flat=True)
-    logger.debug(f"Found {len(organization_pks)} organizations")
-    max_countdown = CLEANUP_PERIOD.seconds
-    for idx, organization_pk in enumerate(organization_pks):
-        countdown = idx % max_countdown  # Spread orgs evenly
-        cleanup_organization_async.apply_async((organization_pk,), countdown=countdown)
-
-
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=0)
 def start_cleanup_deleted_integrations():
     cleanup_threshold = timezone.now() - CLEANUP_PERIOD
     channels_qs = AlertReceiveChannel.objects_with_deleted.filter(deleted_at__gte=cleanup_threshold)
     organization_pks = set(channels_qs.values_list("organization_id", flat=True))
     logger.debug(f"Found {len(organization_pks)} organizations")
-    for organization_pk in enumerate(organization_pks):
+    for _, organization_pk in enumerate(organization_pks):
         cleanup_empty_deleted_integrations.apply_async(
             (organization_pk, False),
         )

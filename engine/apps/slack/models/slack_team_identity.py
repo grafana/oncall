@@ -1,6 +1,7 @@
 import logging
 import typing
 
+from django.conf import settings
 from django.db import models
 from django.db.models import JSONField
 
@@ -48,6 +49,9 @@ class SlackTeamIdentity(models.Model):
     # response after oauth.access. This field is used to reinstall app to another OnCall workspace
     cached_reinstall_data = JSONField(null=True, default=None)
 
+    # Do not use directly, use the "needs_reinstall" property instead
+    _unified_slack_app_installed = models.BooleanField(null=True, default=False)
+
     class Meta:
         ordering = ("datetime",)
 
@@ -74,6 +78,10 @@ class SlackTeamIdentity(models.Model):
         self.installed_by = slack_user_identity
         self.cached_reinstall_data = None
         self.installed_via_granular_permissions = True
+
+        if settings.UNIFIED_SLACK_APP_ENABLED:
+            self._unified_slack_app_installed = True
+
         self.save()
 
     def get_cached_channels(self, search_term=None, slack_id=None):
@@ -128,6 +136,10 @@ class SlackTeamIdentity(models.Model):
             self.cached_app_id = app_id
             self.save(update_fields=["cached_app_id"])
         return self.cached_app_id
+
+    @property
+    def needs_reinstall(self):
+        return settings.UNIFIED_SLACK_APP_ENABLED and not self._unified_slack_app_installed
 
     def get_users_from_slack_conversation_for_organization(self, channel_id, organization):
         sc = SlackClient(self)
