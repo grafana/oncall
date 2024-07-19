@@ -172,8 +172,6 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const { scheduleView } = scheduleStore;
 
-    console.log(layers);
-
     return (
       <PageErrorHandlingWrapper errorData={scheduleStore.refreshEventsError} objectName="schedule" pageName="schedules">
         {() => (
