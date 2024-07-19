@@ -22,6 +22,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFilters } from 'components/ScheduleFilters/ScheduleFilters';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
@@ -232,48 +233,65 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             <Dropdown
                               overlay={
                                 <Menu>
-                                  {!disabledRotationForm &&
-                                    layers?.map((layer, index) => (
+                                  <RenderConditionally
+                                    shouldRender={!disabledRotationForm}
+                                    render={() =>
+                                      layers?.map((layer, index) => (
+                                        <Menu.Item
+                                          key={index}
+                                          label={`L${layer.priority} rotation`}
+                                          onClick={() => {
+                                            scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
+
+                                            this.handleShowRotationForm('new', layer.priority);
+                                          }}
+                                        />
+                                      ))
+                                    }
+                                  />
+                                  <RenderConditionally
+                                    shouldRender={!disabledRotationForm}
+                                    render={() => (
                                       <Menu.Item
-                                        key={index}
-                                        label={`L${layer.priority} rotation`}
+                                        label="New layer with rotation"
                                         onClick={() => {
                                           scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
-                                          this.handleShowRotationForm('new', layer.priority);
+                                          this.handleShowRotationForm('new', nextPriority);
                                         }}
                                       />
-                                    ))}
-                                  {!disabledRotationForm && (
-                                    <Menu.Item
-                                      label="New layer with rotation"
-                                      onClick={() => {
-                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
+                                    )}
+                                  />
+                                  <RenderConditionally
+                                    shouldRender={!disabledShiftSwaps}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="Shift swap request"
+                                        onClick={() => {
+                                          scrollToElement(
+                                            document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS)
+                                          );
 
-                                        this.handleShowRotationForm('new', nextPriority);
-                                      }}
-                                    />
-                                  )}
-                                  {!disabledShiftSwaps && (
-                                    <Menu.Item
-                                      label="Shift swap request"
-                                      onClick={() => {
-                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
+                                          this.handleShowShiftSwapForm('new');
+                                        }}
+                                      />
+                                    )}
+                                  />
+                                  <RenderConditionally
+                                    shouldRender={!disabledOverrideForm}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="Override"
+                                        onClick={() => {
+                                          scrollToElement(
+                                            document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS)
+                                          );
 
-                                        this.handleShowShiftSwapForm('new');
-                                      }}
-                                    />
-                                  )}
-                                  {!disabledOverrideForm && (
-                                    <Menu.Item
-                                      label="Override"
-                                      onClick={() => {
-                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
-
-                                        this.handleShowOverridesForm('new');
-                                      }}
-                                    />
-                                  )}
+                                          this.handleShowOverridesForm('new');
+                                        }}
+                                      />
+                                    )}
+                                  />
                                 </Menu>
                               }
                             >
