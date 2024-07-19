@@ -64,7 +64,7 @@ if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
         name="grafana-tilt-extensions",
-        ref="v1.2.0",
+        ref="v1.4.2",
         url="https://github.com/grafana/tilt-extensions",
     )
 v1alpha1.extension(
@@ -92,11 +92,13 @@ def load_grafana():
             context="grafana-plugin",
             plugin_files=["grafana-plugin/src/plugin.json"],
             namespace="default",
-            deps=["grafana-oncall-app-provisioning-configmap", "build-ui"],
+            deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
             extra_env={
                 "GF_SECURITY_ADMIN_PASSWORD": "oncall",
                 "GF_SECURITY_ADMIN_USER": "oncall",
                 "GF_AUTH_ANONYMOUS_ENABLED": "false",
+                "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
+                "ONCALL_API_URL": "http://oncall-dev-engine:8080"
             },
         )
 # --- GRAFANA END ----

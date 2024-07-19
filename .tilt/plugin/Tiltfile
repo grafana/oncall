@@ -24,3 +24,20 @@ if not is_ci:
         serve_cmd="yarn watch",
         allow_parallel=True,
     )
+
+local_resource(
+    'build-oncall-plugin-backend',
+    labels=[label],
+    dir="../../grafana-plugin",
+    cmd="mage buildAll",
+    deps=['grafana-plugin/pkg/plugin']
+)
+
+local_resource(
+    'restart-oncall-plugin-backend',
+    labels=[label],
+    dir="../../dev/scripts",
+    cmd="chmod +x ./restart_backend_plugin.sh && ./restart_backend_plugin.sh",
+    resource_deps=["grafana", "build-oncall-plugin-backend"],
+    deps=['grafana-plugin/pkg/plugin']
+)
