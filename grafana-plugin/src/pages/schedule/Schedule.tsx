@@ -172,6 +172,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const { scheduleView } = scheduleStore;
 
+    console.log(layers);
+
     return (
       <PageErrorHandlingWrapper errorData={scheduleStore.refreshEventsError} objectName="schedule" pageName="schedules">
         {() => (
@@ -232,41 +234,48 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             <Dropdown
                               overlay={
                                 <Menu>
-                                  {layers?.map((layer, index) => (
+                                  {!disabledRotationForm &&
+                                    layers?.map((layer, index) => (
+                                      <Menu.Item
+                                        key={index}
+                                        label={`L${layer.priority} rotation`}
+                                        onClick={() => {
+                                          scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
+
+                                          this.handleShowRotationForm('new', layer.priority);
+                                        }}
+                                      />
+                                    ))}
+                                  {!disabledRotationForm && (
                                     <Menu.Item
-                                      key={index}
-                                      label={`L${layer.priority} rotation`}
+                                      label="New layer with rotation"
                                       onClick={() => {
                                         scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
-                                        this.handleShowRotationForm('new', layer.priority);
+                                        this.handleShowRotationForm('new', nextPriority);
                                       }}
                                     />
-                                  ))}
-                                  <Menu.Item
-                                    label="New layer with rotation"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
+                                  )}
+                                  {!disabledShiftSwaps && (
+                                    <Menu.Item
+                                      label="Shift swap request"
+                                      onClick={() => {
+                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
 
-                                      this.handleShowRotationForm('new', nextPriority);
-                                    }}
-                                  />
-                                  <Menu.Item
-                                    label="Shift swap request"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
+                                        this.handleShowShiftSwapForm('new');
+                                      }}
+                                    />
+                                  )}
+                                  {!disabledOverrideForm && (
+                                    <Menu.Item
+                                      label="Override"
+                                      onClick={() => {
+                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
 
-                                      this.handleShowShiftSwapForm('new');
-                                    }}
-                                  />
-                                  <Menu.Item
-                                    label="Override"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
-
-                                      this.handleShowOverridesForm('new');
-                                    }}
-                                  />
+                                        this.handleShowOverridesForm('new');
+                                      }}
+                                    />
+                                  )}
                                 </Menu>
                               }
                             >
