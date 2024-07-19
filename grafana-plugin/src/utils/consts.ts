@@ -94,5 +94,6 @@ export enum OnCallAGStatus {
 }
 
 export const GENERIC_ERROR = 'An error has occurred. Please try again';
+export const PROCESSING_REQUEST_ERROR = 'There was an error processing your request. Please try again';
 
 export const INTEGRATION_SERVICENOW = 'servicenow';
