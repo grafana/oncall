@@ -5,6 +5,7 @@ import pytest
 from django.db import models
 
 from common.ordered_model.ordered_model import OrderedModel
+from common.ordered_model.serializer import OrderedModelSerializer
 
 
 class TestOrderedModel(OrderedModel):
@@ -436,3 +437,44 @@ def test_ordered_model_create_swap_and_delete_concurrent():
     assert not exceptions
     assert _orders_are_sequential()
     assert list(TestOrderedModel.objects.values_list("extra_field", flat=True)) == expected_extra_field_values
+
+
+class TestOrderedModelSerializer(OrderedModelSerializer):
+    class Meta:
+        model = TestOrderedModel
+        fields = OrderedModelSerializer.Meta.fields + ["test_field", "extra_field"]
+
+
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.django_db(transaction=True)
+def test_ordered_model_swap_all_to_zero_via_serializer():
+    THREADS = 300
+    exceptions = []
+
+    TestOrderedModel.objects.all().delete()  # clear table
+    instances = [TestOrderedModel.objects.create(test_field="test") for _ in range(THREADS)]
+
+    # generate random non-unique orders
+    random.seed(42)
+    positions = [random.randint(0, THREADS - 1) for _ in range(THREADS)]
+
+    def update_order_to_zero(idx):
+        try:
+            instance = instances[idx]
+            serializer = TestOrderedModelSerializer(instance, data={"order": 0, "extra_field": idx}, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            instance.swap(positions[idx])
+        except Exception as e:
+            exceptions.append(e)
+
+    threads = [threading.Thread(target=update_order_to_zero, args=(0,)) for _ in range(THREADS)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    # can only check that orders are still sequential and that there are no exceptions
+    # can't check the exact order because it changes depending on the order of execution
+    assert not exceptions
+    assert _orders_are_sequential()

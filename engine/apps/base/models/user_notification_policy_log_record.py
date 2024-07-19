@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import humanize
 from django.db import models
@@ -15,11 +16,45 @@ from apps.base.models.user_notification_policy import validate_channel_choice
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+    from apps.user_management.models import User
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+def _check_if_notification_policy_is_transient_fallback(kwargs):
+    """
+    If `using_fallback_default_notification_policy_step` is present, and `True`, then the `notification_policy`
+    field should be set to `None`. This is because we do not persist default notification policies in the
+    database. It only exists as a transient/in-memory object, and therefore has no foreign key to reference.
+    """
+    using_fallback_default_notification_policy_step = kwargs.pop(
+        "using_fallback_default_notification_policy_step", False
+    )
+
+    if using_fallback_default_notification_policy_step:
+        kwargs.pop("notification_policy", None)
+
+
+class UserNotificationPolicyLogRecordQuerySet(models.QuerySet):
+    def create(self, **kwargs):
+        """
+        Needed for when we do something like this:
+        notification_policy = UserNotificationPolicy.objects.create(arg1="foo", ...)
+        """
+        _check_if_notification_policy_is_transient_fallback(kwargs)
+        return super().create(**kwargs)
+
+
 class UserNotificationPolicyLogRecord(models.Model):
+    alert_group: "AlertGroup"
+    author: typing.Optional["User"]
+    notification_policy: typing.Optional[UserNotificationPolicy]
+
+    objects: models.Manager["UserNotificationPolicyLogRecord"] = UserNotificationPolicyLogRecordQuerySet.as_manager()
+
     (
         TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         TYPE_PERSONAL_NOTIFICATION_FINISHED,
@@ -111,6 +146,15 @@ class UserNotificationPolicyLogRecord(models.Model):
     notification_error_code = models.PositiveIntegerField(null=True, default=None)
     notification_step = models.IntegerField(choices=UserNotificationPolicy.Step.choices, null=True, default=None)
     notification_channel = models.IntegerField(validators=[validate_channel_choice], null=True, default=None)
+
+    def __init__(self, *args, **kwargs):
+        """
+        Needed for when we do something like this:
+        notification_policy = UserNotificationPolicy(arg1="foo", ...)
+        notification_policy.save()
+        """
+        _check_if_notification_policy_is_transient_fallback(kwargs)
+        super().__init__(*args, **kwargs)
 
     def rendered_notification_log_line(self, for_slack=False, html=False):
         timeline = render_relative_timeline(self.created_at, self.alert_group.started_at)

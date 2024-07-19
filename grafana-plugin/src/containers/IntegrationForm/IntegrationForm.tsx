@@ -18,7 +18,6 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { parseUrl } from 'query-string';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useHistory } from 'react-router-dom';
 
@@ -40,6 +39,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
+import { validateURL } from 'utils/string';
 import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
@@ -97,7 +97,13 @@ export const IntegrationForm = observer(
     const history = useHistory();
     const styles = useStyles2(getIntegrationFormStyles);
     const isNew = id === 'new';
-    const { userStore, grafanaTeamStore, alertReceiveChannelStore } = store;
+    const {
+      userStore,
+      grafanaTeamStore,
+      // dereferencing items is needed to rerender GSelect
+      grafanaTeamStore: { items: grafanaTeamItems },
+      alertReceiveChannelStore,
+    } = store;
 
     const data: Partial<ApiSchemas['AlertReceiveChannel']> = isNew
       ? {
@@ -234,7 +240,7 @@ export const IntegrationForm = observer(
                   placeholder="Assign to team"
                   {...field}
                   {...{
-                    items: grafanaTeamStore.items,
+                    items: grafanaTeamItems,
                     fetchItemsFn: grafanaTeamStore.updateItems,
                     fetchItemFn: grafanaTeamStore.fetchItemById,
                     getSearchResult: grafanaTeamStore.getSearchResult,
@@ -404,10 +410,6 @@ export const IntegrationForm = observer(
           {isLoading ? <LoadingPlaceholder text="Loading..." className={styles.loader} /> : buttonCopy}
         </Button>
       );
-    }
-
-    function validateURL(urlFieldValue: string): string | boolean {
-      return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
     }
 
     async function onFormSubmit(formData: IntegrationFormFields): Promise<void> {
@@ -648,7 +650,7 @@ const GrafanaContactPoint = observer(
       // filter contact points for current alert manager
       const contactPointsForCurrentOption = allContactPoints
         .find((opt) => opt.uid === option.value)
-        .contact_points?.map((cp) => ({ value: cp, label: cp }));
+        ?.contact_points?.map((cp) => ({ value: cp, label: cp }));
 
       const newState: Partial<GrafanaContactPointState> = {
         selectedAlertManagerOption: option.value,

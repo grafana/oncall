@@ -4,7 +4,6 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Drawer, Field, HorizontalGroup, Input, useStyles2, Button } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { parseUrl } from 'query-string';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 import { ActionKey } from 'models/loader/action-keys';
@@ -12,6 +11,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
 import { useIsLoading } from 'utils/hooks';
+import { validateURL } from 'utils/string';
 import { OmitReadonlyMembers } from 'utils/types';
 import { openNotification } from 'utils/utils';
 
@@ -129,10 +129,6 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
       </Drawer>
     </>
   );
-
-  function validateURL(urlFieldValue: string): string | boolean {
-    return !parseUrl(urlFieldValue) ? 'Instance URL is invalid' : true;
-  }
 
   async function onFormSubmit(formData: FormFields): Promise<void> {
     const data: OmitReadonlyMembers<ApiSchemas['AlertReceiveChannel']> = {

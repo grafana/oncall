@@ -554,7 +554,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         log_records = self.log_records.filter(
             type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
-        )
+        ).order_by("created_at")
 
         for log_record in log_records:
             # filter paging events, track still active escalations
@@ -592,7 +592,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                     }
                 else:
                     # user was unpaged at some point, remove them
-                    del users[user_id]
+                    # there could be multiple unpage log records if API was hit several times
+                    if user_id in users:
+                        del users[user_id]
 
         return list(users.values())
 

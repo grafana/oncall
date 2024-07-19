@@ -34,10 +34,9 @@ export class UserHelper {
   /**
    * NOTE: if is_currently_oncall=all the backend will not paginate the results, it will send back an array of ALL users
    */
-  static async search(f: any = { searchTerm: '' }, page = 1) {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, ...restFilters } = filters;
-    return (await onCallApi().GET('/users/', { params: { query: { search, page, ...restFilters } } })).data;
+  static async search(f: { search: string; is_currently_oncall?: boolean } | string = { search: '' }, page = 1) {
+    const filters = typeof f === 'string' ? { search: f } : f; // for GSelect compatibility
+    return (await onCallApi().GET('/users/', { params: { query: { ...filters, page } } })).data;
   }
 
   static getSearchResult(userStore: UserStore) {

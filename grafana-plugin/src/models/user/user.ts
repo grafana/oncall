@@ -36,7 +36,11 @@ export class UserStore {
     this.rootStore = rootStore;
   }
 
-  async fetchItems(f: any = { searchTerm: '' }, page = 1, invalidateFn?: () => boolean): Promise<any> {
+  async fetchItems(
+    f: { search: ''; type?: string; used?: boolean; mine?: boolean } | string = { search: '' },
+    page = 1,
+    invalidateFn?: () => boolean
+  ): Promise<any> {
     const response = await UserHelper.search(f, page);
 
     if (invalidateFn && invalidateFn()) {

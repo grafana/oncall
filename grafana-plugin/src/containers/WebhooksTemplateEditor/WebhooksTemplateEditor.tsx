@@ -9,8 +9,9 @@ import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
+import { TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
-import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { TemplatesAlertGroupsList } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
@@ -117,7 +118,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
         <div className={cx('container')}>
           <TemplatesAlertGroupsList
             heading="Last events"
-            templatePage={TEMPLATE_PAGE.Webhooks}
+            templatePage={TemplatePage.Webhooks}
             outgoingwebhookId={id}
             onEditPayload={onEditPayload}
             templates={
@@ -161,7 +162,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
             </>
           )}
           <TemplateResult
-            templatePage={TEMPLATE_PAGE.Webhooks}
+            templatePage={TemplatePage.Webhooks}
             outgoingWebhookId={id}
             template={template}
             templateBody={changedTemplateBody}

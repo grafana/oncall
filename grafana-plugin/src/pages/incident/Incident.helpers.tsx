@@ -11,7 +11,7 @@ import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsis
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
+import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization/authorization';
 
@@ -153,7 +153,7 @@ export function getActionButtons(
 
   const silenceButton = (
     <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
-      <SilenceButtonCascader disabled={incident?.loading} onSelect={onSilence} />
+      <SilenceSelect disabled={incident?.loading} onSelect={onSilence} />
     </WithPermissionControlTooltip>
   );
 

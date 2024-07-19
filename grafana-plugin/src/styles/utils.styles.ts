@@ -116,7 +116,7 @@ export const bem = (...args: string[]) =>
     return (out += '-');
   }, '');
 
-export enum COLORS {
+export enum Colors {
   ALWAYS_GREY = '#ccccdc',
   GRAY_8 = '#595959',
   GRAY_9 = '#434343',

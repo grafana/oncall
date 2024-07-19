@@ -91,8 +91,6 @@ CELERY_TASK_ROUTES = {
     "apps.chatops_proxy.tasks.unlink_slack_team_async": {"queue": "default"},
     "apps.chatops_proxy.tasks.register_oncall_tenant_async": {"queue": "default"},
     "apps.chatops_proxy.tasks.unregister_oncall_tenant_async": {"queue": "default"},
-    "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy": {"queue": "default"},
-    "apps.chatops_proxy.tasks.sync_org_with_chatops_proxy": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -107,6 +105,7 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.notify_ical_schedule_shift.notify_ical_schedule_shift": {"queue": "critical"},
     "apps.alerts.tasks.notify_user.notify_user_task": {"queue": "critical"},
     "apps.alerts.tasks.notify_user.perform_notification": {"queue": "critical"},
+    "apps.alerts.tasks.notify_user.send_bundled_notification": {"queue": "critical"},
     "apps.alerts.tasks.notify_user.send_user_notification_signal": {"queue": "critical"},
     "apps.alerts.tasks.resolve_alert_group_by_source_if_needed.resolve_alert_group_by_source_if_needed": {
         "queue": "critical"
@@ -131,6 +130,7 @@ CELERY_TASK_ROUTES = {
         "queue": "critical"
     },
     "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "critical"},
+    "apps.phone_notifications.phone_backend.notify_by_sms_bundle_async_task": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # GRAFANA
@@ -141,9 +141,11 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_alert_group_personal_notifications_task": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_personal_notifications_task": {"queue": "long"},
+    "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy": {"queue": "long"},
+    "apps.chatops_proxy.tasks.sync_org_with_chatops_proxy": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.cleanup_empty_deleted_integrations": {"queue": "long"},
-    "apps.grafana_plugin.tasks.sync.start_cleanup_organizations": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_integrations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
