@@ -1,11 +1,9 @@
 .token__inputContainer {
   width: 100%;
   display: flex;
-  margin-bottom: 24px;
 }
 
 .token__input {
-  flex-grow: 1;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -13,4 +11,8 @@
 .token__copyButton {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+.field {
+  flex-grow: 1;
 }

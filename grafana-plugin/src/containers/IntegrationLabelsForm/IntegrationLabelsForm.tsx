@@ -16,7 +16,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';
-import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MonacoLanguage } from 'components/MonacoEditor/MonacoEditor';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
@@ -178,7 +178,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
                 height="200px"
                 data={{}}
                 showLineNumbers={false}
-                language={MONACO_LANGUAGE.jinja2}
+                language={MonacoLanguage.jinja2}
                 onChange={(value) => {
                   setAlertGroupLabels({ ...alertGroupLabels, template: value });
                 }}
@@ -284,32 +284,16 @@ const CustomLabels = (props: CustomLabelsProps) => {
   };
 
   const onLoadKeys = async (search?: string) => {
-    let result = undefined;
-
-    try {
-      result = await labelsStore.loadKeys(search);
-    } catch (error) {
-      openErrorNotification('There was an error processing your request. Please try again');
-    }
-
-    const groups = splitToGroups(result);
-
-    return groups;
+    const result = await labelsStore.loadKeys(search);
+    return splitToGroups(result);
   };
 
   const onLoadValuesForKey = async (key: string, search?: string) => {
-    let result = undefined;
-
-    try {
-      const { values } = await labelsStore.loadValuesForKey(key, search);
-      result = values;
-    } catch (error) {
-      openErrorNotification('There was an error processing your request. Please try again');
+    if (!key) {
+      return [];
     }
-
-    const groups = splitToGroups(result);
-
-    return groups;
+    const { values } = await labelsStore.loadValuesForKey(key, search);
+    return splitToGroups(values);
   };
 
   return (

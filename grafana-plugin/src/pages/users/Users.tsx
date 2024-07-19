@@ -18,7 +18,7 @@ import {
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
-import { UsersFilters } from 'components/UsersFilters/UsersFilters';
+import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserHelper } from 'models/user/user.helpers';
@@ -44,9 +44,8 @@ const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 interface UsersState extends PageBaseState {
   isWrongTeam: boolean;
   userPkToEdit?: ApiSchemas['User']['pk'] | 'new';
-  usersFilters?: {
-    searchTerm: string;
-  };
+
+  filters: { search: ''; type: undefined; used: undefined; mine: undefined };
 }
 
 @observer
@@ -62,9 +61,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.state = {
       isWrongTeam: false,
       userPkToEdit: undefined,
-      usersFilters: {
-        searchTerm: '',
-      },
+      filters: { search: '', type: undefined, used: undefined, mine: undefined },
 
       errorData: initErrorDataState(),
     };
@@ -80,7 +77,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   updateUsers = debounce(async (invalidateFn?: () => boolean) => {
     const { store } = this.props;
-    const { usersFilters } = this.state;
+    const { filters } = this.state;
     const { userStore, filtersStore } = store;
     const page = filtersStore.currentTablePageNum[PAGE.Users];
 
@@ -89,7 +86,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.fetchItems(usersFilters, page, invalidateFn);
+    await userStore.fetchItems(filters, page, invalidateFn);
 
     this.forceUpdate();
   }, DEBOUNCE_MS);
@@ -184,38 +181,20 @@ class Users extends React.Component<UsersProps, UsersState> {
   renderContentIfAuthorized(authorizedToViewUsers: boolean) {
     const {
       store: { userStore, filtersStore },
-      theme,
     } = this.props;
 
-    const { usersFilters, userPkToEdit } = this.state;
+    const { userPkToEdit } = this.state;
 
     const page = filtersStore.currentTablePageNum[PAGE.Users];
 
     const { count, results, page_size } = UserHelper.getSearchResult(userStore);
     const columns = this.getTableColumns();
 
-    const handleClear = () =>
-      this.setState({ usersFilters: { searchTerm: '' } }, () => {
-        this.updateUsers();
-      });
-    const styles = getUsersStyles(theme);
-
     return (
       <>
         {authorizedToViewUsers ? (
           <>
-            <div className={styles.userFiltersContainer} data-testid="users-filters">
-              <UsersFilters
-                className={styles.usersFilters}
-                value={usersFilters}
-                isLoading={results === undefined}
-                onChange={this.handleUsersFiltersChange}
-              />
-              <Button variant="secondary" icon="times" onClick={handleClear}>
-                Clear filters
-              </Button>
-            </div>
-
+            {this.renderFilters()}
             <GTable
               data-testid="users-table"
               emptyText={results ? 'No users found' : 'Loading...'}
@@ -249,6 +228,33 @@ class Users extends React.Component<UsersProps, UsersState> {
       </>
     );
   }
+
+  renderFilters() {
+    const { query, store, theme } = this.props;
+    const styles = getUsersStyles(theme);
+
+    return (
+      <div className={styles.filters}>
+        <RemoteFilters
+          query={query}
+          page={PAGE.Users}
+          grafanaTeamStore={store.grafanaTeamStore}
+          onChange={this.handleFiltersChange}
+        />
+      </div>
+    );
+  }
+
+  handleFiltersChange = (filters: UsersState['filters'], _isOnMount: boolean) => {
+    const { filtersStore } = this.props.store;
+    const currentTablePage = filtersStore.currentTablePageNum[PAGE.Users];
+
+    LocationHelper.update({ p: currentTablePage }, 'partial');
+
+    this.setState({ filters }, () => {
+      this.updateUsers();
+    });
+  };
 
   renderTitle = (user: ApiSchemas['User']) => {
     const {
@@ -286,18 +292,6 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderImportantNotificationsChain = (user: ApiSchemas['User']) => {
     return user.notification_chain_verbal.important;
-  };
-
-  renderContacts = (user: ApiSchemas['User']) => {
-    const { store } = this.props;
-    return (
-      <div>
-        <div>Slack: {user.slack_user_identity?.name || '-'}</div>
-        {store.hasFeature(AppFeature.Telegram) && (
-          <div>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
-        )}
-      </div>
-    );
   };
 
   renderButtons = (user: ApiSchemas['User']) => {
@@ -440,16 +434,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     filtersStore.currentTablePageNum[PAGE.Users] = page;
 
     this.updateUsers();
-  };
-
-  handleUsersFiltersChange = (usersFilters: any, invalidateFn: () => boolean) => {
-    const { filtersStore } = this.props.store;
-
-    filtersStore.currentTablePageNum[PAGE.Users] = 1;
-
-    this.setState({ usersFilters }, () => {
-      this.updateUsers(invalidateFn);
-    });
   };
 
   handleHideUserSettings = () => {

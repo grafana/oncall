@@ -35,23 +35,24 @@ export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall'
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
-export const getProcessEnvVarSafely = (name: string) => {
+export const getIsDevelopmentEnv = () => {
   try {
-    return process.env[name];
+    return process.env.NODE_ENV === 'development';
   } catch (error) {
-    console.error(error);
-    return undefined;
+    return false;
   }
 };
-
-export const getIsDevelopmentEnv = () => getProcessEnvVarSafely['NODE_ENV'] === 'development';
 
 // Single source of truth on the frontend for OnCall API URL
 export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => {
   if (meta?.jsonData?.onCallApiUrl) {
     return meta?.jsonData?.onCallApiUrl;
   } else if (typeof window === 'undefined') {
-    return getProcessEnvVarSafely('ONCALL_API_URL');
+    try {
+      return process.env.ONCALL_API_URL;
+    } catch (error) {
+      return undefined;
+    }
   }
   return undefined;
 };
@@ -96,5 +97,6 @@ export enum OnCallAGStatus {
 }
 
 export const GENERIC_ERROR = 'An error has occurred. Please try again';
+export const PROCESSING_REQUEST_ERROR = 'There was an error processing your request. Please try again';
 
 export const INTEGRATION_SERVICENOW = 'servicenow';

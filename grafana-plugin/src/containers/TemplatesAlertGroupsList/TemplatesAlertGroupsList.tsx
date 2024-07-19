@@ -4,10 +4,11 @@ import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } 
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import { MonacoEditor, MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MonacoEditor, MonacoLanguage } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
+import { TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
@@ -18,13 +19,8 @@ import styles from './TemplatesAlertGroupsList.module.css';
 
 const cx = cn.bind(styles);
 
-export enum TEMPLATE_PAGE {
-  Integrations,
-  Webhooks,
-}
-
 interface TemplatesAlertGroupsListProps {
-  templatePage: TEMPLATE_PAGE;
+  templatePage: TemplatePage;
   templates: AlertTemplatesDTO[];
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
   outgoingwebhookId?: ApiSchemas['Webhook']['id'];
@@ -58,12 +54,12 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
 
   useEffect(() => {
     (async () => {
-      if (templatePage === TEMPLATE_PAGE.Webhooks) {
+      if (templatePage === TemplatePage.Webhooks) {
         if (outgoingwebhookId !== 'new') {
           const res = await store.outgoingWebhookStore.getLastResponses(outgoingwebhookId);
           setOutgoingWebhookLastResponses(res);
         }
-      } else if (templatePage === TEMPLATE_PAGE.Integrations) {
+      } else if (templatePage === TemplatePage.Integrations) {
         const result = await AlertGroupHelper.getAlertGroupsForIntegration(alertReceiveChannelId);
         setAlertGroupsList(result.slice(0, 30));
         onLoadAlertGroupsList(result.length > 0);
@@ -140,7 +136,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
               value={null}
               disabled={true}
               useAutoCompleteList={false}
-              language={MONACO_LANGUAGE.json}
+              language={MonacoLanguage.json}
               data={templates}
               monacoOptions={{
                 ...MONACO_EDITABLE_CONFIG,
@@ -168,7 +164,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
             </HorizontalGroup>
           </div>
           <div className={cx('alert-groups-list')}>
-            {templatePage === TEMPLATE_PAGE.Webhooks ? renderOutgoingWebhookLastResponses() : renderAlertGroupList()}
+            {templatePage === TemplatePage.Webhooks ? renderOutgoingWebhookLastResponses() : renderAlertGroupList()}
           </div>
         </>
       )}
@@ -263,7 +259,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
             onChange={getChangeHandler()}
             showLineNumbers
             useAutoCompleteList={false}
-            language={MONACO_LANGUAGE.json}
+            language={MonacoLanguage.json}
             monacoOptions={MONACO_EDITABLE_CONFIG}
           />
         </div>
@@ -301,7 +297,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
               height="100%"
               onChange={getChangeHandler()}
               useAutoCompleteList={false}
-              language={MONACO_LANGUAGE.json}
+              language={MonacoLanguage.json}
               monacoOptions={{
                 ...MONACO_EDITABLE_CONFIG,
                 readOnly: true,

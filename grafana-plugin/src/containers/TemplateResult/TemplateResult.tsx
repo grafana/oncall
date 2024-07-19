@@ -7,7 +7,7 @@ import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesF
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
-import { TemplatePreview, TEMPLATE_PAGE } from 'containers/TemplatePreview/TemplatePreview';
+import { TemplatePreview, TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 
 const cx = cn.bind(styles);
@@ -23,7 +23,7 @@ interface ResultProps {
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
   templateIsRoute?: boolean;
-  templatePage?: TEMPLATE_PAGE;
+  templatePage?: TemplatePage;
 }
 
 export const TemplateResult = (props: ResultProps) => {
@@ -37,7 +37,7 @@ export const TemplateResult = (props: ResultProps) => {
     error,
     isAlertGroupExisting,
     onSaveAndFollowLink,
-    templatePage = TEMPLATE_PAGE.Integrations,
+    templatePage = TemplatePage.Integrations,
   } = props;
 
   return (
@@ -91,7 +91,7 @@ export const TemplateResult = (props: ResultProps) => {
           <div>
             <Block bordered fullWidth className={cx('block-style')} withBackground>
               <Text>
-                ← Select {templatePage === TEMPLATE_PAGE.Webhooks ? 'event' : 'alert group'} or "Use custom payload"
+                ← Select {templatePage === TemplatePage.Webhooks ? 'event' : 'alert group'} or "Use custom payload"
               </Text>
             </Block>
           </div>

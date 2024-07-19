@@ -114,6 +114,60 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
 
 
 @pytest.fixture()
+def mock_cache_get_old_metrics_for_collector(monkeypatch):
+    def _mock_cache_get(key, *args, **kwargs):
+        if ALERT_GROUPS_TOTAL in key:
+            key = ALERT_GROUPS_TOTAL
+        elif ALERT_GROUPS_RESPONSE_TIME in key:
+            key = ALERT_GROUPS_RESPONSE_TIME
+        elif USER_WAS_NOTIFIED_OF_ALERT_GROUPS in key:
+            key = USER_WAS_NOTIFIED_OF_ALERT_GROUPS
+        test_metrics = {
+            ALERT_GROUPS_TOTAL: {
+                1: {
+                    "integration_name": "Test metrics integration",
+                    "team_name": "Test team",
+                    "team_id": 1,
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 1,
+                    "firing": 2,
+                    "silenced": 4,
+                    "acknowledged": 3,
+                    "resolved": 5,
+                },
+            },
+            ALERT_GROUPS_RESPONSE_TIME: {
+                1: {
+                    "integration_name": "Test metrics integration",
+                    "team_name": "Test team",
+                    "team_id": 1,
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 1,
+                    "response_time": [2, 10, 200, 650],
+                },
+            },
+            USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
+                1: {
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 1,
+                    "user_username": "Alex",
+                    "counter": 4,
+                }
+            },
+        }
+        return test_metrics.get(key)
+
+    def _mock_cache_get_many(keys, *args, **kwargs):
+        return {key: _mock_cache_get(key) for key in keys if _mock_cache_get(key)}
+
+    monkeypatch.setattr(cache, "get", _mock_cache_get)
+    monkeypatch.setattr(cache, "get_many", _mock_cache_get_many)
+
+
+@pytest.fixture()
 def mock_get_metrics_cache(monkeypatch):
     def _mock_cache_get(key, *args, **kwargs):
         return {}
