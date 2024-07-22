@@ -112,6 +112,8 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       organizationStore: { currentOrganization },
       slackStore,
       slackChannelStore,
+      // dereferencing items is needed to rerender GSelect
+      slackChannelStore: { items: slackChannelItems },
     } = store;
 
     return (
@@ -126,7 +128,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         >
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
             <GSelect<SlackChannel>
-              items={slackChannelStore.items}
+              items={slackChannelItems}
               fetchItemsFn={slackChannelStore.updateItems}
               fetchItemFn={slackChannelStore.updateItem}
               getSearchResult={slackChannelStore.getSearchResult}
@@ -199,6 +201,20 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </WithPermissionControlTooltip>
           </HorizontalGroup>
         </InlineField>
+        {currentOrganization.slack_team_identity.needs_reinstall && (
+          <>
+            <Legend>Unified Slack App</Legend>
+            <InlineField>
+              <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
+                <Button onClick={this.handleOpenSlackInstructions}>
+                  <HorizontalGroup spacing="xs" align="center">
+                    <Icon name="external-link-alt" className={cx('external-link-style')} /> Reinstall Slack App
+                  </HorizontalGroup>
+                </Button>
+              </WithPermissionControlTooltip>
+            </InlineField>
+          </>
+        )}
       </div>
     );
   };

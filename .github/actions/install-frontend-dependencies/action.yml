@@ -20,7 +20,7 @@ runs:
       # yamllint enable rule:line-length
     - uses: actions/setup-node@v4
       with:
-        node-version: 18.16.0
+        node-version: 20.15.1
         cache: "yarn"
         cache-dependency-path: ${{ steps.yarn-lock-location.outputs.yarn-lock-location }}
     - name: Use cached frontend dependencies

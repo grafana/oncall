@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 
 import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -18,11 +19,16 @@ interface MSTeamsConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
+export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
-  const { alertReceiveChannelStore, msteamsChannelStore } = store;
+  const {
+    alertReceiveChannelStore,
+    msteamsChannelStore,
+    // dereferencing items is needed to rerender GSelect
+    msteamsChannelStore: { items: msteamsChannelItems },
+  } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -57,7 +63,7 @@ export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
           <GSelect<MSTeamsChannel>
             allowClear
             className={cx('select', 'control')}
-            items={msteamsChannelStore.items}
+            items={msteamsChannelItems}
             fetchItemsFn={msteamsChannelStore.updateItems}
             fetchItemFn={msteamsChannelStore.updateById}
             getSearchResult={msteamsChannelStore.getSearchResult}
@@ -71,4 +77,4 @@ export const MSTeamsConnector = (props: MSTeamsConnectorProps) => {
       </HorizontalGroup>
     </div>
   );
-};
+});
