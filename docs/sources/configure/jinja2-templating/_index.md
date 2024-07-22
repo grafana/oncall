@@ -151,6 +151,6 @@ Note: The alert group must exist in the messenger to preview the template.
 1. Click **Save** to save the template.
 
 {{% docs/reference %}}
-[webhook-integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/webhook/"
-[webhook-integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/webhook/"
+[webhook-integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/webhook"
+[webhook-integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/webhook"
 {{% /docs/reference %}}

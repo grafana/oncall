@@ -42,8 +42,8 @@ For information on configuration options, refer to [Escalation chains and routes
 For detailed information on customizing alert templates, refer to the [Jinja2 templating] documentation.
 
 {{% docs/reference %}}
-[Integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations"
-[Integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
+[Integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations"
+[Integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations"
 
 [Escalation chains and routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes"
 [Escalation chains and routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes"
