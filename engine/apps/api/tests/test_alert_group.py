@@ -987,6 +987,7 @@ def test_get_title_search(
     make_user_auth_headers,
 ):
     settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED = True
+    settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS = 30
     organization, user, token = make_organization_and_user_with_plugin_token()
 
     alert_receive_channel = make_alert_receive_channel(organization)
