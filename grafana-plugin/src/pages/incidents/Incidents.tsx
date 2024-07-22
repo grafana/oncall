@@ -9,6 +9,7 @@ import {
   Icon,
   LoadingPlaceholder,
   RadioButtonGroup,
+  RefreshPicker,
   Tooltip,
   VerticalGroup,
   withTheme2,
@@ -61,6 +62,7 @@ import { TableColumn } from 'utils/types';
 
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceSelect } from './parts/SilenceSelect';
+import _, { noop } from 'lodash';
 
 interface Pagination {
   start: number;
@@ -79,15 +81,17 @@ interface IncidentsPageState {
   isSelectorColumnMenuOpen: boolean;
   isHorizontalScrolling: boolean;
   isFirstIncidentsFetchDone: boolean;
+  refreshInterval: string;
 }
-
-const POLLING_NUM_SECONDS = 10;
 
 const PAGINATION_OPTIONS = [
   { label: '25', value: 25 },
   { label: '50', value: 50 },
   { label: '100', value: 100 },
 ];
+
+const REFRESH_OPTIONS = ['5s', '10s', '15s', '30s', '60s'];
+const REFRESH_DEFAULT_VALUE = '10s';
 
 const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
   {
@@ -124,10 +128,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     store.alertGroupStore.incidentsCursor = cursorQuery || undefined;
 
     this.rootElRef = React.createRef<HTMLDivElement>();
+    this.filtersPortalRef = React.createRef<HTMLDivElement>();
 
     this.state = {
       selectedIncidentIds: [],
       showAddAlertGroupForm: false,
+      refreshInterval: REFRESH_DEFAULT_VALUE,
       pagination: {
         start,
         end: start + pageSize,
@@ -138,6 +144,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     };
   }
 
+  private filtersPortalRef: React.RefObject<HTMLDivElement>;
   private rootElRef: React.RefObject<HTMLDivElement>;
   private pollingIntervalId: ReturnType<typeof setInterval> = undefined;
 
@@ -160,13 +167,21 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   render() {
     const { history } = this.props;
-    const { showAddAlertGroupForm } = this.state;
+    const { refreshInterval, showAddAlertGroupForm } = this.state;
 
     const {
       theme,
+      store,
       store: { alertReceiveChannelStore },
     } = this.props;
     const styles = getStyles(theme);
+
+    const isLoading = LoaderHelper.isLoading(store.loaderStore, [
+      ActionKey.FETCH_INCIDENTS,
+      ActionKey.FETCH_INCIDENTS_POLLING,
+      ActionKey.FETCH_INCIDENTS_AND_STATS,
+      ActionKey.INCIDENTS_BULK_UPDATE,
+    ]);
 
     return (
       <>
@@ -174,11 +189,23 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           <div className={styles.title}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
-              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
-                <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
-                  Escalation
-                </Button>
-              </WithPermissionControlTooltip>
+
+              <div className={styles.rightSideFilters}>
+                <div className={styles.portalFilter} ref={this.filtersPortalRef} />
+                <RefreshPicker
+                  onIntervalChanged={this.onIntervalRefreshChange}
+                  onRefresh={this.onRefresh}
+                  intervals={REFRESH_OPTIONS}
+                  value={refreshInterval}
+                  isLoading={isLoading}
+                  isOnCanvas
+                />
+                <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
+                  <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                    Escalation
+                  </Button>
+                </WithPermissionControlTooltip>
+              </div>
             </HorizontalGroup>
           </div>
           {this.renderIncidentFilters()}
@@ -322,20 +349,41 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           query={query}
           page={PAGE.Incidents}
           onChange={this.handleFiltersChange}
+          extraInformation={{
+            started_at: {
+              isClearable: false,
+              value: 'now-30d_now',
+              portal: this.filtersPortalRef,
+            },
+            team: {
+              value: [],
+            },
+            status: {
+              value: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+            },
+            mine: {
+              value: false,
+            },
+          }}
           extraFilters={(...args) => {
             return this.renderCards(...args, store, theme);
           }}
           grafanaTeamStore={store.grafanaTeamStore}
-          defaultFilters={{
-            team: [],
-            status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
-            mine: false,
-            started_at: 'now-30d_now',
-          }}
         />
       </div>
     );
   }
+
+  onRefresh = async () => {
+    this.clearPollingInterval();
+    await this.props.store.alertGroupStore.fetchIncidentsAndStats(true);
+    this.setPollingInterval();
+  };
+
+  onIntervalRefreshChange = (value: string) => {
+    this.clearPollingInterval();
+    this.setState({ refreshInterval: value }, () => this.setPollingInterval());
+  };
 
   handleOnClickEscalateTo = () => {
     this.setState({ showAddAlertGroupForm: true });
@@ -437,15 +485,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       return null;
     }
 
-    const hasSelected = selectedIncidentIds.length > 0;
-    const isLoading = LoaderHelper.isLoading(store.loaderStore, [
-      ActionKey.FETCH_INCIDENTS,
-      ActionKey.FETCH_INCIDENTS_POLLING,
-      ActionKey.FETCH_INCIDENTS_AND_STATS,
-      ActionKey.INCIDENTS_BULK_UPDATE,
-    ]);
-
     const styles = getStyles(theme);
+    const hasSelected = selectedIncidentIds.length > 0;
     const isBulkUpdate = LoaderHelper.isLoading(store.loaderStore, ActionKey.INCIDENTS_BULK_UPDATE);
 
     return (
@@ -501,10 +542,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           </div>
 
           <div className={styles.fieldsDropdown}>
-            <RenderConditionally shouldRender={isLoading}>
-              <LoadingPlaceholder text="Loading..." className={styles.loadingPlaceholder} />
-            </RenderConditionally>
-
             <RenderConditionally shouldRender={store.hasFeature(AppFeature.Labels)}>
               <RadioButtonGroup
                 options={TABLE_SCROLL_OPTIONS}
@@ -964,6 +1001,8 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   setPollingInterval() {
     const startPolling = () => {
+      const pollingNum = parseInt(this.state.refreshInterval, 10);
+
       this.pollingIntervalId = setTimeout(async () => {
         const isBrowserWindowInactive = document.hidden;
         const { liveUpdatesPaused } = this.props.store.alertGroupStore;
@@ -984,7 +1023,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         }
 
         startPolling();
-      }, POLLING_NUM_SECONDS * 1000);
+      }, pollingNum * 1000);
     };
 
     startPolling();
@@ -996,6 +1035,12 @@ const getStyles = (theme: GrafanaTheme2) => {
     select: css`
       width: 400px;
     `,
+
+    rightSideFilters: css`
+      display: flex;
+      gap: 8px;
+    `,
+    portalFilter: css``,
 
     bau: css`
       ${[1, 2, 3].map(

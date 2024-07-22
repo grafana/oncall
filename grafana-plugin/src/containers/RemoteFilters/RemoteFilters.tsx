@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, KeyValue, SelectableValue, TimeRange } from '@grafana/data';
@@ -25,23 +26,23 @@ import { Text } from 'components/Text/Text';
 import { LabelsFilter } from 'containers/Labels/LabelsFilter';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { FiltersValues } from 'models/filters/filters.types';
+import { FiltersExtraInformation, FiltersValues } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'utils/datetime';
-import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 
 interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
-  defaultFilters?: FiltersValues;
+  extraInformation?: FiltersExtraInformation;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
@@ -86,12 +87,12 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       query,
       page,
       store: { filtersStore },
-      defaultFilters,
       skipFilterOptionFn,
     } = this.props;
 
     let filterOptions = await filtersStore.updateOptionsForPage(page);
     const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
+    const defaultFilters = this.extractDefaultValuesFromExtraInformation();
 
     if (skipFilterOptionFn) {
       filterOptions = filterOptions.filter((option: FilterOption) => !skipFilterOptionFn(option));
@@ -100,11 +101,11 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     // set the current page from filters/query or default it to 1
     filtersStore.setCurrentTablePageNum(page, currentTablePageNum);
 
-    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
-
-    if (allFieldsEmpty(values)) {
-      ({ filters, values } = parseFilters(defaultFilters, filterOptions, query));
-    }
+    let { filters, values } = parseFilters(
+      { ...defaultFilters, ...query, ...filtersStore.globalValues },
+      filterOptions,
+      query
+    );
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
@@ -147,28 +148,8 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     return (
       <div className={styles.filters}>
-        {filters.map((filterOption: FilterOption) => (
-          <div key={filterOption.name} className={styles.filter}>
-            <Text withBackground wrap={false} type="primary">
-              {filterOption.display_name || capitalCase(filterOption.name)}
-              {filterOption.description && (
-                <span className={styles.infoIcon}>
-                  <Tooltip content={filterOption.description}>
-                    <Icon name="info-circle" />
-                  </Tooltip>
-                </span>
-              )}
-            </Text>
-            {this.renderFilterOption(filterOption)}
-            <Button
-              size="md"
-              icon="times"
-              tooltip="Remove filter"
-              variant="secondary"
-              onClick={this.getDeleteFilterClickHandler(filterOption.name)}
-            />
-          </div>
-        ))}
+        {filters.map(this.renderFilterBlock)}
+
         <div className={styles.filterOptions}>
           <Select
             menuShouldPortal
@@ -185,6 +166,69 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         </div>
       </div>
     );
+  };
+
+  renderFilterBlock = (filterOption: FilterOption) => {
+    const { theme, extraInformation } = this.props;
+    const styles = getStyles(theme);
+
+    const filterElement = (
+      <div key={filterOption.name} className={styles.filter}>
+        <Text withBackground wrap={false} type="primary">
+          {filterOption.display_name || capitalCase(filterOption.name)}
+          {filterOption.description && (
+            <span className={styles.infoIcon}>
+              <Tooltip content={filterOption.description}>
+                <Icon name="info-circle" />
+              </Tooltip>
+            </span>
+          )}
+        </Text>
+        {this.renderFilterOption(filterOption)}
+
+        <RenderConditionally shouldRender={this.shouldShowRemove(filterOption)}>
+          <Button
+            size="md"
+            icon="times"
+            tooltip="Remove filter"
+            variant="secondary"
+            onClick={this.getDeleteFilterClickHandler(filterOption.name)}
+          />
+        </RenderConditionally>
+      </div>
+    );
+
+    if (extraInformation?.[filterOption.name]?.portal?.current) {
+      return ReactDOM.createPortal(filterElement, extraInformation[filterOption.name].portal.current);
+    }
+
+    return filterElement;
+  };
+
+  extractDefaultValuesFromExtraInformation = (): { [key: string]: any } => {
+    const { extraInformation } = this.props;
+
+    return Object.keys(extraInformation).reduce((acc, key) => {
+      if (extraInformation[key].value) {
+        acc[key] = extraInformation[key].value;
+      }
+
+      return acc;
+    }, {});
+  };
+
+  shouldShowRemove = (filterOption: FilterOption) => {
+    const { extraInformation } = this.props;
+
+    if (extraInformation?.[filterOption.name] && hasField('isClearable')) {
+      return extraInformation[filterOption.name].isClearable;
+    }
+
+    return true;
+
+    function hasField(fieldName: string) {
+      return extraInformation[filterOption.name].hasOwnProperty(fieldName);
+    }
   };
 
   handleSearch = (query: string) => {
