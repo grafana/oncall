@@ -343,8 +343,8 @@ Additionally, if you prefer to disable this feature, you can set the `ESCALATION
 to `False`.
 
 {{% docs/reference %}}
-[Inbound email integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
-[Inbound email integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/inbound-email"
+[Inbound email integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/reference/inbound-email"
+[Inbound email integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/reference/inbound-email"
 
 [Grafana OnCall mobile app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app"
 [Grafana OnCall mobile app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app"
