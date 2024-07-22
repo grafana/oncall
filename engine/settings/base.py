@@ -188,6 +188,10 @@ if DATABASE_TYPE == DatabaseTypes.MYSQL:
 
     pymysql.install_as_MySQLdb()
 
+ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX = DATABASE_TYPE == DatabaseTypes.MYSQL and getenv_boolean(
+    "ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX", default=False
+)
+
 # Redis
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")

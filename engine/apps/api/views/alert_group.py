@@ -241,9 +241,9 @@ class AlertGroupSearchFilter(SearchFilter):
 
         started_at = request.query_params.get("started_at")
         end = DateRangeFilterMixin.parse_custom_datetime_range(started_at)[1] if started_at else timezone.now()
+        queryset = queryset.filter(started_at__gte=end - timedelta(days=self.SEARCH_CUTOFF_DAYS))
 
-        queryset = super().filter_queryset(request, queryset, view)
-        return queryset.filter(started_at__gte=end - timedelta(days=self.SEARCH_CUTOFF_DAYS))
+        return super().filter_queryset(request, queryset, view)
 
     def get_search_fields(self, view, request):
         return (
@@ -330,6 +330,11 @@ class AlertGroupView(
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
+
+        if settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
+            # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
+            # read more: https://hackmysql.com/infamous-order-by-limit-query-optimizer-bug/
+            queryset = queryset.extra({"started_at_optimized": "alerts_alertgroup.started_at + 0"})
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
         label_query = self.request.query_params.getlist("label", [])
