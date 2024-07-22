@@ -10,6 +10,7 @@ export interface FiltersExtraInformation {
     isClearable?: boolean;
     value?: any;
     portal?: React.RefObject<any>;
+    showInputLabel?: boolean;
   };
 }
 

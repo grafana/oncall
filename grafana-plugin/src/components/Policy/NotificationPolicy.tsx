@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { Button, IconButton, Select, Themeable2, withTheme2 } from '@grafana/ui';
+import { Button, IconButton, Select, withTheme2 } from '@grafana/ui';
 import { isNumber } from 'lodash';
 import { SortableElement } from 'react-sortable-hoc';
 
@@ -22,11 +22,12 @@ import { DragHandle } from './DragHandle';
 import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
 import { PolicyNote } from './PolicyNote';
 
-export interface NotificationPolicyProps extends Themeable2 {
+export interface NotificationPolicyProps {
   data: NotificationPolicyType;
   slackTeamIdentity?: {
     general_log_channel_pk: Channel['id'];
   };
+  theme: GrafanaTheme2;
   slackUserIdentity?: ApiSchemas['User']['slack_user_identity'];
   onChange: (id: NotificationPolicyType['id'], value: NotificationPolicyType) => void;
   onDelete: (id: string) => void;

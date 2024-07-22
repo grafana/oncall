@@ -191,7 +191,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
               <Text.Title level={3}>Alert Groups</Text.Title>
 
               <div className={styles.rightSideFilters}>
-                <div className={styles.portalFilter} ref={this.filtersPortalRef} />
+                <div ref={this.filtersPortalRef} />
                 <RefreshPicker
                   onIntervalChanged={this.onIntervalRefreshChange}
                   onRefresh={this.onRefresh}
@@ -354,6 +354,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
               isClearable: false,
               value: 'now-30d_now',
               portal: this.filtersPortalRef,
+              showInputLabel: false,
             },
             team: {
               value: [],
@@ -1040,7 +1041,6 @@ const getStyles = (theme: GrafanaTheme2) => {
       display: flex;
       gap: 8px;
     `,
-    portalFilter: css``,
 
     bau: css`
       ${[1, 2, 3].map(

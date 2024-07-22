@@ -14,7 +14,7 @@ import {
   Tooltip,
   Button,
   withTheme2,
-  Themeable2,
+  TimeRangePicker,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
@@ -37,14 +37,17 @@ import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'u
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
+import { noop } from 'lodash';
+import { TimeRangePickerWrapper } from './TimeRangePickerWrapper';
 
-interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
+interface RemoteFiltersProps extends WithStoreProps {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
+  theme: GrafanaTheme2;
+  grafanaTeamStore: GrafanaTeamStore;
   extraInformation?: FiltersExtraInformation;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
-  grafanaTeamStore: GrafanaTeamStore;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
 export interface RemoteFiltersState {
@@ -170,20 +173,24 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   renderFilterBlock = (filterOption: FilterOption) => {
     const { theme, extraInformation } = this.props;
+    const { showInputLabel } = extraInformation?.[filterOption.name] || { showInputLabel: true };
+
     const styles = getStyles(theme);
 
     const filterElement = (
       <div key={filterOption.name} className={styles.filter}>
-        <Text withBackground wrap={false} type="primary">
-          {filterOption.display_name || capitalCase(filterOption.name)}
-          {filterOption.description && (
-            <span className={styles.infoIcon}>
-              <Tooltip content={filterOption.description}>
-                <Icon name="info-circle" />
-              </Tooltip>
-            </span>
-          )}
-        </Text>
+        <RenderConditionally shouldRender={showInputLabel}>
+          <Text withBackground wrap={false} type="primary">
+            {filterOption.display_name || capitalCase(filterOption.name)}
+            {filterOption.description && (
+              <span className={styles.infoIcon}>
+                <Tooltip content={filterOption.description}>
+                  <Icon name="info-circle" />
+                </Tooltip>
+              </span>
+            )}
+          </Text>
+        </RenderConditionally>
 
         {this.renderFilterOption(filterOption)}
 
@@ -209,13 +216,15 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   extractDefaultValuesFromExtraInformation = (): { [key: string]: any } => {
     const { extraInformation } = this.props;
 
-    return Object.keys(extraInformation).reduce((acc, key) => {
-      if (extraInformation[key].value) {
-        acc[key] = extraInformation[key].value;
-      }
+    return extraInformation
+      ? Object.keys(extraInformation).reduce((acc, key) => {
+          if (extraInformation[key].value) {
+            acc[key] = extraInformation[key].value;
+          }
 
-      return acc;
-    }, {});
+          return acc;
+        }, {})
+      : {};
   };
 
   shouldShowRemove = (filterOption: FilterOption) => {
@@ -369,12 +378,10 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         const value = getValueForDateRangeFilterType(values[filter.name]);
 
         return (
-          <TimeRangeInput
+          <TimeRangePickerWrapper
             timeZone={moment.tz.guess()}
             value={value}
             onChange={this.getDateRangeFilterChangeHandler(filter.name)}
-            hideTimeZone
-            clearable={false}
           />
         );
 
