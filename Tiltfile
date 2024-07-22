@@ -76,6 +76,7 @@ def load_grafana():
     # The user/pass that you will login to Grafana with
     grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
     grafana_version = os.getenv("GRAFANA_VERSION", "latest")
+    grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
 
 
     k8s_resource(
@@ -97,6 +98,8 @@ def load_grafana():
                 "GF_SECURITY_ADMIN_PASSWORD": "oncall",
                 "GF_SECURITY_ADMIN_USER": "oncall",
                 "GF_AUTH_ANONYMOUS_ENABLED": "false",
+                "GF_APP_URL": grafana_url,  # older versions of grafana need this
+                "GF_SERVER_ROOT_URL": grafana_url,
                 "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
                 "ONCALL_API_URL": "http://oncall-dev-engine:8080"
             },

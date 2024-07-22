@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	grafana_plugin_build "github.com/grafana/grafana-plugin-sdk-go/build"
 )
 
 type OnCallPluginSettingsJSONData struct {
@@ -73,6 +74,18 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		OnCallAPIURL: pluginSettingsJson.OnCallAPIURL,
 		License:      pluginSettingsJson.License,
 		GrafanaURL:   pluginSettingsJson.GrafanaURL,
+	}
+
+	version := pluginContext.PluginVersion
+	if version == "" {
+		// older Grafana versions do not have the plugin version in the context
+		buildInfo, err := grafana_plugin_build.GetBuildInfo()
+		if err != nil {
+			err = fmt.Errorf("OnCallSettingsFromContext: couldn't get plugin version: %w", err)
+			log.DefaultLogger.Error(err.Error())
+			return nil, err
+		}
+		version = buildInfo.Version
 	}
 
 	if settings.License == "" {

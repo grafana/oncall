@@ -365,7 +365,8 @@ class SlackEventApiEndpointView(APIView):
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
-                        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                        org = get_org_from_chatops_proxy_header(request, slack_team_identity)
+                        step.process_scenario(slack_user_identity, slack_team_identity, payload, predefined_org=org)
                         step_was_found = True
 
                 if payload_type == route_payload_type:
@@ -592,3 +593,19 @@ class ResetSlackView(APIView):
             return Response({"error": e.error_message}, status=400)
 
         return Response(status=200)
+
+
+def get_org_from_chatops_proxy_header(request, slack_team_identity) -> Organization | None:
+    """
+    get_org_from_chatops_proxy_header extracts organization from the X-Chatops-Stack-ID header injected by chatops-proxy
+    """
+    stack_id = request.META.get("HTTP_X_CHATOPS_STACK_ID")
+    if not stack_id:
+        return None
+
+    try:
+        # get only orgs linked to the slack workspace to avoid tampering
+        return slack_team_identity.organizations.get(stack_id=stack_id)
+    except Organization.DoesNotExist:
+        logger.info(f"SlackEventApiEndpointView: get_org_from_header: organization with stack_id {stack_id} not found")
+        return None
