@@ -7,7 +7,6 @@ import {
   Button,
   HorizontalGroup,
   Icon,
-  LoadingPlaceholder,
   RadioButtonGroup,
   RefreshPicker,
   Tooltip,
@@ -62,7 +61,6 @@ import { TableColumn } from 'utils/types';
 
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceSelect } from './parts/SilenceSelect';
-import _, { noop } from 'lodash';
 
 interface Pagination {
   start: number;

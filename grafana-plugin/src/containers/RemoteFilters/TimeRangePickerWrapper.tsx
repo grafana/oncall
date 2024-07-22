@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+
 import { dateMath, DateTime, TimeRange, toUtc } from '@grafana/data';
+import { TimeZone } from '@grafana/schema';
 import { TimeRangePicker } from '@grafana/ui';
 import { noop } from 'lodash';
-import { TimeZone } from '@grafana/schema';
 
 interface TimeRangePickerProps {
   value: TimeRange;

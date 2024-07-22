@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, KeyValue, SelectableValue, TimeRange } from '@grafana/data';
 import {
   InlineSwitch,
   MultiSelect,
-  TimeRangeInput,
   Select,
   LoadingPlaceholder,
   Input,
@@ -14,19 +12,20 @@ import {
   Tooltip,
   Button,
   withTheme2,
-  TimeRangePicker,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import ReactDOM from 'react-dom';
 import Emoji from 'react-emoji-render';
 
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { LabelsFilter } from 'containers/Labels/LabelsFilter';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { FiltersExtraInformation, FiltersValues } from 'models/filters/filters.types';
+import { FiltersExtraInformation } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -36,8 +35,6 @@ import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'u
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
-import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
-import { noop } from 'lodash';
 import { TimeRangePickerWrapper } from './TimeRangePickerWrapper';
 
 interface RemoteFiltersProps extends WithStoreProps {

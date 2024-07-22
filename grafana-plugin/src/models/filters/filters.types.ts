@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { SelectOption } from 'state/types';
 
 export interface FiltersValues {
