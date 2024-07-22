@@ -95,6 +95,26 @@ def test_install_slack_integration_raises_exception_for_existing_integration(
         install_slack_integration(organization, user, SLACK_OAUTH_ACCESS_RESPONSE)
 
 
+@pytest.mark.django_db
+def test_install_slack_integration_legacy(settings, make_organization_and_user, make_slack_team_identity):
+    settings.UNIFIED_SLACK_APP_ENABLED = True
+
+    slack_team_identity = make_slack_team_identity(
+        slack_id=SLACK_OAUTH_ACCESS_RESPONSE["team"]["id"], _unified_slack_app_installed=False
+    )
+    organization, user = make_organization_and_user()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+
+    install_slack_integration(organization, user, SLACK_OAUTH_ACCESS_RESPONSE)
+    slack_team_identity.refresh_from_db()
+    assert slack_team_identity.needs_reinstall is False
+
+    # raises exception if organization already re-installed the app
+    with pytest.raises(SlackInstallationExc):
+        install_slack_integration(organization, user, SLACK_OAUTH_ACCESS_RESPONSE)
+
+
 @patch("apps.slack.tasks.clean_slack_integration_leftovers.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_uninstall_slack_integration(

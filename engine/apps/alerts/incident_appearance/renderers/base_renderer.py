@@ -1,10 +1,11 @@
 import typing
 from abc import ABC, abstractmethod
 
+from django.db.models import QuerySet
 from django.utils.functional import cached_property
 
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import Alert, AlertGroup
+    from apps.alerts.models import Alert, AlertGroup, BundledNotification
 
 
 class AlertBaseRenderer(ABC):
@@ -33,3 +34,11 @@ class AlertGroupBaseRenderer(ABC):
     @abstractmethod
     def alert_renderer_class(self):
         raise NotImplementedError
+
+
+class AlertGroupBundleBaseRenderer:
+    MAX_ALERT_GROUPS_TO_RENDER = 3
+    MAX_CHANNELS_TO_RENDER = 1
+
+    def __init__(self, notifications: "QuerySet[BundledNotification]"):
+        self.notifications = notifications

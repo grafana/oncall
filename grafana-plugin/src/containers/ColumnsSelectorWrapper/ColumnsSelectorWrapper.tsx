@@ -13,6 +13,7 @@ import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { PROCESSING_REQUEST_ERROR } from 'utils/consts';
 import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 import { useIsLoading } from 'utils/hooks';
 
@@ -81,7 +82,7 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
                 onClick={WrapAutoLoadingState(
                   WrapWithGlobalNotification(onColumnRemovalClick, {
                     success: 'Column has been removed from the list.',
-                    failure: 'There was an error processing your request. Please try again',
+                    failure: PROCESSING_REQUEST_ERROR,
                   }),
                   ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP
                 )}

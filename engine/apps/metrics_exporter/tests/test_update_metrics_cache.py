@@ -6,6 +6,7 @@ from django.test import override_settings
 
 from apps.alerts.signals import alert_group_created_signal
 from apps.alerts.tasks import notify_user_task
+from apps.alerts.tasks.notify_user import update_metric_if_needed
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.metrics_exporter.constants import NO_SERVICE_VALUE, SERVICE_LABEL
 from apps.metrics_exporter.helpers import (
@@ -605,6 +606,82 @@ def test_update_metrics_cache_on_user_notification(
         # counter doesn't grow after the second notification of alert group
         notify_user_task(user.id, alert_group_2.id, previous_notification_policy_pk=notification_policy_1.id)
         arg_idx = get_called_arg_index_and_compare_results()
+
+
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@pytest.mark.django_db
+def test_update_metric_if_needed(
+    mock_apply_async,
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+    make_user_was_notified_metrics_cache_params,
+    monkeypatch,
+    mock_get_metrics_cache,
+):
+    organization = make_organization(
+        org_id=METRICS_TEST_ORG_ID,
+        stack_slug=METRICS_TEST_INSTANCE_SLUG,
+        stack_id=METRICS_TEST_INSTANCE_ID,
+    )
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        verbal_name=METRICS_TEST_INTEGRATION_NAME,
+    )
+    user = make_user_for_organization(organization, username=METRICS_TEST_USER_USERNAME)
+
+    alert_group_1 = make_alert_group(alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel)
+    alert_group_3 = make_alert_group(alert_receive_channel)
+
+    # create 1 log record for alert_group_1, 2 log records for alert_group_2 and 3 log records for alert_group_3
+    for idx, alert_group in enumerate([alert_group_1, alert_group_2, alert_group_3], start=1):
+        for _ in range(idx):
+            make_user_notification_policy_log_record(
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                author=user,
+                alert_group=alert_group,
+            )
+
+    metrics_cache = make_user_was_notified_metrics_cache_params(user.id, organization.id)
+    monkeypatch.setattr(cache, "get", metrics_cache)
+
+    metric_user_was_notified_key = get_metric_user_was_notified_of_alert_groups_key(organization.id)
+
+    expected_result_metric_user_was_notified = {
+        user.id: {
+            "org_id": organization.org_id,
+            "slug": organization.stack_slug,
+            "id": organization.stack_id,
+            "user_username": METRICS_TEST_USER_USERNAME,
+            "counter": 1,
+        }
+    }
+
+    with patch("apps.metrics_exporter.tasks.cache.set") as mock_cache_set:
+        # check current metric value
+        assert cache.get(metric_user_was_notified_key, {}) == expected_result_metric_user_was_notified
+
+        expected_result_metric_user_was_notified[user.id]["counter"] += 1
+        update_metric_if_needed(user, [alert_group_1.id, alert_group_2.id, alert_group_3.id])
+
+        # check user_was_notified_of_alert_groups metric counter was increased by 1
+        # (for alert_group_1 that has only one log record with type "triggered")
+        mock_cache_set.assert_called_once()
+        mock_cache_set_called_args = mock_cache_set.call_args_list
+        assert mock_cache_set_called_args[0].args[0] == metric_user_was_notified_key
+        assert mock_cache_set_called_args[0].args[1] == expected_result_metric_user_was_notified
+        # create new log record for alert_group_1
+        make_user_notification_policy_log_record(
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+            author=user,
+            alert_group=alert_group_1,
+        )
+        # check metric was not updated
+        update_metric_if_needed(user, [alert_group_1.id, alert_group_2.id, alert_group_3.id])
+        mock_cache_set.assert_called_once()
 
 
 @pytest.mark.django_db

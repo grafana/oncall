@@ -238,3 +238,18 @@ $LARGE-MARGIN: 24px;
   display: inline-flex;
   gap: 4px;
 }
+
+/* -----
+ * Icons
+ */
+
+.icon-exclamation {
+  color: var(--error-text-color);
+}
+
+.route-heading {
+  max-width: 80%;
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

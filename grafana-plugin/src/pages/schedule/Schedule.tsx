@@ -22,6 +22,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFilters } from 'components/ScheduleFilters/ScheduleFilters';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
@@ -232,40 +233,64 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             <Dropdown
                               overlay={
                                 <Menu>
-                                  {layers?.map((layer, index) => (
-                                    <Menu.Item
-                                      key={index}
-                                      label={`L${layer.priority} rotation`}
-                                      onClick={() => {
-                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
+                                  <RenderConditionally
+                                    shouldRender={!disabledRotationForm}
+                                    render={() =>
+                                      layers?.map((layer, index) => (
+                                        <Menu.Item
+                                          key={index}
+                                          label={`L${layer.priority} rotation`}
+                                          onClick={() => {
+                                            scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
-                                        this.handleShowRotationForm('new', layer.priority);
-                                      }}
-                                    />
-                                  ))}
-                                  <Menu.Item
-                                    label="New layer with rotation"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
-
-                                      this.handleShowRotationForm('new', nextPriority);
-                                    }}
+                                            this.handleShowRotationForm('new', layer.priority);
+                                          }}
+                                        />
+                                      ))
+                                    }
                                   />
-                                  <Menu.Item
-                                    label="Shift swap request"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
+                                  <RenderConditionally
+                                    shouldRender={!disabledRotationForm}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="New layer with rotation"
+                                        onClick={() => {
+                                          scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
-                                      this.handleShowShiftSwapForm('new');
-                                    }}
+                                          this.handleShowRotationForm('new', nextPriority);
+                                        }}
+                                      />
+                                    )}
                                   />
-                                  <Menu.Item
-                                    label="Override"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
+                                  <RenderConditionally
+                                    shouldRender={!disabledShiftSwaps}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="Shift swap request"
+                                        onClick={() => {
+                                          scrollToElement(
+                                            document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS)
+                                          );
 
-                                      this.handleShowOverridesForm('new');
-                                    }}
+                                          this.handleShowShiftSwapForm('new');
+                                        }}
+                                      />
+                                    )}
+                                  />
+                                  <RenderConditionally
+                                    shouldRender={!disabledOverrideForm}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="Override"
+                                        onClick={() => {
+                                          scrollToElement(
+                                            document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS)
+                                          );
+
+                                          this.handleShowOverridesForm('new');
+                                        }}
+                                      />
+                                    )}
                                   />
                                 </Menu>
                               }
@@ -356,28 +381,30 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                           </div>
                         </HorizontalGroup>
                         <HorizontalGroup>
-                          <RadioButtonGroup
-                            options={[
-                              { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
-                              { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },
-                              { label: ScheduleView.OneMonth, value: ScheduleView.OneMonth },
-                            ]}
-                            value={scheduleView}
-                            onChange={(value) => {
-                              scheduleStore.setScheduleView(value);
-                              if (value === ScheduleView.OneMonth) {
-                                timezoneStore.setCalendarStartDate(
-                                  getCalendarStartDate(
-                                    timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
-                                    value,
-                                    timezoneStore.selectedTimezoneOffset
-                                  )
-                                );
-                              }
+                          <div data-testid="schedule-view-picker">
+                            <RadioButtonGroup
+                              options={[
+                                { label: ScheduleView.OneWeek, value: ScheduleView.OneWeek },
+                                { label: ScheduleView.TwoWeeks, value: ScheduleView.TwoWeeks },
+                                { label: ScheduleView.OneMonth, value: ScheduleView.OneMonth },
+                              ]}
+                              value={scheduleView}
+                              onChange={(value) => {
+                                scheduleStore.setScheduleView(value);
+                                if (value === ScheduleView.OneMonth) {
+                                  timezoneStore.setCalendarStartDate(
+                                    getCalendarStartDate(
+                                      timezoneStore.calendarStartDate.endOf('isoWeek').startOf('month'),
+                                      value,
+                                      timezoneStore.selectedTimezoneOffset
+                                    )
+                                  );
+                                }
 
-                              scheduleStore.refreshEvents(scheduleId);
-                            }}
-                          />
+                                scheduleStore.refreshEvents(scheduleId);
+                              }}
+                            />
+                          </div>
                           <ScheduleFilters
                             value={filters}
                             onChange={(value) => this.setState({ filters: value })}
