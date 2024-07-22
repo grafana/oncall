@@ -19,7 +19,7 @@ export interface GTableProps<RecordType = unknown> extends TableProps<RecordType
   expandable?: {
     expandedRowKeys: string[];
     expandedRowRender: (item: any) => React.ReactNode;
-    onExpandedRowsChange: (rows: string[]) => void;
+    onExpandedRowsChange?: (rows: string[]) => void;
     expandRowByClick: boolean;
     expandIcon?: (props: { expanded: boolean; record: any }) => React.ReactNode;
     onExpand?: (expanded: boolean, item: any) => void;
@@ -47,7 +47,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
       const { expanded, record } = props;
       return (
         <Icon
-          style={{ cursor: 'pointer' }}
+          className={styles.expandIcon}
           name={expanded ? 'angle-down' : 'angle-right'}
           onClick={(event) => {
             event.stopPropagation();
@@ -61,8 +61,8 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
               newExpandedRowKeys.splice(index, 1);
             }
 
-            expandable.onExpand && expandable.onExpand(newExpanded, record);
-            expandable.onExpandedRowsChange(newExpandedRowKeys);
+            expandable.onExpand?.(newExpanded, record);
+            expandable.onExpandedRowsChange?.(newExpandedRowKeys);
           }}
         />
       );
@@ -135,7 +135,7 @@ export const GTable = <RT extends DefaultRecordType = DefaultRecordType>(props: 
   }, [rowSelection, columnsProp, data]);
 
   return (
-    <div className={cx(styles.root, { [styles.fixed]: props.tableLayout === 'fixed' })} data-testid="test__gTable">
+    <div className={styles.root} data-testid="test__gTable">
       <Table<RT>
         expandable={expandable}
         rowKey={rowKey}
@@ -161,18 +161,13 @@ const getGTableStyles = () => ({
       width: 100%;
     }
   `,
-
-  fixed: css`
-    table {
-      table-layout: fixed;
-    }
-  `,
-
   pagination: css`
     margin-top: 20px;
   `,
-
   checkbox: css`
     display: inline-flex;
+  `,
+  expandIcon: css`
+    cursor: pointer;
   `,
 });

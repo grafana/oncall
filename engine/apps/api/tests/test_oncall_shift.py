@@ -1778,7 +1778,7 @@ def test_on_call_shift_preview_without_users(
             "is_override": False,
             "is_empty": True,
             "is_gap": False,
-            "priority_level": None,
+            "priority_level": 0,
             "missing_users": [],
             "users": [],
             "source": "web",

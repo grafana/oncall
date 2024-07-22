@@ -60,7 +60,7 @@ import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
 import { IncidentDropdown } from './parts/IncidentDropdown';
-import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
+import { SilenceSelect } from './parts/SilenceSelect';
 
 interface Pagination {
   start: number;
@@ -81,7 +81,7 @@ interface IncidentsPageState {
   isFirstIncidentsFetchDone: boolean;
 }
 
-const POLLING_NUM_SECONDS = 15;
+const POLLING_NUM_SECONDS = 10;
 
 const PAGINATION_OPTIONS = [
   { label: '25', value: 25 },
@@ -487,7 +487,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
-                <SilenceButtonCascader
+                <SilenceSelect
                   disabled={!hasSelected || isBulkUpdate}
                   onSelect={(ev) => this.onBulkActionClick('silence', ev)}
                 />

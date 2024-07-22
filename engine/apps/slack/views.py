@@ -15,9 +15,11 @@ from rest_framework.views import APIView
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.chatops_proxy.utils import uninstall_slack as uninstall_slack_from_chatops_proxy
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
+from apps.slack.scenarios.alertgroup_timeline import STEPS_ROUTING as ALERTGROUP_TIMELINE_ROUTING
 
 # Importing routes from scenarios
 from apps.slack.scenarios.declare_incident import STEPS_ROUTING as DECLARE_INCIDENT_ROUTING
@@ -51,6 +53,7 @@ SCENARIOS_ROUTES.extend(SCHEDULES_ROUTING)
 SCENARIOS_ROUTES.extend(SHIFT_SWAP_REQUESTS_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_CHANNEL_INTEGRATION_ROUTING)
 SCENARIOS_ROUTES.extend(ALERTGROUP_APPEARANCE_ROUTING)
+SCENARIOS_ROUTES.extend(ALERTGROUP_TIMELINE_ROUTING)
 SCENARIOS_ROUTES.extend(RESOLUTION_NOTE_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_USERGROUP_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)
@@ -362,7 +365,8 @@ class SlackEventApiEndpointView(APIView):
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
-                        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                        org = get_org_from_chatops_proxy_header(request, slack_team_identity)
+                        step.process_scenario(slack_user_identity, slack_team_identity, payload, predefined_org=org)
                         step_was_found = True
 
                 if payload_type == route_payload_type:
@@ -573,8 +577,35 @@ class ResetSlackView(APIView):
                 "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
                 status=400,
             )
+        if settings.UNIFIED_SLACK_APP_ENABLED:
+            # If unified slack app is enabled - uninstall slack integration from chatops-proxy first and on success -
+            # uninstall it from OnCall.
+            removed = uninstall_slack_from_chatops_proxy(request.user.organization.stack_id, request.user.user_id)
+        else:
+            # just a placeholder value to continute uninstallation until UNIFIED_SLACK_APP_ENABLED is not enabled
+            removed = True
+        if not removed:
+            return Response({"error": "Failed to uninstall slack integration"}, status=500)
+
         try:
             uninstall_slack_integration(request.user.organization, request.user)
         except SlackInstallationExc as e:
             return Response({"error": e.error_message}, status=400)
+
         return Response(status=200)
+
+
+def get_org_from_chatops_proxy_header(request, slack_team_identity) -> Organization | None:
+    """
+    get_org_from_chatops_proxy_header extracts organization from the X-Chatops-Stack-ID header injected by chatops-proxy
+    """
+    stack_id = request.META.get("HTTP_X_CHATOPS_STACK_ID")
+    if not stack_id:
+        return None
+
+    try:
+        # get only orgs linked to the slack workspace to avoid tampering
+        return slack_team_identity.organizations.get(stack_id=stack_id)
+    except Organization.DoesNotExist:
+        logger.info(f"SlackEventApiEndpointView: get_org_from_header: organization with stack_id {stack_id} not found")
+        return None

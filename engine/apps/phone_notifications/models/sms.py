@@ -45,7 +45,7 @@ class SMSRecord(models.Model):
     notification_policy = models.ForeignKey(
         "base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True, default=None
     )
-
+    represents_bundle_uuid = models.CharField(max_length=100, null=True, default=None, db_index=True)
     receiver = models.ForeignKey("user_management.User", on_delete=models.CASCADE, null=True, default=None)
     grafana_cloud_notification = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

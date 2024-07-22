@@ -302,8 +302,6 @@ The limit can be changed using env variables:
 
 ## Mobile application set up
 
-> **Note**: This application is currently in beta
-
 Grafana OnCall OSS users can use the mobile app to receive push notifications from OnCall.
 Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
 You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.

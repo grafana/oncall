@@ -6,6 +6,13 @@ export const getSchedulesStyles = () => {
       position: relative;
     `,
 
+    tableRoot: css`
+      td.rc-table-row-expand-icon-cell {
+        position: relative;
+        left: 3px;
+      }
+    `,
+
     table: css`
       td {
         padding-top: 5px;

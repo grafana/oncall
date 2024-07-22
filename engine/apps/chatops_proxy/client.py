@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
-SERVICE_TYPE_ONCALL = "oncall"
+APP_TYPE_ONCALL = "oncall"
 PROVIDER_TYPE_SLACK = "slack"
 
 
@@ -65,7 +65,7 @@ class ChatopsProxyAPIClient:
 
     # OnCall Tenant
     def register_tenant(
-        self, service_tenant_id: str, cluster_slug: str, service_type: str, stack_id: int
+        self, service_tenant_id: str, cluster_slug: str, service_type: str, stack_id: int, stack_slug: str
     ) -> tuple[Tenant, requests.models.Response]:
         url = f"{self.api_base_url}/tenants/register"
         d = {
@@ -74,6 +74,7 @@ class ChatopsProxyAPIClient:
                 "cluster_slug": cluster_slug,
                 "service_type": service_type,
                 "stack_id": stack_id,
+                "stack_slug": stack_slug,
             }
         }
         response = requests.post(url=url, json=d, headers=self._headers)
@@ -169,6 +170,20 @@ class ChatopsProxyAPIClient:
         response = requests.post(url=url, json=d, headers=self._headers)
         self._check_response(response)
         return OAuthInstallation(**response.json()["oauth_installation"]), response
+
+    def delete_oauth_installation(
+        self, stack_id: int, provider_type: str, grafana_user_id: int, app_type: str
+    ) -> tuple[bool, requests.models.Response]:
+        url = f"{self.api_base_url}/oauth_installations/uninstall"
+        d = {
+            "stack_id": stack_id,
+            "provider_type": provider_type,
+            "grafana_user_id": grafana_user_id,
+            "app_type": app_type,
+        }
+        response = requests.post(url=url, json=d, headers=self._headers)
+        self._check_response(response)
+        return response.json()["removed"], response
 
     def _check_response(self, response: requests.models.Response):
         """

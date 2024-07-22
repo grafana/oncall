@@ -747,7 +747,6 @@ class AlertGroupView(
                 "href": api_root + "teams/",
                 "global": True,
             },
-            {"name": "search", "type": "search"},
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
             {"name": "escalation_chain", "type": "options", "href": api_root + "escalation_chains/?filters=true"},
             {
@@ -810,6 +809,9 @@ class AlertGroupView(
                 "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
             },
         ]
+
+        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED:
+            filter_options = [{"name": "search", "type": "search"}] + filter_options
 
         if is_labels_feature_enabled(self.request.auth.organization):
             filter_options.append(

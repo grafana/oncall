@@ -83,13 +83,16 @@ from an on-call schedule.
 * `Notify all users from a team` - send a notification to all users in a team.
 * `Resolve incident automatically` - resolve the alert group right now with status
 `Resolved automatically`.
-* `Notify whole slack channel` - send a notification to the users in the slack channel. These users will be notified
+* `Escalate to all Slack channel members` - send a notification to the users in the slack channel. These users will be notified
 via the method configured in their user profile.
 * `Notify Slack User Group` - send a notification to each member of a slack user group. These users will be notified
 via the method configured in their user profile.
 * `Trigger outgoing webhook` - trigger an [outgoing webhook].
-* `Notify users one by one (round robin)` - each notification will be sent to a group of
-users one by one, in sequential order in [round robin fashion](https://en.wikipedia.org/wiki/Round-robin_item_allocation).
+* `Notify users one by one (round robin)` - notify users sequentially, cycling through users for **different alert groups**.
+Example: if users A, B, and C are in the list, the first alert group notifies A, the second alert group notifies B, and
+the third alert group notifies C. Note: users are sorted alphabetically by their username.
+To notify multiple users **within the same alert group** until someone acknowledges, instead use `Notify users` policies with
+`Wait` policies between them in the escalation chain.
 * `Continue escalation if current time is in range` - continue escalation only if current
 time is in specified range. It will wait for the specfied time to continue escalation.
 Useful when you want to get escalation only during working hours
@@ -97,7 +100,7 @@ Useful when you want to get escalation only during working hours
 passes some threshold
 * `Repeat escalation from beginning (5 times max)` - loop the escalation chain
 
-> **Note:** Both "**Notify whole Slack channel**" and "**Notify Slack User Group**" will filter OnCall registered users
+> **Note:** Both "**Escalate to all Slack channel members**" and "**Notify Slack User Group**" will filter OnCall registered users
 matching the users in the Slack channel or Slack User Group with their profiles linked to their Slack accounts (ie. users
 should have linked their Slack and OnCall users). In both cases, the filtered users satisfying the criteria above are
 notified following their respective notification policies. However, to avoid **spamming** the Slack channel/thread,

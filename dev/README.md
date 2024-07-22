@@ -11,7 +11,7 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 - [Tilt | Kubernetes for Prod, Tilt for Dev](https://tilt.dev/)
 - [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
 - [Kind](https://kind.sigs.k8s.io)
-- [Node.js v18.x](https://nodejs.org/en/download)
+- [Node.js v20.x](https://nodejs.org/en/download)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
 
 ### Launch the environment
@@ -35,6 +35,14 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
      - name: FEATURE_LABELS_ENABLED_FOR_ALL
        value: "True"
    ```
+
+   You can also choose set of resources that will be installed in your local cluster, e.g.:
+
+   ```bash
+   ONCALL_PROFILES=grafana,plugin,backend tilt up
+   ```
+
+   Available profiles are: `grafana,plugin,backend,tests`, by default all the profiles are enabled.
 
 3. Wait until all resources are green and open <http://localhost:3000/a/grafana-oncall-app> (user: oncall, password: oncall)
 

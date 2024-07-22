@@ -72,6 +72,7 @@ FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL"
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
 FEATURE_ALERT_GROUP_SEARCH_ENABLED = getenv_boolean("FEATURE_ALERT_GROUP_SEARCH_ENABLED", default=False)
+FEATURE_NOTIFICATION_BUNDLE_ENABLED = getenv_boolean("FEATURE_NOTIFICATION_BUNDLE_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -551,8 +552,8 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute="*/30"),
         "args": (),
     },
-    "start_cleanup_organizations": {
-        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_organizations",
+    "start_cleanup_deleted_integrations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_integrations",
         "schedule": crontab(hour="4, 16", minute=35),
         "args": (),
     },
@@ -589,6 +590,14 @@ CELERY_BEAT_SCHEDULE = {
         "args": (),
     },
 }
+
+START_SYNC_ORG_WITH_CHATOPS_PROXY_ENABLED = getenv_boolean("START_SYNC_ORG_WITH_CHATOPS_PROXY_ENABLED", default=False)
+if FEATURE_MULTIREGION_ENABLED and START_SYNC_ORG_WITH_CHATOPS_PROXY_ENABLED:
+    CELERY_BEAT_SCHEDULE["start_sync_org_with_chatops_proxy"] = {
+        "task": "apps.chatops_proxy.tasks.start_sync_org_with_chatops_proxy",
+        "schedule": crontab(minute=0, hour=12),  # Execute every day at noon
+        "args": (),
+    }
 
 if ESCALATION_AUDITOR_ENABLED:
     CELERY_BEAT_SCHEDULE["check_escalations"] = {

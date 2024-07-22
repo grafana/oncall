@@ -21,9 +21,6 @@ export const getColumnsSelectorWrapperStyles = (theme: GrafanaTheme2) => {
     removalModal: css`
       max-width: 500px;
     `,
-    totalValuesCount: css`
-      margin-left: 16px;
-    `,
     valuesBlock: css`
       margin-bottom: 12px;
     `,

@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 export const getTextStyles = (theme: GrafanaTheme2) => {
   return {
@@ -38,7 +38,7 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
       }
 
       &--success {
-        color: ${COLORS.GREEN_5};
+        color: ${Colors.GREEN_5};
       }
 
       &--strong {
@@ -84,6 +84,16 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
     iconButton: css`
       margin-left: 8px;
       display: none;
+    `,
+
+    withBackground: css`
+      display: flex;
+      align-items: center;
+      padding: ${theme.spacing(0, 1)};
+      background-color: ${theme.colors.background.secondary};
+      font-weight: ${theme.typography.fontWeightMedium};
+      font-size: ${theme.typography.bodySmall.fontSize};
+      height: ${theme.spacing(theme.components.height.md)};
     `,
 
     maxWidth: css`
