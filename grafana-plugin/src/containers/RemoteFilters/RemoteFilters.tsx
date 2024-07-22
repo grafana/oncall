@@ -188,13 +188,13 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   };
 
   handleSearch = (query: string) => {
-    const { filters } = this.state;
+    const { filters, filterOptions } = this.state;
 
     const searchFilter = filters.find((filter: FilterOption) => filter.name === 'search');
 
     const newFilters = filters;
     if (!searchFilter) {
-      newFilters.push({ name: 'search', type: 'search' });
+      newFilters.push(filterOptions.find((filter: FilterOption) => filter.name === 'search'));
     } else {
       this.searchRef.current.focus();
     }

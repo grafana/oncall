@@ -835,7 +835,10 @@ class AlertGroupView(
                 {
                     "name": "search",
                     "type": "search",
-                    "description": f"Search by alert group ID, number or title. The search is limited to the last {AlertGroupSearchFilter.SEARCH_CUTOFF_DAYS} days.",
+                    "description": (
+                        "Search by alert group ID, number or title. The search is limited to alert groups started in "
+                        f"the last {AlertGroupSearchFilter.SEARCH_CUTOFF_DAYS} days of the specified date range."
+                    ),
                 }
             ] + filter_options
 
