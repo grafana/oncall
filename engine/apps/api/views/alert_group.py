@@ -335,6 +335,8 @@ class AlertGroupView(
         if settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
             # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
             # read more: https://hackmysql.com/infamous-order-by-limit-query-optimizer-bug/
+            # this achieves the same effect as "FORCE INDEX (alert_group_list_index)" when
+            # paired with "ORDER BY started_at_optimized DESC" (ordering is performed in AlertGroupCursorPaginator).
             queryset = queryset.extra({"started_at_optimized": "alerts_alertgroup.started_at + 0"})
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
