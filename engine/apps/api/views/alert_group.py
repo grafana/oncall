@@ -231,17 +231,18 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
 
 
 class AlertGroupSearchFilter(SearchFilter):
-    SEARCH_CUTOFF_DAYS = 30
-
     def filter_queryset(self, request, queryset, view):
         search_fields = self.get_search_fields(view, request)
         search_terms = self.get_search_terms(request)
         if not search_fields or not search_terms:
             return queryset
 
-        started_at = request.query_params.get("started_at")
-        end = DateRangeFilterMixin.parse_custom_datetime_range(started_at)[1] if started_at else timezone.now()
-        queryset = queryset.filter(started_at__gte=end - timedelta(days=self.SEARCH_CUTOFF_DAYS))
+        if settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS:
+            started_at = request.query_params.get("started_at")
+            end = DateRangeFilterMixin.parse_custom_datetime_range(started_at)[1] if started_at else timezone.now()
+            queryset = queryset.filter(
+                started_at__gte=end - timedelta(days=settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS)
+            )
 
         return super().filter_queryset(request, queryset, view)
 
