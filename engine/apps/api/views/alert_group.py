@@ -1,6 +1,7 @@
 import typing
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
@@ -293,7 +294,11 @@ class AlertGroupView(
     pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
-    search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+    search_fields = (
+        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
+        else []
+    )
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -760,11 +765,6 @@ class AlertGroupView(
                 "href": api_root + "teams/",
                 "global": True,
             },
-            {
-                "name": "search",
-                "type": "search",
-                "description": f"Search by alert group ID, number or title. The search is limited to the last {AlertGroupSearchFilter.SEARCH_CUTOFF_DAYS} days.",
-            },
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
             {"name": "escalation_chain", "type": "options", "href": api_root + "escalation_chains/?filters=true"},
             {
@@ -827,6 +827,9 @@ class AlertGroupView(
                 "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
             },
         ]
+
+        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED:
+            filter_options = [{"name": "search", "type": "search"}] + filter_options
 
         if is_labels_feature_enabled(self.request.auth.organization):
             filter_options.append(
