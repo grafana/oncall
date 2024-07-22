@@ -829,7 +829,13 @@ class AlertGroupView(
         ]
 
         if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED:
-            filter_options = [{"name": "search", "type": "search"}] + filter_options
+            filter_options = [
+                {
+                    "name": "search",
+                    "type": "search",
+                    "description": f"Search by alert group ID, number or title. The search is limited to the last {AlertGroupSearchFilter.SEARCH_CUTOFF_DAYS} days.",
+                }
+            ] + filter_options
 
         if is_labels_feature_enabled(self.request.auth.organization):
             filter_options.append(
