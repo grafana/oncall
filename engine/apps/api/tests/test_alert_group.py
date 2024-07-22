@@ -24,6 +24,7 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.api.serializers.alert import AlertFieldsCacheSerializerMixin
 from apps.api.serializers.alert_group import AlertGroupFieldsCacheSerializerMixin
 from apps.base.models import UserNotificationPolicyLogRecord
+from common.api_helpers.filters import DateRangeFilterMixin
 
 alert_raw_request_data = {
     "evalMatches": [
@@ -973,6 +974,61 @@ def test_get_filter_labels(
     assert response.status_code == status.HTTP_200_OK
     assert len(response.json()["results"]) == 1
     assert response.json()["results"][0]["pk"] == alert_groups[0].public_primary_key
+
+
+@pytest.mark.django_db
+def test_get_title_search(
+    settings,
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED = True
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    alert_groups = []
+    for i in range(3):
+        alert_group = make_alert_group(
+            alert_receive_channel, channel_filter=channel_filter, web_title_cache=f"testing {i+1}"
+        )
+        # alert groups starting every months going back
+        alert_group.started_at = timezone.now() - datetime.timedelta(days=10 + 30 * i)
+        alert_group.save(update_fields=["started_at"])
+        make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
+        alert_groups.append(alert_group)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+
+    # check that the search returns alert groups started in the last 30 days
+    response = client.get(
+        url + "?search=testing",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["pk"] == alert_groups[0].public_primary_key
+
+    # check that the search returns alert groups started in the last 30 days of specified date range
+    response = client.get(
+        url
+        + "?search=testing&started_at={}_{}".format(
+            (timezone.now() - datetime.timedelta(days=500)).strftime(DateRangeFilterMixin.DATE_FORMAT),
+            (timezone.now() - datetime.timedelta(days=30)).strftime(DateRangeFilterMixin.DATE_FORMAT),
+        ),
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["pk"] == alert_groups[1].public_primary_key
 
 
 @pytest.mark.django_db

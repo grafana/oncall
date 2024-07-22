@@ -245,6 +245,13 @@ class AlertGroupSearchFilter(SearchFilter):
         queryset = super().filter_queryset(request, queryset, view)
         return queryset.filter(started_at__gte=end - timedelta(days=self.SEARCH_CUTOFF_DAYS))
 
+    def get_search_fields(self, view, request):
+        return (
+            ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+            if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
+            else []
+        )
+
 
 class AlertGroupView(
     PreviewTemplateMixin,
@@ -294,11 +301,6 @@ class AlertGroupView(
     pagination_class = AlertGroupCursorPaginator
 
     filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
-    search_fields = (
-        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
-        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
-        else []
-    )
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
