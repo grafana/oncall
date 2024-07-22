@@ -184,6 +184,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             </span>
           )}
         </Text>
+
         {this.renderFilterOption(filterOption)}
 
         <RenderConditionally shouldRender={this.shouldShowRemove(filterOption)}>
@@ -509,7 +510,6 @@ const getStyles = (theme: GrafanaTheme2) => {
     filters: css`
       display: flex;
       gap: 10px;
-      padding: 10px;
       border: 1px solid ${theme.colors.border.weak}
       border-radius: 2px;
       flex-wrap: wrap;
