@@ -27,7 +27,7 @@ Jinja2 offers a range of functionalities, including loops, conditions, and funct
 Every alert from a monitoring system is received in a key/value format, which Grafana OnCall maps to specific fields, such as:
 `title`, `message`, `image`, `grouping`, and `auto-resolve`.
 
-To learn more about mapping your alert payload to Grafana OnCall fields, refer to [map payloads to  OnCall fields](https://grafana.com/docs/oncall/latest/configure/jinja2-templating/advanced-templates/#map-payloads-to-oncall-fields).
+To learn more about mapping your alert payload to Grafana OnCall fields, refer to [map payloads to  OnCall fields](https://grafana.com/docs/oncall/latest/configure/jinja2-templating/#map-payloads-to-oncall-fields).
 
 ## Loops
 
@@ -97,5 +97,4 @@ Grafana OnCall enhances Jinja with additional functions:
 {{% docs/reference %}}
 [map payloads to OnCall fields]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#map-payloads-to-oncall-fields"
 [map payloads to OnCall fields]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#map-payloads-to-oncall-fields"
-
-{{% /docs/reference %}
+{{% /docs/reference %}}

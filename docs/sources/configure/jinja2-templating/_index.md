@@ -98,7 +98,7 @@ For conditional templates, the output should be `True` to be applied, for exampl
 
 Routing templates determine how alerts are routed to different escalation chains based on alert content.
 
-These are conditional templates, output should be `True`
+These are conditional templates, output should be `True`.
 
 ### Appearance templates
 
@@ -134,7 +134,7 @@ As a best practice, add Playbooks, useful links, or checklists to the alert mess
 Integration templates are applied to alerts that originated from a specific integration to define alert rendering and behavior.
 
 Grafana OnCall provides pre-configured default Jinja templates for supported integrations.
-For any monitoring system not available in the Grafana OnCall integrations list, configure a `webhook` integration and configure your templates as needed.
+For any monitoring system not available in the Grafana OnCall integrations list, configure a [webhook integration](https://grafana.com/docs/oncall/latest/configure/integrations/references/webhook/) and configure your templates as needed.
 
 ## Edit templates
 
@@ -149,3 +149,8 @@ The template editor will open with three columns: example alert payload, the tem
 1. For messenger templates, click **Save and open Alert Group in ChatOps** to see how the alert renders in the messenger.
 Note: The alert group must exist in the messenger to preview the template.
 1. Click **Save** to save the template.
+
+{{% docs/reference %}}
+[webhook integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/webhook/"
+[webhook integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/webhook/"
+{{% /docs/reference %}}
