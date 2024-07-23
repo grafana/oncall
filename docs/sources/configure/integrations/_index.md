@@ -42,7 +42,7 @@ For more information about how to configure an integration, refer to [Configure 
 
 ## Explore available integrations
 
-Refer to [Integration references][integration-references] for a list of available integrations and specific set up instructions.
+Refer to [Integration references][intergration-references] for a list of available integrations and specific set up instructions.
 
 {{% docs/reference %}}
 [appearance-templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#appearance-templates"

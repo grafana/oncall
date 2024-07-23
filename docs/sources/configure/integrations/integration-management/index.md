@@ -51,7 +51,7 @@ to avoid sending real notifications to your team.
 
 For detailed instructions, refer to:
 
-- [Integration templates][integrations-templates]
+- [Integration templates][integration-templates]
 - [Configure labels][configure-labels]
 
 ## Manage Maintenance Mode
