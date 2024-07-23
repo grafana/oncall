@@ -15,8 +15,9 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 
-import styles from './ChatOps.module.css';
 import { handleChatOpsQueryParamError } from './ChatOps.helpers';
+
+import styles from './ChatOps.module.css';
 
 const cx = cn.bind(styles);
 
