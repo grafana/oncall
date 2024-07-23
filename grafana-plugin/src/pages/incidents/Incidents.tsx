@@ -1,7 +1,7 @@
 import React, { SyntheticEvent } from 'react';
 
 import { css, cx } from '@emotion/css';
-import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { GrafanaTheme2, durationToMilliseconds, parseDuration, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
   Button,
@@ -88,7 +88,7 @@ const PAGINATION_OPTIONS = [
   { label: '100', value: 100 },
 ];
 
-const REFRESH_OPTIONS = ['5s', '10s', '15s', '30s', '60s'];
+const REFRESH_OPTIONS = ['5s', '10s', '15s', '30s', '1m', '5m'];
 const REFRESH_DEFAULT_VALUE = '10s';
 
 const TABLE_SCROLL_OPTIONS: SelectableValue[] = [
@@ -197,6 +197,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   value={refreshInterval}
                   isLoading={isLoading}
                   isOnCanvas
+                  showAutoInterval={false}
                 />
                 <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
                   <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
@@ -381,7 +382,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   onIntervalRefreshChange = (value: string) => {
     this.clearPollingInterval();
-    this.setState({ refreshInterval: value }, () => this.setPollingInterval());
+    this.setState({ refreshInterval: value }, () => value && this.setPollingInterval());
   };
 
   handleOnClickEscalateTo = () => {
@@ -1000,7 +1001,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   setPollingInterval() {
     const startPolling = () => {
-      const pollingNum = parseInt(this.state.refreshInterval, 10);
+      if (!this.state.refreshInterval) {return;}
+
+      const pollingNum = durationToMilliseconds(parseDuration(this.state.refreshInterval));
 
       this.pollingIntervalId = setTimeout(async () => {
         const isBrowserWindowInactive = document.hidden;
@@ -1022,7 +1025,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         }
 
         startPolling();
-      }, pollingNum * 1000);
+      }, pollingNum);
     };
 
     startPolling();
