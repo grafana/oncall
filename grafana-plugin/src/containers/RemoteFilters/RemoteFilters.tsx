@@ -26,7 +26,7 @@ import { Text } from 'components/Text/Text';
 import { LabelsFilter } from 'containers/Labels/LabelsFilter';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { FiltersExtraInformation } from 'models/filters/filters.types';
+import { FilterExtraInformation, FilterExtraInformationValues } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -43,10 +43,28 @@ interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
   query: KeyValue;
   page: PAGE;
   grafanaTeamStore: GrafanaTeamStore;
-  extraInformation?: FiltersExtraInformation;
+  extraInformation?: FilterExtraInformation;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
+
+export function filterExtraInformation(object: FilterExtraInformationValues): FilterExtraInformationValues {
+  const defaultValues: Partial<FilterExtraInformationValues> = {
+    isClearable: true,
+    showInputLabel: true,
+  };
+
+  const result = { ...object };
+
+  Object.keys(defaultValues).forEach((key) => {
+    if (!result.hasOwnProperty(key)) {
+      result[key] = defaultValues[key];
+    }
+  });
+
+  return result;
+}
+
 export interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
@@ -170,7 +188,8 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   renderFilterBlock = (filterOption: FilterOption) => {
     const { theme, extraInformation } = this.props;
-    const { showInputLabel } = extraInformation?.[filterOption.name] || { showInputLabel: true };
+    const showInputLabel = this.getExtraInformationField(filterOption, 'showInputLabel');
+    const isInputClearable = this.getExtraInformationField(filterOption, 'isClearable');
 
     const styles = getStyles(theme);
 
@@ -191,7 +210,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
         {this.renderFilterOption(filterOption)}
 
-        <RenderConditionally shouldRender={this.shouldShowRemove(filterOption)}>
+        <RenderConditionally shouldRender={isInputClearable}>
           <Button
             size="md"
             icon="times"
@@ -210,7 +229,11 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     return filterElement;
   };
 
-  extractDefaultValuesFromExtraInformation = (): { [key: string]: any } => {
+  getExtraInformationField = (filterOption: FilterOption, key: keyof FilterExtraInformationValues) => {
+    return filterExtraInformation(this.props.extraInformation?.[filterOption.name])?.[key];
+  };
+
+  extractDefaultValuesFromExtraInformation = (): { [key: string]: FilterExtraInformationValues } => {
     const { extraInformation } = this.props;
 
     return extraInformation
@@ -222,20 +245,6 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
           return acc;
         }, {})
       : {};
-  };
-
-  shouldShowRemove = (filterOption: FilterOption) => {
-    const { extraInformation } = this.props;
-
-    if (extraInformation?.[filterOption.name] && hasField('isClearable')) {
-      return extraInformation[filterOption.name].isClearable;
-    }
-
-    return true;
-
-    function hasField(fieldName: string) {
-      return extraInformation[filterOption.name].hasOwnProperty(fieldName);
-    }
   };
 
   handleSearch = (query: string) => {

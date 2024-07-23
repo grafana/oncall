@@ -13,14 +13,15 @@ interface TimeRangePickerProps {
 }
 
 export function TimeRangePickerWrapper(props: TimeRangePickerProps) {
-  const { timeZone, onChange } = props;
+  const { onChange } = props;
 
   const [value, setValue] = useState<TimeRange>(props.value);
+  const [timezone, setTimezone] = useState<string>(props.timeZone);
 
   return (
     <TimeRangePicker
       isOnCanvas
-      timeZone={timeZone}
+      timeZone={timezone}
       value={value}
       onChange={onPickerChange}
       onZoom={onZoom}
@@ -38,19 +39,20 @@ export function TimeRangePickerWrapper(props: TimeRangePickerProps) {
 
   function onZoom() {
     const zoomedTimeRange = getZoomedTimeRange(value, 2);
-    setValue(zoomedTimeRange);
+    onPickerChange(zoomedTimeRange);
   }
 
   function onMoveBackward() {
-    setValue(getShiftedTimeRange(TimeRangeDirection.Backward, value, Date.now()));
+    onPickerChange(getShiftedTimeRange(TimeRangeDirection.Backward, value, Date.now()));
   }
 
   function onMoveForward() {
-    setValue(getShiftedTimeRange(TimeRangeDirection.Forward, value, Date.now()));
+    onPickerChange(getShiftedTimeRange(TimeRangeDirection.Forward, value, Date.now()));
   }
 
   function onTimezoneChange(timeZone: TimeZone) {
-    setValue(evaluateTimeRange(value.from, value.to, timeZone));
+    setTimezone(timeZone);
+    onPickerChange(evaluateTimeRange(value.from, value.to, timeZone));
   }
 }
 

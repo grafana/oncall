@@ -6,13 +6,15 @@ export interface FiltersValues {
   [key: string]: any;
 }
 
-export interface FiltersExtraInformation {
-  [key: string]: {
-    isClearable?: boolean;
-    value?: any;
-    portal?: React.RefObject<any>;
-    showInputLabel?: boolean;
-  };
+export interface FilterExtraInformationValues {
+  isClearable?: boolean;
+  value?: any;
+  portal?: React.RefObject<any>;
+  showInputLabel?: boolean;
+}
+
+export interface FilterExtraInformation {
+  [key: string]: FilterExtraInformationValues;
 }
 
 export interface FilterOption {
