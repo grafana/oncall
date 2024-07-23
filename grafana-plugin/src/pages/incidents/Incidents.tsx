@@ -390,11 +390,11 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   handleFiltersChange = async (filters: IncidentsFiltersType, isOnMount: boolean) => {
-    const {
-      store: { alertGroupStore },
-    } = this.props;
-
+    const { alertGroupStore } = this.props.store;
     const { start } = this.state.pagination;
+
+    // Clear polling whenever filters change
+    this.clearPollingInterval();
 
     this.setState({
       filters,
@@ -405,7 +405,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       this.setPagination(1, alertGroupStore.alertsSearchResult.page_size);
     }
 
-    await this.fetchIncidentData(filters);
+    try {
+      await this.fetchIncidentData(filters);
+    } finally {
+      // Re-enable polling after query is done
+      this.setPollingInterval();
+    }
 
     if (isOnMount) {
       this.setPagination(start, start + alertGroupStore.alertsSearchResult.page_size - 1);
@@ -1001,7 +1006,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   setPollingInterval() {
     const startPolling = () => {
-      if (!this.state.refreshInterval) {return;}
+      if (!this.state.refreshInterval) {
+        return;
+      }
 
       const pollingNum = durationToMilliseconds(parseDuration(this.state.refreshInterval));
 
