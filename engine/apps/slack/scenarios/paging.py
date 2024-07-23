@@ -305,19 +305,20 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         if not user_is_oncall(selected_user):
             # display additional confirmation modal
             metadata = json.loads(payload["view"]["private_metadata"])
-            private_metadata = make_private_metadata(
-                {
-                    "state": payload["view"]["state"],
-                    "input_id_prefix": metadata["input_id_prefix"],
-                    "channel_id": metadata["channel_id"],
-                    "submit_routing_uid": metadata["submit_routing_uid"],
-                    DataKey.USERS: metadata[DataKey.USERS],
-                },
-                selected_user.organization,
-            )
+            private_metadata = {
+                "state": payload["view"]["state"],
+                "input_id_prefix": metadata["input_id_prefix"],
+                "channel_id": metadata["channel_id"],
+                "submit_routing_uid": metadata["submit_routing_uid"],
+                DataKey.USERS: metadata[DataKey.USERS],
+            }
+            # keep predefined organization in private metadata
+            if "organization_id" in metadata:
+                private_metadata["organization_id"] = metadata["organization_id"]
 
             view = _display_confirm_participant_invitation_view(
-                OnPagingConfirmUserChange.routing_uid(), private_metadata
+                OnPagingConfirmUserChange.routing_uid(),
+                make_private_metadata(private_metadata, selected_user.organization),
             )
             self._slack_client.views_push(trigger_id=payload["trigger_id"], view=view)
         else:
@@ -385,6 +386,10 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
             "submit_routing_uid": metadata["submit_routing_uid"],
             DataKey.USERS: metadata[DataKey.USERS],
         }
+        # keep predefined organization in private metadata
+        if "organization_id" in metadata:
+            private_metadata["organization_id"] = metadata["organization_id"]
+
         previous_view_payload = {
             "view": {
                 "state": metadata["state"],
