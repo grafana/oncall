@@ -11,8 +11,14 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 )
+
+type OnCallSyncCache struct {
+	syncMutex      sync.Mutex
+	lastOnCallSync *OnCallSync
+}
 
 func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {

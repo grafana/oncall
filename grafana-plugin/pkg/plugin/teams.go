@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sync/atomic"
 )
 
 type Teams struct {
@@ -27,6 +28,7 @@ type OnCallTeam struct {
 }
 
 func (a *App) GetTeamsForUser(settings *OnCallPluginSettings, onCallUser *OnCallUser) ([]int, error) {
+	atomic.AddInt32(&a.TeamForUserCallCount, 1)
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/users/%d/teams", onCallUser.ID))
 	if err != nil {
 		return nil, fmt.Errorf("error creating URL: %v", err)
@@ -66,6 +68,7 @@ func (a *App) GetTeamsForUser(settings *OnCallPluginSettings, onCallUser *OnCall
 }
 
 func (a *App) GetAllTeams(settings *OnCallPluginSettings) ([]OnCallTeam, error) {
+	atomic.AddInt32(&a.AllTeamsCallCount, 1)
 	reqURL, err := url.Parse(settings.GrafanaURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL: %v", err)
@@ -116,6 +119,7 @@ func (a *App) GetAllTeams(settings *OnCallPluginSettings) ([]OnCallTeam, error) 
 }
 
 func (a *App) GetTeamsMembersForTeam(settings *OnCallPluginSettings, onCallTeam *OnCallTeam) ([]int, error) {
+	atomic.AddInt32(&a.TeamMembersForTeamCallCount, 1)
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/teams/%d/members", onCallTeam.ID))
 	if err != nil {
 		return nil, fmt.Errorf("error creating URL: %+v", err)

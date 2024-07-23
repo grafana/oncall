@@ -6,6 +6,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -39,21 +42,90 @@ type OnCallUser struct {
 	Teams       []int              `json:"teams"`
 }
 
+type OnCallUserCache struct {
+	allUsersLock   sync.Mutex
+	allUsersCache  map[string]*OnCallUser
+	allUsersExpiry time.Time
+
+	lockInitLock sync.Mutex
+	userLocks    map[string]*sync.Mutex
+	userCache    map[string]*OnCallUser
+	userExpiry   map[string]time.Time
+}
+
+const USER_EXPIRY_SECONDS = 60
+
+func NewOnCallUserCache() *OnCallUserCache {
+	return &OnCallUserCache{
+		allUsersCache: make(map[string]*OnCallUser),
+		userLocks:     make(map[string]*sync.Mutex),
+		userCache:     make(map[string]*OnCallUser),
+		userExpiry:    make(map[string]time.Time),
+	}
+}
+
+func (c *OnCallUserCache) GetUserLock(user string) *sync.Mutex {
+	c.lockInitLock.Lock()
+	defer c.lockInitLock.Unlock()
+	lock, exists := c.userLocks[user]
+	if !exists {
+		lock = &sync.Mutex{}
+		c.userLocks[user] = lock
+	}
+	return lock
+}
+
 func (a *App) GetUser(settings *OnCallPluginSettings, user *backend.User) (*OnCallUser, error) {
+	log.DefaultLogger.Info("GetUser", "user", user)
+	a.allUsersLock.Lock()
+	defer a.allUsersLock.Unlock()
+
+	if time.Now().Before(a.allUsersExpiry) {
+		ocu, exists := a.allUsersCache[user.Login]
+		if !exists {
+			return nil, fmt.Errorf("user %s not found", user.Login)
+		}
+		return ocu, nil
+	}
+
 	users, err := a.GetAllUsers(settings)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, u := range users {
+	var ou *OnCallUser
+	auc := make(map[string]*OnCallUser)
+	for i := range users {
+		u := &users[i]
+		auc[u.Login] = u
 		if u.Login == user.Login {
-			return &u, nil
+			ou = u
 		}
 	}
-	return nil, fmt.Errorf("user %s not found", user.Login)
+
+	a.allUsersCache = auc
+	a.allUsersExpiry = time.Now().Add(USER_EXPIRY_SECONDS * time.Second)
+
+	if ou == nil {
+		return nil, fmt.Errorf("user %s not found", user.Login)
+	}
+	return ou, nil
 }
 
 func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.User) (*OnCallUser, error) {
+	userLock := a.GetUserLock(user.Login)
+	userLock.Lock()
+	defer userLock.Unlock()
+
+	ue, expiryExists := a.userExpiry[user.Login]
+	if expiryExists && time.Now().Before(ue) {
+		ocu, userExists := a.userCache[user.Login]
+		if !userExists {
+			return nil, fmt.Errorf("user %s not found", user.Login)
+		}
+		return ocu, nil
+	}
+
 	onCallUser, err := a.GetUser(settings, user)
 	if err != nil {
 		return nil, err
@@ -72,10 +144,14 @@ func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.Use
 			return nil, err
 		}
 	}
+
+	a.userCache[user.Login] = onCallUser
+	a.userExpiry[user.Login] = time.Now().Add(USER_EXPIRY_SECONDS * time.Second)
 	return onCallUser, nil
 }
 
 func (a *App) GetAllUsers(settings *OnCallPluginSettings) ([]OnCallUser, error) {
+	atomic.AddInt32(&a.AllUsersCallCount, 1)
 	reqURL, err := url.Parse(settings.GrafanaURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL: %+v", err)

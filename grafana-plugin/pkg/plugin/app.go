@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -28,10 +29,12 @@ var (
 // App is an example app backend plugin which can respond to data queries.
 type App struct {
 	backend.CallResourceHandler
-	httpClient     *http.Client
-	syncMutex      sync.Mutex
-	installMutex   sync.Mutex
-	lastOnCallSync *OnCallSync
+	httpClient   *http.Client
+	installMutex sync.Mutex
+	*OnCallSyncCache
+	*OnCallSettingsCache
+	*OnCallUserCache
+	*OnCallDebugStats
 }
 
 // NewApp creates a new example *App instance.
@@ -44,6 +47,10 @@ func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (instance
 	mux := http.NewServeMux()
 	app.registerRoutes(mux)
 	app.CallResourceHandler = httpadapter.New(mux)
+	app.OnCallSyncCache = &OnCallSyncCache{}
+	app.OnCallSettingsCache = &OnCallSettingsCache{}
+	app.OnCallUserCache = NewOnCallUserCache()
+	app.OnCallDebugStats = &OnCallDebugStats{}
 
 	opts, err := settings.HTTPClientOptions(ctx)
 	if err != nil {
@@ -76,6 +83,7 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 
 // Check OnCallApi health
 func (a *App) CheckOnCallApiHealthStatus(onCallPluginSettings *OnCallPluginSettings) (int, error) {
+	atomic.AddInt32(&a.CheckHealthCallCount, 1)
 	healthURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "/api/internal/v1/health/")
 	if err != nil {
 		log.DefaultLogger.Error("Error joining path", "error", err)

@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -53,10 +55,19 @@ type OnCallPluginSettings struct {
 	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
+type OnCallSettingsCache struct {
+	otherPluginSettingsLock   sync.Mutex
+	otherPluginSettingsCache  map[string]map[string]interface{}
+	otherPluginSettingsExpiry time.Time
+}
+
 const CLOUD_VERSION_PATTERN = `^(r\d+-v\d+\.\d+\.\d+|^github-actions-\d+)$`
 const OSS_VERSION_PATTERN = `^(v\d+\.\d+\.\d+|dev-oss)$`
 const CLOUD_LICENSE_NAME = "Cloud"
 const OPEN_SOURCE_LICENSE_NAME = "OpenSource"
+const INCIDENT_PLUGIN_ID = "grafana-incident-app"
+const LABELS_PLUGIN_ID = "grafana-labels-app"
+const OTHER_PLUGIN_EXPIRY_SECONDS = 60
 
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
 	pluginContext := httpadapter.PluginConfigFromContext(ctx)
@@ -125,22 +136,88 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		settings.ExternalServiceAccountEnabled = false
 	}
 
-	var jsonData map[string]interface{}
-	settings.IncidentEnabled, jsonData, err = a.GetOtherPluginSettings(&settings, "grafana-incident-app")
-	if err != nil {
-		return &settings, err
-	}
-	if jsonData != nil {
-		if value, ok := jsonData["backendUrl"].(string); ok {
-			settings.IncidentBackendURL = value
+	otherPluginSettings := a.GetAllOtherPluginSettings(&settings)
+	pluginSettings, exists := otherPluginSettings[INCIDENT_PLUGIN_ID]
+	if exists {
+		if value, ok := pluginSettings["enabled"].(bool); ok {
+			settings.IncidentEnabled = value
+		}
+		if jsonData, ok := pluginSettings["jsonData"].(map[string]interface{}); ok {
+			if value, ok := jsonData["backendUrl"].(string); ok {
+				settings.IncidentBackendURL = value
+			}
 		}
 	}
-	settings.LabelsEnabled, _, err = a.GetOtherPluginSettings(&settings, "grafana-labels-app")
-	if err != nil {
-		return &settings, err
+	pluginSettings, exists = otherPluginSettings[LABELS_PLUGIN_ID]
+	if exists {
+		if value, ok := pluginSettings["enabled"].(bool); ok {
+			settings.LabelsEnabled = value
+		}
+	}
+	return &settings, nil
+}
+
+func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[string]map[string]interface{} {
+	a.otherPluginSettingsLock.Lock()
+	defer a.otherPluginSettingsLock.Unlock()
+
+	if time.Now().Before(a.otherPluginSettingsExpiry) {
+		return a.otherPluginSettingsCache
 	}
 
-	return &settings, nil
+	incidentPluginSettings, err := a.GetOtherPluginSettings(settings, INCIDENT_PLUGIN_ID)
+	if err != nil {
+		log.DefaultLogger.Error("getting incident plugin settings", "error", err)
+	}
+	labelsPluginSettings, err := a.GetOtherPluginSettings(settings, LABELS_PLUGIN_ID)
+	if err != nil {
+		log.DefaultLogger.Error("getting incident plugin settings", "error", err)
+	}
+
+	o := make(map[string]map[string]interface{})
+	o[INCIDENT_PLUGIN_ID] = incidentPluginSettings
+	o[LABELS_PLUGIN_ID] = labelsPluginSettings
+
+	a.otherPluginSettingsCache = o
+	a.otherPluginSettingsExpiry = time.Now().Add(OTHER_PLUGIN_EXPIRY_SECONDS * time.Second)
+	return a.otherPluginSettingsCache
+}
+
+func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID string) (map[string]interface{}, error) {
+	atomic.AddInt32(&a.SettingsCallCount, 1)
+	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/plugins/%s/settings", pluginID))
+	if err != nil {
+		return nil, fmt.Errorf("error creating URL: %v", err)
+	}
+
+	req, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating creating new request: %v", err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
+
+	res, err := a.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %v, %v", err, reqURL)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return nil, nil
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response: %v", err)
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+	}
+
+	return result, fmt.Errorf("no jsonData for plugin %s", pluginID)
 }
 
 func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
@@ -184,49 +261,6 @@ func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
 	defer res.Body.Close()
 
 	return nil
-}
-
-func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID string) (bool, map[string]interface{}, error) {
-	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/plugins/%s/settings", pluginID))
-	if err != nil {
-		return false, nil, fmt.Errorf("error creating URL: %v", err)
-	}
-
-	req, err := http.NewRequest("GET", reqURL, nil)
-	if err != nil {
-		return false, nil, fmt.Errorf("error creating creating new request: %v", err)
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", settings.GrafanaToken))
-
-	res, err := a.httpClient.Do(req)
-	if err != nil {
-		return false, nil, fmt.Errorf("error making request: %v, %v", err, reqURL)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return false, nil, nil
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return false, nil, fmt.Errorf("error reading response: %v", err)
-	}
-
-	var result map[string]interface{}
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return false, nil, fmt.Errorf("failed to parse JSON response: %v", err)
-	}
-
-	var enabled = false
-	if value, ok := result["enabled"].(bool); ok {
-		enabled = value
-	}
-	if jsonData, ok := result["jsonData"].(map[string]interface{}); ok {
-		return enabled, jsonData, nil
-	}
-	return enabled, nil, fmt.Errorf("no jsonData for plugin %s", pluginID)
 }
 
 func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (*OnCallSync, error) {
