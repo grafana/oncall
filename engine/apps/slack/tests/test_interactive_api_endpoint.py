@@ -280,7 +280,7 @@ def test_accept_shift_swap_request(
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch.object(StartDirectPaging, "process_scenario")
 @pytest.mark.django_db
-def test_grafana_escalate(
+def test_grafana_oncall_escalate(
     mock_process_scenario,
     _mock_verify_signature,
     make_organization,
@@ -307,7 +307,7 @@ def test_grafana_escalate(
         "user_id": slack_user_identity.slack_id,
         "user_name": "Steve",
         "command": "/grafana",
-        "text": "escalate",
+        "text": "oncall escalate",
         "response_url": "https://hooks.slack.com/commands/1234/5678",
         "trigger_id": "13345224609.738474920.8088930838d88f008e0",
         "api": "api_value",
