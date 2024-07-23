@@ -93,23 +93,23 @@ func (a *App) GetUser(settings *OnCallPluginSettings, user *backend.User) (*OnCa
 		return nil, err
 	}
 
-	var ou *OnCallUser
-	auc := make(map[string]*OnCallUser)
+	var oncallUser *OnCallUser
+	allUsersCache := make(map[string]*OnCallUser)
 	for i := range users {
 		u := &users[i]
-		auc[u.Login] = u
+		allUsersCache[u.Login] = u
 		if u.Login == user.Login {
-			ou = u
+			oncallUser = u
 		}
 	}
 
-	a.allUsersCache = auc
+	a.allUsersCache = allUsersCache
 	a.allUsersExpiry = time.Now().Add(USER_EXPIRY_SECONDS * time.Second)
 
-	if ou == nil {
+	if oncallUser == nil {
 		return nil, fmt.Errorf("user %s not found", user.Login)
 	}
-	return ou, nil
+	return oncallUser, nil
 }
 
 func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.User) (*OnCallUser, error) {
