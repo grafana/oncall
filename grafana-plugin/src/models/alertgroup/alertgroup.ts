@@ -172,6 +172,7 @@ export class AlertGroupStore {
     this.liveUpdatesPaused = value;
   }
 
+  @WithGlobalNotification({ failure: PROCESSING_REQUEST_ERROR })
   @AutoLoadingState(ActionKey.UPDATE_FILTERS_AND_FETCH_INCIDENTS)
   async updateIncidentFiltersAndRefetchIncidentsAndStats(params: any, keepCursor = false) {
     if (!keepCursor) {
