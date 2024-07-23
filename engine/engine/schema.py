@@ -42,6 +42,6 @@ class CustomAutoSchema(AutoSchema):
     @property
     def _is_extra_action(self) -> bool:
         try:
-            return self.view.subcommand in [action.__name__ for action in self.view.get_extra_actions()]
+            return self.view.action in [action.__name__ for action in self.view.get_extra_actions()]
         except AttributeError:
             return False
