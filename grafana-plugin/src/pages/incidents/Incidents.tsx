@@ -533,7 +533,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                 />
               </WithPermissionControlTooltip>
             )}
-            <Text type="secondary">
+            <Text type="secondary" className={styles.alertsSelected}>
               {hasSelected
                 ? `${selectedIncidentIds.length} Alert Group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
                 : 'No Alert Groups selected'}
@@ -1033,6 +1033,10 @@ const getStyles = (theme: GrafanaTheme2) => {
   return {
     select: css`
       width: 400px;
+    `,
+
+    alertsSelected: css`
+      white-space: nowrap;
     `,
 
     rightSideFilters: css`
