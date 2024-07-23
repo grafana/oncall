@@ -20,7 +20,7 @@ class SlashCommand:
         self.args = args
 
     @property
-    def action(self):
+    def subcommand(self):
         """
         Return first arg as action subcommand: part of command which defines action
         Example: /grafana escalate -> escalate

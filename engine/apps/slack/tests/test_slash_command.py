@@ -13,7 +13,7 @@ def test_parse():
     slash_command = SlashCommand.parse(payload)
     assert slash_command.command == "grafana"
     assert slash_command.args == ["escalate"]
-    assert slash_command.action == "escalate"
+    assert slash_command.subcommand == "escalate"
     assert slash_command.is_grafana_command
 
 
@@ -29,4 +29,4 @@ def test_parse_command_without_subcommand():
     slash_command = SlashCommand.parse(payload)
     assert slash_command.command == "escalate"
     assert slash_command.args == []
-    assert slash_command.action is None
+    assert slash_command.subcommand is None
