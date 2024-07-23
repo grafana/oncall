@@ -29,13 +29,13 @@ You can manage or view your integrations current configuration at any time in th
 To integrate Grafana OnCall with your chosen tools, follow these steps:
 
 1. Navigate to the **Integrations** tab in Grafana OnCall, and click **+ New integration**.
-2. Select your desired integration type from the [list of available integrations][integration-references].
+1. Select your desired integration type from the [list of available integrations][integration-references].
 If your desired integration is not listed, select **Webhook**.
 1. Provide a title and a description for your integration, assign it to a team, and click **Create Integration**.
-2. The Integration page will open, displaying details about the Integration.
+1. The Integration page will open, displaying details about the Integration.
 The provided HTTP Endpoint URL can be used to send events from an external monitoring system. Click the **How to connect** link for additional information.
 1. Configure your tool to send alerts to Grafana OnCall.
-2. Click **Send demo alert** to send a test alert to Grafana OnCall.
+1. Click **Send demo alert** to send a test alert to Grafana OnCall.
 
 ## Customize the integration
 
@@ -64,11 +64,11 @@ Maintenance Mode is useful when performing scheduled maintenance or updates on y
 To manage Maintenance Mode:
 
 1. Go to the Integration page and click **Three dots**.
-2. Select **Start Maintenance Mode**.
-3. Choose **Debug** or **Maintenance** mode.
-4. Set the **Duration** of Maintenance Mode.
-5. Click **Start**.
-6. To stop maintenance mode before its end, click **Three dots** and select **Stop Maintenance Mode**.
+1. Select **Start Maintenance Mode**.
+1. Choose **Debug** or **Maintenance** mode.
+1. Set the **Duration** of Maintenance Mode.
+1. Click **Start**.
+1. To stop maintenance mode before its end, click **Three dots** and select **Stop Maintenance Mode**.
 
 ## Heartbeat Monitoring
 
@@ -78,9 +78,9 @@ If OnCall doesn’t receive one of these alerts, it will create a new alert grou
 To configure Heartbeat Monitoring:
 
 1. Go to the Integration page and click **Three dots**.
-2. Select **Heartbeat Settings**.
-3. Set **Heartbeat interval**.
-4. Copy the **Endpoint** into your monitoring system.
+1. Select **Heartbeat Settings**.
+1. Set **Heartbeat interval**.
+1. Copy the **Endpoint** into your monitoring system.
 
 If you need to disable heartbeat monitoring on an integration, use the **Reset** button to revert it to the inactive state.
 To restart heartbeat monitoring, send a request to the **Endpoint**.
@@ -94,8 +94,8 @@ Manage your existing integrations by navigating to the **Integrations** tab in G
 To edit the name of an integration:
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
-2. Click the **three dots** next to the integration name and select **Integration settings**.
-3. Provide a new name, description, and team, and click **Save**.
+1. Click the **three dots** next to the integration name and select **Integration settings**.
+1. Provide a new name, description, and team, and click **Save**.
 
 ## Explore available integrations
 
