@@ -154,7 +154,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
           <Select
             menuShouldPortal
             key={filters.length}
-            placeholder="Search or filter results..."
+            placeholder={allowFreeSearch ? 'Search or filter results...' : 'Filter results...'}
             value={undefined}
             onChange={this.handleAddFilter}
             getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
