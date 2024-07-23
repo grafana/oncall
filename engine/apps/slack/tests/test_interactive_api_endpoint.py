@@ -350,7 +350,7 @@ def test_grafana_escalate_with_org_from_chatops_proxy_defines_org(
         "user_id": slack_user_identity.slack_id,
         "user_name": "Steve",
         "command": "/grafana",
-        "text": "escalate",
+        "text": "oncall escalate",
         "response_url": "https://hooks.slack.com/commands/1234/5678",
         "trigger_id": "13345224609.738474920.8088930838d88f008e0",
         "api": "api_value",
