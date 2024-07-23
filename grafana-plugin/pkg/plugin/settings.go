@@ -174,11 +174,11 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 		log.DefaultLogger.Error("getting incident plugin settings", "error", err)
 	}
 
-	o := make(map[string]map[string]interface{})
-	o[INCIDENT_PLUGIN_ID] = incidentPluginSettings
-	o[LABELS_PLUGIN_ID] = labelsPluginSettings
+	otherPluginSettings := make(map[string]map[string]interface{})
+	otherPluginSettings[INCIDENT_PLUGIN_ID] = incidentPluginSettings
+	otherPluginSettings[LABELS_PLUGIN_ID] = labelsPluginSettings
 
-	a.otherPluginSettingsCache = o
+	a.otherPluginSettingsCache = otherPluginSettings
 	a.otherPluginSettingsExpiry = time.Now().Add(OTHER_PLUGIN_EXPIRY_SECONDS * time.Second)
 	return a.otherPluginSettingsCache
 }
