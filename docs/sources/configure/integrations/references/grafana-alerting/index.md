@@ -133,12 +133,9 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 or [data][data-webhook-template] template it's needed to adjust them as well.
 
 {{% docs/reference %}}
-[legacy-integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/grafana-alerting/#note-about-legacy-integration"
-[legacy-integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/grafana-alerting/#note-about-legacy-integration"
+[data-webhook-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks"
+[data-webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks"
 
-[data-webhook-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/#outgoing-webhook-templates"
-[data-webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/#outgoing-webhook-templates"
-
-[trigger-webhook-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/#trigger-type"
-[trigger-webhook-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/#trigger-type"
+[trigger-webhook-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks"
+[trigger-webhook-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks"
 {{% /docs/reference %}}
