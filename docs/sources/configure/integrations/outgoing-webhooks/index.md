@@ -554,9 +554,9 @@ the `id` of that ticket to keep its status synchronized with the state changes b
 
 Integrate with third-party services:
 
-- [JIRA][]
-- [ServiceNow][]
-- [Zendesk][]
+- [JIRA][jira]
+- [ServiceNow][ServiceNow]
+- [Zendesk][Zendesk]
 
 {{% docs/reference %}}
 [Alert group labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels#alert-group-labels"
@@ -565,8 +565,8 @@ Integrate with third-party services:
 [Integration labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels"
 [Integration labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels"
 
-[JIRA]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/jira"
-[JIRA]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/jira"
+[jira]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/jira"
+[jira]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/jira"
 
 [ServiceNow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/servicenow"
 [ServiceNow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/servicenow"

@@ -47,7 +47,7 @@ Add conditional instructions based on specific alert rules. For instance, to pro
 ````jinja2
 {% if  payload.ruleId == '1' -%}
 *Alert TODOs*
-1. Get acess to the container
+1. Get access to the container
     ```
         kubectl port-forward service/example 3000:80
     ```
@@ -96,5 +96,5 @@ Grafana OnCall enhances Jinja with additional functions:
 
 {{% docs/reference %}}
 [map-payloads-to-oncall-fields]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#map-payloads-to-oncall-fields"
-[map payloads to OnCall fields]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#map-payloads-to-oncall-fields"
+[map-payloads-to-oncall-fields]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#map-payloads-to-oncall-fields"
 {{% /docs/reference %}}

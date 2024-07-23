@@ -134,7 +134,8 @@ As a best practice, add Playbooks, useful links, or checklists to the alert mess
 Integration templates are applied to alerts that originated from a specific integration to define alert rendering and behavior.
 
 Grafana OnCall provides pre-configured default Jinja templates for supported integrations.
-For any monitoring system not available in the Grafana OnCall integrations list, configure a [webhook integration][webhook-integration] and configure your templates as needed.
+For any monitoring system not available in the Grafana OnCall integrations list, configure a [Webhook integration][webhook-integration] and configure your
+templates as needed.
 
 ## Edit templates
 
