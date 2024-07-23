@@ -6,6 +6,7 @@ import { goToGrafanaPage } from '../utils/navigation';
 test.describe('Plugin configuration', () => {
   test('Admin user can see currently applied URL', async ({ adminRolePage: { page } }) => {
     await goToGrafanaPage(page, PLUGIN_CONFIG);
+    await page.waitForLoadState('networkidle');
     const currentlyAppliedURL = await page.getByTestId('oncall-api-url-input').inputValue();
 
     expect(currentlyAppliedURL).toBe('http://oncall-dev-engine:8080');
