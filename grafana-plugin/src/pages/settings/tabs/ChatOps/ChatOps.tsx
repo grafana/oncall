@@ -16,6 +16,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 
 import styles from './ChatOps.module.css';
+import { handleChatOpsQueryParamError } from './ChatOps.helpers';
 
 const cx = cn.bind(styles);
 
@@ -38,6 +39,7 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   componentDidMount() {
     const tab = LocationHelper.getQueryParam('chatOpsTab');
 
+    handleChatOpsQueryParamError();
     this.handleChatopsTabChange(tab || ChatOpsTab.Slack);
   }
 
