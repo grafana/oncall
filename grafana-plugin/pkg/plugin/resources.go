@@ -90,6 +90,8 @@ func (a *App) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/debug/user", a.handleDebugUser)
 	mux.HandleFunc("/debug/sync", a.handleDebugSync)
 	mux.HandleFunc("/debug/settings", a.handleDebugSettings)
+	mux.HandleFunc("/debug/permissions", a.handleDebugPermissions)
+	mux.HandleFunc("/debug/stats", a.handleDebugStats)
 
 	mux.HandleFunc("/", a.handleInternalApi)
 }

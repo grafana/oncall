@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 )
 
 type OnCallPermission struct {
@@ -14,6 +15,7 @@ type OnCallPermission struct {
 }
 
 func (a *App) GetPermissions(settings *OnCallPluginSettings, onCallUser *OnCallUser) ([]OnCallPermission, error) {
+	atomic.AddInt32(&a.PermissionsCallCount, 1)
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/access-control/users/%d/permissions", onCallUser.ID))
 	if err != nil {
 		return nil, fmt.Errorf("error creating URL: %v", err)
@@ -55,6 +57,7 @@ func (a *App) GetPermissions(settings *OnCallPluginSettings, onCallUser *OnCallU
 }
 
 func (a *App) GetAllPermissions(settings *OnCallPluginSettings) (map[string]map[string]interface{}, error) {
+	atomic.AddInt32(&a.AllPermissionsCallCount, 1)
 	reqURL, err := url.Parse(settings.GrafanaURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL: %v", err)

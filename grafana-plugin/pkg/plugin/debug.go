@@ -7,6 +7,17 @@ import (
 	"net/http"
 )
 
+type OnCallDebugStats struct {
+	SettingsCallCount           int32 `json:"settingsCallCount"`
+	AllUsersCallCount           int32 `json:"allUsersCallCount"`
+	PermissionsCallCount        int32 `json:"permissionsCallCount"`
+	AllPermissionsCallCount     int32 `json:"allPermissionsCallCount"`
+	TeamForUserCallCount        int32 `json:"teamForUserCallCount"`
+	AllTeamsCallCount           int32 `json:"allTeamsCallCount"`
+	TeamMembersForTeamCallCount int32 `json:"teamMembersForTeamCallCount"`
+	CheckHealthCallCount        int32 `json:"checkHealthCallCount"`
+}
+
 func (a *App) handleDebugUser(w http.ResponseWriter, req *http.Request) {
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(req.Context())
 	if err != nil {
@@ -59,6 +70,26 @@ func (a *App) handleDebugSettings(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(onCallPluginSettings); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) handleDebugPermissions(w http.ResponseWriter, req *http.Request) {
+	pluginContext := httpadapter.PluginConfigFromContext(req.Context())
+
+	w.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(pluginContext); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) handleDebugStats(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(a.OnCallDebugStats); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
