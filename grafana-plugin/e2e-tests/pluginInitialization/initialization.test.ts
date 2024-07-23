@@ -1,4 +1,5 @@
 import semver from 'semver';
+
 import { waitInMs } from 'utils/async';
 
 import { test, expect, Page } from '../fixtures';
