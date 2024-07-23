@@ -20,11 +20,20 @@ class SlashCommand:
         self.args = args
 
     @property
-    def subcommand(self):
+    def service(self):
         """
-        Return first arg as subcommand
+        Return first arg as service subcommand: part of command which defines service
+        Example: /grafana oncall escalate -> oncall
         """
         return self.args[0] if len(self.args) > 0 else None
+
+    @property
+    def action(self):
+        """
+        Return second arg as action subcommand: part of command which defines action
+        Example: /grafana oncall escalate -> escalate
+        """
+        return self.args[1] if len(self.args) > 0 else None
 
     @staticmethod
     def parse(payload: SlashCommandPayload):
@@ -34,3 +43,7 @@ class SlashCommand:
         command = payload["command"].lstrip("/")
         args = payload["text"].split()
         return SlashCommand(command, args)
+
+    @property
+    def is_grafana_command(self):
+        return self.command in ["grafana", "grafana-dev", "grafana-ops", "grafana-prod"]

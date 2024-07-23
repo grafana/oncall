@@ -361,7 +361,7 @@ class SlackEventApiEndpointView(APIView):
                     cmd = SlashCommand.parse(payload)
                     # Check both command and subcommand for backward compatibility
                     # So both /grafana escalate and /escalate will work.
-                    if cmd.command in route["command_name"] or cmd.subcommand in route["command_name"]:
+                    if route["matcher"](cmd):
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
