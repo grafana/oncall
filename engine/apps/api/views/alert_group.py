@@ -1,8 +1,10 @@
 import typing
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
@@ -228,6 +230,30 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
 
+class AlertGroupSearchFilter(SearchFilter):
+    def filter_queryset(self, request, queryset, view):
+        search_fields = self.get_search_fields(view, request)
+        search_terms = self.get_search_terms(request)
+        if not search_fields or not search_terms:
+            return queryset
+
+        if settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS:
+            started_at = request.query_params.get("started_at")
+            end = DateRangeFilterMixin.parse_custom_datetime_range(started_at)[1] if started_at else timezone.now()
+            queryset = queryset.filter(
+                started_at__gte=end - timedelta(days=settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS)
+            )
+
+        return super().filter_queryset(request, queryset, view)
+
+    def get_search_fields(self, view, request):
+        return (
+            ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
+            if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
+            else []
+        )
+
+
 class AlertGroupView(
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
@@ -275,12 +301,7 @@ class AlertGroupView(
 
     pagination_class = AlertGroupCursorPaginator
 
-    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    search_fields = (
-        ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
-        if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED
-        else []
-    )
+    filter_backends = [AlertGroupSearchFilter, filters.DjangoFilterBackend]
     filterset_class = AlertGroupFilter
 
     def get_serializer_class(self):
@@ -310,6 +331,13 @@ class AlertGroupView(
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
+
+        if settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
+            # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
+            # read more: https://hackmysql.com/infamous-order-by-limit-query-optimizer-bug/
+            # this achieves the same effect as "FORCE INDEX (alert_group_list_index)" when
+            # paired with "ORDER BY started_at_optimized DESC" (ordering is performed in AlertGroupCursorPaginator).
+            queryset = queryset.extra({"started_at_optimized": "alerts_alertgroup.started_at + 0"})
 
         # Filter by labels. Since alert group labels are "static" filter by names, not IDs.
         label_query = self.request.query_params.getlist("label", [])
@@ -811,7 +839,14 @@ class AlertGroupView(
         ]
 
         if settings.FEATURE_ALERT_GROUP_SEARCH_ENABLED:
-            filter_options = [{"name": "search", "type": "search"}] + filter_options
+            description = "Search by alert group ID, number or title."
+            if settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS:
+                description += (
+                    f" The search is limited to alert groups started in the last "
+                    f"{settings.FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS} days of the specified date range."
+                )
+
+            filter_options = [{"name": "search", "type": "search", "description": description}] + filter_options
 
         if is_labels_feature_enabled(self.request.auth.organization):
             filter_options.append(
