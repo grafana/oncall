@@ -120,7 +120,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
     def matcher(slash_command: SlashCommand) -> bool:
         # Check if command is /escalate. It's a legacy command we keep for smooth transition.
         is_legacy_command = slash_command.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
-        # Check if command is /grafana oncall escalate. It's a new command from unified app.
+        # Check if command is /grafana escalate. It's a new command from unified app.
         is_unified_app_command = slash_command.is_grafana_command and slash_command.subcommand == "escalate"
         return is_legacy_command or is_unified_app_command
 
