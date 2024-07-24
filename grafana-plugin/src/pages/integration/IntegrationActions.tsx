@@ -8,28 +8,26 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 
 import { HamburgerContextMenu } from 'components/HamburgerContextMenu/HamburgerContextMenu';
 import { IntegrationSendDemoAlertModal } from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
-import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
-import { ApiSchemas } from 'network/oncall-api/api.types';
-import { useDrawer } from 'utils/hooks';
-import { IntegrationDrawerKey } from './Integration';
-import { useStore } from 'state/useStore';
-
-import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
-import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
+import { Text } from 'components/Text/Text';
+import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
-import { IntegrationHeartbeatForm } from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
-import { UserActions } from 'utils/authorization/authorization';
+import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
+import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-
-import { getIsBidirectionalIntegration } from './Integration.helper';
-
-import { AppFeature } from 'state/features';
-import { Text } from 'components/Text/Text';
-import { openErrorNotification, openNotification } from 'utils/utils';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
+import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
+import { AppFeature } from 'state/features';
+import { useStore } from 'state/useStore';
+import { UserActions } from 'utils/authorization/authorization';
+import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { useDrawer } from 'utils/hooks';
+import { openErrorNotification, openNotification } from 'utils/utils';
+
+import { IntegrationDrawerKey } from './Integration';
+import { getIsBidirectionalIntegration } from './Integration.helper';
 
 const cx = cn.bind(styles);
 

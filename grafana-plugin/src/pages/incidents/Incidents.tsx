@@ -1,6 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
 import { GrafanaTheme2, durationToMilliseconds, parseDuration, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
