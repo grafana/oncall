@@ -1,3 +1,4 @@
+import logging
 import re
 import typing
 
@@ -28,6 +29,7 @@ from apps.metrics_exporter.tasks import start_calculate_and_cache_metrics, start
 
 application_metrics_registry = CollectorRegistry()
 
+logger = logging.getLogger(__name__)
 
 # _RE_BASE_PATTERN allows for optional curly-brackets around the metric name as in some cases this may occur
 # see common.cache.ensure_cache_key_allocates_to_the_same_hash_slot for more details regarding this
@@ -92,6 +94,10 @@ class ApplicationMetricsCollector:
         )
         for org_key, ag_states in org_ag_states.items():
             for _, integration_data in ag_states.items():
+                if "services" not in integration_data:
+                    logger.warning(f"Deleting stale metrics cache for {org_key}")
+                    cache.delete(org_key)
+                    break
                 # Labels values should have the same order as _integration_labels_with_state
                 labels_values = [
                     integration_data["integration_name"],  # integration
@@ -125,6 +131,10 @@ class ApplicationMetricsCollector:
         )
         for org_key, ag_response_time in org_ag_response_times.items():
             for _, integration_data in ag_response_time.items():
+                if "services" not in integration_data:
+                    logger.warning(f"Deleting stale metrics cache for {org_key}")
+                    cache.delete(org_key)
+                    break
                 # Labels values should have the same order as _integration_labels
                 labels_values = [
                     integration_data["integration_name"],  # integration

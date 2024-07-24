@@ -1201,7 +1201,7 @@ def test_filter_events_overrides(
                     }
                 ],
                 "missing_users": [],
-                "priority_level": None,
+                "priority_level": 0,
                 "source": "api",
                 "calendar_type": OnCallSchedule.OVERRIDES,
                 "is_empty": False,
@@ -1307,7 +1307,7 @@ def test_filter_events_final_schedule(
             "end": start_date + timezone.timedelta(hours=start + duration),
             "is_gap": is_gap,
             "is_override": is_override,
-            "priority_level": priority,
+            "priority_level": priority or 0,
             "start": start_date + timezone.timedelta(hours=start),
             "user": user,
         }

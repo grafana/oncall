@@ -1,0 +1,16 @@
+label = "OnCall.Backend"
+
+k8s_resource(
+    workload="celery",
+    resource_deps=["mariadb", "redis-master"],
+    labels=[label],
+)
+
+k8s_resource(
+    workload="engine",
+    port_forwards=8080,
+    resource_deps=["mariadb", "redis-master"],
+    labels=[label],
+)
+
+k8s_resource(workload="engine-migrate", labels=[label])

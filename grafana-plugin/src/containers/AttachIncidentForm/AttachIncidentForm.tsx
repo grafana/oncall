@@ -42,7 +42,11 @@ const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
 export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
-  const { alertGroupStore } = store;
+  const {
+    alertGroupStore,
+    // dereferencing alerts is needed to rerender GSelect
+    alertGroupStore: { alerts: alertGroupAlerts },
+  } = store;
 
   const [selected, setSelected] = useState<ApiSchemas['AlertGroup']['pk']>(undefined);
 
@@ -75,7 +79,7 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
           <GSelect<ApiSchemas['AlertGroup']>
-            items={Object.fromEntries(alertGroupStore.alerts)}
+            items={Object.fromEntries(alertGroupAlerts)}
             fetchItemsFn={async (query: string) => {
               await alertGroupStore.fetchAlertGroups(false, query);
             }}
