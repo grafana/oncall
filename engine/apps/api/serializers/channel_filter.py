@@ -147,7 +147,8 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         elif obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             # Four curly braces will result in two curly braces in the final string
             # rf"..." is a raw f string, to keep original filtering_term
-            return rf'{{{{ payload | json_dumps | regex_search("{obj.filtering_term}") }}}}'
+            escaped_quotes = obj.filtering_term.replace('"', '\\"') if obj.filtering_term else ""
+            return rf'{{{{ payload | json_dumps | regex_search("{escaped_quotes}") }}}}'
         elif obj.filtering_labels and obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_LABELS:
             # required labels
             labels = [

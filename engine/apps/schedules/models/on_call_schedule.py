@@ -412,7 +412,7 @@ class OnCallSchedule(PolymorphicModel):
                     for user in shift["users"]
                 ],
                 "missing_users": shift["missing_users"],
-                "priority_level": shift["priority"] if shift["priority"] != 0 else None,
+                "priority_level": shift["priority"] or 0,
                 "source": shift["source"],
                 "calendar_type": shift["calendar_type"],
                 "is_empty": len(shift["users"]) == 0 and not is_gap,

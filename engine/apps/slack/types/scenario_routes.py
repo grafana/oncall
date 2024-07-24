@@ -1,10 +1,14 @@
 import typing
 
+from apps.slack.slash_command import SlashCommand
+
 from .common import EventType, PayloadType
 
 if typing.TYPE_CHECKING:
     from apps.slack.scenarios.scenario_step import ScenarioStep
     from apps.slack.types import BlockActionType, InteractiveMessageActionType
+
+MatcherType = typing.Callable[[SlashCommand], bool]
 
 
 class ScenarioRoute:
@@ -32,7 +36,7 @@ class ScenarioRoute:
 
     class SlashCommandScenarioRoute(_Base):
         payload_type: typing.Literal[PayloadType.SLASH_COMMAND]
-        command_name: typing.List[str]
+        matcher: MatcherType
 
     class ViewSubmissionScenarioRoute(_Base):
         payload_type: typing.Literal[PayloadType.VIEW_SUBMISSION]

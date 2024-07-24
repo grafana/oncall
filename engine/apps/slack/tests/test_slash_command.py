@@ -14,6 +14,7 @@ def test_parse():
     assert slash_command.command == "grafana"
     assert slash_command.args == ["escalate"]
     assert slash_command.subcommand == "escalate"
+    assert slash_command.is_grafana_command
 
 
 def test_parse_command_without_subcommand():

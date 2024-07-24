@@ -654,6 +654,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           },
           collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay
+              key={`${channelFilterId}_${routeIndex}`} // Key is required
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
@@ -666,6 +667,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           ),
           expandedView: () => (
             <ExpandedIntegrationRouteDisplay
+              key={`${channelFilterId}_${routeIndex}`} // Key is required
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
