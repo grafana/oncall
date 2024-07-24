@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.utils import model_meta
 
 from common.api_helpers.exceptions import BadRequest
 
@@ -28,6 +29,38 @@ class OrderedModelSerializer(serializers.ModelSerializer):
 
         return instance
 
+    def _update(self, instance, validated_data):
+        # customize the update method to make sure order field is not saved again
+        # (which could trigger an integrity error if there was another concurrent update changing order)
+        serializers.raise_errors_on_nested_writes("update", self, validated_data)
+        info = model_meta.get_field_info(instance)
+
+        # Simply set each attribute on the instance, and then save it.
+        # Note that unlike `.create()` we don't need to treat many-to-many
+        # relationships as being a special case. During updates we already
+        # have an instance pk for the relationships to be associated with.
+        m2m_fields = []
+        update_fields = []
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                m2m_fields.append((attr, value))
+            else:
+                setattr(instance, attr, value)
+                update_fields.append(attr)
+
+        # NOTE: this is the only difference, update changed fields to avoid saving order field again
+        if update_fields:
+            instance.save(update_fields=update_fields)
+
+        # Note that many-to-many fields are set after updating instance.
+        # Setting m2m fields triggers signals which could potentially change
+        # updated instance and we do not want it to collide with .update()
+        for attr, value in m2m_fields:
+            field = getattr(instance, attr)
+            field.set(value)
+
+        return instance
+
     def update(self, instance, validated_data):
         # Remove "manual_order" and "order" fields from validated_data, so they are not passed to update method.
         manual_order = validated_data.pop("manual_order", False)
@@ -38,7 +71,7 @@ class OrderedModelSerializer(serializers.ModelSerializer):
             self._adjust_order(instance, manual_order, order, created=False)
 
         # Proceed with the update.
-        return super().update(instance, validated_data)
+        return self._update(instance, validated_data)
 
     @staticmethod
     def _adjust_order(instance, manual_order, order, created):

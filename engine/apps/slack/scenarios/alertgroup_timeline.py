@@ -13,6 +13,7 @@ from apps.slack.types import (
     PayloadType,
     ScenarioRoute,
 )
+from apps.user_management.models import Organization
 
 from .step_mixins import AlertGroupActionsMixin
 
@@ -28,6 +29,7 @@ class OpenAlertGroupTimelineDialogStep(AlertGroupActionsMixin, scenario_step.Sce
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
+        predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
