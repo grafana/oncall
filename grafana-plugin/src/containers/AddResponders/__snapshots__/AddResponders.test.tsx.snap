@@ -33,9 +33,6 @@ exports[`AddResponders should properly display the add responders button when hi
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -120,9 +117,6 @@ exports[`AddResponders should render properly in create mode 1`] = `
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -173,9 +167,6 @@ exports[`AddResponders should render properly in update mode 1`] = `
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -226,9 +217,6 @@ exports[`AddResponders should render selected team and users properly 1`] = `
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -286,11 +274,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                 data-testid="team-responder-delete-icon"
                 tabindex="0"
                 type="button"
-              >
-                <div
-                  class="css-1j2891d-Icon"
-                />
-              </button>
+              />
             </div>
           </div>
         </li>
@@ -352,6 +336,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       aria-live="polite"
                       aria-relevant="additions text"
                       class="css-1f43avz-a11yText-A11yText"
+                      role="log"
                     />
                     <div
                       class="css-1i88p6p"
@@ -366,6 +351,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                           Select...
                         </div>
                         <input
+                          aria-activedescendant=""
                           aria-autocomplete="list"
                           aria-describedby="react-select-2-placeholder"
                           aria-expanded="false"
@@ -382,11 +368,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       </div>
                       <div
                         class="css-zyjsuv-input-suffix"
-                      >
-                        <div
-                          class="css-1j2891d-Icon"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -399,11 +381,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                     data-testid="user-responder-delete-icon"
                     tabindex="0"
                     type="button"
-                  >
-                    <div
-                      class="css-1j2891d-Icon"
-                    />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -467,6 +445,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       aria-live="polite"
                       aria-relevant="additions text"
                       class="css-1f43avz-a11yText-A11yText"
+                      role="log"
                     />
                     <div
                       class="css-1i88p6p"
@@ -481,6 +460,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                           Select...
                         </div>
                         <input
+                          aria-activedescendant=""
                           aria-autocomplete="list"
                           aria-describedby="react-select-3-placeholder"
                           aria-expanded="false"
@@ -496,11 +476,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       </div>
                       <div
                         class="css-zyjsuv-input-suffix"
-                      >
-                        <div
-                          class="css-1j2891d-Icon"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -513,11 +489,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                     data-testid="user-responder-delete-icon"
                     tabindex="0"
                     type="button"
-                  >
-                    <div
-                      class="css-1j2891d-Icon"
-                    />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -581,6 +553,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       aria-live="polite"
                       aria-relevant="additions text"
                       class="css-1f43avz-a11yText-A11yText"
+                      role="log"
                     />
                     <div
                       class="css-1i88p6p"
@@ -595,6 +568,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                           Select...
                         </div>
                         <input
+                          aria-activedescendant=""
                           aria-autocomplete="list"
                           aria-describedby="react-select-4-placeholder"
                           aria-expanded="false"
@@ -610,11 +584,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       </div>
                       <div
                         class="css-zyjsuv-input-suffix"
-                      >
-                        <div
-                          class="css-1j2891d-Icon"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -627,11 +597,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                     data-testid="user-responder-delete-icon"
                     tabindex="0"
                     type="button"
-                  >
-                    <div
-                      class="css-1j2891d-Icon"
-                    />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -640,28 +606,24 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         <div
           aria-label="[object Object]"
           class="css-10yjoiw css-182y09v"
-          data-testid="data-testid Alert info"
           role="status"
         >
           <div
-            class="css-1td7znu"
+            class="css-oc5dfb"
+            data-testid="data-testid Alert info"
           >
             <div
-              class="css-ufgc62"
+              class="css-1fw8t76"
             >
               <div
                 class="css-tluiue"
-              >
-                <div
-                  class="css-1j2891d-Icon"
-                />
-              </div>
+              />
             </div>
             <div
-              class="css-1gmwkrf"
+              class="css-1t7z4cd"
             >
               <span
-                class="css-9om60p"
+                class="css-73o1g6"
               >
                 <span
                   class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
@@ -686,11 +648,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                         </div>
                         <div
                           class="css-12kn7ff-layoutChildrenWrapper"
-                        >
-                          <div
-                            class="css-1j2891d-Icon"
-                          />
-                        </div>
+                        />
                       </div>
                     </span>
                   </a>

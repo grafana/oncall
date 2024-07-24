@@ -60,6 +60,7 @@ exports[`UserResponder it renders data properly 1`] = `
                 aria-live="polite"
                 aria-relevant="additions text"
                 class="css-1f43avz-a11yText-A11yText"
+                role="log"
               />
               <div
                 class="css-1i88p6p"
@@ -73,6 +74,7 @@ exports[`UserResponder it renders data properly 1`] = `
                     Important
                   </div>
                   <input
+                    aria-activedescendant=""
                     aria-autocomplete="list"
                     aria-expanded="false"
                     aria-haspopup="true"
@@ -87,11 +89,7 @@ exports[`UserResponder it renders data properly 1`] = `
                 </div>
                 <div
                   class="css-zyjsuv-input-suffix"
-                >
-                  <div
-                    class="css-1j2891d-Icon"
-                  />
-                </div>
+                />
               </div>
             </div>
           </div>
@@ -104,11 +102,7 @@ exports[`UserResponder it renders data properly 1`] = `
               data-testid="user-responder-delete-icon"
               tabindex="0"
               type="button"
-            >
-              <div
-                class="css-1j2891d-Icon"
-              />
-            </button>
+            />
           </div>
         </div>
       </div>
