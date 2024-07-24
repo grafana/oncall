@@ -150,7 +150,7 @@ jobs:
         if: inputs.run-expensive-tests
         shell: bash
         env:
-          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
+          E2E_TESTS_CMD: "cd ../../grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_VERSION: ${{ inputs.grafana_version }}
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"

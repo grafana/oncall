@@ -143,7 +143,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\" }"
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
         },
         {
           "name": "Authorization",
