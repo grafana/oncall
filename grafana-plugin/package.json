@@ -119,7 +119,7 @@
     "ts-jest": "29.0.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.5",
+    "typescript": "5.1",
     "webpack": "^5.86.0",
     "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "^5.1.4",
