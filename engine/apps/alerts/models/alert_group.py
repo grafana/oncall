@@ -42,6 +42,7 @@ if typing.TYPE_CHECKING:
         Alert,
         AlertGroupLogRecord,
         AlertReceiveChannel,
+        BundledNotification,
         ResolutionNote,
         ResolutionNoteSlackMessage,
     )
@@ -189,6 +190,7 @@ class AlertGroupSlackRenderingMixin:
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
     acknowledged_by_user: typing.Optional["User"]
     alerts: "RelatedManager['Alert']"
+    bundled_notifications: "RelatedManager['BundledNotification']"
     dependent_alert_groups: "RelatedManager['AlertGroup']"
     channel: "AlertReceiveChannel"
     log_records: "RelatedManager['AlertGroupLogRecord']"
