@@ -643,7 +643,7 @@ class IncidentLogBuilder:
 
         # get ids of notification policies with bundled notification
         notification_policies_in_bundle = (
-            self.alert_group.bundlednotification_set.all()
+            self.alert_group.bundled_notifications.all()
             .values(
                 "notification_policy",
                 "bundle_uuid",
