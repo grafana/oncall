@@ -8,6 +8,9 @@ module.exports = {
     'import/internal-regex':
       '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
+  parserOptions: {
+    project: "./tsconfig.json",
+  },
   rules: {
     eqeqeq: 'warn',
     'import/order': [
