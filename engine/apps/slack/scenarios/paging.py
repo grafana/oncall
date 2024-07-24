@@ -15,6 +15,7 @@ from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
+from apps.slack.slash_command import SlashCommand
 from apps.slack.types import (
     Block,
     BlockActionType,
@@ -115,7 +116,13 @@ def get_current_items(
 class StartDirectPaging(scenario_step.ScenarioStep):
     """Handle slash command invocation and show initial dialog."""
 
-    command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
+    @staticmethod
+    def matcher(slash_command: SlashCommand) -> bool:
+        # Check if command is /escalate. It's a legacy command we keep for smooth transition.
+        is_legacy_command = slash_command.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
+        # Check if command is /grafana escalate. It's a new command from unified app.
+        is_unified_app_command = slash_command.is_grafana_command and slash_command.subcommand == "escalate"
+        return is_legacy_command or is_unified_app_command
 
     def process_scenario(
         self,
@@ -305,19 +312,20 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         if not user_is_oncall(selected_user):
             # display additional confirmation modal
             metadata = json.loads(payload["view"]["private_metadata"])
-            private_metadata = make_private_metadata(
-                {
-                    "state": payload["view"]["state"],
-                    "input_id_prefix": metadata["input_id_prefix"],
-                    "channel_id": metadata["channel_id"],
-                    "submit_routing_uid": metadata["submit_routing_uid"],
-                    DataKey.USERS: metadata[DataKey.USERS],
-                },
-                selected_user.organization,
-            )
+            private_metadata = {
+                "state": payload["view"]["state"],
+                "input_id_prefix": metadata["input_id_prefix"],
+                "channel_id": metadata["channel_id"],
+                "submit_routing_uid": metadata["submit_routing_uid"],
+                DataKey.USERS: metadata[DataKey.USERS],
+            }
+            # keep predefined organization in private metadata
+            if "organization_id" in metadata:
+                private_metadata["organization_id"] = metadata["organization_id"]
 
             view = _display_confirm_participant_invitation_view(
-                OnPagingConfirmUserChange.routing_uid(), private_metadata
+                OnPagingConfirmUserChange.routing_uid(),
+                make_private_metadata(private_metadata, selected_user.organization),
             )
             self._slack_client.views_push(trigger_id=payload["trigger_id"], view=view)
         else:
@@ -385,6 +393,10 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
             "submit_routing_uid": metadata["submit_routing_uid"],
             DataKey.USERS: metadata[DataKey.USERS],
         }
+        # keep predefined organization in private metadata
+        if "organization_id" in metadata:
+            private_metadata["organization_id"] = metadata["organization_id"]
+
         previous_view_payload = {
             "view": {
                 "state": metadata["state"],
@@ -995,8 +1007,8 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     },
     {
         "payload_type": PayloadType.SLASH_COMMAND,
-        "command_name": StartDirectPaging.command_name,
         "step": StartDirectPaging,
+        "matcher": StartDirectPaging.matcher,
     },
     {
         "payload_type": PayloadType.VIEW_SUBMISSION,
