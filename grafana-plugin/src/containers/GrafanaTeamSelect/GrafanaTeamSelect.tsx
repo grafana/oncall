@@ -25,7 +25,12 @@ export const GrafanaTeamSelect = observer(
   ({ onSelect, onHide, withoutModal, defaultValue }: GrafanaTeamSelectProps) => {
     const store = useStore();
 
-    const { userStore, grafanaTeamStore } = store;
+    const {
+      userStore,
+      grafanaTeamStore,
+      // dereferencing items is needed to rerender GSelect
+      grafanaTeamStore: { items: grafanaTeamItems },
+    } = store;
     const user = userStore.currentUser;
 
     const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(defaultValue);
@@ -53,7 +58,7 @@ export const GrafanaTeamSelect = observer(
 
     const select = (
       <GSelect<GrafanaTeam>
-        items={grafanaTeamStore.items}
+        items={grafanaTeamItems}
         fetchItemsFn={grafanaTeamStore.updateItems}
         fetchItemFn={grafanaTeamStore.fetchItemById}
         getSearchResult={grafanaTeamStore.getSearchResult}

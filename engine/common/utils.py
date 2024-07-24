@@ -129,7 +129,7 @@ def getenv_boolean(variable_name: str, default: bool) -> bool:
     return value.lower() in ("true", "1")
 
 
-def getenv_integer(variable_name: str, default: int) -> int:
+def getenv_integer(variable_name: str, default: int | None) -> int | None:
     value = os.environ.get(variable_name)
     if value is None:
         return default

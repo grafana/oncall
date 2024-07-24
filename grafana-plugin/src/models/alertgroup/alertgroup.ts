@@ -9,7 +9,7 @@ import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
 import { LocationHelper } from 'utils/LocationHelper';
-import { GENERIC_ERROR, PAGE } from 'utils/consts';
+import { GENERIC_ERROR, PAGE, PROCESSING_REQUEST_ERROR } from 'utils/consts';
 import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { AlertGroupHelper } from './alertgroup.helpers';
@@ -136,7 +136,7 @@ export class AlertGroupStore {
   @AutoLoadingState(ActionKey.REMOVE_COLUMN_FROM_ALERT_GROUP)
   @WithGlobalNotification({
     success: 'Column has been removed from the list.',
-    failure: 'There was an error processing your request. Please try again',
+    failure: PROCESSING_REQUEST_ERROR,
   })
   async removeTableColumn(
     columnToBeRemoved: AlertGroupColumn,
@@ -172,6 +172,7 @@ export class AlertGroupStore {
     this.liveUpdatesPaused = value;
   }
 
+  @WithGlobalNotification({ failure: PROCESSING_REQUEST_ERROR })
   @AutoLoadingState(ActionKey.UPDATE_FILTERS_AND_FETCH_INCIDENTS)
   async updateIncidentFiltersAndRefetchIncidentsAndStats(params: any, keepCursor = false) {
     if (!keepCursor) {

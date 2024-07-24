@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 export const getUserGroupStyles = (theme: GrafanaTheme2) => {
   return {
@@ -59,7 +59,7 @@ export const getUserGroupStyles = (theme: GrafanaTheme2) => {
 
     icon: css`
       display: block;
-      color: ${COLORS.ALWAYS_GREY};
+      color: ${Colors.ALWAYS_GREY};
 
       &:hover {
         color: #fff;

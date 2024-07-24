@@ -4,7 +4,7 @@ import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { COLORS } from 'styles/utils.styles';
+import { Colors } from 'styles/utils.styles';
 
 import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
 import { Text } from 'components/Text/Text';
@@ -71,7 +71,7 @@ export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps
 const getStyles = () => {
   return {
     gray: css`
-      color: ${COLORS.ALWAYS_GREY};
+      color: ${Colors.ALWAYS_GREY};
     `,
   };
 };

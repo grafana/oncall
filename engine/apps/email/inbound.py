@@ -86,15 +86,18 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         # First try envelope_recipient field.
         # According to AnymailInboundMessage it's provided not by all ESPs.
         if message.envelope_recipient:
-            try:
-                token, domain = message.envelope_recipient.split("@")
-            except ValueError:
-                logger.error(
-                    f"get_integration_token_from_request: envelope_recipient field has unexpected format: {message.envelope_recipient}"
-                )
-                return None
-            if domain == live_settings.INBOUND_EMAIL_DOMAIN:
-                return token
+            recipients = message.envelope_recipient.split(",")
+            for recipient in recipients:
+                # if there is more than one recipient, the first matching the expected domain will be used
+                try:
+                    token, domain = recipient.strip().split("@")
+                except ValueError:
+                    logger.error(
+                        f"get_integration_token_from_request: envelope_recipient field has unexpected format: {message.envelope_recipient}"
+                    )
+                    continue
+                if domain == live_settings.INBOUND_EMAIL_DOMAIN:
+                    return token
         else:
             logger.info("get_integration_token_from_request: message.envelope_recipient is not present")
         """
@@ -152,7 +155,10 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
 
     def get_sender_from_email_message(self, email: AnymailInboundMessage) -> str:
         try:
-            sender = email.from_email.addr_spec
+            if isinstance(email.from_email, list):
+                sender = email.from_email[0].addr_spec
+            else:
+                sender = email.from_email.addr_spec
         except AnymailInvalidAddress as e:
             # wasn't able to parse email address from message, return raw value from "From" header
             logger.warning(

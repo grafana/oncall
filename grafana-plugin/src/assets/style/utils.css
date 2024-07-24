@@ -138,14 +138,6 @@
   padding-bottom: 24px;
 }
 
-/* -----
- * Icons
- */
-
-.icon-exclamation {
-  color: var(--error-text-color);
-}
-
 .loadingPlaceholder {
   margin-bottom: 0;
   margin-right: 4px;

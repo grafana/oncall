@@ -57,7 +57,7 @@ export const AddRespondersPopup = observer(
     const [notOnCallUserSearchResults, setNotOnCallUserSearchResults] = useState<
       Array<ApiSchemas['UserIsCurrentlyOnCall']>
     >([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [search, setSearch] = useState('');
 
     const ref = useRef();
 
@@ -65,11 +65,11 @@ export const AddRespondersPopup = observer(
       setVisible(false);
     });
 
-    const handleSetSearchTerm = useCallback(
+    const handleSetSearch = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
+        setSearch(e.target.value);
       },
-      [setSearchTerm]
+      [setSearch]
     );
 
     const onClickUser = useCallback(
@@ -102,7 +102,7 @@ export const AddRespondersPopup = observer(
     const searchForUsers = useCallback(async () => {
       const _search = async (is_currently_oncall: boolean) => {
         const response = await UserHelper.search({
-          searchTerm,
+          search,
           is_currently_oncall,
         });
         return response.results;
@@ -112,14 +112,14 @@ export const AddRespondersPopup = observer(
 
       setOnCallUserSearchResults(onCallUserSearchResults as Array<ApiSchemas['UserIsCurrentlyOnCall']>);
       setNotOnCallUserSearchResults(notOnCallUserSearchResults as Array<ApiSchemas['UserIsCurrentlyOnCall']>);
-    }, [searchTerm]);
+    }, [search]);
 
     const searchForTeams = useCallback(async () => {
-      await grafanaTeamStore.updateItems(searchTerm, false, true, false);
+      await grafanaTeamStore.updateItems(search, false, true, false);
       setTeamSearchResults(grafanaTeamStore.getSearchResult());
-    }, [searchTerm]);
+    }, [search]);
 
-    const handleSearchTermChange = useDebouncedCallback(async () => {
+    const handleSearchChange = useDebouncedCallback(async () => {
       setSearchLoading(true);
 
       if (isCreateMode && activeOption === TabOptions.Teams) {
@@ -137,7 +137,7 @@ export const AddRespondersPopup = observer(
          * there's no need to trigger a new search request when the user changes tabs if they don't have a
          * search term
          */
-        if (searchTerm) {
+        if (search) {
           setSearchLoading(true);
 
           if (activeOption === TabOptions.Teams) {
@@ -151,10 +151,10 @@ export const AddRespondersPopup = observer(
 
         setActiveOption(tab);
       },
-      [searchTerm]
+      [search]
     );
 
-    useEffect(handleSearchTermChange, [searchTerm]);
+    useEffect(handleSearchChange, [search]);
 
     /**
      * in the context where some user(s) have already been paged (ex. on a direct paging generated
@@ -236,10 +236,16 @@ export const AddRespondersPopup = observer(
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup>
                   <Avatar size="small" src={avatar} />
-                  <Text type={disabled ? 'disabled' : undefined}>{name || username}</Text>
+                  <Text type={disabled ? 'disabled' : undefined} className={cx('responder-name')}>
+                    {name || username}
+                  </Text>
                 </HorizontalGroup>
                 {/* TODO: we should add an elippsis and/or tooltip in the event that the user has a ton of teams */}
-                {teams?.length > 0 && <Text type="secondary">{teams.map(({ name }) => name).join(', ')}</Text>}
+                {teams?.length > 0 && (
+                  <Text type="secondary" className={cx('responder-team')}>
+                    {teams.map(({ name }) => name).join(', ')}
+                  </Text>
+                )}
               </HorizontalGroup>
             </div>
           );
@@ -281,11 +287,11 @@ export const AddRespondersPopup = observer(
             key="search"
             className={cx('responders-filters')}
             data-testid="add-responders-search-input"
-            value={searchTerm}
+            value={search}
             placeholder="Search"
             // @ts-ignore
             width={'unset'}
-            onChange={handleSetSearchTerm}
+            onChange={handleSetSearch}
           />
           {isCreateMode && (
             <RadioButtonGroup
