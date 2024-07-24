@@ -497,7 +497,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       return null;
     }
 
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
     const hasSelected = selectedIncidentIds.length > 0;
     const isBulkUpdate = LoaderHelper.isLoading(store.loaderStore, ActionKey.INCIDENTS_BULK_UPDATE);
 
