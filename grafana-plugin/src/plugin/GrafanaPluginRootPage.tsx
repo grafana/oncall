@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { observer, Provider } from 'mobx-react';
 import { Header } from 'navbar/Header/Header';
 import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom-v5-compat';
 import { AppRootProps } from 'types';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';

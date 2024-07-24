@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Badge, BadgeColor, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { Avatar } from 'components/Avatar/Avatar';

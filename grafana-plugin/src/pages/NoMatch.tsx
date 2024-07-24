@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 
 import qs from 'query-string';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
 import { DEFAULT_PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getPathFromQueryParams } from 'utils/url';

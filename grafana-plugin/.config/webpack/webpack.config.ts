@@ -50,6 +50,7 @@ const config = async (env): Promise<Configuration> => {
       '@grafana/slate-react',
       'react',
       'react-dom',
+      'react-router-dom',
       'react-redux',
       'redux',
       'rxjs',

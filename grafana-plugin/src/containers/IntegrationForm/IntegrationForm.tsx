@@ -19,7 +19,7 @@ import {
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
 import { HowTheIntegrationWorks } from 'components/HowTheIntegrationWorks/HowTheIntegrationWorks';
 import { PluginLink } from 'components/PluginLink/PluginLink';

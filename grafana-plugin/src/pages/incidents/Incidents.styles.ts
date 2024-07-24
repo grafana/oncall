@@ -7,14 +7,13 @@ export const getIncidentsStyles = (theme: GrafanaTheme2) => {
       width: 400px;
     `,
 
-    bau: css`
-      ${[1, 2, 3].map(
-        (num) => `
-        $--line-${num} {
-          -webkit-line-clamp: ${num}
-        }
-      `
-      )}
+    rightSideFilters: css`
+      display: flex;
+      gap: 8px;
+    `,
+
+    alertsSelected: css`
+      white-space: nowrap;
     `,
 
     actionButtons: css`

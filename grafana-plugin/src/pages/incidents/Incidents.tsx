@@ -170,15 +170,12 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   render() {
     const {
-      router: { navigate },
-    } = this.props;
-    const { showAddAlertGroupForm } = this.state;
-
-    const {
       theme,
       store,
       store: { alertReceiveChannelStore },
+      router: { navigate },
     } = this.props;
+    const { showAddAlertGroupForm, refreshInterval } = this.state;
     const styles = getIncidentsStyles(theme);
 
     const isLoading = LoaderHelper.isLoading(store.loaderStore, [
