@@ -30,7 +30,7 @@ def get_installation_link_from_chatops_proxy(user) -> typing.Optional[str]:
         link, _ = client.get_slack_oauth_link(
             org.stack_id,
             user.user_id,
-            urljoin(org.web_link, "settings?tab=TeamsSettings&chatOpsTab=Slack"),
+            urljoin(org.web_link, "settings?tab=ChatOps&chatOpsTab=Slack"),
             APP_TYPE_ONCALL,
         )
         return link

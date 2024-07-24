@@ -15,6 +15,7 @@ from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.errors import SlackAPIChannelNotFoundError
 from apps.slack.scenarios import scenario_step
+from apps.slack.slash_command import SlashCommand
 from apps.slack.types import (
     Block,
     BlockActionType,
@@ -115,7 +116,13 @@ def get_current_items(
 class StartDirectPaging(scenario_step.ScenarioStep):
     """Handle slash command invocation and show initial dialog."""
 
-    command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
+    @staticmethod
+    def matcher(slash_command: SlashCommand) -> bool:
+        # Check if command is /escalate. It's a legacy command we keep for smooth transition.
+        is_legacy_command = slash_command.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
+        # Check if command is /grafana escalate. It's a new command from unified app.
+        is_unified_app_command = slash_command.is_grafana_command and slash_command.subcommand == "escalate"
+        return is_legacy_command or is_unified_app_command
 
     def process_scenario(
         self,
@@ -1000,8 +1007,8 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     },
     {
         "payload_type": PayloadType.SLASH_COMMAND,
-        "command_name": StartDirectPaging.command_name,
         "step": StartDirectPaging,
+        "matcher": StartDirectPaging.matcher,
     },
     {
         "payload_type": PayloadType.VIEW_SUBMISSION,
