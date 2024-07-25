@@ -138,14 +138,14 @@ class AlertGroupListSerializer(
         "labels",
         Prefetch(
             "slack_messages",
-            queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
+            queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at"),
             to_attr="prefetched_slack_messages",
         ),
         Prefetch(
             "telegram_messages",
             queryset=TelegramMessage.objects.filter(
                 chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE
-            ).order_by("id")[:1],
+            ).order_by("id"),
             to_attr="prefetched_telegram_messages",
         ),
     ]
