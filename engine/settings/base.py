@@ -189,6 +189,8 @@ if DATABASE_TYPE == DatabaseTypes.MYSQL:
 
     pymysql.install_as_MySQLdb()
 
+DJANGO_MYSQL_REWRITE_QUERIES = True
+
 ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX = DATABASE_TYPE == DatabaseTypes.MYSQL and getenv_boolean(
     "ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX", default=False
 )
@@ -292,6 +294,9 @@ INSTALLED_APPS = [
     "apps.google",
     "apps.chatops_proxy",
 ]
+
+if DATABASE_TYPE == DatabaseTypes.MYSQL:
+    INSTALLED_APPS += ["django_mysql"]
 
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (

@@ -652,6 +652,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
   };
 
   getPlaceholderReplaceFn = (entity: TimeLineItem) => {
+    // eslint-disable-next-line react/display-name
     return (match: string) => {
       switch (match) {
         case 'author':

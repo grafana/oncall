@@ -172,6 +172,7 @@ export class RootBaseStore {
    * - the user must have an Admin role and necessary permissions
    * Finally, try to load the current user from the OnCall backend
    */
+  @action.bound
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
