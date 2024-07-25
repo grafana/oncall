@@ -82,6 +82,6 @@ export const RouteLabelsDisplay: React.FC<RouteLabelsDisplayProps> = ({ labels, 
 };
 
 const getIsAddBtnDisabled = (labels: Array<components['schemas']['LabelPair']> = []) => {
-  const lastItem = labels.at(-1);
+  const lastItem = labels?.at(-1);
   return lastItem && (lastItem.key?.id === undefined || lastItem.value?.id === undefined);
 };
