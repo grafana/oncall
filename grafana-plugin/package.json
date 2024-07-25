@@ -141,7 +141,7 @@
     "@grafana/runtime": "^10.2.2",
     "@grafana/scenes": "^1.28.0",
     "@grafana/schema": "^10.2.2",
-    "@grafana/ui": "^10.2.0",
+    "@grafana/ui": "10.2.0",
     "@lifeomic/attempt": "^3.0.3",
     "array-move": "^4.0.0",
     "axios": "^1.6.7",

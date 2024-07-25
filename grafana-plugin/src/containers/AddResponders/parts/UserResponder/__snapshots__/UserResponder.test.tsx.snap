@@ -49,7 +49,7 @@ exports[`UserResponder it renders data properly 1`] = `
             class="css-18qv8yz-layoutChildrenWrapper"
           >
             <div
-              class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
+              class="css-1nmqu8c-input-wrapper select css-101kgo7"
             >
               <span
                 class="css-1f43avz-a11yText-A11yText"
@@ -68,7 +68,7 @@ exports[`UserResponder it renders data properly 1`] = `
                   class="css-1q0c0d5-grafana-select-value-container"
                 >
                   <div
-                    class="css-8nwx1l-singleValue css-upz218-SingleValue"
+                    class="css-8nwx1l-singleValue css-0"
                   >
                     Important
                   </div>
