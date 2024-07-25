@@ -2,6 +2,7 @@ import datetime
 import logging
 import typing
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Prefetch
 from django.utils import timezone
@@ -136,19 +137,22 @@ class AlertGroupListSerializer(
         "dependent_alert_groups",
         "log_records__author",
         "labels",
-        Prefetch(
-            "slack_messages",
-            queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at"),
-            to_attr="prefetched_slack_messages",
-        ),
-        Prefetch(
-            "telegram_messages",
-            queryset=TelegramMessage.objects.filter(
-                chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE
-            ).order_by("id"),
-            to_attr="prefetched_telegram_messages",
-        ),
     ]
+    if settings.ALERT_GROUP_LIST_TRY_PREFETCH:
+        PREFETCH_RELATED += [
+            Prefetch(
+                "slack_messages",
+                queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
+                to_attr="prefetched_slack_messages",
+            ),
+            Prefetch(
+                "telegram_messages",
+                queryset=TelegramMessage.objects.filter(
+                    chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE
+                ).order_by("id")[:1],
+                to_attr="prefetched_telegram_messages",
+            ),
+        ]
 
     SELECT_RELATED = [
         "channel__organization",
