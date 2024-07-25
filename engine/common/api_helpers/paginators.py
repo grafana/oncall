@@ -1,6 +1,5 @@
 import typing
 
-from django.conf import settings
 from rest_framework.pagination import BasePagination, CursorPagination, PageNumberPagination
 from rest_framework.response import Response
 
@@ -86,4 +85,4 @@ class FifteenPageSizePaginator(PathPrefixedPagePagination):
 
 class AlertGroupCursorPaginator(PathPrefixedCursorPagination):
     page_size = 25
-    ordering = "-started_at_optimized" if settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX else "-started_at"
+    ordering = "-started_at"
