@@ -47,7 +47,11 @@ exports[`TeamResponder it renders data properly 1`] = `
           data-testid="team-responder-delete-icon"
           tabindex="0"
           type="button"
-        />
+        >
+          <div
+            class="css-1j2891d-Icon"
+          />
+        </button>
       </div>
     </div>
   </li>

@@ -87,6 +87,9 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
               class="css-9z7wq3"
               role="alert"
             >
+              <div
+                class="css-1j2891d-Icon"
+              />
               Must be a valid URL
             </div>
           </div>

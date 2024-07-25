@@ -14,7 +14,6 @@ exports[`NotificationPoliciesSelect disabled state 1`] = `
       aria-live="polite"
       aria-relevant="additions text"
       class="css-1f43avz-a11yText-A11yText"
-      role="log"
     />
     <div
       class="css-1i88p6p"
@@ -28,7 +27,6 @@ exports[`NotificationPoliciesSelect disabled state 1`] = `
           Default
         </div>
         <input
-          aria-activedescendant=""
           aria-autocomplete="list"
           aria-expanded="false"
           aria-haspopup="true"
@@ -44,7 +42,11 @@ exports[`NotificationPoliciesSelect disabled state 1`] = `
       </div>
       <div
         class="css-zyjsuv-input-suffix"
-      />
+      >
+        <div
+          class="css-1j2891d-Icon"
+        />
+      </div>
     </div>
   </div>
 </div>
@@ -64,7 +66,6 @@ exports[`NotificationPoliciesSelect it renders properly 1`] = `
       aria-live="polite"
       aria-relevant="additions text"
       class="css-1f43avz-a11yText-A11yText"
-      role="log"
     />
     <div
       class="css-1i88p6p"
@@ -78,7 +79,6 @@ exports[`NotificationPoliciesSelect it renders properly 1`] = `
           Default
         </div>
         <input
-          aria-activedescendant=""
           aria-autocomplete="list"
           aria-expanded="false"
           aria-haspopup="true"
@@ -93,7 +93,11 @@ exports[`NotificationPoliciesSelect it renders properly 1`] = `
       </div>
       <div
         class="css-zyjsuv-input-suffix"
-      />
+      >
+        <div
+          class="css-1j2891d-Icon"
+        />
+      </div>
     </div>
   </div>
 </div>

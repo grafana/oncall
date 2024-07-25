@@ -22,7 +22,11 @@ exports[`AddRespondersPopup it shows a loading message initially 1`] = `
         />
         <div
           class="css-7099m8-input-suffix"
-        />
+        >
+          <div
+            class="css-1j2891d-Icon"
+          />
+        </div>
       </div>
     </div>
     <div
@@ -31,17 +35,16 @@ exports[`AddRespondersPopup it shows a loading message initially 1`] = `
     >
       <div
         class="css-1hvl7lx"
-        data-testid="data-testid radio-button"
       >
         <input
           checked=""
-          class="css-18nv6l3"
+          class="css-1f9hgw3"
           id="option-teams-radiogroup-1"
           name="radiogroup-1"
           type="radio"
         />
         <label
-          class="css-18zk0h1"
+          class="css-10bka4u"
           for="option-teams-radiogroup-1"
         >
           Teams
@@ -50,16 +53,15 @@ exports[`AddRespondersPopup it shows a loading message initially 1`] = `
       </div>
       <div
         class="css-1hvl7lx"
-        data-testid="data-testid radio-button"
       >
         <input
-          class="css-18nv6l3"
+          class="css-1f9hgw3"
           id="option-users-radiogroup-1"
           name="radiogroup-1"
           type="radio"
         />
         <label
-          class="css-18zk0h1"
+          class="css-10bka4u"
           for="option-users-radiogroup-1"
         >
           Users
@@ -73,9 +75,14 @@ exports[`AddRespondersPopup it shows a loading message initially 1`] = `
       Loading...
        
       <div
-        class="css-1baulvz"
+        class="css-1tqtz24"
         data-testid="Spinner"
-      />
+      >
+        <i
+          aria-label="loading spinner"
+          class="fa fa-spinner fa-spin fa-spin"
+        />
+      </div>
     </div>
   </div>
 </div>
