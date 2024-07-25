@@ -49,7 +49,7 @@ docker_build_sub(
     ignore=["./test-results/", "./grafana-plugin/dist/", "./grafana-plugin/e2e-tests/", "./grafana-plugin/node_modules/"],
     child_context=".",
     target="dev",
-    extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src/plugin.json"],
+    extra_cmds=["ADD ./grafana-plugin/src/plugin.json /etc/grafana-plugin/src/plugin.json", "RUN pip install -r ./extensions/engine_enterprise/requirements.txt"],
     live_update=[
         sync("./engine/", "/etc/app"),
         run(

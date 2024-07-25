@@ -1,5 +1,3 @@
-requirements-enterprise*.txt
-extensions/
 uwsgi-local.ini
 celerybeat-schedule
 *.db
