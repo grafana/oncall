@@ -4,7 +4,7 @@
   "description": "Grafana OnCall Plugin",
   "scripts": {
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx ./src ./e2e-tests",
-    "lint:fix": "eslint --max-warnings=0 --fix --cache --ext .js,.jsx,.ts,.tsx ./src ./e2e-tests",
+    "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx ./src ./e2e-tests",
     "stylelint": "stylelint ./src/**/*.{css,scss,module.css,module.scss}",
     "stylelint:fix": "stylelint --fix ./src/**/*.{css,scss,module.css,module.scss}",
     "build": "NODE_ENV=production webpack -c ./webpack.config.ts --env production",
