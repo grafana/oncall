@@ -52,7 +52,7 @@
   "author": "Grafana Labs",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/eslint-config": "^7.0.0",
+    "@grafana/eslint-config": "^6.0.0",
     "@grafana/tsconfig": "^1.2.0-rc1",
     "@jest/globals": "^27.5.1",
     "@playwright/test": "^1.41.0",
