@@ -500,8 +500,11 @@ def test_send_bundle_notification(
             f"there is only one alert group in bundled notification, perform regular notification. "
             f"alert_group {alert_group_1.id}"
         ) in caplog.text
-        # check all notifications were deleted
-        assert notification_bundle.notifications.all().count() == 0
+        # check bundle_uuid was set
+        assert notification_bundle.notifications.filter(bundle_uuid__isnull=True).count() == 0
+        assert notification_bundle.notifications.all().count() == 1
+        # cleanup notifications
+        notification_bundle.notifications.all().delete()
 
         # send notification for 0 active alert group
         notification_bundle.append_notification(alert_group_1, notification_policy)
