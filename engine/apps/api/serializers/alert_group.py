@@ -133,7 +133,7 @@ class AlertGroupListSerializer(
 
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
-    PREFETCH_RELATED = [
+    PREFETCH_RELATED: list[str | Prefetch] = [
         "dependent_alert_groups",
         "log_records__author",
         "labels",
