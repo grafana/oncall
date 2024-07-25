@@ -99,11 +99,9 @@ repos:
         name: markdownlint
         entry: >
           markdownlint --fix --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
-          --ignore grafana-plugin/.config
       - id: markdownlint
         name: markdownlint - docs/sources
         entry: markdownlint --fix --ignore README.md -c ./docs/.markdownlint.json ./docs/sources/**/*.md
-               --ignore grafana-plugin/.config
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.32.0
