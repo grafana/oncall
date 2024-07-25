@@ -341,7 +341,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="css-e49k3t-input-wrapper select css-101kgo7"
+                    class="css-e49k3t-input-wrapper select css-8k5qe3-SelectContainer"
                   >
                     <span
                       class="css-1f43avz-a11yText-A11yText"
@@ -456,7 +456,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="css-1nmqu8c-input-wrapper select css-101kgo7"
+                    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
                   >
                     <span
                       class="css-1f43avz-a11yText-A11yText"
@@ -570,7 +570,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <div
-                    class="css-1nmqu8c-input-wrapper select css-101kgo7"
+                    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
                   >
                     <span
                       class="css-1f43avz-a11yText-A11yText"
