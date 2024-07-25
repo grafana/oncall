@@ -207,8 +207,8 @@ For more information about OnCall schedules, refer to [On-call schedules][].
 [Escalation chains]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes#escalation-chains"
 [Escalation chains]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes#escalation-chains"
 
-[integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations"
-[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
+[integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations"
+[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations"
 
 [Jinja2 templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
 [Jinja2 templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
