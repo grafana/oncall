@@ -280,7 +280,7 @@ After enabling the email integration, it will be possible to use the `Notify by 
 
 ## Inbound Email Setup
 
-Grafana OnCall is capable of creating alert groups from the [Inbound email integration][].
+Grafana OnCall is capable of creating alert groups from the [Inbound email integration][inbound-email-integration].
 
 To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
 
@@ -343,8 +343,8 @@ Additionally, if you prefer to disable this feature, you can set the `ESCALATION
 to `False`.
 
 {{% docs/reference %}}
-[Inbound email integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
-[Inbound email integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/inbound-email"
+[inbound-email-integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/inbound-email"
+[inbound-email-integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/inbound-email"
 
 [Grafana OnCall mobile app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app"
 [Grafana OnCall mobile app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app"
