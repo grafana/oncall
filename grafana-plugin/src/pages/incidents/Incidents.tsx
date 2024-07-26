@@ -740,7 +740,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     }
 
     return (
-      <VerticalGroup spacing="none">
+      <VerticalGroup spacing="none" justify="center">
         <Text type="secondary">{date}</Text>
         <Text type="secondary">{time}</Text>
       </VerticalGroup>
