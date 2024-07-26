@@ -18,7 +18,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import { getUtilStyles } from 'styles/utils.styles';
+import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { CardButton } from 'components/CardButton/CardButton';
 import { CursorPagination } from 'components/CursorPagination/CursorPagination';
@@ -55,7 +55,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
@@ -561,7 +561,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderTable() {
+  renderTable = () => {
     const { selectedIncidentIds, pagination, isHorizontalScrolling } = this.state;
     const { alertGroupStore, filtersStore, loaderStore } = this.props.store;
     const { theme } = this.props;
@@ -640,9 +640,10 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderTitle = (record: ApiSchemas['AlertGroup']) => {
-    const { store, query } = this.props;
+    const { store, query, theme } = this.props;
     const { start } = this.state.pagination || {};
     const { incidentsCursor } = store.alertGroupStore;
+    const utilStyles = getUtilStyles(theme);
 
     return (
       <div>
@@ -658,7 +659,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                 ...query,
               }}
             >
-              <Text className={cx(TEXT_ELLIPSIS_CLASS)}>{record.render_for_web.title}</Text>
+              <Text className={cx(utilStyles.overflowChild)}>{record.render_for_web.title}</Text>
             </PluginLink>
           </Text>
         </TextEllipsisTooltip>
@@ -667,8 +668,14 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderAlertsCounter(record: ApiSchemas['AlertGroup']) {
-    return <Text type="secondary">{record.alerts_count}</Text>;
+  renderAlertsCounter = (record: ApiSchemas['AlertGroup']) => {
+    const { theme } = this.props;
+    const utilStyles = getUtilStyles(theme);
+    return (
+      <Text type="secondary" className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}>
+        {record.alerts_count}
+      </Text>
+    );
   }
 
   renderSource = (record: ApiSchemas['AlertGroup']) => {
@@ -690,7 +697,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       >
         <IntegrationLogo integration={integration} scale={0.1} />
         <Emoji
-          className={cx(TEXT_ELLIPSIS_CLASS)}
+          className={cx(utilStyles.overflowChild)}
           text={record.alert_receive_channel?.verbal_name || ''}
           data-testid="integration-name"
         />
@@ -771,10 +778,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     );
   };
 
-  renderTeam(record: ApiSchemas['AlertGroup'], teams: any) {
+  renderTeam = (record: ApiSchemas['AlertGroup'], teams: any) => {
+    const { theme } = this.props;
+    const styles = getUtilStyles(theme);
+
     return (
       <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
-        <TeamName className={TEXT_ELLIPSIS_CLASS} team={teams[record.team]} />
+        <TeamName className={styles.overflowChild} team={teams[record.team]} />
       </TextEllipsisTooltip>
     );
   }
@@ -803,11 +813,13 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   };
 
   renderCustomColumn = (column: AlertGroupColumn, alert: ApiSchemas['AlertGroup']) => {
+    const { theme } = this.props;
     const matchingLabel = alert.labels?.find((label) => label.key.name === column.name)?.value.name;
+    const utilStyles = getUtilStyles(theme);
 
     return (
       <TextEllipsisTooltip placement="top" content={matchingLabel}>
-        <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS, 'overflow-child--line-1')}>
+        <Text type="secondary" className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}>
           {matchingLabel}
         </Text>
       </TextEllipsisTooltip>
@@ -837,19 +849,19 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         title: 'ID',
         key: 'id',
         render: this.renderId,
-        width: 150,
+        width: 100,
       },
       Status: {
         title: 'Status',
         key: 'time',
         render: this.renderStatus,
-        width: 140,
+        width: 110,
       },
       Alerts: {
         title: 'Alerts',
         key: 'alerts',
         render: this.renderAlertsCounter,
-        width: 100,
+        width: 70,
       },
       Integration: {
         title: 'Integration',
@@ -882,7 +894,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         render: (item: ApiSchemas['AlertGroup'], isFull: boolean) => (
           <IncidentRelatedUsers incident={item} isFull={isFull} />
         ),
-        grow: 1.5,
+        grow: 2,
       },
     };
 
@@ -1006,7 +1018,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   setPollingInterval() {
     const startPolling = () => {
-      if (!this.state.refreshInterval) {
+      if (!this.state.refreshInterval || this.pollingIntervalId) {
         return;
       }
 
@@ -1052,16 +1064,6 @@ const getStyles = (theme: GrafanaTheme2) => {
     rightSideFilters: css`
       display: flex;
       gap: 8px;
-    `,
-
-    bau: css`
-      ${[1, 2, 3].map(
-        (num) => `
-      $--line-${num} {
-        -webkit-line-clamp: ${num}
-      }
-    `
-      )}
     `,
 
     actionButtons: css`
