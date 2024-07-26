@@ -635,7 +635,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   renderId = (record: ApiSchemas['AlertGroup']) => {
     const styles = getUtilStyles(this.props.theme);
     return (
-      <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
+      <TextEllipsisTooltip placement="top-start" content={`#${record.inside_organization_number}`}>
         <Text type="secondary" className={cx(styles.overflowChild)}>
           #{record.inside_organization_number}
         </Text>
@@ -651,7 +651,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <div>
-        <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
+        <TextEllipsisTooltip placement="top-start" content={record.render_for_web.title}>
           <Text type="link" size="medium" data-testid="integration-url">
             <PluginLink
               query={{
@@ -696,7 +696,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (
       <TextEllipsisTooltip
         className={cx(utilStyles.flex, utilStyles.flexGapXS)}
-        placement="top"
+        placement="top-start"
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
         <IntegrationLogo integration={integration} scale={0.1} />
@@ -787,7 +787,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const styles = getUtilStyles(theme);
 
     return (
-      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
+      <TextEllipsisTooltip placement="top-start" content={teams[record.team]?.name}>
         <TeamName className={styles.overflowChild} team={teams[record.team]} />
       </TextEllipsisTooltip>
     );
@@ -822,7 +822,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const utilStyles = getUtilStyles(theme);
 
     return (
-      <TextEllipsisTooltip placement="top" content={matchingLabel}>
+      <TextEllipsisTooltip placement="top-start" content={matchingLabel}>
         <Text type="secondary" className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}>
           {matchingLabel}
         </Text>
