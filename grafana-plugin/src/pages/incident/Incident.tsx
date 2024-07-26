@@ -68,7 +68,7 @@ import { parseURL } from 'utils/url';
 import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
-import { getIncidentStyles } from './incident.styles';
+import { getIncidentStyles } from './Incident.styles';
 
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
