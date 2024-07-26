@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useLocation as useLocationOriginal } from 'react-router-dom';
+import { useLocation as useLocationOriginal } from 'react-router-dom-v5-compat';
 import { OnCallPluginConfigPageProps } from 'types';
 
 import { PluginState } from 'state/plugin/plugin';
@@ -17,7 +17,7 @@ jest.mock('../../../package.json', () => ({
   version: 'v1.2.3',
 }));
 
-jest.mock('react-router-dom', () => ({
+jest.mock('react-router-dom-v5-compat', () => ({
   useLocation: jest.fn(() => ({
     search: '',
   })),

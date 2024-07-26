@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { Button, HorizontalGroup, Label, Legend, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { OnCallPluginConfigPageProps } from 'types';
 
 import { PluginState, PluginStatusResponseBase } from 'state/plugin/plugin';

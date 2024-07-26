@@ -18,7 +18,6 @@ import {
 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -46,11 +45,16 @@ import { withMobXProviderContext } from 'state/withStore';
 import { HTML_ID, scrollToElement } from 'utils/DOM';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getCalendarStartDate, getNewCalendarStartDate, getUTCString } from './Schedule.helpers';
 import { getScheduleStyles } from './Schedule.styles';
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+interface RouteProps {
+  id: string;
+}
+
+interface SchedulePageProps extends PageProps, WithStoreProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -75,7 +79,7 @@ interface SchedulePageState {
 @observer
 class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   highlightMyShiftsWasToggled = false;
-  scheduleId = this.props.match.params.id;
+  scheduleId = this.props.router.params.id;
 
   constructor(props: SchedulePageProps) {
     super(props);
@@ -119,7 +123,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const {
       store,
       query,
-      match: {
+      router: {
         params: { id: scheduleId },
       },
       theme,
@@ -508,7 +512,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   update = async () => {
     const {
       store,
-      match: {
+      router: {
         params: { id: scheduleId },
       },
     } = this.props;
@@ -534,7 +538,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   handleNameChange = async (value: string) => {
     const {
       store,
-      match: {
+      router: {
         params: { id: scheduleId },
       },
     } = this.props;
@@ -627,14 +631,14 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   handleDelete = async () => {
     const {
       store,
-      match: {
+      router: {
         params: { id },
+        navigate,
       },
-      history,
     } = this.props;
 
     await store.scheduleStore.delete(id);
-    history.replace(`${PLUGIN_ROOT}/schedules`);
+    navigate(`${PLUGIN_ROOT}/schedules`, { replace: true });
   };
 
   handleShowShiftSwapForm = (id: ShiftSwap['id'] | 'new', swap?: { swap_start: string; swap_end: string }) => {
@@ -645,7 +649,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
         userStore: { currentUserPk },
         timezoneStore: { currentDateInSelectedTimezone },
       },
-      match: {
+      router: {
         params: { id: scheduleId },
       },
     } = this.props;
@@ -718,4 +722,6 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   };
 }
 
-export const SchedulePage = withRouter(withMobXProviderContext(withTheme2(_SchedulePage)));
+export const SchedulePage = withRouter<RouteProps, Omit<SchedulePageProps, 'store' | 'meta' | 'theme'>>(
+  withMobXProviderContext(withTheme2(_SchedulePage))
+);

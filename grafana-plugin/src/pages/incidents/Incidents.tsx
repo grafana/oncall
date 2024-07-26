@@ -1,6 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
 import { GrafanaTheme2, durationToMilliseconds, parseDuration, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
@@ -17,7 +17,6 @@ import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { CardButton } from 'components/CardButton/CardButton';
@@ -56,9 +55,11 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
 import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
 
+import { getIncidentsStyles } from './Incidents.styles';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import { SilenceSelect } from './parts/SilenceSelect';
 
@@ -67,7 +68,11 @@ interface Pagination {
   end: number;
 }
 
-interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {
+interface RouteProps {
+  id: string;
+}
+
+interface IncidentsPageProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -164,15 +169,14 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 
   render() {
-    const { history } = this.props;
-    const { refreshInterval, showAddAlertGroupForm } = this.state;
-
     const {
       theme,
       store,
       store: { alertReceiveChannelStore },
+      router: { navigate },
     } = this.props;
-    const styles = getStyles(theme);
+    const { showAddAlertGroupForm, refreshInterval } = this.state;
+    const styles = getIncidentsStyles(theme);
 
     const isLoading = LoaderHelper.isLoading(store.loaderStore, [
       ActionKey.FETCH_INCIDENTS,
@@ -217,7 +221,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
               this.setState({ showAddAlertGroupForm: false });
             }}
             onCreate={(id: ApiSchemas['AlertGroup']['pk']) => {
-              history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
+              navigate(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
             alertReceiveChannelStore={alertReceiveChannelStore}
           />
@@ -237,7 +241,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const { stats } = store.alertGroupStore;
 
     const status = values.status || [];
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     return (
       <div className={cx(styles.cards, styles.row)}>
@@ -340,7 +344,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
   renderIncidentFilters() {
     const { query, store, theme } = this.props;
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     return (
       <div className={styles.filters}>
@@ -490,7 +494,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       return null;
     }
 
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
     const hasSelected = selectedIncidentIds.length > 0;
     const isBulkUpdate = LoaderHelper.isLoading(store.loaderStore, ActionKey.INCIDENTS_BULK_UPDATE);
 
@@ -570,7 +574,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const isLoading =
       LoaderHelper.isLoading(loaderStore, ActionKey.FETCH_INCIDENTS) || filtersStore.options['incidents'] === undefined;
 
-    const styles = getStyles(theme);
+    const styles = getIncidentsStyles(theme);
 
     if (results && !results.length) {
       return (
@@ -631,7 +635,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   renderId = (record: ApiSchemas['AlertGroup']) => {
     const styles = getUtilStyles(this.props.theme);
     return (
-      <TextEllipsisTooltip placement="top" content={`#${record.inside_organization_number}`}>
+      <TextEllipsisTooltip placement="top-start" content={`#${record.inside_organization_number}`}>
         <Text type="secondary" className={cx(styles.overflowChild)}>
           #{record.inside_organization_number}
         </Text>
@@ -647,7 +651,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <div>
-        <TextEllipsisTooltip placement="top" content={record.render_for_web.title}>
+        <TextEllipsisTooltip placement="top-start" content={record.render_for_web.title}>
           <Text type="link" size="medium" data-testid="integration-url">
             <PluginLink
               query={{
@@ -692,7 +696,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     return (
       <TextEllipsisTooltip
         className={cx(utilStyles.flex, utilStyles.flexGapXS)}
-        placement="top"
+        placement="top-start"
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
         <IntegrationLogo integration={integration} scale={0.1} />
@@ -736,7 +740,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     }
 
     return (
-      <VerticalGroup spacing="none">
+      <VerticalGroup spacing="none" justify="center">
         <Text type="secondary">{date}</Text>
         <Text type="secondary">{time}</Text>
       </VerticalGroup>
@@ -783,7 +787,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const styles = getUtilStyles(theme);
 
     return (
-      <TextEllipsisTooltip placement="top" content={teams[record.team]?.name}>
+      <TextEllipsisTooltip placement="top-start" content={teams[record.team]?.name}>
         <TeamName className={styles.overflowChild} team={teams[record.team]} />
       </TextEllipsisTooltip>
     );
@@ -818,7 +822,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const utilStyles = getUtilStyles(theme);
 
     return (
-      <TextEllipsisTooltip placement="top" content={matchingLabel}>
+      <TextEllipsisTooltip placement="top-start" content={matchingLabel}>
         <Text type="secondary" className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}>
           {matchingLabel}
         </Text>
@@ -1052,118 +1056,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
   }
 }
 
-const getStyles = (theme: GrafanaTheme2) => {
-  return {
-    select: css`
-      width: 400px;
-    `,
-
-    alertsSelected: css`
-      white-space: nowrap;
-    `,
-
-    rightSideFilters: css`
-      display: flex;
-      gap: 8px;
-    `,
-
-    actionButtons: css`
-      width: 100%;
-      justify-content: flex-end;
-    `,
-
-    filters: css`
-      margin-bottom: 20px;
-    `,
-
-    fieldsDropdown: css`
-      gap: 8px;
-      display: flex;
-      margin-left: auto;
-      align-items: center;
-      padding-left: 4px;
-    `,
-
-    aboveIncidentsTable: css`
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    `,
-
-    horizontalScrollTable: css`
-      table td:global(.rc-table-cell) {
-        white-space: nowrap;
-        padding-right: 16px;
-      }
-    `,
-
-    bulkActionsContainer: css`
-      margin: 10px 0 10px 0;
-      display: flex;
-      width: 100%;
-    `,
-
-    bulkActionsList: css`
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    `,
-
-    otherUsers: css`
-      color: ${theme.colors.secondary.text};
-    `,
-
-    pagination: css`
-      width: 100%;
-      margin-top: 20px;
-    `,
-
-    title: css`
-      margin-bottom: 24px;
-      right: 0;
-    `,
-
-    btnResults: css`
-      margin-left: 8px;
-    `,
-
-    /* filter cards */
-
-    cards: css`
-      margin-top: 25px;
-    `,
-
-    row: css`
-      display: flex;
-      flex-wrap: wrap;
-      margin-left: -8px;
-      margin-right: -8px;
-      row-gap: 16px;
-    `,
-
-    loadingPlaceholder: css`
-      margin-bottom: 0;
-      text-align: center;
-    `,
-
-    col: css`
-      padding-left: 8px;
-      padding-right: 8px;
-      display: block;
-      flex: 0 0 25%;
-      max-width: 25%;
-
-      @media (max-width: 1200px) {
-        flex: 0 0 50%;
-        max-width: 50%;
-      }
-
-      @media (max-width: 800px) {
-        flex: 0 0 100%;
-        max-width: 100%;
-      }
-    `,
-  };
-};
-
-export const IncidentsPage = withRouter(withMobXProviderContext(withTheme2(_IncidentsPage)));
+export const IncidentsPage = withRouter<RouteProps, Omit<IncidentsPageProps, 'store' | 'meta' | 'theme'>>(
+  withMobXProviderContext(withTheme2(_IncidentsPage))
+);
