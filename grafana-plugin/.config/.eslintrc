@@ -14,9 +14,6 @@
     {
       "plugins": ["deprecation"],
       "files": ["src/**/*.{ts,tsx}"],
-      "rules": {
-        "deprecation/deprecation": "off"
-      },
       "parserOptions": {
         "project": "./tsconfig.json"
       }
