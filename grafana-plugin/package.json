@@ -14,6 +14,7 @@
     "test-utc": "TZ=UTC jest --verbose --testNamePattern '^((?!@london-tz).)*$'",
     "test-london-tz": "TZ=Europe/London jest --verbose --testNamePattern '@london-tz'",
     "test": "yarn test-utc && yarn test-london-tz",
+    "test:ci": "yarn test",
     "test:report": "HTML_REPORT_ENABLED=true yarn test",
     "test:silent": "yarn test --silent",
     "test:e2e": "yarn playwright test --grep-invert @expensive",
