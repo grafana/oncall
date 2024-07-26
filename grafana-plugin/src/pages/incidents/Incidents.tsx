@@ -1043,6 +1043,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
           return;
         }
 
+        this.pollingIntervalId = null;
         startPolling();
       }, pollingNum);
     };
