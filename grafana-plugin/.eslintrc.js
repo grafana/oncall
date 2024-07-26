@@ -8,15 +8,11 @@ module.exports = {
     'import/internal-regex':
       '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
-  parserOptions: {
-    project: './tsconfig.json',
-    tsconfigRootDir: __dirname,
-  },
   overrides: [
     {
       files: ['src/**/*.{ts,tsx}'],
       rules: {
-        'deprecation/deprecation': 'off',
+        'deprecation/deprecation': 'warn',
       },
       parserOptions: {
         project: './tsconfig.json',
