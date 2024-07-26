@@ -626,7 +626,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         )}
       </div>
     );
-  }
+  };
 
   renderId = (record: ApiSchemas['AlertGroup']) => {
     const styles = getUtilStyles(this.props.theme);
@@ -676,7 +676,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         {record.alerts_count}
       </Text>
     );
-  }
+  };
 
   renderSource = (record: ApiSchemas['AlertGroup']) => {
     const {
@@ -787,7 +787,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <TeamName className={styles.overflowChild} team={teams[record.team]} />
       </TextEllipsisTooltip>
     );
-  }
+  };
 
   getApplyLabelFilterClickHandler = (label: ApiSchemas['LabelPair']) => {
     const {
