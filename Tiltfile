@@ -16,11 +16,18 @@ DOCKER_REGISTRY = "localhost:63628/"
 
 load("ext://docker_build_sub", "docker_build_sub")
 
+def get_profiles():
+    profiles = os.getenv('ONCALL_PROFILES', 'grafana,plugin,backend,tests')
+    return profiles.split(',')
+profiles = get_profiles()
+
 # Tell ops-devenv/Tiltifle where our plugin.json file lives
 plugin_file = os.path.abspath("grafana-plugin/src/plugin.json")
 
 def plugin_json():
-    return plugin_file
+    if 'plugin' in profiles:
+        return plugin_file
+    return 'NOT_A_PLUGIN'
 
 
 allow_k8s_contexts(["kind-kind"])
@@ -79,12 +86,13 @@ def load_grafana():
     grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
 
 
-    k8s_resource(
-        objects=["grafana-oncall-app-provisioning:configmap"],
-        new_name="grafana-oncall-app-provisioning-configmap",
-        resource_deps=["build-ui"],
-        labels=["Grafana"],
-    )
+    if 'plugin' in profiles:
+        k8s_resource(
+            objects=["grafana-oncall-app-provisioning:configmap"],
+            new_name="grafana-oncall-app-provisioning-configmap",
+            resource_deps=["build-ui"],
+            labels=["Grafana"],
+        )
 
     # Use separate grafana helm chart
     if not running_under_parent_tiltfile:
@@ -105,12 +113,6 @@ def load_grafana():
             },
         )
 # --- GRAFANA END ----
-
-
-def get_profiles():
-    profiles = os.getenv('ONCALL_PROFILES', 'grafana,plugin,backend,tests')
-    return profiles.split(',')
-profiles = get_profiles()
 
 if 'grafana' in profiles:
     load_grafana()

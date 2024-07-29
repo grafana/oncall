@@ -320,6 +320,6 @@ curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \
 `DELETE {{API_URL}}/api/v1/integrations/<INTEGRATION_ID>/`
 
 {{% docs/reference %}}
-[Alertmanager]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/alertmanager"
-[Alertmanager]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager"
+[Alertmanager]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/alertmanager"
+[Alertmanager]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/alertmanager"
 {{% /docs/reference %}}

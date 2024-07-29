@@ -1,8 +1,8 @@
 ---
 title: Configure SMS & call routing with Grafana OnCall
-menuTitle: Configure SMS & call routing
+menuTitle: SMS & call routing tutorial
 description: A step-by-step guide on how to configure SMS & call routing with Grafana OnCall and Twilio.
-weight: 300
+weight: 400
 keywords:
   - OnCall
   - Live call routing

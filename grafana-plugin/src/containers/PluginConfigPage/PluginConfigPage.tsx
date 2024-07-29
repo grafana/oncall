@@ -5,7 +5,7 @@ import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data'
 import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { OnCallPluginMetaJSONData } from 'types';
 
 import { Button } from 'components/Button/Button';
@@ -86,7 +86,7 @@ const OSSPluginConfigPage = observer(
       loaderStore,
     } = rootStore;
     const [hasBeenReconnected, setHasBeenReconnected] = useState(false);
-    const { push } = useHistory();
+    const navigate = useNavigate();
     const styles = useStyles2(getStyles);
     const { handleSubmit, control, formState } = useForm<PluginConfigFormValues>({
       mode: 'onChange',
@@ -180,7 +180,7 @@ const OSSPluginConfigPage = observer(
           />
           <HorizontalGroup>
             {isPluginConnected && (
-              <Button onClick={() => push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>
+              <Button onClick={() => navigate(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>
             )}
             <Button
               type="submit"

@@ -14,7 +14,7 @@ import {
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
 import { Text } from 'components/Text/Text';
 import { OutgoingWebhookStatus } from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
@@ -304,7 +304,7 @@ interface EditWebhookTabsProps {
 const EditWebhookTabs = (props: EditWebhookTabsProps) => {
   const { id, data, action, onHide, onUpdate, onDelete, onSubmit, onTemplateEditClick, preset } = props;
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
@@ -323,7 +323,7 @@ const EditWebhookTabs = (props: EditWebhookTabsProps) => {
               key={WebhookTabs.Settings.key}
               onChangeTab={() => {
                 setActiveTab(WebhookTabs.Settings.key);
-                history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`);
+                navigate(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`);
               }}
               active={activeTab === WebhookTabs.Settings.key}
               label={WebhookTabs.Settings.value}
@@ -333,7 +333,7 @@ const EditWebhookTabs = (props: EditWebhookTabsProps) => {
               key={WebhookTabs.LastRun.key}
               onChangeTab={() => {
                 setActiveTab(WebhookTabs.LastRun.key);
-                history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`);
+                navigate(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`);
               }}
               active={activeTab === WebhookTabs.LastRun.key}
               label={WebhookTabs.LastRun.value}

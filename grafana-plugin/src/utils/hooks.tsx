@@ -1,7 +1,7 @@
 import React, { ComponentProps, useEffect, useRef, useState } from 'react';
 
 import { ConfirmModal, useStyles2 } from '@grafana/ui';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom-v5-compat';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';

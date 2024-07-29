@@ -2,7 +2,9 @@ import datetime
 import logging
 import typing
 
+from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Prefetch
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -10,6 +12,8 @@ from rest_framework import serializers
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup
 from apps.alerts.models.alert_group import PagedUser
+from apps.slack.models import SlackMessage
+from apps.telegram.models import TelegramMessage
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 
@@ -129,11 +133,26 @@ class AlertGroupListSerializer(
 
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
-    PREFETCH_RELATED = [
+    PREFETCH_RELATED: list[str | Prefetch] = [
         "dependent_alert_groups",
         "log_records__author",
         "labels",
     ]
+    if settings.ALERT_GROUP_LIST_TRY_PREFETCH:
+        PREFETCH_RELATED += [
+            Prefetch(
+                "slack_messages",
+                queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
+                to_attr="prefetched_slack_messages",
+            ),
+            Prefetch(
+                "telegram_messages",
+                queryset=TelegramMessage.objects.filter(
+                    chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE
+                ).order_by("id")[:1],
+                to_attr="prefetched_telegram_messages",
+            ),
+        ]
 
     SELECT_RELATED = [
         "channel__organization",

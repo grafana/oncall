@@ -202,6 +202,6 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 [Slack setup]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#slack-setup"
 [Slack setup]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#slack-setup"
 
-[Page people manually]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/manual"
-[Page people manually]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/manual"
+[Page people manually]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/manual"
+[Page people manually]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/manual"
 {{% /docs/reference %}}
