@@ -38,6 +38,21 @@ refs:
 Grafana OnCall Cloud includes SMS and Phone notifications,
 OSS users can use the [Grafana OSS-Cloud Setup](ref:grafana-oss-cloud-setup) as a relay or configure other providers like Twilio.
 
+## SMS notification behavior
+
+OnCall reduces alert noise and distraction by bundling SMS notifications.
+When multiple alert groups require notification within a short period, the first alert group triggers an immediate SMS.
+A 2-minute "waiting period" follows, during which additional alerts are bundled. After this period, a single SMS with all alert information is sent.
+
+### Example
+
+If a user needs to be notified about 5 alert groups from 2 different integrations (3 from "Grafana Alerting" and 2 from "Health Check"),
+they will receive an immediate notification for the first alert group and a bundled SMS for the remaining alerts after 2 minutes:
+
+#### Example bundled notification
+
+Grafana OnCall: Alert groups #101, #102, #103 and 1 more, from stack: TestOrg, integrations: GrafanaAlerting and 1 more.
+
 ## Are there additional costs for outgoing calls/sms?
 
 No, there are no additional costs for outgoing calls/sms.
