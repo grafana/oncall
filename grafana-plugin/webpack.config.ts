@@ -65,6 +65,7 @@ const config = async (env): Promise<Configuration> => {
       new EnvironmentPlugin({
         ONCALL_API_URL: null,
         NODE_ENV: 'development',
+        PLUGIN_ID: 'grafana-oncall-app',
       }),
       new DefinePlugin({
         'process.env': JSON.stringify(dotenv.config().parsed),
