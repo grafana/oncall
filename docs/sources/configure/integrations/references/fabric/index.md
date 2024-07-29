@@ -18,6 +18,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/fabric
   - add-fabric/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/fabric
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # Fabric integration for Grafana OnCall
@@ -44,8 +50,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 4. Enter URL: **OnCall Integration URL**
 5. Click Verify
 6. Choose "SEND IMPACT CHANGE ALERTS" and "ALSO SEND NON-FATAL ALERTS"
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

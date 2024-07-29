@@ -18,6 +18,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/prtg
   - add-prtg/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/prtg
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # PRTG integration for Grafana OnCall
@@ -120,8 +126,3 @@ Catch
 }
 
 ```
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

@@ -14,6 +14,52 @@ canonical: https://grafana.com/docs/oncall/latest/configure/integrations/integra
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/integration-management/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/integration-management/
+refs:
+  webhooks:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
+  behavioral-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#behavioral-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#behavioral-templates
+  routing-template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#routing-template
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#routing-template
+  integration-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels/
+  jinja2-templating:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
+  configure-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels/
+  integration-references:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/
+  integration-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
+  appearance-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#appearance-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#appearance-templates
 ---
 
 # Configure and manage integrations
@@ -29,7 +75,7 @@ You can manage or view your integrations current configuration at any time in th
 To integrate Grafana OnCall with your chosen tools, follow these steps:
 
 1. Navigate to the **Integrations** tab in Grafana OnCall, and click **+ New integration**.
-1. Select your desired integration type from the [list of available integrations][integration-references].
+1. Select your desired integration type from the [list of available integrations](ref:integration-references).
 If your desired integration is not listed, select **Webhook**.
 1. Provide a title and a description for your integration, assign it to a team, and click **Create Integration**.
 1. The Integration page will open, displaying details about the Integration.
@@ -42,7 +88,7 @@ The provided HTTP Endpoint URL can be used to send events from an external monit
 Explore ways to customize the behavior of your alerts from a specific integration:
 
 - Customize alerting grouping, auto-resolution, and auto-acknowledge templates to tailor the alert behavior for your team.
-- Modify [Appearance templates][appearance-templates] to customize how alert groups are displayed in various parts of Grafana OnCall, such as the UI, phone and
+- Modify [Appearance templates](ref:appearance-templates) to customize how alert groups are displayed in various parts of Grafana OnCall, such as the UI, phone and
 SMS, email, notifications, etc.
 - Add routes to your integration to direct alerts to different users and teams based on labels or other data.
 - Connect your escalation chains to routes to ensure the right people are notified at the right time.
@@ -51,8 +97,8 @@ to avoid sending real notifications to your team.
 
 For detailed instructions, refer to:
 
-- [Integration templates][integration-templates]
-- [Configure labels][configure-labels]
+- [Integration templates](ref:integration-templates)
+- [Configure labels](ref:configure-labels)
 
 ## Manage Maintenance Mode
 
@@ -99,33 +145,4 @@ To edit the name of an integration:
 
 ## Explore available integrations
 
-Specific guidance and configuration options for each integration are available at [Integration references][integration-references].
-
-{{% docs/reference %}}
-[appearance-templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#appearance-templates"
-[appearance-templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#appearance-templates"
-
-[behavioral-templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#behavioral-templates"
-[behavioral-templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#behavioral-templates"
-
-[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
-
-[routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
-[routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
-
-[Webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks"
-[Webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks"
-
-[integration-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels"
-[integration-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels"
-
-[integration-templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[integration-templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
-
-[configure-labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels"
-[configure-labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels"
-
-[integration-references]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references"
-[integration-references]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references"
-{{% /docs/reference %}}
+Specific guidance and configuration options for each integration are available at [Integration references](ref:integration-references).
