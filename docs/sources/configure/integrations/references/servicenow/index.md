@@ -18,6 +18,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/servicenow
   - /docs/oncall/latest/integrations/servicenow/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/servicenow
+refs:
+  alert-group-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/#alert-group-labels
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels/#alert-group-labels
+  outgoing-webhook-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks/#outgoing-webhook-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/#outgoing-webhook-templates
 ---
 
 # ServiceNow integration for Grafana OnCall
@@ -143,10 +154,3 @@ Example: Set the "urgency" field based on alert group labels, add the provided J
 
 For more information, refer to [Outgoing webhook templates] and [Alert group labels].
 
-{{% docs/reference %}}
-[Alert group labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels#alert-group-labels"
-[Alert group labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels#alert-group-labels"
-
-[Outgoing webhook templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks#outgoing-webhook-templates"
-[Outgoing webhook templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks#outgoing-webhook-templates"
-{{% /docs/reference %}}

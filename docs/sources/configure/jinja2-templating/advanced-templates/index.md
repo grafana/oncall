@@ -15,6 +15,12 @@ canonical: https://grafana.com/docs/oncall/latest/configure/jinja2-templating/ad
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/advanced-templates/
   - ../jinja2-templating/advanced-templates/ # /docs/oncall/<ONCALL_VERSION>/jinja2-templating/advanced-templates/
+refs:
+  map-payloads-to-oncall-fields:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#map-payloads-to-oncall-fields
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#map-payloads-to-oncall-fields
 ---
 
 # Advanced template configuration
@@ -27,7 +33,7 @@ Jinja2 offers a range of functionalities, including loops, conditions, and funct
 Every alert from a monitoring system is received in a key/value format, which Grafana OnCall maps to specific fields, such as:
 `title`, `message`, `image`, `grouping`, and `auto-resolve`.
 
-To learn more about mapping your alert payload to Grafana OnCall fields, refer to [map payloads to  OnCall fields][map-payloads-to-oncall-fields].
+To learn more about mapping your alert payload to Grafana OnCall fields, refer to [map payloads to  OnCall fields](ref:map-payloads-to-oncall-fields).
 
 ## Loops
 
@@ -94,7 +100,3 @@ Grafana OnCall enhances Jinja with additional functions:
 - `parse_json`:Parses a JSON string to an object
   - Usage example: `{{ (payload.data | b64decode | parse_json).name }}`
 
-{{% docs/reference %}}
-[map-payloads-to-oncall-fields]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#map-payloads-to-oncall-fields"
-[map-payloads-to-oncall-fields]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#map-payloads-to-oncall-fields"
-{{% /docs/reference %}}

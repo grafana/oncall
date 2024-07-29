@@ -13,6 +13,12 @@ keywords:
 canonical: https://grafana.com/docs/oncall/latest/intro/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/intro/
+refs:
+  get-started:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/set-up/get-started/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started/
 ---
 
 # Introduction to Grafana OnCall
@@ -41,11 +47,7 @@ alert details. Additionally, enhance flexibility by incorporating regular expres
 
 ## Next steps
 
-To get started with Grafana OnCall, refer to [Get started][]
+To get started with Grafana OnCall, refer to [Get started](ref:get-started)
 
 To learn more about what you can do with Grafana OnCall, visit the [Grafana Cloud IRM product page](https://grafana.com/products/cloud/irm/).
 
-{{% docs/reference %}}
-[Get started]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/get-started"
-[Get started]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/get-started"
-{{% /docs/reference %}}

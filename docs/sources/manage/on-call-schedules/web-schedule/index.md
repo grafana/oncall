@@ -13,6 +13,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule/
   - ../../on-call-schedules/web-schedule/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/web-schedule/
+refs:
+  shift-swaps:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/shift-swaps/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps/
 ---
 
 # Web-based on-call schedules
@@ -55,7 +61,7 @@ on this calendar will take precedence over the rotations calendar.
 
 ## Schedule quality report
 
-The schedule view features a quality report that provides a score for your schedule based on rotations, overrides and [shift swaps][].
+The schedule view features a quality report that provides a score for your schedule based on rotations, overrides and [shift swaps](ref:shift-swaps).
 It's calculated based on these key factors:
 
 - Gaps (amount of time when no one is on-call)
@@ -90,7 +96,3 @@ A perfectly balanced schedule is considered ideal, so reducing this number will 
 Export on-call schedules from Grafana OnCall to your preferred calendar app with a one-time secret iCal URL. The
 schedule export allows you to view on-call shifts alongside the rest of your schedule.
 
-{{% docs/reference %}}
-[shift swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/shift-swaps"
-[shift swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps"
-{{% /docs/reference %}}

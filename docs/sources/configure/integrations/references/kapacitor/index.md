@@ -15,6 +15,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/kapacitor
   - add-kapacitor/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/kapacitor
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # Kapacitor integration for Grafana OnCall
@@ -62,7 +68,3 @@ When the condition defined in the TICKscript is met, Kapacitor will trigger the 
 a POST request to the specified webhook URL with the necessary information. Make sure your webhook
 endpoint is configured to receive and process the incoming alerts from Kapacitor.
 
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

@@ -15,6 +15,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/inbound-email
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/inbound-email
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/inbound-email
+refs:
+  inbound-email-setup:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/set-up/open-source/#inbound-email-setup
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/#inbound-email-setup
+  jinja2-templating:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
 ---
 
 # Inbound Email integration for Grafana OnCall
@@ -36,7 +47,7 @@ You must have an Admin role to create integrations in Grafana OnCall.
 ## Grouping and auto-resolve
 
 Alert groups will be grouped by email subject and auto-resolved if the email message text equals "OK".
- This behaviour can be modified via [custom templates][jinja2-templating].
+ This behaviour can be modified via [custom templates](ref:jinja2-templating).
 
 Alerts from Inbound Email integration have the following payload:
 
@@ -48,10 +59,3 @@ Alerts from Inbound Email integration have the following payload:
 }
 ```
 
-{{% docs/reference %}}
-[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
-
-[Inbound Email Setup]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#inbound-email-setup"
-[Inbound Email Setup]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#inbound-email-setup"
-{{% /docs/reference %}}

@@ -18,6 +18,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/newrelic
   - add-newrelic/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/newrelic
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # New Relic integration for Grafana OnCall
@@ -44,7 +50,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 4. Set the following URL: **OnCall Integration URL**
 5. Check "Payload type" is JSON.
 
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

@@ -15,6 +15,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps/
   - ../../on-call-schedules/shift-swaps/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/shift-swaps/
+refs:
+  mobile-push-notification:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/mobile-app/push-notifications/#shift-swap-notifications
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications/#shift-swap-notifications
+  rbac:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/#role-based-access-control-rbac
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/manage/user-and-team-management/#role-based-access-control-rbac
 ---
 
 # Shift swaps
@@ -46,7 +57,7 @@ of a schedule, or clicking the button shown when hovering on a particular shift 
 > consider creating a higher level layer rotation with the desired updates.
 
 Upon submitting the request, a Slack notification will be sent to the channel associated to the correspondent
-schedule, if there is one. A [mobile push notification][] will be sent to team members who
+schedule, if there is one. A [mobile push notification](ref:mobile-push-notification) will be sent to team members who
 participate in the schedule and have the notifications enabled.
 
 <img src="/static/img/oncall/swap-slack-notification-3.png">
@@ -70,7 +81,7 @@ The follow-up notifications will be sent at the following intervals before the s
 
 You can delete the swap request at any time. If the swap has been taken, it will automatically be undone upon removal.
 
-> **Note**: if [RBAC][] is enabled, a user is required to have the `SCHEDULES_WRITE` permission to create,
+> **Note**: if [RBAC](ref:rbac) is enabled, a user is required to have the `SCHEDULES_WRITE` permission to create,
 > update, take or delete a swap request. `SCHEDULES_READ` will be enough to get details about existing requests.
 
 ## Check existing swap requests
@@ -124,10 +135,3 @@ application.
 2. Create a Client ID for your OAuth2 app and set the `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY` and `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`
 environment variables accordingly.
 
-{{% docs/reference %}}
-[mobile push notification]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app/push-notifications#shift-swap-notifications"
-[mobile push notification]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/push-notifications#shift-swap-notifications"
-
-[RBAC]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management#role-based-access-control-rbac"
-[RBAC]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/manage/user-and-team-management#role-based-access-control-rbac"
-{{% /docs/reference %}}

@@ -16,6 +16,27 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager
   - add-alertmanager/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/alertmanager
+refs:
+  complete-the-integration-configuration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/integration-management/#customize-the-integration
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/integrations/#customize-the-integration
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  data_webhook_template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/#outgoing-webhook-templates
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/#outgoing-webhook-templates
+  trigger_webhook_template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/#using-trigger-template-field
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/#using-trigger-template-field
 ---
 
 # Alertmanager integration for Grafana OnCall
@@ -66,7 +87,7 @@ receivers:
 ## Complete the Integration Configuration
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
-[this section][complete-the-integration-configuration]
+[this section](ref:complete-the-integration-configuration)
 
 ## Note about grouping and autoresolution
 
@@ -179,23 +200,10 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 
 1. Send a new demo alert to the migrated integration.
 2. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
-3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger][trigger_webhook_template]
-or [data][data_webhook_template] template it's needed to adjust them as well.
+3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger](ref:trigger_webhook_template)
+or [data](ref:data_webhook_template) template it's needed to adjust them as well.
 
 <img width="1646" alt="Screenshot 2023-12-14 at 1 14 21 PM" src="https://github.com/grafana/oncall/assets/85312870/7e281416-edbc-4384-8d15-7efaec2de311">
 
 <img width="1644" alt="Screenshot 2023-12-14 at 1 14 32 PM" src="https://github.com/grafana/oncall/assets/85312870/b62cfa1d-2ff6-4b46-9cec-459b14cd1996">
 
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-
-[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/integration-management#customize-the-integration"
-[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#customize-the-integration"
-
-[data_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks#outgoing-webhook-templates"
-[data_webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks#outgoing-webhook-templates"
-
-[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks#using-trigger-template-field"
-[trigger_webhook_template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks#using-trigger-template-field"
-{{% /docs/reference %}}

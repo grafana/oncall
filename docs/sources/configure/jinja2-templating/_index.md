@@ -15,6 +15,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
   - /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating/
   - ../jinja2-templating/ # /docs/oncall/<ONCALL_VERSION>/jinja2-templating/
+refs:
+  webhook-integration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/webhook/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/webhook/
 ---
 
 
@@ -134,7 +140,7 @@ As a best practice, add Playbooks, useful links, or checklists to the alert mess
 Integration templates are applied to alerts that originated from a specific integration to define alert rendering and behavior.
 
 Grafana OnCall provides pre-configured default Jinja templates for supported integrations.
-For any monitoring system not available in the Grafana OnCall integrations list, configure a [Webhook integration][webhook-integration] and configure your
+For any monitoring system not available in the Grafana OnCall integrations list, configure a [Webhook integration](ref:webhook-integration) and configure your
 templates as needed.
 
 ## Edit templates
@@ -151,7 +157,3 @@ The template editor will open with three columns: example alert payload, the tem
 Note: The alert group must exist in the messenger to preview the template.
 1. Click **Save** to save the template.
 
-{{% docs/reference %}}
-[webhook-integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/webhook"
-[webhook-integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/webhook"
-{{% /docs/reference %}}
