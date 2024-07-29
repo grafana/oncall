@@ -305,7 +305,10 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
     if update:  # flag to prevent multiple posting log message to slack
         step.update_log_message(alert_group)
     else:
-        step.post_log_message(alert_group)
+        # don't post a new message, as it is available from the button
+        # this is an intermediate step, so we will only update posted messages but not post new ones
+        # once majority of messages are updated, we can remove this step (https://github.com/grafana/oncall/pull/4686)
+        pass
     logger.debug(f"Finish post_or_update_log_report_message_task for alert_group {alert_group_pk}")
 
 
