@@ -100,7 +100,7 @@ def test_if_organization_exists_it_is_updated(
 
     mocked_provision_plugin.return_value = provision_plugin_response
     mocked_grafana_api_client.return_value.check_token.return_value = (None, {"status_code": status.HTTP_200_OK})
-    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = True
+    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = True, False
 
     client = APIClient()
     url = reverse("grafana-plugin:self-hosted-install")
@@ -141,7 +141,7 @@ def test_if_organization_does_not_exist_it_is_created(
 
     mocked_provision_plugin.return_value = provision_plugin_response
     mocked_grafana_api_client.return_value.check_token.return_value = (None, {"status_code": status.HTTP_200_OK})
-    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = True
+    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = True, False
 
     client = APIClient()
     url = reverse("grafana-plugin:self-hosted-install")
