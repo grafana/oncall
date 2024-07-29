@@ -30,11 +30,11 @@ def _sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
     gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
 
-    # Don't update organization.is_rbac_permissions_enabled for inactive cloud instances.
-    # For example, paused cloud instances can return 200 OK but not have RBAC enabled.
+    # Update organization's RBAC status if it's an open-source instance, or it's an active cloud instance.
+    # Don't update non-active cloud instances (e.g. paused) as they can return 200 OK but not have RBAC enabled.
     if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME or gcom_client.is_stack_active(organization.stack_id):
         rbac_enabled, server_error = grafana_api_client.is_rbac_enabled_for_organization()
-        if not server_error:  # Don't update RBAC status if there was a server error
+        if not server_error:  # Only update RBAC status if Grafana didn't return a server error
             organization.is_rbac_permissions_enabled = rbac_enabled
     logger.info(f"RBAC status org={organization.pk} rbac_enabled={organization.is_rbac_permissions_enabled}")
 
