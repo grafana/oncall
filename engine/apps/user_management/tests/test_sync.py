@@ -9,13 +9,15 @@ from django.test import override_settings
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
-from apps.grafana_plugin.helpers.client import GrafanaAPIClient
-from apps.user_management.models import Team, User
+from apps.grafana_plugin.sync_data import SyncUser
+from apps.user_management.models import User
 from apps.user_management.sync import (
-    _sync_grafana_incident_plugin,
-    _sync_grafana_labels_plugin,
     cleanup_organization,
+    get_or_create_user,
     sync_organization,
+    sync_team_members,
+    sync_teams,
+    sync_users,
 )
 
 MOCK_GRAFANA_INCIDENT_BACKEND_URL = "https://grafana-incident.test"
@@ -96,8 +98,9 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
         }
         for user_id in (2, 3)
     )
-
-    User.objects.sync_for_organization(organization, api_users=api_users)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.get_users.return_value = api_users
+        sync_users(mock_grafana_api_client, organization)
 
     assert organization.users.count() == 2
 
@@ -137,7 +140,9 @@ def test_sync_users_for_organization_role_none(make_organization, make_user_for_
         for user_id in (2, 3)
     )
 
-    User.objects.sync_for_organization(organization, api_users=api_users)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.get_users.return_value = api_users
+        sync_users(mock_grafana_api_client, organization)
 
     assert organization.users.count() == 2
 
@@ -170,7 +175,9 @@ def test_sync_teams_for_organization(make_organization, make_team, make_alert_re
         for team_id in (2, 3, 4)
     )
 
-    Team.objects.sync_for_organization(organization, api_teams=api_teams)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.get_teams.return_value = ({"teams": api_teams}, None)
+        sync_teams(mock_grafana_api_client, organization)
 
     assert organization.teams.count() == 3
 
@@ -224,15 +231,16 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
         },
     )
 
-    User.objects.sync_for_team(team, api_members=api_members)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.get_team_members.return_value = (api_members, None)
+        sync_team_members(mock_grafana_api_client, organization)
 
     assert team.users.count() == 1
     assert team.users.get() == users[0]
 
 
 @pytest.mark.django_db
-@patch("apps.user_management.sync.org_sync_signal")
-def test_sync_organization(mocked_org_sync_signal, make_organization):
+def test_sync_organization(make_organization):
     organization = make_organization()
 
     with patched_grafana_api_client(organization):
@@ -258,8 +266,6 @@ def test_sync_organization(mocked_org_sync_signal, make_organization):
 
     # check that is_grafana_labels_enabled flag is set
     assert organization.is_grafana_labels_enabled is True
-
-    mocked_org_sync_signal.send.assert_called_once_with(sender=None, organization=organization)
 
 
 @pytest.mark.parametrize(
@@ -333,15 +339,26 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
     organization = make_organization()
 
     user = make_user_for_organization(organization, user_id=1)
-    api_users = []
-
-    User.objects.sync_for_organization(organization, api_users=api_users)
+    api_users = [
+        {
+            "userId": 2,
+            "email": "other@test.test",
+            "name": "Other",
+            "login": "other",
+            "role": "admin",
+            "avatarUrl": "other.test/test",
+            "permissions": [],
+        }
+    ]
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.get_users.return_value = api_users
+        sync_users(mock_grafana_api_client, organization)
 
     user.refresh_from_db()
 
     assert user.is_active is None
-    assert organization.users.count() == 0
-    assert User.objects.filter_with_deleted().count() == 1
+    assert organization.users.count() == 1
+    assert User.objects.filter_with_deleted(organization=organization).count() == 2
 
     api_users = [
         {
@@ -355,11 +372,13 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
         }
     ]
 
-    User.objects.sync_for_organization(organization, api_users=api_users)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.get_users.return_value = api_users
+        sync_users(mock_grafana_api_client, organization)
 
     assert organization.users.count() == 1
     assert organization.users.get().email == "newtest@test.test"
-    assert User.objects.filter_with_deleted().count() == 2
+    assert User.objects.filter_with_deleted(organization=organization).count() == 3
 
 
 @pytest.mark.django_db
@@ -410,7 +429,9 @@ def test_sync_organization_lock(
     mock_task_lock.assert_called_once_with(lock_cache_key, "random")
 
     if task_lock_acquired:
-        mock_grafana_api_client.assert_called_once()
+        # 2 calls: get client to fetch organization data,
+        # and then another one to check token in the refactored sync function
+        assert mock_grafana_api_client.call_count == 2
     else:
         # task lock could not be acquired
         mock_grafana_api_client.assert_not_called()
@@ -433,18 +454,14 @@ class TestSyncGrafanaLabelsPluginParams:
         TestSyncGrafanaLabelsPluginParams(({"enabled": False}, None), False),
     ],
 )
-@pytest.mark.django_db
 def test_sync_grafana_labels_plugin(make_organization, test_params: TestSyncGrafanaLabelsPluginParams):
     organization = make_organization()
     organization.is_grafana_labels_enabled = False  # by default in tests it's true, so setting to false
 
-    with patch.object(
-        GrafanaAPIClient,
-        "get_grafana_labels_plugin_settings",
-        return_value=test_params.response,
-    ):
-        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-        _sync_grafana_labels_plugin(organization, grafana_api_client)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.return_value.get_grafana_labels_plugin_settings.return_value = test_params.response
+        sync_organization(organization)
+    organization.refresh_from_db()
     assert organization.is_grafana_labels_enabled is test_params.expected_result
 
 
@@ -472,15 +489,52 @@ class TestSyncGrafanaIncidentParams:
         TestSyncGrafanaIncidentParams(({"enabled": False}, None), False, None),  # plugin is disabled for some reason
     ],
 )
-@pytest.mark.django_db
 def test_sync_grafana_incident_plugin(make_organization, test_params: TestSyncGrafanaIncidentParams):
     organization = make_organization()
-    with patch.object(
-        GrafanaAPIClient,
-        "get_grafana_incident_plugin_settings",
-        return_value=test_params.response,
-    ):
-        grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-        _sync_grafana_incident_plugin(organization, grafana_api_client)
+    with patched_grafana_api_client(organization) as mock_grafana_api_client:
+        mock_grafana_api_client.return_value.get_grafana_incident_plugin_settings.return_value = test_params.response
+        sync_organization(organization)
+    organization.refresh_from_db()
     assert organization.is_grafana_incident_enabled is test_params.expected_flag
-    assert organization.grafana_incident_backend_url is test_params.expected_url
+    assert organization.grafana_incident_backend_url == test_params.expected_url
+
+
+@pytest.mark.django_db
+def test_get_or_create_user(make_organization, make_team, make_user_for_organization):
+    organization = make_organization()
+    team = make_team(organization)
+    # add an existing_user
+    existing_user = make_user_for_organization(organization)
+    team.users.add(existing_user)
+
+    assert organization.users.count() == 1
+    assert team.users.count() == 1
+
+    sync_user = SyncUser(
+        id=42,
+        email="test@test.com",
+        name="Test",
+        login="test",
+        avatar_url="https://test.com/test",
+        role="admin",
+        permissions=[],
+        teams=None,
+    )
+
+    # create user
+    user = get_or_create_user(organization, sync_user)
+
+    assert user.user_id == sync_user.id
+    assert user.name == sync_user.name
+    assert user.email == sync_user.email
+    assert user.avatar_full_url == sync_user.avatar_url
+    assert organization.users.count() == 2
+    assert team.users.count() == 1
+
+    # update user
+    sync_user.teams = [team.team_id]
+    user = get_or_create_user(organization, sync_user)
+
+    assert organization.users.count() == 2
+    assert team.users.count() == 2
+    assert team.users.filter(pk=user.pk).exists()
