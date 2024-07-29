@@ -26,6 +26,7 @@ import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
+import { OnCallPluginExtensionPoints } from 'types';
 
 import errorSVG from 'assets/img/error.svg';
 import { Collapse } from 'components/Collapse/Collapse';
@@ -60,7 +61,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, getPluginId } from 'utils/consts';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
@@ -473,7 +474,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               })}
               <ExtensionLinkDropdown
                 incident={incident}
-                extensionPointId={`plugins/${getPluginId()}/alert-group/action`}
+                extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
                 declareIncidentLink={incident.declare_incident_link}
                 grafanaIncidentId={incident.grafana_incident_id}
               />
