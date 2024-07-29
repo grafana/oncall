@@ -152,5 +152,5 @@ Example: Set the "urgency" field based on alert group labels, add the provided J
  }
  ```
 
-For more information, refer to [Outgoing webhook templates] and [Alert group labels].
+For more information, refer to [Outgoing webhook templates](ref:outgoing-webhook-templates) and [Alert group labels](ref:alert-group-labels).
 
