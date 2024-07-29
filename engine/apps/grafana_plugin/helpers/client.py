@@ -241,9 +241,9 @@ class GrafanaAPIClient(APIClient):
 
         return all_users_permissions
 
-    def is_rbac_enabled_for_organization(self) -> bool:
+    def is_rbac_enabled_for_organization(self) -> tuple[bool, bool]:
         _, resp_status = self.api_head(self.USER_PERMISSION_ENDPOINT)
-        return resp_status["connected"]
+        return resp_status["connected"], resp_status["status_code"] >= status.HTTP_500_INTERNAL_SERVER_ERROR
 
     def get_users(self, rbac_is_enabled_for_org: bool, **kwargs) -> GrafanaUsersWithPermissions:
         users_response, _ = self.api_get("api/org/users", **kwargs)
