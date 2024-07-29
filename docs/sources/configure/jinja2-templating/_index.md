@@ -156,4 +156,3 @@ The template editor will open with three columns: example alert payload, the tem
 1. For messenger templates, click **Save and open Alert Group in ChatOps** to see how the alert renders in the messenger.
 Note: The alert group must exist in the messenger to preview the template.
 1. Click **Save** to save the template.
-

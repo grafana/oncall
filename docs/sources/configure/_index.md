@@ -56,4 +56,3 @@ For information on configuration options, refer to [Escalation chains and routes
 ### Customize alert templates
 
 For detailed information on customizing alert templates, refer to the [Jinja2 templating](ref:jinja2-templating) documentation.
-

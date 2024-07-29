@@ -146,4 +146,3 @@ To edit the name of an integration:
 ## Explore available integrations
 
 Specific guidance and configuration options for each integration are available at [Integration references](ref:integration-references).
-

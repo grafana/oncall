@@ -95,4 +95,3 @@ For more information about how to configure an integration, refer to [Configure 
 ## Explore available integrations
 
 Refer to [Integration references](ref:intergration-references) for a list of available integrations and specific set up instructions.
-

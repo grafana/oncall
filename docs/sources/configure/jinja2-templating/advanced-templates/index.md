@@ -99,4 +99,3 @@ Grafana OnCall enhances Jinja with additional functions:
   - Usage example: `{{ payload.data | b64decode }}`
 - `parse_json`:Parses a JSON string to an object
   - Usage example: `{{ (payload.data | b64decode | parse_json).name }}`
-
