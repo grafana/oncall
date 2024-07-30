@@ -39,8 +39,10 @@ import {
   APP_VERSION,
   CLOUD_VERSION_REGEX,
   getOnCallApiUrl,
+  getPluginId,
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
+  PluginId,
 } from 'utils/consts';
 
 // ------ Dashboard ------ //
@@ -189,7 +191,10 @@ export class RootBaseStore {
       if (errorMsg) {
         return this.setupPluginError(errorMsg);
       }
-      location.reload();
+      // will be removed as part of new OnCall init process
+      if (getPluginId() === PluginId.OnCall) {
+        location.reload();
+      }
     }
 
     // at this point we know the plugin is provisioned

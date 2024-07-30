@@ -10,6 +10,7 @@ import {
   ONCALL_OPS,
   ONCALL_PROD,
   getIsDevelopmentEnv,
+  getPluginId,
 } from './consts';
 import { safeJSONStringify } from './string';
 
@@ -55,7 +56,7 @@ class BaseFaroHelper {
           persistent: true,
         },
         beforeSend: (event) => {
-          if ((event.meta.page?.url ?? '').includes('grafana-oncall-app')) {
+          if ((event.meta.page?.url ?? '').includes(getPluginId())) {
             return event;
           }
 
