@@ -127,6 +127,7 @@ class TestIsRbacEnabledForOrganization:
     def test_it_returns_based_on_status_code_of_head_call(
         self, mocked_grafana_api_client_api_head, api_response_connected, api_status_code, expected
     ):
+        mocked_grafana_api_client_api_head.return_value = (None, {"connected": api_response_connected})
         mocked_grafana_api_client_api_head.return_value = (
             None,
             {"connected": api_response_connected, "status_code": api_status_code},

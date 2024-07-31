@@ -327,6 +327,9 @@ class GrafanaAPIClient(APIClient):
     def get_service_account_token_permissions(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
         return self.api_get("api/access-control/user/permissions")
 
+    def sync(self) -> APIClientResponse:
+        return self.api_post("api/plugins/grafana-oncall-app/resources/plugin/sync")
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"
