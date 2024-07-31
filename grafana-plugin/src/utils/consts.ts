@@ -3,6 +3,28 @@ import { OnCallAppPluginMeta } from 'types';
 //@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
 
+export const PluginId = {
+  OnCall: 'grafana-oncall-app',
+  Irm: 'grafana-irm-app',
+} as const;
+export type PluginId = (typeof PluginId)[keyof typeof PluginId];
+
+export const getIsDevelopmentEnv = () => {
+  try {
+    return process.env.NODE_ENV === 'development';
+  } catch (error) {
+    return false;
+  }
+};
+
+export const getPluginId = (): PluginId => {
+  try {
+    return (process.env.PLUGIN_ID as PluginId) || PluginId.OnCall;
+  } catch (error) {
+    return PluginId.Irm;
+  }
+};
+
 // Navbar
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
 
@@ -36,7 +58,7 @@ export const REQUEST_HELP_URL = 'https://grafana.com/profile/org/tickets/new';
 
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
-export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
+export const ONCALL_OPS = 'https://oncall-ops-eu-south-0.grafana.net/oncall';
 export const ONCALL_DEV = 'https://oncall-dev-us-central-0.grafana.net/oncall';
 
 export const getOnCallApiUrl = (meta?: OnCallAppPluginMeta) => meta?.jsonData?.onCallApiUrl;

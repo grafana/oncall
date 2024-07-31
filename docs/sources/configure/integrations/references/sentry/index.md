@@ -18,6 +18,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/sentry
   - add-sentry/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/sentry
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # Sentry integration for Grafana OnCall
@@ -63,8 +69,3 @@ level, event frequency, or specific tags.
 8. Save the alert rule.
 
 Once the alert conditions are met, Sentry will trigger the webhook action and send a request to the Grafana OnCall.
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

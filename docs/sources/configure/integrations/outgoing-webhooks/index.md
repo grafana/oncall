@@ -14,6 +14,32 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks/
   - /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks/
   - ../outgoing-webhooks/  # /docs/oncall/<ONCALL_VERSION>/outgoing-webhooks/
+refs:
+  alert-group-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/#alert-group-labels
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels/#alert-group-labels
+  integration-labels:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels/
+  jira:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/jira/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/jira/
+  zendesk:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/zendesk/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/zendesk/
+  servicenow:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/servicenow/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/servicenow/
 ---
 
 
@@ -554,23 +580,6 @@ the `id` of that ticket to keep its status synchronized with the state changes b
 
 Integrate with third-party services:
 
-- [JIRA][jira]
-- [ServiceNow][ServiceNow]
-- [Zendesk][Zendesk]
-
-{{% docs/reference %}}
-[Alert group labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels#alert-group-labels"
-[Alert group labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels#alert-group-labels"
-
-[Integration labels]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/labels"
-[Integration labels]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/labels"
-
-[jira]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/jira"
-[jira]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/jira"
-
-[ServiceNow]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/servicenow"
-[ServiceNow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/servicenow"
-
-[Zendesk]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/zendesk"
-[Zendesk]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/zendesk"
-{{% /docs/reference %}}
+- [JIRA](ref:jira)
+- [ServiceNow](ref:servicenow)
+- [Zendesk](ref:zendesk)

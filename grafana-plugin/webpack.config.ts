@@ -62,6 +62,7 @@ const config = async (env): Promise<Configuration> => {
       ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
       new EnvironmentPlugin({
         NODE_ENV: 'development',
+        PLUGIN_ID: 'grafana-oncall-app',
       }),
     ],
   };

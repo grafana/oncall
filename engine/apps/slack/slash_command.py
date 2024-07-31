@@ -38,4 +38,4 @@ class SlashCommand:
 
     @property
     def is_grafana_command(self):
-        return self.command in ["grafana", "grafana-dev", "grafana-ops", "grafana-prod"]
+        return self.command in ["grafana-irm", "grafana-irm-dev", "grafana-irm-ops", "grafana-irm-prod"]
