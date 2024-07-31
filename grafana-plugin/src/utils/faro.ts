@@ -10,7 +10,7 @@ import {
   ONCALL_OPS,
   ONCALL_PROD,
   getIsDevelopmentEnv,
-  PLUGIN_ID,
+  getPluginId,
 } from './consts';
 import { safeJSONStringify } from './string';
 
@@ -56,7 +56,7 @@ class BaseFaroHelper {
           persistent: true,
         },
         beforeSend: (event) => {
-          if ((event.meta.page?.url ?? '').includes(PLUGIN_ID)) {
+          if ((event.meta.page?.url ?? '').includes(getPluginId())) {
             return event;
           }
 

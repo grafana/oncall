@@ -19,6 +19,12 @@ aliases:
   - /docs/oncall/latest/integrations/webhook/
   - /add-webhook-integration/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/webhook
+refs:
+  jinja2-templating:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
 ---
 
 # Inbound Webhook integrations for Grafana OnCall
@@ -68,9 +74,4 @@ https://a-prod-us-central-0.grafana.net/integrations/v1/formatted_webhook/m12xmI
 ```
 
 To learn how to use custom alert templates for formatted webhooks, see
-[Configure alerts templates][jinja2-templating].
-
-{{% docs/reference %}}
-[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
-{{% /docs/reference %}}
+[Configure alerts templates](ref:jinja2-templating).

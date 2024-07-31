@@ -18,6 +18,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/appdynamics
   - add-appdynamics/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/appdynamics
+refs:
+  complete-the-integration-configuration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/integration-management/#customize-the-integration
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/integration-management/#customize-the-integration
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # AppDynamics integration for Grafana OnCall
@@ -112,12 +123,4 @@ Grafana OnCall provides grouping and auto-resolve logic for the AppDynamics inte
 ## Complete the Integration Configuration
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
-[this section][complete-the-integration-configuration]
-
-{{% docs/reference %}}
-[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/integrations/integration-management#customize-the-integration"
-[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/integration-management#customize-the-integration"
-
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}
+[this section](ref:complete-the-integration-configuration)

@@ -9,7 +9,7 @@ import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/W
 import { SlackNewIcon } from 'icons/Icons';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP } from 'utils/consts';
+import { DOCS_SLACK_SETUP, getPluginId } from 'utils/consts';
 
 import styles from './SlackTab.module.css';
 
@@ -43,7 +43,7 @@ export const SlackTab = () => {
 
             <img
               style={{ height: '350px', display: 'block', margin: '0 auto' }}
-              src="public/plugins/grafana-oncall-app/assets/img/slack_instructions.png"
+              src={`public/plugins/${getPluginId()}/assets/img/slack_instructions.png`}
             />
           </VerticalGroup>
         </Block>
