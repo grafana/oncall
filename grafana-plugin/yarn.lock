@@ -486,7 +486,7 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@babel/runtime@^7.23.2", "@babel/runtime@^7.23.9":
+"@babel/runtime@^7.23.2", "@babel/runtime@^7.23.9", "@babel/runtime@^7.7.6":
   version "7.25.0"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.25.0.tgz#3af9a91c1b739c569d5d80cc917280919c544ecb"
   integrity sha512-7dRy4DwXwtzBrPbZflqxnvfxLF8kdZXPkhymtDeFoFqE6ldzjQFgYTtYIFARcLEYDrqfBfYcZt1WqFxRoyC9Rw==
@@ -1095,7 +1095,7 @@
     uplot "1.6.24"
     xss "^1.0.14"
 
-"@grafana/data@11.1.3", "@grafana/data@^11.1.0":
+"@grafana/data@11.1.3", "@grafana/data@^11.1.3":
   version "11.1.3"
   resolved "https://registry.yarnpkg.com/@grafana/data/-/data-11.1.3.tgz#4e9ddb8ff93fee76ebce8f84a238d920b3a228b5"
   integrity sha512-7ldWX6mCGYemRBNmipyuUDpf7XfZvganne5wZvOSG5OuBkkk/aaD/g1rZUxaI9/6/bWTXzFj4AFEa01ixCfO1w==
@@ -1252,7 +1252,7 @@
     tinycolor2 "1.6.0"
     webpack-bundle-analyzer "^4.10.1"
 
-"@grafana/runtime@^11.1.0":
+"@grafana/runtime@^11.1.3":
   version "11.1.3"
   resolved "https://registry.yarnpkg.com/@grafana/runtime/-/runtime-11.1.3.tgz#c5ae7a16d3639ddb313ae4ed019f324abcb99885"
   integrity sha512-XtzqlFMC3GAChvQVHwQcZ52r6mxaDP8ZMao1HqTPvSO8w2lpfRMZ55CmU4vKS+x0Ww9RI4FibPr8x3+x1G7VaQ==
@@ -1285,7 +1285,7 @@
   dependencies:
     tslib "2.6.0"
 
-"@grafana/schema@11.1.3", "@grafana/schema@^11.1.0":
+"@grafana/schema@11.1.3", "@grafana/schema@^11.1.3":
   version "11.1.3"
   resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-11.1.3.tgz#63f7585c0f10d6ed65cb1c4cf30c846d34752e2c"
   integrity sha512-1vpFYFEKO4ifMIvpXkEBxorbXD3wyq48mqYqw8g22dtIvJPY8EMOKPY1WUwG0m4g8szAZFsqpr/KR6+pWJESpQ==
@@ -1302,7 +1302,7 @@
   resolved "https://registry.yarnpkg.com/@grafana/tsconfig/-/tsconfig-1.3.0-rc1.tgz#ca5ffa03edb3cb59bd503a7e6b3a3e15ac528d77"
   integrity sha512-bi+qFOptejg/a2/WmCDVxQLQtobhKd3y+B6mxFBOMmzElqgr30MPnN60THTou6dGwtfw+ExX1H5FGm9DM35Qrw==
 
-"@grafana/ui@11.1.3", "@grafana/ui@^11.1.0":
+"@grafana/ui@11.1.3", "@grafana/ui@^11.1.3":
   version "11.1.3"
   resolved "https://registry.yarnpkg.com/@grafana/ui/-/ui-11.1.3.tgz#1a4a7465f8b51a7f4379f689be2fd6cd1d934435"
   integrity sha512-+a4e28HJq9DeG+Y84SwLQby4iHqE5ZLnoiGWgIHM2+kDX0dhmCVtE+6xrNp/isu008W1II5eIErY3MvBWsJcmw==
@@ -3116,6 +3116,11 @@
     pluralize "^8.0.0"
     yaml-ast-parser "0.0.43"
 
+"@remix-run/router@1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.18.0.tgz#20b033d1f542a100c1d57cfd18ecf442d1784732"
+  integrity sha512-L3jkqmqoSVBVKHfpGZmLrex0lxR5SucGA0sUfFzGctehw+S/ggL9L/0NnC5mw6P8HUWpFZ3nQw3cRApjjWx9Sw==
+
 "@sinclair/typebox@^0.24.1":
   version "0.24.51"
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.24.51.tgz#645f33fe4e02defe26f2f5c0410e1c094eac7f5f"
@@ -3519,11 +3524,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/history@^4.7.11":
-  version "4.7.11"
-  resolved "https://registry.yarnpkg.com/@types/history/-/history-4.7.11.tgz#56588b17ae8f50c53983a524fc3cc47437969d64"
-  integrity sha512-qjDJRrmvBMiTx+jyLxvLfJU7UznFuokDv4f3WRuriHKERccVpFU+8XMQUAbDzoiJCsmexxRExQeMwwCdamSKDA==
-
 "@types/hoist-non-react-statics@^3.3.0":
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/@types/hoist-non-react-statics/-/hoist-non-react-statics-3.3.1.tgz#1124aafe5118cb591977aeb1ceaaed1070eb039f"
@@ -3765,23 +3765,6 @@
   resolved "https://registry.yarnpkg.com/@types/react-responsive/-/react-responsive-8.0.5.tgz#77769862d2a0711434feb972be08e3e6c334440a"
   integrity sha512-k3gQJgI87oP5IrVZe//3LKJFnAeFaqqWmmtl5eoYL2H3HqFcIhUaE30kRK1CsW3DHdojZxcVj4ZNc2ClsEu2PA==
   dependencies:
-    "@types/react" "*"
-
-"@types/react-router-dom@^5.3.3":
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/@types/react-router-dom/-/react-router-dom-5.3.3.tgz#e9d6b4a66fcdbd651a5f106c2656a30088cc1e83"
-  integrity sha512-kpqnYK4wcdm5UaWI3fLcELopqLrHgLqNsdpHauzlQktfkHL3npOSwtj1Uz9oKBAzs7lFtVkV8j83voAz2D8fhw==
-  dependencies:
-    "@types/history" "^4.7.11"
-    "@types/react" "*"
-    "@types/react-router" "*"
-
-"@types/react-router@*":
-  version "5.1.19"
-  resolved "https://registry.yarnpkg.com/@types/react-router/-/react-router-5.1.19.tgz#9b404246fba7f91474d7008a3d48c17b6e075ad6"
-  integrity sha512-Fv/5kb2STAEMT3wHzdKQK2z8xKq38EDIGVrutYLmQVVLe+4orDFquU52hQrULnEHinMKv9FSA6lf9+uNT1ITtA==
-  dependencies:
-    "@types/history" "^4.7.11"
     "@types/react" "*"
 
 "@types/react-test-renderer@^18.0.5":
@@ -8271,6 +8254,13 @@ history@4.10.1, history@^4.9.0:
     tiny-warning "^1.0.0"
     value-equal "^1.0.1"
 
+history@^5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/history/-/history-5.3.0.tgz#1548abaa245ba47992f063a0783db91ef201c73b"
+  integrity sha512-ZqaKwjjrAYUYfLG+htGaIIZ4nioX2L70ZUMIFysS3xvBsSG4x/n1V6TXV3N8ZYNuFGlDirFg32T7B6WOUPDYcQ==
+  dependencies:
+    "@babel/runtime" "^7.7.6"
+
 hoist-non-react-statics@3.3.2, hoist-non-react-statics@^3.1.0, hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.1, hoist-non-react-statics@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.2.tgz#ece0acaf71d62c2969c2ec59feff42a4b1a85b45"
@@ -12622,6 +12612,15 @@ react-responsive@^8.1.0:
     prop-types "^15.6.1"
     shallow-equal "^1.1.0"
 
+react-router-dom-v5-compat@^6.25.1:
+  version "6.25.1"
+  resolved "https://registry.yarnpkg.com/react-router-dom-v5-compat/-/react-router-dom-v5-compat-6.25.1.tgz#326906a61499e331e721d11ea0cd76610a387a97"
+  integrity sha512-OKyay/LLp+KP56sLc3hfYpVzs1NvOw/b9zoO91Y82siP1mOI/JD5TnwLrpoXL3j5kj9FmTQBx8HyzIXAjjkptQ==
+  dependencies:
+    "@remix-run/router" "1.18.0"
+    history "^5.3.0"
+    react-router "6.25.1"
+
 react-router-dom@5.3.3:
   version "5.3.3"
   resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-5.3.3.tgz#8779fc28e6691d07afcaf98406d3812fe6f11199"
@@ -12650,6 +12649,13 @@ react-router@5.3.3:
     react-is "^16.6.0"
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
+
+react-router@6.25.1:
+  version "6.25.1"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-6.25.1.tgz#70b4f1af79954cfcfd23f6ddf5c883e8c904203e"
+  integrity sha512-u8ELFr5Z6g02nUtpPAggP73Jigj1mRePSwhS/2nkTrlPU5yEkH1vYzWNyvSnSzeeE2DNqWdH+P8OhIh9wuXhTw==
+  dependencies:
+    "@remix-run/router" "1.18.0"
 
 react-select-event@^5.1.0:
   version "5.5.1"
