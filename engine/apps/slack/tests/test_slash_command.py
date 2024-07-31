@@ -3,7 +3,7 @@ from apps.slack.slash_command import SlashCommand
 
 def test_parse():
     payload = {
-        "command": "/grafana",
+        "command": "/grafana-irm",
         "text": "escalate",
         "trigger_id": "trigger_id",
         "user_id": "user_id",
