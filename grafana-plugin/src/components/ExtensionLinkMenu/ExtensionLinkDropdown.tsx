@@ -20,6 +20,7 @@ interface Props {
   grafanaIncidentId: string | null;
 }
 
+// `usePluginLinks()` is only available in Grafana>=11.1.0, so we have a fallback for older versions
 const usePluginLinks = originalUsePluginLinks === undefined ? usePluginLinksFallback : originalUsePluginLinks;
 
 export function ExtensionLinkDropdown({
