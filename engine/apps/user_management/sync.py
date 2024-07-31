@@ -121,7 +121,7 @@ def sync_users(client: GrafanaAPIClient, organization: Organization, **kwargs) -
             role=user["role"],
             avatar_url=user["avatarUrl"],
             teams=None,
-            permissions=[SyncPermission(action=permission["permission"]) for permission in user["permissions"]],
+            permissions=[SyncPermission(action=permission["action"]) for permission in user["permissions"]],
         )
         for user in api_users
     ]
@@ -328,7 +328,7 @@ def _sync_users_data(organization: Organization, sync_users: list[SyncUser], del
             username=user.login,
             role=getattr(LegacyAccessControlRole, user.role.upper(), LegacyAccessControlRole.NONE),
             avatar_url=user.avatar_url,
-            permissions=user.permissions or [],
+            permissions=[{"action": permission.action} for permission in user.permissions] or [],
         )
         for user in sync_users
     )

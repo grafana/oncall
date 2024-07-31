@@ -11,7 +11,7 @@ from rest_framework.request import Request
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
-from apps.grafana_plugin.sync_data import SyncUser
+from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
@@ -165,6 +165,11 @@ class PluginAuthentication(BasePluginAuthentication):
             except (ValueError, TypeError):
                 raise exceptions.AuthenticationFailed("User context must be JSON dict.")
             if user_data:
+                permissions = []
+                if user_data.get("permissions"):
+                    permissions = [
+                        SyncPermission(action=permission["action"]) for permission in user_data["permissions"]
+                    ]
                 user_sync_data = SyncUser(
                     id=user_data["id"],
                     name=user_data["name"],
@@ -172,7 +177,7 @@ class PluginAuthentication(BasePluginAuthentication):
                     email=user_data["email"],
                     role=user_data["role"],
                     avatar_url=user_data["avatar_url"],
-                    permissions=user_data["permissions"] or [],
+                    permissions=permissions,
                     teams=user_data.get("teams", None),
                 )
                 return get_or_create_user(organization, user_sync_data)

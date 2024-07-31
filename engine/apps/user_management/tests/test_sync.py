@@ -40,7 +40,7 @@ def patched_grafana_api_client(organization, is_rbac_enabled_for_organization=(F
                 "login": "test",
                 "role": "admin",
                 "avatarUrl": "test.test/test",
-                "permissions": [],
+                "permissions": [{"action": "permission:all"}] if is_rbac_enabled_for_organization[0] else [],
             },
         ]
         mock_client_instance.get_teams.return_value = (
@@ -288,6 +288,8 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(
 
     organization.refresh_from_db()
     assert organization.is_rbac_permissions_enabled == expected
+    expected_permissions = [{"action": "permission:all"}] if is_rbac_enabled_for_organization[0] else []
+    assert organization.users.get().permissions == expected_permissions
 
 
 @pytest.mark.parametrize(
@@ -327,6 +329,8 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(
     organization.refresh_from_db()
 
     assert organization.is_rbac_permissions_enabled == org_is_rbac_permissions_enabled_expected_value
+    expected_permissions = [{"action": "permission:all"}] if grafana_api_response[0] else []
+    assert organization.users.get().permissions == expected_permissions
 
     mock_gcom_client.return_value.is_stack_active.assert_called_once_with(stack_id)
 
