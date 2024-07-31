@@ -1,12 +1,6 @@
-import typing
 import uuid
 
 from django.db import models
-
-if typing.TYPE_CHECKING:
-    from apps.alerts.models import Alert, AlertGroup
-    from apps.base.models import UserNotificationPolicy
-    from apps.user_management.models import User
 
 
 class EmailMessageQuerySet(models.QuerySet):
@@ -20,12 +14,7 @@ class EmailMessageQuerySet(models.QuerySet):
 
 
 class EmailMessage(models.Model):
-    represents_alert: "Alert"
-    represents_alert_group: "AlertGroup"
-    notification_policy: typing.Optional["UserNotificationPolicy"]
-    receiver: typing.Optional["User"]
-
-    objects: models.Manager["EmailMessage"] = EmailMessageQuerySet.as_manager()
+    objects = EmailMessageQuerySet.as_manager()
 
     message_uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

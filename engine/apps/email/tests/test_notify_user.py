@@ -7,6 +7,7 @@ from django.core.mail.backends.locmem import EmailBackend
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.email.alert_rendering import build_subject_and_message
+from apps.email.models import EmailMessage
 from apps.email.tasks import get_from_email, notify_user_async
 from apps.user_management.subscription_strategy.free_public_beta_subscription_strategy import (
     FreePublicBetaSubscriptionStrategy,
@@ -239,5 +240,7 @@ def test_notify_user_fallback_default_policy(
     notify_user_async(user.pk, alert_group.pk, None)
     assert len(mail.outbox) == 1
 
-    log_record = UserNotificationPolicyLogRecord.objects.filter(author=user, alert_group=alert_group).last()
+    log_record = UserNotificationPolicyLogRecord.objects.filter(author=user, alert_group=alert_group).first()
     assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+
+    EmailMessage.objects.get(receiver=user, represents_alert_group=alert_group, notification_policy=None)
