@@ -3,13 +3,11 @@ import uuid
 
 from django.db import models
 
-from apps.base.models.user_notification_policy_log_record import _check_if_notification_policy_is_transient_fallback
-
-logger = logging.getLogger(__name__)
-
 
 class EmailMessageQuerySet(models.QuerySet):
     def create(self, **kwargs):
+        from apps.base.models.user_notification_policy_log_record import \
+            _check_if_notification_policy_is_transient_fallback
         _check_if_notification_policy_is_transient_fallback(kwargs)
         return super().create(**kwargs)
 
