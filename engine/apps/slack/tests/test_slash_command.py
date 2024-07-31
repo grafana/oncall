@@ -11,7 +11,7 @@ def test_parse():
         "api_app_id": "api_app_id",
     }
     slash_command = SlashCommand.parse(payload)
-    assert slash_command.command == "grafana"
+    assert slash_command.command == "grafana-irm"
     assert slash_command.args == ["escalate"]
     assert slash_command.subcommand == "escalate"
     assert slash_command.is_grafana_command
