@@ -212,3 +212,32 @@ def test_subject_newlines_removed(
 
     subject, _ = build_subject_and_message(alert_group, 1)
     assert subject == "testnewlines"
+
+
+@pytest.mark.django_db
+def test_notify_user_fallback_default_policy(
+    settings,
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_user_notification_policy,
+):
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    settings.EMAIL_HOST = "test"
+
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
+    notify_user_async(user.pk, alert_group.pk, None)
+    assert len(mail.outbox) == 1
+
+    log_record = UserNotificationPolicyLogRecord.objects.filter(author=user, alert_group=alert_group).last()
+    assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
