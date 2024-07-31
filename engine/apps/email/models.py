@@ -3,10 +3,20 @@ import uuid
 
 from django.db import models
 
+from apps.base.models.user_notification_policy_log_record import _check_if_notification_policy_is_transient_fallback
+
 logger = logging.getLogger(__name__)
 
 
+class EmailMessageQuerySet(models.QuerySet):
+    def create(self, **kwargs):
+        _check_if_notification_policy_is_transient_fallback(kwargs)
+        return super().create(**kwargs)
+
+
 class EmailMessage(models.Model):
+    objects: models.Manager["EmailMessage"] = EmailMessageQuerySet.as_manager()
+
     message_uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     exceeded_limit = models.BooleanField(null=True, default=None)
