@@ -1,5 +1,7 @@
 import { AppRootProps as BaseAppRootProps, AppPluginMeta, PluginConfigPageProps, BootData } from '@grafana/data';
 
+import { getPluginId } from 'utils/consts';
+
 export type OnCallPluginMetaJSONData = {
   stackId: number;
   orgId: number;
@@ -20,9 +22,11 @@ export type OnCallAppPluginMeta = AppPluginMeta<null | OnCallPluginMetaJSONData>
 export type OnCallPluginConfigPageProps = PluginConfigPageProps<OnCallAppPluginMeta>;
 
 // Extension points that other plugins can use to hook into the OnCall app.
-export enum OnCallPluginExtensionPoints {
-  AlertGroupAction = 'plugins/grafana-oncall-app/alert-group/action',
-}
+export const OnCallPluginExtensionPoints = {
+  AlertGroupAction: `plugins/${getPluginId()}/alert-group/action`,
+} as const;
+export type OnCallPluginExtensionPoints =
+  (typeof OnCallPluginExtensionPoints)[keyof typeof OnCallPluginExtensionPoints];
 
 declare global {
   export interface Window {

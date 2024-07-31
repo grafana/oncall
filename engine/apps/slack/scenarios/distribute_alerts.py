@@ -902,54 +902,6 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
 
         self.update_log_message(alert_group)
 
-    def post_log_message(self, alert_group: AlertGroup) -> None:
-        slack_message = alert_group.slack_message
-        if slack_message is None:
-            logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
-            return None
-
-        slack_log_message = alert_group.slack_log_message
-
-        if slack_log_message is None:
-            logger.debug(f"Start posting new log message for alert_group {alert_group.pk}")
-            try:
-                result = self._slack_client.chat_postMessage(
-                    channel=slack_message.channel_id,
-                    thread_ts=slack_message.slack_id,
-                    text="Building escalation plan... :thinking_face:",
-                )
-            except SlackAPIRatelimitError as e:
-                if not alert_group.channel.is_rate_limited_in_slack:
-                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
-                    logger.info(
-                        f"Log message has not been posted for alert_group {alert_group.pk} due to slack rate limit."
-                    )
-            except (
-                SlackAPITokenError,
-                SlackAPIChannelNotFoundError,
-                SlackAPIInvalidAuthError,
-                SlackAPIChannelArchivedError,
-            ):
-                pass
-            else:
-                logger.debug(f"Create new slack_log_message for alert_group {alert_group.pk}")
-                slack_log_message = alert_group.slack_messages.create(
-                    slack_id=result["ts"],
-                    organization=self.organization,
-                    _slack_team_identity=self.slack_team_identity,
-                    channel_id=slack_message.channel_id,
-                    last_updated=timezone.now(),
-                )
-
-                alert_group.slack_log_message = slack_log_message
-                alert_group.save(update_fields=["slack_log_message"])
-                logger.debug(
-                    f"Finished post new log message for alert_group {alert_group.pk}, "
-                    f"slack_log_message with pk '{slack_log_message.pk}' was created."
-                )
-        else:
-            self.update_log_message(alert_group)
-
     def update_log_message(self, alert_group: AlertGroup) -> None:
         slack_message = alert_group.slack_message
         if slack_message is None:

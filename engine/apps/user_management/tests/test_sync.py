@@ -24,7 +24,7 @@ MOCK_GRAFANA_INCIDENT_BACKEND_URL = "https://grafana-incident.test"
 
 
 @contextmanager
-def patched_grafana_api_client(organization, is_rbac_enabled_for_organization=False):
+def patched_grafana_api_client(organization, is_rbac_enabled_for_organization=(False, False)):
     GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY = "backendUrl"
 
     with patch("apps.user_management.sync.GrafanaAPIClient") as mock_grafana_api_client:
@@ -268,29 +268,40 @@ def test_sync_organization(make_organization):
     assert organization.is_grafana_labels_enabled is True
 
 
-@pytest.mark.parametrize("is_rbac_enabled_for_organization", [False, True])
+@pytest.mark.parametrize(
+    "is_rbac_enabled_for_organization,expected",
+    [
+        ((False, False), False),
+        ((True, False), True),
+        ((True, True), False),
+    ],
+)
 @override_settings(LICENSE=settings.OPEN_SOURCE_LICENSE_NAME)
 @pytest.mark.django_db
-def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organization, is_rbac_enabled_for_organization):
-    organization = make_organization()
+def test_sync_organization_is_rbac_permissions_enabled_open_source(
+    make_organization, is_rbac_enabled_for_organization, expected
+):
+    organization = make_organization(is_rbac_permissions_enabled=False)
 
     with patched_grafana_api_client(organization, is_rbac_enabled_for_organization):
         sync_organization(organization)
 
     organization.refresh_from_db()
-    assert organization.is_rbac_permissions_enabled == is_rbac_enabled_for_organization
+    assert organization.is_rbac_permissions_enabled == expected
 
 
 @pytest.mark.parametrize(
     "gcom_api_response,grafana_api_response,org_initial_value,org_is_rbac_permissions_enabled_expected_value",
     [
         # stack is in an inactive state, rely on org's previous state of is_rbac_permissions_enabled
-        (False, False, False, False),
-        (False, False, True, True),
+        (False, (False, False), False, False),
+        (False, (False, False), True, True),
         # stack is active, Grafana API tells us RBAC is not enabled
-        (True, False, True, False),
+        (True, (False, False), True, False),
         # stack is active, Grafana API tells us RBAC is enabled
-        (True, True, False, True),
+        (True, (True, False), False, True),
+        # stack is active, Grafana API returns error
+        (True, (False, True), True, True),
     ],
 )
 @patch("apps.user_management.sync.GcomAPIClient")

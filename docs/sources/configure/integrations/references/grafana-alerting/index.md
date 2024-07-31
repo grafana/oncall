@@ -15,6 +15,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/grafana-alerting
   - add-grafana-alerting/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/grafana-alerting
+refs:
+  trigger-webhook-template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
+  data-webhook-template:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
 ---
 
 # Grafana Alerting integration for Grafana OnCall
@@ -129,13 +140,5 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 
 1. Send a new demo alert to the migrated integration.
 2. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
-3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger][trigger-webhook-template]
-or [data][data-webhook-template] template it's needed to adjust them as well.
-
-{{% docs/reference %}}
-[data-webhook-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks"
-[data-webhook_template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks"
-
-[trigger-webhook-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/configure/integrations/outgoing-webhooks"
-[trigger-webhook-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks"
-{{% /docs/reference %}}
+3. If outgoing webhooks utilized the alerts payload from the migrated integration in the [trigger](ref:trigger-webhook-template)
+or [data](ref:data-webhook-template) template it's needed to adjust them as well.

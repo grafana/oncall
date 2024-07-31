@@ -18,6 +18,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/integrations/stackdriver
   - /docs/oncall/latest/integrations/stackdriver/
   - ../integrations/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/stackdriver
+refs:
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
 ---
 
 # Stackdriver integration for Grafana OnCall
@@ -41,8 +47,3 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 1. Create a notification channel in Stackdriver by navigating to Workspace Settings -> WEBHOOKS -> Add Webhook **OnCall Integration URL**
 
 2. Create and alert in Stackdriver by navigating to Alerting -> Policies -> Add Policy -> Choose Notification Channel using the channel set up in step 1
-
-{{% docs/reference %}}
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}

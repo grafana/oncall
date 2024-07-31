@@ -28,7 +28,7 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP } from 'utils/consts';
+import { DOCS_SLACK_SETUP, getPluginId } from 'utils/consts';
 import { showApiError } from 'utils/utils';
 
 import styles from './SlackSettings.module.css';
@@ -278,7 +278,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
 
             <img
               style={{ height: '350px', display: 'block', margin: '0 auto' }}
-              src="public/plugins/grafana-oncall-app/assets/img/slack_instructions.png"
+              src={`public/plugins/${getPluginId()}/assets/img/slack_instructions.png`}
             />
           </VerticalGroup>
         </Block>

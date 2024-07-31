@@ -43,7 +43,7 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
             return Response(data=provisioning_info, status=status.HTTP_400_BAD_REQUEST)
 
         organization = Organization.objects.filter(stack_id=stack_id, org_id=org_id).first()
-        rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
+        rbac_is_enabled, _ = grafana_api_client.is_rbac_enabled_for_organization()
 
         if organization:
             organization.revoke_plugin()

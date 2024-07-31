@@ -4,7 +4,7 @@ import { locationUtil, PluginExtensionLink, PluginExtensionTypes } from '@grafan
 import { IconName, Menu } from '@grafana/ui';
 
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
-import { PLUGIN_ID } from 'utils/consts';
+import { getPluginId } from 'utils/consts';
 import { truncateTitle } from 'utils/string';
 
 type Props = {
@@ -69,7 +69,7 @@ function DeclareIncidentMenuItem({ extensions, declareIncidentLink, grafanaIncid
             icon: 'fire',
             category: 'Incident',
             title: 'Declare incident',
-            pluginId: PLUGIN_ID,
+            pluginId: getPluginId(),
           } as Partial<PluginExtensionLink>,
         ])}
       </Menu.Group>
