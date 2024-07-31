@@ -9,14 +9,6 @@ export const PluginId = {
 } as const;
 export type PluginId = (typeof PluginId)[keyof typeof PluginId];
 
-export const getIsDevelopmentEnv = () => {
-  try {
-    return process.env.NODE_ENV === 'development';
-  } catch (error) {
-    return false;
-  }
-};
-
 export const getPluginId = (): PluginId => {
   try {
     return (process.env.PLUGIN_ID as PluginId) || PluginId.OnCall;
