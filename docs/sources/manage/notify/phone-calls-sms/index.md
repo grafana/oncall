@@ -35,29 +35,51 @@ refs:
 
 # Phone calls and SMS notifications
 
-Grafana OnCall Cloud includes SMS and Phone notifications,
-OSS users can use the [Grafana OSS-Cloud Setup](ref:grafana-oss-cloud-setup) as a relay or configure other providers like Twilio.
+Grafana OnCall Cloud includes SMS and Phone notifications.
 
-## Are there additional costs for outgoing calls/sms?
+{{< admonition type="note" >}}
+OSS users can use the [Grafana OSS-Cloud Setup](ref:grafana-oss-cloud-setup) as a relay or configure this notification type using other providers like Twilio.
+{{< /admonition >}}
 
-No, there are no additional costs for outgoing calls/sms.
+## SMS notification behavior
 
-## Are there rate-limits for calls/sms?
+OnCall reduces alert noise and distraction by bundling SMS notifications.
+When multiple alert groups require notification within a short period, the first alert group triggers an immediate SMS.
+A 2-minute "waiting period" follows, during which additional alerts are bundled. After this period, a single SMS with all alert information is sent.
 
-There are no specific limits, but we reserve the right to stop sending sms/calls in case of abnormal volume.
+Notifications are bundled based on their importance. Alerts from "default" and "important" notification policies are bundled separately.
 
-## Route incoming calls to the engineer who is on-call
+### Example
 
-See our [docs](ref:incoming-call-routing), and [blog post](https://grafana.com/blog/2024/06/10/a-guide-to-grafana-oncall-sms-and-call-routing/),
-on Advanced SMS & call routing configuration, for a guide on how to configure incoming call routing.
+If a user needs to be notified about 5 alert groups from 2 different integrations (3 from "Grafana Alerting" and 2 from "Health Check"),
+they will receive an immediate notification for the first alert group and a bundled SMS for the remaining alerts after 2 minutes:
 
-## Is there a list of pre-defined phone numbers?
+#### Example bundled notification
 
-In order to learn the phone number used by OnCall, make a test call at the "Phone Verification" tab.
+Grafana OnCall: Alert groups #101, #102, #103 and 1 more, from stack: TestOrg, integrations: GrafanaAlerting and 1 more.
 
-## Phone calls or SMS does not work for me
+## Route incoming calls to the on-call engineer
 
-There are cases when OnCall is not able to make phone calls or send SMS to certain regions or specific phone numbers.
-We're working hard to fix such cases, but kindly asking to test your personal notification chain to make sure OnCall
-is able to notify you. Also we suggest to back up Phone Calls and SMS with other notification methods such as
-[Mobile app](ref:mobile-app).
+For guidance on configuring incoming call routing, refer to our [documentation](ref:incoming-call-routing), and [blog post](https://grafana.com/blog/2024/06/10/a-guide-to-grafana-oncall-sms-and-call-routing/)
+
+## About phone call and SMS notifications
+
+Please note the following about phone calls and SMS notifications:
+
+### Additional costs for outgoing calls/SMS
+
+There are no additional costs for outgoing calls or SMS notifications.
+
+### Rate limits for Calls/SMS
+
+There are no specific rate limits, but we reserve the right to stop sending SMS/calls in case of abnormal volume.
+
+### Grafana OnCall phone numbers
+
+To learn the phone number used by OnCall, make a test call from the “Phone Verification” tab.
+
+### Phone calls or SMS not working
+
+There are instances where OnCall may not be able to make phone calls or send SMS to certain regions or specific phone numbers. We are working to resolve these issues.
+Please test your personal notification chain to ensure OnCall can notify you.
+We also suggest backing up phone calls and SMS with other notification methods such as the [Mobile app](ref:mobile-app).
