@@ -328,7 +328,7 @@ def _sync_users_data(organization: Organization, sync_users: list[SyncUser], del
             username=user.login,
             role=getattr(LegacyAccessControlRole, user.role.upper(), LegacyAccessControlRole.NONE),
             avatar_url=user.avatar_url,
-            permissions=[{"action": permission.action} for permission in user.permissions] or [],
+            permissions=[{"action": permission.action} for permission in user.permissions] if user.permissions else [],
         )
         for user in sync_users
     )
@@ -361,7 +361,7 @@ def _sync_users_data(organization: Organization, sync_users: list[SyncUser], del
         organization.users.filter(user_id__in=user_ids_to_delete).delete()
 
 
-def _sync_teams_data(organization: Organization, sync_teams: list[SyncTeam]):
+def _sync_teams_data(organization: Organization, sync_teams: list[SyncTeam] | None):
     if sync_teams is None:
         sync_teams = []
     # keep existing team names mapping to check for possible metrics cache updates
@@ -413,7 +413,9 @@ def _sync_teams_data(organization: Organization, sync_teams: list[SyncTeam]):
     metrics_bulk_update_team_label_cache(metrics_teams_to_update, organization.id)
 
 
-def _sync_teams_members_data(organization: Organization, team_members: dict[int, list[int]]):
+def _sync_teams_members_data(organization: Organization, team_members: dict[int, list[int]] | None):
+    if team_members is None:
+        return
     # set team members
     for team_id, members_ids in team_members.items():
         team = organization.teams.get(team_id=team_id)
