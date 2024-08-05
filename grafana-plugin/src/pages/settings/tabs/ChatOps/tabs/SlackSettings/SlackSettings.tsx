@@ -10,11 +10,13 @@ import {
   InlineField,
   Input,
   Legend,
+  ConfirmModal,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
+import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -26,9 +28,11 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
+import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { DOCS_SLACK_SETUP, getPluginId } from 'utils/consts';
+import { useConfirmModal } from 'utils/hooks';
 import { showApiError } from 'utils/utils';
 
 import styles from './SlackSettings.module.css';
@@ -114,11 +118,15 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       slackChannelStore,
       // dereferencing items is needed to rerender GSelect
       slackChannelStore: { items: slackChannelItems },
+      hasFeature,
     } = store;
+
+    const isUnifiedSlackEnabled = hasFeature(AppFeature.UnifiedSlack);
 
     return (
       <div className={cx('root')}>
         <Legend>Slack App settings</Legend>
+        {currentOrganization.slack_team_identity.needs_reinstall && <UpgradeToUnifiedSlackBanner />}
         <InlineField label="Slack Workspace" grow disabled>
           <Input value={currentOrganization?.slack_team_identity?.cached_name} />
         </InlineField>
@@ -147,33 +155,49 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         />
         <InlineField>
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-            <WithConfirm
-              title="Remove Slack Integration for all of OnCall"
-              description={
-                <Alert severity="error" title="WARNING">
-                  <p>Are you sure to delete this Slack Integration?</p>
-                  <p>
-                    Removing the integration will also irreverisbly remove the following data for your OnCall plugin:
-                  </p>
-                  <ul style={{ marginLeft: '20px' }}>
-                    <li>default organization Slack channel</li>
-                    <li>default Slack channels for OnCall Integrations</li>
-                    <li>Slack channels & Slack user groups for OnCall Schedules</li>
-                    <li>linked Slack usernames for OnCall Users</li>
-                  </ul>
-                  <br />
-                  <p>
-                    If you would like to instead remove your linked Slack username, please head{' '}
-                    <PluginLink query={{ page: 'users/me' }}>here</PluginLink>.
-                  </p>
-                </Alert>
-              }
-              confirmationText="DELETE"
-            >
-              <Button variant="destructive" onClick={() => this.removeSlackIntegration()}>
-                Disconnect Slack App
-              </Button>
-            </WithConfirm>
+            {isUnifiedSlackEnabled ? (
+              <WithConfirm
+                title="TODO: uninstall unified slack title"
+                description={
+                  <Alert severity="error" title="WARNING">
+                    <p>TODO: uninstall unified slack description</p>
+                  </Alert>
+                }
+                confirmationText="DELETE"
+              >
+                <Button variant="destructive" onClick={() => this.removeSlackIntegration()}>
+                  Disconnect Slack App
+                </Button>
+              </WithConfirm>
+            ) : (
+              <WithConfirm
+                title="Remove Slack Integration for all of OnCall"
+                description={
+                  <Alert severity="error" title="WARNING">
+                    <p>Are you sure to delete this Slack Integration?</p>
+                    <p>
+                      Removing the integration will also irreverisbly remove the following data for your OnCall plugin:
+                    </p>
+                    <ul style={{ marginLeft: '20px' }}>
+                      <li>default organization Slack channel</li>
+                      <li>default Slack channels for OnCall Integrations</li>
+                      <li>Slack channels & Slack user groups for OnCall Schedules</li>
+                      <li>linked Slack usernames for OnCall Users</li>
+                    </ul>
+                    <br />
+                    <p>
+                      If you would like to instead remove your linked Slack username, please head{' '}
+                      <PluginLink query={{ page: 'users/me' }}>here</PluginLink>.
+                    </p>
+                  </Alert>
+                }
+                confirmationText="DELETE"
+              >
+                <Button variant="destructive" onClick={() => this.removeSlackIntegration()}>
+                  Disconnect Slack App
+                </Button>
+              </WithConfirm>
+            )}
           </WithPermissionControlTooltip>
         </InlineField>
         <Legend>Additional settings</Legend>
@@ -201,19 +225,17 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </WithPermissionControlTooltip>
           </HorizontalGroup>
         </InlineField>
-        {currentOrganization.slack_team_identity.needs_reinstall && (
-          <>
-            <Legend>Unified Slack App</Legend>
-            <InlineField>
-              <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-                <Button onClick={this.handleOpenSlackInstructions}>
-                  <HorizontalGroup spacing="xs" align="center">
-                    <Icon name="external-link-alt" className={cx('external-link-style')} /> Reinstall Slack App
-                  </HorizontalGroup>
-                </Button>
-              </WithPermissionControlTooltip>
-            </InlineField>
-          </>
+        {isUnifiedSlackEnabled && (
+          <div className={styles.linkToIncidentWrapper}>
+            <PluginBridge plugin={SupportedPlugin.Incident}>
+              <Text type="secondary">
+                {/* TODO: update link to incident slack settings */}
+                <a href={`/a/${SupportedPlugin.Incident}/settings`} target="_blank" rel="noreferrer">
+                  <Text type="link">Open Slack Incident settings</Text>
+                </a>
+              </Text>
+            </PluginBridge>
+          </div>
         )}
       </div>
     );
@@ -251,6 +273,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     const { store } = this.props;
     const { showENVVariablesButton } = this.state;
     const isLiveSettingAvailable = store.hasFeature(AppFeature.LiveSettings) && showENVVariablesButton;
+    const isUnifiedSlackEnabled = store.hasFeature(AppFeature.UnifiedSlack);
 
     return (
       <VerticalGroup spacing="lg">
@@ -261,11 +284,14 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
               <SlackNewIcon />
             </div>
             <Text className={cx('infoblock-text')}>
-              Connecting Slack App will allow you to manage alert groups in your team Slack workspace.
+              {isUnifiedSlackEnabled
+                ? 'TODO: Some unified slack text'
+                : 'Connecting Slack App will allow you to manage alert groups in your team Slack workspace.'}
             </Text>
             <Text className={cx('infoblock-text')}>
-              After a basic workspace connection your team members need to connect their personal Slack accounts in
-              order to be allowed to manage alert groups.
+              {isUnifiedSlackEnabled
+                ? 'TODO: Some unified slack text'
+                : 'After a basic workspace connection your team members need to connect their personal Slack accounts in order to be allowed to manage alert groups.'}
             </Text>
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>
@@ -304,5 +330,42 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     );
   };
 }
+
+const UpgradeToUnifiedSlackBanner = observer(() => {
+  const {
+    slackStore: { installSlackIntegration },
+  } = useStore();
+  const { modalProps, openModal } = useConfirmModal();
+
+  return (
+    <>
+      <ConfirmModal {...modalProps} />
+      <Alert
+        className={styles.upgradeSlackAlert}
+        severity="success"
+        title="Upgrade to Grafana IRM unified Slack app"
+        buttonContent={<div>Upgrade</div>}
+      >
+        TODO: some description
+        <Button
+          variant="secondary"
+          className={styles.upgradeSlackBtn}
+          onClick={() =>
+            openModal({
+              confirmText: 'Confirm',
+              onConfirm: installSlackIntegration,
+              confirmButtonVariant: 'primary',
+              title: `Are you sure you want to upgrade to Grafana IRM unified Slack app?`,
+              description: 'TODO: some description',
+              confirmVariant: 'secondary',
+            })
+          }
+        >
+          Upgrade
+        </Button>
+      </Alert>
+    </>
+  );
+});
 
 export const SlackSettings = withMobXProviderContext(_SlackSettings);
