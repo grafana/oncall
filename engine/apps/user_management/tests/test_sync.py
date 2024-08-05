@@ -9,9 +9,10 @@ from django.test import override_settings
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
-from apps.grafana_plugin.sync_data import SyncUser
+from apps.grafana_plugin.sync_data import SyncData, SyncSettings, SyncUser
 from apps.user_management.models import User
 from apps.user_management.sync import (
+    apply_sync_data,
     cleanup_organization,
     get_or_create_user,
     sync_organization,
@@ -542,3 +543,47 @@ def test_get_or_create_user(make_organization, make_team, make_user_for_organiza
     assert organization.users.count() == 2
     assert team.users.count() == 2
     assert team.users.filter(pk=user.pk).exists()
+
+
+@pytest.mark.django_db
+def test_apply_sync_data_none_values(make_organization):
+    organization = make_organization()
+    sync_data = SyncData(
+        users=[
+            SyncUser(
+                id=42,
+                email="foo@bar.com",
+                name="Test",
+                login="test",
+                avatar_url="https://test.com/test",
+                role="admin",
+                permissions=None,
+                teams=None,
+            ),
+        ],
+        teams=None,
+        team_members=None,
+        settings=SyncSettings(
+            stack_id=organization.stack_id,
+            rbac_enabled=True,
+            org_id=organization.org_id,
+            incident_enabled=True,
+            incident_backend_url="https://test.com",
+            labels_enabled=False,
+            license=settings.CLOUD_LICENSE_NAME,
+            oncall_api_url="https://test.com",
+            grafana_token=organization.api_token,
+            oncall_token=organization.gcom_token,
+            grafana_url=organization.grafana_url,
+        ),
+    )
+
+    with patched_grafana_api_client(organization):
+        apply_sync_data(organization, sync_data)
+
+    # assert created/updated data
+    assert organization.users.count() == 1
+    user = organization.users.get()
+    assert user.user_id == 42
+    assert user.name == "Test"
+    assert user.permissions == []

@@ -62,6 +62,11 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             **kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step
         )
 
+    def _create_email_message(**kwargs):
+        return EmailMessage.objects.create(
+            **kwargs, using_fallback_default_notification_policy_step=using_fallback_default_notification_policy_step
+        )
+
     # create an error log in case EMAIL_HOST is not specified
     if not live_settings.EMAIL_HOST:
         _create_user_notification_policy_log_record(
@@ -88,7 +93,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             notification_channel=notification_policy.notify_by,
             notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,
         )
-        EmailMessage.objects.create(
+        _create_email_message(
             represents_alert_group=alert_group,
             notification_policy=notification_policy,
             receiver=user,
@@ -115,7 +120,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
 
     try:
         send_mail(subject, message, from_email, recipient_list, html_message=html_message, connection=connection)
-        EmailMessage.objects.create(
+        _create_email_message(
             represents_alert_group=alert_group,
             notification_policy=notification_policy,
             receiver=user,
