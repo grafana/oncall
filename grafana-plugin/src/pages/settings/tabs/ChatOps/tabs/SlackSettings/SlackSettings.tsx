@@ -118,10 +118,9 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
       slackChannelStore,
       // dereferencing items is needed to rerender GSelect
       slackChannelStore: { items: slackChannelItems },
-      hasFeature,
     } = store;
 
-    const isUnifiedSlackEnabled = hasFeature(AppFeature.UnifiedSlack);
+    const isUnifiedSlackInstalled = !currentOrganization.slack_team_identity.needs_reinstall;
 
     return (
       <div className={cx('root')}>
@@ -155,7 +154,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
         />
         <InlineField>
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-            {isUnifiedSlackEnabled ? (
+            {isUnifiedSlackInstalled ? (
               <WithConfirm
                 title="TODO: uninstall unified slack title"
                 description={
@@ -225,12 +224,15 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </WithPermissionControlTooltip>
           </HorizontalGroup>
         </InlineField>
-        {isUnifiedSlackEnabled && (
+        {1 === 1 && (
           <div className={styles.linkToIncidentWrapper}>
             <PluginBridge plugin={SupportedPlugin.Incident}>
               <Text type="secondary">
-                {/* TODO: update link to incident slack settings */}
-                <a href={`/a/${SupportedPlugin.Incident}/settings`} target="_blank" rel="noreferrer">
+                <a
+                  href={`/a/${SupportedPlugin.Incident}/integrations/grate.irm.slack`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">Open Slack Incident settings</Text>
                 </a>
               </Text>
@@ -355,7 +357,7 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
               confirmText: 'Confirm',
               onConfirm: installSlackIntegration,
               confirmButtonVariant: 'primary',
-              title: `Are you sure you want to upgrade to Grafana IRM unified Slack app?`,
+              title: `Upgrade to Grafana IRM Slack app`,
               description: 'TODO: some description',
               confirmVariant: 'secondary',
             })
