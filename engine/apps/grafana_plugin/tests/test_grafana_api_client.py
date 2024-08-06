@@ -4,6 +4,7 @@ import pytest
 from rest_framework import status
 
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
+from common.constants.plugin_ids import PluginID
 
 API_URL = "/foo/bar"
 API_TOKEN = "dfjkfdjkfd"
@@ -19,18 +20,28 @@ class TestGetUsersPermissions:
 
     @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
     def test_it_properly_transforms_the_data(self, mocked_grafana_api_client_api_get):
-        mocked_grafana_api_client_api_get.return_value = (
-            {"1": {"grafana-oncall-app.alert-groups:read": [""], "grafana-oncall-app.alert-groups:write": [""]}},
-            "asdfasdf",
-        )
+        mocked_grafana_api_client_api_get.side_effect = [
+            # oncall permissions
+            (
+                {"1": {f"{PluginID.ONCALL}.alert-groups:read": [""], f"{PluginID.ONCALL}.alert-groups:write": [""]}},
+                "asdfasdf",
+            ),
+            # irm permissions
+            (
+                {"1": {f"{PluginID.IRM}.alert-groups:read": [""], f"{PluginID.IRM}.alert-groups:write": [""]}},
+                "asdfasdf",
+            ),
+        ]
 
         api_client = GrafanaAPIClient(API_URL, API_TOKEN)
 
         permissions = api_client.get_users_permissions()
         assert permissions == {
             "1": [
-                {"action": "grafana-oncall-app.alert-groups:read"},
-                {"action": "grafana-oncall-app.alert-groups:write"},
+                {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                {"action": f"{PluginID.ONCALL}.alert-groups:write"},
+                {"action": f"{PluginID.IRM}.alert-groups:read"},
+                {"action": f"{PluginID.IRM}.alert-groups:write"},
             ]
         }
 
@@ -48,8 +59,8 @@ class TestGetUsers:
                 ],
                 {
                     "1": [
-                        {"action": "grafana-oncall-app.alert-groups:read"},
-                        {"action": "grafana-oncall-app.alert-groups:write"},
+                        {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                        {"action": f"{PluginID.ONCALL}.alert-groups:write"},
                     ],
                 },
                 [
@@ -57,8 +68,8 @@ class TestGetUsers:
                         "userId": 1,
                         "foo": "bar",
                         "permissions": [
-                            {"action": "grafana-oncall-app.alert-groups:read"},
-                            {"action": "grafana-oncall-app.alert-groups:write"},
+                            {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                            {"action": f"{PluginID.ONCALL}.alert-groups:write"},
                         ],
                     },
                     {

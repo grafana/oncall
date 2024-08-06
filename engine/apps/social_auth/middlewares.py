@@ -9,6 +9,7 @@ from social_django.middleware import SocialAuthExceptionMiddleware
 
 from apps.social_auth.backends import LoginSlackOAuth2V2
 from apps.social_auth.exceptions import InstallMultiRegionSlackException
+from common.constants.plugin_ids import PluginID
 from common.constants.slack_auth import REDIRECT_AFTER_SLACK_INSTALL, SLACK_AUTH_FAILED
 
 logger = logging.getLogger(__name__)
@@ -17,9 +18,9 @@ logger = logging.getLogger(__name__)
 class SocialAuthAuthCanceledExceptionMiddleware(SocialAuthExceptionMiddleware):
     def process_exception(self, request, exception):
         backend = getattr(exception, "backend", None)
-        redirect_to = "/a/grafana-oncall-app/chat-ops"
+        redirect_to = f"/a/{PluginID.ONCALL}/chat-ops"
         if backend is not None and isinstance(backend, LoginSlackOAuth2V2):
-            redirect_to = "/a/grafana-oncall-app/users/me"
+            redirect_to = f"/a/{PluginID.ONCALL}/users/me"
         if exception:
             logger.warning(f"SocialAuthAuthCanceledExceptionMiddleware.process_exception: {exception}")
         if isinstance(exception, exceptions.AuthCanceled):

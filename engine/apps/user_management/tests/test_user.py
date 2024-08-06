@@ -1,9 +1,13 @@
 import datetime
+import re
 
 import pytest
+from django.conf import settings
+from django.db.models import Q
+from django.test import override_settings
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
 
@@ -183,3 +187,44 @@ def test_finish_google_oauth2_disconnection_flow(make_organization_and_user):
 
     assert GoogleOAuth2User.objects.filter(user=user).exists() is False
     assert user.google_calendar_settings is None
+
+
+PERM = RBACPermission.Permissions.ALERT_GROUPS_READ
+
+
+@pytest.mark.parametrize(
+    "is_rbac_permissions_enabled,database_type,expected",
+    [
+        # RBAC disabled
+        (
+            False,
+            settings.DATABASE_TYPES.SQLITE3,
+            Q(role__lte=PERM.fallback_role),
+        ),
+        # RBAC enabled, sqlite
+        (
+            True,
+            settings.DATABASE_TYPES.SQLITE3,
+            Q(permissions__regex=re.escape(PERM.value_oncall_app))
+            | Q(permissions__regex=re.escape(PERM.value_irm_app)),
+        ),
+        # RBAC enabled, not sqlite
+        (
+            True,
+            settings.DATABASE_TYPES.MYSQL,
+            Q(permissions__contains=[{"action": PERM.value_oncall_app}])
+            | Q(permissions__contains=[{"action": PERM.value_irm_app}]),
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_build_permissions_query(
+    make_organization,
+    is_rbac_permissions_enabled,
+    database_type,
+    expected,
+):
+    org = make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled)
+
+    with override_settings(DATABASE_TYPE=database_type):
+        assert User.build_permissions_query(PERM, org) == expected

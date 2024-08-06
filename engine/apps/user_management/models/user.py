@@ -38,18 +38,6 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PermissionsQuery(typing.TypedDict):
-    permissions__contains: typing.Dict
-
-
-class PermissionsRegexQuery(typing.TypedDict):
-    permissions__regex: str
-
-
-class RoleInQuery(typing.TypedDict):
-    role__in: typing.List[int]
-
-
 def generate_public_primary_key_for_user():
     prefix = "U"
     new_public_primary_key = generate_public_primary_key(prefix)
@@ -330,14 +318,13 @@ class User(models.Model):
         return {}
 
     @staticmethod
-    def build_permissions_query(
-        permission: LegacyAccessControlCompatiblePermission, organization
-    ) -> typing.Union[PermissionsQuery, PermissionsRegexQuery, RoleInQuery]:
+    def build_permissions_query(permission: LegacyAccessControlCompatiblePermission, organization) -> Q:
         """
-        This method returns a django query filter that is compatible with RBAC
+        This method returns a django `Q` instance that is compatible with RBAC
         as well as legacy "basic" role based authorization. If a permission is provided we simply do
         a regex search where the permission column contains the permission value (need to use regex because
-        the JSON contains method is not supported by sqlite)
+        the JSON contains method is not supported by sqlite). Additionally, we check whether the user has
+        either the `grafana-oncall-app` OR `grafana-irm-app` prefixed-version of the permission.
 
         If RBAC is not supported for the org, we make the assumption that we are looking for any users with AT LEAST
         the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
@@ -345,11 +332,18 @@ class User(models.Model):
         if organization.is_rbac_permissions_enabled:
             # https://stackoverflow.com/a/50251879
             if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
-                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
-                return PermissionsRegexQuery(permissions__regex=re.escape(permission.value))
-            required_permission = {"action": permission.value}
-            return PermissionsQuery(permissions__contains=[required_permission])
-        return RoleInQuery(role__lte=permission.fallback_role.value)
+                # contains is not supported on sqlite
+                def _build_q_object(value: str) -> Q:
+                    return Q(permissions__regex=re.escape(value))
+
+                return _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
+
+            def _build_q_object(value: str) -> Q:
+                return Q(permissions__contains=[{"action": value}])
+
+            return _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
+
+        return Q(role__lte=permission.fallback_role.value)
 
     def get_default_fallback_notification_policy(self) -> "UserNotificationPolicy":
         from apps.base.models import UserNotificationPolicy

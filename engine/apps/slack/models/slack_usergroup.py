@@ -134,8 +134,8 @@ class SlackUserGroup(models.Model):
 
     def get_users_from_members_for_organization(self, organization):
         return organization.users.filter(
+            User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
             slack_user_identity__slack_id__in=self.members,
-            **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
     @classmethod

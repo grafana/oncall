@@ -40,7 +40,6 @@ from apps.alerts.tests.factories import (
     UserNotificationBundleFactory,
 )
 from apps.api.permissions import (
-    ACTION_PREFIX,
     GrafanaAPIPermission,
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
@@ -110,6 +109,7 @@ from apps.webhooks.tests.test_webhook_presets import (
     TestAdvancedWebhookPreset,
     TestWebhookPreset,
 )
+from common.constants.plugin_ids import PluginID
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -360,7 +360,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
     }
 
     all_permission_classes: typing.Dict[str, LegacyAccessControlCompatiblePermission] = {
-        getattr(RBACPermission.Permissions, attr).value: getattr(RBACPermission.Permissions, attr)
+        getattr(RBACPermission.Permissions, attr).value_oncall_app: getattr(RBACPermission.Permissions, attr)
         for attr in dir(RBACPermission.Permissions)
         if not attr.startswith("_")
     }
@@ -374,7 +374,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
                 action = permission["action"]
                 permission_class = None
 
-                if action.startswith(ACTION_PREFIX):
+                if action.startswith(PluginID.ONCALL):
                     permission_class = all_permission_classes[action]
 
                 if permission_class:
@@ -401,7 +401,7 @@ def make_user():
         permissions = kwargs.pop("permissions", None)
         if permissions is None:
             permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
-            permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
+            permissions = [GrafanaAPIPermission(action=perm.value_oncall_app) for perm in permissions_to_grant]
         return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user

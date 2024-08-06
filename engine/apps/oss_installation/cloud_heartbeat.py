@@ -8,6 +8,7 @@ from rest_framework import status
 
 from apps.base.utils import live_settings
 from common.api_helpers.utils import create_engine_url
+from common.constants.plugin_ids import PluginID
 
 logger = logging.getLogger(__name__)
 
@@ -107,4 +108,4 @@ def get_heartbeat_link(connector, heartbeat):
         return None
     if heartbeat is None:
         return None
-    return urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=integrations&id={heartbeat.integration_id}")
+    return urljoin(connector.cloud_url, f"a/{PluginID.ONCALL}/?page=integrations&id={heartbeat.integration_id}")

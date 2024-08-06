@@ -2,13 +2,15 @@ import json
 import logging
 import time
 import typing
+from collections import defaultdict
 from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
 from rest_framework import status
 
-from apps.api.permissions import ACTION_PREFIX, GrafanaAPIPermission
+from apps.api.permissions import GrafanaAPIPermission
+from common.constants.plugin_ids import PluginID
 
 logger = logging.getLogger(__name__)
 
@@ -160,11 +162,11 @@ class APIClient:
 
 
 class GrafanaAPIClient(APIClient):
-    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
     GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY = "backendUrl"
-    GRAFANA_LABELS_PLUGIN = "grafana-labels-app"
 
-    USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
+    _PERMISSION_ENDPOINT_BASE = "api/access-control/users/permissions/search?actionPrefix="
+    USER_PERMISSION_ENDPOINT_ONCALL = f"{_PERMISSION_ENDPOINT_BASE}{PluginID.ONCALL}"
+    USER_PERMISSION_ENDPOINT_IRM = f"{_PERMISSION_ENDPOINT_BASE}{PluginID.IRM}"
 
     class Types:
         class _BaseGrafanaAPIResponse(typing.TypedDict):
@@ -211,6 +213,14 @@ class GrafanaAPIClient(APIClient):
     def check_token(self) -> APIClientResponse:
         return self.api_head("api/org")
 
+    def _get_user_permissions(
+        self, endpoint: str
+    ) -> typing.Optional[typing.Dict[str, typing.Dict[str, typing.List[str]]]]:
+        response, _ = self.api_get(endpoint)
+        if response is None or isinstance(response, list):
+            return None
+        return response
+
     def get_users_permissions(self) -> typing.Optional[UserPermissionsDict]:
         """
         It is possible that this endpoint may not be available for certain Grafana orgs.
@@ -228,21 +238,31 @@ class GrafanaAPIClient(APIClient):
                 ]
             }
         }
+
+        We make two Grafana API calls (see `_get_user_permissions`). One for permissions prefixed with
+        `grafana-oncall-app` and another for permissions prefixed with `grafana-irm-app`.
+        We then merge these permissions together.
         """
-        response, _ = self.api_get(self.USER_PERMISSION_ENDPOINT)
-        if response is None or isinstance(response, list):
+        oncall_permissions = self._get_user_permissions(self.USER_PERMISSION_ENDPOINT_ONCALL)
+        irm_permissions = self._get_user_permissions(self.USER_PERMISSION_ENDPOINT_IRM)
+
+        if oncall_permissions is None or irm_permissions is None:
             return None
 
-        data: typing.Dict[str, typing.Dict[str, typing.List[str]]] = response
+        all_users_permissions: UserPermissionsDict = defaultdict(list)
 
-        all_users_permissions: UserPermissionsDict = {}
-        for user_id, user_permissions in data.items():
-            all_users_permissions[user_id] = [GrafanaAPIPermission(action=key) for key, _ in user_permissions.items()]
+        def _transform_permissions_response_into_all_users_permissions(api_response_data):
+            for user_id, user_permissions in api_response_data.items():
+                perms = [GrafanaAPIPermission(action=key) for key, _ in user_permissions.items()]
+                all_users_permissions[user_id].extend(perms)
+
+        _transform_permissions_response_into_all_users_permissions(oncall_permissions)
+        _transform_permissions_response_into_all_users_permissions(irm_permissions)
 
         return all_users_permissions
 
     def is_rbac_enabled_for_organization(self) -> tuple[bool, bool]:
-        _, resp_status = self.api_head(self.USER_PERMISSION_ENDPOINT)
+        _, resp_status = self.api_head(self.USER_PERMISSION_ENDPOINT_ONCALL)
         return resp_status["connected"], resp_status["status_code"] >= status.HTTP_500_INTERNAL_SERVER_ERROR
 
     def get_users(self, rbac_is_enabled_for_org: bool, **kwargs) -> GrafanaUsersWithPermissions:
@@ -303,10 +323,10 @@ class GrafanaAPIClient(APIClient):
         return self.api_get(f"api/plugins/{recipient}/settings")
 
     def get_grafana_incident_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
-        return self.get_grafana_plugin_settings(self.GRAFANA_INCIDENT_PLUGIN)
+        return self.get_grafana_plugin_settings(PluginID.INCIDENT)
 
     def get_grafana_labels_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
-        return self.get_grafana_plugin_settings(self.GRAFANA_LABELS_PLUGIN)
+        return self.get_grafana_plugin_settings(PluginID.LABELS)
 
     def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
         return self.api_get(f"api/serviceaccounts/search?query={login}")
@@ -328,7 +348,7 @@ class GrafanaAPIClient(APIClient):
         return self.api_get("api/access-control/user/permissions")
 
     def sync(self) -> APIClientResponse:
-        return self.api_post("api/plugins/grafana-oncall-app/resources/plugin/sync")
+        return self.api_post(f"api/plugins/{PluginID.ONCALL}/resources/plugin/sync")
 
 
 class GcomAPIClient(APIClient):

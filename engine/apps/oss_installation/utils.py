@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.oss_installation.constants import CloudSyncStatus
 from apps.schedules.ical_utils import list_users_to_notify_from_ical_for_period
+from common.constants.plugin_ids import PluginID
 
 logger = logging.getLogger(__name__)
 
@@ -80,5 +81,5 @@ def cloud_user_identity_status(connector, identity):
         else:
             status = CloudSyncStatus.SYNCED_PHONE_NOT_VERIFIED
 
-        link = urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={identity.cloud_id}")
+        link = urljoin(connector.cloud_url, f"a/{PluginID.ONCALL}/?page=users&p=1&id={identity.cloud_id}")
     return status, link

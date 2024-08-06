@@ -9,12 +9,12 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ViewSetMixin
 
+from common.constants.plugin_ids import PluginID
 from common.utils import getattrd
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import User
 
-ACTION_PREFIX = "grafana-oncall-app"
 RBAC_PERMISSIONS_ATTR = "rbac_permissions"
 RBAC_OBJECT_PERMISSIONS_ATTR = "rbac_object_permissions"
 BASIC_ROLE_PERMISSIONS_ATTR = "basic_role_permissions"
@@ -89,8 +89,12 @@ class LegacyAccessControlRole(enum.IntEnum):
 
 
 class LegacyAccessControlCompatiblePermission:
+    def _construct_action_string(self, action_prefix: str, resource: Resources, action: Actions) -> str:
+        return f"{action_prefix}.{resource.value}:{action.value}"
+
     def __init__(self, resource: Resources, action: Actions, fallback_role: LegacyAccessControlRole) -> None:
-        self.value = f"{ACTION_PREFIX}.{resource.value}:{action.value}"
+        self.value_oncall_app = self._construct_action_string(PluginID.ONCALL, resource, action)
+        self.value_irm_app = self._construct_action_string(PluginID.IRM, resource, action)
         self.fallback_role = fallback_role
 
 
@@ -117,29 +121,24 @@ def get_most_authorized_role(permissions: LegacyAccessControlCompatiblePermissio
     return min({p.fallback_role for p in permissions}, key=lambda r: r.value)
 
 
-def user_is_authorized(
-    user: "User",
-    required_permissions: LegacyAccessControlCompatiblePermissions,
-    required_basic_role_permission: LegacyAccessControlRole = None,
-) -> bool:
-    """
-    This function checks whether `user` has all necessary permissions. If `required_basic_role_permission` is set,
-    it only checks the basic user role, otherwise it checks whether `user` has all permissions in
-    `required_permissions`.
-    RBAC permissions are used if RBAC is enabled for the organization, otherwise the fallback basic role is checked.
+def user_has_minimum_required_basic_role(user: "User", required_basic_role: LegacyAccessControlRole) -> bool:
+    return user.role <= required_basic_role.value
 
-    user - The user to check permissions for
-    required_permissions - A list of permissions that a user must have to be considered authorized
-    required_basic_role_permission - Min basic role user must have to be considered authorized (used in cases when
-    it's needed to check ONLY the basic user role, otherwise `required_permissions` should be used)
+
+def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCompatiblePermissions) -> bool:
     """
-    if required_basic_role_permission is not None:
-        return user.role <= required_basic_role_permission.value
+    This function checks whether `user` has all necessary permissions in `required_permissions`.
+    RBAC permissions are used if RBAC is enabled for the organization, otherwise the fallback basic role is checked.
+    """
     if user.organization.is_rbac_permissions_enabled:
         user_permissions = [u["action"] for u in user.permissions]
-        required_permission_values = [p.value for p in required_permissions]
-        return all(permission in user_permissions for permission in required_permission_values)
-    return user.role <= get_most_authorized_role(required_permissions).value
+
+        for permission in required_permissions:
+            if permission.value_oncall_app not in user_permissions and permission.value_irm_app not in user_permissions:
+                return False
+        return True
+
+    return user_has_minimum_required_basic_role(user, get_most_authorized_role(required_permissions))
 
 
 class RBACPermission(permissions.BasePermission):
@@ -320,24 +319,24 @@ class BasicRolePermission(permissions.BasePermission):
             action_required_permissions is not None
         ), f"""Each action must be defined within the {BASIC_ROLE_PERMISSIONS_ATTR} dict on the ViewSet"""
 
-        return user_is_authorized(
-            request.user, required_permissions=[], required_basic_role_permission=action_required_permissions
-        )
+        return user_has_minimum_required_basic_role(request.user, action_required_permissions)
 
 
-ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]
-ALL_PERMISSION_CLASSES = [
+ALL_PERMISSION_NAMES: typing.List[str] = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]
+ALL_PERMISSION_CLASSES: LegacyAccessControlCompatiblePermissions = [
     getattr(RBACPermission.Permissions, permission_name) for permission_name in ALL_PERMISSION_NAMES
 ]
-ALL_PERMISSION_CHOICES = [
-    (permission_class.value, permission_name)
-    for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES)
-]
+ALL_PERMISSION_CHOICES: typing.List[typing.Tuple[str, str]] = []
+for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES):
+    ALL_PERMISSION_CHOICES += [
+        (permission_class.value_oncall_app, permission_name),
+        (permission_class.value_irm_app, permission_name),
+    ]
 
 
 def get_permission_from_permission_string(perm: str) -> typing.Optional[LegacyAccessControlCompatiblePermission]:
     for permission_class in ALL_PERMISSION_CLASSES:
-        if permission_class.value == perm:
+        if permission_class.value_oncall_app == perm or permission_class.value_irm_app == perm:
             return permission_class
     return None
 

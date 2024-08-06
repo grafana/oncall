@@ -20,8 +20,10 @@ from apps.api.permissions import (
     RBACPermissionsAttribute,
     get_most_authorized_role,
     get_view_action,
+    user_has_minimum_required_basic_role,
     user_is_authorized,
 )
+from common.constants.plugin_ids import PluginID
 
 
 class MockedOrg:
@@ -36,7 +38,7 @@ class MockedUser:
         org_has_rbac_enabled=True,
         basic_role: typing.Optional[LegacyAccessControlRole] = None,
     ) -> None:
-        self.permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions]
+        self.permissions = [GrafanaAPIPermission(action=perm.value_oncall_app) for perm in permissions]
         self.role = basic_role if basic_role is not None else get_most_authorized_role(permissions)
         self.organization = MockedOrg(org_has_rbac_enabled)
 
@@ -149,6 +151,39 @@ def test_user_is_authorized(user_permissions, required_permissions, org_has_rbac
 
 
 @pytest.mark.parametrize(
+    "user_permissions",
+    [
+        [
+            {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+            {"action": f"{PluginID.ONCALL}.schedules:read"},
+        ],
+        [
+            {"action": f"{PluginID.IRM}.alert-groups:read"},
+            {"action": f"{PluginID.IRM}.schedules:read"},
+        ],
+        [
+            {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+            {"action": f"{PluginID.IRM}.schedules:read"},
+        ],
+    ],
+)
+def test_user_is_authorized_grafana_irm_app(user_permissions):
+    class MockedUser:
+        def __init__(self, permissions: typing.List[GrafanaAPIPermission]) -> None:
+            self.permissions = permissions
+            self.role = None  # doesn't matter here...
+            self.organization = MockedOrg(org_has_rbac_enabled=True)
+
+    user = MockedUser(user_permissions)
+    required_permissions = [
+        RBACPermission.Permissions.ALERT_GROUPS_READ,
+        RBACPermission.Permissions.SCHEDULES_READ,
+    ]
+
+    assert user_is_authorized(user, required_permissions) is True
+
+
+@pytest.mark.parametrize(
     "permissions,expected_role",
     [
         ([RBACPermission.Permissions.ALERT_GROUPS_READ], RBACPermission.Permissions.ALERT_GROUPS_READ.fallback_role),
@@ -168,6 +203,32 @@ def test_user_is_authorized(user_permissions, required_permissions, org_has_rbac
 )
 def test_get_most_authorized_role(permissions, expected_role) -> None:
     assert get_most_authorized_role(permissions) == expected_role
+
+
+@pytest.mark.parametrize(
+    "user_role,required_basic_role,expected_result",
+    [
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.VIEWER, False),
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.EDITOR, False),
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.ADMIN, False),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.VIEWER, True),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.EDITOR, False),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.ADMIN, False),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER, True),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.EDITOR, True),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.ADMIN, False),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.VIEWER, True),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.EDITOR, True),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.ADMIN, True),
+    ],
+)
+def test_user_has_minimum_required_basic_role(user_role, required_basic_role, expected_result):
+    user = MockedUser([], basic_role=user_role)
+    assert user_has_minimum_required_basic_role(user, required_basic_role) == expected_result
 
 
 def test_get_view_action():
@@ -460,57 +521,6 @@ class TestIsOwnerOrHasRBACPermissions:
 
         assert PermClass.has_object_permission(request, None, thingy) is True
         assert PermClass.has_object_permission(MockedRequest(MockedUser([])), None, thingy) is False
-
-
-@pytest.mark.parametrize(
-    "role,required_role,org_has_rbac_enabled,expected_result",
-    [
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.VIEWER,
-            True,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.VIEWER,
-            False,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.ADMIN,
-            LegacyAccessControlRole.VIEWER,
-            True,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.ADMIN,
-            LegacyAccessControlRole.VIEWER,
-            False,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.ADMIN,
-            True,
-            False,
-        ),
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.ADMIN,
-            False,
-            False,
-        ),
-    ],
-)
-def test_user_is_authorized_basic_role(
-    role,
-    required_role,
-    org_has_rbac_enabled,
-    expected_result,
-) -> None:
-    user = MockedUser([], org_has_rbac_enabled=org_has_rbac_enabled, basic_role=role)
-    assert user_is_authorized(user, [], required_role) == expected_result
 
 
 class TestBasicRolePermission:

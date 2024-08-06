@@ -146,8 +146,8 @@ class SlackTeamIdentity(models.Model):
         members = self.get_conversation_members(sc, channel_id)
 
         return organization.users.filter(
+            User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
             slack_user_identity__slack_id__in=members,
-            **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
     def get_conversation_members(self, slack_client: SlackClient, channel_id: str):

@@ -38,8 +38,8 @@ class CloudUsersView(CloudUsersPagination, APIView):
         organization = request.user.organization
 
         queryset = User.objects.filter(
+            User.build_permissions_query(RBACPermission.Permissions.NOTIFICATIONS_READ, organization),
             organization=organization,
-            **User.build_permissions_query(RBACPermission.Permissions.NOTIFICATIONS_READ, organization),
         )
 
         if request.user.current_team is not None:
