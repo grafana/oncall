@@ -15,6 +15,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/insights-and-metrics/
   - /docs/grafana-cloud/alerting-and-irm/oncall/insights-and-metrics/
   - ../insights-and-metrics/ # /docs/oncall/<ONCALL_VERSION>/insights-and-metrics/
+refs:
+  grafana-oncall-api:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/
 ---
 
 # Insight Logs and Metrics
@@ -295,8 +301,3 @@ Actions performed with slack chatops integration:
 ```logql
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
-
-{{% docs/reference %}}
-[Grafana OnCall API]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/oncall-api-reference"
-[Grafana OnCall API]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
-{{% /docs/reference %}}

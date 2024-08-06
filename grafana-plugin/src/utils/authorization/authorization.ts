@@ -2,7 +2,9 @@ import { OrgRole } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 
-const ONCALL_PERMISSION_PREFIX = 'grafana-oncall-app';
+import { getPluginId } from 'utils/consts';
+
+const ONCALL_PERMISSION_PREFIX = getPluginId();
 
 export type UserAction = {
   permission: string;

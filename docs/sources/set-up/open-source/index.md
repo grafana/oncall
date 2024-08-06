@@ -13,6 +13,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/
   - /docs/grafana-cloud/alerting-and-irm/oncall/open-source/
   - ../open-source/ # /docs/oncall/<ONCALL_VERSION>/open-source/
+refs:
+  grafana-oncall-mobile-app:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/mobile-app/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/
+  inbound-email-integration:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/inbound-email/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/inbound-email/
 ---
 
 # Grafana OnCall open source guide
@@ -280,7 +291,7 @@ After enabling the email integration, it will be possible to use the `Notify by 
 
 ## Inbound Email Setup
 
-Grafana OnCall is capable of creating alert groups from the [Inbound email integration][].
+Grafana OnCall is capable of creating alert groups from the [Inbound email integration](ref:inbound-email-integration).
 
 To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
 
@@ -311,7 +322,7 @@ Refer to [Install Grafana OnCall OSS](#install-grafana-oncall-oss) before contin
 For Grafana OnCall OSS, the mobile app QR code includes an authentication token along with a backend URL.
 Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
 
-For more information, refer to [Grafana OnCall mobile app][].
+For more information, refer to [Grafana OnCall mobile app](ref:grafana-oncall-mobile-app).
 
 ## Alert Group Escalation Auditor
 
@@ -341,11 +352,3 @@ To configure this feature as such:
 
 Additionally, if you prefer to disable this feature, you can set the `ESCALATION_AUDITOR_ENABLED` environment variable
 to `False`.
-
-{{% docs/reference %}}
-[Inbound email integration]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/inbound-email"
-[Inbound email integration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/inbound-email"
-
-[Grafana OnCall mobile app]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/mobile-app"
-[Grafana OnCall mobile app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app"
-{{% /docs/reference %}}

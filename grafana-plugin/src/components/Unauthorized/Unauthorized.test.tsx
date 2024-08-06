@@ -5,6 +5,7 @@ import { contextSrv } from 'grafana/app/core/core';
 import renderer from 'react-test-renderer';
 
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';
+import { getPluginId } from 'utils/consts';
 
 jest.mock('grafana/app/core/core', () => ({
   contextSrv: {
@@ -19,7 +20,7 @@ describe('Unauthorized', () => {
       .create(
         <Unauthorized
           requiredUserAction={{
-            permission: 'grafana-oncall-app.testing:hi',
+            permission: `${getPluginId()}.testing:hi`,
             fallbackMinimumRoleRequired: OrgRole.Admin,
           }}
         />
@@ -36,7 +37,7 @@ describe('Unauthorized', () => {
         .create(
           <Unauthorized
             requiredUserAction={{
-              permission: 'grafana-oncall-app.testing:hi',
+              permission: `${getPluginId()}.testing:hi`,
               fallbackMinimumRoleRequired: role,
             }}
           />

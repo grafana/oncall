@@ -9,6 +9,7 @@ import { AppRootProps } from 'types';
 import logo from 'assets/img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
+import { getPluginId } from 'utils/consts';
 import { loadJs } from 'utils/loadJs';
 
 export type PluginSetupProps = AppRootProps & {
@@ -54,7 +55,7 @@ export const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponen
               <Button variant="primary" onClick={setupPlugin} size="sm">
                 Retry
               </Button>
-              <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
+              <LinkButton href={`/plugins/${getPluginId()}?page=configuration`} variant="primary" size="sm">
                 Configure Plugin
               </LinkButton>
             </HorizontalGroup>

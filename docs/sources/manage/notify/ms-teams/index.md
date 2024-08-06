@@ -10,6 +10,9 @@ keywords:
   - MS Teams
   - Microsoft
   - Channels
+labels:
+  products:
+    - cloud
 canonical: https://grafana.com/docs/oncall/latest/manage/notify/ms-teams/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/ms-teams/
