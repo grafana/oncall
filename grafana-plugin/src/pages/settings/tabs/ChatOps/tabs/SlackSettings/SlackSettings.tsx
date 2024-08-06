@@ -296,13 +296,12 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </div>
             <Text className={cx('infoblock-text')}>
               {isUnifiedSlackEnabled
-                ? 'TODO: Some unified slack text'
+                ? 'Connecting Slack App will allow you to manage alert groups and incidents in your team Slack workspace.'
                 : 'Connecting Slack App will allow you to manage alert groups in your team Slack workspace.'}
             </Text>
             <Text className={cx('infoblock-text')}>
-              {isUnifiedSlackEnabled
-                ? 'TODO: Some unified slack text'
-                : 'After a basic workspace connection your team members need to connect their personal Slack accounts in order to be allowed to manage alert groups.'}
+              After a basic workspace connection your team members need to connect their personal Slack accounts in
+              order to be allowed to manage alert groups.
             </Text>
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>
