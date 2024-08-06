@@ -9,6 +9,7 @@ import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import { MSTeamsSettings } from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
+import { MattermostSettings } from 'pages/settings/tabs/ChatOps/tabs/MattermostSettings/MattermostSettings';
 import { SlackSettings } from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import { TelegramSettings } from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
@@ -22,6 +23,7 @@ export enum ChatOpsTab {
   Slack = 'Slack',
   Telegram = 'Telegram',
   MSTeams = 'MSTeams',
+  Mattermost = 'Mattermost',
 }
 interface ChatOpsProps extends AppRootProps, WithStoreProps, Themeable2 {}
 interface ChatOpsState {
@@ -92,7 +94,8 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
     return (
       store.hasFeature(AppFeature.Slack) ||
       store.hasFeature(AppFeature.Telegram) ||
-      store.hasFeature(AppFeature.MsTeams)
+      store.hasFeature(AppFeature.MsTeams) ||
+      store.hasFeature(AppFeature.Mattermost)
     );
   }
 
@@ -140,6 +143,14 @@ const Tabs = (props: TabsProps) => {
           </Stack>
         </VerticalTab>
       )}
+      {store.hasFeature(AppFeature.Mattermost) && (
+        <VerticalTab id={ChatOpsTab.Mattermost}>
+          <Stack>
+            <Icon name="message" />
+            Mattermost
+          </Stack>
+        </VerticalTab>
+      )}
     </VerticalTabsBar>
   );
 };
@@ -157,6 +168,7 @@ const TabsContent = (props: TabsContentProps) => {
       {store.hasFeature(AppFeature.Slack) && activeTab === ChatOpsTab.Slack && <SlackSettings />}
       {store.hasFeature(AppFeature.Telegram) && activeTab === ChatOpsTab.Telegram && <TelegramSettings />}
       {store.hasFeature(AppFeature.MsTeams) && activeTab === ChatOpsTab.MSTeams && <MSTeamsSettings />}
+      {store.hasFeature(AppFeature.Mattermost) && activeTab === ChatOpsTab.Mattermost && <MattermostSettings />}
     </>
   );
 };

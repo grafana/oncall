@@ -13,7 +13,12 @@ from social_core.backends.google import GoogleOAuth2
 from social_django.utils import psa
 from social_django.views import _do_login
 
-from apps.auth_token.auth import GoogleTokenAuthentication, PluginAuthentication, SlackTokenAuthentication
+from apps.auth_token.auth import (
+    GoogleTokenAuthentication,
+    MattermostTokenAuthentication,
+    PluginAuthentication,
+    SlackTokenAuthentication,
+)
 from apps.chatops_proxy.utils import (
     get_installation_link_from_chatops_proxy,
     get_slack_oauth_response_from_chatops_proxy,
@@ -67,7 +72,7 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
 
 
 @api_view(["GET"])
-@authentication_classes([GoogleTokenAuthentication, SlackTokenAuthentication])
+@authentication_classes([GoogleTokenAuthentication, SlackTokenAuthentication, MattermostTokenAuthentication])
 @never_cache
 @csrf_exempt
 @psa("social:complete")
