@@ -211,6 +211,10 @@ Refer to the following steps to configure the Telegram integration:
    Alternatively, in case you want to connect Telegram channels to your Grafana OnCall environment, navigate
    to the **ChatOps** tab.
 
+## Mattermost Setup
+
+TODO: To Be Updated
+
 ## Grafana OSS-Cloud Setup
 
 The benefits of connecting to Grafana Cloud OnCall include:
