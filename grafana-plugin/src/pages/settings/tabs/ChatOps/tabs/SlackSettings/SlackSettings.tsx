@@ -156,10 +156,19 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
           <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
             {isUnifiedSlackInstalled ? (
               <WithConfirm
-                title="TODO: uninstall unified slack title"
+                title="Remove IRM Slack integration"
                 description={
                   <Alert severity="error" title="WARNING">
-                    <p>TODO: uninstall unified slack description</p>
+                    <p>Are you sure to delete this Slack Integration? It will affect both OnCall & Incident.</p>
+                    <p>Removing the integration will irreverisbly remove the following data for IRM;</p>
+                    <ul style={{ marginLeft: '20px' }}>
+                      <li>OnCall default Slack channel</li>
+                      <li>Slack channels for OnCall escalation policies</li>
+                      <li>Slack channels & Slack user groups for OnCall Schedules</li>
+                      <li>linked Slack usernames for OnCall Users</li>
+                      <li>Incident hooks</li>
+                    </ul>
+                    <br />
                   </Alert>
                 }
                 confirmationText="DELETE"
@@ -348,7 +357,9 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
         title="Upgrade to Grafana IRM unified Slack app"
         buttonContent={<div>Upgrade</div>}
       >
-        TODO: some description
+        We've rebranded the OnCall Slack app as the Grafana IRM Slack app, now with incident management features.
+        <p>Click "Upgrade" to reviewn and approve the new permissions and complete the process.</p>
+        <p>For more details, check our documentation.</p>
         <Button
           variant="secondary"
           className={styles.upgradeSlackBtn}
@@ -358,7 +369,25 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
               onConfirm: installSlackIntegration,
               confirmButtonVariant: 'primary',
               title: `Upgrade to Grafana IRM Slack app`,
-              description: 'TODO: some description',
+              description: (
+                <div>
+                  <p>
+                    You will be redirected to Slack to approve additional permissions for the Grafana IRM Slack app.{' '}
+                  </p>
+                  <p>
+                    These permissions are necessary for incident management. You can view the detailed list of new
+                    permissions here.[LINK]
+                  </p>
+                  <p>After the upgrade, you'll be able to manage incidents in Slack using the Grafana IRM Slack app.</p>
+                  <ul style={{ marginLeft: '20px' }}>
+                    <li>Your OnCall Slack configuration will remain unchanged. </li>
+                    <li>
+                      Your Incident Slack integration will be upgraded to use the Grafana IRM Slack app. Please refer to
+                      the documentation for more details.[LINK]
+                    </li>
+                  </ul>
+                </div>
+              ),
               confirmVariant: 'secondary',
             })
           }
