@@ -9,4 +9,5 @@ export enum AppFeature {
   MsTeams = 'msteams',
   GoogleOauth2 = 'google_oauth2',
   PersonalWebhook = 'personal_webhook',
+  Mattermost = 'mattermost',
 }

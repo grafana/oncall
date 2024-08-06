@@ -27,7 +27,11 @@ class Feature(enum.StrEnum):
     LABELS = "labels"
     GOOGLE_OAUTH2 = "google_oauth2"
     SERVICE_DEPENDENCIES = "service_dependencies"
+<<<<<<< HEAD
     PERSONAL_WEBHOOK = "personal_webhook"
+=======
+    MATTERMOST = "mattermost"
+>>>>>>> 99ba40e8b (Add mattermost OAuth2 flow)
 
 
 class FeaturesAPIView(APIView):
@@ -79,5 +83,8 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_PERSONAL_WEBHOOK_ENABLED:
             enabled_features.append(Feature.PERSONAL_WEBHOOK)
+
+        if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+            enabled_features.append(Feature.MATTERMOST)
 
         return enabled_features
