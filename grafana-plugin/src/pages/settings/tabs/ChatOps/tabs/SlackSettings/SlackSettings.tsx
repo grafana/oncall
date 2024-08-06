@@ -224,7 +224,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </WithPermissionControlTooltip>
           </HorizontalGroup>
         </InlineField>
-        {1 === 1 && (
+        {isUnifiedSlackInstalled && (
           <div className={styles.linkToIncidentWrapper}>
             <PluginBridge plugin={SupportedPlugin.Incident}>
               <Text type="secondary">
