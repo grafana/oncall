@@ -5,6 +5,7 @@ DIGEST_LENGTH = 128
 MAX_PUBLIC_API_TOKENS_PER_USER = 5
 
 SLACK_AUTH_TOKEN_NAME = "slack_login_token"
+MATTERMOST_AUTH_TOKEN_NAME = "state"
 GOOGLE_OAUTH2_AUTH_TOKEN_NAME = "state"
 """
 We must use the `state` query param, otherwise Google returns a 400 error.
