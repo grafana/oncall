@@ -25,6 +25,7 @@ class Feature(enum.StrEnum):
     GRAFANA_ALERTING_V2 = "grafana_alerting_v2"
     LABELS = "labels"
     GOOGLE_OAUTH2 = "google_oauth2"
+    MATTERMOST = "mattermost"
 
 
 class FeaturesAPIView(APIView):
@@ -67,5 +68,8 @@ class FeaturesAPIView(APIView):
 
         if settings.GOOGLE_OAUTH2_ENABLED:
             enabled_features.append(Feature.GOOGLE_OAUTH2)
+
+        if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+            enabled_features.append(Feature.MATTERMOST)
 
         return enabled_features

@@ -113,13 +113,22 @@ class FastOrganizationSerializer(serializers.ModelSerializer):
 class CurrentOrganizationConfigChecksSerializer(serializers.ModelSerializer):
     is_chatops_connected = serializers.SerializerMethodField()
     is_integration_chatops_connected = serializers.SerializerMethodField()
+    mattermost = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
         fields = [
             "is_chatops_connected",
             "is_integration_chatops_connected",
+            "mattermost",
         ]
+
+    def get_mattermost(self, obj):
+        env_status = not LiveSetting.objects.filter(name__startswith="MATTERMOST", error__isnull=False).exists()
+        return {
+            "env_status": env_status,
+            "is_integrated": False,  # TODO: Add logic to verify if mattermost is integrated
+        }
 
     def get_is_chatops_connected(self, obj):
         msteams_backend = get_messaging_backend_from_id("MSTEAMS")
