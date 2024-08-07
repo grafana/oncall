@@ -11,13 +11,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.api.views.user import UPCOMING_SHIFTS_DEFAULT_DAYS
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
-from apps.user_management.models.user import default_working_hours
+from apps.user_management.models.user import User, default_working_hours
 
 
 @pytest.fixture(autouse=True)
@@ -315,15 +315,17 @@ def test_list_users(
     assert response.json() == expected_payload
 
 
+@pytest.mark.parametrize("permission_value_attr", ["value_oncall_app", "value_irm_app"])
 @pytest.mark.django_db
 def test_list_users_filtered_by_granted_permission(
     make_organization,
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
+    permission_value_attr,
 ):
-    perm_to_filter_on = RBACPermission.Permissions.NOTIFICATIONS_READ.value
-    perms_to_grant = [GrafanaAPIPermission(action=perm_to_filter_on)]
+    perm_to_filter_on = getattr(RBACPermission.Permissions.NOTIFICATIONS_READ, permission_value_attr)
+    perms_to_grant = User.construct_permissions_from_actions([perm_to_filter_on])
 
     organization = make_organization()
     admin_user = make_user_for_organization(organization)

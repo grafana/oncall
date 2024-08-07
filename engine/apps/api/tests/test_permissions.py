@@ -10,10 +10,10 @@ from apps.api.permissions import (
     BasicRolePermission,
     BasicRolePermissionsAttribute,
     GrafanaAPIPermission,
+    GrafanaAPIPermissions,
     HasRBACPermissions,
     IsOwner,
     IsOwnerOrHasRBACPermissions,
-    LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACObjectPermissionsAttribute,
     RBACPermission,
@@ -34,13 +34,20 @@ class MockedOrg:
 class MockedUser:
     def __init__(
         self,
-        permissions: typing.List[LegacyAccessControlCompatiblePermission],
+        permissions: typing.List[GrafanaAPIPermission],
         org_has_rbac_enabled=True,
         basic_role: typing.Optional[LegacyAccessControlRole] = None,
     ) -> None:
-        self.permissions = [GrafanaAPIPermission(action=perm.value_oncall_app) for perm in permissions]
+        self.permissions = GrafanaAPIPermissions.construct_permissions([perm.value_oncall_app for perm in permissions])
         self.role = basic_role if basic_role is not None else get_most_authorized_role(permissions)
         self.organization = MockedOrg(org_has_rbac_enabled)
+
+
+class MockedUserBasic:
+    def __init__(self, permissions, role, org_has_rbac_enabled) -> None:
+        self.permissions = permissions
+        self.role = role
+        self.organization = MockedOrg(org_has_rbac_enabled=org_has_rbac_enabled)
 
 
 class MockedSchedule:
@@ -94,23 +101,19 @@ class MockedAPIView(APIView):
 
 class TestLegacyAccessControlCompatiblePermission:
     @pytest.mark.parametrize(
-        "permission_to_test,user_permissions,user_basic_role,org_has_rbac_enabled,expected_result",
+        "permission_to_test,user_permission_prefix,user_basic_role,org_has_rbac_enabled,expected_result",
         [
             # rbac enabled
             (
                 RBACPermission.Permissions.ALERT_GROUPS_READ,
-                [
-                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                ],
+                PluginID.ONCALL,
                 LegacyAccessControlRole.VIEWER,
                 True,
                 True,
             ),
             (
                 RBACPermission.Permissions.ALERT_GROUPS_WRITE,
-                [
-                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                ],
+                PluginID.ONCALL,
                 LegacyAccessControlRole.VIEWER,
                 True,
                 False,
@@ -118,9 +121,7 @@ class TestLegacyAccessControlCompatiblePermission:
             # rbac enabled - cross-plugin prefixed permissions work
             (
                 RBACPermission.Permissions.ALERT_GROUPS_READ,
-                [
-                    {"action": f"{PluginID.IRM}.alert-groups:read"},
-                ],
+                PluginID.IRM,
                 LegacyAccessControlRole.VIEWER,
                 True,
                 True,
@@ -128,33 +129,27 @@ class TestLegacyAccessControlCompatiblePermission:
             # rbac disabled
             (
                 RBACPermission.Permissions.ALERT_GROUPS_READ,
-                [
-                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                ],
+                PluginID.ONCALL,
                 LegacyAccessControlRole.VIEWER,
                 False,
                 True,
             ),
             (
                 RBACPermission.Permissions.ALERT_GROUPS_WRITE,
-                [
-                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                ],
+                PluginID.ONCALL,
                 LegacyAccessControlRole.VIEWER,
                 False,
                 False,
             ),
         ],
     )
-    def test_user_has_permission(self, permission_to_test, user_permissions, user_basic_role,
-                                 org_has_rbac_enabled, expected_result):
-        class MockedUser:
-            def __init__(self) -> None:
-                self.permissions = user_permissions
-                self.role = user_basic_role
-                self.organization = MockedOrg(org_has_rbac_enabled=org_has_rbac_enabled)
+    def test_user_has_permission(
+        self, permission_to_test, user_permission_prefix, user_basic_role, org_has_rbac_enabled, expected_result
+    ):
+        user_permissions = GrafanaAPIPermissions.construct_permissions([f"{user_permission_prefix}.alert-groups:read"])
+        user = MockedUserBasic(user_permissions, user_basic_role, org_has_rbac_enabled)
 
-        assert permission_to_test.user_has_permission(MockedUser()) == expected_result
+        assert permission_to_test.user_has_permission(user) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -218,28 +213,28 @@ def test_user_is_authorized(user_permissions, required_permissions, org_has_rbac
 @pytest.mark.parametrize(
     "user_permissions",
     [
-        [
-            {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-            {"action": f"{PluginID.ONCALL}.schedules:read"},
-        ],
-        [
-            {"action": f"{PluginID.IRM}.alert-groups:read"},
-            {"action": f"{PluginID.IRM}.schedules:read"},
-        ],
-        [
-            {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-            {"action": f"{PluginID.IRM}.schedules:read"},
-        ],
+        GrafanaAPIPermissions.construct_permissions(
+            [
+                f"{PluginID.ONCALL}.alert-groups:read",
+                f"{PluginID.ONCALL}.schedules:read",
+            ]
+        ),
+        GrafanaAPIPermissions.construct_permissions(
+            [
+                f"{PluginID.IRM}.alert-groups:read",
+                f"{PluginID.IRM}.schedules:read",
+            ]
+        ),
+        GrafanaAPIPermissions.construct_permissions(
+            [
+                f"{PluginID.ONCALL}.alert-groups:read",
+                f"{PluginID.IRM}.schedules:read",
+            ]
+        ),
     ],
 )
 def test_user_is_authorized_grafana_irm_app(user_permissions):
-    class MockedUser:
-        def __init__(self, permissions: typing.List[GrafanaAPIPermission]) -> None:
-            self.permissions = permissions
-            self.role = None  # doesn't matter here...
-            self.organization = MockedOrg(org_has_rbac_enabled=True)
-
-    user = MockedUser(user_permissions)
+    user = MockedUserBasic(user_permissions, None, True)
     required_permissions = [
         RBACPermission.Permissions.ALERT_GROUPS_READ,
         RBACPermission.Permissions.SCHEDULES_READ,

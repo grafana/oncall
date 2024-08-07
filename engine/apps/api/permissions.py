@@ -51,6 +51,12 @@ class GrafanaAPIPermission(typing.TypedDict):
     action: str
 
 
+class GrafanaAPIPermissions:
+    @classmethod
+    def construct_permissions(cls, actions: typing.List[str]) -> typing.List[GrafanaAPIPermission]:
+        return [GrafanaAPIPermission(action=action) for action in actions]
+
+
 class Resources(enum.Enum):
     ALERT_GROUPS = "alert-groups"
     INTEGRATIONS = "integrations"
@@ -134,7 +140,7 @@ def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCo
     RBAC permissions are used if RBAC is enabled for the organization, otherwise the fallback basic role is checked.
     """
     if user.organization.is_rbac_permissions_enabled:
-        user_permissions = [u["action"] for u in user.permissions]
+        user_permissions = user.get_list_of_permission_actions()
 
         for permission in required_permissions:
             if permission.value_oncall_app not in user_permissions and permission.value_irm_app not in user_permissions:

@@ -328,7 +328,9 @@ def _sync_users_data(organization: Organization, sync_users: list[SyncUser], del
             username=user.login,
             role=getattr(LegacyAccessControlRole, user.role.upper(), LegacyAccessControlRole.NONE),
             avatar_url=user.avatar_url,
-            permissions=[{"action": permission.action} for permission in user.permissions] if user.permissions else [],
+            permissions=User.construct_permissions_from_actions([p.action for p in user.permissions])
+            if user.permissions
+            else [],
         )
         for user in sync_users
     )

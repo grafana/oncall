@@ -9,7 +9,7 @@ import requests
 from django.conf import settings
 from rest_framework import status
 
-from apps.api.permissions import GrafanaAPIPermission
+from apps.api.permissions import GrafanaAPIPermission, GrafanaAPIPermissions
 from common.constants.plugin_ids import PluginID
 
 logger = logging.getLogger(__name__)
@@ -253,7 +253,7 @@ class GrafanaAPIClient(APIClient):
 
         def _transform_permissions_response_into_all_users_permissions(api_response_data):
             for user_id, user_permissions in api_response_data.items():
-                perms = [GrafanaAPIPermission(action=key) for key, _ in user_permissions.items()]
+                perms = GrafanaAPIPermissions.construct_permissions(user_permissions.keys())
                 all_users_permissions[user_id].extend(perms)
 
         _transform_permissions_response_into_all_users_permissions(oncall_permissions)

@@ -385,7 +385,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             name="Grafana Service Account",
             username="grafana_service_account",
             role=role,
-            permissions=[GrafanaAPIPermission(action=key) for key, _ in permissions.items()],
+            permissions=User.construct_permissions_from_actions(permissions.keys()),
         )
 
         auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")

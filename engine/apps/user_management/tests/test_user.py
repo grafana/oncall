@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.test import override_settings
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole, RBACPermission
+from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole, RBACPermission
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
 
@@ -212,8 +212,8 @@ PERM = RBACPermission.Permissions.ALERT_GROUPS_READ
         (
             True,
             settings.DATABASE_TYPES.MYSQL,
-            Q(permissions__contains=[{"action": PERM.value_oncall_app}])
-            | Q(permissions__contains=[{"action": PERM.value_irm_app}]),
+            Q(permissions__contains=GrafanaAPIPermissions.construct_permissions([PERM.value_oncall_app]))
+            | Q(permissions__contains=GrafanaAPIPermissions.construct_permissions([PERM.value_irm_app])),
         ),
     ],
 )

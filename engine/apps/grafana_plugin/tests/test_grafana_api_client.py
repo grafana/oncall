@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from rest_framework import status
 
+from apps.api.permissions import GrafanaAPIPermissions
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from common.constants.plugin_ids import PluginID
 
@@ -37,12 +38,14 @@ class TestGetUsersPermissions:
 
         permissions = api_client.get_users_permissions()
         assert permissions == {
-            "1": [
-                {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                {"action": f"{PluginID.ONCALL}.alert-groups:write"},
-                {"action": f"{PluginID.IRM}.alert-groups:read"},
-                {"action": f"{PluginID.IRM}.alert-groups:write"},
-            ]
+            "1": GrafanaAPIPermissions.construct_permissions(
+                [
+                    f"{PluginID.ONCALL}.alert-groups:read",
+                    f"{PluginID.ONCALL}.alert-groups:write",
+                    f"{PluginID.IRM}.alert-groups:read",
+                    f"{PluginID.IRM}.alert-groups:write",
+                ]
+            )
         }
 
 
@@ -58,19 +61,23 @@ class TestGetUsers:
                     {"userId": 2, "foo": "baz"},
                 ],
                 {
-                    "1": [
-                        {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                        {"action": f"{PluginID.ONCALL}.alert-groups:write"},
-                    ],
+                    "1": GrafanaAPIPermissions.construct_permissions(
+                        [
+                            f"{PluginID.ONCALL}.alert-groups:read",
+                            f"{PluginID.ONCALL}.alert-groups:write",
+                        ]
+                    ),
                 },
                 [
                     {
                         "userId": 1,
                         "foo": "bar",
-                        "permissions": [
-                            {"action": f"{PluginID.ONCALL}.alert-groups:read"},
-                            {"action": f"{PluginID.ONCALL}.alert-groups:write"},
-                        ],
+                        "permissions": GrafanaAPIPermissions.construct_permissions(
+                            [
+                                f"{PluginID.ONCALL}.alert-groups:read",
+                                f"{PluginID.ONCALL}.alert-groups:write",
+                            ]
+                        ),
                     },
                     {
                         "userId": 2,

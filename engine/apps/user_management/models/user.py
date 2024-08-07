@@ -15,6 +15,7 @@ from django.dispatch import receiver
 from emoji import demojize
 
 from apps.api.permissions import (
+    GrafanaAPIPermissions,
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACPermission,
@@ -317,8 +318,17 @@ class User(models.Model):
     def insight_logs_metadata(self):
         return {}
 
-    @staticmethod
-    def build_permissions_query(permission: LegacyAccessControlCompatiblePermission, organization) -> Q:
+    def get_list_of_permission_actions(self) -> typing.List[str]:
+        if not self.permissions:
+            return []
+        return [perm["action"] for perm in self.permissions]
+
+    @classmethod
+    def construct_permissions_from_actions(cls, actions: typing.List[str]):
+        return GrafanaAPIPermissions.construct_permissions(actions)
+
+    @classmethod
+    def build_permissions_query(cls, permission: LegacyAccessControlCompatiblePermission, organization) -> Q:
         """
         This method returns a django `Q` instance that is compatible with RBAC
         as well as legacy "basic" role based authorization. If a permission is provided we simply do
@@ -339,7 +349,7 @@ class User(models.Model):
                 return _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
 
             def _build_q_object(value: str) -> Q:
-                return Q(permissions__contains=[{"action": value}])
+                return Q(permissions__contains=cls.construct_permissions_from_actions([value]))
 
             return _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
 
