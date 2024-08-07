@@ -54,7 +54,7 @@ def test_application_metrics_collectors(
     metric_base_names_and_metric_names,
     settings,
 ):
-    """Test metric collectors generate expected metrics from cache"""
+    """Test that ApplicationMetricsCollector generates expected metrics from cache"""
 
     def get_expected_labels(service_name=NO_SERVICE_VALUE, **kwargs):
         labels = {
@@ -121,7 +121,7 @@ def test_application_metrics_collectors(
 def test_application_metrics_collector_with_old_metrics_without_services(
     mocked_org_ids, mocked_start_calculate_and_cache_metrics, mock_cache_get_old_metrics_for_collector
 ):
-    """Test that AlertGroupsAndNotificationsMetricsCollector generates expected metrics from cache"""
+    """Test that ApplicationMetricsCollector generates expected metrics from cache"""
 
     org_id = 1
     collector = ApplicationMetricsCollector()
