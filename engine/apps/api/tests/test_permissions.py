@@ -14,6 +14,7 @@ from apps.api.permissions import (
     HasRBACPermissions,
     IsOwner,
     IsOwnerOrHasRBACPermissions,
+    LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACObjectPermissionsAttribute,
     RBACPermission,
@@ -34,7 +35,7 @@ class MockedOrg:
 class MockedUser:
     def __init__(
         self,
-        permissions: typing.List[GrafanaAPIPermission],
+        permissions: typing.List[LegacyAccessControlCompatiblePermission],
         org_has_rbac_enabled=True,
         basic_role: typing.Optional[LegacyAccessControlRole] = None,
     ) -> None:
