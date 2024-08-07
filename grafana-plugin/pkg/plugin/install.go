@@ -84,13 +84,27 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		w.Header().Add("Content-Type", "application/json")
-		installError := OnCallInstall{
+		errorBody, err := io.ReadAll(res.Body)
+		var installError = OnCallInstall{
 			OnCallError: OnCallError{
 				Code:    INSTALL_ERROR_CODE,
 				Message: "Install failed check /status for details",
 			},
 		}
+		if errorBody != nil {
+			var tempError OnCallError
+			err = json.Unmarshal(errorBody, &tempError)
+			if err != nil {
+				log.DefaultLogger.Error("Error unmarshalling OnCallError", "error", err)
+			}
+			if tempError.Message == "" {
+				installError.OnCallError.Message = string(errorBody)
+			} else {
+				installError.OnCallError = tempError
+			}
+		}
+
+		w.Header().Add("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(installError); err != nil {
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 			return

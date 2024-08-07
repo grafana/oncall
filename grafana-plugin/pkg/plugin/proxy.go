@@ -90,6 +90,9 @@ func SetOnCallUserHeader(onCallUser *OnCallUser, req *http.Request) error {
 }
 
 func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCallPluginSettings, req *http.Request) error {
+	req.Header.Del("Cookie")
+	req.Header.Del("Set-Cookie")
+
 	user := httpadapter.UserFromContext(ctx)
 	onCallUser, err := a.GetUserForHeader(settings, user)
 	if err != nil {

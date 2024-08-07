@@ -61,7 +61,7 @@ type OnCallSettingsCache struct {
 	otherPluginSettingsExpiry time.Time
 }
 
-const CLOUD_VERSION_PATTERN = `^(r\d+-v\d+\.\d+\.\d+|^github-actions-\d+)$`
+const CLOUD_VERSION_PATTERN = `^(r\d+-v?\d+\.\d+\.\d+|^github-actions-\d+)$`
 const OSS_VERSION_PATTERN = `^(v?\d+\.\d+\.\d+|dev-oss)$`
 const CLOUD_LICENSE_NAME = "Cloud"
 const OPEN_SOURCE_LICENSE_NAME = "OpenSource"
