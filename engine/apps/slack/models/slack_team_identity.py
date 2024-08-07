@@ -14,12 +14,10 @@ from apps.slack.errors import (
     SlackAPIInvalidAuthError,
     SlackAPITokenError,
 )
-from apps.user_management.models.user import User
+from apps.user_management.models import Organization, User
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
-
-    from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 
@@ -141,12 +139,13 @@ class SlackTeamIdentity(models.Model):
     def needs_reinstall(self):
         return settings.UNIFIED_SLACK_APP_ENABLED and not self._unified_slack_app_installed
 
-    def get_users_from_slack_conversation_for_organization(self, channel_id, organization):
+    def get_users_from_slack_conversation_for_organization(self, channel_id, organization: Organization):
         sc = SlackClient(self)
         members = self.get_conversation_members(sc, channel_id)
 
-        return organization.users.filter(
-            User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
+        return User.objects.filter_by_permission(
+            RBACPermission.Permissions.CHATOPS_WRITE,
+            organization,
             slack_user_identity__slack_id__in=members,
         )
 

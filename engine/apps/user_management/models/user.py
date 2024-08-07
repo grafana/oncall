@@ -74,6 +74,36 @@ class UserQuerySet(models.QuerySet):
     def filter_with_deleted(self, *args, **kwargs):
         return super().filter(*args, **kwargs)
 
+    def filter_by_permission(self, permission: LegacyAccessControlCompatiblePermission,
+                             organization: "Organization", *args, **kwargs):
+        """
+        This method builds a filter query that is compatible with RBAC as well as legacy "basic" role based
+        authorization. If a permission is provided we simply do a regex search where the permission column
+        contains the permission value (need to use regex because the JSON contains method is not supported by sqlite).
+        Additionally, we check whether the user has either the `grafana-oncall-app` OR `grafana-irm-app`
+        prefixed-version of the permission.
+
+        If RBAC is not supported for the org, we make the assumption that we are looking for any users with AT LEAST
+        the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
+        """
+        if organization.is_rbac_permissions_enabled:
+            # https://stackoverflow.com/a/50251879
+            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
+                # contains is not supported on sqlite
+                def _build_q_object(value: str) -> Q:
+                    return Q(permissions__regex=re.escape(value))
+
+                query = _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
+            else:
+                def _build_q_object(value: str) -> Q:
+                    return Q(permissions__contains=User.construct_permissions_from_actions([value]))
+
+                query = _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
+        else:
+            query = Q(role__lte=permission.fallback_role.value)
+
+        return self.filter(query, organization=organization, *args, **kwargs)
+
     def delete(self):
         # is_active = None is used to be able to have multiple deleted users with the same user_id
         return super().update(is_active=None)
@@ -326,34 +356,6 @@ class User(models.Model):
     @classmethod
     def construct_permissions_from_actions(cls, actions: typing.List[str]):
         return GrafanaAPIPermissions.construct_permissions(actions)
-
-    @classmethod
-    def build_permissions_query(cls, permission: LegacyAccessControlCompatiblePermission, organization) -> Q:
-        """
-        This method returns a django `Q` instance that is compatible with RBAC
-        as well as legacy "basic" role based authorization. If a permission is provided we simply do
-        a regex search where the permission column contains the permission value (need to use regex because
-        the JSON contains method is not supported by sqlite). Additionally, we check whether the user has
-        either the `grafana-oncall-app` OR `grafana-irm-app` prefixed-version of the permission.
-
-        If RBAC is not supported for the org, we make the assumption that we are looking for any users with AT LEAST
-        the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
-        """
-        if organization.is_rbac_permissions_enabled:
-            # https://stackoverflow.com/a/50251879
-            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
-                # contains is not supported on sqlite
-                def _build_q_object(value: str) -> Q:
-                    return Q(permissions__regex=re.escape(value))
-
-                return _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
-
-            def _build_q_object(value: str) -> Q:
-                return Q(permissions__contains=cls.construct_permissions_from_actions([value]))
-
-            return _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
-
-        return Q(role__lte=permission.fallback_role.value)
 
     def get_default_fallback_notification_policy(self) -> "UserNotificationPolicy":
         from apps.base.models import UserNotificationPolicy

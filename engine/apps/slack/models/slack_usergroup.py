@@ -18,7 +18,7 @@ from apps.slack.errors import (
     SlackAPIUsergroupNotFoundError,
 )
 from apps.slack.models import SlackTeamIdentity
-from apps.user_management.models.user import User
+from apps.user_management.models import Organization, User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -132,9 +132,10 @@ class SlackUserGroup(models.Model):
             self.save(update_fields=("members",))
             logger.info(f"Saved cached memberlist for slack user group {self.slack_id}, members {slack_ids}")
 
-    def get_users_from_members_for_organization(self, organization):
-        return organization.users.filter(
-            User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
+    def get_users_from_members_for_organization(self, organization: Organization):
+        return User.objects.filter_by_permission(
+            RBACPermission.Permissions.CHATOPS_WRITE,
+            organization,
             slack_user_identity__slack_id__in=self.members,
         )
 

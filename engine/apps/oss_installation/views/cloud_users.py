@@ -37,10 +37,7 @@ class CloudUsersView(CloudUsersPagination, APIView):
     def get(self, request):
         organization = request.user.organization
 
-        queryset = User.objects.filter(
-            User.build_permissions_query(RBACPermission.Permissions.NOTIFICATIONS_READ, organization),
-            organization=organization,
-        )
+        queryset = User.objects.filter_by_permission(RBACPermission.Permissions.NOTIFICATIONS_READ, organization)
 
         if request.user.current_team is not None:
             queryset = queryset.filter(teams=request.user.current_team).distinct()
