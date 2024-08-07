@@ -92,6 +92,71 @@ class MockedAPIView(APIView):
             self.basic_role_permissions = basic_role_permissions
 
 
+class TestLegacyAccessControlCompatiblePermission:
+    @pytest.mark.parametrize(
+        "permission_to_test,user_permissions,user_basic_role,org_has_rbac_enabled,expected_result",
+        [
+            # rbac enabled
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+                [
+                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                ],
+                LegacyAccessControlRole.VIEWER,
+                True,
+                True,
+            ),
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                [
+                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                ],
+                LegacyAccessControlRole.VIEWER,
+                True,
+                False,
+            ),
+            # rbac enabled - cross-plugin prefixed permissions work
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+                [
+                    {"action": f"{PluginID.IRM}.alert-groups:read"},
+                ],
+                LegacyAccessControlRole.VIEWER,
+                True,
+                True,
+            ),
+            # rbac disabled
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+                [
+                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                ],
+                LegacyAccessControlRole.VIEWER,
+                False,
+                True,
+            ),
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                [
+                    {"action": f"{PluginID.ONCALL}.alert-groups:read"},
+                ],
+                LegacyAccessControlRole.VIEWER,
+                False,
+                False,
+            ),
+        ],
+    )
+    def test_user_has_permission(self, permission_to_test, user_permissions, user_basic_role,
+                                 org_has_rbac_enabled, expected_result):
+        class MockedUser:
+            def __init__(self) -> None:
+                self.permissions = user_permissions
+                self.role = user_basic_role
+                self.organization = MockedOrg(org_has_rbac_enabled=org_has_rbac_enabled)
+
+        assert permission_to_test.user_has_permission(MockedUser()) == expected_result
+
+
 @pytest.mark.parametrize(
     "user_permissions,required_permissions,org_has_rbac_enabled,expected_result",
     [

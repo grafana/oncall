@@ -97,6 +97,9 @@ class LegacyAccessControlCompatiblePermission:
         self.value_irm_app = self._construct_action_string(PluginID.IRM, resource, action)
         self.fallback_role = fallback_role
 
+    def user_has_permission(self, user: "User") -> bool:
+        return user_is_authorized(user, [self])
+
 
 LegacyAccessControlCompatiblePermissions = typing.List[LegacyAccessControlCompatiblePermission]
 RBACPermissionsAttribute = typing.Dict[str, LegacyAccessControlCompatiblePermissions]
