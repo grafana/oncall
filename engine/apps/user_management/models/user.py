@@ -74,8 +74,9 @@ class UserQuerySet(models.QuerySet):
     def filter_with_deleted(self, *args, **kwargs):
         return super().filter(*args, **kwargs)
 
-    def filter_by_permission(self, permission: LegacyAccessControlCompatiblePermission,
-                             organization: "Organization", *args, **kwargs):
+    def filter_by_permission(
+        self, permission: LegacyAccessControlCompatiblePermission, organization: "Organization", *args, **kwargs
+    ):
         """
         This method builds a filter query that is compatible with RBAC as well as legacy "basic" role based
         authorization. If a permission is provided we simply do a regex search where the permission column
@@ -95,6 +96,7 @@ class UserQuerySet(models.QuerySet):
 
                 query = _build_q_object(permission.value_oncall_app) | _build_q_object(permission.value_irm_app)
             else:
+
                 def _build_q_object(value: str) -> Q:
                     return Q(permissions__contains=User.construct_permissions_from_actions([value]))
 
@@ -102,7 +104,12 @@ class UserQuerySet(models.QuerySet):
         else:
             query = Q(role__lte=permission.fallback_role.value)
 
-        return self.filter(query, organization=organization, *args, **kwargs)
+        return self.filter(
+            query,
+            *args,
+            **kwargs,
+            organization=organization,
+        )
 
     def delete(self):
         # is_active = None is used to be able to have multiple deleted users with the same user_id
