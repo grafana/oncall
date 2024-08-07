@@ -82,7 +82,8 @@ class SlackMessage(models.Model):
 
     @property
     def permalink(self) -> typing.Optional[str]:
-        if self.cached_permalink or not self.slack_team_identity:
+        # Don't send request for permalink if there is no slack_team_identity or slack token has been revoked
+        if self.cached_permalink or not self.slack_team_identity or self.slack_team_identity.detected_token_revoked:
             return self.cached_permalink
 
         try:
