@@ -38,7 +38,7 @@ export const waitForSms = async (): Promise<string> => {
       // only start waiting for smses that would've been received after this function has been invoked
       since: new Date(),
       phoneNumberId: phoneNumber.id,
-      timeout: 30_000,
+      timeout: 180_000, // Wait for 3 minutes as SMS notifications are bundled and can take 2+ minutes to arrive
     },
   });
   return sms.body;
