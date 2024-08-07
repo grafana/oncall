@@ -173,7 +173,7 @@ class ApplicationMetricsCollector:
         missing_org_ids = org_ids - processed_org_ids
         return alert_groups_response_time_seconds, missing_org_ids
 
-    def _get_buckets_with_sum(self, values: typing.List[int]) -> typing.Tuple[typing.Dict[str, int], typing]:
+    def _get_buckets_with_sum(self, values: typing.List[int]) -> typing.Tuple[typing.Dict[str, float], int]:
         """Put values in correct buckets and count values sum"""
         buckets_values = {str(key): 0 for key in self._buckets}
         sum_value = 0
