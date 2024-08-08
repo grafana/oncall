@@ -582,6 +582,14 @@
         "scope": "plugins:id:grafana-oncall-app"
       },
       {
+        "action": "plugins.app:access",
+        "scope": "plugins:id:grafana-incident-app"
+      },
+      {
+        "action": "plugins.app:access",
+        "scope": "plugins:id:grafana-labels-app"
+      },
+      {
         "action": "plugins:write",
         "scope": "plugins:id:grafana-oncall-app"
       },
