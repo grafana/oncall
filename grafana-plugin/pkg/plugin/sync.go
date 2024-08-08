@@ -76,7 +76,7 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 	startMakeSyncRequest := time.Now()
 	defer func() {
 		elapsed := time.Since(startMakeSyncRequest)
-		log.DefaultLogger.Info("makeSyncRequest", "time", elapsed)
+		log.DefaultLogger.Info("makeSyncRequest", "time", elapsed.Milliseconds())
 	}()
 
 	locked := a.syncMutex.TryLock()

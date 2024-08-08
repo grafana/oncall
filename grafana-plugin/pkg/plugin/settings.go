@@ -308,7 +308,7 @@ func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (
 	startGetSyncData := time.Now()
 	defer func() {
 		elapsed := time.Since(startGetSyncData)
-		log.DefaultLogger.Info("GetSyncData", "time", elapsed)
+		log.DefaultLogger.Info("GetSyncData", "time", elapsed.Milliseconds())
 	}()
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
