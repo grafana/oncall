@@ -181,7 +181,6 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 	a.otherPluginSettingsCache = otherPluginSettings
 	a.otherPluginSettingsExpiry = time.Now().Add(OTHER_PLUGIN_EXPIRY_SECONDS * time.Second)
 
-	log.DefaultLogger.Info("Caching other plugin settings", "otherPluginSettings", otherPluginSettings)
 	return a.otherPluginSettingsCache
 }
 
