@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone
 
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
@@ -59,4 +60,19 @@ def test_slack_message_permalink_error(mock_slack_api_call, slack_message_setup)
 def test_slack_message_permalink_cache(mock_slack_api_call, slack_message_setup):
     slack_message = slack_message_setup(cached_permalink="cached_permalink")
     assert slack_message.permalink == "cached_permalink"
+    mock_slack_api_call.assert_not_called()
+
+
+@patch.object(
+    SlackClient,
+    "chat_getPermalink",
+    return_value=build_slack_response({"ok": False, "error": "account_inactive"}),
+)
+@pytest.mark.django_db
+def test_slack_message_permalink_token_revoked(mock_slack_api_call, slack_message_setup):
+    slack_message = slack_message_setup(cached_permalink=None)
+    slack_message._slack_team_identity.detected_token_revoked = timezone.now()
+    slack_message._slack_team_identity.save()
+    assert slack_message._slack_team_identity is not None
+    assert slack_message.permalink is None
     mock_slack_api_call.assert_not_called()

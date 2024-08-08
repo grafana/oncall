@@ -22,5 +22,5 @@ test('we can verify our phone number + receive an SMS alert @expensive', async (
   const smsAlertNotification = await waitForSms();
 
   expect(smsAlertNotification).toContain('OnCall');
-  expect(smsAlertNotification).toContain('alert');
+  expect(smsAlertNotification).toContain('Alert group');
 });
