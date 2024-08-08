@@ -362,12 +362,20 @@ class GcomAPIClient(APIClient):
             cursor = 0
             while cursor is not None:
                 if query:
-                    page_query = query + f"&cursor={cursor}&pageSize={page_size}"
+                    page_query = f"{query}&cursor={cursor}&pageSize={page_size}"
                 else:
                     page_query = f"?cursor={cursor}&pageSize={page_size}"
-                page, _ = self.api_get(page_query)
+                page, call_status = self.api_get(page_query)
                 yield page
-                cursor = page["nextCursor"]
+                cursor = page.get("nextCursor")
+
+                if cursor is None:
+                    # TODO: once done debugging why this API call sometimes returns HTTP 200 but a missing nextCursor
+                    # key in the response data, we can remove this logging statement
+                    logger.info(
+                        f"GcomAPIClient.get_instances response was missing nextCursor key. http_response={page} "
+                        f"call_status={call_status}"
+                    )
 
     def _is_stack_in_certain_state(self, stack_id: str, state: str) -> bool:
         instance_info = self.get_instance_info(stack_id)
