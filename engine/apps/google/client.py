@@ -107,7 +107,7 @@ class GoogleCalendarAPIClient:
                 # this scenario can be encountered when, for some reason, the OAuth2 token that we have
                 # does not contain the https://www.googleapis.com/auth/calendar.events.readonly scope
                 # example error:
-                # <HttpError 403 when requesting https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=2024-08-08T14%3A00%3A00%2B0000&timeMax=2024-09-07T14%3A00%3A00%2B0000&maxResults=250&singleEvents=true&orderBy=startTime&eventTypes=outOfOffice&alt=json returned "Request had insufficient authentication scopes.". Details: "[{'message': 'Insufficient Permission', 'domain': 'global', 'reason': 'insufficientPermissions'}]">
+                # <HttpError 403 when requesting https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=2024-08-08T14%3A00%3A00%2B0000&timeMax=2024-09-07T14%3A00%3A00%2B0000&maxResults=250&singleEvents=true&orderBy=startTime&eventTypes=outOfOffice&alt=json returned "Request had insufficient authentication scopes.". Details: "[{'message': 'Insufficient Permission', 'domain': 'global', 'reason': 'insufficientPermissions'}]"> # noqa: E501
                 logger.error(f"GoogleCalendarAPIClient - HttpError 403 when fetching out of office events: {e}")
                 raise GoogleCalendarUnauthorizedHTTPError(e)
 
