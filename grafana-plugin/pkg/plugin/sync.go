@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/yudai/gojsondiff"
+	"github.com/yudai/gojsondiff/formatter"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -125,6 +126,13 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 	if diff != nil && !diff.Modified() && !forceSend {
 		log.DefaultLogger.Info("No changes detected to sync")
 		return nil
+	} else if diff != nil {
+		f := formatter.NewDeltaFormatter()
+		delta, err := f.Format(diff)
+		if err != nil {
+			log.DefaultLogger.Error("Error formatting diff", "error", err)
+		}
+		log.DefaultLogger.Info("Diff", "delta", delta)
 	}
 
 	onCallSyncJsonData, err := json.Marshal(onCallSync)
