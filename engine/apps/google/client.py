@@ -118,6 +118,7 @@ class GoogleCalendarAPIClient:
             # it seems like right now we are seeing RefreshError in two different scenarios:
             # 1. RefreshError('invalid_grant: Account has been deleted', {'error': 'invalid_grant', 'error_description': 'Account has been deleted'})
             # 2. RefreshError('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
+            # https://stackoverflow.com/a/49024030/3902555
             logger.error(
                 f"GoogleCalendarAPIClient - RefreshError when fetching out of office events: {e} "
                 # NOTE: remove e.args after debugging how to dig into the error details
