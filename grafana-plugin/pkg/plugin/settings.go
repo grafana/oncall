@@ -171,7 +171,7 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 	}
 	labelsPluginSettings, err := a.GetOtherPluginSettings(settings, LABELS_PLUGIN_ID)
 	if err != nil {
-		log.DefaultLogger.Error("getting incident plugin settings", "error", err)
+		log.DefaultLogger.Error("getting labels plugin settings", "error", err)
 	}
 
 	otherPluginSettings := make(map[string]map[string]interface{})
@@ -180,6 +180,8 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 
 	a.otherPluginSettingsCache = otherPluginSettings
 	a.otherPluginSettingsExpiry = time.Now().Add(OTHER_PLUGIN_EXPIRY_SECONDS * time.Second)
+
+	log.DefaultLogger.Info("Caching other plugin settings", "otherPluginSettings", otherPluginSettings)
 	return a.otherPluginSettingsCache
 }
 
@@ -203,7 +205,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return nil, nil
+		return nil, fmt.Errorf("request did not return 200: %d", res.StatusCode)
 	}
 
 	body, err := io.ReadAll(res.Body)
