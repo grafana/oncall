@@ -93,18 +93,30 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 	req.Header.Del("Cookie")
 	req.Header.Del("Set-Cookie")
 
+	SetAuthorizationHeader(settings, req)
+
+	err := SetXInstanceContextHeader(settings, req)
+	if err != nil {
+		log.DefaultLogger.Error("Error setting instance header", "error", err)
+		return err
+	}
+
+	pluginContext := httpadapter.PluginConfigFromContext(ctx)
+	req.Header.Set("User-Agent", fmt.Sprintf("GrafanaOnCall/%s", pluginContext.PluginVersion))
+
+	return nil
+}
+
+func (a *App) SetupRequestHeadersForOnCallWithUser(ctx context.Context, settings *OnCallPluginSettings, req *http.Request) error {
+	err := a.SetupRequestHeadersForOnCallWithUser(ctx, settings, req)
+	if err != nil {
+		return err
+	}
+
 	user := httpadapter.UserFromContext(ctx)
 	onCallUser, err := a.GetUserForHeader(settings, user)
 	if err != nil {
 		log.DefaultLogger.Error("Error getting user", "error", err)
-		return err
-	}
-
-	SetAuthorizationHeader(settings, req)
-
-	err = SetXInstanceContextHeader(settings, req)
-	if err != nil {
-		log.DefaultLogger.Error("Error setting instance header", "error", err)
 		return err
 	}
 
@@ -119,9 +131,6 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 		log.DefaultLogger.Error("Error setting user header", "error", err)
 		return err
 	}
-
-	pluginContext := httpadapter.PluginConfigFromContext(ctx)
-	req.Header.Set("User-Agent", fmt.Sprintf("GrafanaOnCall/%s", pluginContext.PluginVersion))
 
 	return nil
 }
@@ -171,7 +180,7 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	}
 
 	proxyReq.Header = req.Header
-	err = a.SetupRequestHeadersForOnCall(req.Context(), onCallPluginSettings, proxyReq)
+	err = a.SetupRequestHeadersForOnCallWithUser(req.Context(), onCallPluginSettings, proxyReq)
 	if err != nil {
 		log.DefaultLogger.Error("Error setting up headers", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
