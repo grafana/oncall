@@ -87,7 +87,9 @@ class SlackUserGroup(models.Model):
 
     @property
     def oncall_slack_user_identities(self) -> list[SlackUserIdentity]:
-        users: set[User] = set(user for schedule in self.oncall_schedules.get_oncall_users().values() for user in schedule)
+        users: set[User] = set(
+            user for schedule in self.oncall_schedules.get_oncall_users().values() for user in schedule
+        )
         slack_user_identities: list[SlackUserIdentity] = []
         for user in users:
             if user.slack_user_identity is not None:

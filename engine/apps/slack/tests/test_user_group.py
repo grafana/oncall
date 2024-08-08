@@ -35,12 +35,15 @@ def test_update_members(make_organization_with_slack_team_identity, make_slack_u
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("exception", [
-    SlackAPITokenError,
-    SlackAPIUsergroupNotFoundError,
-    SlackAPIInvalidUsersError,
-    SlackAPIUsergroupPaidTeamOnlyError,
-])
+@pytest.mark.parametrize(
+    "exception",
+    [
+        SlackAPITokenError,
+        SlackAPIUsergroupNotFoundError,
+        SlackAPIInvalidUsersError,
+        SlackAPIUsergroupPaidTeamOnlyError,
+    ],
+)
 def test_slack_user_group_update_errors(
     make_organization_with_slack_team_identity,
     make_slack_user_group,
@@ -232,12 +235,8 @@ def test_get_users_from_members_for_organization(
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
 
-    user_1, _ = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="slack_id_1"
-    )
-    user_2, _ = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="slack_id_2"
-    )
+    user_1, _ = make_user_with_slack_user_identity(slack_team_identity, organization, slack_id="slack_id_1")
+    user_2, _ = make_user_with_slack_user_identity(slack_team_identity, organization, slack_id="slack_id_2")
     user_group = make_slack_user_group(slack_team_identity)
     user_group.members = ["slack_id_1", "slack_id_2"]
     user_group.save(update_fields=["members"])

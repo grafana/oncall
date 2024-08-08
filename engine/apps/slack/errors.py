@@ -61,6 +61,7 @@ class SlackAPIUsergroupPaidTeamOnlyError(SlackAPIError):
     https://api.slack.com/methods/usergroups.create#:~:text=Name%20too%20long.-,paid_teams_only,-Usergroups%20can%20only
     https://slack.com/help/articles/212906697-Create-a-user-group
     """
+
     errors = ("paid_teams_only",)
 
 
