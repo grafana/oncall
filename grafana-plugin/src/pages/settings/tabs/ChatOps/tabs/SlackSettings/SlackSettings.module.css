@@ -39,3 +39,18 @@
 .infoblock-icon {
   margin-top: 24px;
 }
+
+.upgradeSlackBtn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.upgradeSlackAlert svg {
+  display: none;
+}
+
+.linkToIncidentWrapper {
+  margin-top: 16px;
+}
