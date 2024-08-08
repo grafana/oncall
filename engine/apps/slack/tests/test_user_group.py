@@ -9,6 +9,7 @@ from apps.slack.errors import (
     SlackAPIInvalidUsersError,
     SlackAPITokenError,
     SlackAPIUsergroupNotFoundError,
+    SlackAPIUsergroupPaidTeamOnlyError,
 )
 from apps.slack.models import SlackUserGroup
 from apps.slack.tasks import (
@@ -22,7 +23,7 @@ from apps.user_management.models import Organization
 
 @pytest.mark.django_db
 def test_update_members(make_organization_with_slack_team_identity, make_slack_user_group):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    _, slack_team_identity = make_organization_with_slack_team_identity()
     user_group = make_slack_user_group(slack_team_identity)
 
     slack_ids = ["slack_id_1", "slack_id_2"]
@@ -34,13 +35,18 @@ def test_update_members(make_organization_with_slack_team_identity, make_slack_u
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("exception", [SlackAPITokenError, SlackAPIUsergroupNotFoundError, SlackAPIInvalidUsersError])
+@pytest.mark.parametrize("exception", [
+    SlackAPITokenError,
+    SlackAPIUsergroupNotFoundError,
+    SlackAPIInvalidUsersError,
+    SlackAPIUsergroupPaidTeamOnlyError,
+])
 def test_slack_user_group_update_errors(
     make_organization_with_slack_team_identity,
     make_slack_user_group,
     exception,
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    _, slack_team_identity = make_organization_with_slack_team_identity()
     user_group = make_slack_user_group(slack_team_identity=slack_team_identity)
 
     slack_ids = ["slack_id_1", "slack_id_2"]
@@ -56,7 +62,7 @@ def test_slack_user_group_update_errors_raise(
     make_organization_with_slack_team_identity,
     make_slack_user_group,
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    _, slack_team_identity = make_organization_with_slack_team_identity()
     user_group = make_slack_user_group(slack_team_identity=slack_team_identity)
 
     slack_ids = ["slack_id_1", "slack_id_2"]
@@ -100,10 +106,10 @@ def test_update_oncall_members(
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     user_group = make_slack_user_group(slack_team_identity)
 
-    user_1, slack_user_identity_1 = make_user_with_slack_user_identity(
+    _, slack_user_identity_1 = make_user_with_slack_user_identity(
         slack_team_identity, organization, slack_id="slack_id_1"
     )
-    user_2, slack_user_identity_2 = make_user_with_slack_user_identity(
+    _, slack_user_identity_2 = make_user_with_slack_user_identity(
         slack_team_identity, organization, slack_id="slack_id_2"
     )
 
@@ -158,7 +164,7 @@ def test_start_update_slack_user_group_for_schedules_organization_deleted(
 def test_update_or_create_slack_usergroup_from_slack(
     mock_usergroups_list, mock_usergroups_users_list, make_organization_with_slack_team_identity
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    _, slack_team_identity = make_organization_with_slack_team_identity()
     SlackUserGroup.update_or_create_slack_usergroup_from_slack("test_slack_id", slack_team_identity)
 
     usergroup = SlackUserGroup.objects.get()
@@ -182,7 +188,7 @@ def test_update_or_create_slack_usergroup_from_slack(
 def test_update_or_create_slack_usergroup_from_slack_group_not_found(
     mock_usergroups_list, make_organization_with_slack_team_identity
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    _, slack_team_identity = make_organization_with_slack_team_identity()
     SlackUserGroup.update_or_create_slack_usergroup_from_slack("other_id", slack_team_identity)
 
     # no group is created, no error is raised
@@ -208,7 +214,7 @@ def test_update_or_create_slack_usergroup_from_slack_group_not_found(
 def test_populate_slack_usergroups_for_team(
     mock_usergroups_list, mock_usergroups_users_list, make_organization_with_slack_team_identity
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    _, slack_team_identity = make_organization_with_slack_team_identity()
     populate_slack_usergroups_for_team(slack_team_identity.pk)
 
     usergroup = SlackUserGroup.objects.get()
@@ -226,10 +232,10 @@ def test_get_users_from_members_for_organization(
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
 
-    user_1, slack_user_identity_1 = make_user_with_slack_user_identity(
+    user_1, _ = make_user_with_slack_user_identity(
         slack_team_identity, organization, slack_id="slack_id_1"
     )
-    user_2, slack_user_identity_2 = make_user_with_slack_user_identity(
+    user_2, _ = make_user_with_slack_user_identity(
         slack_team_identity, organization, slack_id="slack_id_2"
     )
     user_group = make_slack_user_group(slack_team_identity)
