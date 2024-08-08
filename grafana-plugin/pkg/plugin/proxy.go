@@ -181,7 +181,10 @@ func (a *App) ProxyRequestToOnCall(w http.ResponseWriter, req *http.Request, pat
 	if proxyMethod == "POST" || proxyMethod == "PUT" || proxyMethod == "PATCH" {
 		proxyReq.Header.Set("Content-Type", "application/json")
 	}
+
+	// TODO: Remove after testing
 	log.DefaultLogger.Info("Making request to oncall", "settings", onCallPluginSettings)
+	
 	res, err := a.httpClient.Do(proxyReq)
 	if err != nil {
 		log.DefaultLogger.Error("Error request to oncall", "error", err)

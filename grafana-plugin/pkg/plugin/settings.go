@@ -219,7 +219,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
 	}
 
-	return result, fmt.Errorf("no jsonData for plugin %s", pluginID)
+	return result, nil
 }
 
 func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
