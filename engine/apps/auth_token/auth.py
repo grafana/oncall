@@ -18,13 +18,19 @@ from apps.user_management.models.organization import Organization
 from apps.user_management.sync import get_or_create_user
 from settings.base import SELF_HOSTED_SETTINGS
 
-from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
+from .constants import (
+    GOOGLE_OAUTH2_AUTH_TOKEN_NAME,
+    MATTERMOST_AUTH_TOKEN_NAME,
+    SCHEDULE_EXPORT_TOKEN_NAME,
+    SLACK_AUTH_TOKEN_NAME,
+)
 from .exceptions import InvalidToken
 from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import (
     ApiAuthToken,
     GoogleOAuth2Token,
     IntegrationBacksyncAuthToken,
+    MattermostAuthToken,
     PluginAuthToken,
     ScheduleExportAuthToken,
     SlackAuthToken,
@@ -262,6 +268,11 @@ class _SocialAuthTokenAuthentication(BaseAuthentication, typing.Generic[T]):
 class SlackTokenAuthentication(_SocialAuthTokenAuthentication[SlackAuthToken]):
     token_query_param_name = SLACK_AUTH_TOKEN_NAME
     model = SlackAuthToken
+
+
+class MattermostTokenAuthentication(_SocialAuthTokenAuthentication[MattermostAuthToken]):
+    token_query_param_name = MATTERMOST_AUTH_TOKEN_NAME
+    model = MattermostAuthToken
 
 
 class GoogleTokenAuthentication(_SocialAuthTokenAuthentication[GoogleOAuth2Token]):
