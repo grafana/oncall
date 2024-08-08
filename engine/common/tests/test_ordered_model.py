@@ -439,7 +439,7 @@ def test_ordered_model_create_swap_and_delete_concurrent():
     assert list(TestOrderedModel.objects.values_list("extra_field", flat=True)) == expected_extra_field_values
 
 
-class TestOrderedModelSerializer(OrderedModelSerializer):
+class OrderedModelSerializerForTests(OrderedModelSerializer):
     class Meta:
         model = TestOrderedModel
         fields = OrderedModelSerializer.Meta.fields + ["test_field", "extra_field"]
@@ -461,7 +461,7 @@ def test_ordered_model_swap_all_to_zero_via_serializer():
     def update_order_to_zero(idx):
         try:
             instance = instances[idx]
-            serializer = TestOrderedModelSerializer(instance, data={"order": 0, "extra_field": idx}, partial=True)
+            serializer = OrderedModelSerializerForTests(instance, data={"order": 0, "extra_field": idx}, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             instance.swap(positions[idx])

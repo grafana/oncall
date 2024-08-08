@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 import pytest
 from django.utils import timezone
 
@@ -29,8 +27,8 @@ def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert_rec
         resolved_alert_group = make_alert_group(
             alert_receive_channel,
             channel_filter=channel_filter,
-            acknowledged_at=timezone.now() + timedelta(hours=1),
-            resolved_at=timezone.now() + timedelta(hours=2),
+            acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+            resolved_at=timezone.now() + timezone.timedelta(hours=2),
             resolved=True,
             acknowledged=True,
         )
@@ -39,7 +37,7 @@ def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert_rec
         ack_alert_group = make_alert_group(
             alert_receive_channel,
             channel_filter=channel_filter,
-            acknowledged_at=timezone.now() + timedelta(hours=1),
+            acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
             acknowledged=True,
         )
         make_alert(alert_group=ack_alert_group, raw_request_data=alert_raw_request_data)
@@ -51,7 +49,7 @@ def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert_rec
             alert_receive_channel,
             channel_filter=channel_filter,
             silenced=True,
-            silenced_at=timezone.now() + timedelta(hours=1),
+            silenced_at=timezone.now() + timezone.timedelta(hours=1),
         )
         make_alert(alert_group=silenced_alert_group, raw_request_data=alert_raw_request_data)
 

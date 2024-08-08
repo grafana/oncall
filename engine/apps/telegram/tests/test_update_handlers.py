@@ -136,9 +136,11 @@ def test_button_press_handler_non_existing_alert_group(
     make_telegram_user_connector(user_1, telegram_chat_id=chat_id)
 
     update = generate_button_press_ack_message(chat_id, 1234)
+    update_data = update.callback_query.data
     handler = ButtonPressHandler(update=update)
 
-    with patch.object(update.callback_query, "answer") as mock_answer:
+    with patch.object(update, "callback_query", autospec=True) as mock_callback_query:
+        mock_callback_query.data = update_data
         handler.process_update()
 
-    mock_answer.assert_called_once_with(NOT_FOUND_ERROR, show_alert=True)
+    mock_callback_query.answer.assert_called_once_with(NOT_FOUND_ERROR, show_alert=True)
