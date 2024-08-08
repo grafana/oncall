@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -40,6 +41,58 @@ type OnCallUser struct {
 	AvatarURL   string             `json:"avatar_url"`
 	Permissions []OnCallPermission `json:"permissions"`
 	Teams       []int              `json:"teams"`
+}
+
+func (a *OnCallUser) Equal(b *OnCallUser) bool {
+	if a.ID != b.ID {
+		return false
+	}
+	if a.Name != b.Name {
+		return false
+	}
+	if a.Login != b.Login {
+		return false
+	}
+	if a.Email != b.Email {
+		return false
+	}
+	if a.Role != b.Role {
+		return false
+	}
+	if a.AvatarURL != b.AvatarURL {
+		return false
+	}
+
+	if len(a.Permissions) != len(b.Permissions) {
+		return false
+	}
+	sort.Slice(a.Permissions, func(i, j int) bool {
+		return a.Permissions[i].Action < a.Permissions[j].Action
+	})
+	sort.Slice(b.Permissions, func(i, j int) bool {
+		return b.Permissions[i].Action < b.Permissions[j].Action
+	})
+	for i := range a.Permissions {
+		if a.Permissions[i].Action != b.Permissions[i].Action {
+			return false
+		}
+	}
+
+	if len(a.Teams) != len(b.Teams) {
+		return false
+	}
+	sort.Slice(a.Teams, func(i, j int) bool {
+		return a.Teams[i] < a.Teams[j]
+	})
+	sort.Slice(b.Teams, func(i, j int) bool {
+		return b.Teams[i] < b.Teams[j]
+	})
+	for i := range a.Teams {
+		if a.Teams[i] != b.Teams[i] {
+			return false
+		}
+	}
+	return true
 }
 
 type OnCallUserCache struct {

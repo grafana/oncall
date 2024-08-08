@@ -27,6 +27,22 @@ type OnCallTeam struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
+func (a *OnCallTeam) Equal(b *OnCallTeam) bool {
+	if a.ID != b.ID {
+		return false
+	}
+	if a.Name != b.Name {
+		return false
+	}
+	if a.Email != b.Email {
+		return false
+	}
+	if a.AvatarURL != b.AvatarURL {
+		return false
+	}
+	return true
+}
+
 func (a *App) GetTeamsForUser(settings *OnCallPluginSettings, onCallUser *OnCallUser) ([]int, error) {
 	atomic.AddInt32(&a.TeamForUserCallCount, 1)
 	reqURL, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/users/%d/teams", onCallUser.ID))

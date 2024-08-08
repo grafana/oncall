@@ -55,6 +55,46 @@ type OnCallPluginSettings struct {
 	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
+func (a *OnCallPluginSettings) Equal(b *OnCallPluginSettings) bool {
+	if a.OnCallAPIURL != b.OnCallAPIURL {
+		return false
+	}
+	if a.OnCallToken != b.OnCallToken {
+		return false
+	}
+	if a.StackID != b.StackID {
+		return false
+	}
+	if a.OrgID != b.OrgID {
+		return false
+	}
+	if a.License != b.License {
+		return false
+	}
+	if a.GrafanaURL != b.GrafanaURL {
+		return false
+	}
+	if a.GrafanaToken != b.GrafanaToken {
+		return false
+	}
+	if a.RBACEnabled != b.RBACEnabled {
+		return false
+	}
+	if a.IncidentEnabled != b.IncidentEnabled {
+		return false
+	}
+	if a.IncidentBackendURL != b.IncidentBackendURL {
+		return false
+	}
+	if a.LabelsEnabled != b.LabelsEnabled {
+		return false
+	}
+	if a.ExternalServiceAccountEnabled != b.ExternalServiceAccountEnabled {
+		return false
+	}
+	return true
+}
+
 type OnCallSettingsCache struct {
 	otherPluginSettingsLock   sync.Mutex
 	otherPluginSettingsCache  map[string]map[string]interface{}
