@@ -330,6 +330,26 @@ def make_user_auth_headers():
     return _make_user_auth_headers
 
 
+@pytest.fixture
+def make_base_auth_headers():
+    def _make_user_auth_headers(
+        organization,
+        token,
+        grafana_token: typing.Optional[str] = None,
+        grafana_context_data: typing.Optional[typing.Dict] = None,
+    ):
+        instance_context_headers = {"stack_id": organization.stack_id, "org_id": organization.org_id}
+        if grafana_token is not None:
+            instance_context_headers["grafana_token"] = grafana_token
+
+        return {
+            "HTTP_X-Instance-Context": json.dumps(instance_context_headers),
+            "HTTP_AUTHORIZATION": f"{token}",
+        }
+
+    return _make_user_auth_headers
+
+
 RoleMapping = typing.Dict[LegacyAccessControlRole, typing.List[LegacyAccessControlCompatiblePermission]]
 
 
