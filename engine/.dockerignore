@@ -3,6 +3,5 @@ __pycache__
 *.pyc
 celerybeat-schedule
 *.db
-./extensions
 
 .DS_Store

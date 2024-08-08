@@ -6,7 +6,8 @@ env:
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
   - name: DJANGO_SETTINGS_MODULE
-    value: "settings.dev"
+    # value: "settings.dev"
+    value: "extensions.engine_enterprise.settings.dev"
   - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
     value: "True"
   - name: FEATURE_SLACK_INTEGRATION_ENABLED
