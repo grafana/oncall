@@ -80,12 +80,14 @@ def test_get_instances_pagination_handles_streaming_errors_with_cursor_paginatio
     assert instance2 in objects
     assert instance3 in objects
 
-    mock_api_get.assert_has_calls([
-        call(f"{query}&cursor=0&pageSize={page_size}"),  # 1st page
-        call(f"{query}&cursor={next_cursor1}&pageSize={page_size}"),  # 2nd page, first try
-        call(f"{query}&cursor={next_cursor1}&pageSize={page_size}"),  # 2nd page, retry
-        call(f"{query}&cursor={next_cursor2}&pageSize={page_size}"),  # 3rd page
-    ])
+    mock_api_get.assert_has_calls(
+        [
+            call(f"{query}&cursor=0&pageSize={page_size}"),  # 1st page
+            call(f"{query}&cursor={next_cursor1}&pageSize={page_size}"),  # 2nd page, first try
+            call(f"{query}&cursor={next_cursor1}&pageSize={page_size}"),  # 2nd page, retry
+            call(f"{query}&cursor={next_cursor2}&pageSize={page_size}"),  # 3rd page
+        ]
+    )
 
 
 @patch("apps.grafana_plugin.helpers.client.APIClient.api_get")
@@ -115,13 +117,16 @@ def test_get_instances_pagination_doesnt_infinitely_retry_on_streaming_errors(mo
     second_page_call = call(f"{query}&cursor={next_cursor1}&pageSize={page_size}")
 
     assert len(mock_api_get.mock_calls) == 5
-    mock_api_get.assert_has_calls([
-        call(f"{query}&cursor=0&pageSize={page_size}"),  # 1st page
-        second_page_call,  # 2nd page, 1st try
-        second_page_call,  # 2nd page, 1st retry
-        second_page_call,  # 2nd page, 2nd retry
-        second_page_call,  # 2nd page, 3rd retry
-    ])
+    mock_api_get.assert_has_calls(
+        [
+            call(f"{query}&cursor=0&pageSize={page_size}"),  # 1st page
+            second_page_call,  # 2nd page, 1st try
+            second_page_call,  # 2nd page, 1st retry
+            second_page_call,  # 2nd page, 2nd retry
+            second_page_call,  # 2nd page, 3rd retry
+        ]
+    )
+
 
 @pytest.mark.parametrize(
     "query, expected_pages, expected_items",
