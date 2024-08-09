@@ -58,7 +58,7 @@ slack-export-viewer==1.1.4
 slack_sdk==3.21.3
 social-auth-app-django==5.4.1
 twilio~=6.37.0
-urllib3==1.26.18
+urllib3==1.26.19
 uwsgi==2.0.26
 whitenoise==5.3.0
 google-api-python-client==2.122.0
