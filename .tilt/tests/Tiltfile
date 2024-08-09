@@ -11,7 +11,7 @@ local_resource(
     cmd=e2e_tests_cmd,
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=is_ci,
-    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery"]
+    resource_deps=["build-ui", "grafana", "grafana-oncall-app-provisioning-configmap", "engine", "celery", "build-oncall-plugin-backend"]
 )
 
 cmd_button(

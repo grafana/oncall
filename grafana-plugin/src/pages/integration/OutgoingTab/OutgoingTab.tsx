@@ -4,8 +4,8 @@ import { useStyles2, Input, IconButton, Drawer, HorizontalGroup } from '@grafana
 import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
+import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
-import { IntegrationCollapsibleTreeView } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { Text } from 'components/Text/Text';
@@ -40,7 +40,7 @@ export const OutgoingTab = ({ openSnowConfigurationDrawer }: { openSnowConfigura
           <NewOutgoingWebhookDrawerContent closeDrawer={closeDrawer} />
         </Drawer>
       )}
-      <IntegrationCollapsibleTreeView
+      <CollapsibleTreeView
         configElements={[
           {
             customIcon: 'plug',

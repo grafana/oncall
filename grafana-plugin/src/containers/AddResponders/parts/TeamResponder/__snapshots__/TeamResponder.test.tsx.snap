@@ -31,7 +31,7 @@ exports[`TeamResponder it renders data properly 1`] = `
             class="css-18qv8yz-layoutChildrenWrapper"
           >
             <span
-              class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+              class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
             >
               my test team
             </span>

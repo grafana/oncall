@@ -1,5 +1,6 @@
 * @grafana/grafana-oncall-backend
 /grafana-plugin @grafana/grafana-oncall-frontend
+/grafana-plugin/pkg @grafana/grafana-oncall-backend
 /docs @grafana/docs-gops @grafana/grafana-oncall
 
 # `make docs` procedure is owned by @jdbaldry of @grafana/docs-squad.
