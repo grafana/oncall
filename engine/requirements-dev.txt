@@ -106,11 +106,11 @@ pyyaml==6.0.1
     # via
     #   -c requirements.txt
     #   pre-commit
-requests==2.32.0
+requests==2.32.3
     # via
     #   -c requirements.txt
     #   djangorestframework-stubs
-setuptools==70.0.0
+setuptools==72.1.0
     # via
     #   -c requirements.txt
     #   nodeenv
