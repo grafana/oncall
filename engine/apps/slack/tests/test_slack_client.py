@@ -25,6 +25,7 @@ from apps.slack.errors import (
     SlackAPIServerError,
     SlackAPITokenError,
     SlackAPIUsergroupNotFoundError,
+    SlackAPIUsergroupPaidTeamOnlyError,
     SlackAPIUserNotFoundError,
     SlackAPIViewNotFoundError,
 )
@@ -129,6 +130,7 @@ def test_slack_client_generic_error(mock_request, monkeypatch, make_organization
         ("message_not_found", SlackAPIMessageNotFoundError),
         ("method_not_supported_for_channel_type", SlackAPIMethodNotSupportedForChannelTypeError),
         ("no_such_subteam", SlackAPIUsergroupNotFoundError),
+        ("paid_team_only", SlackAPIUsergroupPaidTeamOnlyError),
         ("not_found", SlackAPIViewNotFoundError),
         ("permission_denied", SlackAPIPermissionDeniedError),
         ("plan_upgrade_required", SlackAPIPlanUpgradeRequiredError),

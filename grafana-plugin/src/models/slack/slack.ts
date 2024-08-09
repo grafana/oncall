@@ -82,10 +82,10 @@ export class SlackStore extends BaseStore {
     window.location = url_for_redirect;
   }
 
+  @action.bound
   async installSlackIntegration() {
     try {
       const response = await makeRequestRaw('/login/slack-install-free/', {});
-
       if (response.status === 201) {
         this.rootStore.organizationStore.loadCurrentOrganization();
       } else if (response.status === 200) {

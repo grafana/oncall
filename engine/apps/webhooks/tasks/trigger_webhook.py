@@ -198,6 +198,13 @@ def make_request(
         status["request_headers"] = error = e.message
     except InvalidWebhookData as e:
         status["request_data"] = error = e.message
+    except requests.exceptions.SSLError as e:
+        # Don't raise an exception for SSL errors, as they are out of our control and retrying
+        # isn't going to help. Just show the error to the user and give up
+        #
+        # from the docs (https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification)
+        # "Requests will throw a SSLError if it’s unable to verify the certificate"
+        status["content"] = error = str(e)
     except Exception as e:
         status["content"] = error = str(e)
         exception = e
