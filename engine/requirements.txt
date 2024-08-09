@@ -74,7 +74,7 @@ deprecated==1.2.14
     # via
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
-django==4.2.11
+django==4.2.15
     # via
     #   -r requirements.in
     #   django-add-default-value
