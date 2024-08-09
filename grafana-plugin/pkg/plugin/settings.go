@@ -55,6 +55,46 @@ type OnCallPluginSettings struct {
 	ExternalServiceAccountEnabled bool   `json:"external_service_account_enabled"`
 }
 
+func (a *OnCallPluginSettings) Equal(b *OnCallPluginSettings) bool {
+	if a.OnCallAPIURL != b.OnCallAPIURL {
+		return false
+	}
+	if a.OnCallToken != b.OnCallToken {
+		return false
+	}
+	if a.StackID != b.StackID {
+		return false
+	}
+	if a.OrgID != b.OrgID {
+		return false
+	}
+	if a.License != b.License {
+		return false
+	}
+	if a.GrafanaURL != b.GrafanaURL {
+		return false
+	}
+	if a.GrafanaToken != b.GrafanaToken {
+		return false
+	}
+	if a.RBACEnabled != b.RBACEnabled {
+		return false
+	}
+	if a.IncidentEnabled != b.IncidentEnabled {
+		return false
+	}
+	if a.IncidentBackendURL != b.IncidentBackendURL {
+		return false
+	}
+	if a.LabelsEnabled != b.LabelsEnabled {
+		return false
+	}
+	if a.ExternalServiceAccountEnabled != b.ExternalServiceAccountEnabled {
+		return false
+	}
+	return true
+}
+
 type OnCallSettingsCache struct {
 	otherPluginSettingsLock   sync.Mutex
 	otherPluginSettingsCache  map[string]map[string]interface{}
@@ -171,7 +211,7 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 	}
 	labelsPluginSettings, err := a.GetOtherPluginSettings(settings, LABELS_PLUGIN_ID)
 	if err != nil {
-		log.DefaultLogger.Error("getting incident plugin settings", "error", err)
+		log.DefaultLogger.Error("getting labels plugin settings", "error", err)
 	}
 
 	otherPluginSettings := make(map[string]map[string]interface{})
@@ -180,6 +220,7 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 
 	a.otherPluginSettingsCache = otherPluginSettings
 	a.otherPluginSettingsExpiry = time.Now().Add(OTHER_PLUGIN_EXPIRY_SECONDS * time.Second)
+
 	return a.otherPluginSettingsCache
 }
 
@@ -203,7 +244,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return nil, nil
+		return nil, fmt.Errorf("request did not return 200: %d", res.StatusCode)
 	}
 
 	body, err := io.ReadAll(res.Body)
@@ -217,7 +258,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
 	}
 
-	return result, fmt.Errorf("no jsonData for plugin %s", pluginID)
+	return result, nil
 }
 
 func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
@@ -267,7 +308,7 @@ func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (
 	startGetSyncData := time.Now()
 	defer func() {
 		elapsed := time.Since(startGetSyncData)
-		log.DefaultLogger.Info("GetSyncData", "time", elapsed)
+		log.DefaultLogger.Info("GetSyncData", "time", elapsed.Milliseconds())
 	}()
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)

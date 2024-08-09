@@ -313,9 +313,11 @@ def make_user_auth_headers():
         token,
         grafana_token: typing.Optional[str] = None,
         grafana_context_data: typing.Optional[typing.Dict] = None,
+        organization=None,
     ):
-        instance_context_headers = {"stack_id": user.organization.stack_id, "org_id": user.organization.org_id}
-        grafana_context_headers = {"UserId": user.user_id}
+        org = organization or user.organization
+        instance_context_headers = {"stack_id": org.stack_id, "org_id": org.org_id}
+        grafana_context_headers = {"UserId": user.user_id if user else None}
         if grafana_token is not None:
             instance_context_headers["grafana_token"] = grafana_token
         if grafana_context_data is not None:

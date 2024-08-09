@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"sort"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
@@ -13,6 +14,44 @@ type OnCallSync struct {
 	Teams       []OnCallTeam         `json:"teams"`
 	TeamMembers map[int][]int        `json:"team_members"`
 	Settings    OnCallPluginSettings `json:"settings"`
+}
+
+func (a *OnCallSync) Equal(b *OnCallSync) bool {
+	if len(a.Users) != len(b.Users) || len(a.Teams) != len(b.Teams) || len(a.TeamMembers) != len(b.TeamMembers) {
+		return false
+	}
+	for i := range a.Users {
+		if !a.Users[i].Equal(&b.Users[i]) {
+			return false
+		}
+	}
+	for i := range a.Teams {
+		if !a.Teams[i].Equal(&b.Teams[i]) {
+			return false
+		}
+	}
+	for key, teamMembersA := range a.TeamMembers {
+		if teamMembersB, exists := b.TeamMembers[key]; !exists {
+			if len(teamMembersA) != len(teamMembersB) {
+				return false
+			}
+			sort.Slice(teamMembersA, func(i, j int) bool {
+				return teamMembersA[i] < teamMembersA[j]
+			})
+			sort.Slice(teamMembersB, func(i, j int) bool {
+				return teamMembersB[i] < teamMembersB[j]
+			})
+			for i := range teamMembersA {
+				if teamMembersA[i] != teamMembersB[i] {
+					return false
+				}
+			}
+		}
+	}
+	if !a.Settings.Equal(&b.Settings) {
+		return false
+	}
+	return true
 }
 
 type responseWriter struct {

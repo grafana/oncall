@@ -154,7 +154,7 @@ func (a *App) ValidateOnCallConnection(ctx context.Context, status *OnCallStatus
 	}
 
 	statusReq.Header.Set("Content-Type", "application/json")
-	err = a.SetupRequestHeadersForOnCall(ctx, settings, statusReq)
+	err = a.SetupRequestHeadersForOnCallWithUser(ctx, settings, statusReq)
 	if err != nil {
 		return fmt.Errorf("error setting up request headers: %v ", err)
 	}

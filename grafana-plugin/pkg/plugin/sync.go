@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/yudai/gojsondiff"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -65,44 +64,19 @@ func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func structToMap(obj interface{}) map[string]interface{} {
-	var mapResult map[string]interface{}
-	jsonBytes, err := json.Marshal(obj)
-	if err != nil {
-		log.DefaultLogger.Error("error marshalling json: ", "error", err)
-		return nil
-	}
-	err = json.Unmarshal(jsonBytes, &mapResult)
-	if err != nil {
-		log.DefaultLogger.Error("error unmarshalling json: ", "error", err)
-		return nil
-	}
-	return mapResult
-}
-
-func (a *App) getDifferences(newOnCallSync *OnCallSync) gojsondiff.Diff {
+func (a *App) compareSyncData(newOnCallSync *OnCallSync) bool {
 	if a.lastOnCallSync == nil {
 		log.DefaultLogger.Info("No saved OnCallSync to compare")
-		return nil
+		return false
 	}
-
-	last := structToMap(a.lastOnCallSync)
-	current := structToMap(newOnCallSync)
-
-	if last == nil || current == nil {
-		log.DefaultLogger.Info(fmt.Sprintf("last or current OnCallSync is nil %v, %v", last, current))
-		return nil
-	}
-
-	differ := gojsondiff.New()
-	return differ.CompareObjects(last, current)
+	return newOnCallSync.Equal(a.lastOnCallSync)
 }
 
 func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 	startMakeSyncRequest := time.Now()
 	defer func() {
 		elapsed := time.Since(startMakeSyncRequest)
-		log.DefaultLogger.Info("makeSyncRequest", "time", elapsed)
+		log.DefaultLogger.Info("makeSyncRequest", "time", elapsed.Milliseconds())
 	}()
 
 	locked := a.syncMutex.TryLock()
@@ -121,8 +95,8 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 		return fmt.Errorf("error getting sync data: %v", err)
 	}
 
-	diff := a.getDifferences(onCallSync)
-	if diff != nil && !diff.Modified() && !forceSend {
+	same := a.compareSyncData(onCallSync)
+	if same && !forceSend {
 		log.DefaultLogger.Info("No changes detected to sync")
 		return nil
 	}

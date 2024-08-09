@@ -14,6 +14,7 @@ def test_auth_success(make_organization_and_user_with_plugin_token, make_user_au
     client = APIClient()
 
     auth_headers = make_user_auth_headers(user, token)
+    del auth_headers["HTTP_X-Grafana-Context"]
 
     with patch("apps.grafana_plugin.views.sync_v2.SyncV2View.do_sync", return_value=organization) as mock_sync:
         response = client.post(reverse("grafana-plugin:sync-v2"), format="json", **auth_headers)
@@ -35,9 +36,11 @@ def test_invalid_auth(make_organization_and_user_with_plugin_token, make_user_au
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert not mock_sync.called
 
-    auth_headers = make_user_auth_headers(user, token)
+    auth_headers = make_user_auth_headers(None, token, organization=organization)
+    del auth_headers["HTTP_X-Instance-Context"]
+
     with patch("apps.grafana_plugin.views.sync_v2.SyncV2View.do_sync", return_value=organization) as mock_sync:
         response = client.post(reverse("grafana-plugin:sync-v2"), format="json", **auth_headers)
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert not mock_sync.called
