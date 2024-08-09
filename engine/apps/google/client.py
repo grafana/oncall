@@ -3,6 +3,7 @@ import logging
 import typing
 
 from django.conf import settings
+from google.auth.exceptions import RefreshError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -24,9 +25,22 @@ class GoogleCalendarEvent:
         self.end_time_utc = self._end_time.astimezone(datetime.timezone.utc)
 
 
-class GoogleCalendarHTTPError(Exception):
+class _GoogleCalendarHTTPError(Exception):
     def __init__(self, http_error) -> None:
         self.error = http_error
+
+
+class GoogleCalendarGenericHTTPError(_GoogleCalendarHTTPError):
+    """Raised when a generic HTTP error occurs when communicating with the Google Calendar API"""
+
+
+class GoogleCalendarUnauthorizedHTTPError(_GoogleCalendarHTTPError):
+    """Raised when an HTTP 403 error occurs when communicating with the Google Calendar API"""
+
+
+class GoogleCalendarRefreshError(Exception):
+    def __init__(self, refresh_error) -> None:
+        self.error = refresh_error
 
 
 class GoogleCalendarAPIClient:
@@ -89,7 +103,27 @@ class GoogleCalendarAPIClient:
                 .execute()
             )
         except HttpError as e:
-            logger.error(f"GoogleCalendarAPIClient - Error fetching out of office events: {e}")
-            raise GoogleCalendarHTTPError(e)
+            if e.status_code == 403:
+                # this scenario can be encountered when, for some reason, the OAuth2 token that we have
+                # does not contain the https://www.googleapis.com/auth/calendar.events.readonly scope
+                # example error:
+                # <HttpError 403 when requesting https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=2024-08-08T14%3A00%3A00%2B0000&timeMax=2024-09-07T14%3A00%3A00%2B0000&maxResults=250&singleEvents=true&orderBy=startTime&eventTypes=outOfOffice&alt=json returned "Request had insufficient authentication scopes.". Details: "[{'message': 'Insufficient Permission', 'domain': 'global', 'reason': 'insufficientPermissions'}]"> # noqa: E501
+                logger.error(f"GoogleCalendarAPIClient - HttpError 403 when fetching out of office events: {e}")
+                raise GoogleCalendarUnauthorizedHTTPError(e)
+
+            logger.error(f"GoogleCalendarAPIClient - HttpError when fetching out of office events: {e}")
+            raise GoogleCalendarGenericHTTPError(e)
+        except RefreshError as e:
+            # TODO: come back and solve this properly once we get better logging output
+            # it seems like right now we are seeing RefreshError in two different scenarios:
+            # 1. RefreshError('invalid_grant: Account has been deleted', {'error': 'invalid_grant', 'error_description': 'Account has been deleted'})
+            # 2. RefreshError('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
+            # https://stackoverflow.com/a/49024030/3902555
+            logger.error(
+                f"GoogleCalendarAPIClient - RefreshError when fetching out of office events: {e} "
+                # NOTE: remove e.args after debugging how to dig into the error details
+                f"args={e.args}"
+            )
+            raise GoogleCalendarRefreshError(e)
 
         return [GoogleCalendarEvent(event) for event in events_result.get("items", [])]
