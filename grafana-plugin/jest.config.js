@@ -1,13 +1,9 @@
-const esModules = ['@grafana', 'uplot', 'ol', 'd3', 'react-colorful', 'uuid', 'openapi-fetch'].join('|');
-
 module.exports = {
   ...require('./.config/jest.config'),
   testEnvironment: 'jsdom',
 
   moduleDirectories: ['node_modules', 'src'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'd.ts', 'cjs'],
-
-  transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
 
   moduleNameMapper: {
     'grafana/app/(.*)': '<rootDir>/src/jest/grafanaMock.ts',

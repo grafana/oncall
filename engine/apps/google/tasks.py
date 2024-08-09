@@ -3,7 +3,12 @@ import logging
 from celery.utils.log import get_task_logger
 
 from apps.google import constants
-from apps.google.client import GoogleCalendarAPIClient, GoogleCalendarHTTPError
+from apps.google.client import (
+    GoogleCalendarAPIClient,
+    GoogleCalendarGenericHTTPError,
+    GoogleCalendarRefreshError,
+    GoogleCalendarUnauthorizedHTTPError,
+)
 from apps.google.models import GoogleOAuth2User
 from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -33,8 +38,16 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     try:
         out_of_office_events = google_api_client.fetch_out_of_office_events()
-    except GoogleCalendarHTTPError:
-        logger.info(f"Failed to fetch out of office events for user {user_id}")
+    except GoogleCalendarUnauthorizedHTTPError:
+        # this happens because the user's access token is (somehow) missing the
+        # https://www.googleapis.com/auth/calendar.events.readonly scope
+        # they will need to reconnect their Google account and grant us the necessary scopes, retrying will not help
+        logger.exception(f"Failed to fetch out of office events for user {user_id} due to an unauthorized HTTP error")
+        # TODO: come back and solve this properly once we get better logging output
+        # user.reset_google_oauth2_settings()
+        return
+    except (GoogleCalendarRefreshError, GoogleCalendarGenericHTTPError):
+        logger.exception(f"Failed to fetch out of office events for user {user_id}")
         return
 
     for out_of_office_event in out_of_office_events:

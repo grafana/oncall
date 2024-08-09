@@ -1,11 +1,17 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { Button, HorizontalGroup, Label, Legend, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { OnCallPluginConfigPageProps } from 'types';
 
 import { PluginState, PluginStatusResponseBase } from 'state/plugin/plugin';
-import { FALLBACK_LICENSE, getOnCallApiUrl, GRAFANA_LICENSE_OSS, hasPluginBeenConfigured } from 'utils/consts';
+import {
+  FALLBACK_LICENSE,
+  getOnCallApiUrl,
+  getPluginId,
+  GRAFANA_LICENSE_OSS,
+  hasPluginBeenConfigured,
+} from 'utils/consts';
 
 import { ConfigurationForm } from './parts/ConfigurationForm/ConfigurationForm';
 import { RemoveCurrentConfigurationButton } from './parts/RemoveCurrentConfigurationButton/RemoveCurrentConfigurationButton';
@@ -212,7 +218,7 @@ export const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   } else {
     // plugin is fully connected and synced
     const pluginLink = (
-      <LinkButton href={`/a/grafana-oncall-app/`} variant="primary">
+      <LinkButton href={`/a/${getPluginId()}/`} variant="primary">
         Open Grafana OnCall
       </LinkButton>
     );

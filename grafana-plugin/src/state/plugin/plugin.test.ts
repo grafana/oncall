@@ -1,4 +1,5 @@
 import { makeRequest as makeRequestOriginal, isNetworkError as isNetworkErrorOriginal } from 'network/network';
+import { getPluginId } from 'utils/consts';
 
 import { PluginState, InstallationVerb, UpdateGrafanaPluginSettingsProps } from './plugin';
 
@@ -12,7 +13,7 @@ afterEach(() => {
 });
 
 const ONCALL_BASE_URL = '/plugin';
-const GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
+const GRAFANA_PLUGIN_SETTINGS_URL = `/api/plugins/${getPluginId()}/settings`;
 
 const generateMockNetworkError = (status: number, data = {}) => ({ response: { status, ...data } });
 

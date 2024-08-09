@@ -7,9 +7,9 @@ import { observer } from 'mobx-react';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import { RouteHeading } from 'containers/IntegrationContainers/RouteHeading';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
@@ -70,34 +70,13 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
           toggle={toggle}
           heading={
             <div className={cx('heading-container')}>
-              <div className={cx('heading-container__item', 'heading-container__item--large')}>
-                <TooltipBadge
-                  borderType="success"
-                  text={routeWording}
-                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
-                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
-                    routeIndex
-                  )}
-                  className={cx('u-margin-right-xs')}
-                  tooltipContent={undefined}
-                />
-                {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
-                {routeWording !== 'Default' &&
-                  (channelFilter.filtering_term ? (
-                    <Text type="primary" className={cx('heading-container__text')}>
-                      {channelFilter.filtering_term}
-                    </Text>
-                  ) : (
-                    <>
-                      <div className={cx('icon-exclamation')}>
-                        <Icon name="exclamation-triangle" />
-                      </div>
-                      <Text type="primary" className={cx('heading-container__text')}>
-                        Routing template not set
-                      </Text>
-                    </>
-                  ))}
-              </div>
+              <RouteHeading
+                className={cx('heading-container__item', 'heading-container__item--large')}
+                routeWording={routeWording}
+                routeIndex={routeIndex}
+                channelFilter={channelFilter}
+                channelFilterIds={alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId]}
+              />
 
               <div className={cx('heading-container__item')}>
                 <RouteButtonsDisplay

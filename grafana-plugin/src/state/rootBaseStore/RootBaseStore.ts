@@ -39,8 +39,10 @@ import {
   APP_VERSION,
   CLOUD_VERSION_REGEX,
   getOnCallApiUrl,
+  getPluginId,
   GRAFANA_LICENSE_CLOUD,
   GRAFANA_LICENSE_OSS,
+  PluginId,
 } from 'utils/consts';
 
 // ------ Dashboard ------ //
@@ -172,6 +174,7 @@ export class RootBaseStore {
    * - the user must have an Admin role and necessary permissions
    * Finally, try to load the current user from the OnCall backend
    */
+  @action.bound
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.setupPluginError(null);
     this.onCallApiUrl = getOnCallApiUrl(meta);
@@ -188,7 +191,10 @@ export class RootBaseStore {
       if (errorMsg) {
         return this.setupPluginError(errorMsg);
       }
-      location.reload();
+      // will be removed as part of new OnCall init process
+      if (getPluginId() === PluginId.OnCall) {
+        location.reload();
+      }
     }
 
     // at this point we know the plugin is provisioned

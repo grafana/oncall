@@ -27,10 +27,12 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
 
     stack_id = context["stack_id"]
     org_id = context["org_id"]
+    grafana_token = context["grafana_token"]
     organization = Organization.objects.filter(stack_id=stack_id, org_id=org_id).first()
     if (
         organization
         and organization.gcom_token == token_string
+        and organization.api_token == grafana_token
         and organization.gcom_token_org_last_time_synced
         and timezone.now() - organization.gcom_token_org_last_time_synced < GCOM_TOKEN_CHECK_PERIOD
     ):
@@ -61,6 +63,7 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
                 region_slug=instance_info["regionSlug"],
                 cluster_slug=instance_info["clusterSlug"],
                 gcom_token=token_string,
+                api_token=grafana_token,
                 defaults={"gcom_token_org_last_time_synced": timezone.now()},
             )
     else:
@@ -71,6 +74,7 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
         organization.grafana_url = instance_info["url"]
         organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token = token_string
+        organization.api_token = grafana_token
         organization.gcom_token_org_last_time_synced = timezone.now()
         organization.save(
             update_fields=[

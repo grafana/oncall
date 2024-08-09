@@ -16,6 +16,57 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall//get-started/
   - ../getting-started/ # /docs/oncall/<ONCALL_VERSION>/getting-started/
   - ../get-started/ # /docs/oncall/<ONCALL_VERSION>/get-started/
+refs:
+  routes:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes/#routes
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/#routes
+  escalation-chains-and-routes:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/
+  escalation-chains:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes/#escalation-chains
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/#escalation-chains
+  slack-integration-for-grafana-oncall:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/slack/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack/
+  user-and-team-management:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  install-grafana-oncall-oss:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/set-up/open-source/#install-grafana-oncall-oss
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/#install-grafana-oncall-oss
+  integrations:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/
+  jinja2-templating:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/
+  notify-people:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/
+  on-call-schedules:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/
 ---
 
 # Get started with Grafana OnCall
@@ -46,13 +97,13 @@ OnCall is available in Grafana Cloud automatically:
 3. Choose **Alerts and IRM** from the left menu
 4. Click **OnCall** to access Grafana OnCall
 
-Otherwise, to install Grafana OnCall, refer to [Install Grafana OnCall OSS][].
+Otherwise, to install Grafana OnCall, refer to [Install Grafana OnCall OSS](ref:install-grafana-oncall-oss).
 
 ## How to configure Grafana OnCall
 
-* Users with [Admin role][user-and-team-management] can configure Alert rules (Integrations, Routes, etc)
+* Users with [Admin role](ref:user-and-team-management) can configure Alert rules (Integrations, Routes, etc)
 to define **when and which users to notify**
-* OnCall users with [Editor role][user-and-team-management] can work with Alerts Groups and set up personal settings,
+* OnCall users with [Editor role](ref:user-and-team-management) can work with Alerts Groups and set up personal settings,
 e.g. **how to notify**.
 
 > **Note:** If your role is **Editor**, you can skip to [Learn about the Alert Workflow](#learn-about-the-alert-workflow).
@@ -83,19 +134,19 @@ send a demo alert.
 4. Acknowledge and resolve the test alert group
 
 For more information on Grafana OnCall integrations and further configuration guidance, refer to
-[Grafana OnCall integrations][integrations]
+[Grafana OnCall integrations](ref:integrations)
 
 ### Review and modify alert templates
 
 Review and customize templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
 customize visualizations and notifications by extracting data from alerts. See more details in the
-[Jinja2 templating][] section.
+[Jinja2 templating](ref:jinja2-templating) section.
 
 ### Configure Escalation Chains
 
 Escalation Chains are a set of steps that define who to notify, and when.
 
-For more information, refer to [Escalation chains][].
+For more information, refer to [Escalation chains](ref:escalation-chains).
 
 Escalation Chains are customizable automated alert routing steps that enable you to specify who is notified for a certain
 alert. In addition to escalation chains, you can configure Routes to send alerts to different escalation chains depending
@@ -114,10 +165,10 @@ To configure Escalation Chains:
 
 Alerts from this integration will now follow the escalation steps configured in your Escalation Chain.
 
-For more information on Escalation Chains and more ways to customize them, refer to [Escalation chains][]
+For more information on Escalation Chains and more ways to customize them, refer to [Escalation chains](ref:escalation-chains)
 
 Routes define which messenger channels and escalation chains to use for notifications.
-For more information, refer to [Routes][].
+For more information, refer to [Routes](ref:routes).
 
 ### Learn about the Alert Workflow
 
@@ -158,7 +209,7 @@ Personal notification policies determine how a user is notified for a certain ty
 phone call, Slack mentions, or mobile push notification. Administrators can configure how users receive notifications
 for certain types of alerts.
 For more information on personal notification policies, refer to
-[Manage users and teams for Grafana OnCall][user-and-team-management]
+[Manage users and teams for Grafana OnCall](ref:user-and-team-management)
 
 To configure users personal notification policies:
 
@@ -182,10 +233,10 @@ To configure Slack for Grafana OnCall:
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
 For further instruction on connecting to your Slack workspace, refer to
-[Slack integration for Grafana OnCall][]
+[Slack integration for Grafana OnCall](ref:slack-integration-for-grafana-oncall)
 
 Grafana OnCall also supports other ChatOps integration like Microsoft Teams and Telegram.
-For a full list of supported integrations, refer to [Notify people][].
+For a full list of supported integrations, refer to [Notify people](ref:notify-people).
 
 ### Add your on-call schedule
 
@@ -198,36 +249,4 @@ To integrate your on-call calendar with Grafana OnCall:
 2. Provide a schedule name.
 3. Configure the rest of the schedule settings and click Create Schedule
 
-For more information about OnCall schedules, refer to [On-call schedules][].
-
-{{% docs/reference %}}
-[escalation-chains-and-routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes"
-[escalation-chains-and-routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes"
-
-[Escalation chains]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes#escalation-chains"
-[Escalation chains]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes#escalation-chains"
-
-[integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations"
-[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
-
-[Jinja2 templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating"
-[Jinja2 templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating"
-
-[Notify people]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify"
-[Notify people]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify"
-
-[On-call schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules"
-[On-call schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules"
-
-[Install Grafana OnCall OSS]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#install-grafana-oncall-oss"
-[Install Grafana OnCall OSS]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#install-grafana-oncall-oss"
-
-[Routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/escalation-chains-and-routes#routes"
-[Routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes#routes"
-
-[Slack integration for Grafana OnCall]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify/slack"
-[Slack integration for Grafana OnCall]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack"
-
-[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-{{% /docs/reference %}}
+For more information about OnCall schedules, refer to [On-call schedules](ref:on-call-schedules).

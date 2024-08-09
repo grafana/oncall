@@ -1,10 +1,11 @@
 import axios, { AxiosError } from 'axios';
 import qs from 'query-string';
 
+import { getPluginId } from 'utils/consts';
 import { FaroHelper } from 'utils/faro';
 import { safeJSONStringify } from 'utils/string';
 
-export const API_PROXY_PREFIX = 'api/plugin-proxy/grafana-oncall-app';
+export const API_PROXY_PREFIX = `api/plugin-proxy/${getPluginId()}`;
 export const API_PATH_PREFIX = '/api/internal/v1';
 
 const instance = axios.create();

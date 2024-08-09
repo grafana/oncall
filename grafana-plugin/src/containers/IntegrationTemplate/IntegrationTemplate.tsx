@@ -17,8 +17,9 @@ import {
 } from 'components/CheatSheet/CheatSheet.config';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
+import { TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
-import { TemplatesAlertGroupsList, TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { TemplatesAlertGroupsList } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -192,7 +193,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
       <div className={cx('container-wrapper')}>
         <div className={cx('container')}>
           <TemplatesAlertGroupsList
-            templatePage={TEMPLATE_PAGE.Integrations}
+            templatePage={TemplatePage.Integrations}
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}

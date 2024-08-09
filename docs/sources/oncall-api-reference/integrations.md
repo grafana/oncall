@@ -2,6 +2,17 @@
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/
 title: Integrations HTTP API
 weight: 500
+refs:
+  alertmanager:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/alertmanager/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/alertmanager/
+  pagination:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/#pagination
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/#pagination
 ---
 
 # Integrations HTTP API
@@ -75,7 +86,7 @@ The above command returns JSON structured in the following way:
 ```
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
-For example, to learn how to integrate Grafana OnCall with Alertmanager refer to [Alertmanager][].
+For example, to learn how to integrate Grafana OnCall with Alertmanager refer to [Alertmanager](ref:alertmanager).
 
 **HTTP request**
 
@@ -227,6 +238,8 @@ The above command returns JSON structured in the following way:
 }
 ```
 
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.
+
 **HTTP request**
 
 `GET {{API_URL}}/api/v1/integrations/`
@@ -318,8 +331,3 @@ curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \
 **HTTP request**
 
 `DELETE {{API_URL}}/api/v1/integrations/<INTEGRATION_ID>/`
-
-{{% docs/reference %}}
-[Alertmanager]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/alertmanager"
-[Alertmanager]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager"
-{{% /docs/reference %}}

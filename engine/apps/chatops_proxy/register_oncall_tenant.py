@@ -1,7 +1,7 @@
 # register_oncall_tenant moved to separate file from engine/apps/chatops_proxy/utils.py to avoid circular imports.
 from django.conf import settings
 
-from apps.chatops_proxy.client import SERVICE_TYPE_ONCALL, ChatopsProxyAPIClient
+from apps.chatops_proxy.client import APP_TYPE_ONCALL, ChatopsProxyAPIClient
 
 
 def register_oncall_tenant(org):
@@ -12,7 +12,7 @@ def register_oncall_tenant(org):
     client.register_tenant(
         str(org.uuid),
         settings.ONCALL_BACKEND_REGION,
-        SERVICE_TYPE_ONCALL,
+        APP_TYPE_ONCALL,
         org.stack_id,
         org.stack_slug,
     )

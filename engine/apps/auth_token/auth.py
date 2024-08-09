@@ -11,9 +11,11 @@ from rest_framework.request import Request
 
 from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
+from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from apps.user_management.sync import get_or_create_user
 from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -149,19 +151,39 @@ class PluginAuthentication(BasePluginAuthentication):
         except (ValueError, TypeError):
             raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
 
-        if "UserId" not in context and "UserID" not in context:
-            raise exceptions.AuthenticationFailed("Invalid Grafana context.")
-
         try:
-            user_id = context["UserId"]
-        except KeyError:
-            user_id = context["UserID"]
-
-        try:
-            return organization.users.get(user_id=user_id)
+            user_id = context.get("UserId", context.get("UserID"))
+            if user_id is not None:
+                return organization.users.get(user_id=user_id)
+            elif "Login" in context:
+                return organization.users.get(username=context["Login"])
+            else:
+                raise exceptions.AuthenticationFailed("Grafana context must specify a User or UserID.")
         except User.DoesNotExist:
-            logger.debug(f"Could not get user from grafana request. Context {context}")
-            raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+            try:
+                user_data = dict(json.loads(request.headers.get("X-Oncall-User-Context")))
+            except (ValueError, TypeError):
+                raise exceptions.AuthenticationFailed("User context must be JSON dict.")
+            if user_data:
+                permissions = []
+                if user_data.get("permissions"):
+                    permissions = [
+                        SyncPermission(action=permission["action"]) for permission in user_data["permissions"]
+                    ]
+                user_sync_data = SyncUser(
+                    id=user_data["id"],
+                    name=user_data["name"],
+                    login=user_data["login"],
+                    email=user_data["email"],
+                    role=user_data["role"],
+                    avatar_url=user_data["avatar_url"],
+                    permissions=permissions,
+                    teams=user_data.get("teams", None),
+                )
+                return get_or_create_user(organization, user_sync_data)
+            else:
+                logger.debug("Could not get user from grafana request.")
+                raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
 
 
 class PluginAuthenticationSchema(OpenApiAuthenticationExtension):

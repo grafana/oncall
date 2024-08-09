@@ -5,7 +5,6 @@ import { GrafanaTheme2, KeyValue, SelectableValue, TimeRange } from '@grafana/da
 import {
   InlineSwitch,
   MultiSelect,
-  TimeRangeInput,
   Select,
   LoadingPlaceholder,
   Input,
@@ -19,33 +18,53 @@ import { capitalCase } from 'change-case';
 import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import ReactDOM from 'react-dom';
 import Emoji from 'react-emoji-render';
 
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
 import { LabelsFilter } from 'containers/Labels/LabelsFilter';
 import { RemoteSelect } from 'containers/RemoteSelect/RemoteSelect';
 import { TeamName } from 'containers/TeamName/TeamName';
-import { FiltersValues } from 'models/filters/filters.types';
+import { FilterExtraInformation, FilterExtraInformationValues } from 'models/filters/filters.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { PAGE } from 'utils/consts';
 import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'utils/datetime';
-import { allFieldsEmpty } from 'utils/utils';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
+import { TimeRangePickerWrapper } from './TimeRangePickerWrapper';
 
 interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
-  defaultFilters?: FiltersValues;
-  extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   grafanaTeamStore: GrafanaTeamStore;
+  extraInformation?: FilterExtraInformation;
+  extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }
+
+export function filterExtraInformation(object: FilterExtraInformationValues): FilterExtraInformationValues {
+  const defaultValues: Partial<FilterExtraInformationValues> = {
+    isClearable: true,
+    showInputLabel: true,
+  };
+
+  const result = { ...object };
+
+  Object.keys(defaultValues).forEach((key) => {
+    if (!result.hasOwnProperty(key)) {
+      result[key] = defaultValues[key];
+    }
+  });
+
+  return result;
+}
+
 export interface RemoteFiltersState {
   filterOptions?: FilterOption[];
   filters: FilterOption[];
@@ -86,12 +105,12 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       query,
       page,
       store: { filtersStore },
-      defaultFilters,
       skipFilterOptionFn,
     } = this.props;
 
     let filterOptions = await filtersStore.updateOptionsForPage(page);
     const currentTablePageNum = parseInt(filtersStore.currentTablePageNum[page] || query.p || 1, 10);
+    const defaultFilters = this.extractDefaultValuesFromExtraInformation();
 
     if (skipFilterOptionFn) {
       filterOptions = filterOptions.filter((option: FilterOption) => !skipFilterOptionFn(option));
@@ -100,11 +119,11 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     // set the current page from filters/query or default it to 1
     filtersStore.setCurrentTablePageNum(page, currentTablePageNum);
 
-    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
-
-    if (allFieldsEmpty(values)) {
-      ({ filters, values } = parseFilters(defaultFilters, filterOptions, query));
-    }
+    let { filters, values } = parseFilters(
+      { ...defaultFilters, ...query, ...filtersStore.globalValues },
+      filterOptions,
+      query
+    );
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
@@ -147,33 +166,13 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     return (
       <div className={styles.filters}>
-        {filters.map((filterOption: FilterOption) => (
-          <div key={filterOption.name} className={styles.filter}>
-            <Text withBackground wrap={false} type="primary">
-              {filterOption.display_name || capitalCase(filterOption.name)}
-              {filterOption.description && (
-                <span className={styles.infoIcon}>
-                  <Tooltip content={filterOption.description}>
-                    <Icon name="info-circle" />
-                  </Tooltip>
-                </span>
-              )}
-            </Text>
-            {this.renderFilterOption(filterOption)}
-            <Button
-              size="md"
-              icon="times"
-              tooltip="Remove filter"
-              variant="secondary"
-              onClick={this.getDeleteFilterClickHandler(filterOption.name)}
-            />
-          </div>
-        ))}
+        {filters.map(this.renderFilterBlock)}
+
         <div className={styles.filterOptions}>
           <Select
             menuShouldPortal
             key={filters.length}
-            placeholder="Search or filter results..."
+            placeholder={allowFreeSearch ? 'Search or filter results...' : 'Filter results...'}
             value={undefined}
             onChange={this.handleAddFilter}
             getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
@@ -187,14 +186,75 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     );
   };
 
+  renderFilterBlock = (filterOption: FilterOption) => {
+    const { theme, extraInformation } = this.props;
+    const showInputLabel = this.getExtraInformationField(filterOption, 'showInputLabel');
+    const isInputClearable = this.getExtraInformationField(filterOption, 'isClearable');
+
+    const styles = getStyles(theme);
+
+    const filterElement = (
+      <div key={filterOption.name} className={styles.filter}>
+        <RenderConditionally shouldRender={showInputLabel}>
+          <Text withBackground wrap={false} type="primary">
+            {filterOption.display_name || capitalCase(filterOption.name)}
+            {filterOption.description && (
+              <span className={styles.infoIcon}>
+                <Tooltip content={filterOption.description}>
+                  <Icon name="info-circle" />
+                </Tooltip>
+              </span>
+            )}
+          </Text>
+        </RenderConditionally>
+
+        {this.renderFilterOption(filterOption)}
+
+        <RenderConditionally shouldRender={isInputClearable}>
+          <Button
+            size="md"
+            icon="times"
+            tooltip="Remove filter"
+            variant="secondary"
+            onClick={this.getDeleteFilterClickHandler(filterOption.name)}
+          />
+        </RenderConditionally>
+      </div>
+    );
+
+    if (extraInformation?.[filterOption.name]?.portal?.current) {
+      return ReactDOM.createPortal(filterElement, extraInformation[filterOption.name].portal.current);
+    }
+
+    return filterElement;
+  };
+
+  getExtraInformationField = (filterOption: FilterOption, key: keyof FilterExtraInformationValues) => {
+    return filterExtraInformation(this.props.extraInformation?.[filterOption.name])?.[key];
+  };
+
+  extractDefaultValuesFromExtraInformation = (): { [key: string]: FilterExtraInformationValues } => {
+    const { extraInformation } = this.props;
+
+    return extraInformation
+      ? Object.keys(extraInformation).reduce((acc, key) => {
+          if (extraInformation[key].value) {
+            acc[key] = extraInformation[key].value;
+          }
+
+          return acc;
+        }, {})
+      : {};
+  };
+
   handleSearch = (query: string) => {
-    const { filters } = this.state;
+    const { filters, filterOptions } = this.state;
 
     const searchFilter = filters.find((filter: FilterOption) => filter.name === 'search');
 
     const newFilters = filters;
     if (!searchFilter) {
-      newFilters.push({ name: 'search', type: 'search' });
+      newFilters.push(filterOptions.find((filter: FilterOption) => filter.name === 'search'));
     } else {
       this.searchRef.current.focus();
     }
@@ -324,12 +384,10 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         const value = getValueForDateRangeFilterType(values[filter.name]);
 
         return (
-          <TimeRangeInput
+          <TimeRangePickerWrapper
             timeZone={moment.tz.guess()}
             value={value}
             onChange={this.getDateRangeFilterChangeHandler(filter.name)}
-            hideTimeZone
-            clearable={false}
           />
         );
 
@@ -465,7 +523,6 @@ const getStyles = (theme: GrafanaTheme2) => {
     filters: css`
       display: flex;
       gap: 10px;
-      padding: 10px;
       border: 1px solid ${theme.colors.border.weak}
       border-radius: 2px;
       flex-wrap: wrap;

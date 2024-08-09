@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, runInAction, makeAutoObservable } from 'mobx';
 
-import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { NotificationPolicyType } from 'models/notification_policy/notification_policy';
 import { makeRequest } from 'network/network';
@@ -38,7 +37,7 @@ export class UserStore {
   }
 
   async fetchItems(
-    f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    f: { search: ''; type?: string; used?: boolean; mine?: boolean } | string = { search: '' },
     page = 1,
     invalidateFn?: () => boolean
   ): Promise<any> {

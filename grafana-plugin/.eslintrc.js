@@ -1,5 +1,5 @@
 const rulesDirPlugin = require('eslint-plugin-rulesdir');
-rulesDirPlugin.RULES_DIR = 'tools/eslint-rules';
+rulesDirPlugin.RULES_DIR = __dirname + '/tools/eslint-rules';
 
 module.exports = {
   extends: ['./.config/.eslintrc'],
@@ -8,6 +8,19 @@ module.exports = {
     'import/internal-regex':
       '^assets|^components|^containers|^contexts|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
+  overrides: [
+    {
+      files: ['src/**/*.{ts,tsx}'],
+      rules: {
+        'deprecation/deprecation': 'warn',
+      },
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+  ],
+
   rules: {
     eqeqeq: 'warn',
     'import/order': [

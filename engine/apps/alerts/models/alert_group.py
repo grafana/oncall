@@ -42,6 +42,7 @@ if typing.TYPE_CHECKING:
         Alert,
         AlertGroupLogRecord,
         AlertReceiveChannel,
+        BundledNotification,
         ResolutionNote,
         ResolutionNoteSlackMessage,
     )
@@ -189,6 +190,7 @@ class AlertGroupSlackRenderingMixin:
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
     acknowledged_by_user: typing.Optional["User"]
     alerts: "RelatedManager['Alert']"
+    bundled_notifications: "RelatedManager['BundledNotification']"
     dependent_alert_groups: "RelatedManager['AlertGroup']"
     channel: "AlertReceiveChannel"
     log_records: "RelatedManager['AlertGroupLogRecord']"
@@ -513,9 +515,15 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def telegram_permalink(self) -> typing.Optional[str]:
         from apps.telegram.models.message import TelegramMessage
 
-        main_telegram_message = self.telegram_messages.filter(
-            chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE
-        ).first()
+        try:
+            # prefetched_telegram_messages could be set in apps.api.serializers.alert_group.AlertGroupListSerializer
+            main_telegram_message = self.prefetched_telegram_messages[0] if self.prefetched_telegram_messages else None
+        except AttributeError:
+            main_telegram_message = (
+                self.telegram_messages.filter(chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE)
+                .order_by("id")
+                .first()
+            )
 
         return main_telegram_message.link if main_telegram_message else None
 
@@ -554,7 +562,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         log_records = self.log_records.filter(
             type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
-        )
+        ).order_by("created_at")
 
         for log_record in log_records:
             # filter paging events, track still active escalations
@@ -592,7 +600,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                     }
                 else:
                     # user was unpaged at some point, remove them
-                    del users[user_id]
+                    # there could be multiple unpage log records if API was hit several times
+                    if user_id in users:
+                        del users[user_id]
 
         return list(users.values())
 
@@ -1967,7 +1977,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_message(self) -> typing.Optional["SlackMessage"]:
-        return self.slack_messages.order_by("created_at").first()
+        try:
+            # prefetched_slack_messages could be set in apps.api.serializers.alert_group.AlertGroupListSerializer
+            return self.prefetched_slack_messages[0] if self.prefetched_slack_messages else None
+        except AttributeError:
+            return self.slack_messages.order_by("created_at").first()
 
     @cached_property
     def last_stop_escalation_log(self):

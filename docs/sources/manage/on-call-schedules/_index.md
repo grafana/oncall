@@ -15,6 +15,27 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/
   - ../on-call-schedules # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/
+refs:
+  web-based-on-call-schedules:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/web-schedule/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule/
+  import-on-call-schedules:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/ical-schedules/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/ical-schedules/
+  manage-users-and-teams-for-grafana-oncall:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/
+  shift-swap-requests:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/shift-swaps/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps/
 ---
 
 ## Before you begin
@@ -22,14 +43,14 @@ aliases:
 - Users with Admin or Editor roles can create, edit and delete schedules.
 - Users with Viewer role cannot receive alert notifications, therefore, cannot be on-call.
 
-For more information about permissions, refer to [Manage users and teams for Grafana OnCall][]
+For more information about permissions, refer to [Manage users and teams for Grafana OnCall](ref:manage-users-and-teams-for-grafana-oncall)
 
 ### Web-based schedule
 
 Configure and manage on-call schedules directly in the Grafana OnCall plugin. Easily configure and preview rotations,
 see teammates' time zones, and add overrides.
 
-For more information, refer to [Web-based on-call schedules][].
+For more information, refer to [Web-based on-call schedules](ref:web-based-on-call-schedules).
 
 ### iCal import
 
@@ -37,7 +58,7 @@ Use any calendar service that uses the iCal format to manage and customize on-ca
 shifts from your calendar app to Grafana OnCall for widely accessible scheduling. iCal imports appear in Grafana
 OnCall as read-only schedules but can be leveraged similarly to a web-based schedule.
 
-For more information, refer top [Import on-call schedules][].
+For more information, refer top [Import on-call schedules](ref:import-on-call-schedules).
 
 ### Terraform
 
@@ -65,18 +86,4 @@ Sometimes you may need someone to cover your scheduled on-call shifts (e.g. you 
 for a couple of weeks). You can then create a shift swap request, which will let your teammates
 know about this as well as allowing them to volunteer and take your affected shifts for that period.
 
-For more information, refer to [Shift swap requests][].
-
-{{% docs/reference %}}
-[Import on-call schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/ical-schedules"
-[Import on-call schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/ical-schedules"
-
-[Manage users and teams for Grafana OnCall]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/"
-[Manage users and teams for Grafana OnCall]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management"
-
-[Web-based on-call schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/web-schedule"
-[Web-based on-call schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule"
-
-[Shift swap requests]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/shift-swaps"
-[Shift swap requests]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/shift-swaps"
-{{% /docs/reference %}}
+For more information, refer to [Shift swap requests](ref:shift-swap-requests).

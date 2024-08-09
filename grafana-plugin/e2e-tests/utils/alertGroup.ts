@@ -49,7 +49,7 @@ export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
   const selectElement = await selectDropdownValue({
     page,
     selectType: 'grafanaSelect',
-    placeholderText: 'Search or filter results...',
+    placeholderText: 'Filter results...',
     value: 'Integration',
   });
   await selectElement.type(integrationName);

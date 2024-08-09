@@ -17,7 +17,7 @@ interface MonacoEditorProps {
   data: any;
   showLineNumbers?: boolean;
   useAutoCompleteList?: boolean;
-  language?: MONACO_LANGUAGE;
+  language?: MonacoLanguage;
   onChange?: (value: string) => void;
   loading?: boolean;
   monacoOptions?: any;
@@ -26,7 +26,7 @@ interface MonacoEditorProps {
   codeEditorProps?: Partial<ComponentProps<typeof CodeEditor>>;
 }
 
-export enum MONACO_LANGUAGE {
+export enum MonacoLanguage {
   json = 'json',
   jinja2 = 'jinja2',
 }
@@ -46,7 +46,7 @@ export const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     onChange,
     disabled,
     data,
-    language = MONACO_LANGUAGE.jinja2,
+    language = MonacoLanguage.jinja2,
     useAutoCompleteList = true,
     focus = true,
     height = '130px',
@@ -79,7 +79,7 @@ export const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       editor.focus();
     }
 
-    if (language === MONACO_LANGUAGE.jinja2) {
+    if (language === MonacoLanguage.jinja2) {
       const jinja2Lang = monaco.languages.getLanguages().find((l: { id: string }) => l.id === 'jinja2');
       if (!jinja2Lang) {
         monaco.languages.register({ id: 'jinja2' });
