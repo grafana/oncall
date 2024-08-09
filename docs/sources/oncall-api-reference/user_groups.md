@@ -2,6 +2,12 @@
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/user_groups/
 title: OnCall user groups HTTP API
 weight: 1400
+refs:
+  pagination:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/#pagination
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/#pagination
 ---
 
 <!--Used in escalation policies with type = `notify_user_group` and in schedules.-->
@@ -40,6 +46,8 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.
 
 | Parameter | Unique | Description                                                                                           |
 | --------- | :----: | :---------------------------------------------------------------------------------------------------- |
