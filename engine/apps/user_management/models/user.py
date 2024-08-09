@@ -382,8 +382,14 @@ class User(models.Model):
             self.alert_group_table_selected_columns = columns
             self.save(update_fields=["alert_group_table_selected_columns"])
 
-    def finish_google_oauth2_connection_flow(self, google_oauth2_response: "GoogleOauth2Response") -> None:
-        _obj, created = GoogleOAuth2User.objects.update_or_create(
+    def save_google_oauth2_settings(self, google_oauth2_response: "GoogleOauth2Response") -> None:
+        logger.info(
+            f"Saving Google OAuth2 settings for user {self.pk} "
+            f"sub={google_oauth2_response.get('sub')} "
+            f"oauth_scope={google_oauth2_response.get('oauth_scope')}"
+        )
+
+        _, created = GoogleOAuth2User.objects.update_or_create(
             user=self,
             defaults={
                 "google_user_id": google_oauth2_response.get("sub"),
@@ -398,7 +404,9 @@ class User(models.Model):
             }
             self.save(update_fields=["google_calendar_settings"])
 
-    def finish_google_oauth2_disconnection_flow(self) -> None:
+    def reset_google_oauth2_settings(self) -> None:
+        logger.info(f"Resetting Google OAuth2 settings for user {self.pk}")
+
         GoogleOAuth2User.objects.filter(user=self).delete()
 
         self.google_calendar_settings = None
