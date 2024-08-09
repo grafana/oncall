@@ -736,6 +736,56 @@ def test_execute_webhook_errors(
     )
 
 
+@patch(
+    "apps.webhooks.models.webhook.WebhookSession.request",
+    side_effect=requests.exceptions.SSLError("SSL error - foo bar"),
+)
+@patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8")  # make it a valid URL when resolving name
+@pytest.mark.django_db
+def test_execute_webhook_ssl_error(
+    _mock_socket_gethostbyname,
+    mock_request,
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+):
+    url = "https://something.cool/"
+    expected_error = "SSL error - foo bar"
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel, resolved_at=timezone.now(), resolved=True)
+    webhook = make_custom_webhook(
+        organization=organization,
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_RESOLVE,
+        forward_all=False,
+        url=url,
+    )
+
+    execute_webhook(webhook.pk, alert_group.pk, None, None)
+
+    mock_request.assert_has_calls([call("POST", url, timeout=4, headers={})])
+
+    log = webhook.responses.all()[0]
+    assert log.status_code is None
+    assert log.content == expected_error
+
+    # check log record
+    log_record = alert_group.log_records.last()
+    assert log_record.type == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR
+    assert log_record.step_specific_info == {
+        "trigger": "resolve",
+        "webhook_id": webhook.public_primary_key,
+        "webhook_name": webhook.name,
+    }
+    assert log_record.reason == expected_error
+    assert (
+        log_record.rendered_log_line_action() == f"skipped resolve outgoing webhook `{webhook.name}`: {expected_error}"
+    )
+
+
 @pytest.mark.django_db
 def test_response_content_limit(
     make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook

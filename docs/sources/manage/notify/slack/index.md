@@ -122,6 +122,8 @@ This set of permissions is supporting the ability of Grafana OnCall to match use
   (deprecated) slack commands.
 - **Create and manage user groups** — the permission is used to automatically update user groups linked to on-call
   schedules. It will add users once their on-call shift starts and remove them once the on-call shift ends.
+  - **NOTE**: per [Slack's documentation](https://slack.com/help/articles/212906697-Create-a-user-group), you must have
+  a paid plan for this feature to work properly
 - **Set presence for Grafana OnCall**
 
 ## Post-install configuration for Slack integration
