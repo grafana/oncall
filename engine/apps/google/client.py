@@ -114,15 +114,21 @@ class GoogleCalendarAPIClient:
             logger.error(f"GoogleCalendarAPIClient - HttpError when fetching out of office events: {e}")
             raise GoogleCalendarGenericHTTPError(e)
         except RefreshError as e:
-            # TODO: come back and solve this properly once we get better logging output
-            # it seems like right now we are seeing RefreshError in two different scenarios:
+            # we see RefreshError in two different scenarios:
             # 1. RefreshError('invalid_grant: Account has been deleted', {'error': 'invalid_grant', 'error_description': 'Account has been deleted'})
             # 2. RefreshError('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
             # https://stackoverflow.com/a/49024030/3902555
+
+            try:
+                error_details = e.args[1]  # should be a dict like in the comment above
+            except IndexError:
+                error_details = None  # catch this just in case
+
+            error_description = error_details.get("error_description") if error_details else None
+
             logger.error(
                 f"GoogleCalendarAPIClient - RefreshError when fetching out of office events: {e} "
-                # NOTE: remove e.args after debugging how to dig into the error details
-                f"args={e.args}"
+                f"error_description={error_description}"
             )
             raise GoogleCalendarRefreshError(e)
 

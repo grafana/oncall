@@ -38,16 +38,18 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     try:
         out_of_office_events = google_api_client.fetch_out_of_office_events()
-    except GoogleCalendarUnauthorizedHTTPError:
-        # this happens because the user's access token is (somehow) missing the
-        # https://www.googleapis.com/auth/calendar.events.readonly scope
-        # they will need to reconnect their Google account and grant us the necessary scopes, retrying will not help
-        logger.exception(f"Failed to fetch out of office events for user {user_id} due to an unauthorized HTTP error")
-        # TODO: come back and solve this properly once we get better logging output
-        # user.reset_google_oauth2_settings()
+    except (GoogleCalendarRefreshError, GoogleCalendarUnauthorizedHTTPError):
+        # in these scenarios there's really not much we can do with the refresh/access token that we
+        # have available. The user will need to re-connect with Google..
+        # it's still not clear what exactly leads to these scenarios..
+
+        logger.exception(
+            f"Failed to fetch out of office events for user {user_id} due to an invalid access and/or refresh token"
+        )
+        user.reset_google_oauth2_settings()
         return
-    except (GoogleCalendarRefreshError, GoogleCalendarGenericHTTPError):
-        logger.exception(f"Failed to fetch out of office events for user {user_id}")
+    except GoogleCalendarGenericHTTPError:
+        logger.exception(f"Failed to fetch out of office events for user {user_id} due to a generic HTTP error")
         return
 
     for out_of_office_event in out_of_office_events:

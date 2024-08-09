@@ -3,9 +3,11 @@ from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
+from google.auth.exceptions import RefreshError
 from googleapiclient.errors import HttpError
 
 from apps.google import constants, tasks
+from apps.google.models import GoogleOAuth2User
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 
 
@@ -148,19 +150,58 @@ class MockResponse:
 
 
 @patch("apps.google.client.build")
+@pytest.mark.parametrize(
+    "ErrorClass,http_status,should_reset_user_google_oauth2_settings,task_should_raise_exception",
+    [
+        (RefreshError, None, True, False),
+        (HttpError, 401, False, False),
+        (HttpError, 500, False, False),
+        (HttpError, 403, True, False),
+        (Exception, None, False, True),
+    ],
+)
 @pytest.mark.django_db
-def test_sync_out_of_office_calendar_events_for_user_httperror(mock_google_api_client_build, test_setup):
-    mock_response = MockResponse(reason="forbidden", status=403)
-    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.side_effect = HttpError(
-        resp=mock_response, content=b"error"
-    )
+def test_sync_out_of_office_calendar_events_for_user_error_scenarios(
+    mock_google_api_client_build,
+    ErrorClass,
+    http_status,
+    should_reset_user_google_oauth2_settings,
+    task_should_raise_exception,
+    test_setup,
+):
+    if ErrorClass == HttpError:
+        mock_response = MockResponse(reason="forbidden", status=http_status)
+        exception = ErrorClass(resp=mock_response, content=b"error")
+    elif ErrorClass == RefreshError:
+        exception = ErrorClass("invalid_grant: Token has been expired or revoked.", {"error": "invalid_grant", "error_description": "Token has been expired or revoked."})
+    else:
+        exception = ErrorClass()
+
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.side_effect = exception
 
     google_oauth2_user, schedule = test_setup([])
     user = google_oauth2_user.user
 
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    assert user.google_calendar_settings is not None
 
-    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 0
+    if task_should_raise_exception:
+        with pytest.raises(ErrorClass):
+            tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    else:
+        tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+
+        assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 0
+
+        user.refresh_from_db()
+
+        google_oauth2_user_count = GoogleOAuth2User.objects.filter(user=user).count()
+
+        if should_reset_user_google_oauth2_settings:
+            assert user.google_calendar_settings is None
+            assert google_oauth2_user_count == 0
+        else:
+            assert user.google_calendar_settings is not None
+            assert google_oauth2_user_count == 1
 
 
 @patch("apps.google.client.build")
