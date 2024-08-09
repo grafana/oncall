@@ -3,7 +3,7 @@ import datetime
 import pytest
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
 
@@ -183,3 +183,42 @@ def test_finish_google_oauth2_disconnection_flow(make_organization_and_user):
 
     assert GoogleOAuth2User.objects.filter(user=user).exists() is False
     assert user.google_calendar_settings is None
+
+
+PERM = RBACPermission.Permissions.ALERT_GROUPS_READ
+
+
+@pytest.mark.django_db
+def test_filter_by_permission(make_organization, make_user_for_organization):
+    """
+    Note that there are some conditions in `UserQuerySet.filter_by_permission` that're
+    specific to which database engine is being used. These cases are tested on CI where
+    we run the test against sqlite, mysql, and postgresql
+    """
+    oncall_permissions = User.construct_permissions_from_actions([PERM.value_oncall_app])
+    irm_permissions = User.construct_permissions_from_actions([PERM.value_irm_app])
+
+    org1_rbac = make_organization(is_rbac_permissions_enabled=True)
+    org2_no_rbac = make_organization(is_rbac_permissions_enabled=False)
+
+    user1 = make_user_for_organization(org1_rbac, permissions=oncall_permissions)
+    user2 = make_user_for_organization(org1_rbac, permissions=irm_permissions)
+    _ = make_user_for_organization(org1_rbac, permissions=[])
+
+    user4 = make_user_for_organization(org2_no_rbac, role=PERM.fallback_role)
+    user5 = make_user_for_organization(org2_no_rbac, role=PERM.fallback_role)
+    _ = make_user_for_organization(org2_no_rbac, role=LegacyAccessControlRole.NONE)
+
+    # rbac permissions enabled
+    users = User.objects.filter_by_permission(PERM, org1_rbac)
+
+    assert len(users) == 2
+    assert user1 in users
+    assert user2 in users
+
+    # rbac permissions disabled
+    users = User.objects.filter_by_permission(PERM, org2_no_rbac)
+
+    assert len(users) == 2
+    assert user4 in users
+    assert user5 in users

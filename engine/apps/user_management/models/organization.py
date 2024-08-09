@@ -18,6 +18,7 @@ from apps.chatops_proxy.utils import (
 )
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.types import AlertGroupTableColumn
+from common.constants.plugin_ids import PluginID
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -346,12 +347,12 @@ class Organization(MaintainableObject):
 
     @property
     def web_link(self):
-        return urljoin(self.grafana_url, "a/grafana-oncall-app/")
+        return urljoin(self.grafana_url, f"a/{PluginID.ONCALL}/")
 
     @property
     def web_link_with_uuid(self):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
+        return urljoin(self.grafana_url, f"a/{PluginID.ONCALL}/?oncall-uuid={self.uuid}")
 
     @classmethod
     def __str__(self):

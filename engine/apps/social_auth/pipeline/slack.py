@@ -10,6 +10,7 @@ from apps.chatops_proxy.utils import can_link_slack_team, link_slack_team
 from apps.slack.installation import SlackInstallationExc, install_slack_integration
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
 from apps.social_auth.exceptions import InstallMultiRegionSlackException
+from common.constants.plugin_ids import PluginID
 from common.constants.slack_auth import SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR, SLACK_AUTH_WRONG_WORKSPACE_ERROR
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
@@ -26,7 +27,7 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     slack_team_identity = organization.slack_team_identity
     slack_user_id = response["authed_user"]["id"]
 
-    redirect_to = "/a/grafana-oncall-app/users/me/"
+    redirect_to = f"/a/{PluginID.ONCALL}/users/me/"
     base_url_to_redirect = urljoin(organization.grafana_url, redirect_to)
 
     if slack_team_identity is None:

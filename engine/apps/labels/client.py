@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
+from common.constants.plugin_ids import PluginID
+
 if typing.TYPE_CHECKING:
     from apps.labels.types import LabelKey, LabelOption, LabelValue
 
@@ -33,11 +35,9 @@ TIMEOUT = 5
 
 
 class LabelsAPIClient:
-    LABELS_API_URL = "/api/plugins/grafana-labels-app/resources/v1/labels/"
-
     def __init__(self, api_url: str, api_token: str) -> None:
         self.api_token = api_token
-        self.api_url = urljoin(api_url, self.LABELS_API_URL)
+        self.api_url = urljoin(api_url, f"/api/plugins/{PluginID.LABELS}/resources/v1/labels/")
 
     def create_label(
         self, label_data: "LabelUpdateParam"

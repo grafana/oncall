@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.auth_token.constants import SLACK_AUTH_TOKEN_NAME
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
+from common.constants.plugin_ids import PluginID
 from common.constants.slack_auth import SLACK_OAUTH_ACCESS_RESPONSE
 
 
@@ -17,8 +18,8 @@ from common.constants.slack_auth import SLACK_OAUTH_ACCESS_RESPONSE
 @pytest.mark.parametrize(
     "backend_name,expected_url",
     (
-        ("slack-login", "/a/grafana-oncall-app/users/me"),
-        (SLACK_INSTALLATION_BACKEND, "/a/grafana-oncall-app/chat-ops"),
+        ("slack-login", f"/a/{PluginID.ONCALL}/users/me"),
+        (SLACK_INSTALLATION_BACKEND, f"/a/{PluginID.ONCALL}/chat-ops"),
     ),
 )
 def test_complete_slack_auth_redirect_ok(
@@ -194,4 +195,4 @@ def test_google_complete_auth_redirect_ok(
     response = client.get(url)
 
     assert response.status_code == status.HTTP_302_FOUND
-    assert response.url == "/a/grafana-oncall-app/users/me"
+    assert response.url == f"/a/{PluginID.ONCALL}/users/me"

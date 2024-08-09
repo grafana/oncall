@@ -67,12 +67,9 @@ IcalEvents = typing.List[IcalEvent]
 SchedulesOnCallUsers = typing.Dict["OnCallSchedule", typing.List["User"]]
 
 
-def users_in_ical(
-    usernames_from_ical: typing.List[str],
-    organization: "Organization",
-) -> typing.List["User"]:
+def users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> typing.List["User"]:
     """
-    This method returns a sequence of `User` objects, filtered by users whose username, or case-insensitive e-mail,
+    This method returns a list of `User` objects, filtered by users whose username, or case-insensitive e-mail,
     is present in `usernames_from_ical`.
 
     Parameters
@@ -90,14 +87,9 @@ def users_in_ical(
         (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
     ).distinct()
 
-    if organization.is_rbac_permissions_enabled:
-        # it is more efficient to check permissions on the subset of users filtered above
-        # than performing a regex query for the required permission
-        users_found_in_ical = [u for u in users_found_in_ical if {"action": required_permission.value} in u.permissions]
-    else:
-        users_found_in_ical = users_found_in_ical.filter(role__lte=required_permission.fallback_role.value)
-
-    return list(users_found_in_ical)
+    # it is more efficient to check permissions on the subset of users filtered above
+    # than performing a regex query for the required permission
+    return [u for u in users_found_in_ical if required_permission.user_has_permission(u)]
 
 
 @timed_lru_cache(timeout=100)

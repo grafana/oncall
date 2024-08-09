@@ -9,45 +9,30 @@ from apps.api.permissions import (
     RBAC_PERMISSIONS_ATTR,
     BasicRolePermission,
     BasicRolePermissionsAttribute,
-    GrafanaAPIPermission,
+    GrafanaAPIPermissions,
     HasRBACPermissions,
     IsOwner,
     IsOwnerOrHasRBACPermissions,
-    LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACObjectPermissionsAttribute,
     RBACPermission,
     RBACPermissionsAttribute,
     get_most_authorized_role,
     get_view_action,
+    user_has_minimum_required_basic_role,
     user_is_authorized,
 )
-
-
-class MockedOrg:
-    def __init__(self, org_has_rbac_enabled: bool) -> None:
-        self.is_rbac_permissions_enabled = org_has_rbac_enabled
-
-
-class MockedUser:
-    def __init__(
-        self,
-        permissions: typing.List[LegacyAccessControlCompatiblePermission],
-        org_has_rbac_enabled=True,
-        basic_role: typing.Optional[LegacyAccessControlRole] = None,
-    ) -> None:
-        self.permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions]
-        self.role = basic_role if basic_role is not None else get_most_authorized_role(permissions)
-        self.organization = MockedOrg(org_has_rbac_enabled)
+from apps.user_management.models import User
+from common.constants.plugin_ids import PluginID
 
 
 class MockedSchedule:
-    def __init__(self, user: MockedUser) -> None:
+    def __init__(self, user: User) -> None:
         self.user = user
 
 
 class MockedRequest:
-    def __init__(self, user: typing.Optional[MockedUser] = None, method: typing.Optional[str] = None) -> None:
+    def __init__(self, user: typing.Optional[User] = None, method: typing.Optional[str] = None) -> None:
         if user:
             self.user = user
         if method:
@@ -88,6 +73,69 @@ class MockedAPIView(APIView):
             self.rbac_object_permissions = rbac_object_permissions
         if basic_role_permissions:
             self.basic_role_permissions = basic_role_permissions
+
+
+class TestLegacyAccessControlCompatiblePermission:
+    @pytest.mark.parametrize(
+        "permission_to_test,user_permission_prefix,user_basic_role,org_has_rbac_enabled,expected_result",
+        [
+            # rbac enabled
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+                PluginID.ONCALL,
+                LegacyAccessControlRole.VIEWER,
+                True,
+                True,
+            ),
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                PluginID.ONCALL,
+                LegacyAccessControlRole.VIEWER,
+                True,
+                False,
+            ),
+            # rbac enabled - cross-plugin prefixed permissions work
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+                PluginID.IRM,
+                LegacyAccessControlRole.VIEWER,
+                True,
+                True,
+            ),
+            # rbac disabled
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+                PluginID.ONCALL,
+                LegacyAccessControlRole.VIEWER,
+                False,
+                True,
+            ),
+            (
+                RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                PluginID.ONCALL,
+                LegacyAccessControlRole.VIEWER,
+                False,
+                False,
+            ),
+        ],
+    )
+    @pytest.mark.django_db
+    def test_user_has_permission(
+        self,
+        make_organization,
+        make_user_for_organization,
+        permission_to_test,
+        user_permission_prefix,
+        user_basic_role,
+        org_has_rbac_enabled,
+        expected_result,
+    ):
+        user_permissions = GrafanaAPIPermissions.construct_permissions([f"{user_permission_prefix}.alert-groups:read"])
+
+        org = make_organization(is_rbac_permissions_enabled=org_has_rbac_enabled)
+        user = make_user_for_organization(org, role=user_basic_role, permissions=user_permissions)
+
+        assert permission_to_test.user_has_permission(user) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -143,9 +191,60 @@ class MockedAPIView(APIView):
         ),
     ],
 )
-def test_user_is_authorized(user_permissions, required_permissions, org_has_rbac_enabled, expected_result) -> None:
-    user = MockedUser(user_permissions, org_has_rbac_enabled=org_has_rbac_enabled)
+@pytest.mark.django_db
+def test_user_is_authorized(
+    make_organization,
+    make_user_for_organization,
+    user_permissions,
+    required_permissions,
+    org_has_rbac_enabled,
+    expected_result,
+) -> None:
+    basic_role = get_most_authorized_role(user_permissions)
+
+    org = make_organization(is_rbac_permissions_enabled=org_has_rbac_enabled)
+    user = make_user_for_organization(
+        org,
+        role=basic_role,
+        permissions=GrafanaAPIPermissions.construct_permissions([perm.value_oncall_app for perm in user_permissions]),
+    )
+
     assert user_is_authorized(user, required_permissions) == expected_result
+
+
+@pytest.mark.parametrize(
+    "user_permissions",
+    [
+        GrafanaAPIPermissions.construct_permissions(
+            [
+                f"{PluginID.ONCALL}.alert-groups:read",
+                f"{PluginID.ONCALL}.schedules:read",
+            ]
+        ),
+        GrafanaAPIPermissions.construct_permissions(
+            [
+                f"{PluginID.IRM}.alert-groups:read",
+                f"{PluginID.IRM}.schedules:read",
+            ]
+        ),
+        GrafanaAPIPermissions.construct_permissions(
+            [
+                f"{PluginID.ONCALL}.alert-groups:read",
+                f"{PluginID.IRM}.schedules:read",
+            ]
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_user_is_authorized_grafana_irm_app(make_organization, make_user_for_organization, user_permissions):
+    org = make_organization(is_rbac_permissions_enabled=True)
+    user = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=user_permissions)
+    required_permissions = [
+        RBACPermission.Permissions.ALERT_GROUPS_READ,
+        RBACPermission.Permissions.SCHEDULES_READ,
+    ]
+
+    assert user_is_authorized(user, required_permissions) is True
 
 
 @pytest.mark.parametrize(
@@ -170,6 +269,38 @@ def test_get_most_authorized_role(permissions, expected_role) -> None:
     assert get_most_authorized_role(permissions) == expected_role
 
 
+@pytest.mark.parametrize(
+    "user_role,required_basic_role,expected_result",
+    [
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.VIEWER, False),
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.EDITOR, False),
+        (LegacyAccessControlRole.NONE, LegacyAccessControlRole.ADMIN, False),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.VIEWER, True),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.EDITOR, False),
+        (LegacyAccessControlRole.VIEWER, LegacyAccessControlRole.ADMIN, False),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER, True),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.EDITOR, True),
+        (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.ADMIN, False),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.NONE, True),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.VIEWER, True),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.EDITOR, True),
+        (LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.ADMIN, True),
+    ],
+)
+@pytest.mark.django_db
+def test_user_has_minimum_required_basic_role(
+    make_organization_and_user,
+    user_role,
+    required_basic_role,
+    expected_result,
+):
+    _, user = make_organization_and_user(role=user_role)
+    assert user_has_minimum_required_basic_role(user, required_basic_role) == expected_result
+
+
 def test_get_view_action():
     viewset_action = "viewset_action"
     viewset = MockedViewSet(viewset_action)
@@ -184,7 +315,12 @@ def test_get_view_action():
 
 
 class TestRBACPermission:
-    def test_has_permission_works_on_a_viewset_view(self) -> None:
+    @pytest.mark.django_db
+    def test_has_permission_works_on_a_viewset_view(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
         required_permission = RBACPermission.Permissions.ALERT_GROUPS_READ
 
         action = "hello"
@@ -202,8 +338,19 @@ class TestRBACPermission:
             },
         )
 
-        user_with_permission = MockedUser([required_permission])
-        user_without_permission = MockedUser([RBACPermission.Permissions.ALERT_GROUPS_WRITE])
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user_with_permission = make_user_for_organization(
+            org,
+            role=LegacyAccessControlRole.NONE,
+            permissions=GrafanaAPIPermissions.construct_permissions([required_permission.value_oncall_app]),
+        )
+        user_without_permission = make_user_for_organization(
+            org,
+            role=LegacyAccessControlRole.NONE,
+            permissions=GrafanaAPIPermissions.construct_permissions(
+                [RBACPermission.Permissions.ALERT_GROUPS_WRITE.value_oncall_app]
+            ),
+        )
 
         assert (
             RBACPermission().has_permission(MockedRequest(user_with_permission), viewset) is True
@@ -220,7 +367,12 @@ class TestRBACPermission:
             is True
         ), "it works on a viewset when the viewset action does not require permissions"
 
-    def test_has_permission_works_on_an_apiview_view(self) -> None:
+    @pytest.mark.django_db
+    def test_has_permission_works_on_an_apiview_view(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
         required_permission = RBACPermission.Permissions.ALERT_GROUPS_READ
 
         method = "hello"
@@ -235,11 +387,22 @@ class TestRBACPermission:
             }
         )
 
-        user1 = MockedUser([required_permission])
-        user2 = MockedUser([RBACPermission.Permissions.ALERT_GROUPS_WRITE])
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(
+            org,
+            role=LegacyAccessControlRole.NONE,
+            permissions=GrafanaAPIPermissions.construct_permissions([required_permission.value_oncall_app]),
+        )
+        user2 = make_user_for_organization(
+            org,
+            role=LegacyAccessControlRole.NONE,
+            permissions=GrafanaAPIPermissions.construct_permissions(
+                [RBACPermission.Permissions.ALERT_GROUPS_WRITE.value_oncall_app]
+            ),
+        )
 
         class Request(MockedRequest):
-            def __init__(self, user: typing.Optional[MockedUser] = None) -> None:
+            def __init__(self, user: typing.Optional[User] = None) -> None:
                 super().__init__(user, method)
 
         assert (
@@ -338,31 +501,52 @@ class TestRBACPermission:
 
 
 class TestIsOwner:
-    def test_it_works_when_comparing_user_to_object(self) -> None:
-        user1 = MockedUser([])
-        user2 = MockedUser([])
+    @pytest.mark.django_db
+    def test_it_works_when_comparing_user_to_object(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+        user2 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+
         request = MockedRequest(user1)
         IsUser = IsOwner()
 
         assert IsUser.has_object_permission(request, None, user1) is True
         assert IsUser.has_object_permission(request, None, user2) is False
 
-    def test_it_works_when_comparing_user_to_ownership_field_object(self) -> None:
-        user1 = MockedUser([])
-        user2 = MockedUser([])
+    @pytest.mark.django_db
+    def test_it_works_when_comparing_user_to_ownership_field_object(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+        user2 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+
         schedule = MockedSchedule(user1)
         IsScheduleOwner = IsOwner("user")
 
         assert IsScheduleOwner.has_object_permission(MockedRequest(user1), None, schedule) is True
         assert IsScheduleOwner.has_object_permission(MockedRequest(user2), None, schedule) is False
 
-    def test_it_works_when_comparing_user_to_nested_ownership_field_object(self) -> None:
+    @pytest.mark.django_db
+    def test_it_works_when_comparing_user_to_nested_ownership_field_object(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
         class Thingy:
             def __init__(self, schedule: MockedSchedule) -> None:
                 self.schedule = schedule
 
-        user1 = MockedUser([])
-        user2 = MockedUser([])
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+        user2 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+
         schedule = MockedSchedule(user1)
         thingy = Thingy(schedule)
         IsScheduleOwner = IsOwner("schedule.user")
@@ -396,17 +580,40 @@ class TestIsOwner:
         ),
     ],
 )
-def test_HasRBACPermission(user_permissions, required_permissions, expected_result) -> None:
-    request = MockedRequest(MockedUser(user_permissions))
+@pytest.mark.django_db
+def test_HasRBACPermission(
+    make_organization,
+    make_user_for_organization,
+    user_permissions,
+    required_permissions,
+    expected_result,
+) -> None:
+    org = make_organization(is_rbac_permissions_enabled=True)
+    user = make_user_for_organization(
+        org,
+        role=LegacyAccessControlRole.NONE,
+        permissions=GrafanaAPIPermissions.construct_permissions([perm.value_oncall_app for perm in user_permissions]),
+    )
+
+    request = MockedRequest(user)
     assert HasRBACPermissions(required_permissions).has_object_permission(request, None, None) == expected_result
 
 
 class TestIsOwnerOrHasRBACPermissions:
     required_permission = RBACPermission.Permissions.SCHEDULES_READ
     required_permissions = [required_permission]
+    user_permissions = GrafanaAPIPermissions.construct_permissions(
+        [perm.value_oncall_app for perm in required_permissions]
+    )
 
-    def test_it_works_when_user_is_owner_and_does_not_have_permissions(self) -> None:
-        user1 = MockedUser([])
+    @pytest.mark.django_db
+    def test_it_works_when_user_is_owner_and_does_not_have_permissions(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
         schedule = MockedSchedule(user1)
         request = MockedRequest(user1)
 
@@ -416,8 +623,14 @@ class TestIsOwnerOrHasRBACPermissions:
         PermClass = IsOwnerOrHasRBACPermissions(self.required_permissions, "user")
         assert PermClass.has_object_permission(request, None, schedule) is True
 
-    def test_it_works_when_user_is_owner_and_has_permissions(self) -> None:
-        user1 = MockedUser(self.required_permissions)
+    @pytest.mark.django_db
+    def test_it_works_when_user_is_owner_and_has_permissions(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=self.user_permissions)
         schedule = MockedSchedule(user1)
         request = MockedRequest(user1)
 
@@ -427,9 +640,16 @@ class TestIsOwnerOrHasRBACPermissions:
         PermClass = IsOwnerOrHasRBACPermissions(self.required_permissions, "user")
         assert PermClass.has_object_permission(request, None, schedule) is True
 
-    def test_it_works_when_user_is_not_owner_and_does_not_have_permissions(self) -> None:
-        user1 = MockedUser([])
-        user2 = MockedUser([])
+    @pytest.mark.django_db
+    def test_it_works_when_user_is_not_owner_and_does_not_have_permissions(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+        user2 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+
         schedule = MockedSchedule(user1)
         request = MockedRequest(user2)
 
@@ -439,11 +659,20 @@ class TestIsOwnerOrHasRBACPermissions:
         PermClass = IsOwnerOrHasRBACPermissions(self.required_permissions, "user")
         assert PermClass.has_object_permission(request, None, schedule) is False
 
-    def test_it_works_when_user_is_not_owner_and_has_permissions(self) -> None:
-        user1 = MockedUser([])
-        user2 = MockedUser(self.required_permissions)
+    @pytest.mark.django_db
+    def test_it_works_when_user_is_not_owner_and_has_permissions(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ) -> None:
+        org = make_organization(is_rbac_permissions_enabled=True)
+        user1 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+        user2 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=self.user_permissions)
+        user3 = make_user_for_organization(org, role=LegacyAccessControlRole.NONE, permissions=[])
+
         schedule = MockedSchedule(user1)
         request = MockedRequest(user2)
+        request_user3 = MockedRequest(user3)
 
         PermClass = IsOwnerOrHasRBACPermissions(self.required_permissions)
         assert PermClass.has_object_permission(request, None, user1) is True
@@ -459,62 +688,16 @@ class TestIsOwnerOrHasRBACPermissions:
         PermClass = IsOwnerOrHasRBACPermissions(self.required_permissions, "schedule.user")
 
         assert PermClass.has_object_permission(request, None, thingy) is True
-        assert PermClass.has_object_permission(MockedRequest(MockedUser([])), None, thingy) is False
-
-
-@pytest.mark.parametrize(
-    "role,required_role,org_has_rbac_enabled,expected_result",
-    [
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.VIEWER,
-            True,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.VIEWER,
-            False,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.ADMIN,
-            LegacyAccessControlRole.VIEWER,
-            True,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.ADMIN,
-            LegacyAccessControlRole.VIEWER,
-            False,
-            True,
-        ),
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.ADMIN,
-            True,
-            False,
-        ),
-        (
-            LegacyAccessControlRole.VIEWER,
-            LegacyAccessControlRole.ADMIN,
-            False,
-            False,
-        ),
-    ],
-)
-def test_user_is_authorized_basic_role(
-    role,
-    required_role,
-    org_has_rbac_enabled,
-    expected_result,
-) -> None:
-    user = MockedUser([], org_has_rbac_enabled=org_has_rbac_enabled, basic_role=role)
-    assert user_is_authorized(user, [], required_role) == expected_result
+        assert PermClass.has_object_permission(request_user3, None, thingy) is False
 
 
 class TestBasicRolePermission:
-    def test_has_permission_works_on_a_viewset_view(self) -> None:
+    @pytest.mark.django_db
+    def test_has_permission_works_on_a_viewset_view(
+        self,
+        make_organization_and_user,
+        make_user_for_organization,
+    ) -> None:
         required_role = LegacyAccessControlRole.VIEWER
 
         action = "hello"
@@ -525,8 +708,8 @@ class TestBasicRolePermission:
             },
         )
 
-        user_with_permission = MockedUser([], basic_role=required_role)
-        user_without_permission = MockedUser([], basic_role=LegacyAccessControlRole.NONE)
+        org, user_with_permission = make_organization_and_user(role=required_role)
+        user_without_permission = make_user_for_organization(org, role=LegacyAccessControlRole.NONE)
 
         assert (
             BasicRolePermission().has_permission(MockedRequest(user_with_permission), viewset) is True
@@ -536,7 +719,12 @@ class TestBasicRolePermission:
             BasicRolePermission().has_permission(MockedRequest(user_without_permission), viewset) is False
         ), "it works on a viewset when the user does have permission"
 
-    def test_has_permission_works_on_an_apiview_view(self) -> None:
+    @pytest.mark.django_db
+    def test_has_permission_works_on_an_apiview_view(
+        self,
+        make_organization_and_user,
+        make_user_for_organization,
+    ) -> None:
         required_role = LegacyAccessControlRole.VIEWER
 
         method = "hello"
@@ -546,11 +734,11 @@ class TestBasicRolePermission:
             },
         )
 
-        user_with_permission = MockedUser([], basic_role=required_role)
-        user_without_permission = MockedUser([], basic_role=LegacyAccessControlRole.NONE)
+        org, user_with_permission = make_organization_and_user(role=required_role)
+        user_without_permission = make_user_for_organization(org, role=LegacyAccessControlRole.NONE)
 
         class Request(MockedRequest):
-            def __init__(self, user: typing.Optional[MockedUser] = None) -> None:
+            def __init__(self, user: typing.Optional[User] = None) -> None:
                 super().__init__(user, method)
 
         assert (
