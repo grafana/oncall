@@ -125,7 +125,7 @@ def test_setup(
         user_name = "Bob Smith"
         user = make_user_for_organization(
             organization,
-            # normally this 👇 is done via User.finish_google_oauth2_connection_flow.. but since we're creating
+            # normally this 👇 is done via User.save_google_oauth2_settings.. but since we're creating
             # the user via a fixture we need to manually add this
             google_calendar_settings={
                 "oncall_schedules_to_consider_for_shift_swaps": [],
