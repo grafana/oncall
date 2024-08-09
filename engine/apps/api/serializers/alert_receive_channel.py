@@ -8,7 +8,7 @@ from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_fiel
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, set_value
+from rest_framework.fields import SerializerMethodField
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
@@ -632,7 +632,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                         backend_updates[field] = value
             # update backend templates
             backend_templates.update(backend_updates)
-            set_value(ret, ["messaging_backends_templates", backend_id], backend_templates)
+            self.set_value(ret, ["messaging_backends_templates", backend_id], backend_templates)
 
         return errors
 
@@ -651,7 +651,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                     errors[field_name] = "invalid template"
                 except DjangoValidationError:
                     errors[field_name] = "invalid URL"
-                set_value(ret, [field_name], value)
+                self.set_value(ret, [field_name], value)
         return errors
 
     def to_representation(self, obj: "AlertReceiveChannel"):
