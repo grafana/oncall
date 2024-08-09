@@ -215,8 +215,12 @@ func (a *App) GetAllOtherPluginSettings(settings *OnCallPluginSettings) map[stri
 	}
 
 	otherPluginSettings := make(map[string]map[string]interface{})
-	otherPluginSettings[INCIDENT_PLUGIN_ID] = incidentPluginSettings
-	otherPluginSettings[LABELS_PLUGIN_ID] = labelsPluginSettings
+	if incidentPluginSettings != nil {
+		otherPluginSettings[INCIDENT_PLUGIN_ID] = incidentPluginSettings
+	}
+	if labelsPluginSettings != nil {
+		otherPluginSettings[LABELS_PLUGIN_ID] = labelsPluginSettings
+	}
 
 	a.otherPluginSettingsCache = otherPluginSettings
 	a.otherPluginSettingsExpiry = time.Now().Add(OTHER_PLUGIN_EXPIRY_SECONDS * time.Second)

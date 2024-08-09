@@ -108,7 +108,7 @@ func (a *App) SetupRequestHeadersForOnCall(ctx context.Context, settings *OnCall
 }
 
 func (a *App) SetupRequestHeadersForOnCallWithUser(ctx context.Context, settings *OnCallPluginSettings, req *http.Request) error {
-	err := a.SetupRequestHeadersForOnCallWithUser(ctx, settings, req)
+	err := a.SetupRequestHeadersForOnCall(ctx, settings, req)
 	if err != nil {
 		return err
 	}
