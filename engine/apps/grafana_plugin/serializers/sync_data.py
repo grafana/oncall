@@ -97,8 +97,8 @@ class SyncDataSerializer(serializers.Serializer):
         if users:
 
             def create_user(user):
-                permissions_data = user.pop("permissions")
-                permissions = [SyncPermission(**perm) for perm in permissions_data] if permissions_data else []
+                permissions_data = user.pop("permissions", [])
+                permissions = [SyncPermission(**perm) for perm in permissions_data]
                 return SyncUser(permissions=permissions, **user)
 
             data["users"] = [create_user(user) for user in users]
