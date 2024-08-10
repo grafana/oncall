@@ -95,7 +95,13 @@ class SyncDataSerializer(serializers.Serializer):
         data = super().to_internal_value(data)
         users = data.get("users")
         if users:
-            data["users"] = [SyncUser(**user) for user in users]
+
+            def create_user(user):
+                permissions_data = user.pop("permissions")
+                permissions = [SyncPermission(**perm) for perm in permissions_data] if permissions_data else []
+                return SyncUser(permissions=permissions, **user)
+
+            data["users"] = [create_user(user) for user in users]
         teams = data.get("teams")
         if teams:
             data["teams"] = [SyncTeam(**team) for team in teams]
