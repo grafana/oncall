@@ -32,7 +32,7 @@ emoji==2.4.0
 grpcio==1.64.1
 fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.tar.gz#sha256=7ec7cd9d353fc9edf19a4acd4fa14090a31d83d02ac986c5e5e081dea29f564f
 hiredis==2.2.3
-humanize==0.5.1
+humanize==4.10.0
 icalendar==5.0.10
 lxml==5.2.2
 markdown2==2.4.10
