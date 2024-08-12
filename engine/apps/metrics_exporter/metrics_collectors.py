@@ -95,7 +95,7 @@ class ApplicationMetricsCollector:
         for metric in metrics:
             yield metric
 
-    def _get_alert_groups_total_metric(self, org_ids: set) -> typing.Tuple[Metric, set]:
+    def _get_alert_groups_total_metric(self, org_ids: set[int]) -> typing.Tuple[Metric, set[int]]:
         alert_groups_total = GaugeMetricFamily(
             ALERT_GROUPS_TOTAL, "All alert groups", labels=self._integration_labels_with_state
         )
@@ -122,7 +122,7 @@ class ApplicationMetricsCollector:
         missing_org_ids = org_ids - processed_org_ids
         return alert_groups_total, missing_org_ids
 
-    def _get_user_was_notified_of_alert_groups_metric(self, org_ids: set) -> typing.Tuple[Metric, set]:
+    def _get_user_was_notified_of_alert_groups_metric(self, org_ids: set[int]) -> typing.Tuple[Metric, set[int]]:
         user_was_notified = CounterMetricFamily(
             USER_WAS_NOTIFIED_OF_ALERT_GROUPS, "Number of alert groups user was notified of", labels=self._user_labels
         )
@@ -140,7 +140,7 @@ class ApplicationMetricsCollector:
         missing_org_ids = org_ids - processed_org_ids
         return user_was_notified, missing_org_ids
 
-    def _get_response_time_metric(self, org_ids: set) -> typing.Tuple[Metric, set]:
+    def _get_response_time_metric(self, org_ids: set[int]) -> typing.Tuple[Metric, set[int]]:
         alert_groups_response_time_seconds = HistogramMetricFamily(
             ALERT_GROUPS_RESPONSE_TIME,
             "Users response time to alert groups in 7 days (seconds)",
@@ -195,8 +195,7 @@ class ApplicationMetricsCollector:
             integration_data["slug"],  # grafana instance slug
             integration_data["id"],  # grafana instance id
         ]
-        labels_values = list(map(str, labels_values))
-        return labels_values
+        return list(map(str, labels_values))
 
     def _get_labels_from_user_data(self, user_data: UserWasNotifiedOfAlertGroupsMetricsDict) -> typing.List[str]:
         # Labels values should have the same order as _user_labels
@@ -206,10 +205,9 @@ class ApplicationMetricsCollector:
             user_data["slug"],  # grafana instance slug
             user_data["id"],  # grafana instance id
         ]
-        labels_values = list(map(str, labels_values))
-        return labels_values
+        return list(map(str, labels_values))
 
-    def _update_new_metric(self, metric_name: str, org_ids: set, missing_org_ids: set) -> set:
+    def _update_new_metric(self, metric_name: str, org_ids: set[int], missing_org_ids: set[int]) -> set[int]:
         """
         This method is used for new metrics to calculate metrics gradually and avoid force recalculation for all orgs
         Add to collect() method the following code with metric name when needed:
@@ -224,7 +222,7 @@ class ApplicationMetricsCollector:
                 start_recalculation_for_new_metric.apply_async((metric_name,))
         return missing_org_ids
 
-    def recalculate_cache_for_missing_org_ids(self, org_ids: set, missing_org_ids: set) -> None:
+    def recalculate_cache_for_missing_org_ids(self, org_ids: set[int], missing_org_ids: set[int]) -> None:
         cache_timer_for_org_keys = [get_metrics_cache_timer_key(org_id) for org_id in org_ids]
         cache_timers_for_org = cache.get_many(cache_timer_for_org_keys)
         recalculate_orgs: typing.List[RecalculateOrgMetricsDict] = []
