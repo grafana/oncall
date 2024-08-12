@@ -111,6 +111,23 @@
       "name": "OnCall Insights"
     }
   ],
+  "routes": [
+    {
+      "path": "api/internal/v1/*",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallApiToken }}"
+        }
+      ]
+    }
+  ],
   "roles": [
     {
       "role": {
