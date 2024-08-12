@@ -418,9 +418,11 @@ def _sync_teams_members_data(organization: Organization, team_members: dict[int,
         return
     # set team members
     for team_id, members_ids in team_members.items():
+        team = organization.teams.get(team_id=team_id)
         if members_ids:
-            team = organization.teams.get(team_id=team_id)
             team.users.set(organization.users.filter(user_id__in=members_ids))
+        else:
+            team.users.clear()
 
 
 def apply_sync_data(organization: Organization, sync_data: SyncData):
