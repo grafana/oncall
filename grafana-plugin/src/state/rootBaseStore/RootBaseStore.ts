@@ -1,5 +1,6 @@
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
+import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannelConnectedChannelsStore } from 'models/alert_receive_channel_connected_channels/alert_receive_channel_connected_channels';
@@ -71,7 +72,7 @@ export class RootBaseStore {
   onCallApiUrl: string;
 
   @observable
-  insightsDatasource?: string;
+  insightsDatasource = 'grafanacloud-usage';
 
   // stores
   pluginStore = new PluginStore(this);
@@ -127,6 +128,13 @@ export class RootBaseStore {
       () => this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
     ]);
     this.setIsBasicDataLoaded(true);
+  };
+
+  @action
+  setupInsightsDatasource = ({ jsonData: { insightsDatasource } }: OnCallAppPluginMeta) => {
+    if (insightsDatasource) {
+      this.insightsDatasource = insightsDatasource;
+    }
   };
 
   @action
