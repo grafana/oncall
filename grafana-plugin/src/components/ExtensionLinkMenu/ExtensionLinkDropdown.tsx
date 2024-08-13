@@ -58,11 +58,10 @@ function useExtensionPointContext(incident: ApiSchemas['AlertGroup']): PluginExt
   return { alertGroup: incident };
 }
 
-function usePluginLinksFallback<T extends object>({
-  context,
-  extensionPointId,
-  limitPerPlugin,
-}: GetPluginExtensionsOptions): { links: PluginExtensionLink[]; isLoading: boolean } {
+function usePluginLinksFallback({ context, extensionPointId, limitPerPlugin }: GetPluginExtensionsOptions): {
+  links: PluginExtensionLink[];
+  isLoading: boolean;
+} {
   return useMemo(() => {
     // getPluginLinkExtensions is available in Grafana>=10.0,
     // so will be undefined in earlier versions. Just return an
