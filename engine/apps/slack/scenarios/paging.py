@@ -147,9 +147,10 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                 organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
                 # Provide a link  to web if user has access only to one organization
                 if len(organizations) == 1:
-                    upgrade = f"<{urljoin(organizations[0].web_link,'settings?tab=ChatOps&chatOpsTab=Slack')}|Upgrade>"
+                    link = urljoin(organizations[0].web_link, "settings?tab=ChatOps&chatOpsTab=Slack")
+                    upgrade = f"<{link}|Upgrade>"
                 else:
-                    upgrade = "Upgrade"  # TODO: link to docs
+                    upgrade = "Upgrade"  # TODO: Add link to docs are available
                 msg = (
                     f"The new Slack IRM integration is now available. f{upgrade} for a more powerful and flexible "
                     f"way to interact with Grafana IRM on Slack."
