@@ -165,7 +165,8 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                 self._slack_client.chat_postEphemeral(
                     channel=channel_id,
                     user=slack_user_identity.slack_id,
-                    text="/escalate command is deprecated. Please use /grafana escalate instead.",
+                    text="The new Slack IRM integration is now available. Please use /grafana-irm escalate to "
+                    "complete the action",
                 )
                 return
 
