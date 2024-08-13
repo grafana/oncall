@@ -75,8 +75,6 @@ export const Alerts = function () {
 
   const showAnAlert = showSlackInstallAlert || showGoogleConnectAlert;
 
-  console.log('yoooo', showGoogleConnectAlert);
-
   if (!showAnAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
     return null;
   }
