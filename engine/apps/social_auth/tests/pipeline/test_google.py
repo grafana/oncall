@@ -2,7 +2,6 @@ import pytest
 
 from apps.social_auth.pipeline import google
 
-
 SCOPES_ALWAYS_GRANTED = [
     "openid",
     "https://www.googleapis.com/auth/userinfo.profile",
