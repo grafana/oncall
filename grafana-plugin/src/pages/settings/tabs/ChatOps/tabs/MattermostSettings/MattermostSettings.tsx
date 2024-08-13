@@ -37,8 +37,8 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
   render() {
     const { store } = this.props;
     const { organizationStore } = store;
-    const envStatus = organizationStore.organizationConfigChecks?.mattermost.env_status;
-    const isIntegrated = organizationStore.organizationConfigChecks?.mattermost.is_integrated;
+    const envStatus = organizationStore.currentOrganization?.env_status.mattermost_configured;
+    const isIntegrated = false // TODO: Check if integration is configured and can show channels view
 
     if (!isIntegrated) {
       return (
