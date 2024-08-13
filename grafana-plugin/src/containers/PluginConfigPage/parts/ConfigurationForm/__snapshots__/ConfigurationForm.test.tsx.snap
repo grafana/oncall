@@ -87,16 +87,14 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
               class="css-9z7wq3"
               role="alert"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               Must be a valid URL
             </div>
           </div>
         </div>
       </div>
       <button
-        class="css-td06pi-button"
+        aria-disabled="false"
+        class="css-9hybrt-button"
         disabled=""
         type="submit"
       >
@@ -255,6 +253,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
         </span>
       </div>
       <button
+        aria-disabled="false"
         class="css-td06pi-button"
         type="submit"
       >
