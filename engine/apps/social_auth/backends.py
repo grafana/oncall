@@ -229,7 +229,7 @@ class InstallMattermostOAuth2(BaseOAuth2):
 
     def get_user_details(self, response):
         """
-        Return user details from Google API account
+        Return user details from Mattermost Account
 
         Sample response
         {
