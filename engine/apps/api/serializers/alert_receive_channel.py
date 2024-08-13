@@ -12,7 +12,6 @@ from rest_framework.fields import SerializerMethodField
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
-from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.labels.models import LabelKeyCache, LabelValueCache
@@ -277,7 +276,7 @@ class AlertReceiveChannelSerializer(
     # With using of select_related ORM builds strange join
     # which leads to incorrect heartbeat-alert_receive_channel binding in result
     PREFETCH_RELATED = ["channel_filters", "integration_heartbeat", "labels", "labels__key", "labels__value"]
-    SELECT_RELATED = ["organization", "author"]
+    SELECT_RELATED = ["organization", "author", "team"]
 
     class Meta:
         model = AlertReceiveChannel
@@ -490,11 +489,12 @@ class AlertReceiveChannelSerializer(
         return has_legacy_prefix(obj.integration)
 
     def get_connected_escalations_chains_count(self, obj: "AlertReceiveChannel") -> int:
-        return (
-            ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
-            .values("escalation_chain")
-            .distinct()
-            .count()
+        return len(
+            set(
+                channel_filter.escalation_chain_id
+                for channel_filter in obj.channel_filters.all()
+                if channel_filter.escalation_chain_id is not None
+            )
         )
 
 
