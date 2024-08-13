@@ -90,6 +90,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
       </div>
     </div>
     <button
+      aria-disabled="false"
       class="css-td06pi-button"
       type="submit"
     >
@@ -130,6 +131,7 @@ exports[`PluginConfigPage If onCallApiUrl is set, and updatePluginStatus returns
       class="css-18qv8yz-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-td06pi-button"
         type="button"
       >
@@ -144,6 +146,7 @@ exports[`PluginConfigPage If onCallApiUrl is set, and updatePluginStatus returns
       class="css-18qv8yz-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-ttl745-button"
         type="button"
       >
@@ -198,6 +201,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
         class="css-18qv8yz-layoutChildrenWrapper"
       >
         <button
+          aria-disabled="false"
           class="css-ttl745-button"
           type="button"
         >
@@ -253,6 +257,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
         class="css-18qv8yz-layoutChildrenWrapper"
       >
         <button
+          aria-disabled="false"
           class="css-ttl745-button"
           type="button"
         >
@@ -349,6 +354,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
       class="css-18qv8yz-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-td06pi-button"
         type="button"
       >
@@ -363,6 +369,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnec
       class="css-18qv8yz-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-ttl745-button"
         type="button"
       >
@@ -404,6 +411,7 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
       class="css-18qv8yz-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-td06pi-button"
         type="button"
       >
@@ -418,6 +426,7 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
       class="css-18qv8yz-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-ttl745-button"
         type="button"
       >
@@ -522,6 +531,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
       </div>
     </div>
     <button
+      aria-disabled="false"
       class="css-td06pi-button"
       type="submit"
     >

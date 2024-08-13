@@ -3,6 +3,7 @@
 exports[`DisconnectButton it renders properly 1`] = `
 <div>
   <button
+    aria-disabled="false"
     class="css-ttl745-button disconnect-button"
     data-testid="test__disconnect"
     type="button"
