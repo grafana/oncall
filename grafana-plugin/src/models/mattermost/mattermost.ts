@@ -17,7 +17,7 @@ export class MattermostStore extends BaseStore {
       const response = await makeRequestRaw('/login/mattermost-install/', {});
 
       if (response.status === 201) {
-        this.rootStore.organizationStore.loadCurrentOrganizationConfigChecks();
+        this.rootStore.organizationStore.loadCurrentOrganization();
       } else if (response.status === 200) {
         window.location = response.data;
       }

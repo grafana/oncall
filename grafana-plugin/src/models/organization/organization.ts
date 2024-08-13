@@ -4,14 +4,11 @@ import { BaseStore } from 'models/base_store';
 import { makeRequest } from 'network/network';
 import { RootStore } from 'state/rootStore';
 
-import { Organization, OrganizationConfigChecks } from './organization.types';
+import { Organization } from './organization.types';
 
 export class OrganizationStore extends BaseStore {
   @observable
   currentOrganization?: Organization;
-
-  @observable
-  organizationConfigChecks?: OrganizationConfigChecks;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -25,15 +22,6 @@ export class OrganizationStore extends BaseStore {
 
     runInAction(() => {
       this.currentOrganization = organization;
-    });
-  }
-
-  @action.bound
-  async loadCurrentOrganizationConfigChecks() {
-    const organizationConfigChecks = await makeRequest(`${this.path}config-checks`, {});
-
-    runInAction(() => {
-      this.organizationConfigChecks = organizationConfigChecks;
     });
   }
 
