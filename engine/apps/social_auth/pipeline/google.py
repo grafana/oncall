@@ -19,7 +19,7 @@ def persist_access_and_refresh_tokens(backend: typing.Type[BaseAuth], response: 
 
     https://medium.com/starthinker/google-oauth-2-0-access-token-and-refresh-token-explained-cccf2fc0a6d9
     """
-    user.finish_google_oauth2_connection_flow(response)
+    user.save_google_oauth2_settings(response)
 
 
 def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user: User, *args, **kwargs):
@@ -58,6 +58,6 @@ def disconnect_user_google_oauth2_settings(backend: typing.Type[BaseAuth], user:
             else:
                 logger.info(f"Google OAuth2 token for user {user_pk} is already invalid or revoked, ignoring error")
 
-    user.finish_google_oauth2_disconnection_flow()
+    user.reset_google_oauth2_settings()
 
     logger.info(f"Successfully disconnected user {user.pk} from Google OAuth2")
