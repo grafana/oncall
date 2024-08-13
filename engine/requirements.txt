@@ -100,7 +100,7 @@ django-add-default-value==0.10.0
     # via -r requirements.in
 django-amazon-ses==4.0.1
     # via -r requirements.in
-django-anymail==8.6
+django-anymail==11.1
     # via -r requirements.in
 django-cors-headers==3.7.0
     # via -r requirements.in
@@ -217,7 +217,7 @@ httplib2==0.22.0
     # via
     #   google-api-python-client
     #   google-auth-httplib2
-humanize==0.5.1
+humanize==4.10.0
     # via -r requirements.in
 icalendar==5.0.10
     # via
@@ -458,6 +458,7 @@ urllib3==1.26.19
     # via
     #   -r requirements.in
     #   botocore
+    #   django-anymail
     #   requests
 uwsgi==2.0.26
     # via -r requirements.in
