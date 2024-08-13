@@ -28,6 +28,7 @@ exports[`LinkLoginButton it renders properly 1`] = `
       class="css-12oo3x0-layoutChildrenWrapper"
     >
       <button
+        aria-disabled="false"
         class="css-td06pi-button"
         type="button"
       >
