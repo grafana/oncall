@@ -386,7 +386,7 @@ class User(models.Model):
         logger.info(
             f"Saving Google OAuth2 settings for user {self.pk} "
             f"sub={google_oauth2_response.get('sub')} "
-            f"oauth_scope={google_oauth2_response.get('oauth_scope')}"
+            f"oauth_scope={google_oauth2_response.get('scope')}"
         )
 
         _, created = GoogleOAuth2User.objects.update_or_create(

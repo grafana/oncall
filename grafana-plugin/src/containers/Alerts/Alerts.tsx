@@ -5,8 +5,8 @@ import cn from 'classnames/bind';
 import { sanitize } from 'dompurify';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
-import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
+import { getGoogleMessage, getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
+import { GoogleError, SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
@@ -29,6 +29,7 @@ enum AlertID {
 export const Alerts = function () {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
+  const [showGoogleConnectAlert, setShowGoogleConnectAlert] = useState<GoogleError | undefined>();
 
   const forceUpdate = useForceUpdate();
 
@@ -36,11 +37,19 @@ export const Alerts = function () {
     setShowSlackInstallAlert(undefined);
   }, []);
 
+  const handleCloseGoogleAlert = useCallback(() => {
+    setShowGoogleConnectAlert(undefined);
+  }, []);
+
   useEffect(() => {
     if (queryParams.get('slack_error')) {
       setShowSlackInstallAlert(queryParams.get('slack_error') as SlackError);
 
       LocationHelper.update({ slack_error: undefined }, 'replace');
+    } else if (queryParams.get('google_error')) {
+      setShowGoogleConnectAlert(queryParams.get('google_error') as GoogleError);
+
+      LocationHelper.update({ google_error: undefined }, 'replace');
     }
   }, []);
 
@@ -64,7 +73,11 @@ export const Alerts = function () {
   const isDefaultNotificationsSet = currentUser?.notification_chain_verbal.default;
   const isImportantNotificationsSet = currentUser?.notification_chain_verbal.important;
 
-  if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
+  const showAnAlert = showSlackInstallAlert || showGoogleConnectAlert;
+
+  console.log('yoooo', showGoogleConnectAlert);
+
+  if (!showAnAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
     return null;
   }
   return (
@@ -77,6 +90,16 @@ export const Alerts = function () {
           title="Slack integration error"
         >
           {getSlackMessage(showSlackInstallAlert, currentOrganization, store.hasFeature(AppFeature.LiveSettings))}
+        </Alert>
+      )}
+      {showGoogleConnectAlert && (
+        <Alert
+          className={cx('alert')}
+          onRemove={handleCloseGoogleAlert}
+          severity="error"
+          title="Google integration error"
+        >
+          {getGoogleMessage(showGoogleConnectAlert)}
         </Alert>
       )}
       {showBannerTeam() && (

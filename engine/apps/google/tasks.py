@@ -41,7 +41,6 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
     except (GoogleCalendarRefreshError, GoogleCalendarUnauthorizedHTTPError):
         # in these scenarios there's really not much we can do with the refresh/access token that we
         # have available. The user will need to re-connect with Google..
-        # it's still not clear what exactly leads to these scenarios..
 
         logger.exception(
             f"Failed to fetch out of office events for user {user_id} due to an invalid access and/or refresh token"

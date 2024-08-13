@@ -4,7 +4,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Organization } from 'models/organization/organization.types';
 
-import { SlackError } from './DefaultPageLayout.types';
+import { GoogleError, SlackError } from './DefaultPageLayout.types';
 
 export function getSlackMessage(slackError: SlackError, organization: Organization, hasLiveSettingsFeature: boolean) {
   if (slackError === SlackError.WRONG_WORKSPACE) {
@@ -51,4 +51,17 @@ export function getSlackMessage(slackError: SlackError, organization: Organizati
   }
 
   return <>Couldn't connect Slack.</>;
+}
+
+export function getGoogleMessage(googleError: GoogleError) {
+  if (googleError === GoogleError.MISSING_GRANTED_SCOPE) {
+    return (
+      <>
+        Couldn't connect your Google account. You did not grant Grafana OnCall the necessary permissions. Please retry
+        and be sure to check any checkboxes which grant Grafana OnCall read access to your calendar events.
+      </>
+    );
+  }
+
+  return <>Couldn't connect your Google account.</>;
 }

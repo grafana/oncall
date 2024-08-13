@@ -173,7 +173,10 @@ def test_sync_out_of_office_calendar_events_for_user_error_scenarios(
         mock_response = MockResponse(reason="forbidden", status=http_status)
         exception = ErrorClass(resp=mock_response, content=b"error")
     elif ErrorClass == RefreshError:
-        exception = ErrorClass("invalid_grant: Token has been expired or revoked.", {"error": "invalid_grant", "error_description": "Token has been expired or revoked."})
+        exception = ErrorClass(
+            "invalid_grant: Token has been expired or revoked.",
+            {"error": "invalid_grant", "error_description": "Token has been expired or revoked."},
+        )
     else:
         exception = ErrorClass()
 

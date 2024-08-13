@@ -104,10 +104,20 @@ class GoogleCalendarAPIClient:
             )
         except HttpError as e:
             if e.status_code == 403:
-                # this scenario can be encountered when, for some reason, the OAuth2 token that we have
+                # this scenario can be encountered when, the OAuth2 token that we have
                 # does not contain the https://www.googleapis.com/auth/calendar.events.readonly scope
                 # example error:
                 # <HttpError 403 when requesting https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=2024-08-08T14%3A00%3A00%2B0000&timeMax=2024-09-07T14%3A00%3A00%2B0000&maxResults=250&singleEvents=true&orderBy=startTime&eventTypes=outOfOffice&alt=json returned "Request had insufficient authentication scopes.". Details: "[{'message': 'Insufficient Permission', 'domain': 'global', 'reason': 'insufficientPermissions'}]"> # noqa: E501
+                #
+                # this should really only occur for tokens granted prior to this commit (which wrote this comment).
+                # Before then we didn't handle the scenario where the Google oauth consent screen could potentially
+                # have checkboxes and users would have to actively check the checkbox to grant this scope. We now
+                # handle this scenario.
+                #
+                # References
+                # https://jpassing.com/2022/08/01/dealing-with-partial-consent-in-google-oauth-clients/
+                # https://raintank-corp.slack.com/archives/C05AMEGMLCT/p1723556508149689
+                # https://raintank-corp.slack.com/archives/C04JCU51NF8/p1723493330369349
                 logger.error(f"GoogleCalendarAPIClient - HttpError 403 when fetching out of office events: {e}")
                 raise GoogleCalendarUnauthorizedHTTPError(e)
 
@@ -117,7 +127,10 @@ class GoogleCalendarAPIClient:
             # we see RefreshError in two different scenarios:
             # 1. RefreshError('invalid_grant: Account has been deleted', {'error': 'invalid_grant', 'error_description': 'Account has been deleted'})
             # 2. RefreshError('invalid_grant: Token has been expired or revoked.', {'error': 'invalid_grant', 'error_description': 'Token has been expired or revoked.'})
+            #
             # https://stackoverflow.com/a/49024030/3902555
+            #
+            # in both of these cases the granted token is no longer good and we should delete it
 
             try:
                 error_details = e.args[1]  # should be a dict like in the comment above
