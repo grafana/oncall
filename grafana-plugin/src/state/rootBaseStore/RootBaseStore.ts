@@ -123,7 +123,6 @@ export class RootBaseStore {
     await retryFailingPromises([
       () => this.userStore.loadCurrentUser(),
       () => this.organizationStore.loadCurrentOrganization(),
-      () => this.organizationStore.loadCurrentOrganizationConfigChecks(),
       () => this.grafanaTeamStore.updateItems(),
       () => updateFeatures(),
       () => this.alertReceiveChannelStore.fetchAlertReceiveChannelOptions(),
