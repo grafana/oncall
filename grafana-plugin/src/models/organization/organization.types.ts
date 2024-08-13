@@ -29,14 +29,6 @@ export interface Organization {
       verification_call: boolean;
       verification_sms: boolean;
     };
-  };
-}
-
-export interface OrganizationConfigChecks {
-  is_chatops_connected: boolean;
-  is_integration_chatops_connected: boolean;
-  mattermost: {
-    env_status: boolean;
-    is_integrated: boolean;
+    mattermost_configured: boolean;
   };
 }
