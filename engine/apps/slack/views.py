@@ -433,8 +433,7 @@ class SlackEventApiEndpointView(APIView):
                             step_was_found = True
 
         if not step_was_found:
-            raise Exception("Step is undefined" + str(payload))
-
+            logger.warning("SlackEventApiEndpointView: Step is undefined" + str(payload))
         return Response(status=200)
 
     @staticmethod
