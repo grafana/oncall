@@ -470,13 +470,16 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
 @pytest.mark.django_db
 def test_conditionally_send_going_oncall_push_notifications_for_all_schedules(
     mocked_conditionally_send_going_oncall_push_notifications_for_schedule,
-    make_organization_and_user,
+    make_organization,
     make_schedule,
 ):
-    organization, _ = make_organization_and_user()
+    organization = make_organization()
+    deleted_organization = make_organization(deleted_at=timezone.now())
+
     schedule1 = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedule2 = make_schedule(organization, schedule_class=OnCallScheduleICal)
     schedule3 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    make_schedule(deleted_organization, schedule_class=OnCallScheduleWeb)
 
     conditionally_send_going_oncall_push_notifications_for_all_schedules()
 

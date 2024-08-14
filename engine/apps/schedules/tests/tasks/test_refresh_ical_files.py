@@ -1,4 +1,3 @@
-import datetime
 from unittest.mock import patch
 
 import pytest
@@ -69,7 +68,7 @@ def test_refresh_ical_files_filter_orgs(
     make_schedule,
 ):
     organization = make_organization()
-    deleted_organization = make_organization(deleted_at=datetime.datetime.now())
+    deleted_organization = make_organization(deleted_at=timezone.now())
 
     schedule_from_deleted_org = make_schedule(deleted_organization, schedule_class=OnCallScheduleWeb)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)

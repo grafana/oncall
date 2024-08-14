@@ -1,7 +1,11 @@
 import React, { ReactElement, useMemo, useState } from 'react';
 
 import { PluginExtensionLink } from '@grafana/data';
-import { getPluginLinkExtensions } from '@grafana/runtime';
+import {
+  type GetPluginExtensionsOptions,
+  getPluginLinkExtensions,
+  usePluginLinks as originalUsePluginLinks,
+} from '@grafana/runtime';
 import { Dropdown, ToolbarButton } from '@grafana/ui';
 import { OnCallPluginExtensionPoints } from 'types';
 
@@ -16,6 +20,9 @@ interface Props {
   grafanaIncidentId: string | null;
 }
 
+// `usePluginLinks()` is only available in Grafana>=11.1.0, so we have a fallback for older versions
+const usePluginLinks = originalUsePluginLinks === undefined ? usePluginLinksFallback : originalUsePluginLinks;
+
 export function ExtensionLinkDropdown({
   incident,
   extensionPointId,
@@ -24,15 +31,15 @@ export function ExtensionLinkDropdown({
 }: Props): ReactElement | null {
   const [isOpen, setIsOpen] = useState(false);
   const context = useExtensionPointContext(incident);
-  const extensions = useExtensionLinks(context, extensionPointId);
+  const { links, isLoading } = usePluginLinks({ context, extensionPointId, limitPerPlugin: 3 });
 
-  if (extensions.length === 0) {
+  if (links.length === 0 || isLoading) {
     return null;
   }
 
   const menu = (
     <ExtensionLinkMenu
-      extensions={extensions}
+      extensions={links}
       declareIncidentLink={declareIncidentLink}
       grafanaIncidentId={grafanaIncidentId}
     />
@@ -51,24 +58,31 @@ function useExtensionPointContext(incident: ApiSchemas['AlertGroup']): PluginExt
   return { alertGroup: incident };
 }
 
-function useExtensionLinks<T extends object>(
-  context: T,
-  extensionPointId: OnCallPluginExtensionPoints
-): PluginExtensionLink[] {
+function usePluginLinksFallback({ context, extensionPointId, limitPerPlugin }: GetPluginExtensionsOptions): {
+  links: PluginExtensionLink[];
+  isLoading: boolean;
+} {
   return useMemo(() => {
     // getPluginLinkExtensions is available in Grafana>=10.0,
     // so will be undefined in earlier versions. Just return an
     // empty list of extensions in this case.
     if (getPluginLinkExtensions === undefined) {
-      return [];
+      return {
+        links: [],
+        isLoading: false,
+      };
     }
+
     const { extensions } = getPluginLinkExtensions({
       extensionPointId,
       context,
-      limitPerPlugin: 3,
+      limitPerPlugin,
     });
 
-    return extensions;
+    return {
+      links: extensions,
+      isLoading: false,
+    };
   }, [context]);
 }
 

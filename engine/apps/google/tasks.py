@@ -119,5 +119,5 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
 def sync_out_of_office_calendar_events_for_all_users() -> None:
-    for google_oauth2_user in GoogleOAuth2User.objects.all():
+    for google_oauth2_user in GoogleOAuth2User.objects.filter(user__organization__deleted_at__isnull=True):
         sync_out_of_office_calendar_events_for_user.apply_async(args=(google_oauth2_user.pk,))

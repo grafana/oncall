@@ -416,3 +416,21 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
     ssrs.first().delete()
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
     assert _fetch_shift_swap_requests().count() == 1
+
+
+@patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_all_users(
+    mock_sync_out_of_office_calendar_events_for_user,
+    make_organization_and_user,
+    make_google_oauth2_user_for_user,
+):
+    organization, user = make_organization_and_user()
+    google_oauth2_user = make_google_oauth2_user_for_user(user)
+
+    deleted_organization, deleted_user = make_organization_and_user()
+    make_google_oauth2_user_for_user(deleted_user)
+    deleted_organization.delete()
+
+    tasks.sync_out_of_office_calendar_events_for_all_users()
+    mock_sync_out_of_office_calendar_events_for_user.assert_called_once_with(args=(google_oauth2_user.pk,))
