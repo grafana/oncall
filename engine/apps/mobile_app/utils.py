@@ -5,7 +5,7 @@ import typing
 import requests
 from django.conf import settings
 from firebase_admin.exceptions import FirebaseError
-from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Message, UnregisteredError
+from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Message, SendResponse, UnregisteredError
 from requests import HTTPError
 from rest_framework import status
 
@@ -49,9 +49,12 @@ def send_message_to_fcm_device(device: "FCMDevice", message: Message) -> bool:
     https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
     """
     response = device.send_message(message)
-    logger.debug(f"FCM response: {response}")
 
-    if isinstance(response, FirebaseError):
+    if isinstance(response, SendResponse):
+        logger.debug(
+            f"FCM response: success={response.success} message_id={response.message_id} exception={response.exception}"
+        )
+    elif isinstance(response, FirebaseError):
         logger.exception(
             f"FCM error occured in mobile_app.utils.send_message_to_fcm_device fcm_device_info={device} "
             f"firebase_error_code={response._code} firebase_error_cause={response._cause} "
@@ -63,6 +66,9 @@ def send_message_to_fcm_device(device: "FCMDevice", message: Message) -> bool:
             return False
 
         raise response
+    else:
+        logger.debug(f"FCM response: {response}")
+
     return True
 
 

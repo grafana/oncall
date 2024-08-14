@@ -24,14 +24,9 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
             Loading...
              
             <div
-              class="css-1tqtz24"
+              class="css-1baulvz"
               data-testid="Spinner"
-            >
-              <i
-                aria-label="loading spinner"
-                class="fa fa-spinner fa-spin fa-spin"
-              />
-            </div>
+            />
           </div>
         </div>
         <div
@@ -150,14 +145,9 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
             Loading...
              
             <div
-              class="css-1tqtz24"
+              class="css-1baulvz"
               data-testid="Spinner"
-            >
-              <i
-                aria-label="loading spinner"
-                class="fa fa-spinner fa-spin fa-spin"
-              />
-            </div>
+            />
           </div>
         </div>
         <div
@@ -276,14 +266,9 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
             Loading...
              
             <div
-              class="css-1tqtz24"
+              class="css-1baulvz"
               data-testid="Spinner"
-            >
-              <i
-                aria-label="loading spinner"
-                class="fa fa-spinner fa-spin fa-spin"
-              />
-            </div>
+            />
           </div>
         </div>
         <div
@@ -401,12 +386,10 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
         href="/a/grafana-oncall-app/cloud"
       >
         <button
+          aria-disabled="false"
           class="css-8b29hm-button"
           type="button"
         >
-          <div
-            class="css-1j2891d-Icon"
-          />
           <span
             class="css-1riaxdn"
           >
