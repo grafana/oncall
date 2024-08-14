@@ -134,5 +134,10 @@ def sync_out_of_office_calendar_events_for_all_users() -> None:
         user__organization__deleted_at__isnull=True,
     )
 
+    logger.info(
+        f"Google OAuth2 tokens with the required scopes - "
+        f"{tokens_containing_required_scopes.count()}/{GoogleOAuth2User.objects.count()}"
+    )
+
     for google_oauth2_user in tokens_containing_required_scopes:
         sync_out_of_office_calendar_events_for_user.apply_async(args=(google_oauth2_user.pk,))
