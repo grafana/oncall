@@ -16,7 +16,7 @@ import { AppFeature } from 'state/features';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
-import { useIsLoading } from 'utils/hooks';
+import { useIsLoading, useOnMount } from 'utils/hooks';
 
 import styles from './PhoneVerification.module.css';
 
@@ -41,7 +41,9 @@ const PHONE_REGEX = /^\+\d{8,15}$/;
 export const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userPk: propsUserPk } = props;
   const store = useStore();
-  const { userStore, organizationStore } = store;
+  const { userStore, organizationStore, fetchRecaptchaSiteKey } = store;
+
+  useOnMount(fetchRecaptchaSiteKey);
 
   const userPk = (propsUserPk || userStore.currentUserPk) as ApiSchemas['User']['pk'];
   const user = userStore.items[userPk];

@@ -189,4 +189,10 @@ export class RootBaseStore {
   async getApiUrlForSettings() {
     return this.onCallApiUrl;
   }
+
+  @action.bound
+  async fetchRecaptchaSiteKey() {
+    const { recaptcha_site_key } = await makeRequest<{ recaptcha_site_key: string }>('/plugin/recaptcha');
+    this.recaptchaSiteKey = recaptcha_site_key;
+  }
 }
