@@ -35,6 +35,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { retryFailingPromises } from 'utils/async';
 import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { loadJs } from 'utils/loadJs';
 
 // ------ Dashboard ------ //
 
@@ -188,5 +189,12 @@ export class RootBaseStore {
   @action.bound
   async getApiUrlForSettings() {
     return this.onCallApiUrl;
+  }
+
+  @action.bound
+  async loadRecaptcha() {
+    const { recaptcha_site_key } = await makeRequest<{ recaptcha_site_key: string }>('/plugin/recaptcha');
+    this.recaptchaSiteKey = recaptcha_site_key;
+    loadJs(`https://www.google.com/recaptcha/api.js?render=${recaptcha_site_key}`, recaptcha_site_key);
   }
 }

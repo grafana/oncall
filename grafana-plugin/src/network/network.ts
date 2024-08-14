@@ -37,7 +37,7 @@ interface RequestConfig {
 
 export const isNetworkError = axios.isAxiosError;
 
-export const makeRequestRaw = async (path: string, config: RequestConfig) => {
+export const makeRequestRaw = async (path: string, config: RequestConfig = {}) => {
   const { method = 'GET', params, data, validateStatus, headers } = config;
 
   const url = getOnCallApiPath(path);
@@ -63,7 +63,7 @@ export const makeRequestRaw = async (path: string, config: RequestConfig) => {
   }
 };
 
-export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
+export const makeRequest = async <RT = any>(path: string, config: RequestConfig = {}) => {
   try {
     const result = await makeRequestRaw(path, config);
     return result.data as RT;
