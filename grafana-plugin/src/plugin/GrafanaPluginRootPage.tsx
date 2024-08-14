@@ -61,12 +61,14 @@ export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
 });
 
 export const Root = observer((props: AppRootProps) => {
-  const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle, setupInsightsDatasource } = useStore();
+  const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle, setupInsightsDatasource, loadRecaptcha } =
+    useStore();
 
   const location = useLocation();
 
   useEffect(() => {
     setupInsightsDatasource(props.meta);
+    loadRecaptcha();
     loadBasicData();
     // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
     const timeout = setTimeout(() => {
