@@ -45,11 +45,11 @@ export const Alerts = function () {
     if (queryParams.get('slack_error')) {
       setShowSlackInstallAlert(queryParams.get('slack_error') as SlackError);
 
-      LocationHelper.update({ slack_error: undefined }, 'replace');
+      LocationHelper.update({ slack_error: undefined }, 'partial');
     } else if (queryParams.get('google_error')) {
       setShowGoogleConnectAlert(queryParams.get('google_error') as GoogleError);
 
-      LocationHelper.update({ google_error: undefined }, 'replace');
+      LocationHelper.update({ google_error: undefined }, 'partial');
     }
   }, []);
 
