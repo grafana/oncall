@@ -66,6 +66,7 @@ def test_current_user(
         "avatar_full": user.avatar_full_url,
         "has_google_oauth2_connected": False,
         "google_calendar_settings": None,
+        "google_oauth2_token_is_missing_scopes": False,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

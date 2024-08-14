@@ -346,6 +346,8 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
     "/alert_receive_channels",
+    # current user endpoint 👇, without trailing slash we pick-up /user_group endpoints, which we don't want for now
+    "/user/",
     "/users",
     "/labels",
     # social auth routes
@@ -740,7 +742,7 @@ SOCIAL_AUTH_PIPELINE = (
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
     "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
-    "apps.social_auth.pipeline.google.persist_access_and_refresh_tokens",
+    "apps.social_auth.pipeline.google.connect_user_to_google",
 )
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_DISCONNECT_PIPELINE = (

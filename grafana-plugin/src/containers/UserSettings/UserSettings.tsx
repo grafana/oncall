@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { HorizontalGroup, Modal } from '@grafana/ui';
+import { Alert, HorizontalGroup, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
@@ -10,13 +10,19 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsPar
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { LocationHelper } from 'utils/LocationHelper';
 import { BREAKPOINT_TABS } from 'utils/consts';
+import { useQueryParams } from 'utils/hooks';
 
 import { UserSettingsTab } from './UserSettings.types';
 
 import styles from './UserSettings.module.css';
 
 const cx = cn.bind(styles);
+
+enum GoogleError {
+  MISSING_GRANTED_SCOPE = 'missing_granted_scope',
+}
 
 interface UserFormProps {
   onHide: () => void;
@@ -25,6 +31,53 @@ interface UserFormProps {
   onUpdate?: () => void;
   tab?: UserSettingsTab;
 }
+
+function getGoogleMessage(googleError: GoogleError) {
+  if (googleError === GoogleError.MISSING_GRANTED_SCOPE) {
+    return (
+      <>
+        Couldn't connect your Google account. You did not grant Grafana OnCall the necessary permissions. Please retry
+        and be sure to check any checkboxes which grant Grafana OnCall read access to your calendar events.
+      </>
+    );
+  }
+
+  return <>Couldn't connect your Google account.</>;
+}
+
+const UserAlerts: React.FC = () => {
+  const queryParams = useQueryParams();
+  const [showGoogleConnectAlert, setShowGoogleConnectAlert] = useState<GoogleError | undefined>();
+
+  const handleCloseGoogleAlert = useCallback(() => {
+    setShowGoogleConnectAlert(undefined);
+  }, []);
+
+  useEffect(() => {
+    if (queryParams.get('google_error')) {
+      setShowGoogleConnectAlert(queryParams.get('google_error') as GoogleError);
+
+      LocationHelper.update({ google_error: undefined }, 'partial');
+    }
+  }, []);
+
+  if (!showGoogleConnectAlert) {
+    return null;
+  }
+
+  return (
+    <div className={cx('alerts-container')}>
+      <Alert
+        className={cx('alert')}
+        onRemove={handleCloseGoogleAlert}
+        severity="error"
+        title="Google integration error"
+      >
+        {getGoogleMessage(showGoogleConnectAlert)}
+      </Alert>
+    </div>
+  );
+};
 
 export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
@@ -74,6 +127,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
   return (
     <>
       <Modal title={title} className={cx('modal', 'modal-wide')} isOpen closeOnEscape={false} onDismiss={onHide}>
+        <UserAlerts />
         <div className={cx('root')}>
           <Tabs
             onTabChange={onTabChange}
