@@ -57,15 +57,6 @@ export const Alerts = observer(() => {
 
   const store = useStore();
   const {
-    /**
-     * TODO: if we don't dereference currentUserPk then for some reason the @computed portion of
-     * UserStore.currentUser doesn't recalculate and will just be stuck on returning undefined..
-     *
-     * If we dereference currentUserPk here, even if we don't use it.. things just seem to work
-     * (what is this mobx wizardry?)
-     *
-     * Seems to be related to this https://stackoverflow.com/questions/77724466/mobx-computed-not-updating
-     */
     userStore: { currentUser, currentUserPk },
     organizationStore: { currentOrganization },
   } = store;
@@ -200,9 +191,20 @@ export const Alerts = observer(() => {
     );
   }
 
+  /**
+   * tbh we don't really need the `currentUserPk` reference here...
+   * the only reason why it's here is to appease mobx. Without this reference, the `@computed` property
+   * on `UserStore.currentUser` doesn't recalculate and will just be stuck on returning `undefined`..
+   *
+   * If we dereference `currentUserPk` here, even if we don't use it.. things just seem to work
+   * (what is this `mobx` wizardry?)
+   *
+   * Seems to be related to this https://stackoverflow.com/questions/77724466/mobx-computed-not-updating
+   */
   function showCurrentUserGoogleOAuth2TokenIsMissingScopes(): boolean {
     return Boolean(
-      currentUser &&
+      currentUserPk &&
+        currentUser &&
         currentUser.has_google_oauth2_connected &&
         currentUser.google_oauth2_token_is_missing_scopes &&
         !getItem(AlertID.USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES)
