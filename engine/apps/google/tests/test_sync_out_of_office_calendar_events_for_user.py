@@ -156,7 +156,7 @@ class MockResponse:
         (RefreshError, None, True, False),
         (HttpError, 401, False, False),
         (HttpError, 500, False, False),
-        (HttpError, 403, True, False),
+        (HttpError, 403, False, False),
         (Exception, None, False, True),
     ],
 )
@@ -378,6 +378,49 @@ def test_sync_out_of_office_calendar_events_for_user_considers_current_shifts(
 @patch("apps.google.client.build")
 @pytest.mark.django_db
 def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_request(
+    mock_google_api_client_build,
+    test_setup,
+    make_shift_swap_request,
+):
+    start_time, end_time = _create_event_start_and_end_times()
+    out_of_office_events = [
+        _create_mock_google_calendar_event(start_time, end_time),
+    ]
+
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.return_value = {
+        "items": out_of_office_events,
+    }
+
+    google_oauth2_user, schedule = test_setup(out_of_office_events)
+    google_oauth2_user_pk = google_oauth2_user.pk
+    user = google_oauth2_user.user
+
+    make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=start_time,
+        swap_end=end_time,
+    )
+
+    def _fetch_shift_swap_requests():
+        return ShiftSwapRequest.objects_with_deleted.filter(beneficiary=user, schedule=schedule)
+
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
+
+    # should be 1 because we just created a shift swap request above via the fixture
+    ssrs = _fetch_shift_swap_requests()
+    assert ssrs.count() == 1
+
+    # lets delete the shift swap request and run the task again, it should recognize that there was already
+    # a shift swap request and shouldn't recreate a new one
+    ssrs.first().delete()
+    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
+    assert _fetch_shift_swap_requests().count() == 1
+
+
+@patch("apps.google.client.build")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_all_users_only_called_for_tokens_having_all_required_scopes(
     mock_google_api_client_build,
     test_setup,
     make_shift_swap_request,

@@ -1,6 +1,7 @@
 import logging
 
 from celery.utils.log import get_task_logger
+from django.db.models import Q
 
 from apps.google import constants
 from apps.google.client import (
@@ -38,9 +39,17 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     try:
         out_of_office_events = google_api_client.fetch_out_of_office_events()
-    except (GoogleCalendarRefreshError, GoogleCalendarUnauthorizedHTTPError):
-        # in these scenarios there's really not much we can do with the refresh/access token that we
-        # have available. The user will need to re-connect with Google..
+    except GoogleCalendarUnauthorizedHTTPError:
+        # this means the user's current token is missing the required scopes, don't delete their token for now
+        # we'll notify them via the plugin UI and ask them to reauth and grant us the missing scope
+        logger.warning(
+            f"Failed to fetch out of office events for user {user_id} due to missing required scopes. "
+            "Safe to skip for now"
+        )
+        return
+    except GoogleCalendarRefreshError:
+        # in this scenarios there's really not much we can do with the refresh/access token that we
+        # have available. The user will need to re-connect with Google so lets delete their persisted token
 
         logger.exception(
             f"Failed to fetch out of office events for user {user_id} due to an invalid access and/or refresh token"
@@ -119,5 +128,10 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
 def sync_out_of_office_calendar_events_for_all_users() -> None:
-    for google_oauth2_user in GoogleOAuth2User.objects.all():
+    # some existing tokens may not have all the required scopes, lets skip these
+    tokens_containing_required_scopes = GoogleOAuth2User.objects.filter(
+        *[Q(oauth_scope__contains=scope) for scope in constants.REQUIRED_OAUTH_SCOPES]
+    )
+
+    for google_oauth2_user in tokens_containing_required_scopes:
         sync_out_of_office_calendar_events_for_user.apply_async(args=(google_oauth2_user.pk,))

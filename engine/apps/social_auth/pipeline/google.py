@@ -3,21 +3,17 @@ import typing
 from urllib.parse import urljoin
 
 import requests
-from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponse
 from rest_framework import status
 from social_core.backends.base import BaseAuth
 
+from apps.google.utils import user_granted_all_required_scopes
 from apps.social_auth.exceptions import GOOGLE_AUTH_MISSING_GRANTED_SCOPE_ERROR
 from apps.social_auth.types import GoogleOauth2Response
 from apps.user_management.models import Organization, User
 
 logger = logging.getLogger(__name__)
-
-
-def user_granted_all_required_scopes(granted_scopes: list[str]) -> bool:
-    return all(scope in granted_scopes for scope in settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
 
 
 def connect_user_to_google(
@@ -28,8 +24,7 @@ def connect_user_to_google(
     *args,
     **kwargs,
 ):
-    # scope is returned as a space-separated string
-    granted_scopes = response.get("scope", "").split(" ")
+    granted_scopes = response.get("scope", "")
 
     if not user_granted_all_required_scopes(granted_scopes):
         logger.warning(
