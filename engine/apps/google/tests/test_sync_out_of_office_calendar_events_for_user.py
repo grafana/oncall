@@ -1,5 +1,5 @@
 import datetime
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from django.utils import timezone
@@ -418,44 +418,51 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
     assert _fetch_shift_swap_requests().count() == 1
 
 
-@patch("apps.google.client.build")
+REQUIRED_SCOPE_1 = "https://www.googleapis.com/test/foo"
+REQUIRED_SCOPE_2 = "https://www.googleapis.com/test/bar"
+
+
+@patch("apps.google.tasks.contstants.REQUIRED_OAUTH_SCOPES", [REQUIRED_SCOPE_1, REQUIRED_SCOPE_2])
+@patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")
 @pytest.mark.django_db
 def test_sync_out_of_office_calendar_events_for_all_users_only_called_for_tokens_having_all_required_scopes(
-    mock_google_api_client_build,
-    test_setup,
-    make_shift_swap_request,
+    mock_sync_out_of_office_calendar_events_for_user,
+    _mock_constants_required_scopes,
+    make_organization_and_user,
+    make_user_for_organization,
+    make_google_oauth2_user_for_user,
 ):
-    start_time, end_time = _create_event_start_and_end_times()
-    out_of_office_events = [
-        _create_mock_google_calendar_event(start_time, end_time),
-    ]
+    organization, user1 = make_organization_and_user()
+    user2 = make_user_for_organization(organization)
+    user3 = make_user_for_organization(organization)
 
-    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.return_value = {
-        "items": out_of_office_events,
-    }
+    missing_a_scope = f"{REQUIRED_SCOPE_1} foo_bar"
+    has_all_scopes = f"{REQUIRED_SCOPE_1} {REQUIRED_SCOPE_2} foo_bar"
 
-    google_oauth2_user, schedule = test_setup(out_of_office_events)
-    google_oauth2_user_pk = google_oauth2_user.pk
-    user = google_oauth2_user.user
+    _ = make_google_oauth2_user_for_user(user1, oauth_scope=missing_a_scope)
+    user2_google_oauth2_user = make_google_oauth2_user_for_user(user2, oauth_scope=has_all_scopes)
+    user3_google_oauth2_user = make_google_oauth2_user_for_user(user3, oauth_scope=has_all_scopes)
 
-    make_shift_swap_request(
-        schedule,
-        user,
-        swap_start=start_time,
-        swap_end=end_time,
-    )
+    tasks.sync_out_of_office_calendar_events_for_all_users()
+    mock_sync_out_of_office_calendar_events_for_user.assert_has_calls([
+        call(args=(user2_google_oauth2_user.pk,)),
+        call(args=(user3_google_oauth2_user.pk,)),
+    ], any_order=True)
 
-    def _fetch_shift_swap_requests():
-        return ShiftSwapRequest.objects_with_deleted.filter(beneficiary=user, schedule=schedule)
 
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
+@patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_all_users_filters_out_users_from_deleted_organizations(
+    mock_sync_out_of_office_calendar_events_for_user,
+    make_organization_and_user,
+    make_google_oauth2_user_for_user,
+):
+    _, user = make_organization_and_user()
+    google_oauth2_user = make_google_oauth2_user_for_user(user)
 
-    # should be 1 because we just created a shift swap request above via the fixture
-    ssrs = _fetch_shift_swap_requests()
-    assert ssrs.count() == 1
+    deleted_organization, deleted_user = make_organization_and_user()
+    make_google_oauth2_user_for_user(deleted_user)
+    deleted_organization.delete()
 
-    # lets delete the shift swap request and run the task again, it should recognize that there was already
-    # a shift swap request and shouldn't recreate a new one
-    ssrs.first().delete()
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
-    assert _fetch_shift_swap_requests().count() == 1
+    tasks.sync_out_of_office_calendar_events_for_all_users()
+    mock_sync_out_of_office_calendar_events_for_user.assert_called_once_with(args=(google_oauth2_user.pk,))

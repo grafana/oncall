@@ -4,7 +4,8 @@ exports[`RemoveCurrentConfigurationButton It renders properly when disabled 1`] 
 <body>
   <div>
     <button
-      class="css-ttl745-button"
+      aria-disabled="false"
+      class="css-mgdi0l-button"
       disabled=""
       type="button"
     >
@@ -22,6 +23,7 @@ exports[`RemoveCurrentConfigurationButton It renders properly when enabled 1`] =
 <body>
   <div>
     <button
+      aria-disabled="false"
       class="css-ttl745-button"
       type="button"
     >

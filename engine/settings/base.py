@@ -107,6 +107,17 @@ CHATOPS_SIGNING_SECRET = os.environ.get("CHATOPS_SIGNING_SECRET", None)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
+# Application metric names without prefixes
+METRIC_ALERT_GROUPS_TOTAL_NAME = "alert_groups_total"
+METRIC_ALERT_GROUPS_RESPONSE_TIME_NAME = "alert_groups_response_time"
+METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME = "user_was_notified_of_alert_groups"
+METRICS_ALL = [
+    METRIC_ALERT_GROUPS_TOTAL_NAME,
+    METRIC_ALERT_GROUPS_RESPONSE_TIME_NAME,
+    METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME,
+]
+# List of metrics to collect. Collect all available application metrics by default
+METRICS_TO_COLLECT = os.environ.get("METRICS_TO_COLLECT", METRICS_ALL)
 
 
 # Database
@@ -456,8 +467,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
