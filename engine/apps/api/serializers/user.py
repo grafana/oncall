@@ -220,7 +220,7 @@ class UserSerializer(ListUserSerializer):
 
 
 class CurrentUserSerializer(UserSerializer):
-    rbac_permissions = UserPermissionSerializer(many=True, source="permissions")
+    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + [
@@ -228,7 +228,6 @@ class CurrentUserSerializer(UserSerializer):
             "google_oauth2_token_is_missing_scopes",
         ]
         read_only_fields = UserSerializer.Meta.read_only_fields + [
-            "rbac_permissions",
             "google_oauth2_token_is_missing_scopes",
         ]
 
