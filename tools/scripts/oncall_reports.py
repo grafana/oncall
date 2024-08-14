@@ -87,7 +87,7 @@ for t in results:
     teams[t["id"]] = t["name"]
 
 
-# fetch users (TODO: handle pagination)
+# fetch users
 # https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/users/#list-users
 # GET {{API_URL}}/api/v1/users/
 
