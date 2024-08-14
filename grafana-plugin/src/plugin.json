@@ -568,6 +568,12 @@
   "iam": {
     "permissions": [
       {
+        "action": "alert.notifications:read"
+      },
+      {
+        "action": "alert.notifications:write"
+      },
+      {
         "action": "dashboards:create",
         "scope": "folders:*"
       },
@@ -578,6 +584,10 @@
       {
         "action": "dashboards:write",
         "scope": "dashboards:*"
+      },
+      {
+        "action": "datasources:read",
+        "scope": "datasources:*"
       },
       {
         "action": "folders:read",
