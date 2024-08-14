@@ -56,6 +56,7 @@ class PathPrefixedPagePagination(BasePathPrefixedPagination, PageNumberPaginatio
         return paginated_schema
 
     def paginate_queryset(self, queryset, request, view=None):
+        request.build_absolute_uri = lambda: create_engine_url(request.get_full_path())
         per_page = request.query_params.get(self.page_size_query_param, self.page_size)
         try:
             per_page = int(per_page)
