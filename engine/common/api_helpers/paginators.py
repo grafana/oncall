@@ -1,5 +1,6 @@
 import typing
 
+from django.core.paginator import EmptyPage
 from rest_framework.pagination import BasePagination, CursorPagination, PageNumberPagination
 from rest_framework.response import Response
 
@@ -53,6 +54,29 @@ class PathPrefixedPagePagination(BasePathPrefixedPagination, PageNumberPaginatio
             }
         )
         return paginated_schema
+
+    def paginate_queryset(self, queryset, request, view=None):
+        paginator = self.django_paginator_class(queryset, self.page_size)
+        page_number = request.query_params.get(self.page_query_param, 1)
+        if not page_number.isdigit() or int(page_number) < 1:
+            page_number = 1
+
+        try:
+            self.page = self.get_page(page_number, paginator)
+        except EmptyPage:
+            self.page = paginator.page(paginator.num_pages)
+
+        if paginator.num_pages > 1 and self.template is not None:
+            self.display_page_controls = True
+
+        self.request = request
+        return list(self.page)
+
+    def get_page(self, page_number, paginator):
+        try:
+            return paginator.page(page_number)
+        except EmptyPage:
+            return paginator.page(paginator.num_pages)
 
 
 class PathPrefixedCursorPagination(BasePathPrefixedPagination, CursorPagination):
