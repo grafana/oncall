@@ -298,10 +298,10 @@ export class UserStore {
   }
 
   @computed
-  get currentUser() {
+  get currentUser(): undefined | ApiSchemas['CurrentUser'] {
     if (!this.currentUserPk) {
       return undefined;
     }
-    return this.items[this.currentUserPk];
+    return this.items[this.currentUserPk] as ApiSchemas['CurrentUser'];
   }
 }

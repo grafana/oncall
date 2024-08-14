@@ -20,6 +20,7 @@ from apps.api.permissions import (
     RBACPermission,
     user_is_authorized,
 )
+from apps.google import utils as google_utils
 from apps.google.models import GoogleOAuth2User
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from apps.user_management.types import AlertGroupTableColumn, GoogleCalendarSettings
@@ -187,6 +188,12 @@ class User(models.Model):
             return self.google_oauth2_user is not None
         except ObjectDoesNotExist:
             return False
+
+    @property
+    def google_oauth2_token_is_missing_scopes(self) -> bool:
+        if not self.has_google_oauth2_connected:
+            return False
+        return not google_utils.user_granted_all_required_scopes(self.google_oauth2_user.oauth_scope)
 
     @property
     def avatar_full_url(self):

@@ -130,8 +130,8 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 def sync_out_of_office_calendar_events_for_all_users() -> None:
     # some existing tokens may not have all the required scopes, lets skip these
     tokens_containing_required_scopes = GoogleOAuth2User.objects.filter(
+        *[Q(oauth_scope__contains=scope) for scope in constants.REQUIRED_OAUTH_SCOPES],
         user__organization__deleted_at__isnull=True,
-        *[Q(oauth_scope__contains=scope) for scope in constants.REQUIRED_OAUTH_SCOPES]
     )
 
     for google_oauth2_user in tokens_containing_required_scopes:

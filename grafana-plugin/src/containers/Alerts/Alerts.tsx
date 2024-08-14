@@ -3,11 +3,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { sanitize } from 'dompurify';
+import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
-import { getGoogleMessage, getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
-import { GoogleError, SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
+import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
+import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
+import { UserHelper } from 'models/user/user.helpers';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
@@ -24,12 +26,12 @@ const cx = cn.bind(styles);
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
+  USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES = 'User Google OAuth2 token is missing scopes',
 }
 
-export const Alerts = function () {
+export const Alerts = observer(() => {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
-  const [showGoogleConnectAlert, setShowGoogleConnectAlert] = useState<GoogleError | undefined>();
 
   const forceUpdate = useForceUpdate();
 
@@ -37,19 +39,11 @@ export const Alerts = function () {
     setShowSlackInstallAlert(undefined);
   }, []);
 
-  const handleCloseGoogleAlert = useCallback(() => {
-    setShowGoogleConnectAlert(undefined);
-  }, []);
-
   useEffect(() => {
     if (queryParams.get('slack_error')) {
       setShowSlackInstallAlert(queryParams.get('slack_error') as SlackError);
 
       LocationHelper.update({ slack_error: undefined }, 'partial');
-    } else if (queryParams.get('google_error')) {
-      setShowGoogleConnectAlert(queryParams.get('google_error') as GoogleError);
-
-      LocationHelper.update({ google_error: undefined }, 'partial');
     }
   }, []);
 
@@ -63,19 +57,33 @@ export const Alerts = function () {
 
   const store = useStore();
   const {
-    userStore: { currentUser },
+    /**
+     * TODO: if we don't dereference currentUserPk then for some reason the @computed portion of
+     * UserStore.currentUser doesn't recalculate and will just be stuck on returning undefined..
+     *
+     * If we dereference currentUserPk here, even if we don't use it.. things just seem to work
+     * (what is this mobx wizardry?)
+     *
+     * Seems to be related to this https://stackoverflow.com/questions/77724466/mobx-computed-not-updating
+     */
+    userStore: { currentUser, currentUserPk },
     organizationStore: { currentOrganization },
   } = store;
 
+  const versionMismatchLocalStorageId = `version_mismatch_${store.backendVersion}_${plugin?.version}`;
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
   const isDefaultNotificationsSet = currentUser?.notification_chain_verbal.default;
   const isImportantNotificationsSet = currentUser?.notification_chain_verbal.important;
 
-  const showAnAlert = showSlackInstallAlert || showGoogleConnectAlert;
-
-  if (!showAnAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
+  if (
+    !showSlackInstallAlert &&
+    !showCurrentUserGoogleOAuth2TokenIsMissingScopes() &&
+    !showBannerTeam() &&
+    !showMismatchWarning() &&
+    !showChannelWarnings()
+  ) {
     return null;
   }
   return (
@@ -90,14 +98,20 @@ export const Alerts = function () {
           {getSlackMessage(showSlackInstallAlert, currentOrganization, store.hasFeature(AppFeature.LiveSettings))}
         </Alert>
       )}
-      {showGoogleConnectAlert && (
+      {showCurrentUserGoogleOAuth2TokenIsMissingScopes() && (
         <Alert
           className={cx('alert')}
-          onRemove={handleCloseGoogleAlert}
-          severity="error"
-          title="Google integration error"
+          severity="warning"
+          title="User Google OAuth2 token is missing scopes"
+          onRemove={getRemoveAlertHandler(AlertID.USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES)}
         >
-          {getGoogleMessage(showGoogleConnectAlert)}
+          Your Google OAuth2 token is missing some required permissions (you may have forgotten to check the necessary
+          checkboxes when connecting your Google account). To rectify this, please grant Grafana OnCall these
+          permissions by clicking{' '}
+          <a onClick={UserHelper.handleConnectGoogle} className={cx('instructions-link')}>
+            here
+          </a>{' '}
+          and re-connecting your Google account.
         </Alert>
       )}
       {showBannerTeam() && (
@@ -119,7 +133,7 @@ export const Alerts = function () {
           className={cx('alert')}
           severity="warning"
           title={'Version mismatch!'}
-          onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+          onRemove={getRemoveAlertHandler(versionMismatchLocalStorageId)}
         >
           Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
           otherwise there could be issues with your Grafana OnCall installation!
@@ -172,7 +186,7 @@ export const Alerts = function () {
       store.backendVersion &&
       plugin?.version &&
       store.backendVersion !== plugin?.version &&
-      !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`)
+      !getItem(versionMismatchLocalStorageId)
     );
   }
 
@@ -185,4 +199,13 @@ export const Alerts = function () {
         !getItem(AlertID.CONNECTIVITY_WARNING)
     );
   }
-};
+
+  function showCurrentUserGoogleOAuth2TokenIsMissingScopes(): boolean {
+    return Boolean(
+      currentUser &&
+        currentUser.has_google_oauth2_connected &&
+        currentUser.google_oauth2_token_is_missing_scopes &&
+        !getItem(AlertID.USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES)
+    );
+  }
+});

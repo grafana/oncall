@@ -994,6 +994,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
+    /** @description overridden_login_social_auth starts the installation of integration which uses OAuth flow. */
     get: operations['login_retrieve'];
     put?: never;
     post?: never;
@@ -1010,8 +1011,25 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
+    /** @description overridden_login_social_auth starts the installation of integration which uses OAuth flow. */
     get: operations['login_retrieve_2'];
     put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/user/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['user_retrieve'];
+    put: operations['user_update'];
     post?: never;
     delete?: never;
     options?: never;
@@ -1288,6 +1306,23 @@ export interface paths {
     get?: never;
     /** @description Internal API endpoints for users. */
     put: operations['users_verify_number_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/users/filters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_filters_list'];
+    put?: never;
     post?: never;
     delete?: never;
     options?: never;
@@ -1749,6 +1784,45 @@ export interface components {
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
+    CurrentUser: {
+      readonly pk: string;
+      readonly organization: components['schemas']['FastOrganization'];
+      current_team?: string | null;
+      /** Format: email */
+      readonly email: string;
+      readonly username: string;
+      readonly name: string;
+      readonly role: components['schemas']['RoleEnum'];
+      /** Format: uri */
+      readonly avatar: string;
+      /** Format: uri */
+      readonly avatar_full: string;
+      timezone?: string | null;
+      working_hours?: components['schemas']['WorkingHours'];
+      unverified_phone_number?: string | null;
+      /** @description Use property to highlight that _verified_phone_number should not be modified directly */
+      readonly verified_phone_number: string | null;
+      readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
+      readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
+      readonly messaging_backends: {
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
+      };
+      readonly notification_chain_verbal: {
+        default: string;
+        important: string;
+      };
+      readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
+      hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
+      readonly is_currently_oncall: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
+      rbac_permissions: components['schemas']['UserPermission'][];
+      readonly google_oauth2_token_is_missing_scopes: boolean;
+    };
     /** @description This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID. */
     CustomLabel: {
       key: components['schemas']['CustomLabelKey'];
@@ -1817,13 +1891,10 @@ export interface components {
       template: string | null;
     };
     /**
-     * @description * `alertmanager` - Alertmanager
-     *     * `legacy_alertmanager` - (Legacy) AlertManager
-     *     * `grafana` - Grafana
-     *     * `grafana_alerting` - Grafana Alerting
-     *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
-     *     * `formatted_webhook` - Formatted webhook
+     * @description * `grafana_alerting` - Grafana Alerting
      *     * `webhook` - Webhook
+     *     * `alertmanager` - Alertmanager
+     *     * `formatted_webhook` - Formatted webhook
      *     * `kapacitor` - Kapacitor
      *     * `elastalert` - Elastalert
      *     * `heartbeat` - Heartbeat
@@ -1833,6 +1904,9 @@ export interface components {
      *     * `slack_channel` - Slack Channel
      *     * `zabbix` - Zabbix
      *     * `direct_paging` - Direct paging
+     *     * `grafana` - Grafana Legacy Alerting
+     *     * `legacy_alertmanager` - (Legacy) AlertManager
+     *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
      *     * `servicenow` - ServiceNow
      *     * `amazon_sns` - Amazon SNS
      *     * `stackdriver` - Stackdriver
@@ -1852,13 +1926,10 @@ export interface components {
      * @enum {string}
      */
     IntegrationEnum:
-      | 'alertmanager'
-      | 'legacy_alertmanager'
-      | 'grafana'
       | 'grafana_alerting'
-      | 'legacy_grafana_alerting'
-      | 'formatted_webhook'
       | 'webhook'
+      | 'alertmanager'
+      | 'formatted_webhook'
       | 'kapacitor'
       | 'elastalert'
       | 'heartbeat'
@@ -1868,6 +1939,9 @@ export interface components {
       | 'slack_channel'
       | 'zabbix'
       | 'direct_paging'
+      | 'grafana'
+      | 'legacy_alertmanager'
+      | 'legacy_grafana_alerting'
       | 'servicenow'
       | 'amazon_sns'
       | 'stackdriver'
@@ -1981,14 +2055,22 @@ export interface components {
     /** @enum {unknown} */
     NullEnum: null;
     PaginatedAlertGroupListList: {
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?cursor=cD00ODY%3D"
+       */
       next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+       */
       previous?: string | null;
-      results?: components['schemas']['AlertGroupList'][];
+      results: components['schemas']['AlertGroupList'][];
       page_size?: number;
     };
     PaginatedAlertReceiveChannelPolymorphicList: {
       /** @example 123 */
-      count?: number;
+      count: number;
       /**
        * Format: uri
        * @example http://api.example.org/accounts/?page=4
@@ -1999,14 +2081,14 @@ export interface components {
        * @example http://api.example.org/accounts/?page=2
        */
       previous?: string | null;
-      results?: components['schemas']['AlertReceiveChannelPolymorphic'][];
+      results: components['schemas']['AlertReceiveChannelPolymorphic'][];
       page_size?: number;
       current_page_number?: number;
       total_pages?: number;
     };
     PaginatedUserPolymorphicList: {
       /** @example 123 */
-      count?: number;
+      count: number;
       /**
        * Format: uri
        * @example http://api.example.org/accounts/?page=4
@@ -2017,7 +2099,7 @@ export interface components {
        * @example http://api.example.org/accounts/?page=2
        */
       previous?: string | null;
-      results?: components['schemas']['UserPolymorphic'][];
+      results: components['schemas']['UserPolymorphic'][];
       page_size?: number;
       current_page_number?: number;
       total_pages?: number;
@@ -2240,6 +2322,21 @@ export interface components {
       created_at: string;
       export_url: string;
     };
+    UserFilters: {
+      name: string;
+      type: string;
+      href?: string;
+      global?: boolean;
+      default?: {
+        [key: string]: unknown;
+      };
+      description?: string;
+      options: components['schemas']['UserFiltersOptions'];
+    };
+    UserFiltersOptions: {
+      value: string;
+      display_name: number;
+    };
     UserGetTelegramVerificationCode: {
       telegram_code: string;
       bot_link: string;
@@ -2253,6 +2350,9 @@ export interface components {
       readonly timezone: string | null;
       readonly teams: components['schemas']['FastTeam'][];
       readonly is_currently_oncall: boolean;
+    };
+    UserPermission: {
+      readonly action: string;
     };
     UserPolymorphic:
       | components['schemas']['FilterUser']
@@ -2316,13 +2416,10 @@ export interface operations {
     parameters: {
       query?: {
         id_ne?: string[];
-        /** @description * `alertmanager` - Alertmanager
-         *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `grafana` - Grafana
-         *     * `grafana_alerting` - Grafana Alerting
-         *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
-         *     * `formatted_webhook` - Formatted webhook
+        /** @description * `grafana_alerting` - Grafana Alerting
          *     * `webhook` - Webhook
+         *     * `alertmanager` - Alertmanager
+         *     * `formatted_webhook` - Formatted webhook
          *     * `kapacitor` - Kapacitor
          *     * `elastalert` - Elastalert
          *     * `heartbeat` - Heartbeat
@@ -2332,6 +2429,9 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `grafana` - Grafana Legacy Alerting
+         *     * `legacy_alertmanager` - (Legacy) AlertManager
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
          *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
@@ -2382,13 +2482,10 @@ export interface operations {
           | 'zabbix'
           | 'zendesk'
         )[];
-        /** @description * `alertmanager` - Alertmanager
-         *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `grafana` - Grafana
-         *     * `grafana_alerting` - Grafana Alerting
-         *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
-         *     * `formatted_webhook` - Formatted webhook
+        /** @description * `grafana_alerting` - Grafana Alerting
          *     * `webhook` - Webhook
+         *     * `alertmanager` - Alertmanager
+         *     * `formatted_webhook` - Formatted webhook
          *     * `kapacitor` - Kapacitor
          *     * `elastalert` - Elastalert
          *     * `heartbeat` - Heartbeat
@@ -2398,6 +2495,9 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `grafana` - Grafana Legacy Alerting
+         *     * `legacy_alertmanager` - (Legacy) AlertManager
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
          *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
@@ -3880,6 +3980,7 @@ export interface operations {
           'application/json': (
             | 'msteams'
             | 'slack'
+            | 'unified_slack'
             | 'telegram'
             | 'live_settings'
             | 'grafana_cloud_notifications'
@@ -4098,6 +4199,44 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  user_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentUser'];
+        };
+      };
+    };
+  };
+  user_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentUser'];
+        };
       };
     };
   };
@@ -4684,6 +4823,25 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  users_filters_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserFilters'][];
+        };
       };
     };
   };

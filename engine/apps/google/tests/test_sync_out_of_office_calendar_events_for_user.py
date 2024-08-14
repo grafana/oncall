@@ -422,12 +422,11 @@ REQUIRED_SCOPE_1 = "https://www.googleapis.com/test/foo"
 REQUIRED_SCOPE_2 = "https://www.googleapis.com/test/bar"
 
 
-@patch("apps.google.tasks.contstants.REQUIRED_OAUTH_SCOPES", [REQUIRED_SCOPE_1, REQUIRED_SCOPE_2])
+@patch("apps.google.tasks.constants.REQUIRED_OAUTH_SCOPES", [REQUIRED_SCOPE_1, REQUIRED_SCOPE_2])
 @patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")
 @pytest.mark.django_db
 def test_sync_out_of_office_calendar_events_for_all_users_only_called_for_tokens_having_all_required_scopes(
     mock_sync_out_of_office_calendar_events_for_user,
-    _mock_constants_required_scopes,
     make_organization_and_user,
     make_user_for_organization,
     make_google_oauth2_user_for_user,
@@ -444,10 +443,15 @@ def test_sync_out_of_office_calendar_events_for_all_users_only_called_for_tokens
     user3_google_oauth2_user = make_google_oauth2_user_for_user(user3, oauth_scope=has_all_scopes)
 
     tasks.sync_out_of_office_calendar_events_for_all_users()
-    mock_sync_out_of_office_calendar_events_for_user.assert_has_calls([
-        call(args=(user2_google_oauth2_user.pk,)),
-        call(args=(user3_google_oauth2_user.pk,)),
-    ], any_order=True)
+
+    assert len(mock_sync_out_of_office_calendar_events_for_user.mock_calls) == 2
+    mock_sync_out_of_office_calendar_events_for_user.assert_has_calls(
+        [
+            call(args=(user2_google_oauth2_user.pk,)),
+            call(args=(user3_google_oauth2_user.pk,)),
+        ],
+        any_order=True,
+    )
 
 
 @patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")

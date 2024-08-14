@@ -67,7 +67,7 @@ export const Header = observer(() => {
   }
 });
 
-export const Banners: React.FC = () => {
+const Banners: React.FC = () => {
   const styles = useStyles2(getHeaderStyles);
   return (
     <div className={styles.banners}>

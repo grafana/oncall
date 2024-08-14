@@ -2,7 +2,9 @@ import pytest
 
 from apps.google import utils
 
-SCOPES_ALWAYS_GRANTED = "openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email"
+SCOPES_ALWAYS_GRANTED = (
+    "openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email"
+)
 
 
 @pytest.mark.parametrize(

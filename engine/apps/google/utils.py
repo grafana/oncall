@@ -8,7 +8,7 @@ def user_granted_all_required_scopes(user_granted_scopes: str) -> bool:
     `user_granted_scopes` should be a space-separated string of scopes
     """
     granted_scopes = user_granted_scopes.split(" ")
-    return all(scope in granted_scopes for scope in constants.SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE)
+    return all(scope in granted_scopes for scope in constants.REQUIRED_OAUTH_SCOPES)
 
 
 def datetime_strftime(dt: datetime.datetime) -> str:
