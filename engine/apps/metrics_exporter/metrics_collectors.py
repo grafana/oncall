@@ -232,3 +232,6 @@ class ApplicationMetricsCollector:
                 recalculate_orgs.append({"organization_id": org_id, "force": force_task})
         if recalculate_orgs:
             start_calculate_and_cache_metrics.apply_async((recalculate_orgs,))
+
+
+application_metrics_registry.register(ApplicationMetricsCollector())
