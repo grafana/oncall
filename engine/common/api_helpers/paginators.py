@@ -56,7 +56,16 @@ class PathPrefixedPagePagination(BasePathPrefixedPagination, PageNumberPaginatio
         return paginated_schema
 
     def paginate_queryset(self, queryset, request, view=None):
-        paginator = self.django_paginator_class(queryset, self.page_size)
+        per_page = request.query_params.get(self.page_size_query_param, self.page_size)
+        try:
+            per_page = int(per_page)
+        except ValueError:
+            per_page = self.page_size
+
+        if per_page < 1:
+            per_page = self.page_size
+
+        paginator = self.django_paginator_class(queryset, per_page)
         page_number = request.query_params.get(self.page_query_param, 1)
         try:
             page_number = int(page_number)
