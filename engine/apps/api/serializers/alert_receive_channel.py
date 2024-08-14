@@ -8,11 +8,10 @@ from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_fiel
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, set_value
+from rest_framework.fields import SerializerMethodField
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
-from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.labels.models import LabelKeyCache, LabelValueCache
@@ -277,7 +276,7 @@ class AlertReceiveChannelSerializer(
     # With using of select_related ORM builds strange join
     # which leads to incorrect heartbeat-alert_receive_channel binding in result
     PREFETCH_RELATED = ["channel_filters", "integration_heartbeat", "labels", "labels__key", "labels__value"]
-    SELECT_RELATED = ["organization", "author"]
+    SELECT_RELATED = ["organization", "author", "team"]
 
     class Meta:
         model = AlertReceiveChannel
@@ -490,11 +489,12 @@ class AlertReceiveChannelSerializer(
         return has_legacy_prefix(obj.integration)
 
     def get_connected_escalations_chains_count(self, obj: "AlertReceiveChannel") -> int:
-        return (
-            ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
-            .values("escalation_chain")
-            .distinct()
-            .count()
+        return len(
+            set(
+                channel_filter.escalation_chain_id
+                for channel_filter in obj.channel_filters.all()
+                if channel_filter.escalation_chain_id is not None
+            )
         )
 
 
@@ -632,7 +632,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                         backend_updates[field] = value
             # update backend templates
             backend_templates.update(backend_updates)
-            set_value(ret, ["messaging_backends_templates", backend_id], backend_templates)
+            self.set_value(ret, ["messaging_backends_templates", backend_id], backend_templates)
 
         return errors
 
@@ -651,7 +651,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                     errors[field_name] = "invalid template"
                 except DjangoValidationError:
                     errors[field_name] = "invalid URL"
-                set_value(ret, [field_name], value)
+                self.set_value(ret, [field_name], value)
         return errors
 
     def to_representation(self, obj: "AlertReceiveChannel"):

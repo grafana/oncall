@@ -2,10 +2,10 @@ babel==2.12.1
 beautifulsoup4==4.12.2
 celery[redis]==5.3.1
 cryptography==42.0.8
-django==4.2.11
+django==4.2.15
 django-add-default-value==0.10.0
 django-amazon-ses==4.0.1
-django-anymail==8.6
+django-anymail==11.1
 django-cors-headers==3.7.0
 # pyroscope-io==0.8.1
 django-dbconn-retry==0.1.7
@@ -23,7 +23,7 @@ django-redis==5.4.0
 django-rest-polymorphic==0.1.10
 django-silk==5.0.3
 django-sns-view==0.1.2
-djangorestframework==3.14.0
+djangorestframework==3.15.2
 factory-boy<3.0
 drf-spectacular==0.26.5
 emoji==2.4.0
@@ -32,7 +32,7 @@ emoji==2.4.0
 grpcio==1.64.1
 fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.tar.gz#sha256=7ec7cd9d353fc9edf19a4acd4fa14090a31d83d02ac986c5e5e081dea29f564f
 hiredis==2.2.3
-humanize==0.5.1
+humanize==4.10.0
 icalendar==5.0.10
 lxml==5.2.2
 markdown2==2.4.10
@@ -53,23 +53,14 @@ python-telegram-bot==13.13
 recurring-ical-events==2.1.0
 redis==5.0.1
 regex==2021.11.2
-requests==2.32.0
+requests==2.32.3
 slack-export-viewer==1.1.4
 slack_sdk==3.21.3
 social-auth-app-django==5.4.1
 twilio~=6.37.0
-urllib3==1.26.18
+urllib3==1.26.19
 uwsgi==2.0.26
 whitenoise==5.3.0
 google-api-python-client==2.122.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
-# see the following resources as to why we need to install setuptools manually
-#
-# Python 3.12 release notes https://docs.python.org/3/whatsnew/3.12.html
-#
-# python/cpython#95299: Do not pre-install setuptools in virtual environments
-# created with venv. This means that distutils, setuptools, pkg_resources, and
-# easy_install will no longer available by default; to access these run pip
-# install setuptools in the activated virtual environment.
-setuptools==70.0.0

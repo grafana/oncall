@@ -74,7 +74,7 @@ deprecated==1.2.14
     # via
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
-django==4.2.11
+django==4.2.15
     # via
     #   -r requirements.in
     #   django-add-default-value
@@ -100,7 +100,7 @@ django-add-default-value==0.10.0
     # via -r requirements.in
 django-amazon-ses==4.0.1
     # via -r requirements.in
-django-anymail==8.6
+django-anymail==11.1
     # via -r requirements.in
 django-cors-headers==3.7.0
     # via -r requirements.in
@@ -136,7 +136,7 @@ django-silk==5.0.3
     # via -r requirements.in
 django-sns-view==0.1.2
     # via -r requirements.in
-djangorestframework==3.14.0
+djangorestframework==3.15.2
     # via
     #   -r requirements.in
     #   django-rest-polymorphic
@@ -217,7 +217,7 @@ httplib2==0.22.0
     # via
     #   google-api-python-client
     #   google-auth-httplib2
-humanize==0.5.1
+humanize==4.10.0
     # via -r requirements.in
 icalendar==5.0.10
     # via
@@ -370,7 +370,6 @@ python3-openid==3.2.0
 pytz==2024.1
     # via
     #   apscheduler
-    #   djangorestframework
     #   icalendar
     #   python-telegram-bot
     #   recurring-ical-events
@@ -393,7 +392,7 @@ referencing==0.33.0
     #   jsonschema-specifications
 regex==2021.11.2
     # via -r requirements.in
-requests==2.32.0
+requests==2.32.3
     # via
     #   -r requirements.in
     #   cachecontrol
@@ -455,10 +454,11 @@ uritemplate==4.1.1
     # via
     #   drf-spectacular
     #   google-api-python-client
-urllib3==1.26.18
+urllib3==1.26.19
     # via
     #   -r requirements.in
     #   botocore
+    #   django-anymail
     #   requests
 uwsgi==2.0.26
     # via -r requirements.in

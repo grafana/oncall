@@ -65,7 +65,9 @@ class BaseShiftSwapViewSet(ModelViewSet):
         return ShiftSwapRequestListSerializer if self.action == "list" else super().get_serializer_class()
 
     def get_queryset(self):
-        queryset = ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
+        queryset = ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization).order_by(
+            "-created_at"
+        )
         return self.serializer_class.setup_eager_loading(queryset)
 
     def perform_destroy(self, instance: ShiftSwapRequest) -> None:
