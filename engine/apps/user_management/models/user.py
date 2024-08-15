@@ -195,7 +195,7 @@ class User(models.Model):
             return False
         return not google_utils.user_granted_all_required_scopes(self.google_oauth2_user.oauth_scope)
 
-    def avatar_full_url(self, organization: Organization):
+    def avatar_full_url(self, organization: "Organization"):
         """
         Use arg `organization` instead of `self.organization` to avoid multiple requests to db when getting avatar for
         users list
