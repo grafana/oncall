@@ -407,7 +407,7 @@ class OnCallSchedule(PolymorphicModel):
                         "display_name": user.username,
                         "email": user.email,
                         "pk": user.public_primary_key,
-                        "avatar_full": user.avatar_full_url,
+                        "avatar_full": user.avatar_full_url(self.organization),
                     }
                     for user in shift["users"]
                 ],
@@ -780,13 +780,13 @@ class OnCallSchedule(PolymorphicModel):
                         user_to_swap["pk"] = swap.benefactor.public_primary_key
                         user_to_swap["display_name"] = swap.benefactor.username
                         user_to_swap["email"] = swap.benefactor.email
-                        user_to_swap["avatar_full"] = swap.benefactor.avatar_full_url
+                        user_to_swap["avatar_full"] = swap.benefactor.avatar_full_url(self.organization)
                         # add beneficiary user to details
                         swap_details["user"] = {
                             "display_name": swap.beneficiary.username,
                             "email": swap.beneficiary.email,
                             "pk": swap.beneficiary.public_primary_key,
-                            "avatar_full": swap.beneficiary.avatar_full_url,
+                            "avatar_full": swap.beneficiary.avatar_full_url(self.organization),
                         }
                     user_to_swap["swap_request"] = swap_details
 

@@ -103,11 +103,14 @@ class ShiftSwapRequestExpandedUsersListSerializer(BaseShiftSwapRequestListSerial
     def _serialize_user(self, user: "User") -> dict | None:
         user_data = None
         if user:
+            organization = (
+                self.context["request"].auth.organization if self.context.get("request") else user.organization
+            )
             user_data = {
                 "display_name": user.username,
                 "email": user.email,
                 "pk": user.public_primary_key,
-                "avatar_full": user.avatar_full_url,
+                "avatar_full": user.avatar_full_url(organization),
             }
         return user_data
 

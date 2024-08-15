@@ -7,7 +7,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Q
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
@@ -128,13 +127,18 @@ class UserNotificationPolicy(OrderedModel):
 
     @classmethod
     def get_short_verbals_for_user(cls, user: User) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        is_wait_step = Q(step=cls.Step.WAIT)
-        is_wait_step_configured = Q(wait_delay__isnull=False)
+        policies = user.notification_policies.all()
 
-        policies = cls.objects.filter(Q(user=user, step__isnull=False) & (~is_wait_step | is_wait_step_configured))
+        default = ()
+        important = ()
 
-        default = tuple(str(policy.short_verbal) for policy in policies if policy.important is False)
-        important = tuple(str(policy.short_verbal) for policy in policies if policy.important is True)
+        for policy in policies:
+            if policy.step is None or (policy.step == cls.Step.WAIT and policy.wait_delay is None):
+                continue
+            if policy.important:
+                important += (policy.short_verbal,)
+            else:
+                default += (policy.short_verbal,)
 
         return default, important
 

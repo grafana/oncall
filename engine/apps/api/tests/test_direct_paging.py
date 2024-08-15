@@ -224,6 +224,41 @@ def test_direct_paging_no_user_or_team_specified(
     assert response.json()["detail"] == DirectPagingUserTeamValidationError.DETAIL
 
 
+@pytest.mark.django_db
+def test_direct_paging_both_team_and_users_specified(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_user,
+    make_team,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    team = make_team(organization=organization)
+
+    # user must be part of the team
+    user.teams.add(team)
+
+    client = APIClient()
+    url = reverse("api-internal:direct_paging")
+
+    response = client.post(
+        url,
+        data={
+            "team": team.public_primary_key,
+            "users": [
+                {
+                    "id": make_user(organization=organization).public_primary_key,
+                    "important": False,
+                },
+            ],
+        },
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == ["users and team are mutually exclusive"]
+
+
 @pytest.mark.parametrize(
     "field_name,field_value",
     [

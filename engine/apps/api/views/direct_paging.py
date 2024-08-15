@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPagingUserTeamValidationError, direct_paging
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.paging import DirectPagingSerializer
+from apps.api.serializers.direct_paging import DirectPagingSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest

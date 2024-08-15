@@ -83,7 +83,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
     timezone = TimeZoneField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
-    avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
+    avatar_full = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
     working_hours = WorkingHoursSerializer(required=False)
@@ -96,6 +96,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         "mobileappauthtoken",
         "google_oauth2_user",
     ]
+    PREFETCH_RELATED = ["notification_policies"]
 
     class Meta:
         model = User
@@ -164,6 +165,10 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     def get_notification_chain_verbal(self, obj: User) -> NotificationChainVerbal:
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
+
+    def get_avatar_full(self, obj):
+        organization = self.context["request"].auth.organization if self.context.get("request") else obj.organization
+        return obj.avatar_full_url(organization)
 
     def get_cloud_connection_status(self, obj: User) -> CloudSyncStatus | None:
         is_open_source_with_cloud_notifications = self.context.get("is_open_source_with_cloud_notifications", None)
@@ -307,7 +312,7 @@ class UserShortSerializer(serializers.ModelSerializer):
     username = serializers.CharField()
     pk = serializers.CharField(source="public_primary_key")
     avatar = serializers.CharField(source="avatar_url")
-    avatar_full = serializers.CharField(source="avatar_full_url")
+    avatar_full = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -323,6 +328,10 @@ class UserShortSerializer(serializers.ModelSerializer):
             "avatar",
             "avatar_full",
         ]
+
+    def get_avatar_full(self, obj):
+        organization = self.context["request"].auth.organization if self.context.get("request") else obj.organization
+        return obj.avatar_full_url(organization)
 
 
 class UserIsCurrentlyOnCallSerializer(UserShortSerializer, EagerLoadingMixin):

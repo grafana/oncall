@@ -34,4 +34,5 @@ urlpatterns = [
     optional_slash_path("info", views.InfoView.as_view(), name="info"),
     optional_slash_path("make_call", views.MakeCallView.as_view(), name="make_call"),
     optional_slash_path("send_sms", views.SendSMSView.as_view(), name="send_sms"),
+    optional_slash_path("escalation", views.EscalationView.as_view(), name="escalation"),
 ]
