@@ -4,21 +4,26 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPagingUserTeamValidationError, direct_paging
-from apps.api.serializers.paging import DirectPagingSerializer
-from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api.throttlers import UserThrottle
+from apps.api.permissions import RBACPermission
+from apps.api.serializers.direct_paging import DirectPagingSerializer
+from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.exceptions import BadRequest
 
 
-class DirectPagingView(APIView):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+class DirectPagingAPIView(APIView):
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    throttle_classes = [UserThrottle]
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING],
+    }
 
     def post(self, request):
-        user = request.user
-        organization = user.organization
+        organization = request.auth.organization
 
         serializer = DirectPagingSerializer(
             data=request.data, context={"organization": organization, "request": request}
@@ -29,7 +34,7 @@ class DirectPagingView(APIView):
         try:
             alert_group = direct_paging(
                 organization=organization,
-                from_user=user,
+                from_user=request.user,
                 message=validated_data["message"],
                 title=validated_data["title"],
                 source_url=validated_data["source_url"],

@@ -9,7 +9,6 @@ from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPaging
 title = "Custom title"
 message = "Testing direct paging with new alert group"
 source_url = "https://www.example.com"
-grafana_incident_id = "abcd1234"
 
 
 @pytest.mark.django_db
@@ -79,7 +78,6 @@ def test_direct_paging_page_team(
             "team": team.public_primary_key,
             "message": message,
             "source_url": source_url,
-            "grafana_incident_id": grafana_incident_id,
         },
         format="json",
         **make_user_auth_headers(user, token),
@@ -90,38 +88,7 @@ def test_direct_paging_page_team(
     alert_group = AlertGroup.objects.get(public_primary_key=response.json()["alert_group_id"])
     alert = alert_group.alerts.first()
 
-    assert alert_group.grafana_incident_id == grafana_incident_id
     assert alert.raw_request_data["oncall"]["permalink"] == source_url
-
-
-@pytest.mark.django_db
-def test_direct_paging_page_from_grafana_incident(
-    make_organization_and_user_with_token,
-    make_team,
-    make_user_auth_headers,
-):
-    organization, user, token = make_organization_and_user_with_token()
-    team = make_team(organization=organization)
-
-    # user must be part of the team
-    user.teams.add(team)
-
-    client = APIClient()
-    url = reverse("api-public:direct_paging")
-
-    response = client.post(
-        url,
-        data={
-            "team": team.public_primary_key,
-            "message": message,
-            "grafana_incident_id": "asdf",
-        },
-        format="json",
-        **make_user_auth_headers(user, token),
-    )
-
-    assert response.status_code == status.HTTP_200_OK
-    assert "alert_group_id" in response.json()
 
 
 @pytest.mark.django_db
@@ -225,13 +192,44 @@ def test_direct_paging_no_user_or_team_specified(
     assert response.json()["detail"] == DirectPagingUserTeamValidationError.DETAIL
 
 
+@pytest.mark.django_db
+def test_direct_paging_both_team_and_users_specified(
+    make_organization_and_user_with_token,
+    make_user_auth_headers,
+    make_user,
+    make_team,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    team = make_team(organization=organization)
+
+    client = APIClient()
+    url = reverse("api-public:direct_paging")
+
+    response = client.post(
+        url,
+        data={
+            "team": team.public_primary_key,
+            "users": [
+                {
+                    "id": make_user(organization=organization).public_primary_key,
+                    "important": False,
+                },
+            ],
+        },
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["non_field_errors"] == ["users and team are mutually exclusive"]
+
+
 @pytest.mark.parametrize(
     "field_name,field_value",
     [
         ("title", title),
         ("message", message),
         ("source_url", source_url),
-        ("grafana_incident_id", grafana_incident_id),
     ],
 )
 @pytest.mark.django_db
@@ -244,7 +242,7 @@ def test_direct_paging_alert_group_id_and_other_fields_are_mutually_exclusive(
     field_name,
     field_value,
 ):
-    error_msg = "alert_group_id and (title, message, source_url, grafana_incident_id) are mutually exclusive"
+    error_msg = "alert_group_id and (title, message, source_url) are mutually exclusive"
 
     organization, user, token = make_organization_and_user_with_token()
     team = make_team(organization=organization)
