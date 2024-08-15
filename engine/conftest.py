@@ -63,6 +63,7 @@ from apps.base.tests.factories import (
     UserNotificationPolicyLogRecordFactory,
 )
 from apps.email.tests.factories import EmailMessageFactory
+from apps.google import constants as google_constants
 from apps.google.tests.factories import GoogleOAuth2UserFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.labels.tests.factories import (
@@ -1077,8 +1078,9 @@ def make_webhook_label_association(make_label_key_and_value):
 
 @pytest.fixture
 def make_google_oauth2_user_for_user():
-    def _make_google_oauth2_user_for_user(user):
-        return GoogleOAuth2UserFactory(user=user)
+    def _make_google_oauth2_user_for_user(user, **kwargs):
+        oauth_scope = kwargs.pop("oauth_scope", " ".join(google_constants.REQUIRED_OAUTH_SCOPES))
+        return GoogleOAuth2UserFactory(user=user, oauth_scope=oauth_scope, **kwargs)
 
     return _make_google_oauth2_user_for_user
 

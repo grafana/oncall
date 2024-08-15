@@ -63,9 +63,10 @@ def test_current_user(
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": user.avatar_url,
-        "avatar_full": user.avatar_full_url,
+        "avatar_full": user.avatar_full_url(organization),
         "has_google_oauth2_connected": False,
         "google_calendar_settings": None,
+        "google_oauth2_token_is_missing_scopes": False,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -211,7 +212,7 @@ def test_update_user_cant_change_email_and_username(
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
-        "avatar_full": admin.avatar_full_url,
+        "avatar_full": admin.avatar_full_url(organization),
         "has_google_oauth2_connected": False,
         "google_calendar_settings": None,
     }
@@ -263,7 +264,7 @@ def test_list_users(
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
-                "avatar_full": admin.avatar_full_url,
+                "avatar_full": admin.avatar_full_url(organization),
                 "cloud_connection_status": None,
                 "has_google_oauth2_connected": False,
             },
@@ -289,7 +290,7 @@ def test_list_users(
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
-                "avatar_full": editor.avatar_full_url,
+                "avatar_full": editor.avatar_full_url(organization),
                 "cloud_connection_status": None,
                 "has_google_oauth2_connected": False,
             },

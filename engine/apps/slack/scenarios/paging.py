@@ -1,6 +1,8 @@
 import enum
 import json
+import logging
 import typing
+from urllib.parse import urljoin
 from uuid import uuid4
 
 from django.conf import settings
@@ -13,7 +15,7 @@ from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
-from apps.slack.errors import SlackAPIChannelNotFoundError
+from apps.slack.errors import SlackAPIChannelNotFoundError, SlackAPIError
 from apps.slack.scenarios import scenario_step
 from apps.slack.slash_command import SlashCommand
 from apps.slack.types import (
@@ -26,6 +28,8 @@ from apps.slack.types import (
     PayloadType,
     ScenarioRoute,
 )
+
+logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
@@ -137,6 +141,35 @@ class StartDirectPaging(scenario_step.ScenarioStep):
             channel_id = payload["event"]["channel"]
         except KeyError:
             channel_id = payload["channel_id"]
+
+        if settings.UNIFIED_SLACK_APP_ENABLED:
+            if slack_team_identity.needs_reinstall:
+                organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
+                # Provide a link  to web if user has access only to one organization
+                if len(organizations) == 1:
+                    link = urljoin(organizations[0].web_link, "settings?tab=ChatOps&chatOpsTab=Slack")
+                    upgrade = f"<{link}|Upgrade>"
+                else:
+                    upgrade = "Upgrade"  # TODO: Add link to docs are available
+                msg = (
+                    f"The new Slack IRM integration is now available. f{upgrade} for a more powerful and flexible "
+                    f"way to interact with Grafana IRM on Slack."
+                )
+                try:
+                    self._slack_client.chat_postEphemeral(
+                        channel=channel_id, user=slack_user_identity.slack_id, text=msg
+                    )
+                except SlackAPIError:
+                    # catch all exceptions to prevent the slash command from failing
+                    logger.warning("StartDirectPaging: failed to send ephemeral message to user", exc_info=True)
+            else:
+                self._slack_client.chat_postEphemeral(
+                    channel=channel_id,
+                    user=slack_user_identity.slack_id,
+                    text="The new Slack IRM integration is now available. Please use /grafana-irm escalate to "
+                    "complete the action",
+                )
+                return
 
         private_metadata = {
             "channel_id": channel_id,
