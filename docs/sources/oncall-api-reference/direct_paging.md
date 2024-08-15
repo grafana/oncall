@@ -125,6 +125,7 @@ existing Alert Group
 - `alert_group_id` is mutually exclusive with `title`, `message`, and `source_url`. Practically speaking this means that
 if you are trying to directly page users on an existing Alert Group, you cannot update the `title`, `message`, or
 `source_url` of that Alert Group
+- If directly paging users for an existing Alert Group, the Alert Group cannot be in a resolved state
 
 **HTTP request**
 
