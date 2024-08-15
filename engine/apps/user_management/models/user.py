@@ -195,9 +195,12 @@ class User(models.Model):
             return False
         return not google_utils.user_granted_all_required_scopes(self.google_oauth2_user.oauth_scope)
 
-    @property
-    def avatar_full_url(self):
-        return urljoin(self.organization.grafana_url, self.avatar_url)
+    def avatar_full_url(self, organization: Organization):
+        """
+        Use arg `organization` instead of `self.organization` to avoid multiple requests to db when getting avatar for
+        users list
+        """
+        return urljoin(organization.grafana_url, self.avatar_url)
 
     @property
     def verified_phone_number(self) -> str | None:
@@ -295,12 +298,12 @@ class User(models.Model):
 
         return day_start <= dt <= day_end
 
-    def short(self):
+    def short(self, organization):
         return {
             "username": self.username,
             "pk": self.public_primary_key,
             "avatar": self.avatar_url,
-            "avatar_full": self.avatar_full_url,
+            "avatar_full": self.avatar_full_url(organization),
         }
 
     # Insight logs

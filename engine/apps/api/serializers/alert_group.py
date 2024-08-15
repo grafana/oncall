@@ -232,7 +232,7 @@ class AlertGroupListSerializer(
             if log_record.author is not None and log_record.author.public_primary_key not in users_ids:
                 users.append(log_record.author)
                 users_ids.add(log_record.author.public_primary_key)
-        return UserShortSerializer(users, many=True).data
+        return UserShortSerializer(users, context=self.context, many=True).data
 
 
 class AlertGroupSerializer(AlertGroupListSerializer):
