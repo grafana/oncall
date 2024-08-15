@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/user_groups/
 title: OnCall user groups HTTP API
-weight: 1400
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/
 title: Escalation chains HTTP API
-weight: 200
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

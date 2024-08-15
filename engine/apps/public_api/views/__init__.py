@@ -1,5 +1,6 @@
 from .action import ActionView  # noqa: F401
 from .alerts import AlertView  # noqa: F401
+from .escalation import EscalationView  # noqa: F401
 from .escalation_chains import EscalationChainView  # noqa: F401
 from .escalation_policies import EscalationPolicyView  # noqa: F401
 from .incidents import IncidentView  # noqa: F401

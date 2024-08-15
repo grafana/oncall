@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 title: Outgoing webhooks HTTP API
-weight: 700
+weight: 0
 refs:
   outgoing-webhooks:
     - pattern: /docs/oncall/
