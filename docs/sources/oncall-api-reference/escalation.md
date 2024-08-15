@@ -117,7 +117,7 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-## Escalte to a set of user(s) for an existing Alert Group
+## Escalate to a set of user(s) for an existing Alert Group
 
 The following shows how you can escalate to a set of user(s) for an existing Alert Group.
 
