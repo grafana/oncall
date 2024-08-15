@@ -56,6 +56,8 @@ def test_escalation_new_alert_group(
         "id": ag.public_primary_key,
         "integration_id": ag.channel.public_primary_key,
         "route_id": ag.channel_filter.public_primary_key,
+        "team_id": None,
+        "labels": [],
         "alerts_count": 1,
         "state": "firing",
         "created_at": mock.ANY,

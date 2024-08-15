@@ -76,13 +76,13 @@ class ModelFieldFilterMixin:
 
 
 class ByTeamModelFieldFilterMixin:
-    FILTER_FIELD_NAME = "team"
+    TEAM_FILTER_FIELD_NAME = "team"
 
     def filter_model_field_with_single_value(self, queryset, name, value):
         if not value:
             return queryset
         # ModelChoiceFilter
-        filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
+        filter = self.filters[self.TEAM_FILTER_FIELD_NAME]
         if filter.null_value == value:
             lookup_kwargs = {f"{name}__isnull": True}
         else:
@@ -93,7 +93,7 @@ class ByTeamModelFieldFilterMixin:
     def filter_model_field_with_multiple_values(self, queryset, name, values):
         if not values:
             return queryset
-        filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
+        filter = self.filters[self.TEAM_FILTER_FIELD_NAME]
         null_team_lookup = None
         if filter.null_value in values:
             null_team_lookup = Q(**{f"{name}__isnull": True})
