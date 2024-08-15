@@ -61,7 +61,7 @@ def _construct_serialized_object(
                     "display_name": u.username,
                     "email": u.email,
                     "pk": u.public_primary_key,
-                    "avatar_full": u.avatar_full_url,
+                    "avatar_full": u.avatar_full_url(u.organization),
                 }
 
         data["beneficiary"] = _serialized_user(ssr.beneficiary)

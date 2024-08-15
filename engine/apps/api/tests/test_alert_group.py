@@ -2083,7 +2083,7 @@ def test_alert_group_paged_users(
     assert response.json()["paged_users"] == [
         {
             "avatar": user2.avatar_url,
-            "avatar_full": user2.avatar_full_url,
+            "avatar_full": user2.avatar_full_url(user.organization),
             "id": user2.pk,
             "pk": user2.public_primary_key,
             "important": None,

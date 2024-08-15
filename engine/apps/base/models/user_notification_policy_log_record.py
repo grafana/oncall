@@ -171,9 +171,10 @@ class UserNotificationPolicyLogRecord(models.Model):
     def rendered_notification_log_line_json(self):
         time = humanize.naturaldelta(self.alert_group.started_at - self.created_at)
         created_at = DateTimeField().to_representation(self.created_at)
-        author = self.author.short() if self.author is not None else None
+        organization = self.alert_group.channel.organization
+        author = self.author.short(organization) if self.author is not None else None
 
-        sf = SlackFormatter(self.alert_group.channel.organization)
+        sf = SlackFormatter(organization)
         action = sf.format(self.render_log_line_action(substitute_author_with_tag=True))
         action = clean_markup(action)
 
