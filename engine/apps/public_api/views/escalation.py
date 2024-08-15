@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPagingUserTeamValidationError, direct_paging
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api.serializers import EscalationSerializer, IncidentSerializer
+from apps.public_api.serializers import AlertGroupSerializer, EscalationSerializer
 from apps.public_api.throttlers import UserThrottle
 from common.api_helpers.exceptions import BadRequest
 
@@ -43,4 +43,4 @@ class EscalationView(APIView):
             raise BadRequest(detail=DirectPagingAlertGroupResolvedError.DETAIL)
         except DirectPagingUserTeamValidationError:
             raise BadRequest(detail=DirectPagingUserTeamValidationError.DETAIL)
-        return Response(IncidentSerializer(alert_group).data, status=status.HTTP_200_OK)
+        return Response(AlertGroupSerializer(alert_group).data, status=status.HTTP_200_OK)
