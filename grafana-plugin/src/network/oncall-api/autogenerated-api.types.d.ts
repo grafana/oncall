@@ -994,6 +994,7 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
+    /** @description overridden_login_social_auth starts the installation of integration which uses OAuth flow. */
     get: operations['login_retrieve'];
     put?: never;
     post?: never;
@@ -1010,8 +1011,25 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
+    /** @description overridden_login_social_auth starts the installation of integration which uses OAuth flow. */
     get: operations['login_retrieve_2'];
     put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/user/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['user_retrieve'];
+    put: operations['user_update'];
     post?: never;
     delete?: never;
     options?: never;
@@ -1295,6 +1313,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/users/filters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for users. */
+    get: operations['users_filters_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/users/timezone_options/': {
     parameters: {
       query?: never;
@@ -1361,7 +1396,7 @@ export interface components {
       silenced_until?: string | null;
       /** Format: date-time */
       readonly started_at: string;
-      readonly related_users: components['schemas']['UserShort'][];
+      readonly related_users: Array<components['schemas']['UserShort']>;
       readonly render_for_web:
         | {
             title: string;
@@ -1370,22 +1405,22 @@ export interface components {
             source_link: string | null;
           }
         | Record<string, never>;
-      dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
+      dependent_alert_groups: Array<components['schemas']['ShortAlertGroup']>;
       root_alert_group: components['schemas']['ShortAlertGroup'];
       readonly status: number;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
       grafana_incident_id?: string | null;
-      readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly labels: Array<components['schemas']['AlertGroupLabel']>;
       readonly permalinks: {
         slack: string | null;
         slack_app: string | null;
         telegram: string | null;
         web: string;
       };
-      readonly alerts: components['schemas']['Alert'][];
-      readonly render_after_resolve_report_json: {
+      readonly alerts: Array<components['schemas']['Alert']>;
+      readonly render_after_resolve_report_json: Array<{
         time: string;
         action: string;
         /** @enum {string} */
@@ -1398,11 +1433,11 @@ export interface components {
           avatar: string;
           avatar_full: string;
         };
-      }[];
+      }>;
       readonly slack_permalink: string | null;
       /** Format: date-time */
       readonly last_alert_at: string;
-      readonly paged_users: {
+      readonly paged_users: Array<{
         id: number;
         username: string;
         name: string;
@@ -1410,13 +1445,13 @@ export interface components {
         avatar: string;
         avatar_full: string;
         important: boolean;
-      }[];
-      readonly external_urls: {
+      }>;
+      readonly external_urls: Array<{
         integration: string;
         integration_type: string;
         external_id: string;
         url: string;
-      }[];
+      }>;
     };
     AlertGroupAttach: {
       root_alert_group_pk: string;
@@ -1473,7 +1508,7 @@ export interface components {
       silenced_until?: string | null;
       /** Format: date-time */
       readonly started_at: string;
-      readonly related_users: components['schemas']['UserShort'][];
+      readonly related_users: Array<components['schemas']['UserShort']>;
       readonly render_for_web:
         | {
             title: string;
@@ -1482,14 +1517,14 @@ export interface components {
             source_link: string | null;
           }
         | Record<string, never>;
-      dependent_alert_groups: components['schemas']['ShortAlertGroup'][];
+      dependent_alert_groups: Array<components['schemas']['ShortAlertGroup']>;
       root_alert_group: components['schemas']['ShortAlertGroup'];
       readonly status: number;
       /** @description Generate a link for AlertGroup to declare Grafana Incident by click */
       readonly declare_incident_link: string;
       team: string | null;
       grafana_incident_id?: string | null;
-      readonly labels: components['schemas']['AlertGroupLabel'][];
+      readonly labels: Array<components['schemas']['AlertGroupLabel']>;
       readonly permalinks: {
         slack: string | null;
         slack_app: string | null;
@@ -1589,7 +1624,7 @@ export interface components {
       readonly is_based_on_alertmanager: boolean;
       readonly inbound_email: string;
       readonly is_legacy: boolean;
-      labels?: components['schemas']['LabelPair'][];
+      labels?: Array<components['schemas']['LabelPair']>;
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
@@ -1606,15 +1641,15 @@ export interface components {
     AlertReceiveChannelConnectedContactPoints: {
       uid: string;
       name: string;
-      contact_points: components['schemas']['AlertReceiveChannelConnectedContactPointsInner'][];
+      contact_points: Array<components['schemas']['AlertReceiveChannelConnectedContactPointsInner']>;
     };
     AlertReceiveChannelConnectedContactPointsInner: {
       name: string;
       notification_connected: boolean;
     };
     AlertReceiveChannelConnection: {
-      readonly source_alert_receive_channels: components['schemas']['AlertReceiveChannelSourceChannel'][];
-      readonly connected_alert_receive_channels: components['schemas']['AlertReceiveChannelConnectedChannel'][];
+      readonly source_alert_receive_channels: Array<components['schemas']['AlertReceiveChannelSourceChannel']>;
+      readonly connected_alert_receive_channels: Array<components['schemas']['AlertReceiveChannelConnectedChannel']>;
     };
     AlertReceiveChannelContactPoints: {
       uid: string;
@@ -1656,7 +1691,7 @@ export interface components {
       readonly is_based_on_alertmanager: boolean;
       readonly inbound_email: string;
       readonly is_legacy: boolean;
-      labels?: components['schemas']['LabelPair'][];
+      labels?: Array<components['schemas']['LabelPair']>;
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
@@ -1741,7 +1776,7 @@ export interface components {
       readonly is_based_on_alertmanager: boolean;
       readonly inbound_email: string;
       readonly is_legacy: boolean;
-      labels?: components['schemas']['LabelPair'][];
+      labels?: Array<components['schemas']['LabelPair']>;
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
@@ -1749,6 +1784,45 @@ export interface components {
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
+    CurrentUser: {
+      readonly pk: string;
+      readonly organization: components['schemas']['FastOrganization'];
+      current_team?: string | null;
+      /** Format: email */
+      readonly email: string;
+      readonly username: string;
+      readonly name: string;
+      readonly role: components['schemas']['RoleEnum'];
+      /** Format: uri */
+      readonly avatar: string;
+      /** Format: uri */
+      readonly avatar_full: string;
+      timezone?: string | null;
+      working_hours?: components['schemas']['WorkingHours'];
+      unverified_phone_number?: string | null;
+      /** @description Use property to highlight that _verified_phone_number should not be modified directly */
+      readonly verified_phone_number: string | null;
+      readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
+      readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
+      readonly messaging_backends: {
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
+      };
+      readonly notification_chain_verbal: {
+        default: string;
+        important: string;
+      };
+      readonly cloud_connection_status: components['schemas']['CloudConnectionStatusEnum'] | null;
+      hide_phone_number?: boolean;
+      readonly has_google_oauth2_connected: boolean;
+      readonly is_currently_oncall: boolean;
+      google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
+      readonly rbac_permissions: Array<components['schemas']['UserPermission']>;
+      readonly google_oauth2_token_is_missing_scopes: boolean;
+    };
     /** @description This serializer is consistent with apps.api.serializers.labels.LabelPairSerializer, but allows null for value ID. */
     CustomLabel: {
       key: components['schemas']['CustomLabelKey'];
@@ -1813,17 +1887,14 @@ export interface components {
       inheritable: {
         [key: string]: boolean | undefined;
       };
-      custom: components['schemas']['CustomLabel'][];
+      custom: Array<components['schemas']['CustomLabel']>;
       template: string | null;
     };
     /**
-     * @description * `alertmanager` - Alertmanager
-     *     * `legacy_alertmanager` - (Legacy) AlertManager
-     *     * `grafana` - Grafana
-     *     * `grafana_alerting` - Grafana Alerting
-     *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
-     *     * `formatted_webhook` - Formatted webhook
+     * @description * `grafana_alerting` - Grafana Alerting
      *     * `webhook` - Webhook
+     *     * `alertmanager` - Alertmanager
+     *     * `formatted_webhook` - Formatted webhook
      *     * `kapacitor` - Kapacitor
      *     * `elastalert` - Elastalert
      *     * `heartbeat` - Heartbeat
@@ -1833,6 +1904,9 @@ export interface components {
      *     * `slack_channel` - Slack Channel
      *     * `zabbix` - Zabbix
      *     * `direct_paging` - Direct paging
+     *     * `grafana` - Grafana Legacy Alerting
+     *     * `legacy_alertmanager` - (Legacy) AlertManager
+     *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
      *     * `servicenow` - ServiceNow
      *     * `amazon_sns` - Amazon SNS
      *     * `stackdriver` - Stackdriver
@@ -1852,13 +1926,10 @@ export interface components {
      * @enum {string}
      */
     IntegrationEnum:
-      | 'alertmanager'
-      | 'legacy_alertmanager'
-      | 'grafana'
       | 'grafana_alerting'
-      | 'legacy_grafana_alerting'
-      | 'formatted_webhook'
       | 'webhook'
+      | 'alertmanager'
+      | 'formatted_webhook'
       | 'kapacitor'
       | 'elastalert'
       | 'heartbeat'
@@ -1868,6 +1939,9 @@ export interface components {
       | 'slack_channel'
       | 'zabbix'
       | 'direct_paging'
+      | 'grafana'
+      | 'legacy_alertmanager'
+      | 'legacy_grafana_alerting'
       | 'servicenow'
       | 'amazon_sns'
       | 'stackdriver'
@@ -1906,7 +1980,7 @@ export interface components {
     };
     LabelCreate: {
       key: components['schemas']['LabelRepr'];
-      values: components['schemas']['LabelRepr'][];
+      values: Array<components['schemas']['LabelRepr']>;
     };
     LabelKey: {
       id: string;
@@ -1916,7 +1990,7 @@ export interface components {
     };
     LabelOption: {
       key: components['schemas']['LabelKey'];
-      values: components['schemas']['LabelValue'][];
+      values: Array<components['schemas']['LabelValue']>;
     };
     LabelPair: {
       key: components['schemas']['LabelKey'];
@@ -1981,14 +2055,22 @@ export interface components {
     /** @enum {unknown} */
     NullEnum: null;
     PaginatedAlertGroupListList: {
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?cursor=cD00ODY%3D"
+       */
       next?: string | null;
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+       */
       previous?: string | null;
-      results?: components['schemas']['AlertGroupList'][];
+      results: Array<components['schemas']['AlertGroupList']>;
       page_size?: number;
     };
     PaginatedAlertReceiveChannelPolymorphicList: {
       /** @example 123 */
-      count?: number;
+      count: number;
       /**
        * Format: uri
        * @example http://api.example.org/accounts/?page=4
@@ -1999,14 +2081,14 @@ export interface components {
        * @example http://api.example.org/accounts/?page=2
        */
       previous?: string | null;
-      results?: components['schemas']['AlertReceiveChannelPolymorphic'][];
+      results: Array<components['schemas']['AlertReceiveChannelPolymorphic']>;
       page_size?: number;
       current_page_number?: number;
       total_pages?: number;
     };
     PaginatedUserPolymorphicList: {
       /** @example 123 */
-      count?: number;
+      count: number;
       /**
        * Format: uri
        * @example http://api.example.org/accounts/?page=4
@@ -2017,7 +2099,7 @@ export interface components {
        * @example http://api.example.org/accounts/?page=2
        */
       previous?: string | null;
-      results?: components['schemas']['UserPolymorphic'][];
+      results: Array<components['schemas']['UserPolymorphic']>;
       page_size?: number;
       current_page_number?: number;
       total_pages?: number;
@@ -2057,7 +2139,7 @@ export interface components {
       readonly is_based_on_alertmanager?: boolean;
       readonly inbound_email?: string;
       readonly is_legacy?: boolean;
-      labels?: components['schemas']['LabelPair'][];
+      labels?: Array<components['schemas']['LabelPair']>;
       alert_group_labels?: components['schemas']['IntegrationAlertGroupLabels'];
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at?: string | null;
@@ -2240,6 +2322,21 @@ export interface components {
       created_at: string;
       export_url: string;
     };
+    UserFilters: {
+      name: string;
+      type: string;
+      href?: string;
+      global?: boolean;
+      default?: {
+        [key: string]: unknown;
+      };
+      description?: string;
+      options: components['schemas']['UserFiltersOptions'];
+    };
+    UserFiltersOptions: {
+      value: string;
+      display_name: number;
+    };
     UserGetTelegramVerificationCode: {
       telegram_code: string;
       bot_link: string;
@@ -2251,8 +2348,11 @@ export interface components {
       avatar_full: string;
       name: string;
       readonly timezone: string | null;
-      readonly teams: components['schemas']['FastTeam'][];
+      readonly teams: Array<components['schemas']['FastTeam']>;
       readonly is_currently_oncall: boolean;
+    };
+    UserPermission: {
+      readonly action: string;
     };
     UserPolymorphic:
       | components['schemas']['FilterUser']
@@ -2288,16 +2388,16 @@ export interface components {
       readonly last_response_log: string;
       integration_filter?: string[];
       preset?: string | null;
-      labels?: components['schemas']['LabelPair'][];
+      labels?: Array<components['schemas']['LabelPair']>;
     };
     WorkingHours: {
-      monday: components['schemas']['WorkingHoursPeriod'][];
-      tuesday: components['schemas']['WorkingHoursPeriod'][];
-      wednesday: components['schemas']['WorkingHoursPeriod'][];
-      thursday: components['schemas']['WorkingHoursPeriod'][];
-      friday: components['schemas']['WorkingHoursPeriod'][];
-      saturday: components['schemas']['WorkingHoursPeriod'][];
-      sunday: components['schemas']['WorkingHoursPeriod'][];
+      monday: Array<components['schemas']['WorkingHoursPeriod']>;
+      tuesday: Array<components['schemas']['WorkingHoursPeriod']>;
+      wednesday: Array<components['schemas']['WorkingHoursPeriod']>;
+      thursday: Array<components['schemas']['WorkingHoursPeriod']>;
+      friday: Array<components['schemas']['WorkingHoursPeriod']>;
+      saturday: Array<components['schemas']['WorkingHoursPeriod']>;
+      sunday: Array<components['schemas']['WorkingHoursPeriod']>;
     };
     WorkingHoursPeriod: {
       start: string;
@@ -2316,13 +2416,10 @@ export interface operations {
     parameters: {
       query?: {
         id_ne?: string[];
-        /** @description * `alertmanager` - Alertmanager
-         *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `grafana` - Grafana
-         *     * `grafana_alerting` - Grafana Alerting
-         *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
-         *     * `formatted_webhook` - Formatted webhook
+        /** @description * `grafana_alerting` - Grafana Alerting
          *     * `webhook` - Webhook
+         *     * `alertmanager` - Alertmanager
+         *     * `formatted_webhook` - Formatted webhook
          *     * `kapacitor` - Kapacitor
          *     * `elastalert` - Elastalert
          *     * `heartbeat` - Heartbeat
@@ -2332,6 +2429,9 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `grafana` - Grafana Legacy Alerting
+         *     * `legacy_alertmanager` - (Legacy) AlertManager
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
          *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
@@ -2348,7 +2448,7 @@ export interface operations {
          *     * `jira` - Jira
          *     * `zendesk` - Zendesk
          *     * `appdynamics` - AppDynamics */
-        integration?: (
+        integration?: Array<
           | 'alertmanager'
           | 'amazon_sns'
           | 'appdynamics'
@@ -2381,14 +2481,11 @@ export interface operations {
           | 'webhook'
           | 'zabbix'
           | 'zendesk'
-        )[];
-        /** @description * `alertmanager` - Alertmanager
-         *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `grafana` - Grafana
-         *     * `grafana_alerting` - Grafana Alerting
-         *     * `legacy_grafana_alerting` - (Legacy) Grafana Alerting
-         *     * `formatted_webhook` - Formatted webhook
+        >;
+        /** @description * `grafana_alerting` - Grafana Alerting
          *     * `webhook` - Webhook
+         *     * `alertmanager` - Alertmanager
+         *     * `formatted_webhook` - Formatted webhook
          *     * `kapacitor` - Kapacitor
          *     * `elastalert` - Elastalert
          *     * `heartbeat` - Heartbeat
@@ -2398,6 +2495,9 @@ export interface operations {
          *     * `slack_channel` - Slack Channel
          *     * `zabbix` - Zabbix
          *     * `direct_paging` - Direct paging
+         *     * `grafana` - Grafana Legacy Alerting
+         *     * `legacy_alertmanager` - (Legacy) AlertManager
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
          *     * `servicenow` - ServiceNow
          *     * `amazon_sns` - Amazon SNS
          *     * `stackdriver` - Stackdriver
@@ -2414,7 +2514,7 @@ export interface operations {
          *     * `jira` - Jira
          *     * `zendesk` - Zendesk
          *     * `appdynamics` - AppDynamics */
-        integration_ne?: (
+        integration_ne?: Array<
           | 'alertmanager'
           | 'amazon_sns'
           | 'appdynamics'
@@ -2447,10 +2547,10 @@ export interface operations {
           | 'webhook'
           | 'zabbix'
           | 'zendesk'
-        )[];
+        >;
         /** @description * `0` - Debug
          *     * `1` - Maintenance */
-        maintenance_mode?: (0 | 1)[];
+        maintenance_mode?: Array<0 | 1>;
         /** @description A page number within the paginated result set. */
         page?: number;
         /** @description Number of results to return per page. */
@@ -2726,9 +2826,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['AlertReceiveChannelNewConnection'][];
-        'application/x-www-form-urlencoded': components['schemas']['AlertReceiveChannelNewConnection'][];
-        'multipart/form-data': components['schemas']['AlertReceiveChannelNewConnection'][];
+        'application/json': Array<components['schemas']['AlertReceiveChannelNewConnection']>;
+        'application/x-www-form-urlencoded': Array<components['schemas']['AlertReceiveChannelNewConnection']>;
+        'multipart/form-data': Array<components['schemas']['AlertReceiveChannelNewConnection']>;
       };
     };
     responses: {
@@ -2810,7 +2910,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelConnectedContactPoints'][];
+          'application/json': Array<components['schemas']['AlertReceiveChannelConnectedContactPoints']>;
         };
       };
     };
@@ -3088,7 +3188,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['Webhook'][];
+          'application/json': Array<components['schemas']['Webhook']>;
         };
       };
     };
@@ -3186,7 +3286,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelContactPoints'][];
+          'application/json': Array<components['schemas']['AlertReceiveChannelContactPoints']>;
         };
       };
     };
@@ -3231,7 +3331,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelFilters'][];
+          'application/json': Array<components['schemas']['AlertReceiveChannelFilters']>;
         };
       };
     };
@@ -3250,7 +3350,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertReceiveChannelIntegrationOptions'][];
+          'application/json': Array<components['schemas']['AlertReceiveChannelIntegrationOptions']>;
         };
       };
     };
@@ -3330,7 +3430,7 @@ export interface operations {
          *     * `1` - Acknowledged
          *     * `2` - Resolved
          *     * `3` - Silenced */
-        status?: (0 | 1 | 2 | 3)[];
+        status?: Array<0 | 1 | 2 | 3>;
         with_resolution_note?: boolean;
       };
       header?: never;
@@ -3701,7 +3801,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroupBulkActionOptions'][];
+          'application/json': Array<components['schemas']['AlertGroupBulkActionOptions']>;
         };
       };
     };
@@ -3720,7 +3820,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroupFilters'][];
+          'application/json': Array<components['schemas']['AlertGroupFilters']>;
         };
       };
     };
@@ -3760,7 +3860,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKey'][];
+          'application/json': Array<components['schemas']['LabelKey']>;
         };
       };
     };
@@ -3779,7 +3879,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['AlertGroupSilenceOptions'][];
+          'application/json': Array<components['schemas']['AlertGroupSilenceOptions']>;
         };
       };
     };
@@ -3804,7 +3904,7 @@ export interface operations {
          *     * `1` - Acknowledged
          *     * `2` - Resolved
          *     * `3` - Silenced */
-        status?: (0 | 1 | 2 | 3)[];
+        status?: Array<0 | 1 | 2 | 3>;
         with_resolution_note?: boolean;
       };
       header?: never;
@@ -3877,9 +3977,10 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': (
+          'application/json': Array<
             | 'msteams'
             | 'slack'
+            | 'unified_slack'
             | 'telegram'
             | 'live_settings'
             | 'grafana_cloud_notifications'
@@ -3887,7 +3988,7 @@ export interface operations {
             | 'grafana_alerting_v2'
             | 'labels'
             | 'google_oauth2'
-          )[];
+          >;
         };
       };
     };
@@ -3901,9 +4002,9 @@ export interface operations {
     };
     requestBody: {
       content: {
-        'application/json': components['schemas']['LabelCreate'][];
-        'application/x-www-form-urlencoded': components['schemas']['LabelCreate'][];
-        'multipart/form-data': components['schemas']['LabelCreate'][];
+        'application/json': Array<components['schemas']['LabelCreate']>;
+        'application/x-www-form-urlencoded': Array<components['schemas']['LabelCreate']>;
+        'multipart/form-data': Array<components['schemas']['LabelCreate']>;
       };
     };
     responses: {
@@ -4056,7 +4157,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['LabelKey'][];
+          'application/json': Array<components['schemas']['LabelKey']>;
         };
       };
     };
@@ -4098,6 +4199,44 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  user_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentUser'];
+        };
+      };
+    };
+  };
+  user_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['CurrentUser'];
+        };
       };
     };
   };
@@ -4170,7 +4309,7 @@ export interface operations {
          *     * `1` - EDITOR
          *     * `2` - VIEWER
          *     * `3` - NONE */
-        roles?: (0 | 1 | 2 | 3)[];
+        roles?: Array<0 | 1 | 2 | 3>;
         /** @description A search term. */
         search?: string;
         team?: string[];
@@ -4591,7 +4730,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
+          'application/json': Array<{
             schedule_id: string;
             schedule_name: string;
             is_oncall: boolean;
@@ -4601,7 +4740,7 @@ export interface operations {
               start: string;
               /** Format: date-time */
               end: string;
-              users: {
+              users: Array<{
                 display_name: string;
                 pk: string;
                 email: string;
@@ -4615,7 +4754,7 @@ export interface operations {
                     avatar_full: string;
                   } | null;
                 } | null;
-              }[];
+              }>;
               missing_users: string[];
               priority_level: number | null;
               source: string | null;
@@ -4633,7 +4772,7 @@ export interface operations {
               start: string;
               /** Format: date-time */
               end: string;
-              users: {
+              users: Array<{
                 display_name: string;
                 pk: string;
                 email: string;
@@ -4647,7 +4786,7 @@ export interface operations {
                     avatar_full: string;
                   } | null;
                 } | null;
-              }[];
+              }>;
               missing_users: string[];
               priority_level: number | null;
               source: string | null;
@@ -4659,7 +4798,7 @@ export interface operations {
                 pk: string;
               };
             } | null;
-          }[];
+          }>;
         };
       };
     };
@@ -4684,6 +4823,25 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  users_filters_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Array<components['schemas']['UserFilters']>;
+        };
       };
     };
   };
