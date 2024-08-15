@@ -1,4 +1,5 @@
 from .alerts import AlertSerializer  # noqa: F401
+from .escalation import EscalationSerializer  # noqa: F401
 from .escalation_chains import EscalationChainSerializer  # noqa: F401
 from .escalation_policies import EscalationPolicySerializer, EscalationPolicyUpdateSerializer  # noqa: F401
 from .incidents import IncidentSerializer  # noqa: F401
