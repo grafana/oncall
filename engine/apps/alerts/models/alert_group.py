@@ -595,7 +595,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                         "name": user.name,
                         "username": user.username,
                         "avatar": user.avatar_url,
-                        "avatar_full": user.avatar_full_url_new(organization),
+                        "avatar_full": user.avatar_full_url(organization),
                         "important": important,
                         "teams": [{"pk": t.public_primary_key, "name": t.name} for t in user.teams.all()],
                     }
