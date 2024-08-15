@@ -6,7 +6,7 @@ from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UserIdF
 from common.api_helpers.mixins import EagerLoadingMixin
 
 
-class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_id = serializers.CharField(source="channel.public_primary_key")
     team_id = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)

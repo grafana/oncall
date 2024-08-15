@@ -14,7 +14,7 @@ from apps.api.label_filtering import parse_label_query
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
 from apps.public_api.helpers import is_valid_group_creation_date, team_has_slack_token_for_deleting
-from apps.public_api.serializers import IncidentSerializer
+from apps.public_api.serializers import AlertGroupSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import (
@@ -57,7 +57,7 @@ class AlertGroupView(
     throttle_classes = [UserThrottle]
 
     model = AlertGroup
-    serializer_class = IncidentSerializer
+    serializer_class = AlertGroupSerializer
     pagination_class = FiftyPageSizePaginator
 
     filter_backends = (filters.DjangoFilterBackend,)
