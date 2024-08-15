@@ -58,10 +58,13 @@ The above command returns JSON structured in the following way:
 
 These available filter parameters should be provided as `GET` arguments:
 
-- `id`
-- `route_id`
-- `integration_id`
-- `state`
+- `id` (Exact match, alert group ID)
+- `route_id` (Exact match, route ID)
+- `integration_id` (Exact match, integration ID)
+- `label` (Matching labels, can be passed multiple times; expected format: `key1:value1`)
+- `team_id` (Exact match, team ID)
+- `started_at` (A "{start}_{end}" ISO 8601 timestamp range; expected format: `%Y-%m-%dT%H:%M:%S_%Y-%m-%dT%H:%M:%S`)
+- `state` (Possible values: `new`, `acknowledged`, `resolved` or `silenced`)
 
 **HTTP request**
 

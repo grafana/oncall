@@ -10,19 +10,30 @@ from rest_framework.viewsets import GenericViewSet
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.alerts.tasks import delete_alert_group, wipe
+from apps.api.label_filtering import parse_label_query
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
 from apps.public_api.helpers import is_valid_group_creation_date, team_has_slack_token_for_deleting
 from apps.public_api.serializers import IncidentSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, get_team_queryset
+from common.api_helpers.filters import (
+    NO_TEAM_VALUE,
+    ByTeamModelFieldFilterMixin,
+    DateRangeFilterMixin,
+    get_team_queryset,
+)
 from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
-class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
-    team = filters.ModelChoiceFilter(
+class AlertGroupFilters(ByTeamModelFieldFilterMixin, DateRangeFilterMixin, filters.FilterSet):
+    # query field param name to filter by team
+    TEAM_FILTER_FIELD_NAME = "team_id"
+
+    id = filters.CharFilter(field_name="public_primary_key")
+
+    team_id = filters.ModelChoiceFilter(
         field_name="channel__team",
         queryset=get_team_queryset,
         to_field_name="public_primary_key",
@@ -31,10 +42,13 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
 
-    id = filters.CharFilter(field_name="public_primary_key")
+    started_at = filters.CharFilter(
+        field_name="started_at",
+        method=DateRangeFilterMixin.filter_date_range.__name__,
+    )
 
 
-class IncidentView(
+class AlertGroupView(
     RateLimitHeadersMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet
 ):
     authentication_classes = (ApiTokenAuthentication,)
@@ -47,7 +61,7 @@ class IncidentView(
     pagination_class = FiftyPageSizePaginator
 
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = IncidentByTeamFilter
+    filterset_class = AlertGroupFilters
 
     def get_queryset(self):
         route_id = self.request.query_params.get("route_id", None)
@@ -81,6 +95,16 @@ class IncidentView(
                     [status_choice[1].lower() for status_choice in AlertGroup.STATUS_CHOICES]
                 )
                 raise BadRequest(detail={"state": f"Must be one of the following: {valid_choices_text}"})
+
+        # filter by alert group (static, applied) labels
+        label_query = self.request.query_params.getlist("label", [])
+        kv_pairs = parse_label_query(label_query)
+        for key, value in kv_pairs:
+            queryset = queryset.filter(
+                labels__organization=self.request.auth.organization,
+                labels__key_name=key,
+                labels__value_name=value,
+            )
 
         return queryset
 

@@ -1,13 +1,15 @@
 from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup
-from common.api_helpers.custom_fields import UserIdField
+from apps.api.serializers.alert_group import AlertGroupLabelSerializer
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UserIdField
 from common.api_helpers.mixins import EagerLoadingMixin
 
 
 class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_id = serializers.CharField(source="channel.public_primary_key")
+    team_id = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
     route_id = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="started_at")
     alerts_count = serializers.SerializerMethodField()
@@ -15,14 +17,17 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     state = serializers.SerializerMethodField()
     acknowledged_by = UserIdField(read_only=True, source="acknowledged_by_user")
     resolved_by = UserIdField(read_only=True, source="resolved_by_user")
+    labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
-    SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization"]
+    SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization", "channel__team"]
+    PREFETCH_RELATED = ["labels"]
 
     class Meta:
         model = AlertGroup
         fields = [
             "id",
             "integration_id",
+            "team_id",
             "route_id",
             "alerts_count",
             "state",
@@ -31,6 +36,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "resolved_by",
             "acknowledged_at",
             "acknowledged_by",
+            "labels",
             "title",
             "permalinks",
             "silenced_at",
