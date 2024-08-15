@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alerts/
 title: Alerts HTTP API
-weight: 100
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

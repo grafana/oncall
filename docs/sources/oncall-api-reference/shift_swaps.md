@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/shift_swaps/
 title: Shift swap requests HTTP API
-weight: 1200
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/resolution_notes/
 title: Resolution notes HTTP API
-weight: 900
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/slack_channels/
 title: Slack channels HTTP API
-weight: 1300
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

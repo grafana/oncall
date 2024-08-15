@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/teams/
 title: Grafana OnCall teams HTTP API
-weight: 1500
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/
