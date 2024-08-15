@@ -76,7 +76,6 @@ class BasePagingSerializer(serializers.Serializer):
 
 
 class DirectPagingSerializer(BasePagingSerializer):
-
     ALLOWS_GRAFANA_INCIDENT_ID = True
 
     grafana_incident_id = serializers.CharField(required=False, default=None, allow_null=True)
