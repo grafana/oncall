@@ -24,9 +24,7 @@ class EscalationView(APIView):
         user = request.user
         organization = user.organization
 
-        serializer = EscalationSerializer(
-            data=request.data, context={"organization": organization, "request": request}
-        )
+        serializer = EscalationSerializer(data=request.data, context={"organization": organization, "request": request})
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 

@@ -68,7 +68,7 @@ def test_escalation_new_alert_group(
             "slack": None,
             "slack_app": None,
             "telegram": None,
-            "web": f"a/grafana-oncall-app/alert-groups/{ag.public_primary_key}"
+            "web": f"a/grafana-oncall-app/alert-groups/{ag.public_primary_key}",
         },
         "silenced_at": None,
     }
