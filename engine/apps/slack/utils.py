@@ -1,6 +1,6 @@
+import datetime
 import enum
 import typing
-from datetime import datetime
 
 from apps.slack.client import SlackClient
 from apps.slack.errors import (
@@ -83,7 +83,7 @@ def post_message_to_channel(organization: "Organization", channel_id: str, text:
 
 
 def _format_datetime_to_slack(timestamp: float, format: str) -> str:
-    fallback = datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M (UTC)")
+    fallback = datetime.datetime.fromtimestamp(timestamp, datetime.UTC).strftime("%Y-%m-%d %H:%M (UTC)")
     return f"<!date^{int(timestamp)}^{format}|{fallback}>"
 
 

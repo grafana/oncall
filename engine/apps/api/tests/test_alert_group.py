@@ -1,4 +1,3 @@
-import datetime
 from unittest.mock import Mock, patch
 
 import pytest
@@ -250,8 +249,8 @@ def test_get_filter_resolved_by(
     resolved_alert_group = make_alert_group(
         alert_receive_channel,
         channel_filter=default_channel_filter,
-        acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
-        resolved_at=timezone.now() + datetime.timedelta(hours=2),
+        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        resolved_at=timezone.now() + timezone.timedelta(hours=2),
         resolved=True,
         acknowledged=True,
         resolved_by_user=first_user,
@@ -302,8 +301,8 @@ def test_get_filter_resolved_by_multiple_values(
         resolved_alert_group = make_alert_group(
             alert_receive_channel,
             channel_filter=default_channel_filter,
-            acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
-            resolved_at=timezone.now() + datetime.timedelta(hours=2),
+            acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+            resolved_at=timezone.now() + timezone.timedelta(hours=2),
             resolved=True,
             acknowledged=True,
             resolved_by_user=user,
@@ -348,8 +347,8 @@ def test_get_filter_acknowledged_by(
     acknowledged_alert_group = make_alert_group(
         alert_receive_channel,
         channel_filter=default_channel_filter,
-        acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
-        resolved_at=timezone.now() + datetime.timedelta(hours=2),
+        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        resolved_at=timezone.now() + timezone.timedelta(hours=2),
         acknowledged=True,
         acknowledged_by_user=first_user,
     )
@@ -398,8 +397,8 @@ def test_get_filter_acknowledged_by_multiple_values(
         acknowledged_alert_group = make_alert_group(
             alert_receive_channel,
             channel_filter=default_channel_filter,
-            acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
-            resolved_at=timezone.now() + datetime.timedelta(hours=2),
+            acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+            resolved_at=timezone.now() + timezone.timedelta(hours=2),
             acknowledged=True,
             acknowledged_by_user=user,
         )
@@ -442,7 +441,7 @@ def test_get_filter_silenced_by(
     silenced_alert_group = make_alert_group(
         alert_receive_channel,
         channel_filter=default_channel_filter,
-        silenced_at=timezone.now() + datetime.timedelta(hours=1),
+        silenced_at=timezone.now() + timezone.timedelta(hours=1),
         silenced=True,
         silenced_by_user=first_user,
     )
@@ -491,7 +490,7 @@ def test_get_filter_silenced_by_multiple_values(
         acknowledged_alert_group = make_alert_group(
             alert_receive_channel,
             channel_filter=default_channel_filter,
-            silenced_at=timezone.now() + datetime.timedelta(hours=1),
+            silenced_at=timezone.now() + timezone.timedelta(hours=1),
             silenced=True,
             silenced_by_user=user,
         )
@@ -670,8 +669,8 @@ def test_get_filter_mine(
     acknowledged_alert_group = make_alert_group(
         alert_receive_channel,
         channel_filter=default_channel_filter,
-        acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
-        resolved_at=timezone.now() + datetime.timedelta(hours=2),
+        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        resolved_at=timezone.now() + timezone.timedelta(hours=2),
         acknowledged=True,
         acknowledged_by_user=first_user,
     )
@@ -724,8 +723,8 @@ def test_get_filter_involved_users(
     acknowledged_alert_group = make_alert_group(
         alert_receive_channel,
         channel_filter=default_channel_filter,
-        acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
-        resolved_at=timezone.now() + datetime.timedelta(hours=2),
+        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        resolved_at=timezone.now() + timezone.timedelta(hours=2),
         acknowledged=True,
         acknowledged_by_user=first_user,
     )
@@ -999,7 +998,7 @@ def test_get_title_search(
             alert_receive_channel, channel_filter=channel_filter, web_title_cache=f"testing {i+1}"
         )
         # alert groups starting every months going back
-        alert_group.started_at = timezone.now() - datetime.timedelta(days=10 + 30 * i)
+        alert_group.started_at = timezone.now() - timezone.timedelta(days=10 + 30 * i)
         alert_group.save(update_fields=["started_at"])
         make_alert(alert_group=alert_group, raw_request_data=alert_raw_request_data)
         alert_groups.append(alert_group)
@@ -1021,8 +1020,8 @@ def test_get_title_search(
     response = client.get(
         url
         + "?search=testing&started_at={}_{}".format(
-            (timezone.now() - datetime.timedelta(days=500)).strftime(DateRangeFilterMixin.DATE_FORMAT),
-            (timezone.now() - datetime.timedelta(days=30)).strftime(DateRangeFilterMixin.DATE_FORMAT),
+            (timezone.now() - timezone.timedelta(days=500)).strftime(DateRangeFilterMixin.DATE_FORMAT),
+            (timezone.now() - timezone.timedelta(days=30)).strftime(DateRangeFilterMixin.DATE_FORMAT),
         ),
         format="json",
         **make_user_auth_headers(user, token),
@@ -2084,7 +2083,7 @@ def test_alert_group_paged_users(
     assert response.json()["paged_users"] == [
         {
             "avatar": user2.avatar_url,
-            "avatar_full": user2.avatar_full_url,
+            "avatar_full": user2.avatar_full_url(user.organization),
             "id": user2.pk,
             "pk": user2.public_primary_key,
             "important": None,
