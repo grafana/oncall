@@ -5,8 +5,6 @@ import { Colors } from 'styles/utils.styles';
 export const getTextStyles = (theme: GrafanaTheme2) => {
   return {
     root: css`
-      display: inline;
-
       &:hover [data-emotion='iconButton'] {
         display: inline-flex;
       }
@@ -63,6 +61,18 @@ export const getTextStyles = (theme: GrafanaTheme2) => {
 
       &--clickable {
         cursor: pointer;
+      }
+    `,
+
+    display: css`
+      &--inline {
+        display: inline;
+      }
+      &--block {
+        display: block;
+      }
+      &--inline-block {
+        display: inline-block;
       }
     `,
 

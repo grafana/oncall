@@ -52,8 +52,6 @@ services:
       context: ./grafana-plugin
       dockerfile: Dockerfile.dev
       labels: *oncall-labels
-    environment:
-      ONCALL_API_URL: http://host.docker.internal:8080
     volumes:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules
@@ -324,6 +322,8 @@ services:
       GF_SECURITY_ADMIN_USER: oncall
       GF_SECURITY_ADMIN_PASSWORD: oncall
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+      GF_FEATURE_TOGGLES_ENABLE: externalServiceAccounts
+      ONCALL_API_URL: http://host.docker.internal:8080
     env_file:
       - ./dev/.env.${DB}.dev
     ports:
