@@ -31,8 +31,9 @@ def plugin_json():
 
 def extra_grafana_ini():
   return {
-        "feature_toggles":
+        "feature_toggles": {
             "enable": "externalServiceAccounts"
+        }
   }
 
 
