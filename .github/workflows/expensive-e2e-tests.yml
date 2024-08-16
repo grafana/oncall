@@ -5,6 +5,7 @@ on:
       - main
   # allows manual run on github actions
   workflow_dispatch:
+  pull_request:
   schedule:
     - cron: "0 6 * * 1-5"
 
