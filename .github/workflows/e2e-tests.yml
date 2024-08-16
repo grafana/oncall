@@ -105,7 +105,7 @@ jobs:
         run: make cluster/up
 
       - name: Install Playwright deps
-        uses: docker://mcr.microsoft.com/playwright:next-jammy
+        uses: docker://mcr.microsoft.com/playwright:v1.46.0-jammy
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
