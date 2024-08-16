@@ -30,16 +30,12 @@ def plugin_json():
         return plugin_file
     return 'NOT_A_PLUGIN'
 
-def extra_grafana_ini():
-    return {
-        'feature_toggles': {
-            'externalServiceAccounts': 'true'
-        }
-    }
-
 def extra_env():
     return {
-        'GF_APP_URL': grafana_url
+        "GF_APP_URL": grafana_url,
+        "GF_SERVER_ROOT_URL": grafana_url,
+        "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
+        "ONCALL_API_URL": "http://oncall-dev-engine:8080"
     }
 
 
