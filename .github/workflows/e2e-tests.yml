@@ -141,7 +141,7 @@ jobs:
         shell: bash
         run: |
           cd ..
-          git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
+          git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git -b enable-passing-extra-env
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
 
       - name: Tilt CI - standard and expensive E2E tests

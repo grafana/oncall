@@ -1,6 +1,7 @@
 load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 load("ext://configmap", "configmap_create")
 
+grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
@@ -30,11 +31,16 @@ def plugin_json():
     return 'NOT_A_PLUGIN'
 
 def extra_grafana_ini():
-  return {
-        "feature_toggles": {
-            "enable": "externalServiceAccounts"
+    return {
+        'feature_toggles': {
+            'externalServiceAccounts': 'true'
         }
-  }
+    }
+
+def extra_env():
+    return {
+        'GF_APP_URL': grafana_url
+    }
 
 
 allow_k8s_contexts(["kind-kind"])
@@ -90,7 +96,6 @@ def load_grafana():
     # The user/pass that you will login to Grafana with
     grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
     grafana_version = os.getenv("GRAFANA_VERSION", "latest")
-    grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
 
 
     if 'plugin' in profiles:
