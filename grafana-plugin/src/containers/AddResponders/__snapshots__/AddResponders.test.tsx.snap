@@ -19,7 +19,7 @@ exports[`AddResponders should properly display the add responders button when hi
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -30,12 +30,10 @@ exports[`AddResponders should properly display the add responders button when hi
         >
           <div>
             <button
+              aria-disabled="false"
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -72,7 +70,7 @@ exports[`AddResponders should properly display the add responders button when hi
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -106,7 +104,7 @@ exports[`AddResponders should render properly in create mode 1`] = `
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -117,12 +115,10 @@ exports[`AddResponders should render properly in create mode 1`] = `
         >
           <div>
             <button
+              aria-disabled="false"
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -159,7 +155,7 @@ exports[`AddResponders should render properly in update mode 1`] = `
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -170,12 +166,10 @@ exports[`AddResponders should render properly in update mode 1`] = `
         >
           <div>
             <button
+              aria-disabled="false"
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -212,7 +206,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -223,12 +217,10 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         >
           <div>
             <button
+              aria-disabled="false"
               class="css-8b29hm-button"
               type="button"
             >
-              <div
-                class="css-1j2891d-Icon"
-              />
               <span
                 class="css-1riaxdn"
               >
@@ -270,7 +262,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test team
                   </span>
@@ -282,15 +274,11 @@ exports[`AddResponders should render selected team and users properly 1`] = `
             >
               <button
                 aria-label="Remove responder"
-                class="css-17584xm"
+                class="css-a2noi1"
                 data-testid="team-responder-delete-icon"
                 tabindex="0"
                 type="button"
-              >
-                <div
-                  class="css-1j2891d-Icon"
-                />
-              </button>
+              />
             </div>
           </div>
         </li>
@@ -323,7 +311,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test user3
                   </span>
@@ -352,6 +340,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       aria-live="polite"
                       aria-relevant="additions text"
                       class="css-1f43avz-a11yText-A11yText"
+                      role="log"
                     />
                     <div
                       class="css-1i88p6p"
@@ -366,6 +355,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                           Select...
                         </div>
                         <input
+                          aria-activedescendant=""
                           aria-autocomplete="list"
                           aria-describedby="react-select-2-placeholder"
                           aria-expanded="false"
@@ -382,11 +372,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       </div>
                       <div
                         class="css-zyjsuv-input-suffix"
-                      >
-                        <div
-                          class="css-1j2891d-Icon"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -395,15 +381,11 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                 >
                   <button
                     aria-label="Remove responder"
-                    class="css-17584xm"
+                    class="css-a2noi1"
                     data-testid="user-responder-delete-icon"
                     tabindex="0"
                     type="button"
-                  >
-                    <div
-                      class="css-1j2891d-Icon"
-                    />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -438,7 +420,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test user
                   </span>
@@ -467,6 +449,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       aria-live="polite"
                       aria-relevant="additions text"
                       class="css-1f43avz-a11yText-A11yText"
+                      role="log"
                     />
                     <div
                       class="css-1i88p6p"
@@ -481,6 +464,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                           Select...
                         </div>
                         <input
+                          aria-activedescendant=""
                           aria-autocomplete="list"
                           aria-describedby="react-select-3-placeholder"
                           aria-expanded="false"
@@ -496,11 +480,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       </div>
                       <div
                         class="css-zyjsuv-input-suffix"
-                      >
-                        <div
-                          class="css-1j2891d-Icon"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -509,15 +489,11 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                 >
                   <button
                     aria-label="Remove responder"
-                    class="css-17584xm"
+                    class="css-a2noi1"
                     data-testid="user-responder-delete-icon"
                     tabindex="0"
                     type="button"
-                  >
-                    <div
-                      class="css-1j2891d-Icon"
-                    />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -552,7 +528,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test user2
                   </span>
@@ -581,6 +557,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       aria-live="polite"
                       aria-relevant="additions text"
                       class="css-1f43avz-a11yText-A11yText"
+                      role="log"
                     />
                     <div
                       class="css-1i88p6p"
@@ -595,6 +572,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                           Select...
                         </div>
                         <input
+                          aria-activedescendant=""
                           aria-autocomplete="list"
                           aria-describedby="react-select-4-placeholder"
                           aria-expanded="false"
@@ -610,11 +588,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       </div>
                       <div
                         class="css-zyjsuv-input-suffix"
-                      >
-                        <div
-                          class="css-1j2891d-Icon"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -623,15 +597,11 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                 >
                   <button
                     aria-label="Remove responder"
-                    class="css-17584xm"
+                    class="css-a2noi1"
                     data-testid="user-responder-delete-icon"
                     tabindex="0"
                     type="button"
-                  >
-                    <div
-                      class="css-1j2891d-Icon"
-                    />
-                  </button>
+                  />
                 </div>
               </div>
             </div>
@@ -640,31 +610,27 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         <div
           aria-label="[object Object]"
           class="css-10yjoiw css-182y09v"
-          data-testid="data-testid Alert info"
           role="status"
         >
           <div
-            class="css-1td7znu"
+            class="css-1ewk8v0"
+            data-testid="data-testid Alert info"
           >
             <div
-              class="css-ufgc62"
+              class="css-9n8jpb"
             >
               <div
                 class="css-tluiue"
-              >
-                <div
-                  class="css-1j2891d-Icon"
-                />
-              </div>
+              />
             </div>
             <div
-              class="css-1gmwkrf"
+              class="css-vjkmk1"
             >
               <span
-                class="css-9om60p"
+                class="css-b9x8ok"
               >
                 <span
-                  class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                  class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
                 >
                   <a
                     class="css-1cvxpvr"
@@ -673,7 +639,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                     target="_blank"
                   >
                     <span
-                      class="css-77ouhj--link css-77ouhj--medium css-1287p17"
+                      class="css-77ouhj--link css-77ouhj--medium css-1rchs6o--inline css-66w5es"
                     >
                       <div
                         class="css-ffyaiw-horizontal-group"
@@ -686,11 +652,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                         </div>
                         <div
                           class="css-12kn7ff-layoutChildrenWrapper"
-                        >
-                          <div
-                            class="css-1j2891d-Icon"
-                          />
-                        </div>
+                        />
                       </div>
                     </span>
                   </a>

@@ -5,8 +5,8 @@ import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
 import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
 import { PluginConfigPage } from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
-import { getGrafanaVersion } from 'plugin/GrafanaPluginRootPage.helpers';
 import { IRM_TAB } from 'utils/consts';
+import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'utils/utils';
 
 import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './types';
 
@@ -33,11 +33,8 @@ if (isUseProfileExtensionPointEnabled()) {
 }
 
 function isUseProfileExtensionPointEnabled(): boolean {
-  const { major, minor } = getGrafanaVersion();
-  const isRequiredGrafanaVersion = major > 10 || (major === 10 && minor >= 3); // >= 10.3.0
-
   return (
-    isRequiredGrafanaVersion &&
+    isCurrentGrafanaVersionEqualOrGreaterThan({ minMajor: 10, minMinor: 3 }) &&
     'configureExtensionComponent' in plugin &&
     PluginExtensionPoints != null &&
     'UserProfileTab' in PluginExtensionPoints

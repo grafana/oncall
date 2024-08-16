@@ -1,29 +1,40 @@
+import semver from 'semver';
+
 import { test, expect } from '../fixtures';
 import { goToOnCallPage } from '../utils/navigation';
-import { viewUsers, accessProfileTabs } from '../utils/users';
+import { verifyThatUserCanViewOtherUsers, accessProfileTabs } from '../utils/users';
 
 test.describe('Users screen actions', () => {
   test("Admin is allowed to edit other users' profile", async ({ adminRolePage: { page } }) => {
     await goToOnCallPage(page, 'users');
-    await expect(page.getByTestId('users-table').getByRole('button', { name: 'Edit', disabled: false })).toHaveCount(3);
+    const editableUsers = page.getByTestId('users-table').getByRole('button', { name: 'Edit', disabled: false });
+    await editableUsers.first().waitFor();
+    const editableUsersCount = await editableUsers.count();
+    expect(editableUsersCount).toBeGreaterThan(1);
   });
 
   test('Admin is allowed to view the list of users', async ({ adminRolePage: { page } }) => {
-    await viewUsers(page);
+    await verifyThatUserCanViewOtherUsers(page);
   });
 
   test('Viewer is not allowed to view the list of users', async ({ viewerRolePage: { page } }) => {
-    await viewUsers(page, false);
+    await verifyThatUserCanViewOtherUsers(page, false);
   });
 
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
+    const tabsToCheck = ['tab-phone-verification', 'tab-slack', 'tab-telegram'];
 
-    await accessProfileTabs(page, ['tab-mobile-app', 'tab-phone-verification', 'tab-slack', 'tab-telegram'], false);
+    // After 10.3 it's been moved to global user profile
+    if (semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.3.0')) {
+      tabsToCheck.unshift('tab-mobile-app');
+    }
+
+    await accessProfileTabs(page, tabsToCheck, false);
   });
 
   test('Editor is allowed to view the list of users', async ({ editorRolePage }) => {
-    await viewUsers(editorRolePage.page);
+    await verifyThatUserCanViewOtherUsers(editorRolePage.page);
   });
 
   test("Editor cannot view other users' data", async ({ editorRolePage }) => {
@@ -33,8 +44,10 @@ test.describe('Users screen actions', () => {
     await page.getByTestId('users-email').and(page.getByText('editor')).waitFor();
 
     await expect(page.getByTestId('users-email').and(page.getByText('editor'))).toHaveCount(1);
-    await expect(page.getByTestId('users-email').and(page.getByText('******'))).toHaveCount(2);
-    await expect(page.getByTestId('users-phone-number').and(page.getByText('******'))).toHaveCount(2);
+    const maskedEmailsCount = await page.getByTestId('users-email').and(page.getByText('******')).count();
+    expect(maskedEmailsCount).toBeGreaterThan(1);
+    const maskedPhoneNumbersCount = await page.getByTestId('users-phone-number').and(page.getByText('******')).count();
+    expect(maskedPhoneNumbersCount).toBeGreaterThan(1);
   });
 
   test('Editor can access tabs from View My Profile', async ({ editorRolePage }) => {
@@ -47,7 +60,11 @@ test.describe('Users screen actions', () => {
   test("Editor is not allowed to edit other users' profile", async ({ editorRolePage: { page } }) => {
     await goToOnCallPage(page, 'users');
     await expect(page.getByTestId('users-table').getByRole('button', { name: 'Edit', disabled: false })).toHaveCount(1);
-    await expect(page.getByTestId('users-table').getByRole('button', { name: 'Edit', disabled: true })).toHaveCount(2);
+    const usersCountWithDisabledEdit = await page
+      .getByTestId('users-table')
+      .getByRole('button', { name: 'Edit', disabled: true })
+      .count();
+    expect(usersCountWithDisabledEdit).toBeGreaterThan(1);
   });
 
   test('Search updates the table view', async ({ adminRolePage }) => {

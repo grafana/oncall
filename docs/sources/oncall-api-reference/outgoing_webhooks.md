@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 title: Outgoing webhooks HTTP API
-weight: 700
+weight: 0
 refs:
   outgoing-webhooks:
     - pattern: /docs/oncall/
@@ -13,6 +13,11 @@ refs:
       destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks/#event-types
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/#event-types
+  pagination:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/#pagination
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/#pagination
 ---
 
 # Outgoing webhooks
@@ -65,6 +70,8 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.
 
 ## Get webhook
 
@@ -244,3 +251,5 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.

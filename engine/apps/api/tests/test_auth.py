@@ -196,3 +196,30 @@ def test_google_complete_auth_redirect_ok(
 
     assert response.status_code == status.HTTP_302_FOUND
     assert response.url == f"/a/{PluginID.ONCALL}/users/me"
+
+
+@pytest.mark.django_db
+def test_complete_google_auth_redirect_error(
+    make_organization,
+    make_user_for_organization,
+    make_google_oauth2_token_for_user,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, google_oauth2_token = make_google_oauth2_token_for_user(admin)
+
+    client = APIClient()
+    url = (
+        reverse("api-internal:complete-social-auth", kwargs={"backend": "google-oauth2"})
+        + f"?state={google_oauth2_token}"
+    )
+
+    def _custom_do_complete(backend, *args, **kwargs):
+        backend.strategy.session[REDIRECT_FIELD_NAME] = "some-url"
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    with patch("apps.api.views.auth.do_complete", side_effect=_custom_do_complete):
+        response = client.get(url)
+
+    assert response.status_code == status.HTTP_302_FOUND
+    assert response.url == "some-url"

@@ -1,8 +1,9 @@
 from .action import ActionView  # noqa: F401
+from .alert_groups import AlertGroupView  # noqa: F401
 from .alerts import AlertView  # noqa: F401
+from .escalation import EscalationView  # noqa: F401
 from .escalation_chains import EscalationChainView  # noqa: F401
 from .escalation_policies import EscalationPolicyView  # noqa: F401
-from .incidents import IncidentView  # noqa: F401
 from .info import InfoView  # noqa: F401
 from .integrations import IntegrationView  # noqa: F401
 from .on_call_shifts import CustomOnCallShiftView  # noqa: F401

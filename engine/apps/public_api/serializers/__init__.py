@@ -1,7 +1,8 @@
+from .alert_groups import AlertGroupSerializer  # noqa: F401
 from .alerts import AlertSerializer  # noqa: F401
+from .escalation import EscalationSerializer  # noqa: F401
 from .escalation_chains import EscalationChainSerializer  # noqa: F401
 from .escalation_policies import EscalationPolicySerializer, EscalationPolicyUpdateSerializer  # noqa: F401
-from .incidents import IncidentSerializer  # noqa: F401
 from .integrations import IntegrationSerializer, IntegrationUpdateSerializer  # noqa: F401
 from .maintenance import MaintainableObjectSerializerMixin  # noqa: F401
 from .on_call_shifts import CustomOnCallShiftSerializer, CustomOnCallShiftUpdateSerializer  # noqa: F401

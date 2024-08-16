@@ -107,6 +107,17 @@ CHATOPS_SIGNING_SECRET = os.environ.get("CHATOPS_SIGNING_SECRET", None)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
+# Application metric names without prefixes
+METRIC_ALERT_GROUPS_TOTAL_NAME = "alert_groups_total"
+METRIC_ALERT_GROUPS_RESPONSE_TIME_NAME = "alert_groups_response_time"
+METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME = "user_was_notified_of_alert_groups"
+METRICS_ALL = [
+    METRIC_ALERT_GROUPS_TOTAL_NAME,
+    METRIC_ALERT_GROUPS_RESPONSE_TIME_NAME,
+    METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME,
+]
+# List of metrics to collect. Collect all available application metrics by default
+METRICS_TO_COLLECT = os.environ.get("METRICS_TO_COLLECT", METRICS_ALL)
 
 
 # Database
@@ -335,6 +346,8 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
     "/alert_receive_channels",
+    # current user endpoint 👇, without trailing slash we pick-up /user_group endpoints, which we don't want for now
+    "/user/",
     "/users",
     "/labels",
     # social auth routes
@@ -456,8 +469,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -731,7 +742,7 @@ SOCIAL_AUTH_PIPELINE = (
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
     "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
-    "apps.social_auth.pipeline.google.persist_access_and_refresh_tokens",
+    "apps.social_auth.pipeline.google.connect_user_to_google",
 )
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_DISCONNECT_PIPELINE = (

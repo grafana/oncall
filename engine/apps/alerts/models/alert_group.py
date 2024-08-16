@@ -560,6 +560,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         user_ids: typing.Set[str] = set()
         users: typing.Dict[str, PagedUser] = {}
+        organization = self.channel.organization
 
         log_records = self.log_records.filter(
             type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
@@ -595,7 +596,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                         "name": user.name,
                         "username": user.username,
                         "avatar": user.avatar_url,
-                        "avatar_full": user.avatar_full_url,
+                        "avatar_full": user.avatar_full_url(organization),
                         "important": important,
                         "teams": [{"pk": t.public_primary_key, "name": t.name} for t in user.teams.all()],
                     }

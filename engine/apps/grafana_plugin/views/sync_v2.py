@@ -1,14 +1,13 @@
 import logging
+from dataclasses import asdict
 
 from django.conf import settings
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.auth import BasePluginAuthentication
 from apps.grafana_plugin.serializers.sync_data import SyncDataSerializer
 from apps.user_management.models import Organization
 from apps.user_management.sync import apply_sync_data, get_or_create_organization
@@ -23,11 +22,7 @@ class SyncException(Exception):
 
 
 class SyncV2View(APIView):
-    authentication_classes = (PluginAuthentication,)
-    permission_classes = [IsAuthenticated, RBACPermission]
-    rbac_permissions = {
-        "post": [RBACPermission.Permissions.USER_SETTINGS_ADMIN],
-    }
+    authentication_classes = (BasePluginAuthentication,)
 
     def do_sync(self, request: Request) -> Organization:
         serializer = SyncDataSerializer(data=request.data)
@@ -40,7 +35,7 @@ class SyncV2View(APIView):
             stack_id = settings.SELF_HOSTED_SETTINGS["STACK_ID"]
             org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
         else:
-            org_id = request.auth.organization
+            org_id = request.auth.organization.org_id
             stack_id = request.auth.organization.stack_id
 
         if sync_data.settings.org_id != org_id or sync_data.settings.stack_id != stack_id:
@@ -54,6 +49,6 @@ class SyncV2View(APIView):
         try:
             self.do_sync(request)
         except SyncException as e:
-            return Response(data=e.error_data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=asdict(e.error_data), status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_200_OK)

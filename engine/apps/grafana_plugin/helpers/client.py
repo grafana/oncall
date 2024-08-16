@@ -375,19 +375,43 @@ class GcomAPIClient(APIClient):
         return data
 
     def get_instances(self, query: str, page_size=None):
+        MAX_RETRIES = 3
+
         if not page_size:
             page, _ = self.api_get(query)
             yield page
         else:
+            previous_cursor = None
+            retry_count = 0
             cursor = 0
+
             while cursor is not None:
-                if query:
-                    page_query = query + f"&cursor={cursor}&pageSize={page_size}"
+                previous_cursor = cursor
+                page, call_status = self.api_get(f"{query}&cursor={cursor}&pageSize={page_size}")
+
+                if "nextCursor" in page:
+                    cursor = page["nextCursor"]
+                    yield page
+                elif retry_count == MAX_RETRIES:
+                    break
                 else:
-                    page_query = f"?cursor={cursor}&pageSize={page_size}"
-                page, _ = self.api_get(page_query)
-                yield page
-                cursor = page["nextCursor"]
+                    # nextCursor is missing from the response JSON, lets retry the request..
+                    #
+                    # NOTE: this is here because there seems to be a bug in GCOM's API where when using cursor based
+                    # pagination, the request is aborted on the GCOM side but still sends HTTP 200 w/ a partial
+                    # JSON response. This was leading to KeyErrors when trying to read the nextCursor key.
+                    #
+                    # How the JSON is actually properly decoded is aside me 🤷‍♂️, but for now lets simply retry the
+                    # request if this scenario arises
+                    #
+                    # See this conversation for more context
+                    # https://raintank-corp.slack.com/archives/C0K031RP1/p1723158123932529
+                    logger.warning(
+                        f"GcomAPIClient.get_instances response was missing nextCursor key, likely a decoding error. "
+                        f"http_response={page} call_status={call_status}"
+                    )
+                    cursor = previous_cursor  # retry the request using the previous nextCursor value
+                    retry_count += 1
 
     def _is_stack_in_certain_state(self, stack_id: str, state: str) -> bool:
         instance_info = self.get_instance_info(stack_id)

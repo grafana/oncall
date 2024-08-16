@@ -2,7 +2,7 @@
 title: Grafana OnCall HTTP API reference
 menuTitle: API reference
 description: Reference material for Grafana OnCall API.
-weight: 900
+weight: 0
 keywords:
   - OnCall
   - API

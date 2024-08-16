@@ -385,7 +385,9 @@ class ScheduleView(
 
         swap_requests = schedule.filter_swap_requests(datetime_start, datetime_end)
 
-        serialized_swap_requests = ShiftSwapRequestExpandedUsersListSerializer(swap_requests, many=True)
+        serialized_swap_requests = ShiftSwapRequestExpandedUsersListSerializer(
+            swap_requests, context={"request": self.request}, many=True
+        )
         result = {"shift_swaps": serialized_swap_requests.data}
 
         return Response(result, status=status.HTTP_200_OK)

@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.alerts.models import AlertGroupExternalID, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
-from apps.public_api.serializers import IncidentSerializer
+from apps.public_api.serializers import AlertGroupSerializer
 from apps.webhooks.models import Webhook
 from apps.webhooks.models.webhook import WebhookSession
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
@@ -408,7 +408,7 @@ def test_execute_webhook_ok_forward_all(
                 "email": notified_user.email,
             }
         ],
-        "alert_group": {**IncidentSerializer(alert_group).data, "labels": {}},
+        "alert_group": {**AlertGroupSerializer(alert_group).data, "labels": {}},
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
         "users_to_be_notified": [],
@@ -516,7 +516,7 @@ def test_execute_webhook_ok_forward_all_resolved(
                 "email": notified_user.email,
             }
         ],
-        "alert_group": {**IncidentSerializer(alert_group).data, "labels": {}},
+        "alert_group": {**AlertGroupSerializer(alert_group).data, "labels": {}},
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
         "users_to_be_notified": [],
@@ -730,6 +730,56 @@ def test_execute_webhook_errors(
         "webhook_name": webhook.name,
     }
     assert log_record.step_specific_info == expected_info
+    assert log_record.reason == expected_error
+    assert (
+        log_record.rendered_log_line_action() == f"skipped resolve outgoing webhook `{webhook.name}`: {expected_error}"
+    )
+
+
+@patch(
+    "apps.webhooks.models.webhook.WebhookSession.request",
+    side_effect=requests.exceptions.SSLError("SSL error - foo bar"),
+)
+@patch("apps.webhooks.utils.socket.gethostbyname", return_value="8.8.8.8")  # make it a valid URL when resolving name
+@pytest.mark.django_db
+def test_execute_webhook_ssl_error(
+    _mock_socket_gethostbyname,
+    mock_request,
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+):
+    url = "https://something.cool/"
+    expected_error = "SSL error - foo bar"
+
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel, resolved_at=timezone.now(), resolved=True)
+    webhook = make_custom_webhook(
+        organization=organization,
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_RESOLVE,
+        forward_all=False,
+        url=url,
+    )
+
+    execute_webhook(webhook.pk, alert_group.pk, None, None)
+
+    mock_request.assert_has_calls([call("POST", url, timeout=4, headers={})])
+
+    log = webhook.responses.all()[0]
+    assert log.status_code is None
+    assert log.content == expected_error
+
+    # check log record
+    log_record = alert_group.log_records.last()
+    assert log_record.type == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR
+    assert log_record.step_specific_info == {
+        "trigger": "resolve",
+        "webhook_id": webhook.public_primary_key,
+        "webhook_name": webhook.name,
+    }
     assert log_record.reason == expected_error
     assert (
         log_record.rendered_log_line_action() == f"skipped resolve outgoing webhook `{webhook.name}`: {expected_error}"
