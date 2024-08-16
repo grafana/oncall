@@ -19,7 +19,7 @@ export const getIsDevelopmentEnv = () => {
 
 export const getPluginId = (): PluginId => {
   try {
-    return (process.env.PLUGIN_ID as PluginId) || PluginId.OnCall;
+    return (process.env.PLUGIN_ID as PluginId) || PluginId.Irm;
   } catch (error) {
     return PluginId.Irm;
   }
