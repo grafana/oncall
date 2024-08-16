@@ -20,6 +20,7 @@ from apps.api.permissions import (
     RBACPermission,
     user_is_authorized,
 )
+from apps.google import utils as google_utils
 from apps.google.models import GoogleOAuth2User
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from apps.user_management.types import AlertGroupTableColumn, GoogleCalendarSettings
@@ -189,8 +190,17 @@ class User(models.Model):
             return False
 
     @property
-    def avatar_full_url(self):
-        return urljoin(self.organization.grafana_url, self.avatar_url)
+    def google_oauth2_token_is_missing_scopes(self) -> bool:
+        if not self.has_google_oauth2_connected:
+            return False
+        return not google_utils.user_granted_all_required_scopes(self.google_oauth2_user.oauth_scope)
+
+    def avatar_full_url(self, organization: "Organization"):
+        """
+        Use arg `organization` instead of `self.organization` to avoid multiple requests to db when getting avatar for
+        users list
+        """
+        return urljoin(organization.grafana_url, self.avatar_url)
 
     @property
     def verified_phone_number(self) -> str | None:
@@ -288,12 +298,12 @@ class User(models.Model):
 
         return day_start <= dt <= day_end
 
-    def short(self):
+    def short(self, organization):
         return {
             "username": self.username,
             "pk": self.public_primary_key,
             "avatar": self.avatar_url,
-            "avatar_full": self.avatar_full_url,
+            "avatar_full": self.avatar_full_url(organization),
         }
 
     # Insight logs
@@ -386,7 +396,7 @@ class User(models.Model):
         logger.info(
             f"Saving Google OAuth2 settings for user {self.pk} "
             f"sub={google_oauth2_response.get('sub')} "
-            f"oauth_scope={google_oauth2_response.get('oauth_scope')}"
+            f"oauth_scope={google_oauth2_response.get('scope')}"
         )
 
         _, created = GoogleOAuth2User.objects.update_or_create(

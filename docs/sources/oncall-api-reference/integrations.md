@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/
 title: Integrations HTTP API
-weight: 500
+weight: 0
 refs:
   alertmanager:
     - pattern: /docs/oncall/

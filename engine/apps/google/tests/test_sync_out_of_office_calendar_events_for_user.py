@@ -1,11 +1,13 @@
 import datetime
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from django.utils import timezone
+from google.auth.exceptions import RefreshError
 from googleapiclient.errors import HttpError
 
 from apps.google import constants, tasks
+from apps.google.models import GoogleOAuth2User
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 
 
@@ -148,19 +150,61 @@ class MockResponse:
 
 
 @patch("apps.google.client.build")
+@pytest.mark.parametrize(
+    "ErrorClass,http_status,should_reset_user_google_oauth2_settings,task_should_raise_exception",
+    [
+        (RefreshError, None, True, False),
+        (HttpError, 401, False, False),
+        (HttpError, 500, False, False),
+        (HttpError, 403, False, False),
+        (Exception, None, False, True),
+    ],
+)
 @pytest.mark.django_db
-def test_sync_out_of_office_calendar_events_for_user_httperror(mock_google_api_client_build, test_setup):
-    mock_response = MockResponse(reason="forbidden", status=403)
-    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.side_effect = HttpError(
-        resp=mock_response, content=b"error"
-    )
+def test_sync_out_of_office_calendar_events_for_user_error_scenarios(
+    mock_google_api_client_build,
+    ErrorClass,
+    http_status,
+    should_reset_user_google_oauth2_settings,
+    task_should_raise_exception,
+    test_setup,
+):
+    if ErrorClass == HttpError:
+        mock_response = MockResponse(reason="forbidden", status=http_status)
+        exception = ErrorClass(resp=mock_response, content=b"error")
+    elif ErrorClass == RefreshError:
+        exception = ErrorClass(
+            "invalid_grant: Token has been expired or revoked.",
+            {"error": "invalid_grant", "error_description": "Token has been expired or revoked."},
+        )
+    else:
+        exception = ErrorClass()
+
+    mock_google_api_client_build.return_value.events.return_value.list.return_value.execute.side_effect = exception
 
     google_oauth2_user, schedule = test_setup([])
     user = google_oauth2_user.user
 
-    tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    assert user.google_calendar_settings is not None
 
-    assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 0
+    if task_should_raise_exception:
+        with pytest.raises(ErrorClass):
+            tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+    else:
+        tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user.pk)
+
+        assert ShiftSwapRequest.objects.filter(beneficiary=user, schedule=schedule).count() == 0
+
+        user.refresh_from_db()
+
+        google_oauth2_user_count = GoogleOAuth2User.objects.filter(user=user).count()
+
+        if should_reset_user_google_oauth2_settings:
+            assert user.google_calendar_settings is None
+            assert google_oauth2_user_count == 0
+        else:
+            assert user.google_calendar_settings is not None
+            assert google_oauth2_user_count == 1
 
 
 @patch("apps.google.client.build")
@@ -372,3 +416,57 @@ def test_sync_out_of_office_calendar_events_for_user_preexisting_shift_swap_requ
     ssrs.first().delete()
     tasks.sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk)
     assert _fetch_shift_swap_requests().count() == 1
+
+
+REQUIRED_SCOPE_1 = "https://www.googleapis.com/test/foo"
+REQUIRED_SCOPE_2 = "https://www.googleapis.com/test/bar"
+
+
+@patch("apps.google.tasks.constants.REQUIRED_OAUTH_SCOPES", [REQUIRED_SCOPE_1, REQUIRED_SCOPE_2])
+@patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_all_users_only_called_for_tokens_having_all_required_scopes(
+    mock_sync_out_of_office_calendar_events_for_user,
+    make_organization_and_user,
+    make_user_for_organization,
+    make_google_oauth2_user_for_user,
+):
+    organization, user1 = make_organization_and_user()
+    user2 = make_user_for_organization(organization)
+    user3 = make_user_for_organization(organization)
+
+    missing_a_scope = f"{REQUIRED_SCOPE_1} foo_bar"
+    has_all_scopes = f"{REQUIRED_SCOPE_1} {REQUIRED_SCOPE_2} foo_bar"
+
+    _ = make_google_oauth2_user_for_user(user1, oauth_scope=missing_a_scope)
+    user2_google_oauth2_user = make_google_oauth2_user_for_user(user2, oauth_scope=has_all_scopes)
+    user3_google_oauth2_user = make_google_oauth2_user_for_user(user3, oauth_scope=has_all_scopes)
+
+    tasks.sync_out_of_office_calendar_events_for_all_users()
+
+    assert len(mock_sync_out_of_office_calendar_events_for_user.mock_calls) == 2
+    mock_sync_out_of_office_calendar_events_for_user.assert_has_calls(
+        [
+            call(args=(user2_google_oauth2_user.pk,)),
+            call(args=(user3_google_oauth2_user.pk,)),
+        ],
+        any_order=True,
+    )
+
+
+@patch("apps.google.tasks.sync_out_of_office_calendar_events_for_user.apply_async")
+@pytest.mark.django_db
+def test_sync_out_of_office_calendar_events_for_all_users_filters_out_users_from_deleted_organizations(
+    mock_sync_out_of_office_calendar_events_for_user,
+    make_organization_and_user,
+    make_google_oauth2_user_for_user,
+):
+    _, user = make_organization_and_user()
+    google_oauth2_user = make_google_oauth2_user_for_user(user)
+
+    deleted_organization, deleted_user = make_organization_and_user()
+    make_google_oauth2_user_for_user(deleted_user)
+    deleted_organization.delete()
+
+    tasks.sync_out_of_office_calendar_events_for_all_users()
+    mock_sync_out_of_office_calendar_events_for_user.assert_called_once_with(args=(google_oauth2_user.pk,))

@@ -36,12 +36,20 @@
   margin-right: 4px;
 }
 
+.u-margin-left-xs {
+  margin-left: 4px;
+}
+
 .u-margin-bottom-none {
   margin-bottom: 0;
 }
 
 .u-margin-bottom-md {
   margin-bottom: 12px;
+}
+
+.u-margin-bottom-xxs {
+  margin-bottom: 2px;
 }
 
 .u-margin-top-xs {

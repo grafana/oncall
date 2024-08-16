@@ -113,14 +113,14 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
     assert updated_user is not None
     assert updated_user.name == api_users[0]["name"]
     assert updated_user.email == api_users[0]["email"]
-    assert updated_user.avatar_full_url == "https://test.test/test/1234"
+    assert updated_user.avatar_full_url(organization) == "https://test.test/test/1234"
 
     # check that missing users are created
     created_user = organization.users.filter(user_id=api_users[1]["userId"]).first()
     assert created_user is not None
     assert created_user.user_id == api_users[1]["userId"]
     assert created_user.name == api_users[1]["name"]
-    assert created_user.avatar_full_url == "https://test.test/test/1234"
+    assert created_user.avatar_full_url(organization) == "https://test.test/test/1234"
 
 
 @pytest.mark.django_db
@@ -532,7 +532,7 @@ def test_get_or_create_user(make_organization, make_team, make_user_for_organiza
     assert user.user_id == sync_user.id
     assert user.name == sync_user.name
     assert user.email == sync_user.email
-    assert user.avatar_full_url == sync_user.avatar_url
+    assert user.avatar_full_url(organization) == sync_user.avatar_url
     assert organization.users.count() == 2
     assert team.users.count() == 1
 

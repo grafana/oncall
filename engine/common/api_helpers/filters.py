@@ -1,8 +1,9 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.db.models import Q
+from django.utils import timezone
 from django_filters import rest_framework as filters
-from django_filters.utils import handle_timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -10,6 +11,14 @@ from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 
 NO_TEAM_VALUE = "null"
+
+
+def _handle_timezone(value):
+    if settings.USE_TZ and timezone.is_naive(value):
+        return timezone.make_aware(value, timezone.get_current_timezone())
+    elif not settings.USE_TZ and timezone.is_aware(value):
+        return timezone.make_naive(value, timezone.utc)
+    return value
 
 
 class DateRangeFilterMixin:
@@ -44,8 +53,8 @@ class DateRangeFilterMixin:
         if start_date > end_date:
             raise BadRequest(detail="Invalid range value")
 
-        start_date = handle_timezone(start_date, False)
-        end_date = handle_timezone(end_date, False)
+        start_date = _handle_timezone(start_date)
+        end_date = _handle_timezone(end_date)
 
         return start_date, end_date
 
@@ -67,13 +76,13 @@ class ModelFieldFilterMixin:
 
 
 class ByTeamModelFieldFilterMixin:
-    FILTER_FIELD_NAME = "team"
+    TEAM_FILTER_FIELD_NAME = "team"
 
     def filter_model_field_with_single_value(self, queryset, name, value):
         if not value:
             return queryset
         # ModelChoiceFilter
-        filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
+        filter = self.filters[self.TEAM_FILTER_FIELD_NAME]
         if filter.null_value == value:
             lookup_kwargs = {f"{name}__isnull": True}
         else:
@@ -84,7 +93,7 @@ class ByTeamModelFieldFilterMixin:
     def filter_model_field_with_multiple_values(self, queryset, name, values):
         if not values:
             return queryset
-        filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
+        filter = self.filters[self.TEAM_FILTER_FIELD_NAME]
         null_team_lookup = None
         if filter.null_value in values:
             null_team_lookup = Q(**{f"{name}__isnull": True})

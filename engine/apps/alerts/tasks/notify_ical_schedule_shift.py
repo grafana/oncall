@@ -37,7 +37,7 @@ def convert_prev_shifts_to_new_format(prev_shifts: dict, schedule: "OnCallSchedu
                 "display_name": user.username,
                 "email": user.email,
                 "pk": user.public_primary_key,
-                "avatar_full": user.avatar_full_url,
+                "avatar_full": user.avatar_full_url(schedule.organization),
             },
         )
     for uid, shift in prev_shifts.items():

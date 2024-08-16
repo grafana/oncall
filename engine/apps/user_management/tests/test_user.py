@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
+from apps.google import constants as google_constants
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
 
@@ -118,6 +119,39 @@ def test_has_google_oauth2_connected(make_organization_and_user, make_google_oau
     assert user.has_google_oauth2_connected is False
     make_google_oauth2_user_for_user(user)
     assert user.has_google_oauth2_connected is True
+
+
+@pytest.mark.django_db
+def test_google_oauth2_token_is_missing_scopes(make_organization_and_user, make_google_oauth2_user_for_user):
+    initial_granted_scope = "foo bar baz"
+    initial_oauth_response = {
+        "access_token": "access",
+        "refresh_token": "refresh",
+        "sub": "google_user_id",
+        "scope": initial_granted_scope,
+    }
+
+    _, user = make_organization_and_user()
+
+    # false because the user hasn't yet connected their google account
+    assert user.google_oauth2_token_is_missing_scopes is False
+
+    user.save_google_oauth2_settings(initial_oauth_response)
+    user.refresh_from_db()
+
+    # true because we're missing a granted scope
+    assert user.google_oauth2_token_is_missing_scopes is True
+
+    user.save_google_oauth2_settings(
+        {
+            **initial_oauth_response,
+            "scope": f"{initial_granted_scope} {' '.join(google_constants.REQUIRED_OAUTH_SCOPES)}",
+        }
+    )
+    user.refresh_from_db()
+
+    # False because we now have all the required scopes
+    assert user.google_oauth2_token_is_missing_scopes is False
 
 
 @pytest.mark.django_db
