@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/routes/
 title: Routes HTTP API
-weight: 1100
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

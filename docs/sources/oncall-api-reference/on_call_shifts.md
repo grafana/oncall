@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/on_call_shifts/
 title: OnCall shifts HTTP API
-weight: 600
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

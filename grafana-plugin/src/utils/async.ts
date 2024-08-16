@@ -7,3 +7,5 @@ export const retryFailingPromises = async (
   maxAttempts === 0
     ? Promise.allSettled(asyncActions)
     : Promise.allSettled(asyncActions.map((asyncAction) => retry(asyncAction, { maxAttempts, delay: delayInMs })));
+
+export const waitInMs = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
