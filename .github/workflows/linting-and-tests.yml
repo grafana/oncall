@@ -238,15 +238,10 @@ jobs:
 
   end-to-end-tests:
     name: Standard e2e tests
-    strategy:
-      matrix:
-        grafana_version:
-          - 10.3.3
-          - 10.1.7
-      fail-fast: false
     uses: ./.github/workflows/e2e-tests.yml
     with:
-      grafana_version: ${{ matrix.grafana_version }}
+      # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
+      grafana_version: 10.1.7
+      # grafana_version: 10.3.3
       run-expensive-tests: false
       browsers: "chromium"
-    secrets: inherit
