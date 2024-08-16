@@ -29,6 +29,12 @@ def plugin_json():
         return plugin_file
     return 'NOT_A_PLUGIN'
 
+def extra_grafana_ini():
+  return {
+        "feature_toggles":
+            "enable": "externalServiceAccounts"
+  }
+
 
 allow_k8s_contexts(["kind-kind"])
 

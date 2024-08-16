@@ -151,6 +151,7 @@ jobs:
           E2E_TESTS_CMD: "cd ../../grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_VERSION: ${{ inputs.grafana_version }}
           GF_FEATURE_TOGGLES_ENABLE: "externalServiceAccounts"
+          ONCALL_API_URL: "http://oncall-dev-engine:8080"
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}
