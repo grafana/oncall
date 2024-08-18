@@ -289,8 +289,10 @@ The `/escalate` and `/incident` Slack commands have been deprecated. Use `/grafa
 
 The `/grafana-irm` Slack commands allow users and teams to respond to alert groups and collaborate on incidents directly from Slack.
 
-Tip: Use the 🤖 robot emoji Slack reaction to add important messages to the incident timeline.
+{{< admonition type="tip" >}}
+Use the 🤖 robot emoji Slack reaction to add important messages to the incident timeline.
 And use the 📝 memo emoji Slack reaction to add messages to the resolution notes.
+{{< /admonition >}}
 
 | Command                               | Description                          |
 |---------------------------------------|--------------------------------------|

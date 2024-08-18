@@ -26,9 +26,20 @@ refs:
       destination: /docs/oncall/<ONCALL_VERSION>/set-up/open-source/#slack-setup
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/#slack-setup
+  irm-slack:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/
 ---
 
 # Slack integration for Grafana OnCall
+
+{{< admonition type="warning" >}}
+The OnCall Slack app is now a Grafana IRM app with new incident management features. Migrate now to access the enhanced capabilities.
+
+Refer to the [Grafana IRM Slack integration](ref:irm-slack) documentation to learn more.
+{{< /admonition >}}
 
 The Slack integration for Grafana OnCall incorporates your Slack workspace directly into your incident response workflow
 to help your team focus on alert resolution with less friction.
