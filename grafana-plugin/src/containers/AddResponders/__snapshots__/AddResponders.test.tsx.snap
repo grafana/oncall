@@ -19,7 +19,7 @@ exports[`AddResponders should properly display the add responders button when hi
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -70,7 +70,7 @@ exports[`AddResponders should properly display the add responders button when hi
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -104,7 +104,7 @@ exports[`AddResponders should render properly in create mode 1`] = `
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -155,7 +155,7 @@ exports[`AddResponders should render properly in update mode 1`] = `
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -206,7 +206,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
             class="css-u023fv"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
             >
               Participants
             </span>
@@ -262,7 +262,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test team
                   </span>
@@ -311,7 +311,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test user3
                   </span>
@@ -420,7 +420,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test user
                   </span>
@@ -528,7 +528,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                   class="css-18qv8yz-layoutChildrenWrapper"
                 >
                   <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
                   >
                     my test user2
                   </span>
@@ -630,7 +630,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                 class="css-b9x8ok"
               >
                 <span
-                  class="css-77ouhj--primary css-77ouhj--medium css-1287p17"
+                  class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
                 >
                   <a
                     class="css-1cvxpvr"
@@ -639,7 +639,7 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                     target="_blank"
                   >
                     <span
-                      class="css-77ouhj--link css-77ouhj--medium css-1287p17"
+                      class="css-77ouhj--link css-77ouhj--medium css-1rchs6o--inline css-66w5es"
                     >
                       <div
                         class="css-ffyaiw-horizontal-group"

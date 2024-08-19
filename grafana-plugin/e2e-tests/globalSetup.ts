@@ -1,14 +1,12 @@
 import {
   test as setup,
   chromium,
-  expect,
-  type Page,
   type BrowserContext,
   type FullConfig,
   type APIRequestContext,
+  Page,
 } from '@playwright/test';
-
-import { getOnCallApiUrl } from 'utils/consts';
+import semver from 'semver';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -22,16 +20,9 @@ import {
   GRAFANA_VIEWER_USERNAME,
   IS_CLOUD,
   IS_OPEN_SOURCE,
+  OrgRole,
 } from './utils/constants';
-import { clickButton, getInputByName } from './utils/forms';
-import { goToGrafanaPage } from './utils/navigation';
-
-enum OrgRole {
-  None = 'None',
-  Viewer = 'Viewer',
-  Editor = 'Editor',
-  Admin = 'Admin',
-}
+import { goToOnCallPage } from './utils/navigation';
 
 type UserCreationSettings = {
   adminAuthedRequest: APIRequestContext;
@@ -64,45 +55,35 @@ const generateLoginStorageStateAndOptionallCreateUser = async (
   return browserContext;
 };
 
-/**
- go to config page and wait for plugin icon to be available on left-hand navigation
- */
-const configureOnCallPlugin = async (page: Page): Promise<void> => {
+const idempotentlyInitializePlugin = async (page: Page) => {
+  await goToOnCallPage(page, 'alert-groups');
+  await page.waitForTimeout(1000);
+  const openPluginConfigurationButton = page.getByRole('button', { name: 'Open configuration' });
+  if (await openPluginConfigurationButton.isVisible()) {
+    await openPluginConfigurationButton.click();
+    // Before 10.3 Admin user needs to create service account manually
+    if (semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.3.0')) {
+      await page.getByTestId('recreate-service-account').click();
+    }
+    await page.getByTestId('connect-plugin').click();
+    await page.waitForLoadState('networkidle');
+    await page.getByText('Plugin is connected').waitFor();
+  }
+};
+
+const determineGrafanaVersion = async (adminAuthedRequest: APIRequestContext) => {
   /**
-   * go to the oncall plugin configuration page and wait for the page to be loaded
-   */
-  await goToGrafanaPage(page, '/plugins/grafana-oncall-app');
-  await page.waitForTimeout(3000);
-
-  // if plugin is configured, go to OnCall
-  const isConfigured = (await page.getByText('Connected to OnCall').count()) >= 1;
-  if (isConfigured) {
-    await page.getByRole('link', { name: 'Open Grafana OnCall' }).click();
-    return;
-  }
-
-  // otherwise we may need to reconfigure the plugin
-  const needToReconfigure = (await page.getByText('try removing your plugin configuration').count()) >= 1;
-  if (needToReconfigure) {
-    await clickButton({ page, buttonText: 'Remove current configuration' });
-    await clickButton({ page, buttonText: /^Remove$/ });
-  }
-  await page.waitForTimeout(2000);
-
-  const needToEnterOnCallApiUrl = await page.getByText(/Connected to OnCall/).isHidden();
-  if (needToEnterOnCallApiUrl) {
-    await getInputByName(page, 'onCallApiUrl').fill(getOnCallApiUrl() || 'http://oncall-dev-engine:8080');
-    await clickButton({ page, buttonText: 'Connect' });
-  }
-
-  /**
-   * wait for the "Connected to OnCall" message to know that everything is properly configured
+   * determine the current Grafana version of the stack in question and set it such that it can be used in the tests
+   * to conditionally skip certain tests.
    *
-   * Regarding increasing the timeout for the "plugin configured" assertion:
-   * This is because it can sometimes take a bit longer for the backend sync to finish. The default assertion
-   * timeout is 5s, which is sometimes not enough if the backend is under load
+   * According to the Playwright docs, the best way to set config like this on the fly, is to set values
+   * on process.env https://playwright.dev/docs/test-global-setup-teardown#example
+   *
+   * TODO: when this bug is fixed in playwright https://github.com/microsoft/playwright/issues/29608
+   * move this to the currentGrafanaVersion fixture
    */
-  await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/, { timeout: 25_000 });
+  const currentGrafanaVersion = await grafanaApiClient.getGrafanaVersion(adminAuthedRequest);
+  process.env.CURRENT_GRAFANA_VERSION = currentGrafanaVersion;
 };
 
 /**
@@ -122,6 +103,10 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
   );
   const adminPage = await adminBrowserContext.newPage();
   const { request: adminAuthedRequest } = adminBrowserContext;
+
+  await determineGrafanaVersion(adminAuthedRequest);
+
+  await idempotentlyInitializePlugin(adminPage);
 
   await generateLoginStorageStateAndOptionallCreateUser(
     config,
@@ -146,24 +131,6 @@ setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
     },
     true
   );
-
-  if (IS_OPEN_SOURCE) {
-    // plugin configuration can safely be skipped for cloud environments
-    await configureOnCallPlugin(adminPage);
-  }
-
-  /**
-   * determine the current Grafana version of the stack in question and set it such that it can be used in the tests
-   * to conditionally skip certain tests.
-   *
-   * According to the Playwright docs, the best way to set config like this on the fly, is to set values
-   * on process.env https://playwright.dev/docs/test-global-setup-teardown#example
-   *
-   * TODO: when this bug is fixed in playwright https://github.com/microsoft/playwright/issues/29608
-   * move this to the currentGrafanaVersion fixture
-   */
-  const currentGrafanaVersion = await grafanaApiClient.getGrafanaVersion(adminAuthedRequest);
-  process.env.CURRENT_GRAFANA_VERSION = currentGrafanaVersion;
 
   await adminBrowserContext.close();
 });

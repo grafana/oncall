@@ -54,10 +54,10 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
         if allow_signup:
             # Get org from db or create a new one
             organization, _ = Organization.objects.get_or_create(
-                stack_id=str(instance_info["id"]),
+                stack_id=instance_info["id"],
                 stack_slug=instance_info["slug"],
                 grafana_url=instance_info["url"],
-                org_id=str(instance_info["orgId"]),
+                org_id=instance_info["orgId"],
                 org_slug=instance_info["orgSlug"],
                 org_title=instance_info["orgName"],
                 region_slug=instance_info["regionSlug"],

@@ -4,6 +4,8 @@
   "name": "Grafana OnCall",
   "id": "grafana-oncall-app",
   "preload": true,
+  "backend": true,
+  "executable": "gpx_grafana_oncall_app",
   "info": {
     "description": "Collect and analyze alerts, escalate based on schedules and deliver them to Slack, Phone Calls, SMS and others",
     "author": {
@@ -110,32 +112,6 @@
     }
   ],
   "routes": [
-    {
-      "path": "api/internal/v1/plugin/install",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/install",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"stack_id\": \"{{ printf \"%.0f\" .JsonData.stackId }}\", \"org_id\": \"{{ printf \"%.0f\" .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallApiToken }}"
-        }
-      ]
-    },
-    {
-      "path": "api/internal/v1/plugin/self-hosted/install",
-      "method": "*",
-      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/self-hosted/install",
-      "headers": [
-        {
-          "name": "X-Instance-Context",
-          "content": "{ \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
-        }
-      ]
-    },
     {
       "path": "api/internal/v1/*",
       "method": "*",
@@ -589,6 +565,118 @@
       "grants": []
     }
   ],
+  "iam": {
+    "permissions": [
+      {
+        "action": "alert.notifications:read"
+      },
+      {
+        "action": "alert.notifications:write"
+      },
+      {
+        "action": "dashboards:create",
+        "scope": "folders:*"
+      },
+      {
+        "action": "dashboards:read",
+        "scope": "dashboards:*"
+      },
+      {
+        "action": "dashboards:write",
+        "scope": "dashboards:*"
+      },
+      {
+        "action": "datasources:read",
+        "scope": "datasources:*"
+      },
+      {
+        "action": "folders:read",
+        "scope": "folders:*"
+      },
+      {
+        "action": "folders:write",
+        "scope": "folders:*"
+      },
+      {
+        "action": "org.users:read",
+        "scope": "users:*"
+      },
+      {
+        "action": "orgs:read"
+      },
+      {
+        "action": "plugins.app:access",
+        "scope": "plugins:id:grafana-oncall-app"
+      },
+      {
+        "action": "plugins.app:access",
+        "scope": "plugins:id:grafana-incident-app"
+      },
+      {
+        "action": "plugins.app:access",
+        "scope": "plugins:id:grafana-labels-app"
+      },
+      {
+        "action": "plugins:write",
+        "scope": "plugins:id:grafana-oncall-app"
+      },
+      {
+        "action": "roles:read",
+        "scope": "roles:*"
+      },
+      {
+        "action": "status:accesscontrol",
+        "scope": "services:accesscontrol"
+      },
+      {
+        "action": "serviceaccounts:create"
+      },
+      {
+        "action": "serviceaccounts:delete",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:permissions:read",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:permissions:write",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:read",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "serviceaccounts:write",
+        "scope": "serviceaccounts:*"
+      },
+      {
+        "action": "teams:read",
+        "scope": "teams:*"
+      },
+      {
+        "action": "teams.permissions:read",
+        "scope": "teams:*"
+      },
+      {
+        "action": "teams.roles:read",
+        "scope": "teams:*"
+      },
+      {
+        "action": "users:read",
+        "scope": "global.users:*"
+      },
+      {
+        "action": "users.permissions:read",
+        "scope": "users:id:*"
+      },
+      {
+        "action": "users.roles:read",
+        "scope": "users:*"
+      }
+    ]
+  },
   "dependencies": {
     "grafanaDependency": ">=9.2.0",
     "plugins": []
