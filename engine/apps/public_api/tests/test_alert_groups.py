@@ -447,10 +447,9 @@ def test_pagination(settings, alert_group_public_api_setup):
     token, alert_groups, _, _ = alert_group_public_api_setup
     client = APIClient()
 
-    url = reverse("api-public:alert_groups-list")
+    url = "{}?perpage=1".format(reverse("api-public:alert_groups-list"))
 
-    with patch("common.api_helpers.paginators.PathPrefixedPagePagination.get_page_size", return_value=1):
-        response = client.get(url, HTTP_AUTHORIZATION=token)
+    response = client.get(url, HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_200_OK
     result = response.json()
