@@ -94,21 +94,18 @@ jobs:
           echo "PLAYWRIGHT_VERSION=$(cat ./package.json |
           jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_ENV
 
-      # - name: Cache Playwright binaries/dependencies
-      #   id: playwright-cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: "~/.cache/ms-playwright"
-      #     key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
+      - name: Cache Playwright binaries/dependencies
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: "~/.cache/ms-playwright"
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
       - name: Create cluster
         run: make cluster/up
 
       - name: Install Playwright deps
-        # uses: docker://mcr.microsoft.com/playwright:v1.46.0-jammy
-        shell: bash
-        working-directory: grafana-plugin
-        run: yarn playwright install
+        uses: docker://mcr.microsoft.com/playwright:v1.46.0-jammy
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
