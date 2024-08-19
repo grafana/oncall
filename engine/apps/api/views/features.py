@@ -15,6 +15,7 @@ from apps.labels.utils import is_labels_feature_enabled
 class Feature(enum.StrEnum):
     MSTEAMS = "msteams"
     SLACK = "slack"
+    UNIFIED_SLACK = "unified_slack"
     TELEGRAM = "telegram"
     LIVE_SETTINGS = "live_settings"
     GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
@@ -45,6 +46,9 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
             enabled_features.append(Feature.SLACK)
+
+        if settings.UNIFIED_SLACK_APP_ENABLED:
+            enabled_features.append(Feature.UNIFIED_SLACK)
 
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             enabled_features.append(Feature.TELEGRAM)

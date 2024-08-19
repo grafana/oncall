@@ -10,6 +10,9 @@ keywords:
   - MS Teams
   - Microsoft
   - Channels
+labels:
+  products:
+    - cloud
 canonical: https://grafana.com/docs/oncall/latest/manage/notify/ms-teams/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/ms-teams/
@@ -35,7 +38,7 @@ The following is required to connect to Microsoft Teams to Grafana OnCall:
 
 - You must have Admin permissions in your Grafana Cloud instance.
 - You must have Owner permissions in Microsoft Teams.
-- Install the Grafana OnCall app from the [Microsoft Marketplace](https://appsource.microsoft.com/en-us/product/office/WA200004307).
+- Install the Grafana IRM app from the [Microsoft Marketplace](https://appsource.microsoft.com/en-us/product/office/WA200004307).
 
 ## Install Microsoft Teams integration for Grafana OnCall
 

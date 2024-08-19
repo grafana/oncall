@@ -680,3 +680,11 @@ def test_get_cached_oncall_users_for_multiple_schedules(
         schedule2: [users[2], users[3]],
         schedule3: [users[4], users[5]],
     }
+
+    # scenario: schedule is deleted but still in cache
+    schedule1.delete()
+    results = get_cached_oncall_users_for_multiple_schedules(schedules)
+    assert results == {
+        schedule2: [users[2], users[3]],
+        schedule3: [users[4], users[5]],
+    }

@@ -109,13 +109,11 @@ jobs:
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
-        if: inputs.run-expensive-tests
         uses: actions/setup-go@v4
         with:
           go-version: "1.21.5"
 
       - name: Install Mage
-        if: inputs.run-expensive-tests
         run: go install github.com/magefile/mage@v1.15.0
 
       - name: Get Vault secrets
@@ -146,12 +144,14 @@ jobs:
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
 
-      - name: Tilt CI - standard and expensive E2E tests
+      - name: Tilt CI - Expensive E2E tests
         if: inputs.run-expensive-tests
         shell: bash
         env:
-          E2E_TESTS_CMD: "cd grafana-plugin && yarn test:e2e-expensive"
+          E2E_TESTS_CMD: "cd ../../grafana-plugin && yarn test:e2e-expensive"
           GRAFANA_VERSION: ${{ inputs.grafana_version }}
+          GF_FEATURE_TOGGLES_ENABLE: "externalServiceAccounts"
+          ONCALL_API_URL: "http://oncall-dev-engine:8080"
           GRAFANA_ADMIN_USERNAME: "irm"
           GRAFANA_ADMIN_PASSWORD: "irm"
           BROWSERS: ${{ inputs.browsers }}

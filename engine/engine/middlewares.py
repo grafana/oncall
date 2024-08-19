@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class RequestTimeLoggingMiddleware(MiddlewareMixin):
     @staticmethod
     def log_message(request, response, tag, message=""):
-        dt = datetime.datetime.utcnow()
+        dt = datetime.datetime.now(datetime.UTC)
         if not hasattr(request, "_logging_start_dt"):
             request._logging_start_dt = dt
             if request.path.startswith("/integrations/v1"):

@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Badge, BadgeColor, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -32,14 +32,16 @@ import { getRotationsStyles } from './Rotations.styles';
 
 import animationStyles from './Rotations.module.css';
 
-interface SchedulePersonalProps extends RouteComponentProps {
+interface SchedulePersonalProps {
   userPk: ApiSchemas['User']['pk'];
   onSlotClick?: (event: Event) => void;
   theme: GrafanaTheme2;
 }
 
-const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick, history }) => {
+const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotClick }) => {
   const store = useStore();
+  const navigate = useNavigate();
+
   const { timezoneStore, scheduleStore, userStore } = store;
   const updatePersonalEventsLoading = useIsLoading(ActionKey.UPDATE_PERSONAL_EVENTS);
 
@@ -77,7 +79,7 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   };
 
   const openSchedule = (event: Event) => {
-    history.push(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
+    navigate(`${PLUGIN_ROOT}/schedules/${event.schedule?.id}`);
   };
 
   const currentTimeX = getCurrentTimeX(
@@ -172,4 +174,4 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   );
 });
 
-export const SchedulePersonal = withRouter(withTheme2(_SchedulePersonal));
+export const SchedulePersonal = withTheme2(_SchedulePersonal);

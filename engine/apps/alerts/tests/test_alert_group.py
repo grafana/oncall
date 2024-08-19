@@ -589,6 +589,24 @@ def test_alert_group_get_paged_users(
     assert len(paged_users) == 1
     assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
 
+    # user was paged and then paged again, then unpaged - they should not show up
+    alert_group = make_alert_group(alert_receive_channel)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+
+    paged_users = alert_group.get_paged_users()
+    assert len(paged_users) == 0
+
+    # adding extra unpage events should not break things
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+    _make_log_record(alert_group, user, AlertGroupLogRecord.TYPE_DIRECT_PAGING)
+
+    paged_users = alert_group.get_paged_users()
+    assert len(paged_users) == 1
+    assert alert_group.get_paged_users()[0]["pk"] == user.public_primary_key
+
 
 @patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
 @pytest.mark.django_db

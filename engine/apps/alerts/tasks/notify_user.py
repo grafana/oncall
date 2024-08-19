@@ -583,6 +583,7 @@ def send_bundled_notification(user_notification_bundle_id: int):
         active_alert_group_ids: typing.Set[int] = set()
         log_record_notification_triggered = None
         is_notification_allowed = user_notification_bundle.user.is_notification_allowed
+        bundle_uuid = uuid4()
 
         # create logs
         for notification in notifications:
@@ -609,10 +610,18 @@ def send_bundled_notification(user_notification_bundle_id: int):
                 author=user_notification_bundle.user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
                 alert_group=notification.alert_group,
+                notification_policy=notification.notification_policy,
                 notification_step=UserNotificationPolicy.Step.NOTIFY,
                 notification_channel=user_notification_bundle.notification_channel,
             )
             log_records_to_create.append(log_record_notification_triggered)
+
+        # delete non-active notifications and update bundle_uuid for the rest notifications
+        if not is_notification_allowed:
+            notifications.delete()
+        else:
+            notifications.filter(id__in=skip_notification_ids).delete()
+            notifications.update(bundle_uuid=bundle_uuid)
 
         if len(log_records_to_create) == 1 and log_record_notification_triggered:
             # perform regular notification
@@ -626,9 +635,9 @@ def send_bundled_notification(user_notification_bundle_id: int):
                     schedule_perform_notification_task,
                     log_record_notification_triggered.pk,
                     log_record_notification_triggered.alert_group_id,
+                    False,
                 )
             )
-            notifications.delete()
         else:
             UserNotificationPolicyLogRecord.objects.bulk_create(log_records_to_create, batch_size=5000)
 
@@ -637,11 +646,7 @@ def send_bundled_notification(user_notification_bundle_id: int):
                     f"no alert groups to notify about or notification is not allowed for user "
                     f"{user_notification_bundle.user_id}"
                 )
-                notifications.delete()
             else:
-                notifications.filter(id__in=skip_notification_ids).delete()
-                bundle_uuid = uuid4()
-                notifications.update(bundle_uuid=bundle_uuid)
                 task_logger.info(
                     f"perform bundled notification for alert groups with ids: {active_alert_group_ids}, "
                     f"bundle_uuid: {bundle_uuid}"

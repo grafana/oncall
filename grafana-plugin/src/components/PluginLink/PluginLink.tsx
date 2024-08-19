@@ -3,7 +3,7 @@ import React, { FC, useCallback, useMemo } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { bem } from 'styles/utils.styles';
 
 import { getPathFromQueryParams } from 'utils/url';

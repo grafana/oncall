@@ -334,7 +334,7 @@ def test_get_connected_contact_points_from_config(
             },
             {
                 "name": ALERTMANAGER_INACTIVE_RECEIVER_CONNECTED,
-                "notification_connected": False,
+                "notification_connected": True,
             },
         ]
         if alertmanager_config

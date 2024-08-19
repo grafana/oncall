@@ -1,5 +1,6 @@
 export enum AppFeature {
   Slack = 'slack',
+  UnifiedSlack = 'unified_slack',
   Telegram = 'telegram',
   LiveSettings = 'live_settings',
   CloudNotifications = 'grafana_cloud_notifications',

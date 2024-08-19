@@ -15,6 +15,17 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack/
   - ../../chat-options/configure-slack/ # /docs/oncall/<ONCALL_VERSION>/chat-options/configure-slack/
   - ../../notify/slack/ # /docs/oncall/<ONCALL_VERSION>/notify/slack/
+refs:
+  page-people-manually:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/manual/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/manual/
+  slack-setup:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/set-up/open-source/#slack-setup
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/#slack-setup
 ---
 
 # Slack integration for Grafana OnCall
@@ -31,7 +42,7 @@ can take directly from Slack, including acknowledge, resolve, add resolution not
 To install the Slack integration, you must have Admin permissions in your Grafana instance as well as the Slack workspace
 that you’d like to integrate with.
 
-For Open Source Grafana OnCall Slack installation guidance, refer to [Slack setup][].
+For Open Source Grafana OnCall Slack installation guidance, refer to [Slack setup](ref:slack-setup).
 
 ## Install Slack integration for Grafana OnCall
 
@@ -111,6 +122,8 @@ This set of permissions is supporting the ability of Grafana OnCall to match use
   (deprecated) slack commands.
 - **Create and manage user groups** — the permission is used to automatically update user groups linked to on-call
   schedules. It will add users once their on-call shift starts and remove them once the on-call shift ends.
+  - **NOTE**: per [Slack's documentation](https://slack.com/help/articles/212906697-Create-a-user-group), you must have
+  a paid plan for this feature to work properly
 - **Set presence for Grafana OnCall**
 
 ## Post-install configuration for Slack integration
@@ -175,7 +188,7 @@ Use `/escalate` to page a team (and additional responders) directly from Slack.
 
 It's also possible to page additional responders for an existing alert group. To do so, use the "Responders" button
 in the alert group message.
-To manually page people, refer to [Page people manually][].
+To manually page people, refer to [Page people manually](ref:page-people-manually).
 
 ### Slack `/oncall` command
 
@@ -197,11 +210,3 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 1. Hover over the message and select **More actions** from the menu options.
 1. Select **Add as resolution note**.
 1. The Grafana OnCall app will react to the message in Slack with the memo emoji and add the message to the alert group timeline.
-
-{{% docs/reference %}}
-[Slack setup]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/set-up/open-source#slack-setup"
-[Slack setup]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source#slack-setup"
-
-[Page people manually]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/integrations/manual"
-[Page people manually]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/manual"
-{{% /docs/reference %}}

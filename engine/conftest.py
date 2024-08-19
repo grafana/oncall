@@ -63,6 +63,7 @@ from apps.base.tests.factories import (
     UserNotificationPolicyLogRecordFactory,
 )
 from apps.email.tests.factories import EmailMessageFactory
+from apps.google import constants as google_constants
 from apps.google.tests.factories import GoogleOAuth2UserFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.labels.tests.factories import (
@@ -313,9 +314,11 @@ def make_user_auth_headers():
         token,
         grafana_token: typing.Optional[str] = None,
         grafana_context_data: typing.Optional[typing.Dict] = None,
+        organization=None,
     ):
-        instance_context_headers = {"stack_id": user.organization.stack_id, "org_id": user.organization.org_id}
-        grafana_context_headers = {"UserId": user.user_id}
+        org = organization or user.organization
+        instance_context_headers = {"stack_id": org.stack_id, "org_id": org.org_id}
+        grafana_context_headers = {"UserId": user.user_id if user else None}
         if grafana_token is not None:
             instance_context_headers["grafana_token"] = grafana_token
         if grafana_context_data is not None:
@@ -1075,8 +1078,9 @@ def make_webhook_label_association(make_label_key_and_value):
 
 @pytest.fixture
 def make_google_oauth2_user_for_user():
-    def _make_google_oauth2_user_for_user(user):
-        return GoogleOAuth2UserFactory(user=user)
+    def _make_google_oauth2_user_for_user(user, **kwargs):
+        oauth_scope = kwargs.pop("oauth_scope", " ".join(google_constants.REQUIRED_OAUTH_SCOPES))
+        return GoogleOAuth2UserFactory(user=user, oauth_scope=oauth_scope, **kwargs)
 
     return _make_google_oauth2_user_for_user
 

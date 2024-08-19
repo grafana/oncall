@@ -18,7 +18,7 @@
 
 .slack-infoblock {
   text-align: center;
-  width: 725px;
+  width: 100%;
 }
 
 .external-link-style {
@@ -33,9 +33,31 @@
 .infoblock-text {
   margin-left: 48px;
   margin-right: 48px;
+}
+
+.marginTop {
   margin-top: 24px;
 }
 
-.infoblock-icon {
-  margin-top: 24px;
+.upgradeSlackBtn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.upgradeSlackAlertText {
+  margin-right: 110px;
+
+  a {
+    font-weight: 600;
+  }
+}
+
+.linkToIncidentWrapper {
+  margin-top: 16px;
+}
+
+.confirmUninstallModal input {
+  min-width: 300px;
 }

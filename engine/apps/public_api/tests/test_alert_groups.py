@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -39,10 +40,20 @@ def construct_expected_response_from_alert_groups(alert_groups):
             if u is not None:
                 return u.public_primary_key
 
+        labels = []
+        for label in alert_group.labels.all():
+            labels.append(
+                {
+                    "key": {"id": label.key_name, "name": label.key_name},
+                    "value": {"id": label.value_name, "name": label.value_name},
+                }
+            )
+
         results.append(
             {
                 "id": alert_group.public_primary_key,
                 "integration_id": alert_group.channel.public_primary_key,
+                "team_id": alert_group.channel.team.public_primary_key if alert_group.channel.team else None,
                 "route_id": alert_group.channel_filter.public_primary_key,
                 "alerts_count": alert_group.alerts.count(),
                 "state": alert_group.state,
@@ -52,6 +63,7 @@ def construct_expected_response_from_alert_groups(alert_groups):
                 "acknowledged_by": user_pk_or_none(alert_group, "acknowledged_by_user"),
                 "resolved_by": user_pk_or_none(alert_group, "resolved_by_user"),
                 "title": None,
+                "labels": labels,
                 "permalinks": {
                     "slack": None,
                     "slack_app": None,
@@ -62,7 +74,7 @@ def construct_expected_response_from_alert_groups(alert_groups):
             }
         )
     return {
-        "count": alert_groups.count(),
+        "count": len(alert_groups),
         "next": None,
         "previous": None,
         "results": results,
@@ -75,15 +87,17 @@ def construct_expected_response_from_alert_groups(alert_groups):
 @pytest.fixture()
 def alert_group_public_api_setup(
     make_organization_and_user_with_token,
+    make_team,
     make_alert_receive_channel,
     make_channel_filter,
     make_alert_group,
     make_alert,
 ):
     organization, user, token = make_organization_and_user_with_token()
+    team = make_team(organization)
     grafana = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA)
     formatted_webhook = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_FORMATTED_WEBHOOK
+        organization, integration=AlertReceiveChannel.INTEGRATION_FORMATTED_WEBHOOK, team=team
     )
 
     grafana_default_route = make_channel_filter(grafana, is_default=True)
@@ -167,6 +181,25 @@ def test_get_alert_groups(alert_group_public_api_setup):
 
 
 @pytest.mark.django_db
+def test_get_alert_groups_include_labels(alert_group_public_api_setup, make_alert_group_label_association):
+    token, _, _, _ = alert_group_public_api_setup
+    alert_groups = AlertGroup.objects.all().order_by("-started_at")
+    alert_group_0 = alert_groups[0]
+    organization = alert_group_0.channel.organization
+    # set labels for the first alert group
+    make_alert_group_label_association(organization, alert_group_0, key_name="a", value_name="b")
+
+    client = APIClient()
+    expected_response = construct_expected_response_from_alert_groups(alert_groups)
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
 def test_get_alert_groups_filter_by_integration(
     alert_group_public_api_setup,
 ):
@@ -183,6 +216,54 @@ def test_get_alert_groups_filter_by_integration(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_alert_groups_filter_by_team(alert_group_public_api_setup):
+    token, alert_groups, integrations, _ = alert_group_public_api_setup
+
+    for integration in integrations:
+        team_id = integration.team.public_primary_key if integration.team else "null"
+        alert_groups = AlertGroup.objects.filter(channel=integration).order_by("-started_at")
+        expected_response = construct_expected_response_from_alert_groups(alert_groups)
+
+        client = APIClient()
+        url = reverse("api-public:alert_groups-list")
+        response = client.get(url + f"?team_id={team_id}", format="json", HTTP_AUTHORIZATION=token)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_alert_groups_filter_by_started_at(alert_group_public_api_setup):
+    token, alert_groups, _, _ = alert_group_public_api_setup
+    now = timezone.now()
+    # set custom started_at dates
+    for i, alert_group in enumerate(alert_groups):
+        # alert groups starting every 10 days going back
+        alert_group.started_at = now - timezone.timedelta(days=10 * i + 1)
+        alert_group.save(update_fields=["started_at"])
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-list")
+    ranges = (
+        # start, end, expected
+        (now - timezone.timedelta(days=1), now, [alert_groups[0]]),
+        (now - timezone.timedelta(days=12), now, [alert_groups[0], alert_groups[1]]),
+        (now - timezone.timedelta(days=12), now - timezone.timedelta(days=5), [alert_groups[1]]),
+        (now - timezone.timedelta(days=32), now, alert_groups),
+    )
+
+    for range_start, range_end, expected_alert_groups in ranges:
+        started_at_q = "?started_at={}_{}".format(
+            range_start.strftime("%Y-%m-%dT%H:%M:%S"), range_end.strftime("%Y-%m-%dT%H:%M:%S")
+        )
+        response = client.get(url + started_at_q, format="json", HTTP_AUTHORIZATION=token)
+
+        expected_response = construct_expected_response_from_alert_groups(expected_alert_groups)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == expected_response
 
 
 @pytest.mark.django_db
@@ -309,6 +390,28 @@ def test_get_alert_groups_filter_by_route_no_result(
     assert response.json()["results"] == []
 
 
+@pytest.mark.django_db
+def test_get_alert_groups_filter_by_labels(
+    alert_group_public_api_setup,
+    make_alert_group_label_association,
+):
+    token, alert_groups, _, _ = alert_group_public_api_setup
+
+    organization = alert_groups[0].channel.organization
+    make_alert_group_label_association(organization, alert_groups[0], key_name="a", value_name="b")
+    make_alert_group_label_association(organization, alert_groups[0], key_name="c", value_name="d")
+    make_alert_group_label_association(organization, alert_groups[1], key_name="a", value_name="b")
+    make_alert_group_label_association(organization, alert_groups[2], key_name="c", value_name="d")
+    expected_response = construct_expected_response_from_alert_groups([alert_groups[0]])
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + "?label=a:b&label=c:d", format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
 @pytest.mark.parametrize(
     "data,task,status_code",
     [
@@ -344,10 +447,9 @@ def test_pagination(settings, alert_group_public_api_setup):
     token, alert_groups, _, _ = alert_group_public_api_setup
     client = APIClient()
 
-    url = reverse("api-public:alert_groups-list")
+    url = "{}?perpage=1".format(reverse("api-public:alert_groups-list"))
 
-    with patch("common.api_helpers.paginators.PathPrefixedPagePagination.get_page_size", return_value=1):
-        response = client.get(url, HTTP_AUTHORIZATION=token)
+    response = client.get(url, HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_200_OK
     result = response.json()

@@ -242,7 +242,7 @@ class AlertReceiveChannelView(
             )
 
         # distinct to remove duplicates after alert_receive_channels X labels join
-        queryset = queryset.distinct()
+        queryset = queryset.distinct().order_by("id")
 
         return queryset
 
@@ -474,6 +474,7 @@ class AlertReceiveChannelView(
         api_root = "/api/internal/v1/"
 
         filter_options = [
+            {"name": "search", "type": "search"},
             {
                 "name": "team",
                 "type": "team_select",

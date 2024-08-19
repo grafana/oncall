@@ -9,6 +9,7 @@ from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
 from .views.channel_filter import ChannelFilterView
+from .views.direct_paging import DirectPagingAPIView
 from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
@@ -23,7 +24,6 @@ from .views.organization import (
     OrganizationConfigChecksView,
     SetGeneralChannel,
 )
-from .views.paging import DirectPagingAPIView
 from .views.preview_template_options import PreviewTemplateOptionsView
 from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView

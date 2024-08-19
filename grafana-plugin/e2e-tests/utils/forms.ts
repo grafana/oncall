@@ -25,6 +25,7 @@ type ClickButtonArgs = {
   buttonText: string | RegExp;
   // if provided, use this Locator as the root of our search for the button
   startingLocator?: Locator;
+  exact?: boolean;
 };
 
 export const fillInInput = (page: Page, selector: string, value: string) => page.fill(selector, value);
@@ -34,9 +35,9 @@ export const fillInInputByPlaceholderValue = (page: Page, placeholderValue: stri
 
 export const getInputByName = (page: Page, name: string): Locator => page.locator(`input[name="${name}"]`);
 
-export const clickButton = async ({ page, buttonText, startingLocator }: ClickButtonArgs): Promise<void> => {
+export const clickButton = async ({ page, buttonText, startingLocator, exact }: ClickButtonArgs): Promise<void> => {
   const baseLocator = startingLocator || page;
-  await baseLocator.getByRole('button', { name: buttonText, disabled: false }).click();
+  await baseLocator.getByRole('button', { name: buttonText, disabled: false, exact }).click();
 };
 
 /**
