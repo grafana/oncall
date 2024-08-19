@@ -79,20 +79,20 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
           <a href="https://appsource.microsoft.com/en-us/product/office/WA200004307" target="_blank" rel="noreferrer">
             <Text type="link">MS Teams marketplace</Text>
           </a>{' '}
-          and add <Text type="primary">Grafana OnCall app</Text> to your MS Teams org workspace.{' '}
+          and add <Text type="primary">Grafana IRM app</Text> to your MS Teams org workspace.{' '}
         </Text>
       )}
       <Text type="secondary">
         {!onCallisAdded ? 2 : 1}.{' '}
         {personalSettings ? (
           <Text type="secondary">
-            Send a direct message to the Grafana OnCall bot using <Text type="primary">⁠linkUser</Text> command with
+            Send a direct message to the Grafana IRM bot using <Text type="primary">⁠linkUser</Text> command with
             following code:
           </Text>
         ) : (
           <Text type="secondary">
-            Add OnCall bot to your team channel and send this code by{' '}
-            <Text type="primary">@Grafana OnCall linkTeam</Text> command
+            Add IRM bot to your team channel and send this code by <Text type="primary">@Grafana IRM linkTeam</Text>{' '}
+            command
           </Text>
         )}
         <Field className={cx('field-command')}>

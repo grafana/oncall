@@ -17,11 +17,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import { CollapsibleTreeView, CollapsibleItem } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
-import {
-  IntegrationCollapsibleTreeView,
-  IntegrationCollapsibleItem,
-} from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
@@ -164,7 +161,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     const hasLabels = store.hasFeature(AppFeature.Labels);
     const escChainDisplayName = escalationChainStore.items[channelFilter.escalation_chain]?.name;
     const getTreeViewElements = () => {
-      const configs: IntegrationCollapsibleItem[] = [
+      const configs: CollapsibleItem[] = [
         {
           isHidden: false,
           isCollapsible: false,
@@ -390,11 +387,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
             </div>
           }
           content={
-            <IntegrationCollapsibleTreeView
-              configElements={getTreeViewElements()}
-              isRouteView
-              startingElemPosition="0%"
-            />
+            <CollapsibleTreeView configElements={getTreeViewElements() as any} isRouteView startingElemPosition="0%" />
           }
         />
         {routeIdForDeletion && (

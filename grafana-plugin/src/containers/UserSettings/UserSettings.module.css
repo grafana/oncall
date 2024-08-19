@@ -8,3 +8,18 @@
   width: calc(100% - var(--spacing) * 2); /* allow lateral spacing */
   max-width: 1100px;
 }
+
+.alerts-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  gap: 10px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.alert {
+  margin: 0;
+}

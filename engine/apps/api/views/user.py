@@ -127,6 +127,7 @@ class CachedSchedulesContextMixin:
         return context
 
 
+@extend_schema(responses={status.HTTP_200_OK: CurrentUserSerializer})
 class CurrentUserView(APIView, CachedSchedulesContextMixin):
     authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated,)

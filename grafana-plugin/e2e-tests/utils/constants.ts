@@ -11,4 +11,11 @@ export const GRAFANA_ADMIN_PASSWORD = process.env.GRAFANA_ADMIN_PASSWORD || 'onc
 export const IS_OPEN_SOURCE = (process.env.IS_OPEN_SOURCE || 'true').toLowerCase() === 'true';
 export const IS_CLOUD = !IS_OPEN_SOURCE;
 
+export enum OrgRole {
+  None = 'None',
+  Viewer = 'Viewer',
+  Editor = 'Editor',
+  Admin = 'Admin',
+}
+
 export const MOSCOW_TIMEZONE = 'Europe/Moscow';

@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/personal_notification_rules/
 title: Personal notification rules HTTP API
-weight: 800
+weight: 0
 refs:
   pagination:
     - pattern: /docs/oncall/

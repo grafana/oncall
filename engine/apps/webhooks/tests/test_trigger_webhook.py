@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.alerts.models import AlertGroupExternalID, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
-from apps.public_api.serializers import IncidentSerializer
+from apps.public_api.serializers import AlertGroupSerializer
 from apps.webhooks.models import Webhook
 from apps.webhooks.models.webhook import WebhookSession
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
@@ -408,7 +408,7 @@ def test_execute_webhook_ok_forward_all(
                 "email": notified_user.email,
             }
         ],
-        "alert_group": {**IncidentSerializer(alert_group).data, "labels": {}},
+        "alert_group": {**AlertGroupSerializer(alert_group).data, "labels": {}},
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
         "users_to_be_notified": [],
@@ -516,7 +516,7 @@ def test_execute_webhook_ok_forward_all_resolved(
                 "email": notified_user.email,
             }
         ],
-        "alert_group": {**IncidentSerializer(alert_group).data, "labels": {}},
+        "alert_group": {**AlertGroupSerializer(alert_group).data, "labels": {}},
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
         "users_to_be_notified": [],

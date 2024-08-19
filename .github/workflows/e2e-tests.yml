@@ -109,13 +109,11 @@ jobs:
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
-        if: inputs.run-expensive-tests
         uses: actions/setup-go@v4
         with:
           go-version: "1.21.5"
 
       - name: Install Mage
-        if: inputs.run-expensive-tests
         run: go install github.com/magefile/mage@v1.15.0
 
       - name: Get Vault secrets

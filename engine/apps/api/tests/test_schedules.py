@@ -612,7 +612,7 @@ def test_get_detail_schedule_oncall_now_multipage_objects(
                 "pk": user.public_primary_key,
                 "username": user.username,
                 "avatar": user.avatar_url,
-                "avatar_full": user.avatar_full_url,
+                "avatar_full": user.avatar_full_url(organization),
             }
         ],
         "has_gaps": False,
@@ -916,7 +916,7 @@ def test_events_calendar(
                         "display_name": user.username,
                         "pk": user.public_primary_key,
                         "email": user.email,
-                        "avatar_full": user.avatar_full_url,
+                        "avatar_full": user.avatar_full_url(organization),
                     },
                 ],
                 "missing_users": [],
@@ -989,7 +989,7 @@ def test_filter_events_calendar(
                         "display_name": user.username,
                         "pk": user.public_primary_key,
                         "email": user.email,
-                        "avatar_full": user.avatar_full_url,
+                        "avatar_full": user.avatar_full_url(organization),
                     },
                 ],
                 "missing_users": [],
@@ -1014,7 +1014,7 @@ def test_filter_events_calendar(
                         "display_name": user.username,
                         "pk": user.public_primary_key,
                         "email": user.email,
-                        "avatar_full": user.avatar_full_url,
+                        "avatar_full": user.avatar_full_url(organization),
                     }
                 ],
                 "missing_users": [],
@@ -1106,7 +1106,7 @@ def test_filter_events_range_calendar(
                         "display_name": user.username,
                         "pk": user.public_primary_key,
                         "email": user.email,
-                        "avatar_full": user.avatar_full_url,
+                        "avatar_full": user.avatar_full_url(organization),
                     },
                 ],
                 "missing_users": [],
@@ -1197,7 +1197,7 @@ def test_filter_events_overrides(
                         "display_name": other_user.username,
                         "pk": other_user.public_primary_key,
                         "email": other_user.email,
-                        "avatar_full": other_user.avatar_full_url,
+                        "avatar_full": other_user.avatar_full_url(organization),
                     }
                 ],
                 "missing_users": [],
@@ -1395,7 +1395,7 @@ def test_filter_swap_requests(
                 "display_name": u.username,
                 "email": u.email,
                 "pk": u.public_primary_key,
-                "avatar_full": u.avatar_full_url,
+                "avatar_full": u.avatar_full_url(organization),
             }
 
     expected = [

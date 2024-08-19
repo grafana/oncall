@@ -4,8 +4,6 @@ import { contextSrv } from 'grafana/app/core/core';
 
 import { getPluginId } from 'utils/consts';
 
-const ONCALL_PERMISSION_PREFIX = getPluginId();
-
 export type UserAction = {
   permission: string;
   fallbackMinimumRoleRequired: OrgRole;
@@ -112,7 +110,7 @@ export const generateMissingPermissionMessage = (permission: UserAction): string
   `You are missing the ${determineRequiredAuthString(permission)}`;
 
 export const generatePermissionString = (resource: Resource, action: Action, includePrefix: boolean): string =>
-  `${includePrefix ? `${ONCALL_PERMISSION_PREFIX}.` : ''}${resource}:${action}`;
+  `${includePrefix ? `${getPluginId()}.` : ''}${resource}:${action}`;
 
 const constructAction = (
   resource: Resource,

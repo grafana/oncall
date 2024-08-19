@@ -28,9 +28,9 @@ import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
 import { OnCallPluginExtensionPoints } from 'types';
 
-import errorSVG from 'assets/img/error.svg';
 import { Collapse } from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
+import { FullPageError } from 'components/FullPageError/FullPageError';
 import { Block } from 'components/GBlock/Block';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { PageErrorHandlingWrapper, PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -889,14 +889,11 @@ function AttachedIncidentsList({
 const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
   const styles = useStyles2(getIncidentStyles);
   return (
-    <div className={styles.alertGroupStub}>
-      <VerticalGroup align="center" spacing="md">
-        <img src={errorSVG} alt="" />
-        <Text.Title level={3}>An unexpected error happened</Text.Title>
-        <Text type="secondary">
-          OnCall is not able to receive any information about the current Alert Group. It's unknown if it's firing,
-          acknowledged, silenced, or resolved.
-        </Text>
+    <FullPageError
+      subtitle="OnCall is not able to receive any information about the current Alert Group. It's unknown if it's firing,
+          acknowledged, silenced, or resolved."
+    >
+      <>
         <div className={styles.alertGroupStubDivider}>
           <Divider />
         </div>
@@ -904,8 +901,8 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
         <HorizontalGroup wrap justify="center">
           {buttons}
         </HorizontalGroup>
-      </VerticalGroup>
-    </div>
+      </>
+    </FullPageError>
   );
 };
 

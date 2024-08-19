@@ -151,7 +151,7 @@ def _extract_users_from_escalation_snapshot(escalation_snapshot):
 
 def serialize_event(event, alert_group, user, webhook, responses=None):
     from apps.alerts.models import AlertGroupExternalID
-    from apps.public_api.serializers import IncidentSerializer
+    from apps.public_api.serializers import AlertGroupSerializer
 
     alert_payload = alert_group.alerts.first()
     alert_payload_raw = ""
@@ -161,7 +161,7 @@ def serialize_event(event, alert_group, user, webhook, responses=None):
     data = {
         "event": event,
         "user": _serialize_event_user(user),
-        "alert_group": IncidentSerializer(alert_group).data,
+        "alert_group": AlertGroupSerializer(alert_group).data,
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": alert_payload_raw,
         "integration": {
