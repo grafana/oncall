@@ -47,7 +47,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { PLUGIN_ROOT } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
-import { getCalendarStartDate, getNewCalendarStartDate, toDateWithTimezoneOffset } from './Schedule.helpers';
+import { getCalendarStartDate, getNewCalendarStartDate, getUTCString, toDateWithTimezoneOffset } from './Schedule.helpers';
 import { getScheduleStyles } from './Schedule.styles';
 
 interface RouteProps {
@@ -681,8 +681,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       : swapStart.add(1, 'day');
 
     const params = {
-      swap_start: swapStart.format(),
-      swap_end: swapEnd.format(),
+      swap_start: getUTCString(swapStart),
+      swap_end: getUTCString(swapEnd),
     };
 
     if (!filters.users.includes(currentUserPk)) {
