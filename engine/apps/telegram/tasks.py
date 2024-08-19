@@ -145,8 +145,6 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
             message_type=TelegramMessage.ACTIONS_MESSAGE
         ).exists()
 
-        print(f"YOOOO log_message_sent: {log_message_sent} actions_message_sent: {actions_message_sent} channel_chat_id: {channel_chat_id} group_chat_id: {group_chat_id} alert_group: {alert_group} reply_to_message_id: {reply_to_message_id}")
-
         telegram_client = TelegramClient()
         with OkToRetry(
             task=self, exc=(error.RetryAfter, error.TimedOut), compute_countdown=lambda e: getattr(e, "retry_after", 3)
@@ -169,7 +167,7 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
             except error.BadRequest as e:
                 if e.message in [
                     TelegramClient.BadRequestMessage.CHAT_NOT_FOUND,
-                    TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND
+                    TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND,
                 ]:
                     logger.warning(
                         f"Could not send log and actions messages to Telegram group with id {group_chat_id} "

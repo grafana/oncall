@@ -29,7 +29,9 @@ class TelegramToUserConnector(models.Model):
         USER_WAS_DISABLED = "Telegram user was disabled"
         INVALID_TOKEN = "Invalid token"
         BOT_BLOCKED_BY_USER = "Bot was blocked by the user"
-        FORMATTING_ERROR_IN_RENDERED_TEMPLATE = "Notification sent but there was a formatting error in the rendered template"
+        FORMATTING_ERROR_IN_RENDERED_TEMPLATE = (
+            "Notification sent but there was a formatting error in the rendered template"
+        )
 
     @classmethod
     def notify_user(cls, user: User, alert_group: AlertGroup, notification_policy: UserNotificationPolicy) -> None:
