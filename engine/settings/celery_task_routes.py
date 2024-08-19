@@ -174,6 +174,7 @@ CELERY_TASK_ROUTES = {
         "queue": "slack"
     },
     "apps.slack.representatives.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
+    # TODO: remove post_or_update_log_report_message_task and on_alert_group_update_log_report_async in subsequent PR
     "apps.slack.tasks.post_or_update_log_report_message_task": {"queue": "slack"},
     "apps.slack.representatives.alert_group_representative.on_alert_group_update_log_report_async": {"queue": "slack"},
     # TELEGRAM
