@@ -156,8 +156,6 @@ CELERY_TASK_ROUTES = {
     "apps.metrics_exporter.tasks.calculate_and_cache_user_was_notified_metric": {"queue": "long"},
     # SLACK
     "apps.integrations.tasks.notify_about_integration_ratelimit_in_slack": {"queue": "slack"},
-    "apps.slack.helpers.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
-    "apps.slack.helpers.alert_group_representative.on_create_alert_slack_representative_async": {"queue": "slack"},
     "apps.slack.tasks.clean_slack_channel_leftovers": {"queue": "slack"},
     "apps.slack.tasks.check_slack_message_exists_before_post_message_to_thread": {"queue": "slack"},
     "apps.slack.tasks.clean_slack_integration_leftovers": {"queue": "slack"},
@@ -176,7 +174,6 @@ CELERY_TASK_ROUTES = {
         "queue": "slack"
     },
     "apps.slack.representatives.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
-    "apps.slack.helpers.alert_group_representative.on_alert_group_update_log_report_async": {"queue": "slack"},
     "apps.slack.tasks.post_or_update_log_report_message_task": {"queue": "slack"},
     "apps.slack.representatives.alert_group_representative.on_alert_group_update_log_report_async": {"queue": "slack"},
     # TELEGRAM
