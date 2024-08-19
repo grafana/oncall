@@ -5,7 +5,6 @@ on:
       - main
   # allows manual run on github actions
   workflow_dispatch:
-  pull_request:
   schedule:
     - cron: "0 6 * * 1-5"
 
@@ -48,8 +47,7 @@ jobs:
   post-status-to-slack:
     runs-on: ubuntu-latest
     needs: end-to-end-tests
-    # TODO: revert
-    if: false
+    if: failure()
     steps:
       # Useful references
       # https://stackoverflow.com/questions/59073850/github-actions-get-url-of-test-build
