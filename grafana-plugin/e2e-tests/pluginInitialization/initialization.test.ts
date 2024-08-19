@@ -1,7 +1,7 @@
 import { waitInMs } from 'utils/async';
 
 import { test, expect, Page } from '../fixtures';
-import { OrgRole, isGrafanaVersionGreaterThan, isGrafanaVersionLowerThan } from '../utils/constants';
+import { OrgRole, isGrafanaVersionLowerThan } from '../utils/constants';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
 import { createGrafanaUser, loginAndWaitTillGrafanaIsLoaded } from '../utils/users';
 
