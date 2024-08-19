@@ -92,7 +92,7 @@ def load_grafana():
     # The user/pass that you will login to Grafana with
     grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
     grafana_version = os.getenv("GRAFANA_VERSION", "latest")
-
+    grafana_url = grafana_url
 
     if 'plugin' in profiles:
         k8s_resource(
