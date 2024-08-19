@@ -47,12 +47,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { PLUGIN_ROOT } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
-import {
-  getCalendarStartDate,
-  getNewCalendarStartDate,
-  getUTCString,
-  toDateWithTimezoneOffset,
-} from './Schedule.helpers';
+import { getCalendarStartDate, getNewCalendarStartDate, toDateWithTimezoneOffset } from './Schedule.helpers';
 import { getScheduleStyles } from './Schedule.styles';
 
 interface RouteProps {

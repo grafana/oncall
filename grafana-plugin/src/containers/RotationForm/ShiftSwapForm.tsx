@@ -12,7 +12,7 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
-import { getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
