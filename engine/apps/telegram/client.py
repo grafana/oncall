@@ -27,6 +27,16 @@ class TelegramClient:
         if self.token is None:
             raise InvalidToken()
 
+    class BadRequestMessage:
+        CHAT_NOT_FOUND = "Chat not found"
+        MESSAGE_IS_NOT_MODIFIED = "Message is not modified"
+        MESSAGE_TO_EDIT_NOT_FOUND = "Message to edit not found"
+        NEED_ADMIN_RIGHTS_IN_THE_CHANNEL = "Need administrator rights in the channel chat"
+
+        # TODO: the following two error messages seem very similar, is this correct?
+        MESSAGE_TO_REPLY_NOT_FOUND = "Message to reply not found"
+        REPLIED_MESSAGE_NOT_FOUND = "Replied message not found"
+
     @property
     def api_client(self) -> Bot:
         return Bot(self.token, request=Request(read_timeout=15))
@@ -96,7 +106,7 @@ class TelegramClient:
                 disable_web_page_preview=False,
             )
         except BadRequest as e:
-            logger.warning("Telegram BadRequest: {}".format(e.message))
+            logger.warning(f"Telegram BadRequest: {e.message}")
             raise
 
         return message

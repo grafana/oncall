@@ -123,15 +123,18 @@ class TelegramToOrganizationConnector(models.Model):
                 chat_id=self.channel_chat_id, message_type=TelegramMessage.ALERT_GROUP_MESSAGE, alert_group=alert_group
             )
         except error.BadRequest as e:
-            if e.message == "Need administrator rights in the channel chat":
+            if e.message in [
+                telegram_client.BadRequestMessage.NEED_ADMIN_RIGHTS_IN_THE_CHANNEL,
+                telegram_client.BadRequestMessage.CHAT_NOT_FOUND,
+            ]:
+                if e.message == telegram_client.BadRequestMessage.NEED_ADMIN_RIGHTS_IN_THE_CHANNEL:
+                    error_reason = "lack of admin rights"
+                else:
+                    error_reason = f"'{telegram_client.BadRequestMessage.CHAT_NOT_FOUND}'"
+
                 logger.warning(
                     f"Could not send alert group to Telegram channel with id {self.channel_chat_id} "
-                    f"due to lack of admin rights. alert_group {alert_group.pk}"
-                )
-            elif e.message == "Chat not found":
-                logger.warning(
-                    f"Could not send alert group to Telegram channel with id {self.channel_chat_id} "
-                    f"due to 'Chat not found'. alert_group {alert_group.pk}"
+                    f"due to {error_reason}. alert_group {alert_group.pk}"
                 )
             else:
                 telegram_client.send_message(
