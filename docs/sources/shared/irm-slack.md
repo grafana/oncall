@@ -48,7 +48,7 @@ To install the Grafana IRM Slack app:
 Once your IRM account has been added to your Slack workspace, Admins and Editors can configure escalation chains and other notifications to route to designated
 Slack channels.
 
-In order to use the Slack slash command `/grafana-irm`, you must be an IRM user with a linked Slack account.
+In order to use the `/grafana-irm` Slack slash command, you must be an IRM user with a linked Slack account.
 To learn more, refer to [Connect your Slack user to Grafana IRM](ref:slack-connect).
 
 ## Install Slack integration for Grafana IRM
@@ -90,11 +90,11 @@ This integration is IRM-wide, meaning that once the Grafana IRM Slack integratio
 it will automatically be available for use in Incident, and vice versa.
 The same applies to the uninstall process—uninstalling the IRM app from OnCall will also remove it from Incident.
 
-There are two ways to upgrade to the new integration, depending on your current installation.
+There are two ways to migrate to the new integration, depending on your current installation.
 
-### Upgrade from the OnCall Slack app to the IRM Slack app
+### Migrate from the OnCall Slack app to the IRM Slack app
 
-To upgrade from the OnCall Slack integration to the Grafana IRM Slack integration,
+To migrate from the OnCall Slack integration to the Grafana IRM Slack integration,
 you only need to approve the additional permissions required for Incident management functionality.
 Upgrading to the IRM Slack app will not affect your existing OnCall Slack-related configuration, including channels, users, and schedules.
 
@@ -102,7 +102,7 @@ Upgrading to the IRM Slack app will not affect your existing OnCall Slack-relate
 The `/escalate` command is deprecated, please use `/grafana-irm escalate` instead. Refer to Available Slack commands for more information.
 {{< /admonition >}}
 
-From OnCall, follow these steps to upgrade:
+From OnCall, follow these steps to migrate:
 
 1. Navigate to the **Settings** tab in Grafana OnCall.
 1. From the **ChatOps** tab, select **Slack** in the side menu.
@@ -110,7 +110,7 @@ From OnCall, follow these steps to upgrade:
 1. Once redirected to the Slack connection page, verify the Slack workspace and follow the Slack prompts to review permissions and specify a default channel.
 1. Click **Allow** to reauthorize Grafana IRM to access your Slack workspace with additional permissions.
 
-Upgrading to the Grafana IRM Slack integration requires the following additional permissions:
+Migrating to the Grafana IRM Slack integration requires the following additional permissions:
 `Bookmarks:read`
 `Bookmarks:write`
 `Channels:manage`
@@ -234,7 +234,6 @@ The `/grafana-irm` Slack commands allow users and teams to respond to alert grou
 
 {{< admonition type="tip" >}}
 Use the 🤖 robot emoji Slack reaction to add important messages to the incident timeline.
-And use the 📝 memo emoji Slack reaction to add messages to the resolution notes.
 {{< /admonition >}}
 
 | Command                               | Description                          |
