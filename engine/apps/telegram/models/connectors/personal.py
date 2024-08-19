@@ -139,7 +139,7 @@ class TelegramToUserConnector(models.Model):
                     alert_group=alert_group,
                 )
             except error.Unauthorized as e:
-                if TelegramClient.error_message_is(e, [telegram_client.UnauthorizedMessage.BOT_WAS_BLOCKED_BY_USER]):
+                if TelegramClient.error_message_is(e, [TelegramClient.UnauthorizedMessage.BOT_WAS_BLOCKED_BY_USER]):
                     TelegramToUserConnector.create_telegram_notification_error(
                         alert_group,
                         self.user,
@@ -147,7 +147,7 @@ class TelegramToUserConnector(models.Model):
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
                         reason=self.NotificationErrorReason.BOT_BLOCKED_BY_USER,
                     )
-                elif TelegramClient.error_message_is(e, [telegram_client.UnauthorizedMessage.INVALID_TOKEN]):
+                elif TelegramClient.error_message_is(e, [TelegramClient.UnauthorizedMessage.INVALID_TOKEN]):
                     TelegramToUserConnector.create_telegram_notification_error(
                         alert_group,
                         self.user,
@@ -155,7 +155,7 @@ class TelegramToUserConnector(models.Model):
                         UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
                         reason=self.NotificationErrorReason.INVALID_TOKEN,
                     )
-                elif TelegramClient.error_message_is(e, [telegram_client.UnauthorizedMessage.USER_IS_DEACTIVATED]):
+                elif TelegramClient.error_message_is(e, [TelegramClient.UnauthorizedMessage.USER_IS_DEACTIVATED]):
                     TelegramToUserConnector.create_telegram_notification_error(
                         alert_group,
                         self.user,
