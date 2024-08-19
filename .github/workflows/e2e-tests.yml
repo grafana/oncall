@@ -105,7 +105,10 @@ jobs:
         run: make cluster/up
 
       - name: Install Playwright deps
-        uses: docker://mcr.microsoft.com/playwright:v1.46.0-jammy
+        # uses: docker://mcr.microsoft.com/playwright:v1.46.0-jammy
+        shell: bash
+        working-directory: grafana-plugin
+        run: yarn playwright install
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
