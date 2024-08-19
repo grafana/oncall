@@ -201,7 +201,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     resolved_by_user: typing.Optional["User"]
     root_alert_group: typing.Optional["AlertGroup"]
     silenced_by_user: typing.Optional["User"]
-    slack_log_message: typing.Optional["SlackMessage"]
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
     labels: "RelatedManager['AlertGroupAssociatedLabel']"
@@ -396,6 +395,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="wiped_alert_groups",
     )
 
+    # TODO: drop this column in future release
     slack_log_message = models.OneToOneField(
         "slack.SlackMessage",
         on_delete=models.SET_NULL,

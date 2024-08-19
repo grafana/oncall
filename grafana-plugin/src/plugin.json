@@ -674,7 +674,11 @@
       {
         "action": "users.roles:read",
         "scope": "users:*"
-      }
+      },
+      { "action": "grafana-labels-app.label:read" },
+      { "action": "grafana-labels-app.label:write" },
+      { "action": "grafana-labels-app.label:create" },
+      { "action": "grafana-labels-app.label:delete" }
     ]
   },
   "dependencies": {
