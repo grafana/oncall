@@ -31,7 +31,7 @@ exports[`TeamResponder it renders data properly 1`] = `
             class="css-18qv8yz-layoutChildrenWrapper"
           >
             <span
-              class="css-77ouhj--undefined css-77ouhj--medium css-r15ga2"
+              class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
             >
               my test team
             </span>
@@ -43,15 +43,11 @@ exports[`TeamResponder it renders data properly 1`] = `
       >
         <button
           aria-label="Remove responder"
-          class="css-17584xm"
+          class="css-a2noi1"
           data-testid="team-responder-delete-icon"
           tabindex="0"
           type="button"
-        >
-          <div
-            class="css-1j2891d-Icon"
-          />
-        </button>
+        />
       </div>
     </div>
   </li>

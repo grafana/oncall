@@ -1,4 +1,4 @@
-import 'jest/matchMedia.ts';
+import 'jest/matchMedia';
 import { describe, test } from '@jest/globals';
 
 import { FaroHelper } from 'utils/faro';

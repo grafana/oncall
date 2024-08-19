@@ -1,7 +1,23 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 title: Outgoing webhooks HTTP API
-weight: 700
+weight: 0
+refs:
+  outgoing-webhooks:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
+  event-types:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks/#event-types
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/#event-types
+  pagination:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/#pagination
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/#pagination
 ---
 
 # Outgoing webhooks
@@ -10,7 +26,7 @@ weight: 700
 > endpoint remains available and is compatible with previous callers but under the hood it will interact with the
 > new webhooks objects.  It is recommended to use the /webhooks endpoint going forward which has more features.
 
-For more details about specific fields of a webhook, refer to [Outgoing webhooks][].
+For more details about specific fields of a webhook, refer to [Outgoing webhooks](ref:outgoing-webhooks).
 
 ## List webhooks
 
@@ -54,6 +70,8 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.
 
 ## Get webhook
 
@@ -105,7 +123,7 @@ curl "{{API_URL}}/api/v1/webhooks/" \
 
 ### Trigger Types
 
-For more detail, refer to [Event types][].
+For more detail, refer to [Event types](ref:event-types).
 
 - `escalation`
 - `alert group created`
@@ -234,10 +252,4 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-{{% docs/reference %}}
-[Outgoing webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
-[Outgoing webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
-
-[Event types]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks#event-types"
-[Event types]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks#event-types"
-{{% /docs/reference %}}
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.

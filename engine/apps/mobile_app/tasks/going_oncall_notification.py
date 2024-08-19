@@ -256,5 +256,5 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
 @shared_dedicated_queue_retry_task()
 def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> None:
-    for schedule in OnCallSchedule.objects.all():
+    for schedule in OnCallSchedule.objects.filter(organization__deleted_at__isnull=True):
         conditionally_send_going_oncall_push_notifications_for_schedule.apply_async((schedule.pk,))

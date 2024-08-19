@@ -385,7 +385,9 @@ class ScheduleView(
 
         swap_requests = schedule.filter_swap_requests(datetime_start, datetime_end)
 
-        serialized_swap_requests = ShiftSwapRequestExpandedUsersListSerializer(swap_requests, many=True)
+        serialized_swap_requests = ShiftSwapRequestExpandedUsersListSerializer(
+            swap_requests, context={"request": self.request}, many=True
+        )
         result = {"shift_swaps": serialized_swap_requests.data}
 
         return Response(result, status=status.HTTP_200_OK)
@@ -577,10 +579,10 @@ class ScheduleView(
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
-        filter_name = request.query_params.get("search", None)
         api_root = "/api/internal/v1/"
 
         filter_options = [
+            {"name": "search", "type": "search"},
             {
                 "name": "team",
                 "type": "team_select",
@@ -609,8 +611,5 @@ class ScheduleView(
                 ],
             },
         ]
-
-        if filter_name is not None:
-            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
 
         return Response(filter_options)

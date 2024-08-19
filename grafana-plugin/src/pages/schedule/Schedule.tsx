@@ -18,10 +18,10 @@ import {
 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { ScheduleFilters } from 'components/ScheduleFilters/ScheduleFilters';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import { ScheduleQuality } from 'components/ScheduleQuality/ScheduleQuality';
@@ -45,11 +45,16 @@ import { withMobXProviderContext } from 'state/withStore';
 import { HTML_ID, scrollToElement } from 'utils/DOM';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getCalendarStartDate, getNewCalendarStartDate, getUTCString } from './Schedule.helpers';
 import { getScheduleStyles } from './Schedule.styles';
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+interface RouteProps {
+  id: string;
+}
+
+interface SchedulePageProps extends PageProps, WithStoreProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -74,7 +79,7 @@ interface SchedulePageState {
 @observer
 class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   highlightMyShiftsWasToggled = false;
-  scheduleId = this.props.match.params.id;
+  scheduleId = this.props.router.params.id;
 
   constructor(props: SchedulePageProps) {
     super(props);
@@ -118,7 +123,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
     const {
       store,
       query,
-      match: {
+      router: {
         params: { id: scheduleId },
       },
       theme,
@@ -232,40 +237,64 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             <Dropdown
                               overlay={
                                 <Menu>
-                                  {layers?.map((layer, index) => (
-                                    <Menu.Item
-                                      key={index}
-                                      label={`L${layer.priority} rotation`}
-                                      onClick={() => {
-                                        scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
+                                  <RenderConditionally
+                                    shouldRender={!disabledRotationForm}
+                                    render={() =>
+                                      layers?.map((layer, index) => (
+                                        <Menu.Item
+                                          key={index}
+                                          label={`L${layer.priority} rotation`}
+                                          onClick={() => {
+                                            scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
-                                        this.handleShowRotationForm('new', layer.priority);
-                                      }}
-                                    />
-                                  ))}
-                                  <Menu.Item
-                                    label="New layer with rotation"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
-
-                                      this.handleShowRotationForm('new', nextPriority);
-                                    }}
+                                            this.handleShowRotationForm('new', layer.priority);
+                                          }}
+                                        />
+                                      ))
+                                    }
                                   />
-                                  <Menu.Item
-                                    label="Shift swap request"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
+                                  <RenderConditionally
+                                    shouldRender={!disabledRotationForm}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="New layer with rotation"
+                                        onClick={() => {
+                                          scrollToElement(document.getElementById(HTML_ID.SCHEDULE_ROTATIONS));
 
-                                      this.handleShowShiftSwapForm('new');
-                                    }}
+                                          this.handleShowRotationForm('new', nextPriority);
+                                        }}
+                                      />
+                                    )}
                                   />
-                                  <Menu.Item
-                                    label="Override"
-                                    onClick={() => {
-                                      scrollToElement(document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS));
+                                  <RenderConditionally
+                                    shouldRender={!disabledShiftSwaps}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="Shift swap request"
+                                        onClick={() => {
+                                          scrollToElement(
+                                            document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS)
+                                          );
 
-                                      this.handleShowOverridesForm('new');
-                                    }}
+                                          this.handleShowShiftSwapForm('new');
+                                        }}
+                                      />
+                                    )}
+                                  />
+                                  <RenderConditionally
+                                    shouldRender={!disabledOverrideForm}
+                                    render={() => (
+                                      <Menu.Item
+                                        label="Override"
+                                        onClick={() => {
+                                          scrollToElement(
+                                            document.getElementById(HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS)
+                                          );
+
+                                          this.handleShowOverridesForm('new');
+                                        }}
+                                      />
+                                    )}
                                   />
                                 </Menu>
                               }
@@ -483,7 +512,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   update = async () => {
     const {
       store,
-      match: {
+      router: {
         params: { id: scheduleId },
       },
     } = this.props;
@@ -509,7 +538,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   handleNameChange = async (value: string) => {
     const {
       store,
-      match: {
+      router: {
         params: { id: scheduleId },
       },
     } = this.props;
@@ -602,14 +631,14 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   handleDelete = async () => {
     const {
       store,
-      match: {
+      router: {
         params: { id },
+        navigate,
       },
-      history,
     } = this.props;
 
     await store.scheduleStore.delete(id);
-    history.replace(`${PLUGIN_ROOT}/schedules`);
+    navigate(`${PLUGIN_ROOT}/schedules`, { replace: true });
   };
 
   handleShowShiftSwapForm = (id: ShiftSwap['id'] | 'new', swap?: { swap_start: string; swap_end: string }) => {
@@ -620,7 +649,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
         userStore: { currentUserPk },
         timezoneStore: { currentDateInSelectedTimezone },
       },
-      match: {
+      router: {
         params: { id: scheduleId },
       },
     } = this.props;
@@ -693,4 +722,6 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
   };
 }
 
-export const SchedulePage = withRouter(withMobXProviderContext(withTheme2(_SchedulePage)));
+export const SchedulePage = withRouter<RouteProps, Omit<SchedulePageProps, 'store' | 'meta' | 'theme'>>(
+  withMobXProviderContext(withTheme2(_SchedulePage))
+);

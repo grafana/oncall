@@ -1,7 +1,13 @@
 ---
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alerts/
 title: Alerts HTTP API
-weight: 100
+weight: 0
+refs:
+  pagination:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/oncall-api-reference/#pagination
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference/#pagination
 ---
 
 # Alerts HTTP API
@@ -104,6 +110,8 @@ The above command returns JSON structured in the following way:
   "total_pages": 1
 }
 ```
+
+> **Note**: The response is [paginated](ref:pagination). You may need to make multiple requests to get all records.
 
 The following available filter parameters should be provided as `GET` arguments:
 

@@ -58,11 +58,6 @@ export class FiltersStore extends BaseStore {
   public async updateOptionsForPage(page: string) {
     const result = await makeRequest(`/${getApiPathByPage(page)}/filters/`, {});
 
-    const allowFreeSearch = result.some((filter: FilterOption) => filter.name === 'search');
-    if (!allowFreeSearch) {
-      result.unshift({ name: 'search', type: 'search' });
-    }
-
     runInAction(() => {
       this.options = {
         ...this.options,

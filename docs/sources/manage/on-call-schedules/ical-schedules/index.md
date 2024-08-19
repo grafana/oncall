@@ -15,6 +15,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/ical-schedules/
   - /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules/
   - ../../on-call-schedules/ical-schedules/ # /docs/oncall/<ONCALL_VERSION>/on-call-schedules/ical-schedules/
+refs:
+  web-based-on-call-schedules:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/web-schedule/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule/
 ---
 
 # Import on-call schedules
@@ -26,7 +32,7 @@ OnCall as read-only schedules but can be leveraged similarly to a web-based sche
 > Unfortunately there is a known limitation with Google Calendar import and export.
 > Google may take up to 24h to import OnCall's calendar (OnCall -> Google) and sometimes our customers report delay in
 > exporting (Google Calendar -> OnCall). If actual calendar is critical for you, we suggest checking
-> [Web-based on-call schedules][]
+> [Web-based on-call schedules](ref:web-based-on-call-schedules)
 
 ## Before you begin
 
@@ -99,14 +105,9 @@ event duplication.
 ### Create overlapping schedules (optional)
 
 If you create schedules that overlap, you can prioritize a schedule by adding a level marker to the calendar event
-title. You can prioritize schedule overlaps using [L0] - [L9] prioritization. Overlapping calendar events that do not
+title. You can prioritize schedule overlaps using `[L0] - [L9]` prioritization. Overlapping calendar events that do not
 contain a level marker result in all overlapping users receiving notifications.
 
 For example, users AliceGrafana and BobGrafana have overlapping schedules but BobGrafana is the intended primary
 contact. The calendar events titles would be `[L1] BobGrafana` and `[L0] AliceGrafana` - In this case AliceGrafana
-maintains the default [L0] status, and would not receive notifications during the overlapping time with BobGrafana.
-
-{{% docs/reference %}}
-[Web-based on-call schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/on-call-schedules/web-schedule"
-[Web-based on-call schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/on-call-schedules/web-schedule"
-{{% /docs/reference %}}
+maintains the default `[L0]` status, and would not receive notifications during the overlapping time with BobGrafana.

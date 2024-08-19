@@ -22,7 +22,8 @@ class SlashCommand:
     @property
     def subcommand(self):
         """
-        Return first arg as subcommand
+        Return first arg as action subcommand: part of command which defines action
+        Example: /grafana escalate -> escalate
         """
         return self.args[0] if len(self.args) > 0 else None
 
@@ -34,3 +35,7 @@ class SlashCommand:
         command = payload["command"].lstrip("/")
         args = payload["text"].split()
         return SlashCommand(command, args)
+
+    @property
+    def is_grafana_command(self):
+        return self.command in ["grafana-irm", "grafana-irm-dev", "grafana-irm-ops", "grafana-irm-prod"]

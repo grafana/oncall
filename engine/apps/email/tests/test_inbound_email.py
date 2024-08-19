@@ -20,6 +20,7 @@ from apps.email.inbound import InboundEmailWebhookView
     ],
 )
 @pytest.mark.django_db
+@pytest.mark.filterwarnings("ignore:::anymail.*")  # ignore missing WEBHOOK_SECRET in amazon ses test setup
 def test_amazon_ses_provider_load(
     settings, make_organization_and_user_with_token, make_alert_receive_channel, recipients, expected
 ):
@@ -128,7 +129,10 @@ def test_mailgun_provider_load(
     "sender_value,expected_result",
     [
         ("'Alex Smith' <test@example.com>", "test@example.com"),
-        ("'Alex Smith' via [TEST] mail <test@example.com>", "'Alex Smith' via [TEST] mail <test@example.com>"),
+        # double quotes required when including special characters
+        ("\"'Alex Smith' via [TEST] mail\" <test@example.com>", "test@example.com"),
+        # missing double quotes
+        ("'Alex Smith' via [TEST] mail <test@example.com>", "\"'Alex Smith' via\""),
     ],
 )
 def test_get_sender_from_email_message(sender_value, expected_result):

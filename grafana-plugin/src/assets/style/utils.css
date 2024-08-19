@@ -36,12 +36,20 @@
   margin-right: 4px;
 }
 
+.u-margin-left-xs {
+  margin-left: 4px;
+}
+
 .u-margin-bottom-none {
   margin-bottom: 0;
 }
 
 .u-margin-bottom-md {
   margin-bottom: 12px;
+}
+
+.u-margin-bottom-xxs {
+  margin-bottom: 2px;
 }
 
 .u-margin-top-xs {
@@ -156,20 +164,23 @@
   text-overflow: ellipsis;
   display: -webkit-box;
   white-space: initial;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .overflow-child--line-1 {
+  line-clamp: 1;
   -webkit-line-clamp: 1;
+}
+
+.line-clamp-3 {
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
 }
 
 .break-word {
   word-break: break-all;
-}
-
-.line-clamp-3 {
-  -webkit-line-clamp: 3;
 }
 
 /* -----

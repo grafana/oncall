@@ -17,6 +17,7 @@ export const WithConfirm: React.FC<WithConfirmProps> = ({
   children,
   disabled,
   skip = false,
+  modalClass,
 }) => {
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
@@ -57,6 +58,7 @@ export const WithConfirm: React.FC<WithConfirmProps> = ({
           onDismiss={() => {
             setShowConfirmation(false);
           }}
+          modalClass={modalClass}
         />
       )}
       {React.cloneElement(children, {

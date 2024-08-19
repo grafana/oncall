@@ -55,32 +55,42 @@ const RouteHeadingDisplay: React.FC<{ channelFilter: ChannelFilter }> = ({ chann
   const styles = useStyles2(getStyles);
   const hasLabels = store.hasFeature(AppFeature.Labels);
 
+  const renderWarning = (text: string) => (
+    <>
+      <div className={styles.iconExclamation}>
+        <Icon name="exclamation-triangle" />
+      </div>
+      <Text type="primary">{text}</Text>
+    </>
+  );
+
   if (channelFilter?.filtering_term || channelFilter?.filtering_labels) {
     return (
       <>
         <RenderConditionally
           shouldRender={channelFilter.filtering_term_type === FilteringTermType.jinja2 || !hasLabels}
         >
-          <Text type="primary" className={styles.routeHeading}>
-            {channelFilter.filtering_term}
-          </Text>
+          {channelFilter.filtering_term && (
+            <Text type="primary" className={styles.routeHeading}>
+              {channelFilter.filtering_term}
+            </Text>
+          )}
+
+          {/* Show missing template warning */}
+          {!channelFilter.filtering_term && renderWarning('Routing template not set')}
         </RenderConditionally>
 
         <RenderConditionally shouldRender={channelFilter.filtering_term_type === FilteringTermType.labels && hasLabels}>
-          <LabelBadges labels={channelFilter.filtering_labels} />
+          {channelFilter.filtering_labels?.length > 0 && <LabelBadges labels={channelFilter.filtering_labels} />}
+
+          {/* Show missing labels warning */}
+          {!channelFilter.filtering_labels?.length && renderWarning('Routing labels not set')}
         </RenderConditionally>
       </>
     );
   }
 
-  return (
-    <>
-      <div className={styles.iconExclamation}>
-        <Icon name="exclamation-triangle" />
-      </div>
-      <Text type="primary">Routing template not set</Text>
-    </>
-  );
+  return renderWarning('Routing template not set');
 };
 
 const getStyles = (theme: GrafanaTheme2) => {

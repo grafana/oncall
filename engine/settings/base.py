@@ -71,8 +71,9 @@ GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATION
 FEATURE_LABELS_ENABLED_FOR_ALL = getenv_boolean("FEATURE_LABELS_ENABLED_FOR_ALL", default=False)
 # Enable labels feature for organizations from the list. Use OnCall organization ID, for this flag
 FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", default=list())
-FEATURE_ALERT_GROUP_SEARCH_ENABLED = getenv_boolean("FEATURE_ALERT_GROUP_SEARCH_ENABLED", default=False)
-FEATURE_NOTIFICATION_BUNDLE_ENABLED = getenv_boolean("FEATURE_NOTIFICATION_BUNDLE_ENABLED", default=False)
+FEATURE_ALERT_GROUP_SEARCH_ENABLED = getenv_boolean("FEATURE_ALERT_GROUP_SEARCH_ENABLED", default=True)
+FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS = getenv_integer("FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS", default=None)
+FEATURE_NOTIFICATION_BUNDLE_ENABLED = getenv_boolean("FEATURE_NOTIFICATION_BUNDLE_ENABLED", default=True)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -106,6 +107,17 @@ CHATOPS_SIGNING_SECRET = os.environ.get("CHATOPS_SIGNING_SECRET", None)
 
 # Prometheus exporter metrics endpoint auth
 PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
+# Application metric names without prefixes
+METRIC_ALERT_GROUPS_TOTAL_NAME = "alert_groups_total"
+METRIC_ALERT_GROUPS_RESPONSE_TIME_NAME = "alert_groups_response_time"
+METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME = "user_was_notified_of_alert_groups"
+METRICS_ALL = [
+    METRIC_ALERT_GROUPS_TOTAL_NAME,
+    METRIC_ALERT_GROUPS_RESPONSE_TIME_NAME,
+    METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME,
+]
+# List of metrics to collect. Collect all available application metrics by default
+METRICS_TO_COLLECT = os.environ.get("METRICS_TO_COLLECT", METRICS_ALL)
 
 
 # Database
@@ -187,6 +199,13 @@ if DATABASE_TYPE == DatabaseTypes.MYSQL:
     import pymysql
 
     pymysql.install_as_MySQLdb()
+
+DJANGO_MYSQL_REWRITE_QUERIES = True
+
+ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX = DATABASE_TYPE == DatabaseTypes.MYSQL and getenv_boolean(
+    "ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX", default=False
+)
+ALERT_GROUP_LIST_TRY_PREFETCH = getenv_boolean("ALERT_GROUP_LIST_TRY_PREFETCH", default=False)
 
 # Redis
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
@@ -288,6 +307,9 @@ INSTALLED_APPS = [
     "apps.chatops_proxy",
 ]
 
+if DATABASE_TYPE == DatabaseTypes.MYSQL:
+    INSTALLED_APPS += ["django_mysql"]
+
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
@@ -324,6 +346,8 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
     "/alert_receive_channels",
+    # current user endpoint 👇, without trailing slash we pick-up /user_group endpoints, which we don't want for now
+    "/user/",
     "/users",
     "/labels",
     # social auth routes
@@ -445,8 +469,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -720,7 +742,7 @@ SOCIAL_AUTH_PIPELINE = (
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_PIPELINE = (
     "apps.social_auth.pipeline.common.set_user_and_organization_from_request",
-    "apps.social_auth.pipeline.google.persist_access_and_refresh_tokens",
+    "apps.social_auth.pipeline.google.connect_user_to_google",
 )
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_DISCONNECT_PIPELINE = (

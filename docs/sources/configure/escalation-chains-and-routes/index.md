@@ -16,6 +16,22 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/
   - /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes/
   - ../escalation-chains-and-routes/ # /docs/oncall/<ONCALL_VERSION>/escalation-chains-and-routes/
+refs:
+  notify-people:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/
+  routing-templates:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating/#routing-template
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating/#routing-template
+  outgoing-webhook:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/outgoing-webhooks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/outgoing-webhooks/
 ---
 
 # Escalation Chains and Routes
@@ -135,14 +151,3 @@ For more information, refer to [Notify people].
 
 > **Important:** Linked Integrations and Routes are displayed in the right panel. Any change in the Escalation Chain will
 affect all linked Integrations and Routes.
-
-{{% docs/reference %}}
-[Notify people]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/notify"
-[Notify people]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify"
-
-[outgoing webhook]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/outgoing-webhooks"
-[outgoing webhook]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/outgoing-webhooks"
-
-[Routing Templates]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/configure/jinja2-templating#routing-template"
-[Routing Templates]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/configure/jinja2-templating#routing-template"
-{{% /docs/reference %}}

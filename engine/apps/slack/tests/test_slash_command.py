@@ -3,7 +3,7 @@ from apps.slack.slash_command import SlashCommand
 
 def test_parse():
     payload = {
-        "command": "/grafana",
+        "command": "/grafana-irm",
         "text": "escalate",
         "trigger_id": "trigger_id",
         "user_id": "user_id",
@@ -11,9 +11,10 @@ def test_parse():
         "api_app_id": "api_app_id",
     }
     slash_command = SlashCommand.parse(payload)
-    assert slash_command.command == "grafana"
+    assert slash_command.command == "grafana-irm"
     assert slash_command.args == ["escalate"]
     assert slash_command.subcommand == "escalate"
+    assert slash_command.is_grafana_command
 
 
 def test_parse_command_without_subcommand():

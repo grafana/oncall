@@ -1,8 +1,8 @@
 ---
 title: Configure SMS & call routing with Grafana OnCall
-menuTitle: Configure SMS & call routing
+menuTitle: SMS & call routing tutorial
 description: A step-by-step guide on how to configure SMS & call routing with Grafana OnCall and Twilio.
-weight: 300
+weight: 400
 keywords:
   - OnCall
   - Live call routing
@@ -14,6 +14,15 @@ canonical: https://grafana.com/docs/oncall/latest/configure/live-call-routing/
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/
   - ../live-call-routing/ # /docs/oncall/<ONCALL_VERSION>/escalation-chains-and-routes/
+refs:
+  open-source:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/set-up/open-source/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/
+  irm-invoice:
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/cost-management-and-billing/understand-your-invoice/irm-invoice/
 ---
 
 # Configure SMS & call routing with Grafana OnCall
@@ -27,9 +36,17 @@ You can further customize your configuration to send different alerts to differe
 
 To complete the steps in this guide, ensure you have the following:
 
-- Grafana Cloud account: If you haven't already, [sign up for Grafana Cloud](https://grafana.com/auth/sign-up/create-user).
+- For Grafana Cloud users: A Grafana Cloud account. If you haven't already, [sign up for Grafana Cloud](https://grafana.com/auth/sign-up/create-user).
+- For OSS users: Notification routing must be configured using either Grafana Cloud or a third-party provider, such as Twilio.
+Refer to the [Grafana OnCall open source guide](ref:open-source) for more information.
 - Grafana OnCall user with administrator privileges and notification settings configured.
 - Twilio account: [Sign up for Twilio](https://www.twilio.com/try-twilio).
+
+{{< admonition type="note" >}}
+While OSS users have the option to use Grafana Cloud for phone and SMS routing, it is not required.
+If you decide to use Grafana Cloud for notification delivery, be aware that charges may apply.
+For more information, refer to our [billing documentation](ref:irm-invoice).
+{{< /admonition >}}
 
 ## Basic set up
 

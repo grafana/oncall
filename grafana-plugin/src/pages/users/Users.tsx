@@ -6,7 +6,6 @@ import { Alert, Button, HorizontalGroup, VerticalGroup, withTheme2 } from '@graf
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { GTable } from 'components/GTable/GTable';
@@ -29,13 +28,18 @@ import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
 import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 import { getUsersStyles } from './Users.styles';
 
 const DEBOUNCE_MS = 1000;
 
-interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {
+interface RouteProps {
+  id: string;
+}
+
+interface UsersProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
 
@@ -92,7 +96,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   }, DEBOUNCE_MS);
 
   componentDidUpdate(prevProps: UsersProps) {
-    if (prevProps.match.params.id !== this.props.match.params.id) {
+    if (prevProps.router.params.id !== this.props.router.params.id) {
       this.parseParams();
     }
   }
@@ -102,7 +106,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const {
       store,
-      match: {
+      router: {
         params: { id },
       },
     } = this.props;
@@ -127,7 +131,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   render() {
     const { userPkToEdit, errorData } = this.state;
     const {
-      match: {
+      router: {
         params: { id },
       },
       theme,
@@ -437,11 +441,15 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   handleHideUserSettings = () => {
-    const { history } = this.props;
+    const {
+      router: { navigate },
+    } = this.props;
     this.setState({ userPkToEdit: undefined });
 
-    history.push(`${PLUGIN_ROOT}/users`);
+    navigate(`${PLUGIN_ROOT}/users`);
   };
 }
 
-export const UsersPage = withRouter(withMobXProviderContext(withTheme2(Users)));
+export const UsersPage = withRouter<RouteProps, Omit<UsersProps, 'store' | 'meta' | 'theme'>>(
+  withMobXProviderContext(withTheme2(Users))
+);

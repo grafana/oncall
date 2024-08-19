@@ -1,0 +1,11 @@
+label = "OnCall.Deps"
+
+k8s_resource(workload="redis-master", labels=[label])
+
+k8s_resource(workload="prometheus-server", labels=[label])
+
+k8s_resource(
+    workload="mariadb",
+    port_forwards='3307:3306', # <host_port>:<container_port>
+    labels=[label],
+)

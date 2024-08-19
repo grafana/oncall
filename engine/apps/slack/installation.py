@@ -32,13 +32,11 @@ def install_slack_integration(organization, user, oauth_response):
     """
     from apps.slack.models import SlackTeamIdentity
 
-    if organization.slack_team_identity is not None:
+    if organization.slack_team_identity and not organization.slack_team_identity.needs_reinstall:
         raise SlackInstallationExc("Organization already has Slack integration")
 
     slack_team_id = oauth_response["team"]["id"]
-    slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
-        slack_id=slack_team_id,
-    )
+    slack_team_identity, _ = SlackTeamIdentity.objects.get_or_create(slack_id=slack_team_id)
     # update slack oauth fields by data from response
     slack_team_identity.update_oauth_fields(user, organization, oauth_response)
     write_chatops_insight_log(

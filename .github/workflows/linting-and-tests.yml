@@ -5,6 +5,7 @@ on:
 
 env:
   DJANGO_SETTINGS_MODULE: settings.ci_test
+  SKIP_SLACK_SDK_WARNING: True
   DATABASE_HOST: localhost
   RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
   SLACK_CLIENT_OAUTH_ID: 1
@@ -12,7 +13,7 @@ env:
 jobs:
   lint-entire-project:
     name: "Lint entire project"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -26,7 +27,7 @@ jobs:
 
   lint-test-and-build-frontend:
     name: "Lint, test, and build frontend"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -38,7 +39,7 @@ jobs:
 
   test-technical-documentation:
     name: "Test technical documentation"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: "Check out code"
         uses: "actions/checkout@v4"
@@ -55,7 +56,7 @@ jobs:
 
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     services:
       rabbit_test:
         image: rabbitmq:3.12.0
@@ -86,7 +87,7 @@ jobs:
 
   unit-test-helm-chart:
     name: "Helm Chart Unit Tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -97,6 +98,16 @@ jobs:
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version=v0.3.3
       - name: Run tests
         run: helm unittest ./helm/oncall
+
+  unit-test-backend-plugin:
+    name: "Backend Tests: Plugin"
+    runs-on: ubuntu-latest-16-cores
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.5"
+      - run: cd grafana-plugin && go test ./pkg/...
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -201,7 +212,7 @@ jobs:
 
   unit-test-migrators:
     name: "Unit tests - Migrators"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -215,7 +226,7 @@ jobs:
 
   mypy:
     name: "mypy"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -228,9 +239,16 @@ jobs:
   end-to-end-tests:
     name: Standard e2e tests
     uses: ./.github/workflows/e2e-tests.yml
+    strategy:
+      matrix:
+        grafana_version:
+          - 10.1.7
+          - 10.3.3
+          # TODO: fix issues with running e2e tests against Grafana v10.2.x and latest
+          # - 10.2.4
+          # - latest
+      fail-fast: false
     with:
-      # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
-      grafana_version: 10.1.7
-      # grafana_version: 10.3.3
+      grafana_version: ${{ matrix.grafana_version }}
       run-expensive-tests: false
       browsers: "chromium"

@@ -15,6 +15,12 @@ aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/manage/mobile-app/alert-groups-feed/
   - /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/alert-groups-feed/
   - ../../mobile-app/alert-groups-feed/ # /docs/oncall/<ONCALL_VERSION>/mobile-app/alert-groups-feed/
+refs:
+  manage-users-and-teams-for-grafana-oncall:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/#user-roles-and-permissions
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management/#user-roles-and-permissions
 ---
 
 # Alert Groups feed
@@ -36,13 +42,8 @@ Additionally, you can take action on the alert group directly from this page. Yo
 
 > **Note:** You need to have sufficient permission to take action on the alert group.
 > To learn more about Grafana OnCall user roles and permission,
-> refer to [Manage users and teams for Grafana OnCall][].
+> refer to [Manage users and teams for Grafana OnCall](ref:manage-users-and-teams-for-grafana-oncall).
 
 <img src="/static/img/oncall/mobile-app-alertgroups2.png" width="300px">
 <img src="/static/img/oncall/mobile-app-alertgroup2.png" width="300px">
 <img src="/static/img/oncall/mobile-app-timeline.png" width="300px">
-
-{{% docs/reference %}}
-[Manage users and teams for Grafana OnCall]: "/docs/oncall/ -> /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management#user-roles-and-permissions"
-[Manage users and teams for Grafana OnCall]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/manage/user-and-team-management#user-roles-and-permissions"
-{{% /docs/reference %}}

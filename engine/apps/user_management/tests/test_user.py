@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
+from apps.google import constants as google_constants
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
 
@@ -121,7 +122,40 @@ def test_has_google_oauth2_connected(make_organization_and_user, make_google_oau
 
 
 @pytest.mark.django_db
-def test_finish_google_oauth2_connection_flow(make_organization_and_user):
+def test_google_oauth2_token_is_missing_scopes(make_organization_and_user, make_google_oauth2_user_for_user):
+    initial_granted_scope = "foo bar baz"
+    initial_oauth_response = {
+        "access_token": "access",
+        "refresh_token": "refresh",
+        "sub": "google_user_id",
+        "scope": initial_granted_scope,
+    }
+
+    _, user = make_organization_and_user()
+
+    # false because the user hasn't yet connected their google account
+    assert user.google_oauth2_token_is_missing_scopes is False
+
+    user.save_google_oauth2_settings(initial_oauth_response)
+    user.refresh_from_db()
+
+    # true because we're missing a granted scope
+    assert user.google_oauth2_token_is_missing_scopes is True
+
+    user.save_google_oauth2_settings(
+        {
+            **initial_oauth_response,
+            "scope": f"{initial_granted_scope} {' '.join(google_constants.REQUIRED_OAUTH_SCOPES)}",
+        }
+    )
+    user.refresh_from_db()
+
+    # False because we now have all the required scopes
+    assert user.google_oauth2_token_is_missing_scopes is False
+
+
+@pytest.mark.django_db
+def test_save_google_oauth2_settings(make_organization_and_user):
     oauth_response = {
         "access_token": "access",
         "refresh_token": "refresh",
@@ -134,7 +168,7 @@ def test_finish_google_oauth2_connection_flow(make_organization_and_user):
     assert GoogleOAuth2User.objects.filter(user=user).exists() is False
     assert user.google_calendar_settings is None
 
-    user.finish_google_oauth2_connection_flow(oauth_response)
+    user.save_google_oauth2_settings(oauth_response)
     user.refresh_from_db()
 
     google_oauth_user = user.google_oauth2_user
@@ -151,7 +185,7 @@ def test_finish_google_oauth2_connection_flow(make_organization_and_user):
         "scope": "scope2",
     }
 
-    user.finish_google_oauth2_connection_flow(oauth_response2)
+    user.save_google_oauth2_settings(oauth_response2)
     user.refresh_from_db()
 
     google_oauth_user = user.google_oauth2_user
@@ -162,10 +196,10 @@ def test_finish_google_oauth2_connection_flow(make_organization_and_user):
 
 
 @pytest.mark.django_db
-def test_finish_google_oauth2_disconnection_flow(make_organization_and_user):
+def test_reset_google_oauth2_settings(make_organization_and_user):
     _, user = make_organization_and_user()
 
-    user.finish_google_oauth2_connection_flow(
+    user.save_google_oauth2_settings(
         {
             "access_token": "access",
             "refresh_token": "refresh",
@@ -178,7 +212,7 @@ def test_finish_google_oauth2_disconnection_flow(make_organization_and_user):
     assert user.google_oauth2_user is not None
     assert user.google_calendar_settings is not None
 
-    user.finish_google_oauth2_disconnection_flow()
+    user.reset_google_oauth2_settings()
     user.refresh_from_db()
 
     assert GoogleOAuth2User.objects.filter(user=user).exists() is False

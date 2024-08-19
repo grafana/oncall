@@ -1,3 +1,4 @@
+import datetime
 import time
 
 from rest_framework import fields, serializers
@@ -345,7 +346,9 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             if isinstance(validated_data.get(field), list) and len(validated_data[field]) == 0:
                 validated_data[field] = None
         if validated_data.get("start") is not None:
-            validated_data["start"] = validated_data["start"].replace(tzinfo=None)
+            # store start date as UTC, TZ is really given by the time_zone field
+            # (see apps/schedules/models/custom_on_call_shift.py::convert_dt_to_schedule_timezone)
+            validated_data["start"] = validated_data["start"].replace(tzinfo=datetime.timezone.utc)
         if validated_data.get("frequency") is not None and "interval" not in validated_data:
             # if there is frequency but no interval is given, default to 1
             validated_data["interval"] = 1
