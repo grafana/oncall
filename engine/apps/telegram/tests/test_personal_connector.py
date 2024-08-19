@@ -8,7 +8,11 @@ from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramMessage, TelegramToUserConnector
 
 
-@patch.object(TelegramClient, "send_raw_message", side_effect=error.BadRequest("Replied message not found"))
+@patch.object(
+    TelegramClient,
+    "send_raw_message",
+    side_effect=error.BadRequest(TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND),
+)
 @pytest.mark.django_db
 def test_personal_connector_replied_message_not_found(
     mock_send_message,
