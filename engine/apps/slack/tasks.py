@@ -287,13 +287,6 @@ def populate_slack_user_identities(organization_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_pk, update=False):
-    return "Deprecated, will be removed after queue cleanup"
-
-
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
 def post_slack_rate_limit_message(integration_id):
     from apps.alerts.models import AlertReceiveChannel
 

@@ -395,14 +395,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="wiped_alert_groups",
     )
 
-    # TODO: drop this column in future release
-    slack_log_message = models.OneToOneField(
-        "slack.SlackMessage",
-        on_delete=models.SET_NULL,
-        null=True,
-        default=None,
-    )
-
     prevent_posting_alerts = models.BooleanField(default=False)
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
