@@ -1,3 +1,5 @@
+import semver from 'semver';
+
 export const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 export const MAILSLURP_API_KEY = process.env.MAILSLURP_API_KEY;
 
@@ -19,3 +21,6 @@ export enum OrgRole {
 }
 
 export const MOSCOW_TIMEZONE = 'Europe/Moscow';
+
+export const isGrafanaVersionGreaterThan = (version: string) => semver.gt(process.env.CURRENT_GRAFANA_VERSION, version);
+export const isGrafanaVersionLowerThan = (version: string) => semver.lt(process.env.CURRENT_GRAFANA_VERSION, version);

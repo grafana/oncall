@@ -18,7 +18,7 @@
     "test:report": "HTML_REPORT_ENABLED=true yarn test",
     "test:silent": "yarn test --silent",
     "test:e2e": "PLUGIN_ID=grafana-oncall-app yarn playwright test --grep-invert @expensive",
-    "test:e2e-expensive": "PLUGIN_ID=grafana-oncall-app yarn playwright test",
+    "test:e2e-expensive": "PLUGIN_ID=grafana-oncall-app yarn playwright test --grep @expensive",
     "test:e2e:watch": "yarn test:e2e --ui",
     "test:e2e-expensive:watch": "yarn test:e2e-expensive --ui",
     "test:e2e:gen": "yarn playwright codegen http://localhost:3000",

@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union
 
 from django.conf import settings
 from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
-from telegram.error import BadRequest, InvalidToken, Unauthorized
+from telegram.error import BadRequest, InvalidToken, TelegramError, Unauthorized
 from telegram.utils.request import Request
 
 from apps.alerts.models import AlertGroup
@@ -26,6 +26,18 @@ class TelegramClient:
 
         if self.token is None:
             raise InvalidToken()
+
+    class BadRequestMessage:
+        CHAT_NOT_FOUND = "Chat not found"
+        MESSAGE_IS_NOT_MODIFIED = "Message is not modified"
+        MESSAGE_TO_EDIT_NOT_FOUND = "Message to edit not found"
+        NEED_ADMIN_RIGHTS_IN_THE_CHANNEL = "Need administrator rights in the channel chat"
+        MESSAGE_TO_BE_REPLIED_NOT_FOUND = "Message to be replied not found"
+
+    class UnauthorizedMessage:
+        BOT_WAS_BLOCKED_BY_USER = "Forbidden: bot was blocked by the user"
+        INVALID_TOKEN = "Invalid token"
+        USER_IS_DEACTIVATED = "Forbidden: user is deactivated"
 
     @property
     def api_client(self) -> Bot:
@@ -96,7 +108,7 @@ class TelegramClient:
                 disable_web_page_preview=False,
             )
         except BadRequest as e:
-            logger.warning("Telegram BadRequest: {}".format(e.message))
+            logger.warning(f"Telegram BadRequest: {e.message}")
             raise
 
         return message
@@ -171,3 +183,7 @@ class TelegramClient:
             raise Exception(f"_get_message_and_keyboard with type {message_type} is not implemented")
 
         return text, keyboard
+
+    @staticmethod
+    def error_message_is(error: TelegramError, messages: list[str]) -> bool:
+        return error.message in messages
