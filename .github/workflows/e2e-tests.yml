@@ -139,10 +139,9 @@ jobs:
       - name: Clone other repos needed for cross-plugin e2e tests
         if: inputs.run-expensive-tests
         shell: bash
-        run: >
-          cd .. &&
+        run: |
+          cd ..
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/ops-devenv.git
-           -b enable-passing-extra-env &&
           git clone https://x-access-token:${{ steps.generate-token.outputs.token }}@github.com/grafana/gops-labels.git
 
       - name: Tilt CI - standard and expensive E2E tests

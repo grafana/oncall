@@ -1,6 +1,7 @@
 load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 load("ext://configmap", "configmap_create")
 
+grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
@@ -30,10 +31,9 @@ def plugin_json():
     return 'NOT_A_PLUGIN'
 
 def extra_env():
-    grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
     return {
         "GF_APP_URL": grafana_url,
-        "GF_SERVER_ROOT_URL": grafana_url,
+        "GF_SERVER_ROOT_URL": grafana_url, 
         "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
         "ONCALL_API_URL": "http://oncall-dev-engine:8080"
     }
