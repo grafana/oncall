@@ -86,13 +86,6 @@ def on_alert_group_action_triggered_async(log_record_id):
     logger.debug(f"Finish on_alert_group_action_triggered for alert_group {alert_group_id}, log record {log_record_id}")
 
 
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
-def on_alert_group_update_log_report_async(alert_group_id):
-    return "Deprecated, will be removed after queue cleanup"
-
-
 class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
     def __init__(self, log_record):
         self.log_record = log_record
