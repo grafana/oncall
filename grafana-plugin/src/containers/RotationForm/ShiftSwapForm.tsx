@@ -12,7 +12,7 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
-import { getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
@@ -40,6 +40,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
   const {
     scheduleStore,
     userStore: { currentUserPk },
+    timezoneStore: { selectedTimezoneOffset },
   } = store;
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
         ...shiftSwap,
       });
     }
-  }, [shiftSwap, store.timezoneStore.calendarStartDate, store.timezoneStore.selectedTimezoneOffset]);
+  }, [shiftSwap, store.timezoneStore.calendarStartDate, selectedTimezoneOffset]);
 
   const handleDescriptionChange = useCallback(
     (event) => {
@@ -171,6 +172,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               <Field label="Swap start">
                 <DateTimePicker
                   disabled={!isNew}
+                  utcOffset={selectedTimezoneOffset}
                   value={dayjs(shiftSwap.swap_start)}
                   onChange={handleShiftSwapStartChange}
                 />
@@ -178,6 +180,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               <Field label="Swap end">
                 <DateTimePicker
                   disabled={!isNew}
+                  utcOffset={selectedTimezoneOffset}
                   value={dayjs(shiftSwap.swap_end)}
                   onChange={handleShiftSwapEndChange}
                 />
