@@ -53,19 +53,19 @@ def test_personal_connector_replied_message_not_found(
     "side_effect,notification_error_code,reason",
     [
         (
-            error.Unauthorized("Forbidden: bot was blocked by the user"),
+            error.Unauthorized(TelegramClient.UnauthorizedMessage.BOT_WAS_BLOCKED_BY_USER),
             UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
-            "Bot was blocked by the user",
+            TelegramToUserConnector.NotificationErrorReason.BOT_BLOCKED_BY_USER,
         ),
         (
-            error.Unauthorized("Invalid token"),
+            error.Unauthorized(TelegramClient.UnauthorizedMessage.INVALID_TOKEN),
             UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_TOKEN_ERROR,
-            "Invalid token",
+            TelegramToUserConnector.NotificationErrorReason.INVALID_TOKEN,
         ),
         (
-            error.Unauthorized("Forbidden: user is deactivated"),
+            error.Unauthorized(TelegramClient.UnauthorizedMessage.USER_IS_DEACTIVATED),
             UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
-            "Telegram user was disabled",
+            TelegramToUserConnector.NotificationErrorReason.USER_WAS_DISABLED,
         ),
     ],
 )

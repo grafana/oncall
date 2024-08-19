@@ -37,6 +37,11 @@ class TelegramClient:
         MESSAGE_TO_REPLY_NOT_FOUND = "Message to reply not found"
         REPLIED_MESSAGE_NOT_FOUND = "Replied message not found"
 
+    class UnauthorizedMessage:
+        BOT_WAS_BLOCKED_BY_USER = "Forbidden: bot was blocked by the user"
+        INVALID_TOKEN = "Invalid token"
+        USER_IS_DEACTIVATED = "Forbidden: user is deactivated"
+
     @property
     def api_client(self) -> Bot:
         return Bot(self.token, request=Request(read_timeout=15))
