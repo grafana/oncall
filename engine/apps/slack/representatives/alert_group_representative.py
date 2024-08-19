@@ -90,19 +90,7 @@ def on_alert_group_action_triggered_async(log_record_id):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def on_alert_group_update_log_report_async(alert_group_id):
-    from apps.alerts.models import AlertGroup
-
-    alert_group = AlertGroup.objects.get(pk=alert_group_id)
-    logger.debug(f"Start on_alert_group_update_log_report for alert_group {alert_group_id}")
-    organization = alert_group.channel.organization
-    if alert_group.slack_message and organization.slack_team_identity:
-        logger.debug(f"Process on_alert_group_update_log_report for alert_group {alert_group_id}")
-        UpdateLogReportMessageStep = ScenarioStep.get_step("distribute_alerts", "UpdateLogReportMessageStep")
-        step = UpdateLogReportMessageStep(organization.slack_team_identity, organization)
-        step.process_signal(alert_group)
-    else:
-        logger.debug(f"Drop on_alert_group_update_log_report for alert_group {alert_group_id}")
-    logger.debug(f"Finish on_alert_group_update_log_report for alert_group {alert_group_id}")
+    return "Deprecated, will be removed after queue cleanup"
 
 
 class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
@@ -172,32 +160,6 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
         else:
             logger.debug(f"SLACK on_alert_group_action_triggered: async {log_record_id} {force_sync}")
             on_alert_group_action_triggered_async.apply_async((log_record_id,))
-
-    @classmethod
-    def on_alert_group_update_log_report(cls, **kwargs):
-        from apps.alerts.models import AlertGroup
-
-        alert_group = kwargs["alert_group"]
-
-        if isinstance(alert_group, AlertGroup):
-            alert_group_id = alert_group.pk
-        else:
-            alert_group_id = alert_group
-            try:
-                alert_group = AlertGroup.objects.get(pk=alert_group_id)
-            except AlertGroup.DoesNotExist as e:
-                logger.warning(f"SLACK update log report: alert group {alert_group_id} has been deleted")
-                raise e
-
-        logger.debug(
-            f"Received alert_group_update_log_report signal in SLACK representative for alert_group {alert_group_id}"
-        )
-
-        if alert_group.notify_in_slack_enabled is False:
-            logger.debug(f"Skipping alert_group {alert_group_id} since notify_in_slack is disabled")
-            return
-
-        on_alert_group_update_log_report_async.apply_async((alert_group_id,))
 
     @classmethod
     def on_alert_group_update_resolution_note(cls, **kwargs):
