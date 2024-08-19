@@ -4,7 +4,10 @@ import { clickButton, generateRandomValidLabel, openDropdown } from '../utils/fo
 import { openCreateIntegrationModal } from '../utils/integrations';
 import { goToOnCallPage } from '../utils/navigation';
 
-test.skip(isGrafanaVersionGreaterThan('10.3.0'), 'Above 10.3 labels need enterprise version to validate permissions');
+test.skip(
+  () => isGrafanaVersionGreaterThan('10.3.0'),
+  'Above 10.3 labels need enterprise version to validate permissions'
+);
 
 test('New label keys and labels can be created @expensive', async ({ adminRolePage }) => {
   const { page } = adminRolePage;

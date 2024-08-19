@@ -14,7 +14,7 @@ import { createOnCallSchedule } from '../utils/schedule';
  * and use the currentGrafanaVersion fixture once this bugged is patched in playwright
  * https://github.com/microsoft/playwright/issues/29608
  */
-test.skip(isGrafanaVersionGreaterThan('10.0.0'), 'Insights is only available in Grafana 10.0.0 and above');
+test.skip(() => isGrafanaVersionGreaterThan('10.0.0'), 'Insights is only available in Grafana 10.0.0 and above');
 
 /**
  * skipping as these tests are currently flaky
