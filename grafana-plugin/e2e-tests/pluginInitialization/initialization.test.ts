@@ -1,7 +1,7 @@
 import { waitInMs } from 'utils/async';
 
 import { test, expect, Page } from '../fixtures';
-import { OrgRole, isGrafanaVersionGreaterThan } from '../utils/constants';
+import { OrgRole, isGrafanaVersionGreaterThan, isGrafanaVersionLowerThan } from '../utils/constants';
 import { goToGrafanaPage, goToOnCallPage } from '../utils/navigation';
 import { createGrafanaUser, loginAndWaitTillGrafanaIsLoaded } from '../utils/users';
 
@@ -46,7 +46,7 @@ test.describe('Plugin initialization', () => {
   }) => {
     test.slow();
 
-    test.skip(isGrafanaVersionGreaterThan('10.3.0'), 'Extension is only available in Grafana 10.3.0 and above');
+    test.skip(isGrafanaVersionLowerThan('10.3.0'), 'Extension is only available in Grafana 10.3.0 and above');
 
     // Create new editor user
     const USER_NAME = `editor-${new Date().getTime()}`;
