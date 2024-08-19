@@ -75,7 +75,7 @@ def ignore_reply_to_message_deleted(f):
         try:
             return f(*args, **kwargs)
         except error.BadRequest as e:
-            if TelegramClient.BadRequestMessage.REPLIED_MESSAGE_NOT_FOUND in e.message:
+            if TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND in e.message:
                 logger.warning(
                     f"Tried to reply to Telegram message, but message was deleted. args: {args}, kwargs: {kwargs}"
                 )

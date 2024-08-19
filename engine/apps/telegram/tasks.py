@@ -169,7 +169,7 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
             except error.BadRequest as e:
                 if e.message in [
                     TelegramClient.BadRequestMessage.CHAT_NOT_FOUND,
-                    TelegramClient.BadRequestMessage.MESSAGE_TO_REPLY_NOT_FOUND
+                    TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND
                 ]:
                     logger.warning(
                         f"Could not send log and actions messages to Telegram group with id {group_chat_id} "

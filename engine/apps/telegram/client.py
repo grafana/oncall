@@ -32,10 +32,7 @@ class TelegramClient:
         MESSAGE_IS_NOT_MODIFIED = "Message is not modified"
         MESSAGE_TO_EDIT_NOT_FOUND = "Message to edit not found"
         NEED_ADMIN_RIGHTS_IN_THE_CHANNEL = "Need administrator rights in the channel chat"
-
-        # TODO: the following two error messages seem very similar, is this correct?
-        MESSAGE_TO_REPLY_NOT_FOUND = "Message to reply not found"
-        REPLIED_MESSAGE_NOT_FOUND = "Replied message not found"
+        MESSAGE_TO_BE_REPLIED_NOT_FOUND = "Message to be replied not found"
 
     class UnauthorizedMessage:
         BOT_WAS_BLOCKED_BY_USER = "Forbidden: bot was blocked by the user"
