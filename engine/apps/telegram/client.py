@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union
 
 from django.conf import settings
 from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
-from telegram.error import BadRequest, InvalidToken, Unauthorized
+from telegram.error import BadRequest, InvalidToken, TelegramError, Unauthorized
 from telegram.utils.request import Request
 
 from apps.alerts.models import AlertGroup
@@ -183,3 +183,7 @@ class TelegramClient:
             raise Exception(f"_get_message_and_keyboard with type {message_type} is not implemented")
 
         return text, keyboard
+
+    @staticmethod
+    def error_message_is(error: TelegramError, messages: list[str]) -> bool:
+        return error.message in messages

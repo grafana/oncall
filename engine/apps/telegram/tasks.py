@@ -66,7 +66,7 @@ def edit_message(self, message_pk):
     try:
         telegram_client.edit_message(message=message)
     except error.BadRequest as e:
-        if telegram_client.BadRequestMessage.MESSAGE_IS_NOT_MODIFIED in e.message:
+        if TelegramClient.error_message_is(e, [TelegramClient.BadRequestMessage.MESSAGE_IS_NOT_MODIFIED]):
             pass
     except (error.RetryAfter, error.TimedOut) as e:
         countdown = getattr(e, "retry_after", 3)
@@ -165,10 +165,13 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
                         reply_to_message_id=reply_to_message_id,
                     )
             except error.BadRequest as e:
-                if e.message in [
-                    TelegramClient.BadRequestMessage.CHAT_NOT_FOUND,
-                    TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND,
-                ]:
+                if TelegramClient.error_message_is(
+                    e,
+                    [
+                        TelegramClient.BadRequestMessage.CHAT_NOT_FOUND,
+                        TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND,
+                    ],
+                ):
                     logger.warning(
                         f"Could not send log and actions messages to Telegram group with id {group_chat_id} "
                         f"due to '{e.message}'. alert_group {alert_group.pk}"
