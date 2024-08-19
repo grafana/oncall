@@ -42,7 +42,7 @@ def ignore_message_unchanged(f):
         try:
             return f(*args, **kwargs)
         except error.BadRequest as e:
-            if "Message is not modified" in e.message:
+            if TelegramClient.error_message_is(e, [TelegramClient.BadRequestMessage.MESSAGE_IS_NOT_MODIFIED]):
                 logger.warning(
                     f"Tried to change Telegram message, but update is identical to original message. "
                     f"args: {args}, kwargs: {kwargs}"
@@ -59,7 +59,7 @@ def ignore_message_to_edit_deleted(f):
         try:
             return f(*args, **kwargs)
         except error.BadRequest as e:
-            if "Message to edit not found" in e.message:
+            if TelegramClient.error_message_is(e, [TelegramClient.BadRequestMessage.MESSAGE_TO_EDIT_NOT_FOUND]):
                 logger.warning(
                     f"Tried to edit Telegram message, but message was deleted. args: {args}, kwargs: {kwargs}"
                 )
@@ -75,7 +75,7 @@ def ignore_reply_to_message_deleted(f):
         try:
             return f(*args, **kwargs)
         except error.BadRequest as e:
-            if "Replied message not found" in e.message:
+            if TelegramClient.error_message_is(e, [TelegramClient.BadRequestMessage.MESSAGE_TO_BE_REPLIED_NOT_FOUND]):
                 logger.warning(
                     f"Tried to reply to Telegram message, but message was deleted. args: {args}, kwargs: {kwargs}"
                 )
