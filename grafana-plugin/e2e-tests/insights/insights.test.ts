@@ -1,7 +1,6 @@
-import semver from 'semver';
-
 import { test, expect } from '../fixtures';
 import { resolveFiringAlert } from '../utils/alertGroup';
+import { isGrafanaVersionGreaterThan } from '../utils/constants';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
@@ -15,10 +14,7 @@ import { createOnCallSchedule } from '../utils/schedule';
  * and use the currentGrafanaVersion fixture once this bugged is patched in playwright
  * https://github.com/microsoft/playwright/issues/29608
  */
-test.skip(
-  () => semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.0.0'),
-  'Insights is only available in Grafana 10.0.0 and above'
-);
+test.skip(isGrafanaVersionGreaterThan('10.0.0'), 'Insights is only available in Grafana 10.0.0 and above');
 
 /**
  * skipping as these tests are currently flaky

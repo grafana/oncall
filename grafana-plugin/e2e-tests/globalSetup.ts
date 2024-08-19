@@ -6,7 +6,6 @@ import {
   type APIRequestContext,
   Page,
 } from '@playwright/test';
-import semver from 'semver';
 
 import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
 
@@ -21,6 +20,7 @@ import {
   IS_CLOUD,
   IS_OPEN_SOURCE,
   OrgRole,
+  isGrafanaVersionLowerThan,
 } from './utils/constants';
 import { goToOnCallPage } from './utils/navigation';
 
@@ -62,7 +62,7 @@ const idempotentlyInitializePlugin = async (page: Page) => {
   if (await openPluginConfigurationButton.isVisible()) {
     await openPluginConfigurationButton.click();
     // Before 10.3 Admin user needs to create service account manually
-    if (semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.3.0')) {
+    if (isGrafanaVersionLowerThan('10.3.0')) {
       await page.getByTestId('recreate-service-account').click();
     }
     await page.getByTestId('connect-plugin').click();
