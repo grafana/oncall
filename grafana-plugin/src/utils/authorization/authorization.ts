@@ -2,7 +2,7 @@ import { OrgRole } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 
-import { PluginId } from 'utils/consts';
+import { getPluginId } from 'utils/consts';
 
 export type UserAction = {
   permission: string;
@@ -110,7 +110,7 @@ export const generateMissingPermissionMessage = (permission: UserAction): string
   `You are missing the ${determineRequiredAuthString(permission)}`;
 
 export const generatePermissionString = (resource: Resource, action: Action, includePrefix: boolean): string =>
-  `${includePrefix ? `${PluginId.OnCall}.` : ''}${resource}:${action}`;
+  `${includePrefix ? `${getPluginId()}.` : ''}${resource}:${action}`;
 
 const constructAction = (
   resource: Resource,
