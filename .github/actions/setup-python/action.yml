@@ -23,5 +23,5 @@ runs:
       if: ${{ inputs.install-dependencies == 'true' }}
       shell: bash
       run: |
-        pip install uv==0.2.37 setuptools==73.0.0
+        pip install uv setuptools
         uv pip sync --system ${{ inputs.python-requirements-paths }}
