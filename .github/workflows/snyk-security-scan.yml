@@ -23,6 +23,11 @@ jobs:
         uses: ./.github/actions/install-frontend-dependencies
       - name: Install Snyk
         uses: snyk/actions/setup@master
+      # NOTE: on the snyk monitor and snyk test commands, we are excluding the dev and tools directories
+      # because we can't install the requirements.txt files of these directories alongside the main engine
+      # requirements.txt (some conflicting dep versions). If we realllly wanted to test these, we should do it
+      # as a seperate job and setup a separate Python env w/ just the deps of those projects. Since these projects
+      # are really just dev/internal scripts we don't really need to worry about them for now
       - name: snyk monitor
         # https://docs.snyk.io/snyk-cli/commands/monitor
         run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools
