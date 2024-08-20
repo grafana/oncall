@@ -17,6 +17,8 @@ DOCKER_REGISTRY = "localhost:63628/"
 
 load("ext://docker_build_sub", "docker_build_sub")
 
+grafana_deps = ["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"]
+
 def get_profiles():
     profiles = os.getenv('ONCALL_PROFILES', 'grafana,plugin,backend,tests')
     return profiles.split(',')
@@ -38,6 +40,9 @@ def extra_env():
         "ONCALL_API_URL": "http://oncall-dev-engine:8080"
     }
 
+def extra_deps():
+    return grafana_deps
+    
 
 allow_k8s_contexts(["kind-kind"])
 
@@ -107,7 +112,7 @@ def load_grafana():
             context="grafana-plugin",
             plugin_files=["grafana-plugin/src/plugin.json"],
             namespace="default",
-            deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
+            deps=grafana_deps,
             extra_env={
                 "GF_SECURITY_ADMIN_PASSWORD": "oncall",
                 "GF_SECURITY_ADMIN_USER": "oncall",
