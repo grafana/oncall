@@ -171,7 +171,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                         channel=channel_id,
                         user=slack_user_identity.slack_id,
                         text=f"The new Slack IRM integration is now available. "
-                        f"Please use /{settings.SLACK_IRM_ROOT_COMMAND} escalate to complete the action",
+                        f"Please use `/{settings.SLACK_IRM_ROOT_COMMAND}` escalate to complete the action",
                     )
                     return
 
