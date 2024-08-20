@@ -34,9 +34,9 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery[redis]==5.3.1
+celery==5.3.1
     # via -r requirements.in
-certifi==2024.2.2
+certifi==2024.7.4
     # via
     #   python-telegram-bot
     #   requests
@@ -157,7 +157,7 @@ firebase-admin==5.4.0
     # via fcm-django
 flask==3.0.2
     # via slack-export-viewer
-google-api-core[grpc]==2.17.0
+google-api-core==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -224,8 +224,10 @@ icalendar==5.0.10
     #   -r requirements.in
     #   recurring-ical-events
     #   x-wr-timezone
-idna==3.6
-    # via requests
+idna==3.7
+    # via
+    #   -r requirements.in
+    #   requests
 importlib-metadata==6.11.0
     # via opentelemetry-api
 inflection==0.5.1
@@ -415,6 +417,10 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
+setuptools==73.0.0
+    # via
+    #   apscheduler
+    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
