@@ -23,8 +23,13 @@ jobs:
         uses: ./.github/actions/install-frontend-dependencies
       - name: Install Snyk
         uses: snyk/actions/setup@master
-      - name: Run Snyk
-        continue-on-error: true
+      - name: snyk monitor
+        # https://docs.snyk.io/snyk-cli/commands/monitor
         run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: snyk test
+        # https://docs.snyk.io/snyk-cli/commands/test
+        run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
