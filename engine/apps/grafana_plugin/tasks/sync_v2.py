@@ -27,7 +27,7 @@ def sync_organizations_v2(org_ids=None):
                 logger.debug(f"Starting with provided {len(org_ids)} org_ids")
                 organization_qs = Organization.objects.filter(id__in=org_ids)
             else:
-                logger.debug(f"Starting with all org ids")
+                logger.debug("Starting with all org ids")
                 organization_qs = Organization.objects.all()
             active_instance_ids, is_cloud_configured = get_active_instance_ids()
             if is_cloud_configured:
