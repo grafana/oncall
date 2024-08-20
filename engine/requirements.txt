@@ -2,10 +2,10 @@
 #    uv pip compile requirements.in -o requirements.txt
 amqp==5.2.0
     # via kombu
-anyio==4.4.0
-    # via httpx
 appdirs==1.4.4
     # via django-migration-linter
+apscheduler==3.6.3
+    # via python-telegram-bot
 asgiref==3.7.2
     # via django
 attrs==23.2.0
@@ -31,13 +31,14 @@ botocore==1.34.41
 cachecontrol==0.14.0
     # via firebase-admin
 cachetools==4.2.2
-    # via google-auth
+    # via
+    #   google-auth
+    #   python-telegram-bot
 celery==5.3.1
     # via -r requirements.in
 certifi==2024.7.4
     # via
-    #   httpcore
-    #   httpx
+    #   python-telegram-bot
     #   requests
 cffi==1.16.0
     # via
@@ -211,18 +212,12 @@ grpcio==1.64.1
     #   opentelemetry-exporter-otlp-proto-grpc
 grpcio-status==1.57.0
     # via google-api-core
-h11==0.14.0
-    # via httpcore
 hiredis==2.2.3
     # via -r requirements.in
-httpcore==1.0.5
-    # via httpx
 httplib2==0.22.0
     # via
     #   google-api-python-client
     #   google-auth-httplib2
-httpx==0.27.0
-    # via python-telegram-bot
 humanize==4.10.0
     # via -r requirements.in
 icalendar==5.0.10
@@ -233,8 +228,6 @@ icalendar==5.0.10
 idna==3.7
     # via
     #   -r requirements.in
-    #   anyio
-    #   httpx
     #   requests
 importlib-metadata==6.11.0
     # via opentelemetry-api
@@ -373,13 +366,15 @@ python-dateutil==2.8.2
     #   faker
     #   icalendar
     #   recurring-ical-events
-python-telegram-bot==21.4
+python-telegram-bot==13.13
     # via -r requirements.in
 python3-openid==3.2.0
     # via social-auth-core
 pytz==2024.1
     # via
+    #   apscheduler
     #   icalendar
+    #   python-telegram-bot
     #   recurring-ical-events
     #   twilio
     #   x-wr-timezone
@@ -424,9 +419,12 @@ rsa==4.9
 s3transfer==0.10.0
     # via boto3
 setuptools==73.0.0
-    # via opentelemetry-instrumentation
+    # via
+    #   apscheduler
+    #   opentelemetry-instrumentation
 six==1.16.0
     # via
+    #   apscheduler
     #   django-rest-polymorphic
     #   python-dateutil
     #   twilio
@@ -434,10 +432,6 @@ slack-export-viewer==1.1.4
     # via -r requirements.in
 slack-sdk==3.21.3
     # via -r requirements.in
-sniffio==1.3.1
-    # via
-    #   anyio
-    #   httpx
 social-auth-app-django==5.4.1
     # via -r requirements.in
 social-auth-core==4.5.2
@@ -451,6 +445,8 @@ sqlparse==0.5.0
     #   django-silk
 toml==0.10.2
     # via django-migration-linter
+tornado==6.4.1
+    # via python-telegram-bot
 tqdm==4.66.3
     # via django-mirage-field
 twilio==6.37.0
@@ -459,6 +455,8 @@ typing-extensions==4.9.0
     # via opentelemetry-sdk
 tzdata==2024.1
     # via celery
+tzlocal==5.2
+    # via apscheduler
 uritemplate==4.1.1
     # via
     #   drf-spectacular
