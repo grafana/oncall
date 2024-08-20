@@ -19,11 +19,16 @@ SYNC_PERIOD = timezone.timedelta(minutes=4)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
-def sync_organizations_v2():
+def sync_organizations_v2(org_ids=None):
     lock_id = "sync_organizations_v2"
     with task_lock(lock_id, "main") as acquired:
         if acquired:
-            organization_qs = Organization.objects.all()
+            if org_ids:
+                logger.debug(f"Starting with provided {len(org_ids)} org_ids")
+                organization_qs = Organization.objects.filter(id__in=org_ids)
+            else:
+                logger.debug(f"Starting with all org ids")
+                organization_qs = Organization.objects.all()
             active_instance_ids, is_cloud_configured = get_active_instance_ids()
             if is_cloud_configured:
                 if not active_instance_ids:
