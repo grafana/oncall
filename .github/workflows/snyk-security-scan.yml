@@ -30,6 +30,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: snyk test
         # https://docs.snyk.io/snyk-cli/commands/test
-        run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all
+        run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all --show-vulnerable-paths=all
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

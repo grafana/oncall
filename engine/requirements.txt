@@ -2,10 +2,10 @@
 #    uv pip compile requirements.in -o requirements.txt
 amqp==5.2.0
     # via kombu
+anyio==4.4.0
+    # via httpx
 appdirs==1.4.4
     # via django-migration-linter
-apscheduler==3.6.3
-    # via python-telegram-bot
 asgiref==3.7.2
     # via django
 attrs==23.2.0
@@ -31,14 +31,13 @@ botocore==1.34.41
 cachecontrol==0.14.0
     # via firebase-admin
 cachetools==4.2.2
-    # via
-    #   google-auth
-    #   python-telegram-bot
+    # via google-auth
 celery==5.3.1
     # via -r requirements.in
 certifi==2024.7.4
     # via
-    #   python-telegram-bot
+    #   httpcore
+    #   httpx
     #   requests
 cffi==1.16.0
     # via
@@ -74,6 +73,7 @@ deprecated==1.2.14
     # via
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
+    #   opentelemetry-semantic-conventions
 django==4.2.15
     # via
     #   -r requirements.in
@@ -211,12 +211,18 @@ grpcio==1.64.1
     #   opentelemetry-exporter-otlp-proto-grpc
 grpcio-status==1.57.0
     # via google-api-core
+h11==0.14.0
+    # via httpcore
 hiredis==2.2.3
     # via -r requirements.in
+httpcore==1.0.5
+    # via httpx
 httplib2==0.22.0
     # via
     #   google-api-python-client
     #   google-auth-httplib2
+httpx==0.27.0
+    # via python-telegram-bot
 humanize==4.10.0
     # via -r requirements.in
 icalendar==5.0.10
@@ -227,6 +233,8 @@ icalendar==5.0.10
 idna==3.7
     # via
     #   -r requirements.in
+    #   anyio
+    #   httpx
     #   requests
 importlib-metadata==6.11.0
     # via opentelemetry-api
@@ -264,7 +272,7 @@ oauthlib==3.2.2
     # via
     #   requests-oauthlib
     #   social-auth-core
-opentelemetry-api==1.25.0
+opentelemetry-api==1.26.0
     # via
     #   -r requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
@@ -275,41 +283,41 @@ opentelemetry-api==1.25.0
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-opentelemetry-exporter-otlp-proto-common==1.25.0
+opentelemetry-exporter-otlp-proto-common==1.26.0
     # via opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-exporter-otlp-proto-grpc==1.25.0
+opentelemetry-exporter-otlp-proto-grpc==1.26.0
     # via -r requirements.in
-opentelemetry-instrumentation==0.46b0
+opentelemetry-instrumentation==0.47b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-logging
     #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
-opentelemetry-instrumentation-django==0.46b0
+opentelemetry-instrumentation-django==0.47b0
     # via -r requirements.in
-opentelemetry-instrumentation-logging==0.46b0
+opentelemetry-instrumentation-logging==0.47b0
     # via -r requirements.in
-opentelemetry-instrumentation-requests==0.46b0
+opentelemetry-instrumentation-requests==0.47b0
     # via -r requirements.in
-opentelemetry-instrumentation-wsgi==0.46b0
+opentelemetry-instrumentation-wsgi==0.47b0
     # via
     #   -r requirements.in
     #   opentelemetry-instrumentation-django
-opentelemetry-proto==1.25.0
+opentelemetry-proto==1.26.0
     # via
     #   opentelemetry-exporter-otlp-proto-common
     #   opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-sdk==1.25.0
+opentelemetry-sdk==1.26.0
     # via
     #   -r requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-semantic-conventions==0.46b0
+opentelemetry-semantic-conventions==0.47b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
-opentelemetry-util-http==0.46b0
+opentelemetry-util-http==0.47b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-requests
@@ -365,15 +373,13 @@ python-dateutil==2.8.2
     #   faker
     #   icalendar
     #   recurring-ical-events
-python-telegram-bot==13.13
+python-telegram-bot==21.4
     # via -r requirements.in
 python3-openid==3.2.0
     # via social-auth-core
 pytz==2024.1
     # via
-    #   apscheduler
     #   icalendar
-    #   python-telegram-bot
     #   recurring-ical-events
     #   twilio
     #   x-wr-timezone
@@ -418,13 +424,9 @@ rsa==4.9
 s3transfer==0.10.0
     # via boto3
 setuptools==73.0.0
-    # via
-    #   -r requirements.in
-    #   apscheduler
-    #   opentelemetry-instrumentation
+    # via opentelemetry-instrumentation
 six==1.16.0
     # via
-    #   apscheduler
     #   django-rest-polymorphic
     #   python-dateutil
     #   twilio
@@ -432,6 +434,10 @@ slack-export-viewer==1.1.4
     # via -r requirements.in
 slack-sdk==3.21.3
     # via -r requirements.in
+sniffio==1.3.1
+    # via
+    #   anyio
+    #   httpx
 social-auth-app-django==5.4.1
     # via -r requirements.in
 social-auth-core==4.5.2
@@ -445,8 +451,6 @@ sqlparse==0.5.0
     #   django-silk
 toml==0.10.2
     # via django-migration-linter
-tornado==6.4.1
-    # via python-telegram-bot
 tqdm==4.66.3
     # via django-mirage-field
 twilio==6.37.0
@@ -455,8 +459,6 @@ typing-extensions==4.9.0
     # via opentelemetry-sdk
 tzdata==2024.1
     # via celery
-tzlocal==5.2
-    # via apscheduler
 uritemplate==4.1.1
     # via
     #   drf-spectacular
