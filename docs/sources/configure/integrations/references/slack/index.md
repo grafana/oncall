@@ -15,52 +15,6 @@ canonical: https://grafana.com/docs/oncall/latest/configure/integrations/referen
 aliases:
   - /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/
   - ../../references/slack/ # /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack
-refs:
-  escalation-chains:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#configure-escalation-chains-with-slack-notifications
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#configure-escalation-chains-with-slack-notifications
-  slack-mentions:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#configure-user-notifications-policies-with-slack-mentions
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#configure-user-notifications-policies-with-slack-mentions
-  oncall-notifications:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#configure-on-call-notifications-in-slack
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#configure-on-call-notifications-in-slack
-  incident-channels:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#configure-incident-slack-channels
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#configure-incident-slack-channels
-  incident-announcements:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#configure-incident-announcements
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#configure-incident-announcements
-  incident-commands:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#incident-related-commands
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#incident-related-commands
-  slack-connect:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#connect-your-slack-user-to-grafana-irm
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#connect-your-slack-user-to-grafana-irm 
-  slack-migration:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#migrate-to-the-grafana-irm-slack-integration
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#migrate-to-the-grafana-irm-slack-integration
-  slack-permissions:
-    - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/#permissions-scope-and-purpose
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#permissions-scope-and-purpose 
 ---
 
 # Slack integration for Grafana IRM
@@ -71,7 +25,7 @@ helping your team focus on alert resolution with less friction.
 {{< admonition type="note" >}}
 The OnCall Slack app has been rebranded as the Grafana IRM Slack app, which now has incident management features.
 The legacy Incident Slack integration is being deprecated.
-Refer to our [Migration guide](ref:slack-migration) for instructions on how to migrate to the Grafana IRM Slack integration.
+Refer to our [Migration guide](#migrate-to-the-grafana-irm-slack-integration) for instructions on how to migrate to the Grafana IRM Slack integration.
 {{< /admonition >}}
 
 ## Key features and benefits
@@ -81,18 +35,18 @@ Users can take a number of alert actions directly from Slack, including acknowle
 
 Refer to the following sections to learn more:
 
-- [Configure Escalation Chains with Slack notifications](ref:escalation-chains)
-- [Configure user notifications policies with Slack mentions](ref:slack-mentions)
-- [Configure on-call notifications in Slack](ref:oncall-notifications)
+- [Configure Escalation Chains with Slack notifications](#configure-escalation-chains-with-slack-notifications)
+- [Configure user notifications policies with Slack mentions](#configure-user-notifications-policies-with-slack-mentions)
+- [Configure on-call notifications in Slack](#configure-on-call-notifications-in-slack)
 
 When it comes to incidents, users can declare, collaborate on, and manage incident-worthy events without leaving Slack.
 They can also automatically create incident-specific channels, track the timeline of events, interact with incidents via Slash commands, and more.
 
 Refer to the following sections to learn more:
 
-- [Create incident Slack channels](ref:incident-channels)
-- [Configure incident announcements](ref:incident-announcements)
-- [Interact with incidents from Slack via Slash commands](ref:incident-commands)
+- [Create incident Slack channels](#configure-incident-slack-channels)
+- [Configure incident announcements](#configure-incident-announcements)
+- [Interact with incidents from Slack via Slash commands](#incident-related-commands)
 
 ## Before you begin
 
@@ -105,8 +59,8 @@ To install the Grafana IRM Slack app:
 Once your IRM account has been added to your Slack workspace, Admins and Editors can configure escalation chains and other notifications to route to designated
 Slack channels.
 
-In order to use the Slack slash command `/grafana-irm`, you must be an IRM user with a linked Slack account.
-To learn more, refer to [Connect your Slack user to Grafana IRM](ref:slack-connect).
+In order to use the Slack slash command `/grafana`, you must be an IRM user with a linked Slack account.
+To learn more, refer to [Connect your Slack user to Grafana IRM](#connect-your-slack-user-to-grafana-irm).
 
 ## Install Slack integration for Grafana IRM
 
@@ -114,14 +68,14 @@ Currently, the Grafana IRM Slack integration can be installed from Grafana OnCal
 Installing the integration in either location will automatically install it for the other.
 
 {{< admonition type="note" >}}
-If you already have the OnCall or Incident Slack integration installed, use the instructions in [Migrate to the IRM Slack integration](ref:slack-migration).
+If you already have the OnCall or Incident Slack integration installed, use the instructions in [Migrate to the IRM Slack integration](#migrate-to-the-grafana-irm-slack-integration).
 {{< /admonition >}}
 
 Follow these steps to install the Slack integration from Grafana OnCall:
 
 1. Navigate to the **Settings** tab in Grafana OnCall.
 1. From the **ChatOps** tab, select **Slack** in the side menu.
-1. Click **Install Slack integration**.
+1. Click **Install integration**.
 1. Once redirected to the Slack connection page, verify the Slack workspace is correct or **Add another workspace**.
 1. If needed, provide your Slack workspace URL and sign with your Slack credentials.
 1. Follow the Slack prompts to review permissions and specify a default channel.
@@ -136,7 +90,7 @@ Follow these steps to install the Slack integration from Grafana Incident:
 1. Follow the Slack prompts to review permissions and specify a default channel.
 1. Click **Allow** to give Grafana IRM permission to access your Slack workspace.
 
-For more information about the required permissions, refer to the [Permissions](ref:slack-permissions) section.
+For more information about the required permissions, refer to the [Permissions](#permissions-scope-and-purpose) section.
 
 ## Migrate to the Grafana IRM Slack integration
 
@@ -149,34 +103,35 @@ The same applies to the uninstall process—uninstalling the IRM app from OnCall
 
 There are two ways to upgrade to the new integration, depending on your current installation.
 
-### Upgrade from the OnCall Slack app to the IRM Slack app
+### Migrate from the OnCall Slack app to the IRM Slack app
 
 To upgrade from the OnCall Slack integration to the Grafana IRM Slack integration,
 you only need to approve the additional permissions required for Incident management functionality.
-Upgrading to the IRM Slack app will not affect your existing OnCall Slack-related configuration, including channels, users, and schedules.
+Migrating to the IRM Slack app will not affect your existing OnCall Slack-related configuration, including channels, users, and schedules.
 
 {{< admonition type="note" >}}
-The `/escalate` command is deprecated, please use `/grafana-irm escalate` instead. Refer to Available Slack commands for more information.
+The `/escalate` command is deprecated, please use `/grafana escalate` instead. Refer to Available Slack commands for more information.
 {{< /admonition >}}
 
 From OnCall, follow these steps to upgrade:
 
 1. Navigate to the **Settings** tab in Grafana OnCall.
 1. From the **ChatOps** tab, select **Slack** in the side menu.
-1. Click **Upgrade**
+1. Click **Migrate**
 1. Once redirected to the Slack connection page, verify the Slack workspace and follow the Slack prompts to review permissions and specify a default channel.
 1. Click **Allow** to reauthorize Grafana IRM to access your Slack workspace with additional permissions.
 
-Upgrading to the Grafana IRM Slack integration requires the following additional permissions:
-`Bookmarks:read`
-`Bookmarks:write`
-`Channels:manage`
-`Groups:write`
-`Pins:read`
-`Reactions:read`
-`Incoming-webhook`
+Migrating to the Grafana IRM Slack integration requires the following additional permissions:
 
-Refer to the [Permissions](ref:slack-permissions) section for detailed information.
+- `Bookmarks:read`
+- `Bookmarks:write`
+- `Channels:manage`
+- `Groups:write`
+- `Pins:read`
+- `Reactions:read`
+- `Incoming-webhook`
+
+Refer to the [Permissions](#permissions-scope-and-purpose) section for detailed information.
 
 ### Migrate from the Incident Slack app to the IRM Slack app
 
@@ -184,17 +139,17 @@ The Grafana Incident Slack integration is now considered legacy,
 and you will need to migrate to the new Grafana IRM Slack integration by installing the updated Grafana IRM Slack app.
 
 During this migration, your existing Incident Slack settings, including incident announcements and automatic channel creation, will be preserved.
-The new Grafana IRM Slack app will be installed, along with the `/grafana-irm incident` command.
+The new Grafana IRM Slack app will be installed, along with the `/grafana incident` command.
 You will still be able to manage incidents that were started before the migration using the legacy app and the `/incident` command.
 
 From Incident, follow these steps to migrate:
 
 1. Navigate to the **Integrations** tab in Grafana OnCall.
-1. Click the **Slack IRM** tile and then click **Install Integration**.
-1. Once redirected to the Slack connection page, verify the Slack workspace and follow the Slack prompts to review permissions and specify a default channel.
-1. Click **Allow** to authorize Grafana IRM to access your Slack workspace.
+2. Click the **Slack IRM** tile and then click **Install Integration**.
+3. Once redirected to the Slack connection page, verify the Slack workspace and follow the Slack prompts to review permissions and specify a default channel.
+4. Click **Allow** to authorize Grafana IRM to access your Slack workspace.
 
-Refer to the [Permissions](ref:slack-permissions) section for more information.
+Refer to the [Permissions](#permissions-scope-and-purpose) section for more information.
 
 ## Connect your Slack user to Grafana IRM
 
@@ -284,45 +239,44 @@ This ensures your incident timeline remains intact, even if the file is later de
 ## Available Slack commands
 
 {{< admonition type="note" >}}
-The `/escalate` and `/incident` Slack commands have been deprecated. Use `/grafana-irm` to learn more.
+The `/escalate` and `/incident` Slack commands have been deprecated. Use `/grafana` to learn more.
 {{< / admonition >}}
 
-The `/grafana-irm` Slack commands allow users and teams to respond to alert groups and collaborate on incidents directly from Slack.
+The `/grafana` Slack commands allow users and teams to respond to alert groups and collaborate on incidents directly from Slack.
 
 {{< admonition type="tip" >}}
 Use the 🤖 robot emoji Slack reaction to add important messages to the incident timeline.
-And use the 📝 memo emoji Slack reaction to add messages to the resolution notes.
 {{< /admonition >}}
 
-| Command                               | Description                          |
-|---------------------------------------|--------------------------------------|
-| `/grafana-irm`                        | List of all `/grafana-irm` commands  |
-| `/grafana-irm stacks`                 | List all available stacks            |
-| `/grafana-irm set-stack <stack_name>` | Set your default stack               |
-| `/grafana-irm escalate`               | Page a user or a team                |
-| `/grafana-irm incident`               | Prefix for Incident-related commands |
+| Command              | Description                          |
+|----------------------|--------------------------------------|
+| `/grafana`           | List of all `/grafana` commands      |
+| `/grafana stacks`    | List all available stacks            |
+| `/grafana set-stack` | Set your default stack               |
+| `/grafana escalate`  | Page a user or a team                |
+| `/grafana incident`  | Prefix for Incident-related commands |
 
 ### Incident-related commands
 
-| Command                                                    | Description                           |
-|------------------------------------------------------------|---------------------------------------|
-| `/grafana-irm incident new`                                | Create new incident                   |
-| `/grafana-irm incident new <severity> “title”`             | Create new incident with severity     |
-| `/grafana-irm incident list`                               | List all active incidents             |
-| `/grafana-irm incident roles`                              | Find out who’s involved               |
-| `/grafana-irm incident talk`                               | Set up a collaboration space          |
-| `/grafana-irm incident status`                             | Get a live inline update              |
-| `/grafana-irm incident severity`                           | Set the incident severity             |
-| `/grafana-irm incident severity major`                     | Update the incident severity to major |
-| `/grafana-irm incident tasks`                              | Create, assign and manage tasks       |
-| `/grafana-irm incident tasks help`                         | More information about tasks          |
-| `/grafana-irm incident task add 'deploy new release'`      | Add a new task                        |
-| `/grafana-irm incident task add 'deploy new release' @bob` | Add a new task and assign to @bob     |
-| `/grafana-irm incident tasks list`                         | View current tasks                    |
-| `/grafana-irm incident notes`                              | Add and view incident notes           |
-| `/grafana-irm incident notes help`                         | More information about notes          |
-| `/grafana-irm incident note add "customers notified"`      | Add a new note                        |
-| `/grafana-irm incident notes list`                         | View current notes                    |
+| Command                                                | Description                           |
+|--------------------------------------------------------|---------------------------------------|
+| `/grafana incident new`                                | Create new incident                   |
+| `/grafana incident new  “title”`                       | Create new incident with severity     |
+| `/grafana incident list`                               | List all active incidents             |
+| `/grafana incident roles`                              | Find out who’s involved               |
+| `/grafana incident talk`                               | Set up a collaboration space          |
+| `/grafana incident status`                             | Get a live inline update              |
+| `/grafana incident severity`                           | Set the incident severity             |
+| `/grafana incident severity major`                     | Update the incident severity to major |
+| `/grafana incident tasks`                              | Create, assign and manage tasks       |
+| `/grafana incident tasks help`                         | More information about tasks          |
+| `/grafana incident task add 'deploy new release'`      | Add a new task                        |
+| `/grafana incident task add 'deploy new release' @bob` | Add a new task and assign to @bob     |
+| `/grafana incident tasks list`                         | View current tasks                    |
+| `/grafana incident notes`                              | Add and view incident notes           |
+| `/grafana incident notes help`                         | More information about notes          |
+| `/grafana incident note add "customers notified"`      | Add a new note                        |
+| `/grafana incident notes list`                         | View current notes                    |
 
 ## Permissions scope and purpose
 
@@ -333,50 +287,51 @@ By granting access to the app, you are authorizing Grafana IRM the following per
 
 ### Workspace and user access
 
-| Permission         | Description                                      | Purpose                                                                                        |
-|--------------------|--------------------------------------------------|------------------------------------------------------------------------------------------------|
-| team:read          | View the workspace name, email domain, and icon  | We use this information for identification and to establish an association with your workspace |
-| users:read         | View people in a workspace                       | Used to find users by email and facilitate account matching between Grafana and your workspace |
-| users.profile:read | View profile details about people in a workspace | This permission enables us to fetch profile data, such as Slack handles and avatars            |
-| users:write        | Set presence for Grafana IRM Slack app           | Allows @GrafanaIRM to be added to your workspace                                               |
-| usergroups:read    | View user groups in a workspace                  | Required to connect on-call schedules and escalation chains to Slack user groups               |
-| usergroups:write   | Create and manage user groups                    | Required to connect on-call schedule and escalation chains to Slack user groups                |
+| Permission         | Description                                                    | Purpose                                                                                        |
+|--------------------|----------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| team:read          | View the workspace name, email domain, and icon                | Used for identification and to establish an association with your workspace                    |
+| users:read         | View people in a workspace                                     | Used to find users by email and facilitate account matching between Grafana and your workspace |
+| users.profile:read | View profile details about people in a workspace               | This permission enables us to fetch profile data, such as Slack handles and avatars            |
+| users:write        | Set presence for Grafana IRM Slack app                         | Allows @GrafanaIRM to be added to your workspace                                               |
+| usergroups:read    | View user groups in a workspace                                | Required to connect on-call schedules and escalation chains to Slack user groups               |
+| usergroups:write   | Create and manage user groups                                  | Required to connect on-call schedule and escalation chains to Slack user groups                |
+| incoming-webhook   | Create one-way webhooks to post messages to a specific channel | Used to display a channel picker in the installation sequence                                  |
 
 ### Public channel access
 
-| Permission       | Description                                                                               | Purpose                                                                                                                                                                      |
-|------------------|-------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| channels:read    | View basic information about public channels                                              | This permission enables us to retrieve a list of Slack channels when adding a new channel to a route or escalation chain and to locate and update incident-specific channels |
-| channels:manage  | Manage public channels that Grafana IRM has been added to and create new ones             | Allows the app to create new channels and invite users to these channels                                                                                                     |
-| channels:join    | Join public channels in a workspace                                                       | Allows @GrafanaIRM to join channels                                                                                                                                          |
-| channels:history | View messages and other content in public channels that Grafana IRM has been added to     | Allows @GrafanaIRM to monitor message events and list messages in channels where the app has access to be included in the resolution notes                                   |
-| bookmarks:read   |  List bookmarks                                                                           | This permission is needed to access bookmarks, such as PIR documents and Google Meet links, related to incidents                                                             |
-| bookmarks:write  |  Create, edit, and remove bookmarks                                                       | This permission is necessary for managing incident-related bookmarks, including PIR documents and Google Meet links                                                          |
-| files:read       | View files shared in channels and conversations that Grafana IRM is a part of             | For incident-related file sharing and collaboration within authorized channels                                                                                               |
-| files:write      | Upload, edit, and delete files as Grafana IRM                                             | This permission is used to upload image attachments so they appear in the Incident timeline                                                                                  |
-| pins:read        | View pinned content in channels and conversations that Grafana Incident has been added to | Used to access and display pinned content related to incidents                                                                                                               |
+| Permission       | Description                                                                               | Purpose                                                                                                         |
+|------------------|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| channels:read    | View basic information about public channels                                              | Used when adding a new channel to an escalation chain and to locate and update incident-specific channels       |
+| channels:manage  | Manage public channels that Grafana IRM has been added to and create new ones             | Allows the app to create new channels and invite users to these channels                                        |
+| channels:join    | Join public channels in a workspace                                                       | Allows @GrafanaIRM to join channels                                                                             |
+| channels:history | View messages and other content in public channels that Grafana IRM has been added to     | Allows @GrafanaIRM to list messages in channels where the app has access to be included in the resolution notes |
+| bookmarks:read   | List bookmarks                                                                            | Used to access bookmarks, such as PIR documents and Google Meet links, related to incidents                     |
+| bookmarks:write  | Create, edit, and remove bookmarks                                                        | Necessary for managing incident-related bookmarks, including PIR documents and Google Meet links                |
+| files:read       | View files shared in channels and conversations that Grafana IRM is a part of             | For incident-related file sharing and collaboration within authorized channels                                  |
+| files:write      | Upload, edit, and delete files as Grafana IRM                                             | Used to upload image attachments so they appear in the Incident timeline                                        |
+| pins:read        | View pinned content in channels and conversations that Grafana Incident has been added to | Used to access and display pinned content related to incidents                                                  |
 
 ### Private channel access
 
-| Permission       | Description                                                                      | Purpose                                                                                                                              |
-|------------------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| groups:read      | View basic information about private channels that Grafana IRM has been added to | Used to access information from private incident-specific channels                                                                   |
-| groups:write     | Manage private channels that Grafana IRM has been added to and create new ones   | Required to create private incident-specific channels for private incidents                                                          |
-| groups:history   | List messages from private incident-specific channels                            | Allows @GrafanaIRM to monitor message events and list messages from private incident channels to be included in the resolution notes |
-| usergroups:write | Create and manage user groups                                                    | Required for connecting on-call schedules to Slack user groups                                                                       |
-| usergroups:read  | View user groups in a workspace                                                  | Required for connecting on-call schedules to Slack user groups                                                                       |
+| Permission       | Description                                                                      | Purpose                                                                                                   |
+|------------------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| groups:read      | View basic information about private channels that Grafana IRM has been added to | Used to access information from private incident-specific channels                                        |
+| groups:write     | Manage private channels that Grafana IRM has been added to and create new ones   | Required to create private incident-specific channels for private incidents                               |
+| groups:history   | List messages from private incident-specific channels                            | Allows @GrafanaIRM to list messages from private incident channels to be included in the resolution notes |
+| usergroups:write | Create and manage user groups                                                    | Required for connecting on-call schedules to Slack user groups                                            |
+| usergroups:read  | View user groups in a workspace                                                  | Required for connecting on-call schedules to Slack user groups                                            |
 
 ### Message and conversation access
 
-| Permission           | Description                                                                                                        | Purpose                                                                                                                                            |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| app_mentions:read    | View messages and other content in public channels that Grafana IRM is a part of                                   | Enables the app to read messages and related content within authorized channels                                                                    |
-| chat:write           | Post messages in approved channels & conversations                                                                 | Allows @GrafanaIRM to post messages to Slack                                                                                                       |
-| chat:write.customize |  Send messages as Grafana IRM with a customized username and avatar                                                | Allows @GrafanaIRM to post messages to Slack                                                                                                       |
-| chat:write.public    | Send messages to channels GrafanaI RM isn't a member of                                                            | Allows @Grafan IRM to post messages to Slack                                                                                                       |
-| reaction:read        | View emoji reactions and their associated content in channels and conversations that Grafana IRM has been added to | Allows @GrafanaIRM to monitor message events for the 🤖 emoji to be included in the incident timeline                                               |
-| reaction:write       | Add and edit emoji reactions                                                                                       | This permission is required for resolution notes. More specifically – to include messages with the 📝emoji on resolution notes                      |
-| im:read              | View basic information about direct messages that Grafana IRM has been added to                                    | Enables the app to send alert group notifications to users via direct message                                                                      |
-| im:write             | Start direct messages with people                                                                                  | Allows @GrafanaIRM to notify users about alerts via direct message as well as invite users who create an incident to the incident-specific channel |
-| im:history           | View messages and other content in direct messages that Grafana IRM has been added to                              | Allows @GrafanaIRM to monitor message events in direct messages that it’s a part of                                                                |
-| mpim:history         | View messages and other content in group direct messages that Grafana IRM has been added to                        | Allows @GrafanaIRM to monitor message events in group direct messages that it’s a part of                                                          |
+| Permission           | Description                                                                                                        | Purpose                                                                                                                     |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| app_mentions:read    | View messages and other content in public channels that Grafana IRM is a part of                                   | Enables the app to read messages and related content within authorized channels                                             |
+| chat:write           | Post messages in approved channels & conversations                                                                 | Allows @GrafanaIRM to post messages to Slack                                                                                |
+| chat:write.customize | Send messages as Grafana IRM with a customized username and avatar                                                 | Allows @GrafanaIRM to post messages to Slack                                                                                |
+| chat:write.public    | Send messages to channels GrafanaI RM isn't a member of                                                            | Allows @Grafan IRM to post messages to Slack                                                                                |
+| reaction:read        | View emoji reactions and their associated content in channels and conversations that Grafana IRM has been added to | Allows @GrafanaIRM to monitor message events for the 🤖 emoji to be included in the incident timeline                        |
+| reaction:write       | Add and edit emoji reactions                                                                                       | Required to include messages with the 📝 emoji on resolution notes                                                           |
+| im:read              | View basic information about direct messages that Grafana IRM has been added to                                    | Enables the app to send alert group notifications to users via direct message                                               |
+| im:write             | Start direct messages with people                                                                                  | Used to notify users about alerts via direct message as well as invite users who create an incident to the incident channel |
+| im:history           | View messages and other content in direct messages that Grafana IRM has been added to                              | Allows @GrafanaIRM to monitor message events in direct messages that it’s a part of                                         |
+| mpim:history         | View messages and other content in group direct messages that Grafana IRM has been added to                        | Allows @GrafanaIRM to monitor message events in group direct messages that it’s a part of                                   |
