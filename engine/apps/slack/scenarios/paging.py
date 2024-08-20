@@ -166,8 +166,8 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                 self._slack_client.chat_postEphemeral(
                     channel=channel_id,
                     user=slack_user_identity.slack_id,
-                    text="The new Slack IRM integration is now available. Please use /grafana-irm escalate to "
-                    "complete the action",
+                    text=f"The new Slack IRM integration is now available. "
+                    f"Please use /{settings.SLACK_IRM_ROOT_COMMAND} escalate to complete the action",
                 )
                 return
 
