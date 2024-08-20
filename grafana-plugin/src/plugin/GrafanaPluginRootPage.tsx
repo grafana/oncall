@@ -11,6 +11,7 @@ import { AppRootProps } from 'types';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';
 import { DefaultPageLayout } from 'containers/DefaultPageLayout/DefaultPageLayout';
+import { PluginInitializer } from 'containers/PluginInitializer/PluginInitializer';
 import { NoMatch } from 'pages/NoMatch';
 import { EscalationChainsPage } from 'pages/escalation-chains/EscalationChains';
 import { IncidentPage } from 'pages/incident/Incident';
@@ -27,7 +28,6 @@ import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { CloudPage } from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import { UsersPage } from 'pages/users/Users';
-import { PluginSetup } from 'plugin/PluginSetup/PluginSetup';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization/authorization';
@@ -42,7 +42,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
-export const GrafanaPluginRootPage = (props: AppRootProps) => {
+export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
   useOnMount(() => {
     FaroHelper.initializeFaro(getOnCallApiUrl(props.meta));
   });
@@ -50,20 +50,25 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
     <ErrorBoundary onError={FaroHelper.pushReactError}>
       {() => (
-        <Provider store={rootStore}>
-          <PluginSetup InitializedComponent={Root} {...props} />
-        </Provider>
+        <PluginInitializer>
+          <Provider store={rootStore}>
+            <Root {...props} />
+          </Provider>
+        </PluginInitializer>
       )}
     </ErrorBoundary>
   );
-};
+});
 
 export const Root = observer((props: AppRootProps) => {
-  const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle } = useStore();
+  const { isBasicDataLoaded, loadBasicData, loadMasterData, pageTitle, setupInsightsDatasource, loadRecaptcha } =
+    useStore();
 
   const location = useLocation();
 
   useEffect(() => {
+    setupInsightsDatasource(props.meta);
+    loadRecaptcha();
     loadBasicData();
     // defer loading master data as it's not used in first sec by user in order to prioritize fetching base data
     const timeout = setTimeout(() => {

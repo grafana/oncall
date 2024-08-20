@@ -1,6 +1,7 @@
 load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 load("ext://configmap", "configmap_create")
 
+grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
 running_under_parent_tiltfile = os.getenv("TILT_PARENT", "false") == "true"
 twilio_values=[
     "oncall.twilio.accountSid=" + os.getenv("TWILIO_ACCOUNT_SID", ""),
@@ -28,6 +29,14 @@ def plugin_json():
     if 'plugin' in profiles:
         return plugin_file
     return 'NOT_A_PLUGIN'
+
+def extra_env():
+    return {
+        "GF_APP_URL": grafana_url,
+        "GF_SERVER_ROOT_URL": grafana_url, 
+        "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
+        "ONCALL_API_URL": "http://oncall-dev-engine:8080"
+    }
 
 
 allow_k8s_contexts(["kind-kind"])
@@ -71,7 +80,7 @@ if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
         name="grafana-tilt-extensions",
-        ref="v1.2.0",
+        ref="v1.4.2",
         url="https://github.com/grafana/tilt-extensions",
     )
 v1alpha1.extension(
@@ -83,7 +92,6 @@ def load_grafana():
     # The user/pass that you will login to Grafana with
     grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
     grafana_version = os.getenv("GRAFANA_VERSION", "latest")
-
 
     if 'plugin' in profiles:
         k8s_resource(
@@ -100,11 +108,15 @@ def load_grafana():
             context="grafana-plugin",
             plugin_files=["grafana-plugin/src/plugin.json"],
             namespace="default",
-            deps=["grafana-oncall-app-provisioning-configmap", "build-ui"],
+            deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
             extra_env={
                 "GF_SECURITY_ADMIN_PASSWORD": "oncall",
                 "GF_SECURITY_ADMIN_USER": "oncall",
                 "GF_AUTH_ANONYMOUS_ENABLED": "false",
+                "GF_APP_URL": grafana_url,  # older versions of grafana need this
+                "GF_SERVER_ROOT_URL": grafana_url,
+                "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
+                "ONCALL_API_URL": "http://oncall-dev-engine:8080"
             },
         )
 # --- GRAFANA END ----

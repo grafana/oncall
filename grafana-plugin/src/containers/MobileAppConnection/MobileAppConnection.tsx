@@ -7,13 +7,16 @@ import { observer } from 'mobx-react';
 import qrCodeImage from 'assets/img/qr-code.png';
 import { Block } from 'components/GBlock/Block';
 import { PluginLink } from 'components/PluginLink/PluginLink';
+import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
+import { PluginInitializer } from 'containers/PluginInitializer/PluginInitializer';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { useInitializePlugin } from 'utils/hooks';
 import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MobileAppConnection.module.scss';
@@ -364,10 +367,13 @@ function QRLoading() {
 
 export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
   const { userStore } = store;
+  const { isConnected } = useInitializePlugin();
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isConnected) {
+      loadData();
+    }
+  }, [isConnected]);
 
   const loadData = async () => {
     if (!store.isBasicDataLoaded) {
@@ -379,9 +385,17 @@ export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
     }
   };
 
-  if (store.isBasicDataLoaded && userStore.currentUserPk) {
-    return <MobileAppConnection userPk={userStore.currentUserPk} />;
-  }
-
-  return <LoadingPlaceholder text="Loading..." />;
+  return (
+    <PluginInitializer>
+      <RenderConditionally
+        shouldRender={Boolean(store.isBasicDataLoaded && userStore.currentUserPk)}
+        render={() => (
+          <div data-testid="mobile-app-connection">
+            <MobileAppConnection userPk={userStore.currentUserPk} />
+          </div>
+        )}
+        backupChildren={<LoadingPlaceholder text="Loading..." />}
+      />
+    </PluginInitializer>
+  );
 });

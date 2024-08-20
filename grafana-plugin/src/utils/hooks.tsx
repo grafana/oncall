@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom-v5-compat';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { LoaderHelper } from 'models/loader/loader.helpers';
+import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 
 import { LocationHelper } from './LocationHelper';
@@ -147,4 +148,21 @@ export const useOnMount = (callback: () => void) => {
   useEffect(() => {
     callback();
   }, []);
+};
+
+export const useInitializePlugin = () => {
+  /* 
+  We need to rely on rootStore imported directly (not provided via context)
+  because this hook is invoked out of plugin root (in plugin extension)
+  */
+  const isConnected = rootStore.pluginStore.isPluginConnected;
+  const isCheckingConnectionStatus = rootStore.loaderStore.isLoading(ActionKey.PLUGIN_VERIFY_CONNECTION);
+
+  useOnMount(() => {
+    if (!isConnected && !isCheckingConnectionStatus) {
+      rootStore.pluginStore.verifyPluginConnection();
+    }
+  });
+
+  return { isConnected, isCheckingConnectionStatus };
 };

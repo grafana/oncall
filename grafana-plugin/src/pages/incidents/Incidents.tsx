@@ -204,7 +204,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   showAutoInterval={false}
                 />
                 <WithPermissionControlTooltip userAction={UserActions.AlertGroupsDirectPaging}>
-                  <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                  <Button icon="plus" onClick={this.handleOnClickEscalateTo} data-testid="add-escalation-button">
                     Escalation
                   </Button>
                 </WithPermissionControlTooltip>

@@ -36,10 +36,6 @@ alert_group_action_triggered_signal.connect(
     AlertGroupSlackRepresentative.on_alert_group_action_triggered,
 )
 
-alert_group_update_log_report_signal.connect(
-    AlertGroupSlackRepresentative.on_alert_group_update_log_report,
-)
-
 alert_group_update_resolution_note_signal.connect(
     AlertGroupSlackRepresentative.on_alert_group_update_resolution_note,
 )
