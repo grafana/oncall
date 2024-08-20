@@ -1,6 +1,5 @@
 name: Expensive e2e tests
 on:
-  pull_request: #TODO: remove
   push:
     branches:
       - main
