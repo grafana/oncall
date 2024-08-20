@@ -4,7 +4,6 @@ import typing
 from datetime import datetime
 
 from django.core.cache import cache
-from django.utils import timezone
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
@@ -14,25 +13,17 @@ from apps.api.permissions import RBACPermission
 from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME
 from apps.slack.errors import (
-    SlackAPICantUpdateMessageError,
     SlackAPIChannelArchivedError,
-    SlackAPIChannelInactiveError,
     SlackAPIChannelNotFoundError,
     SlackAPIError,
-    SlackAPIInvalidAuthError,
     SlackAPIMessageNotFoundError,
     SlackAPIRatelimitError,
     SlackAPIRestrictedActionError,
     SlackAPITokenError,
 )
 from apps.slack.scenarios import scenario_step
-from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.slack_formatter import SlackFormatter
-from apps.slack.tasks import (
-    post_or_update_log_report_message_task,
-    send_message_to_thread_if_bot_not_in_channel,
-    update_incident_slack_message,
-)
+from apps.slack.tasks import send_message_to_thread_if_bot_not_in_channel, update_incident_slack_message
 from apps.slack.types import (
     Block,
     BlockActionType,
@@ -95,7 +86,6 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             else:
                 # check if alert group was posted to slack before posting message to thread
                 if not alert.group.skip_escalation_in_slack:
-                    self._send_log_report_message(alert.group, channel_id)
                     self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
         else:
             # check if alert group was posted to slack before updating its message
@@ -206,11 +196,6 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             thread_ts=alert_group.slack_message.slack_id,
             mrkdwn=True,
             blocks=blocks,
-        )
-
-    def _send_log_report_message(self, alert_group: AlertGroup, channel_id: str) -> None:
-        post_or_update_log_report_message_task.apply_async(
-            (alert_group.pk, self.slack_team_identity.pk),
         )
 
     def _send_message_to_thread_if_bot_not_in_channel(self, alert_group: AlertGroup, channel_id: str) -> None:
@@ -893,76 +878,6 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
             except SlackAPIError:
                 pass
             message.delete()
-
-
-class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
-    def process_signal(self, alert_group: AlertGroup) -> None:
-        if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
-            return
-
-        self.update_log_message(alert_group)
-
-    def update_log_message(self, alert_group: AlertGroup) -> None:
-        slack_message = alert_group.slack_message
-        if slack_message is None:
-            logger.info(
-                f"Cannot update log message for alert_group {alert_group.pk} because SlackMessage doesn't exist"
-            )
-            return None
-
-        slack_log_message = alert_group.slack_log_message
-
-        if slack_log_message is not None:
-            # prevent too frequent updates
-            if timezone.now() <= slack_log_message.last_updated + timezone.timedelta(seconds=5):
-                return
-
-            attachments = AlertGroupLogSlackRenderer.render_incident_log_report_for_slack(alert_group)
-            logger.debug(
-                f"Update log message for alert_group {alert_group.pk}, slack_log_message {slack_log_message.pk}"
-            )
-            try:
-                self._slack_client.chat_update(
-                    channel=slack_message.channel_id,
-                    text="Alert Group log",
-                    ts=slack_log_message.slack_id,
-                    attachments=attachments,
-                )
-            except SlackAPIRatelimitError as e:
-                if not alert_group.channel.is_rate_limited_in_slack:
-                    alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
-            except SlackAPIMessageNotFoundError:
-                alert_group.slack_log_message = None
-                alert_group.save(update_fields=["slack_log_message"])
-            except (
-                SlackAPITokenError,
-                SlackAPIChannelNotFoundError,
-                SlackAPIChannelArchivedError,
-                SlackAPIChannelInactiveError,
-                SlackAPIInvalidAuthError,
-                SlackAPICantUpdateMessageError,
-            ):
-                pass
-            else:
-                slack_log_message.last_updated = timezone.now()
-                slack_log_message.save(update_fields=["last_updated"])
-                logger.debug(
-                    f"Finished update log message for alert_group {alert_group.pk}, "
-                    f"slack_log_message {slack_log_message.pk}"
-                )
-        # check how much time has passed since slack message was created
-        # to prevent eternal loop of restarting update log message task
-        elif timezone.now() <= slack_message.created_at + timezone.timedelta(minutes=5):
-            logger.debug(
-                f"Update log message failed for alert_group {alert_group.pk}: "
-                f"log message does not exist yet. Restarting post_or_update_log_report_message_task..."
-            )
-            post_or_update_log_report_message_task.apply_async(
-                (alert_group.pk, self.slack_team_identity.pk, True),
-                countdown=3,
-            )
-        else:
-            logger.debug(f"Update log message failed for alert_group {alert_group.pk}: " f"log message does not exist.")
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

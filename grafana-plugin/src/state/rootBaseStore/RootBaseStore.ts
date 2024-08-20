@@ -1,4 +1,3 @@
-import { contextSrv } from 'grafana/app/core/core';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
 import { OnCallAppPluginMeta } from 'types';
@@ -22,6 +21,7 @@ import { LoaderStore } from 'models/loader/loader';
 import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { PluginStore } from 'models/plugin/plugin';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -33,17 +33,9 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
-import { PluginState } from 'state/plugin/plugin';
 import { retryFailingPromises } from 'utils/async';
-import {
-  APP_VERSION,
-  CLOUD_VERSION_REGEX,
-  getOnCallApiUrl,
-  getPluginId,
-  GRAFANA_LICENSE_CLOUD,
-  GRAFANA_LICENSE_OSS,
-  PluginId,
-} from 'utils/consts';
+import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { loadJs } from 'utils/loadJs';
 
 // ------ Dashboard ------ //
 
@@ -59,9 +51,6 @@ export class RootBaseStore {
 
   @observable
   recaptchaSiteKey = '';
-
-  @observable
-  initializationError = '';
 
   @observable
   currentlyUndergoingMaintenance = false;
@@ -84,9 +73,10 @@ export class RootBaseStore {
   onCallApiUrl: string;
 
   @observable
-  insightsDatasource?: string;
+  insightsDatasource = 'grafanacloud-usage';
 
   // stores
+  pluginStore = new PluginStore(this);
   userStore = new UserStore(this);
   cloudStore = new CloudStore(this);
   directPagingStore = new DirectPagingStore(this);
@@ -118,6 +108,7 @@ export class RootBaseStore {
   constructor() {
     makeObservable(this);
   }
+
   @action.bound
   loadBasicData = async () => {
     const updateFeatures = async () => {
@@ -141,6 +132,13 @@ export class RootBaseStore {
   };
 
   @action
+  setupInsightsDatasource = ({ jsonData: { insightsDatasource } }: OnCallAppPluginMeta) => {
+    if (insightsDatasource) {
+      this.insightsDatasource = insightsDatasource;
+    }
+  };
+
+  @action
   loadMasterData = async () => {
     Promise.all([this.userStore.updateNotificationPolicyOptions(), this.userStore.updateNotifyByOptions()]);
   };
@@ -148,138 +146,6 @@ export class RootBaseStore {
   @action
   setIsBasicDataLoaded(value: boolean) {
     this.isBasicDataLoaded = value;
-  }
-
-  @action
-  setupPluginError(errorMsg: string) {
-    this.initializationError = errorMsg;
-  }
-
-  /**
-   * This function is called in the background when the plugin is loaded.
-   * It will check the status of the plugin and
-   * rerender the screen with the appropriate message if the plugin is not setup correctly.
-   *
-   * First check to see if the plugin has been provisioned (plugin's meta jsonData has an onCallApiUrl saved)
-   * If not, tell the user they first need to configure/provision the plugin.
-   *
-   * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
-   * - OnCall api should not be under maintenance
-   * - plugin must be considered installed by the OnCall API
-   * - token_ok must be true
-   *   - This represents the status of the Grafana API token. It can be false in the event that either the token
-   *   hasn't been created, or if the API token was revoked in Grafana.
-   * - user must be not "anonymous" (this is determined by the plugin-proxy)
-   * - the OnCall API must be currently allowing signup
-   * - the user must have an Admin role and necessary permissions
-   * Finally, try to load the current user from the OnCall backend
-   */
-  @action.bound
-  async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.setupPluginError(null);
-    this.onCallApiUrl = getOnCallApiUrl(meta);
-    this.insightsDatasource = meta.jsonData?.insightsDatasource || 'grafanacloud-usage';
-
-    if (!this.onCallApiUrl) {
-      // plugin is not provisioned
-      return this.setupPluginError('🚫 Plugin has not been initialized');
-    }
-
-    if (this.isOpenSource && !meta.secureJsonFields?.onCallApiToken) {
-      // Reinstall plugin if onCallApiToken is missing
-      const errorMsg = await PluginState.selfHostedInstallPlugin(this.onCallApiUrl, true);
-      if (errorMsg) {
-        return this.setupPluginError(errorMsg);
-      }
-      // will be removed as part of new OnCall init process
-      if (getPluginId() === PluginId.OnCall) {
-        location.reload();
-      }
-    }
-
-    // at this point we know the plugin is provisioned
-    const pluginConnectionStatus = await PluginState.updatePluginStatus(this.onCallApiUrl);
-    if (typeof pluginConnectionStatus === 'string') {
-      return this.setupPluginError(pluginConnectionStatus);
-    }
-
-    // Check if the plugin is currently undergoing maintenance
-    if (pluginConnectionStatus.currently_undergoing_maintenance_message) {
-      this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${pluginConnectionStatus.currently_undergoing_maintenance_message} 🚧`);
-    }
-
-    const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
-
-    // Anonymous users are not allowed to use the plugin
-    if (is_user_anonymous) {
-      return this.setupPluginError(
-        '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
-      );
-    }
-
-    // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
-    if (!is_installed || !token_ok) {
-      if (!allow_signup) {
-        return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
-      }
-
-      const missingPermissions = this.checkMissingSetupPermissions();
-      if (missingPermissions.length === 0) {
-        try {
-          /**
-           * this will install AND sync the necessary data
-           * the sync is done automatically by the /plugin/install OnCall API endpoint
-           * therefore there is no need to trigger an additional/separate sync, nor poll a status
-           */
-          await PluginState.installPlugin();
-        } catch (e) {
-          return this.setupPluginError(
-            PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
-          );
-        }
-      } else {
-        if (contextSrv.licensedAccessControlEnabled()) {
-          return this.setupPluginError(
-            '🚫 User is missing permission(s) ' +
-              missingPermissions.join(', ') +
-              ' to setup OnCall before it can be used'
-          );
-        } else {
-          return this.setupPluginError(
-            '🚫 User with Admin permissions in your organization must sign on and setup OnCall before it can be used'
-          );
-        }
-      }
-    } else {
-      // everything is all synced successfully at this point..
-      runInAction(() => {
-        this.backendVersion = pluginConnectionStatus.version;
-        this.backendLicense = pluginConnectionStatus.license;
-        this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
-      });
-    }
-
-    if (!this.userStore.currentUser) {
-      try {
-        await this.userStore.loadCurrentUser();
-      } catch (e) {
-        return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
-      }
-    }
-  }
-
-  checkMissingSetupPermissions() {
-    const setupRequiredPermissions = [
-      'plugins:write',
-      'org.users:read',
-      'teams:read',
-      'apikeys:create',
-      'apikeys:delete',
-    ];
-    return setupRequiredPermissions.filter(function (permission) {
-      return !contextSrv.hasPermission(permission);
-    });
   }
 
   // todo use AppFeature only
@@ -320,18 +186,15 @@ export class RootBaseStore {
     this.pageTitle = title;
   }
 
-  @action
-  async removeSlackIntegration() {
-    await this.slackStore.removeSlackIntegration();
-  }
-
-  @action
-  async installSlackIntegration() {
-    await this.slackStore.installSlackIntegration();
-  }
-
   @action.bound
   async getApiUrlForSettings() {
     return this.onCallApiUrl;
+  }
+
+  @action.bound
+  async loadRecaptcha() {
+    const { recaptcha_site_key } = await makeRequest<{ recaptcha_site_key: string }>('/plugin/recaptcha');
+    this.recaptchaSiteKey = recaptcha_site_key;
+    loadJs(`https://www.google.com/recaptcha/api.js?render=${recaptcha_site_key}`, recaptcha_site_key);
   }
 }

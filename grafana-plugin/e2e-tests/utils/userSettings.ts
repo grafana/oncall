@@ -19,7 +19,7 @@ export const verifyUserPhoneNumber = async (page: Page): Promise<void> => {
   await openUserSettingsModal(page);
 
   // go to the Phone Verification tab
-  await page.locator('a[aria-label="Tab Phone Verification"]').click();
+  await page.getByTestId('tab-phone-verification').click();
 
   // check to see if we've already verified our phone number.. no need to do it more than once
   if (await getForgetPhoneNumberButton(page).isVisible()) {
