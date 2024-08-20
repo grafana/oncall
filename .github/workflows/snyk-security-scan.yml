@@ -19,16 +19,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
-        with:
-          # yamllint disable rule:line-length
-          python-requirements-paths: engine/requirements.txt engine/requirements-dev.txt dev/scripts/generate-fake-data/requirements.txt tools/migrators/requirements.txt
-          # yamllint enable rule:line-length
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
       - name: Install Snyk
         uses: snyk/actions/setup@master
       - name: Run Snyk
         continue-on-error: true
-        run: snyk monitor --all-projects --severity-threshold=high
+        run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools/migrators
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
