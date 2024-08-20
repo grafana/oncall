@@ -19,7 +19,7 @@ def test_parse():
     assert slash_command.is_root_command
 
 
-@override_settings(SLACK_IRM_ROOT_COMMAND="/gops")
+@override_settings(SLACK_IRM_ROOT_COMMAND="gops")
 def test_parse_non_default_root_command():
     payload = {
         "command": "/gops",
