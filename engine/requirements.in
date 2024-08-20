@@ -64,3 +64,11 @@ whitenoise==5.3.0
 google-api-python-client==2.122.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
+# we are manually pinning idna to 3.7 to fix CVE-2024-3651
+# requests==2.32.3 is installing idna==3.6 but supports idna>=2.5,<4
+# https://github.com/psf/requests/blob/v2.32.3/setup.py#L63
+idna==3.7
+# we are manually pinning certifi to 2024.7.4 to fix CVE-2024-39689
+# requests==2.32.3 and python-telegram-bot==13.13 are installing certifi==2024.2.2 but they both support
+# certifi==2024.7.4
+certifi==2024.7.4
