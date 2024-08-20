@@ -27,7 +27,6 @@
     "watch": "NODE_ENV=development webpack -w -c ./webpack.config.ts --env development",
     "sign": "npx --yes @grafana/sign-plugin@latest",
     "start": "yarn watch",
-    "plop": "plop",
     "setversion": "setversion",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "yarn typecheck --watch --preserveWatchOutput false",
@@ -105,7 +104,6 @@
     "mailslurp-client": "^15.14.1",
     "moment-timezone": "^0.5.35",
     "openapi-typescript": "^7.0.0-next.4",
-    "plop": "^2.7.4",
     "postcss-loader": "^7.0.1",
     "prettier": "^2.8.7",
     "react-test-renderer": "^18.0.2",
@@ -177,5 +175,8 @@
     "throttle-debounce": "^2.1.0",
     "tinycolor2": "^1.6.0",
     "tslib": "2.5.3"
+  },
+  "resolutions": {
+    "braces": "3.0.3"
   }
 }
