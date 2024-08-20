@@ -26,7 +26,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
   - name: grafana
-    version: 6.57.1
+    version: 8.4.6
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: ingress-nginx
