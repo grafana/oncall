@@ -28,8 +28,9 @@ class MSTeamsLink:
 class Tenant:
     service_tenant_id: str
     service_type: str
-    stack_id: int
     cluster_slug: str
+    stack_id: int
+    stack_slug: str
     slack_links: List[SlackLink] = field(default_factory=list)
     msteams_links: List[MSTeamsLink] = field(default_factory=list)
 
