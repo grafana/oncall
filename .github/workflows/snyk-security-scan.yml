@@ -35,6 +35,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: snyk test
         # https://docs.snyk.io/snyk-cli/commands/test
+        # yamllint disable rule:line-length
         run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all --show-vulnerable-paths=all
+        # yamllint enable rule:line-length
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
