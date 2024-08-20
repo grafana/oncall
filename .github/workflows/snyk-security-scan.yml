@@ -25,6 +25,6 @@ jobs:
         uses: snyk/actions/setup@master
       - name: Run Snyk
         continue-on-error: true
-        run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools/migrators
+        run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
