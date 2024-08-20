@@ -20,7 +20,8 @@ SYNC_PERIOD = timezone.timedelta(minutes=4)
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def sync_organizations_v2():
-    with task_lock("sync_organizations_v2", "main") as acquired:
+    lock_id = "sync_organizations_v2"
+    with task_lock(lock_id, "main") as acquired:
         if acquired:
             organization_qs = Organization.objects.all()
             active_instance_ids, is_cloud_configured = get_active_instance_ids()
@@ -45,4 +46,4 @@ def sync_organizations_v2():
                     logger.info(f"Sleep 1s after {idx + 1} organizations processed")
                     sleep(1)
         else:
-            logger.info(f"Issuing sync requests already in progress, check slow outgoing requests")
+            logger.info(f"Issuing sync requests already in progress lock_id={lock_id}, check slow outgoing requests")
