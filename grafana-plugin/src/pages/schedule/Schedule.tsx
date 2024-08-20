@@ -47,7 +47,12 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization/authorizat
 import { PLUGIN_ROOT } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
-import { getCalendarStartDate, getNewCalendarStartDate, getUTCString } from './Schedule.helpers';
+import {
+  getCalendarStartDate,
+  getNewCalendarStartDate,
+  getUTCString,
+  toDateWithTimezoneOffset,
+} from './Schedule.helpers';
 import { getScheduleStyles } from './Schedule.styles';
 
 interface RouteProps {
@@ -647,7 +652,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
       store,
       store: {
         userStore: { currentUserPk },
-        timezoneStore: { currentDateInSelectedTimezone },
+        timezoneStore: { currentDateInSelectedTimezone, selectedTimezoneOffset },
       },
       router: {
         params: { id: scheduleId },
@@ -671,11 +676,14 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
     const layers = getLayersFromStore(store, scheduleId, store.timezoneStore.calendarStartDate);
     const closestEvent = findClosestUserEvent(dayjs(), currentUserPk, layers);
+
     const swapStart = closestEvent
-      ? dayjs(closestEvent.start)
+      ? toDateWithTimezoneOffset(dayjs(closestEvent.start), selectedTimezoneOffset)
       : currentDateInSelectedTimezone.startOf('day').add(1, 'day');
 
-    const swapEnd = closestEvent ? dayjs(closestEvent.end) : swapStart.add(1, 'day');
+    const swapEnd = closestEvent
+      ? toDateWithTimezoneOffset(dayjs(closestEvent.end), selectedTimezoneOffset)
+      : swapStart.add(1, 'day');
 
     const params = {
       swap_start: getUTCString(swapStart),
