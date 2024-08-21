@@ -635,7 +635,7 @@ grafana:
   grafana.ini:
     server:
       domain: helm-testing-grafana
-      root_url: "%(protocol)s://%(domain)s/grafana"
+      root_url: "%(protocol)s://%(domain)s/"
       serve_from_sub_path: true
     feature_toggles:
       enable: externalServiceAccounts
@@ -649,11 +649,11 @@ grafana:
   extraVolumes:
     - name: provisioning
       configMap:
-        name: plugin-provisioning
+        name: helm-testing-grafana-plugin-provisioning
   extraVolumeMounts:
     - name: provisioning
-      mountPath: /etc/grafana/provisioning/plugins
-      hostPath: /provisioning
+      mountPath: /etc/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml
+      subPath: grafana-oncall-app-provisioning.yaml
 
 externalGrafana:
   # Example: https://grafana.mydomain.com
