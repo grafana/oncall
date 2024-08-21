@@ -113,7 +113,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const shift = store.scheduleStore.shifts[shiftId];
 
-  const [startRotationFromUserIndex, setStartRotationFromUserIndex] = useState<number>(0);
+  const [startRotationFromUserIndex, setStartRotationFromUserIndex] = useState(0);
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
   const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
