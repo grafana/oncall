@@ -1,0 +1,9 @@
+apiVersion: 1
+apps:
+  - type: grafana-oncall-app
+    name: grafana-oncall-app
+    disabled: false
+    jsonData:
+      stackId: 5
+      orgId: 100
+      onCallApiUrl: http://helm-testing-oncall-engine:8080

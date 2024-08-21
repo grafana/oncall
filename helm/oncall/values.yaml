@@ -634,7 +634,7 @@ grafana:
   enabled: true
   grafana.ini:
     server:
-      domain: example.com
+      domain: helm-testing-grafana
       root_url: "%(protocol)s://%(domain)s/grafana"
       serve_from_sub_path: true
     feature_toggles:
@@ -646,6 +646,14 @@ grafana:
     pspEnabled: false
   plugins:
     - grafana-oncall-app
+  extraVolumes:
+    - name: provisioning
+      configMap:
+        name: plugin-provisioning
+  extraVolumeMounts:
+    - name: provisioning
+      mountPath: /etc/grafana/provisioning/plugins
+      hostPath: /provisioning
 
 externalGrafana:
   # Example: https://grafana.mydomain.com
