@@ -113,6 +113,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
 
   const shift = store.scheduleStore.shifts[shiftId];
 
+  const [startRotationFromUserIndex, setStartRotationFromUserIndex] = useState<number>(0);
+
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
   const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
     undefined
@@ -235,6 +237,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       rolling_users: userGroups,
       interval: recurrenceNum,
       frequency: recurrencePeriod,
+      // start_rotation_from_user_index: start_rotation_from_user_index,
       by_day: getUTCByDay({
         dayOptions: store.scheduleStore.byDayOptions,
         by_day: selectedDays,
@@ -246,6 +249,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       ),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       name: rotationName,
+      start_rotation_from_user_index: startRotationFromUserIndex,
     }),
     [
       rotationStart,
@@ -261,6 +265,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       shift,
       endLess,
       rotationName,
+      startRotationFromUserIndex,
       store.timezoneStore.selectedTimezoneOffset,
     ]
   );
@@ -490,6 +495,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       }
 
       setUserGroups(shift.rolling_users);
+      setStartRotationFromUserIndex(shift.start_rotation_from_user_index);
     }
   }, [shift]);
 
