@@ -237,7 +237,6 @@ export const RotationForm = observer((props: RotationFormProps) => {
       rolling_users: userGroups,
       interval: recurrenceNum,
       frequency: recurrencePeriod,
-      // start_rotation_from_user_index: start_rotation_from_user_index,
       by_day: getUTCByDay({
         dayOptions: store.scheduleStore.byDayOptions,
         by_day: selectedDays,
