@@ -19,13 +19,15 @@ aliases:
 
 # Slack integration for Grafana IRM
 
-The Grafana IRM Slack integration incorporates your Slack workspace directly into your incident response workflow,
+The Grafana IRM Slack integration incorporates your incident response workflow directly into your Slack workspace,
 helping your team focus on alert resolution with less friction.
 
 {{< admonition type="note" >}}
 The OnCall Slack app has been rebranded as the Grafana IRM Slack app, which now has incident management features.
 The legacy Incident Slack integration is being deprecated.
-Refer to our [Migration guide](#migrate-to-the-grafana-irm-slack-integration) for instructions on how to migrate to the Grafana IRM Slack integration.
+
+If you have an existing installation of the legacy Slack integrations, refer to the [migration instructions](#migrate-to-the-grafana-irm-slack-integration)
+for more information on how to migrate to the Grafana IRM Slack integration.
 {{< /admonition >}}
 
 ## Key features and benefits
@@ -110,16 +112,16 @@ you only need to approve the additional permissions required for Incident manage
 Migrating to the IRM Slack app will not affect your existing OnCall Slack-related configuration, including channels, users, and schedules.
 
 {{< admonition type="note" >}}
-The `/escalate` command is deprecated, please use `/grafana escalate` instead. Refer to Available Slack commands for more information.
+The `/escalate` command is deprecated, please use `/grafana escalate` instead. Refer to [Available Slack commands](#available-slack-commands) for more information.
 {{< /admonition >}}
 
 From OnCall, follow these steps to upgrade:
 
 1. Navigate to the **Settings** tab in Grafana OnCall.
-1. From the **ChatOps** tab, select **Slack** in the side menu.
-1. Click **Migrate**
-1. Once redirected to the Slack connection page, verify the Slack workspace and follow the Slack prompts to review permissions and specify a default channel.
-1. Click **Allow** to reauthorize Grafana IRM to access your Slack workspace with additional permissions.
+2. From the **ChatOps** tab, select **Slack** in the side menu.
+3. Click **Migrate**
+4. Once redirected to the Slack connection page, verify the Slack workspace and follow the Slack prompts to review permissions and specify a default channel.
+5. Click **Allow** to reauthorize Grafana IRM to access your Slack workspace with additional permissions.
 
 Migrating to the Grafana IRM Slack integration requires the following additional permissions:
 
