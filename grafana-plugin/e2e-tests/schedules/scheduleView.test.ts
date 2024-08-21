@@ -1,10 +1,9 @@
-import semver from 'semver';
-
 import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { ScheduleView } from 'models/schedule/schedule.types';
 import { HTML_ID } from 'utils/DOM';
 
 import { expect, Page, test } from '../fixtures';
+import { isGrafanaVersionLowerThan } from '../utils/constants';
 import { generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule } from '../utils/schedule';
 
@@ -13,7 +12,7 @@ const getNumberOfWeekdaysInFinalSchedule = async (page: Page) =>
 const getScheduleViewRadioButtonLocator = (page: Page, view: ScheduleView) =>
   page
     .getByTestId('schedule-view-picker')
-    [semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.2.0') ? 'getByText' : 'getByLabel'](view, { exact: true });
+    [isGrafanaVersionLowerThan('10.2.0') ? 'getByText' : 'getByLabel'](view, { exact: true });
 
 test('schedule view (week/2 weeks/month) toggler works', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;

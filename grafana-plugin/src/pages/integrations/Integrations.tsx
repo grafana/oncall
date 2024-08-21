@@ -660,6 +660,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
   invalidateRequestFn = (requestedPage: number) => {
     const { store } = this.props;
+
     return requestedPage !== store.filtersStore.currentTablePageNum[PAGE.Integrations];
   };
 
@@ -696,6 +697,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     const { alertReceiveChannelStore } = store;
     const newPage = isOnMount ? store.filtersStore.currentTablePageNum[PAGE.Integrations] : 1;
 
+    runInAction(() => {
+      store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
+    });
+
     await alertReceiveChannelStore.fetchPaginatedItems({
       filters: this.getFiltersBasedOnCurrentTab(),
       page: newPage,
@@ -703,9 +708,6 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       invalidateFn: () => this.invalidateRequestFn(newPage),
     });
 
-    runInAction(() => {
-      store.filtersStore.currentTablePageNum[PAGE.Integrations] = newPage;
-    });
     LocationHelper.update({ p: newPage }, 'partial');
   };
 

@@ -7,9 +7,9 @@ import path from 'path';
  */
 require('dotenv').config({ path: path.resolve(process.cwd(), 'e2e-tests/.env') });
 
-export const VIEWER_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/viewer.json');
-export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/editor.json');
-export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
+export const VIEWER_USER_STORAGE_STATE = path.join(process.cwd(), 'e2e-tests/.auth/viewer.json');
+export const EDITOR_USER_STORAGE_STATE = path.join(process.cwd(), 'e2e-tests/.auth/editor.json');
+export const ADMIN_USER_STORAGE_STATE = path.join(process.cwd(), 'e2e-tests/.auth/admin.json');
 
 const IS_CI = !!process.env.CI;
 const BROWSERS = process.env.BROWSERS || 'chromium';

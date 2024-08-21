@@ -14,21 +14,8 @@ jobs:
     strategy:
       matrix:
         grafana_version:
-          # OnCall doesn't work on the following versions of Grafana
-          # - 8.5.22
-          # - 9.0.0
-          # - 9.1.0
-
-          # 10.0.11 is the earliest version where things work
-          # - 9.2.20
-          # - 9.3.16
-          # - 9.4.13
-          # - 9.5.7
-          - 10.0.11
           - 10.1.7
-          # TODO: fix issues with running e2e tests against Grafana v10.2.x and v10.3.x
-          # - 10.2.4
-          # - latest
+          - 10.3.3
       fail-fast: false
       # Run one version at a time to avoid the issue when SMS notification are bundled together for multiple versions
       # running at the same time (the affected test is in grafana-plugin/e2e-tests/alerts/sms.test.ts)
@@ -37,10 +24,6 @@ jobs:
     with:
       grafana_version: ${{ matrix.grafana_version }}
       run-expensive-tests: true
-      # TODO: fix issues with some tests on firefox and webkit
-      # example CI build with firefox/webkit failing tests
-      # https://github.com/grafana/oncall/actions/runs/8022194346/job/21915964672#step:19:905
-      # browsers: "chromium firefox webkit"
       browsers: "chromium"
     secrets: inherit
 
@@ -55,7 +38,7 @@ jobs:
       #
       - uses: slackapi/slack-github-action@v1.24.0
         with:
-          channel-id: gops-oncall-dev
+          channel-id: gops-irm-dev
           # yamllint disable rule:line-length
           payload: |
             {
