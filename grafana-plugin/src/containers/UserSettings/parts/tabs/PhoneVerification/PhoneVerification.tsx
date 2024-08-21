@@ -16,10 +16,10 @@ import { AppFeature } from 'state/features';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 
 import styles from './PhoneVerification.module.css';
-import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

@@ -21,7 +21,7 @@ interface WebhookLastEventDetailsProps {
 
 export const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webhook, sourceCodeRootClassName }) => {
   const styles = useStyles2(getStyles);
-  const theme = useTheme2();
+  const theme = useTheme2() as GrafanaTheme2;
   const rows = useMemo(() => getEventDetailsRows(theme, webhook), [theme, webhook]);
 
   const commonSourceCodeProps = {

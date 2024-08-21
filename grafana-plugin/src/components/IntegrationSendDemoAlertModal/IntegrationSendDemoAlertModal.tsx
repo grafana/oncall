@@ -83,7 +83,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           />
         </div>
 
-        <Stack justifyContent={'flex-end'} gap={'md'}>
+        <Stack justifyContent={'flex-end'} gap={StackSize.md}>
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>

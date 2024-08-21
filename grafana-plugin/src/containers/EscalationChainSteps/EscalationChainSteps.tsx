@@ -40,7 +40,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   const store = useStore();
   const styles = useStyles2(getStyles);
-  const theme = useTheme2();
+  const theme = useTheme2() as GrafanaTheme2;
 
   const { escalationPolicyStore } = store;
 

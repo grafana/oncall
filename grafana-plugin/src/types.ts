@@ -1,4 +1,4 @@
-import { AppRootProps as BaseAppRootProps, AppPluginMeta, PluginConfigPageProps, BootData } from '@grafana/data';
+import { AppRootProps as BaseAppRootProps, AppPluginMeta, PluginConfigPageProps } from '@grafana/data';
 
 import { getPluginId } from 'utils/consts';
 
@@ -30,8 +30,6 @@ export type OnCallPluginExtensionPoints =
 
 declare global {
   export interface Window {
-    // https://github.com/grafana/grafana/blob/78bef7a26a799209b5307d6bde8e25fcb4fbde7d/public/views/index-template.html#L251-L258
-    grafanaBootData?: BootData;
     RECAPTCHA_SITE_KEY: string;
     grecaptcha: any;
     dataLayer: any;

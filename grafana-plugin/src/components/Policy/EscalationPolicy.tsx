@@ -1,8 +1,8 @@
 import React, { ChangeEvent } from 'react';
 
 import { cx } from '@emotion/css';
-import { SelectableValue } from '@grafana/data';
-import { Button, Input, Select, IconButton, withTheme2, Themeable2 } from '@grafana/ui';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { Button, Input, Select, IconButton, withTheme2 } from '@grafana/ui';
 import { isNumber } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -57,7 +57,9 @@ interface EscalationPolicyBaseProps {
 
 // We export the base props class, the actual definition is wrapped by MobX
 // MobX adds extra props that we do not need to pass on the consuming side
-export interface EscalationPolicyProps extends EscalationPolicyBaseProps, ElementSortableProps, Themeable2 {}
+export interface EscalationPolicyProps extends EscalationPolicyBaseProps, ElementSortableProps {
+  theme: GrafanaTheme2;
+}
 
 @observer
 class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
