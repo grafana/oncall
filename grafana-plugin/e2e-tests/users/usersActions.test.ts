@@ -1,6 +1,5 @@
-import semver from 'semver';
-
 import { test, expect } from '../fixtures';
+import { isGrafanaVersionLowerThan } from '../utils/constants';
 import { goToOnCallPage } from '../utils/navigation';
 import { verifyThatUserCanViewOtherUsers, accessProfileTabs } from '../utils/users';
 
@@ -26,7 +25,7 @@ test.describe('Users screen actions', () => {
     const tabsToCheck = ['tab-phone-verification', 'tab-slack', 'tab-telegram'];
 
     // After 10.3 it's been moved to global user profile
-    if (semver.lt(process.env.CURRENT_GRAFANA_VERSION, '10.3.0')) {
+    if (isGrafanaVersionLowerThan('10.3.0')) {
       tabsToCheck.unshift('tab-mobile-app');
     }
 
@@ -74,10 +73,10 @@ test.describe('Users screen actions', () => {
     await page.waitForTimeout(2000);
 
     await page
-    .locator('div')
-    .filter({ hasText: /^Search or filter results\.\.\.$/ })
-    .nth(1)
-    .click();
+      .locator('div')
+      .filter({ hasText: /^Search or filter results\.\.\.$/ })
+      .nth(1)
+      .click();
     await page.keyboard.insertText(userName);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(2000);

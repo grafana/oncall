@@ -36,13 +36,13 @@ humanize==4.10.0
 icalendar==5.0.10
 lxml==5.2.2
 markdown2==2.4.10
-opentelemetry-sdk==1.25.0
-opentelemetry-api==1.25.0
-opentelemetry-exporter-otlp-proto-grpc==1.25.0
-opentelemetry-instrumentation-logging==0.46b0
-opentelemetry-instrumentation-wsgi==0.46b0
-opentelemetry-instrumentation-requests==0.46b0
-opentelemetry-instrumentation-django==0.46b0
+opentelemetry-sdk==1.26.0
+opentelemetry-api==1.26.0
+opentelemetry-exporter-otlp-proto-grpc==1.26.0
+opentelemetry-instrumentation-logging==0.47b0
+opentelemetry-instrumentation-wsgi==0.47b0
+opentelemetry-instrumentation-requests==0.47b0
+opentelemetry-instrumentation-django==0.47b0
 phonenumbers==8.10.0
 prometheus_client==0.16.0
 psutil==5.9.4
@@ -64,3 +64,7 @@ whitenoise==5.3.0
 google-api-python-client==2.122.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.0
+# we are manually pinning idna to 3.7 to fix CVE-2024-3651
+# requests==2.32.3 is installing idna==3.6 but supports idna>=2.5,<4
+# https://github.com/psf/requests/blob/v2.32.3/setup.py#L63
+idna==3.7
