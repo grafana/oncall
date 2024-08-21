@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, ConfirmModal, ConfirmModalProps, HorizontalGroup, Icon, IconButton, withTheme2 } from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, Icon, IconButton, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -314,10 +314,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
             label: (
               <CopyToClipboard key="uid" text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
                 <div>
-                  <HorizontalGroup type="primary" spacing="xs">
+                  <Stack type="primary" gap={StackSize.xs}>
                     <Icon name="clipboard-alt" />
                     <Text type="primary">UID: {record.id}</Text>
-                  </HorizontalGroup>
+                  </Stack>
                 </div>
               </CopyToClipboard>
             ),
@@ -337,10 +337,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               }),
             requiredPermission: UserActions.OutgoingWebhooksWrite,
             label: (
-              <HorizontalGroup spacing="xs">
+              <Stack gap={StackSize.xs}>
                 <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
                 <Text type="danger">Delete Webhook</Text>
-              </HorizontalGroup>
+              </Stack>
             ),
           },
         ]}

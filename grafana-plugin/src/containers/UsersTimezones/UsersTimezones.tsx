@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, Icon, Tooltip } from '@grafana/ui';
+import { Icon, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
@@ -80,20 +80,20 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
       />
       <div className={cx('content')}>
         <div className={cx('header')}>
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup>
+          <Stack justifyContent='space-between'>
+            <Stack>
               <div className={cx('title')}>
                 <Text.Title level={5} type="primary">
                   Schedule team and timezones
                 </Text.Title>
               </div>
-            </HorizontalGroup>
+            </Stack>
             <div className={cx('timezone-select')}>
               <Text type="secondary">
                 Current timezone: {selectedTimezoneLabel}, local time: {currentDateInSelectedTimezone.format('HH:mm')}
               </Text>
             </div>
-          </HorizontalGroup>
+          </Stack>
         </div>
         <div className={cx('users')}>
           <CurrentTimeLineIndicator />
@@ -105,12 +105,12 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
               scheduleId={scheduleId}
             />
           ) : (
-            <HorizontalGroup justify="center" align="flex-start">
-              <HorizontalGroup>
+            <Stack justify="center" align="flex-start">
+              <Stack>
                 <Icon className={cx('icon')} name="users-alt" />
                 <Text type="secondary">Add rotation to see users</Text>
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </Stack>
+            </Stack>
           )}
         </div>
         <div className={cx('time-marks-wrapper')}>

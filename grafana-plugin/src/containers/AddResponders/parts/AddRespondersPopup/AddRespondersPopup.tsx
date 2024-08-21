@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
-import { Alert, HorizontalGroup, Icon, Input, LoadingPlaceholder, RadioButtonGroup } from '@grafana/ui';
+import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
@@ -205,17 +205,17 @@ export const AddRespondersPopup = observer(
 
           return (
             <div onClick={() => addTeamResponder(team)} className={cx('responder-item')}>
-              <HorizontalGroup justify="space-between">
-                <HorizontalGroup>
+              <Stack justifyContent='space-between'>
+                <Stack>
                   <Avatar size="small" src={avatar_url} />
                   <Text>{name}</Text>
-                </HorizontalGroup>
+                </Stack>
                 {number_of_users_currently_oncall > 0 && (
                   <Text type="secondary">
                     {number_of_users_currently_oncall} user{number_of_users_currently_oncall > 1 ? 's' : ''} on-call
                   </Text>
                 )}
-              </HorizontalGroup>
+              </Stack>
             </div>
           );
         },
@@ -233,20 +233,20 @@ export const AddRespondersPopup = observer(
 
           return (
             <div onClick={() => (disabled ? undefined : onClickUser(user))} className={cx('responder-item')}>
-              <HorizontalGroup justify="space-between">
-                <HorizontalGroup>
+              <Stack justifyContent='space-between'>
+                <Stack>
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined} className={cx('responder-name')}>
                     {name || username}
                   </Text>
-                </HorizontalGroup>
+                </Stack>
                 {/* TODO: we should add an elippsis and/or tooltip in the event that the user has a ton of teams */}
                 {teams?.length > 0 && (
                   <Text type="secondary" className={cx('responder-team')}>
                     {teams.map(({ name }) => name).join(', ')}
                   </Text>
                 )}
-              </HorizontalGroup>
+              </Stack>
             </div>
           );
         },
@@ -329,10 +329,10 @@ export const AddRespondersPopup = observer(
                             rel="noreferrer"
                           >
                             <Text type="link">
-                              <HorizontalGroup spacing="xs">
+                              <Stack gap={StackSize.xs}>
                                 Learn more
                                 <Icon name="external-link-alt" />
-                              </HorizontalGroup>
+                              </Stack>
                             </Text>
                           </a>
                         </Text>

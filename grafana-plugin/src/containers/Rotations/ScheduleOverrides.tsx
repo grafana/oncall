@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, Tooltip, withTheme2 } from '@grafana/ui';
+import { Button, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -102,11 +102,11 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
       <>
         <div id={HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS} className={styles.root}>
           <div className={styles.header}>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent='space-between'>
               <Text.Title level={5} type="primary">
                 Overrides and swaps
               </Text.Title>
-              <HorizontalGroup>
+              <Stack>
                 <Button
                   variant="secondary"
                   disabled={disableShiftSwaps}
@@ -131,8 +131,8 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
                     </Button>
                   </WithPermissionControlTooltip>
                 )}
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </Stack>
+            </Stack>
           </div>
           <div className="u-position-relative">
             {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { cx } from '@emotion/css';
-import { HorizontalGroup, IconButton, Input, useStyles2 } from '@grafana/ui';
+import { IconButton, Input, Stack, useStyles2 } from '@grafana/ui';
 
 import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
 
@@ -38,11 +38,11 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
       <div className={styles.inputContainer}>{renderInputField()}</div>
 
       <div className={cx(styles.icons, iconsClassName)}>
-        <HorizontalGroup spacing={'xs'}>
+        <Stack spacing={'xs'}>
           {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
           {showCopy && <CopyToClipboardIcon text={value} iconButtonProps={{ size: 'xs' }} />}
           {showExternal && <IconButton aria-label="Open" name={'external-link-alt'} size={'xs'} onClick={onOpen} />}
-        </HorizontalGroup>
+        </Stack>
       </div>
     </div>
   );

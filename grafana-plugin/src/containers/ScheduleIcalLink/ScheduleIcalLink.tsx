@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, Label, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, Label, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -52,7 +52,7 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
   };
 
   return (
-    <VerticalGroup>
+    <Stack direction="column">
       <Label>iCal link:</Label>
       <Text type="secondary">
         Secret iCal export link to export schedule's on call shifts to Google Calendar, iCal, etc. If you forget it,
@@ -68,11 +68,11 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
           {isiCalLinkExist ? (
             <>
               {ICalLink !== undefined ? (
-                <VerticalGroup>
-                  <HorizontalGroup>
+                <Stack direction="column">
+                  <Stack>
                     <Icon name="exclamation-triangle" />
                     <Text type="warning">Make sure you copy it - you won't be able to access it again.</Text>
-                  </HorizontalGroup>
+                  </Stack>
                   <Text className={cx('link-container')}>{ICalLink}</Text>
                   <CopyToClipboard
                     text={ICalLink}
@@ -84,16 +84,16 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
                       Copy iCal link
                     </Button>
                   </CopyToClipboard>
-                </VerticalGroup>
+                </Stack>
               ) : (
-                <VerticalGroup>
+                <Stack direction="column">
                   <Text type="secondary">
                     In case you lost your iCal link you can revoke it and generate a new one.
                   </Text>
                   <Button icon="trash-alt" onClick={handleRevokeICalLink} variant="destructive" fill="outline">
                     Revoke iCal link
                   </Button>
-                </VerticalGroup>
+                </Stack>
               )}
             </>
           ) : (
@@ -103,6 +103,6 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
           )}
         </>
       )}
-    </VerticalGroup>
+    </Stack>
   );
 });

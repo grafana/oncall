@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { css, cx } from '@emotion/css';
-import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, IconButton, Tooltip, Stack, useStyles2 } from '@grafana/ui';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -14,6 +14,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']; isFull: boolean }) => {
   const { incident, isFull } = props;
@@ -81,7 +82,7 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
   }
 
   return (
-    <VerticalGroup spacing="xs">
+    <Stack direction="column" gap={StackSize.xs}>
       {visibleUsers.map(renderUser)}
       {Boolean(otherUsers.length) && (
         <Tooltip
@@ -104,7 +105,7 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
           </span>
         </Tooltip>
       )}
-    </VerticalGroup>
+    </Stack>
   );
 };
 
@@ -186,7 +187,7 @@ export function getActionButtons(
     buttons.push(unresolveButton);
   }
 
-  return <HorizontalGroup justify="flex-end">{buttons}</HorizontalGroup>;
+  return <Stack justify="flex-end">{buttons}</Stack>;
 }
 
 const getStyles = () => {

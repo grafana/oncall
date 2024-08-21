@@ -3,8 +3,7 @@ import React from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import {
   Button,
-  HorizontalGroup,
-  VerticalGroup,
+  Stack,
   IconButton,
   ToolbarButton,
   Icon,
@@ -189,7 +188,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
             <div>
               {isNotFoundError ? (
                 <div className={styles.notFound}>
-                  <VerticalGroup spacing="lg" align="center">
+                  <Stack direction="column" gap={StackSize.lg} align="center">
                     <Text.Title level={1}>404</Text.Title>
                     <Text.Title level={4}>Schedule not found</Text.Title>
                     <PluginLink query={{ page: 'schedules', ...query }}>
@@ -197,12 +196,12 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         Go to Schedules page
                       </Button>
                     </PluginLink>
-                  </VerticalGroup>
+                  </Stack>
                 </div>
               ) : (
-                <VerticalGroup spacing="lg">
+                <Stack direction="column" gap={StackSize.lg}>
                   <div className={styles.header}>
-                    <HorizontalGroup justify="space-between">
+                    <Stack justifyContent='space-between'>
                       <div className={styles.title}>
                         <PluginLink query={{ page: 'schedules', ...query }}>
                           <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
@@ -217,20 +216,20 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                         </Text.Title>
                         {schedule && <ScheduleQuality schedule={schedule} />}
                       </div>
-                      <HorizontalGroup spacing="lg">
+                      <Stack gap={StackSize.lg}>
                         {users && (
-                          <HorizontalGroup>
+                          <Stack>
                             <Text type="secondary">View in timezone:</Text>
                             <UserTimezoneSelect scheduleId={scheduleId} onChange={this.handleDateRangeUpdate} />
-                          </HorizontalGroup>
+                          </Stack>
                         )}
-                        <HorizontalGroup>
-                          <HorizontalGroup>
-                            <HorizontalGroup>
+                        <Stack>
+                          <Stack>
+                            <Stack>
                               <Button variant="secondary" onClick={this.handleExportClick()}>
                                 Export
                               </Button>
-                            </HorizontalGroup>
+                            </Stack>
 
                             {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
                               <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
@@ -309,7 +308,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                                 <Button icon="angle-down" />
                               </ButtonGroup>
                             </Dropdown>
-                          </HorizontalGroup>
+                          </Stack>
                           <ToolbarButton
                             icon="cog"
                             tooltip="Settings"
@@ -320,9 +319,9 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                           <WithConfirm>
                             <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
                           </WithConfirm>
-                        </HorizontalGroup>
-                      </HorizontalGroup>
-                    </HorizontalGroup>
+                        </Stack>
+                      </Stack>
+                    </Stack>
                   </div>
                   <div className={styles.usersTimezone}>
                     <UsersTimezones
@@ -338,19 +337,19 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
                   <div className={styles.rotations}>
                     <div className={styles.controls}>
-                      <HorizontalGroup justify="space-between">
-                        <HorizontalGroup>
+                      <Stack justifyContent='space-between'>
+                        <Stack>
                           <Button variant="secondary" onClick={this.handleTodayClick}>
                             Today
                           </Button>
-                          <HorizontalGroup spacing="xs">
+                          <Stack gap={StackSize.xs}>
                             <Button variant="secondary" onClick={this.handleLeftClick}>
                               <Icon name="angle-left" />
                             </Button>
                             <Button variant="secondary" onClick={this.handleRightClick}>
                               <Icon name="angle-right" />
                             </Button>
-                          </HorizontalGroup>
+                          </Stack>
                           <Text.Title style={{ marginLeft: '8px', whiteSpace: 'nowrap' }} level={5} type="primary">
                             {store.timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
                             {store.timezoneStore.calendarStartDate
@@ -388,8 +387,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                               onClose={() => this.setState({ calendarStartDatePickerIsOpen: false })}
                             />
                           </div>
-                        </HorizontalGroup>
-                        <HorizontalGroup>
+                        </Stack>
+                        <Stack>
                           <div data-testid="schedule-view-picker">
                             <RadioButtonGroup
                               options={[
@@ -419,8 +418,8 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                             onChange={(value) => this.setState({ filters: value })}
                             currentUserPk={store.userStore.currentUserPk}
                           />
-                        </HorizontalGroup>
-                      </HorizontalGroup>
+                        </Stack>
+                      </Stack>
                     </div>
                     <ScheduleFinal
                       scheduleId={scheduleId}
@@ -477,7 +476,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
                       />
                     </div>
                   </div>
-                </VerticalGroup>
+                </Stack>
               )}
             </div>
             {showEditForm && schedule && (

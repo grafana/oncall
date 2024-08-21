@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, InlineField } from '@grafana/ui';
+import { Button, InlineField } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -28,7 +28,7 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
     <div>
       <InlineField label="Google Account" labelWidth={15}>
         {storeUser.has_google_oauth2_connected ? (
-          <HorizontalGroup spacing="xs">
+          <Stack gap={StackSize.xs}>
             <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
               <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
                 <Button disabled={!isCurrentUser} variant="destructive" onClick={userStore.disconnectGoogle}>
@@ -36,7 +36,7 @@ export const GoogleConnector = observer((props: GoogleConnectorProps) => {
                 </Button>
               </WithConfirm>
             </WithPermissionControlTooltip>
-          </HorizontalGroup>
+          </Stack>
         ) : (
           <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
             <Button disabled={!isCurrentUser} onClick={UserHelper.handleConnectGoogle}>

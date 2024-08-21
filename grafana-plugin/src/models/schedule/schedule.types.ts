@@ -61,6 +61,7 @@ export interface Shift {
   interval: number;
   priority_level: number;
   rolling_users: Array<Array<ApiSchemas['User']['pk']>>;
+  start_rotation_from_user_index?: number;
   rotation_start: string;
   schedule: Schedule['id'];
   shift_end: string;

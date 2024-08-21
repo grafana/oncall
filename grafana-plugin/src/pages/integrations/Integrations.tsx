@@ -3,9 +3,8 @@ import React from 'react';
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import {
-  HorizontalGroup,
   Button,
-  VerticalGroup,
+  Stack,
   Icon,
   ConfirmModal,
   Tooltip,
@@ -227,13 +226,13 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       <>
         <div>
           <div className={styles.title}>
-            <HorizontalGroup justify="space-between">
-              <VerticalGroup>
+            <Stack justifyContent='space-between'>
+              <Stack direction="column">
                 <Text.Title level={3}>Integrations</Text.Title>
                 <Text type="secondary">
                   Receive alerts, group and interpret using templates and route to escalations
                 </Text>
-              </VerticalGroup>
+              </Stack>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {
@@ -245,7 +244,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                   New integration
                 </Button>
               </WithPermissionControlTooltip>
-            </HorizontalGroup>
+            </Stack>
           </div>
           <div>
             <TabsBar className={styles.tabsBar}>
@@ -379,22 +378,22 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
     if (isLegacyIntegration) {
       return (
-        <HorizontalGroup>
+        <Stack>
           <Tooltip placement="top" content={'This integration has been deprecated, consider migrating it.'}>
             <Icon name="info-circle" className="u-opacity" />
           </Tooltip>
           <Text type="secondary">
             <span className="u-opacity">{integration?.display_name}</span>
           </Text>
-        </HorizontalGroup>
+        </Stack>
       );
     }
 
     return (
-      <HorizontalGroup>
+      <Stack>
         <IntegrationLogo scale={0.08} integration={integration} />
         <Text type="secondary">{integration?.display_name}</Text>
-      </HorizontalGroup>
+      </Stack>
     );
   }
 
@@ -408,7 +407,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     let connectedEscalationsChainsCount = item.connected_escalations_chains_count;
 
     return (
-      <HorizontalGroup spacing="xs">
+      <Stack gap={StackSize.xs}>
         {alertReceiveChannelCounter && (
           <PluginLink query={{ page: 'incidents', integration: item.id }}>
             <TooltipBadge
@@ -445,7 +444,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
             }
           />
         )}
-      </HorizontalGroup>
+      </Stack>
     );
   };
 
@@ -534,11 +533,11 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={styles.integrationsActionItem}>
-                <HorizontalGroup spacing={'xs'}>
+                <Stack spacing={'xs'}>
                   <Icon name="copy" />
 
                   <Text type="primary">UID: {item.id}</Text>
-                </HorizontalGroup>
+                </Stack>
               </div>
             </CopyToClipboard>
             <RenderConditionally shouldRender={item.allow_delete}>
@@ -565,10 +564,10 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                     className="u-width-100"
                   >
                     <Text type="danger">
-                      <HorizontalGroup spacing={'xs'}>
+                      <Stack spacing={'xs'}>
                         <Icon name="trash-alt" />
                         <span>Delete Integration</span>
-                      </HorizontalGroup>
+                      </Stack>
                     </Text>
                   </div>
                 </div>

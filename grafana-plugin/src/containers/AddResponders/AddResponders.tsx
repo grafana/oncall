@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Button, Modal, Alert, VerticalGroup, Icon, useStyles2 } from '@grafana/ui';
+import { Button, Modal, Alert, Stack, Icon, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
@@ -12,6 +12,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import { getAddRespondersStyles } from './AddResponders.styles';
 import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';
@@ -38,10 +39,10 @@ const LearnMoreAboutNotificationPoliciesLink: React.FC = () => {
       rel="noreferrer"
     >
       <Text type="link">
-        <HorizontalGroup spacing="xs">
+        <Stack gap={StackSize.xs}>
           Learn more
           <Icon name="external-link-alt" />
-        </HorizontalGroup>
+        </Stack>
       </Text>
     </a>
   );
@@ -111,7 +112,7 @@ export const AddResponders = observer(
       <>
         <div className={styles.content}>
           <Block bordered>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent='space-between'>
               <Text.Title type="primary" level={4}>
                 Participants
               </Text.Title>
@@ -128,7 +129,7 @@ export const AddResponders = observer(
                   </Button>
                 </WithPermissionControlTooltip>
               )}
-            </HorizontalGroup>
+            </Stack>
             {(selectedTeamResponder || existingPagedUsers.length > 0 || selectedUserResponders.length > 0) && (
               <>
                 <ul className={styles.respondersList}>
@@ -189,7 +190,7 @@ export const AddResponders = observer(
             onDismiss={closeUserConfirmationModal}
             className={styles.confirmParticipantInvitationModal}
           >
-            <VerticalGroup spacing="md">
+            <Stack direction="column" gap={StackSize.md}>
               {!isCreateMode && (
                 <div>
                   <Text>
@@ -213,15 +214,15 @@ export const AddResponders = observer(
                   title="This user is not currently on-call. We don't recommend to page users outside on-call hours."
                 />
               )}
-              <HorizontalGroup justify="flex-end">
+              <Stack justify="flex-end">
                 <Button variant="secondary" onClick={closeUserConfirmationModal}>
                   Cancel
                 </Button>
                 <Button variant="primary" onClick={confirmCurrentlyConsideredUser} data-testid="confirm-non-oncall">
                   Confirm
                 </Button>
-              </HorizontalGroup>
-            </VerticalGroup>
+              </Stack>
+            </Stack>
           </Modal>
         )}
       </>

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { Button, InlineField, Input } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -35,7 +35,7 @@ export const TelegramConnector = observer((props: TelegramConnectorProps) => {
     <div>
       <InlineField label="Telegram" labelWidth={12} disabled={!isCurrentUser}>
         {storeUser.telegram_configuration ? (
-          <HorizontalGroup spacing="xs">
+          <Stack gap={StackSize.xs}>
             <Input
               disabled={true}
               value={
@@ -52,7 +52,7 @@ export const TelegramConnector = observer((props: TelegramConnectorProps) => {
                 disabled={!isCurrentUser}
               />
             </WithConfirm>
-          </HorizontalGroup>
+          </Stack>
         ) : (
           <Button onClick={handleConnectButtonClick}>Connect account</Button>
         )}

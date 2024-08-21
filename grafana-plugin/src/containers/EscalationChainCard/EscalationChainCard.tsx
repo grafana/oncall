@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, VerticalGroup, Badge } from '@grafana/ui';
+import { Stack, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -28,9 +28,9 @@ export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps
 
   return (
     <div className={cx('root')}>
-      <HorizontalGroup align="flex-start">
-        <VerticalGroup spacing="xs">
-          <HorizontalGroup spacing="sm">
+      <Stack align="flex-start">
+        <Stack direction="column" gap={StackSize.xs}>
+          <Stack gap={StackSize.sm}>
             <Text type="primary" size="medium">
               {escalationChain.name}
             </Text>
@@ -44,10 +44,10 @@ export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps
                   : 'This escalation is not connected to any integration route, go to integrations and connect route to this escalation chain'
               }
             />
-          </HorizontalGroup>
+          </Stack>
           <TeamName team={grafanaTeamStore.items[escalationChain.team]} size="small" />
-        </VerticalGroup>
-      </HorizontalGroup>
+        </Stack>
+      </Stack>
     </div>
   );
 });

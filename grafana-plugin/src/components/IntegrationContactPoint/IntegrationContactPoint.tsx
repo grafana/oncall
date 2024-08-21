@@ -4,14 +4,13 @@ import { SelectableValue } from '@grafana/data';
 import {
   Button,
   Drawer,
-  HorizontalGroup,
   Icon,
   IconButton,
   Input,
   RadioButtonGroup,
   Select,
   Tooltip,
-  VerticalGroup,
+  Stack,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -122,33 +121,33 @@ export const IntegrationContactPoint: React.FC<{
                 />
 
                 <div className={cx('contactpoints__connect')}>
-                  <VerticalGroup spacing="md">
+                  <Stack direction="column" gap={StackSize.md}>
                     <div
                       className={cx('contactpoints__connect-toggler')}
                       onClick={() => setState({ isConnectOpen: !isConnectOpen })}
                     >
-                      <HorizontalGroup justify="space-between">
-                        <HorizontalGroup spacing="xs" align="center">
+                      <Stack justifyContent='space-between'>
+                        <Stack gap={StackSize.xs} align="center">
                           <Text type="primary">Grafana Alerting Contact point</Text>
                           <Icon name="info-circle" />
-                        </HorizontalGroup>
+                        </Stack>
 
                         {isConnectOpen ? <Icon name="arrow-down" /> : <Icon name="arrow-right" />}
-                      </HorizontalGroup>
+                      </Stack>
                     </div>
 
                     {renderConnectSection()}
-                  </VerticalGroup>
+                  </Stack>
                 </div>
               </div>
             </Drawer>
           )}
 
-          <HorizontalGroup spacing="md">
+          <Stack gap={StackSize.md}>
             <IntegrationTag>Contact point</IntegrationTag>
 
             {contactPoints?.length ? (
-              <HorizontalGroup>
+              <Stack>
                 <Text type="primary">
                   {contactPoints.length} contact point{contactPoints.length === 1 ? '' : 's'} connected
                 </Text>
@@ -163,16 +162,16 @@ export const IntegrationContactPoint: React.FC<{
                     </div>
                   </Tooltip>
                 )}
-              </HorizontalGroup>
+              </Stack>
             ) : (
-              <HorizontalGroup spacing="xs">
+              <Stack gap={StackSize.xs}>
                 {renderExclamationIcon()}
                 <Text type="primary" data-testid="integration-escalation-chain-not-selected">
                   Connect Alerting Contact point to receive alerts
                 </Text>
-              </HorizontalGroup>
+              </Stack>
             )}
-          </HorizontalGroup>
+          </Stack>
 
           <Button
             variant={'secondary'}
@@ -194,7 +193,7 @@ export const IntegrationContactPoint: React.FC<{
     }
 
     return (
-      <VerticalGroup spacing="md">
+      <Stack direction="column" gap={StackSize.md}>
         <RadioButtonGroup
           options={radioOptions}
           value={isExistingContactPoint ? 'existing' : 'new'}
@@ -233,7 +232,7 @@ export const IntegrationContactPoint: React.FC<{
           />
         )}
 
-        <HorizontalGroup align="center">
+        <Stack align="center">
           <Button
             variant="primary"
             disabled={!selectedAlertManager || !selectedContactPoint || isLoading}
@@ -245,8 +244,8 @@ export const IntegrationContactPoint: React.FC<{
             Cancel
           </Button>
           {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
-        </HorizontalGroup>
-      </VerticalGroup>
+        </Stack>
+      </Stack>
     );
   }
 
@@ -263,7 +262,7 @@ export const IntegrationContactPoint: React.FC<{
     };
 
     return (
-      <HorizontalGroup spacing="md">
+      <Stack gap={StackSize.md}>
         <IconButton
           aria-label="Alert Manager"
           name="external-link-alt"
@@ -278,23 +277,23 @@ export const IntegrationContactPoint: React.FC<{
           title={`Disconnect Contact point`}
           confirmText="Disconnect"
           description={
-            <VerticalGroup spacing="md">
+            <Stack direction="column" gap={StackSize.md}>
               <Text type="primary">
                 When the contact point will be disconnected, the Integration will no longer receive alerts for it.
               </Text>
               <Text type="primary">You can add new contact point at any time.</Text>
-            </VerticalGroup>
+            </Stack>
           }
         >
           <IconButton aria-label="Disconnect Contact Point" name="trash-alt" onClick={onDisconnect} />
         </WithConfirm>
-      </HorizontalGroup>
+      </Stack>
     );
   }
 
   function renderContactPointName(item: ContactPoint) {
     return (
-      <HorizontalGroup spacing="xs">
+      <Stack gap={StackSize.xs}>
         <Text type="primary">{item.contactPoint}</Text>
 
         {!item.notificationConnected && (
@@ -305,7 +304,7 @@ export const IntegrationContactPoint: React.FC<{
             {renderExclamationIcon()}
           </Tooltip>
         )}
-      </HorizontalGroup>
+      </Stack>
     );
   }
 

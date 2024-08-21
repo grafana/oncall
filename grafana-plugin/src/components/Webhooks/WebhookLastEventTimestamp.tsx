@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { css } from '@emotion/css';
-import { useTheme2, useStyles2, HorizontalGroup, Button } from '@grafana/ui';
+import { useTheme2, useStyles2, Button } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { Tag } from 'components/Tag/Tag';
@@ -43,7 +43,7 @@ export const WebhookLastEventTimestamp = ({
   }
 
   return (
-    <HorizontalGroup>
+    <Stack>
       <Tag
         color={theme.colors.background.secondary}
         border={`1px solid ${theme.colors.border.weak}`}
@@ -61,7 +61,7 @@ export const WebhookLastEventTimestamp = ({
         className={styles.eventDetailsIconButton}
         onClick={() => openDrawer('webhookDetails')}
       />
-    </HorizontalGroup>
+    </Stack>
   );
 };
 

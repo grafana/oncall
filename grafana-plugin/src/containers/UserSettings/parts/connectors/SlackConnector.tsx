@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { Button, InlineField, Input } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -44,7 +44,7 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
             labelWidth={12}
             tooltip={'Connected Slack user will receive mentions during escalations'}
           >
-            <HorizontalGroup spacing="xs">
+            <Stack gap={StackSize.xs}>
               <Input
                 disabled={true}
                 value={
@@ -59,7 +59,7 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
                   disabled={!isCurrentUser}
                 />
               </WithConfirm>
-            </HorizontalGroup>
+            </Stack>
           </InlineField>
         </>
       ) : organizationStore.currentOrganization?.slack_team_identity ? (

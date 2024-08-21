@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { cx } from '@emotion/css';
-import { VerticalGroup, HorizontalGroup, IconButton, useStyles2 } from '@grafana/ui';
+import { Stack, IconButton, useStyles2 } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { bem } from 'styles/utils.styles';
@@ -99,7 +99,7 @@ export const UserGroups = (props: UserGroupsProps) => {
       {renderUser(item.data)}
       {!disabled && (
         <div className={styles.userButtons}>
-          <HorizontalGroup>
+          <Stack>
             <IconButton
               aria-label="Remove"
               className={styles.icon}
@@ -107,7 +107,7 @@ export const UserGroups = (props: UserGroupsProps) => {
               onClick={getDeleteItemHandler(index)}
             />
             <SortableHandleHoc />
-          </HorizontalGroup>
+          </Stack>
         </div>
       )}
     </li>
@@ -115,7 +115,7 @@ export const UserGroups = (props: UserGroupsProps) => {
 
   return (
     <div className={styles.root}>
-      <VerticalGroup>
+      <Stack direction="column">
         {!disabled && (
           <RemoteSelect
             key={items.length}
@@ -142,7 +142,7 @@ export const UserGroups = (props: UserGroupsProps) => {
           useDragHandle
           allowCreate={!disabled}
         />
-      </VerticalGroup>
+      </Stack>
     </div>
   );
 };

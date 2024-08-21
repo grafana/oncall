@@ -1,7 +1,7 @@
 import React, { FC, HTMLAttributes, ChangeEvent, useState, useCallback } from 'react';
 
 import { cx } from '@emotion/css';
-import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { IconButton, Modal, Input, Button, Stack, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem } from 'styles/utils.styles';
 
@@ -138,7 +138,7 @@ export const Text: TextInterface = (props) => {
       )}
       {isEditMode && (
         <Modal onDismiss={handleCancelEdit} closeOnEscape isOpen title={editModalTitle}>
-          <VerticalGroup>
+          <Stack direction="column">
             <Input
               autoFocus
               ref={(node) => {
@@ -149,15 +149,15 @@ export const Text: TextInterface = (props) => {
               value={value}
               onChange={handleInputChange}
             />
-            <HorizontalGroup justify="flex-end">
+            <Stack justify="flex-end">
               <Button variant="secondary" onClick={handleCancelEdit}>
                 Cancel
               </Button>
               <Button variant="primary" onClick={handleConfirmEdit}>
                 Ok
               </Button>
-            </HorizontalGroup>
-          </VerticalGroup>
+            </Stack>
+          </Stack>
         </Modal>
       )}
     </CustomTag>

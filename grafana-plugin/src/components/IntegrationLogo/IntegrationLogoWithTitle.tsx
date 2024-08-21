@@ -1,8 +1,10 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup } from '@grafana/ui';
+
+import { Stack } from '@grafana/ui';
 
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 
 import { IntegrationLogo, IntegrationLogoProps } from './IntegrationLogo';
 
@@ -11,8 +13,8 @@ interface IntegrationLogoWithTitleProps {
 }
 
 export const IntegrationLogoWithTitle: FC<IntegrationLogoWithTitleProps> = ({ integration }) => (
-  <HorizontalGroup spacing="xs">
+  <Stack gap={StackSize.xs}>
     <IntegrationLogo scale={0.08} integration={integration} />
     <Text type="primary">{integration?.display_name}</Text>
-  </HorizontalGroup>
+  </Stack>
 );

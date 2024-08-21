@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -24,6 +24,7 @@ import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
 import { QRCode } from './parts/QRCode/QRCode';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -155,7 +156,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
     content = <Text type="primary">{errorFetchingQRCode || errorDisconnectingMobileApp}</Text>;
   } else if (mobileAppIsCurrentlyConnected) {
     content = (
-      <VerticalGroup spacing="lg">
+      <Stack direction="column" gap={StackSize.lg}>
         <Text strong type="primary">
           App connected <Icon name="check-circle" size="md" className={cx('icon')} />
         </Text>
@@ -167,11 +168,11 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
           <img src={qrCodeImage} className={cx('disconnect__qrCode')} />
           <DisconnectButton onClick={disconnectMobileApp} />
         </div>
-      </VerticalGroup>
+      </Stack>
     );
   } else if (QRCodeValue) {
     content = (
-      <VerticalGroup spacing="lg">
+      <Stack direction="column" gap={StackSize.lg}>
         <Text type="primary" strong>
           Sign in via QR Code
         </Text>
@@ -191,14 +192,14 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
             </a>
           </Text>
         )}
-      </VerticalGroup>
+      </Stack>
     );
   }
 
   return (
     <>
       <h3>Mobile App Connection</h3>
-      <VerticalGroup>
+      <Stack direction="column">
         <div className={cx('container')}>
           {QRCodeDataParsed && isMobile && (
             <Block shadowed bordered withBackground className={cx('container__box')}>
@@ -214,7 +215,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
         </div>
         {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (
           <div className={cx('notification-buttons')}>
-            <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+            <Stack spacing={'md'} justify={'flex-end'}>
               <Button
                 variant="secondary"
                 onClick={() => onSendTestNotification()}
@@ -229,17 +230,17 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
               >
                 Send Test Push Important
               </Button>
-            </HorizontalGroup>
+            </Stack>
           </div>
         )}
-      </VerticalGroup>
+      </Stack>
     </>
   );
 
   function renderConnectToCloud() {
     return (
       <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text type="secondary">Please connect Grafana Cloud OnCall to use the mobile app</Text>
           <WithPermissionControlDisplay
             userAction={UserActions.OtherSettingsWrite}
@@ -252,7 +253,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
               </Button>
             </PluginLink>
           </WithPermissionControlDisplay>
-        </VerticalGroup>
+        </Stack>
       </WithPermissionControlDisplay>
     );
   }

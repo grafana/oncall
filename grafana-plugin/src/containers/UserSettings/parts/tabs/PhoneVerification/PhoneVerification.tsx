@@ -1,6 +1,6 @@
 import React, { HTMLAttributes, useCallback, useRef, useReducer } from 'react';
 
-import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Alert, Button, Field, Icon, Input, Switch, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -189,7 +189,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   return (
     <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
-      <VerticalGroup>
+      <Stack direction="column">
         {isPhoneValid && !user.verified_phone_number && (
           <Alert severity="info" title="You will receive alerts to a new number after verification" />
         )}
@@ -238,7 +238,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
             className={cx('phone__field')}
           />
         )}
-        <HorizontalGroup spacing="xs">
+        <Stack gap={StackSize.xs}>
           <Icon name="info-circle" />
           <Text type="secondary">
             This site is protected by reCAPTCHA and the Google{' '}
@@ -251,7 +251,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
             </a>{' '}
             apply.
           </Text>
-        </HorizontalGroup>
+        </Stack>
         {showToggle && (
           <div className={cx('switch')}>
             <div className={cx('switch__icon')}>
@@ -275,7 +275,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
           onShowForgetScreen={() => setState({ showForgetScreen: true })}
           user={user}
         />
-      </VerticalGroup>
+      </Stack>
     </WithPermissionControlDisplay>
   );
 });
@@ -292,14 +292,14 @@ function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps
       <Text size="large" className={cx('phone__forgetHeading')}>
         Do you really want to forget the verified phone number <strong>{phone}</strong> ?
       </Text>
-      <HorizontalGroup justify="flex-end">
+      <Stack justify="flex-end">
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
         <Button variant="destructive" onClick={onForget}>
           Forget
         </Button>
-      </HorizontalGroup>
+      </Stack>
     </>
   );
 }
@@ -347,9 +347,9 @@ const PhoneVerificationButtonsGroup = observer(
     const showVerifyOrSendCodeButton = !user.verified_phone_number;
     const verificationStarted = isCodeSent || isPhoneCallInitiated;
     return (
-      <HorizontalGroup>
+      <Stack>
         {showVerifyOrSendCodeButton && (
-          <HorizontalGroup>
+          <Stack>
             {verificationStarted ? (
               <>
                 <WithPermissionControlTooltip userAction={action}>
@@ -362,7 +362,7 @@ const PhoneVerificationButtonsGroup = observer(
               <RenderConditionally
                 shouldRender={Boolean(providerConfiguration)}
                 render={() => (
-                  <HorizontalGroup>
+                  <Stack>
                     {providerConfiguration.verification_sms && (
                       <WithPermissionControlTooltip userAction={action}>
                         <Button
@@ -387,11 +387,11 @@ const PhoneVerificationButtonsGroup = observer(
                         </Button>
                       </WithPermissionControlTooltip>
                     )}
-                  </HorizontalGroup>
+                  </Stack>
                 )}
               ></RenderConditionally>
             )}
-          </HorizontalGroup>
+          </Stack>
         )}
 
         {showForgetNumber && (
@@ -407,7 +407,7 @@ const PhoneVerificationButtonsGroup = observer(
         )}
 
         {user.verified_phone_number && (
-          <HorizontalGroup>
+          <Stack>
             {providerConfiguration.test_sms && (
               <WithPermissionControlTooltip userAction={action}>
                 <Button
@@ -421,7 +421,7 @@ const PhoneVerificationButtonsGroup = observer(
               </WithPermissionControlTooltip>
             )}
             {providerConfiguration.test_call && (
-              <HorizontalGroup spacing="xs">
+              <Stack gap={StackSize.xs}>
                 <WithPermissionControlTooltip userAction={action}>
                   <Button
                     disabled={
@@ -435,11 +435,11 @@ const PhoneVerificationButtonsGroup = observer(
                 <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
                   <Icon name="info-circle" />
                 </Tooltip>
-              </HorizontalGroup>
+              </Stack>
             )}
-          </HorizontalGroup>
+          </Stack>
         )}
-      </HorizontalGroup>
+      </Stack>
     );
   }
 );

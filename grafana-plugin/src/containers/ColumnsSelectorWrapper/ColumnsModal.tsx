@@ -4,12 +4,11 @@ import { LabelTag } from '@grafana/labels';
 import {
   Button,
   Checkbox,
-  HorizontalGroup,
   IconButton,
   Input,
   LoadingPlaceholder,
   Modal,
-  VerticalGroup,
+  Stack,
   useStyles2,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -68,9 +67,9 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
 
     return (
       <Modal isOpen={isModalOpen} title={'Add column'} onDismiss={onCloseModal} closeOnEscape={false}>
-        <VerticalGroup spacing="md">
+        <Stack direction="column" gap={StackSize.md}>
           <div className={styles.content}>
-            <VerticalGroup spacing="md">
+            <Stack direction="column" gap={StackSize.md}>
               <Input
                 className={styles.input}
                 autoFocus
@@ -87,9 +86,9 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
               )}
 
               {inputRef?.current?.value && searchResults.length && (
-                <VerticalGroup spacing="none">
+                <Stack direction="column" spacing="none">
                   {searchResults.map((result, index) => (
-                    <VerticalGroup key={index}>
+                    <Stack direction="column" key={index}>
                       <div className={styles.fieldRow}>
                         <IconButton
                           aria-label={result.isCollapsed ? 'Expand' : 'Collapse'}
@@ -122,18 +121,18 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                           )}
                         </Block>
                       )}
-                    </VerticalGroup>
+                    </Stack>
                   ))}
-                </VerticalGroup>
+                </Stack>
               )}
 
               {inputRef?.current?.value && searchResults.length === 0 && (
                 <Text type="primary">0 results for your search.</Text>
               )}
-            </VerticalGroup>
+            </Stack>
           </div>
 
-          <HorizontalGroup justify="flex-end" spacing="md">
+          <Stack justify="flex-end" gap={StackSize.md}>
             <Button variant="secondary" onClick={onCloseModal}>
               Close
             </Button>
@@ -149,19 +148,19 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
                 {isLoading ? <LoadingPlaceholder className={cx('loadingPlaceholder')} text="Loading..." /> : 'Add'}
               </Button>
             </WithPermissionControlTooltip>
-          </HorizontalGroup>
-        </VerticalGroup>
+          </Stack>
+        </Stack>
       </Modal>
     );
 
     function renderLabelValues(keyName: string, values: Array<ApiSchemas['LabelValue']>) {
       return (
-        <HorizontalGroup spacing="xs">
+        <Stack gap={StackSize.xs}>
           {values.slice(0, 2).map((val) => (
             <LabelTag label={keyName} value={val.name} key={val.id} />
           ))}
           <div>{values.length > 2 ? `+ ${values.length - 2}` : ``}</div>
-        </HorizontalGroup>
+        </Stack>
       );
     }
 

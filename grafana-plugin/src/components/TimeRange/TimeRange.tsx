@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { css, cx } from '@emotion/css';
-import { HorizontalGroup, TimeOfDayPicker, useStyles2 } from '@grafana/ui';
+import { Stack, TimeOfDayPicker, useStyles2 } from '@grafana/ui';
 import moment from 'moment-timezone';
 
 interface TimeRangeProps {
@@ -94,7 +94,7 @@ export const TimeRange = (props: TimeRangeProps) => {
 
   return (
     <div className={cx(styles.root, className)}>
-      <HorizontalGroup wrap>
+      <Stack wrap>
         <div data-testid="time-range-from">
           {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
           <TimeOfDayPicker disabled={disabled} value={from} minuteStep={5} onChange={handleChangeFrom} />
@@ -105,7 +105,7 @@ export const TimeRange = (props: TimeRangeProps) => {
           <TimeOfDayPicker disabled={disabled} value={to} minuteStep={5} onChange={handleChangeTo} />
         </div>
         {showNextDayTip && 'next day'}
-      </HorizontalGroup>
+      </Stack>
     </div>
   );
 };

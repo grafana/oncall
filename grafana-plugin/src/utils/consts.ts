@@ -117,3 +117,11 @@ export const GENERIC_ERROR = 'An error has occurred. Please try again';
 export const PROCESSING_REQUEST_ERROR = 'There was an error processing your request. Please try again';
 
 export const INTEGRATION_SERVICENOW = 'servicenow';
+
+export const StackSize: Record<'none' | 'xs' | 'sm' | 'md' | 'lg', 0 | 0.5 | 1 | 2 | 3> = {
+  none: 0,
+  xs: 0.5,
+  sm: 1,
+  md: 2,
+  lg: 3,
+};

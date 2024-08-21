@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Field, HorizontalGroup, Icon, Modal } from '@grafana/ui';
+import { Button, Field, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -65,10 +65,10 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
       isOpen
       icon="link"
       title={
-        <HorizontalGroup>
+        <Stack>
           <Icon size="lg" name="link" />
           <Text.Title level={4}>Attach to another alert group</Text.Title>
-        </HorizontalGroup>
+        </Stack>
       }
       className={cx('root')}
       onDismiss={onHide}
@@ -97,14 +97,14 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
           />
         </WithPermissionControlTooltip>
       </Field>
-      <HorizontalGroup>
+      <Stack>
         <Button onClick={onHide} variant="secondary">
           Cancel
         </Button>
         <Button onClick={handleLinkClick} variant="primary" disabled={!selected}>
           Attach
         </Button>
-      </HorizontalGroup>
+      </Stack>
     </Modal>
   );
 });

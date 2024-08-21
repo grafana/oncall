@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { VerticalGroup } from '@grafana/ui';
+import { Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import AppleLogoSVG from 'assets/img/apple-logo.svg';
@@ -13,12 +13,12 @@ import styles from './DownloadIcons.module.scss';
 const cx = cn.bind(styles);
 
 export const DownloadIcons: FC = () => (
-  <VerticalGroup spacing="lg">
+  <Stack direction="column" gap={StackSize.lg}>
     <Text type="primary" strong>
       Download
     </Text>
     <Text type="primary">The Grafana OnCall app is available on both the App Store and Google Play Store.</Text>
-    <VerticalGroup>
+    <Stack direction="column">
       <a
         style={{ width: '100%' }}
         href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
@@ -45,6 +45,6 @@ export const DownloadIcons: FC = () => (
           </Text>
         </Block>
       </a>
-    </VerticalGroup>
-  </VerticalGroup>
+    </Stack>
+  </Stack>
 );

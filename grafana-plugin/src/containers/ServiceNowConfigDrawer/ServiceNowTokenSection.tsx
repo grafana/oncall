@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, Input, LoadingPlaceholder, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, Input, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -40,12 +40,12 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
   }, []);
 
   return (
-    <VerticalGroup>
-      <HorizontalGroup spacing="xs" align="center">
+    <Stack direction="column">
+      <Stack gap={StackSize.xs} align="center">
         <Text type="primary" strong>
           Generate ServiceNow Business Rule
         </Text>
-      </HorizontalGroup>
+      </Stack>
 
       <Text>
         Copy and paste the following script to ServiceNow to allow communication between ServiceNow and OnCall{' '}
@@ -63,7 +63,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
       </RenderConditionally>
 
       <RenderConditionally shouldRender={isExistingToken !== undefined}>
-        <VerticalGroup>
+        <Stack direction="column">
           <div className={styles.tokenContainer}>
             <RenderConditionally shouldRender={!tokenData}>
               <Input
@@ -80,9 +80,9 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
           </div>
 
           {renderGenerateButton()}
-        </VerticalGroup>
+        </Stack>
       </RenderConditionally>
-    </VerticalGroup>
+    </Stack>
   );
 
   function renderGenerateButton() {

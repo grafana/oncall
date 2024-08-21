@@ -2,7 +2,7 @@ import React, { FC, useEffect } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Badge, BadgeColor, Button, HorizontalGroup, Icon, useStyles2, withTheme2 } from '@grafana/ui';
+import { Badge, BadgeColor, Button, Icon, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -105,8 +105,8 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <HorizontalGroup justify="space-between">
-          <HorizontalGroup>
+        <Stack justifyContent='space-between'>
+          <Stack>
             <RenderConditionally
               shouldRender={Boolean(storeUser)}
               render={() => (
@@ -120,9 +120,9 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
             ) : (
               <Badge text="Not on-call now" color={'gray' as BadgeColor} />
             )}
-          </HorizontalGroup>
-          <HorizontalGroup>
-            <HorizontalGroup>
+          </Stack>
+          <Stack>
+            <Stack>
               <Text type="secondary">
                 {timezoneStore.calendarStartDate.format('DD MMM')} -{' '}
                 {timezoneStore.calendarStartDate.add(6, 'day').format('DD MMM')}
@@ -130,17 +130,17 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
               <Button variant="secondary" size="sm" onClick={handleTodayClick}>
                 Today
               </Button>
-              <HorizontalGroup spacing="xs">
+              <Stack gap={StackSize.xs}>
                 <Button variant="secondary" size="sm" onClick={handleLeftClick}>
                   <Icon name="angle-left" />
                 </Button>
                 <Button variant="secondary" size="sm" onClick={handleRightClick}>
                   <Icon name="angle-right" />
                 </Button>
-              </HorizontalGroup>
-            </HorizontalGroup>
-          </HorizontalGroup>
-        </HorizontalGroup>
+              </Stack>
+            </Stack>
+          </Stack>
+        </Stack>
       </div>
       <div className={'u-position-relative'}>
         {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}

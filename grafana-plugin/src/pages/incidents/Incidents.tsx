@@ -5,12 +5,11 @@ import { GrafanaTheme2, durationToMilliseconds, parseDuration, SelectableValue }
 import { LabelTag } from '@grafana/labels';
 import {
   Button,
-  HorizontalGroup,
   Icon,
   RadioButtonGroup,
   RefreshPicker,
   Tooltip,
-  VerticalGroup,
+  Stack,
   withTheme2,
 } from '@grafana/ui';
 import { capitalize } from 'lodash-es';
@@ -54,7 +53,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { getItem, setItem } from 'utils/localStorage';
 import { TableColumn } from 'utils/types';
@@ -189,7 +188,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       <>
         <div>
           <div className={styles.title}>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent='space-between'>
               <Text.Title level={3}>Alert Groups</Text.Title>
 
               <div className={styles.rightSideFilters}>
@@ -209,7 +208,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   </Button>
                 </WithPermissionControlTooltip>
               </div>
-            </HorizontalGroup>
+            </Stack>
           </div>
           {this.renderIncidentFilters()}
           {this.renderTable()}
@@ -581,7 +580,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <Tutorial
           step={TutorialStep.Incidents}
           title={
-            <VerticalGroup align="center" spacing="lg">
+            <Stack direction="column" align="center" gap={StackSize.lg}>
               <Text type="secondary">
                 No alert groups found, review your filter and team settings. Make sure you have at least one working
                 integration.
@@ -591,7 +590,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                   Go to integrations page
                 </Button>
               </PluginLink>
-            </VerticalGroup>
+            </Stack>
           }
         />
       );
@@ -740,10 +739,10 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     }
 
     return (
-      <VerticalGroup spacing="none" justify="center">
+      <Stack direction="column" spacing="none" justify="center">
         <Text type="secondary">{date}</Text>
         <Text type="secondary">{time}</Text>
-      </VerticalGroup>
+      </Stack>
     );
   };
 
@@ -759,9 +758,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         addPadding
         text={item.labels?.length}
         tooltipContent={
-          <VerticalGroup spacing="sm">
+          <Stack direction="column" gap={StackSize.sm}>
             {item.labels.map((label) => (
-              <HorizontalGroup spacing="sm" key={label.key.id}>
+              <Stack gap={StackSize.sm} key={label.key.id}>
                 <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
                 <Button
                   size="sm"
@@ -774,9 +773,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                     value: { ...label.value, prescribed: false },
                   })}
                 />
-              </HorizontalGroup>
+              </Stack>
             ))}
-          </VerticalGroup>
+          </Stack>
         }
       />
     );

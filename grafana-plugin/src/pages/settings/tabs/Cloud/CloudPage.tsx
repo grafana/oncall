@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Button, Field, HorizontalGroup, Icon, Input, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, Field, Icon, Input, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -14,7 +14,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions, determineRequiredAuthString } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { openErrorNotification } from 'utils/utils';
 
@@ -209,9 +209,9 @@ const _CloudPage = observer((props: CloudPageProps) => {
   ];
 
   const ConnectedBlock = (
-    <VerticalGroup spacing="lg">
+    <Stack direction="column" gap={StackSize.lg}>
       <Block withBackground bordered className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <Icon name="check" className={cx('block-icon')} size="lg" /> Grafana Cloud OnCall API key
           </Text.Title>
@@ -222,10 +222,10 @@ const _CloudPage = observer((props: CloudPageProps) => {
               Disconnect
             </Button>
           </WithConfirm>
-        </VerticalGroup>
+        </Stack>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <span className={cx('heart-icon')}>
               <HeartIcon />
@@ -254,11 +254,11 @@ const _CloudPage = observer((props: CloudPageProps) => {
               <Text type="secondary">Heartbeat is not enabled. You can go to the Env Variables tab and enable it</Text>
             )}
           </div>
-        </VerticalGroup>
+        </Stack>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
         {cloudNotificationsEnabled ? (
-          <VerticalGroup>
+          <Stack direction="column">
             <Text.Title level={4}>
               <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
             </Text.Title>
@@ -277,7 +277,7 @@ const _CloudPage = observer((props: CloudPageProps) => {
                 emptyText={results ? 'No variables found' : 'Loading...'}
                 title={() => (
                   <div className={cx('table-title')}>
-                    <HorizontalGroup justify="space-between">
+                    <Stack justifyContent='space-between'>
                       <Text type="secondary">
                         {matched_users_count ? matched_users_count : 0} user
                         {matched_users_count === 1 ? '' : 's'}
@@ -286,7 +286,7 @@ const _CloudPage = observer((props: CloudPageProps) => {
                       <Button variant="primary" onClick={syncUsers} icon="sync" disabled={syncingUsers}>
                         {syncingUsers ? 'Syncing...' : 'Sync users'}
                       </Button>
-                    </HorizontalGroup>
+                    </Stack>
                   </div>
                 )}
                 rowKey="id"
@@ -300,20 +300,20 @@ const _CloudPage = observer((props: CloudPageProps) => {
                 }}
               />
             </div>
-          </VerticalGroup>
+          </Stack>
         ) : (
-          <VerticalGroup>
+          <Stack direction="column">
             <Text.Title level={4}>
               <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
             </Text.Title>
             <Text type="secondary">
               {'Please enable Grafana cloud notification to be able to see list of cloud users'}
             </Text>
-          </VerticalGroup>
+          </Stack>
         )}
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
           </Text.Title>
@@ -321,15 +321,15 @@ const _CloudPage = observer((props: CloudPageProps) => {
             Connecting to Grafana Cloud OnCall enables sending push notifications on mobile devices using the Grafana
             OnCall mobile app.
           </Text>
-        </VerticalGroup>
+        </Stack>
       </Block>
-    </VerticalGroup>
+    </Stack>
   );
 
   const DisconnectedBlock = (
-    <VerticalGroup spacing="lg">
+    <Stack direction="column" gap={StackSize.lg}>
       <Block withBackground bordered className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <Icon name="sync" className={cx('block-icon')} size="lg" /> Grafana Cloud OnCall API key
           </Text.Title>
@@ -344,10 +344,10 @@ const _CloudPage = observer((props: CloudPageProps) => {
           <Button variant="primary" onClick={connectToCloud} disabled={!cloudApiKey} size="md">
             Save key and connect
           </Button>
-        </VerticalGroup>
+        </Stack>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <span className={cx('heart-icon')}>
               <HeartIcon />
@@ -359,10 +359,10 @@ const _CloudPage = observer((props: CloudPageProps) => {
             instance. If no heartbeats are received within 10 minutes, the Grafana Cloud OnCall instance will issue an
             alert.
           </Text>
-        </VerticalGroup>
+        </Stack>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
           </Text.Title>
@@ -371,10 +371,10 @@ const _CloudPage = observer((props: CloudPageProps) => {
             Connecting to Grafana Cloud OnCall enables sending SMS and phone call notifications using Grafana Cloud
             OnCall.
           </Text>
-        </VerticalGroup>
+        </Stack>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={4}>
             <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
           </Text.Title>
@@ -382,14 +382,14 @@ const _CloudPage = observer((props: CloudPageProps) => {
             Connecting to Grafana Cloud OnCall enables sending push notifications on mobile devices using the Grafana
             OnCall mobile app.
           </Text>
-        </VerticalGroup>
+        </Stack>
       </Block>
-    </VerticalGroup>
+    </Stack>
   );
 
   return (
     <div className={cx('root')}>
-      <VerticalGroup spacing="lg">
+      <Stack direction="column" gap={StackSize.lg}>
         <Text.Title level={3} className={cx('cloud-page-title')}>
           Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Grafana Cloud OnCall</Text>
         </Text.Title>
@@ -400,7 +400,7 @@ const _CloudPage = observer((props: CloudPageProps) => {
         ) : (
           DisconnectedBlock
         )}
-      </VerticalGroup>
+      </Stack>
     </div>
   );
 });

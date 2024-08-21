@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { Alert, HorizontalGroup, Modal } from '@grafana/ui';
+import { Alert, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
@@ -119,9 +119,9 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
   ];
 
   const title = (
-    <HorizontalGroup>
+    <Stack>
       <Avatar className={cx('user-avatar')} size="large" src={storeUser.avatar} /> <h2>{storeUser.username}</h2>
-    </HorizontalGroup>
+    </Stack>
   );
 
   return (

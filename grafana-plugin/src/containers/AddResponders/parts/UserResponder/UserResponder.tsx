@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import { cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
-import { ActionMeta, HorizontalGroup, IconButton, useStyles2 } from '@grafana/ui';
+import { ActionMeta, IconButton, useStyles2 } from '@grafana/ui';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
@@ -27,14 +27,14 @@ export const UserResponder: FC<Props> = ({
 
   return (
     <li>
-      <HorizontalGroup justify="space-between">
-        <HorizontalGroup>
+      <Stack justifyContent='space-between'>
+        <Stack>
           <div className={cx(styles.timelineIconBackground, { 'timeline-icon-background--green': true })}>
             <Avatar size="medium" src={avatar} />
           </div>
           <Text className={styles.responderName}>{username}</Text>
-        </HorizontalGroup>
-        <HorizontalGroup>
+        </Stack>
+        <Stack>
           <NotificationPoliciesSelect
             disabled={disableNotificationPolicySelect}
             important={important}
@@ -46,8 +46,8 @@ export const UserResponder: FC<Props> = ({
             name="trash-alt"
             onClick={handleDelete}
           />
-        </HorizontalGroup>
-      </HorizontalGroup>
+        </Stack>
+      </Stack>
     </li>
   );
 };

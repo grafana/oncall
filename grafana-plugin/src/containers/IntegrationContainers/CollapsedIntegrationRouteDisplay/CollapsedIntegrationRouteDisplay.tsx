@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon, IconName } from '@grafana/ui';
+import { ConfirmModal, Icon, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -95,7 +95,7 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
               <div className={cx('collapsedRoute__container')}>
                 {chatOpsAvailableChannels.length > 0 && (
                   <div className={cx('collapsedRoute__item')}>
-                    <HorizontalGroup spacing="xs">
+                    <Stack gap={StackSize.xs}>
                       <Text type="secondary">Publish to ChatOps</Text>
 
                       {chatOpsAvailableChannels.map(
@@ -109,7 +109,7 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
                           </div>
                         )
                       )}
-                    </HorizontalGroup>
+                    </Stack>
                   </div>
                 )}
 

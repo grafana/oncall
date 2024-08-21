@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
+import { InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -45,7 +45,7 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
 
   return (
     <div className={cx('root')}>
-      <HorizontalGroup wrap spacing="sm">
+      <Stack wrap gap={StackSize.sm}>
         <div className={cx('slack-channel-switch')}>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
@@ -74,7 +74,7 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
             nullItemName={PRIVATE_CHANNEL_NAME}
           />
         </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      </Stack>
     </div>
   );
 

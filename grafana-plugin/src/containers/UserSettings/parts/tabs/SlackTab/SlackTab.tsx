@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, VerticalGroup, Icon, HorizontalGroup } from '@grafana/ui';
+import { Button, Stack, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { Block } from 'components/GBlock/Block';
@@ -24,9 +24,9 @@ export const SlackTab = () => {
 
   return (
     <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
-      <VerticalGroup spacing="lg">
+      <Stack direction="column" gap={StackSize.lg}>
         <Block bordered withBackground className={cx('slack-infoblock', 'personal-slack-infoblock')}>
-          <VerticalGroup align="center" spacing="lg">
+          <Stack direction="column" align="center" gap={StackSize.lg}>
             <SlackNewIcon />
             <Text>
               Personal Slack connection will allow you to manage alert groups in your connected team's Internal Slack
@@ -45,14 +45,14 @@ export const SlackTab = () => {
               style={{ height: '350px', display: 'block', margin: '0 auto' }}
               src={`public/plugins/${getPluginId()}/assets/img/slack_instructions.png`}
             />
-          </VerticalGroup>
+          </Stack>
         </Block>
         <Button onClick={handleClickConnectSlackAccount}>
-          <HorizontalGroup spacing="xs" align="center">
+          <Stack gap={StackSize.xs} align="center">
             <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
-          </HorizontalGroup>
+          </Stack>
         </Button>
-      </VerticalGroup>
+      </Stack>
     </WithPermissionControlDisplay>
   );
 };

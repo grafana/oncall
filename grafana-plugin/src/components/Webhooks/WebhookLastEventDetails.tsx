@@ -2,7 +2,7 @@ import React, { FC, useMemo } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { VerticalGroup, HorizontalGroup, Badge, useStyles2, useTheme2 } from '@grafana/ui';
+import { Stack, Badge, useStyles2, useTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { SourceCode } from 'components/SourceCode/SourceCode';
@@ -41,14 +41,14 @@ export const WebhookLastEventDetails: FC<WebhookLastEventDetailsProps> = ({ webh
   return (
     <>
       <div className={styles.lastEventDetailsRowsWrapper}>
-        <VerticalGroup spacing="md">
+        <Stack direction="column" gap={StackSize.md}>
           {rows.map(({ title, value }) => (
-            <HorizontalGroup key={title}>
+            <Stack key={title}>
               <span className={styles.lastEventDetailsRowTitle}>{title}</span>
               <span className={styles.lastEventDetailsRowValue}>{value}</span>
-            </HorizontalGroup>
+            </Stack>
           ))}
-        </VerticalGroup>
+        </Stack>
       </div>
       <Tabs
         queryStringKey="lastEventDetailsActiveTab"

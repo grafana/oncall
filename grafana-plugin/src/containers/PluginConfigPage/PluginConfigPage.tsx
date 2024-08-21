@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
-import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2, VerticalGroup } from '@grafana/ui';
+import { Alert, Field, Input, LoadingPlaceholder, useStyles2, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react-lite';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -41,12 +41,12 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
   });
 
   return (
-    <VerticalGroup>
+    <Stack direction="column">
       <Text.Title level={3} className="u-margin-bottom-md">
         Configure Grafana OnCall
       </Text.Title>
       {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage {...props} />}
-    </VerticalGroup>
+    </Stack>
   );
 });
 
@@ -58,7 +58,7 @@ const CloudPluginConfigPage = observer(
     const styles = useStyles2(getStyles);
 
     return (
-      <VerticalGroup>
+      <Stack direction="column">
         <Text type="secondary" className={styles.secondaryTitle}>
           This is a cloud-managed configuration.
         </Text>
@@ -67,7 +67,7 @@ const CloudPluginConfigPage = observer(
           shouldRender={!isPluginConnected}
           render={() => <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
         />
-      </VerticalGroup>
+      </Stack>
     );
   }
 );
@@ -135,7 +135,7 @@ const OSSPluginConfigPage = observer(
             <Text type="link">Read more</Text>
           </a>
         </Text>
-        <HorizontalGroup>
+        <Stack>
           <Button
             variant="secondary"
             onClick={recreateServiceAccountAndRecheckPluginStatus}
@@ -147,7 +147,7 @@ const OSSPluginConfigPage = observer(
             shouldRender={isRecreatingServiceAccount}
             render={() => <LoadingPlaceholder text="" className={styles.spinner} />}
           />
-        </HorizontalGroup>
+        </Stack>
       </>
     );
 
@@ -178,7 +178,7 @@ const OSSPluginConfigPage = observer(
               </Field>
             )}
           />
-          <HorizontalGroup>
+          <Stack>
             {isPluginConnected && (
               <Button onClick={() => navigate(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`)}>Open Grafana OnCall</Button>
             )}
@@ -194,7 +194,7 @@ const OSSPluginConfigPage = observer(
               shouldRender={isReinitializating}
               render={() => <LoadingPlaceholder text="" className={styles.spinner} />}
             />
-          </HorizontalGroup>
+          </Stack>
         </form>
       </>
     );

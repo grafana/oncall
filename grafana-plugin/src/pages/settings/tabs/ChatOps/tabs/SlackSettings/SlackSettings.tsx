@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import {
   Alert,
-  HorizontalGroup,
   LoadingPlaceholder,
   Icon,
   Button,
@@ -222,7 +221,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
           label="Timeout for acknowledged alerts"
           tooltip="Slack app will send reminders into alert group slack thread and unacknowledge alert group if no confirmation is received."
         >
-          <HorizontalGroup spacing="xs">
+          <Stack gap={StackSize.xs}>
             <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
               <RemoteSelect
                 showSearch={false}
@@ -240,7 +239,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
                 onChange={this.getSlackSettingsChangeHandler('unacknowledge_timeout')}
               />
             </WithPermissionControlTooltip>
-          </HorizontalGroup>
+          </Stack>
         </InlineField>
         {isUnifiedSlackInstalled && (
           <div className={styles.linkToIncidentWrapper}>

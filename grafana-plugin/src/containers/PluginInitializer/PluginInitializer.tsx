@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, LoadingPlaceholder, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
@@ -19,9 +19,9 @@ export const PluginInitializer: FC<PluginInitializerProps> = observer(({ childre
 
   if (isCheckingConnectionStatus) {
     return (
-      <VerticalGroup justify="center" height="100%" align="center">
+      <Stack direction="column" justify="center" height="100%" align="center">
         <LoadingPlaceholder text="Loading..." />
-      </VerticalGroup>
+      </Stack>
     );
   }
   return (
@@ -57,13 +57,13 @@ const PluginNotConnectedFullPageError = observer(() => {
         </>
       }
     >
-      <HorizontalGroup>
+      <Stack>
         <Button variant="secondary" onClick={() => window.location.reload()}>
           Retry
         </Button>
         {!isOpenSource && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
         {isOpenSource && isCurrentUserAdmin && <Button onClick={() => push(PLUGIN_CONFIG)}>Open configuration</Button>}
-      </HorizontalGroup>
+      </Stack>
     </FullPageError>
   );
 });

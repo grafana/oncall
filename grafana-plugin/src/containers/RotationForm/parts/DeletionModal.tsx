@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
-import { VerticalGroup, Modal as GrafanaModal, HorizontalGroup, Button, InlineSwitch } from '@grafana/ui';
+import { Stack, Modal as GrafanaModal, Button, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { Text } from 'components/Text/Text';
@@ -27,13 +27,13 @@ export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
 
   return (
     <GrafanaModal isOpen onDismiss={onHide} title="Delete rotation" className={cx('confirmation-modal')}>
-      <VerticalGroup spacing="lg">
-        <VerticalGroup>
+      <Stack direction="column" gap={StackSize.lg}>
+        <Stack direction="column">
           <Text type="secondary">
             This schedule is in use. As result the action will delete all shifts in the rotation which are greater than
             current timestamp. All past shifts will remain in the schedule.
           </Text>
-        </VerticalGroup>
+        </Stack>
 
         <InlineSwitch
           transparent
@@ -43,15 +43,15 @@ export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
           onChange={handleIsForceDeleteChange}
         />
 
-        <HorizontalGroup justify="flex-end">
+        <Stack justify="flex-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleConfirmClick}>
             Delete
           </Button>
-        </HorizontalGroup>
-      </VerticalGroup>
+        </Stack>
+      </Stack>
     </GrafanaModal>
   );
 };

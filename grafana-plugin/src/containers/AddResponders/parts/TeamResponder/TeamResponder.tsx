@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, IconButton, useStyles2 } from '@grafana/ui';
+import { IconButton, Stack, useStyles2 } from '@grafana/ui';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
@@ -17,20 +17,20 @@ export const TeamResponder: FC<Props> = ({ team: { avatar_url, name }, handleDel
 
   return (
     <li>
-      <HorizontalGroup justify="space-between">
-        <HorizontalGroup>
+      <Stack justifyContent='space-between'>
+        <Stack>
           <div className={styles.timelineIconBackground}>
             <Avatar size="medium" src={avatar_url} />
           </div>
           <Text className={styles.responderName}>{name}</Text>
-        </HorizontalGroup>
+        </Stack>
         <IconButton
           data-testid="team-responder-delete-icon"
           tooltip="Remove responder"
           name="trash-alt"
           onClick={handleDelete}
         />
-      </HorizontalGroup>
+      </Stack>
     </li>
   );
 };

@@ -6,11 +6,10 @@ import {
   Button,
   Drawer,
   Dropdown,
-  HorizontalGroup,
   InlineSwitch,
   Input,
   Menu,
-  VerticalGroup,
+  Stack,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -105,7 +104,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
         closeOnMaskClick={false}
         width="640px"
       >
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <RenderConditionally shouldRender={getIsTooManyLabelsWarningVisible(alertGroupLabels)}>
             <Alert title="More than 15 labels added" severity="warning">
               We support up to 15 labels per Alert group. Please remove extra labels.
@@ -113,10 +112,10 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
               Otherwise, only the first 15 labels (alphabetically sorted by keys) will be applied.
             </Alert>
           </RenderConditionally>
-          <VerticalGroup>
+          <Stack direction="column">
             <Text>Integration labels</Text>
             {alertReceiveChannel.labels.length ? (
-              <VerticalGroup spacing="xs">
+              <Stack direction="column" gap={StackSize.xs}>
                 <Text type="secondary" size="small">
                   Labels inherited from <PluginLink onClick={handleOpenIntegrationSettings}>the integration</PluginLink>
                   . This behavior can be disabled using the toggle option.
@@ -124,7 +123,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
                 <ul className={cx('labels-list')}>
                   {alertReceiveChannel.labels.map((label) => (
                     <li key={label.key.id}>
-                      <HorizontalGroup spacing="xs">
+                      <Stack gap={StackSize.xs}>
                         <Input width={INPUT_WIDTH / 8} value={label.key.name} disabled />
                         <Input width={INPUT_WIDTH / 8} value={label.value.name} disabled />
                         <InlineSwitch
@@ -132,20 +131,20 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
                           transparent
                           onChange={() => onInheritanceChange(label.key.id)}
                         />
-                      </HorizontalGroup>
+                      </Stack>
                     </li>
                   ))}
                 </ul>
-              </VerticalGroup>
+              </Stack>
             ) : (
-              <VerticalGroup>
+              <Stack direction="column">
                 <Text type="secondary">There are no labels to inherit yet</Text>
                 <Text type="link" onClick={handleOpenIntegrationSettings} clickable>
                   Add labels to the integration
                 </Text>
-              </VerticalGroup>
+              </Stack>
             )}
-          </VerticalGroup>
+          </Stack>
 
           <CustomLabels
             alertGroupLabels={alertGroupLabels}
@@ -158,8 +157,8 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
           />
 
           <Collapse isOpen={false} label="Multi-label extraction template" contentClassName="u-padding-top-none">
-            <VerticalGroup>
-              <HorizontalGroup justify="space-between" style={{ marginBottom: '10px' }} align="flex-end">
+            <Stack direction="column">
+              <Stack justifyContent='space-between' style={{ marginBottom: '10px' }} align="flex-end">
                 <Text type="secondary" size="small" className="u-padding-left-lg">
                   Allows for the extraction and modification of multiple labels from the alert payload using a single
                   template. Supports not only dynamic values but also dynamic keys. The Jinja template must result in
@@ -172,7 +171,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
                     setShowTemplateEditor(true);
                   }}
                 />
-              </HorizontalGroup>
+              </Stack>
               <MonacoEditor
                 value={alertGroupLabels.template}
                 height="200px"
@@ -183,20 +182,20 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
                   setAlertGroupLabels({ ...alertGroupLabels, template: value });
                 }}
               />
-            </VerticalGroup>
+            </Stack>
           </Collapse>
 
           <div className={cx('buttons')}>
-            <HorizontalGroup justify="flex-end">
+            <Stack justify="flex-end">
               <Button variant="secondary" onClick={onHide}>
                 Close
               </Button>
               <Button variant="primary" onClick={handleSave}>
                 Save
               </Button>
-            </HorizontalGroup>
+            </Stack>
           </div>
-        </VerticalGroup>
+        </Stack>
       </Drawer>
       {customLabelIndexToShowTemplateEditor !== undefined && (
         <IntegrationTemplate
@@ -297,7 +296,7 @@ const CustomLabels = (props: CustomLabelsProps) => {
   };
 
   return (
-    <VerticalGroup>
+    <Stack direction="column">
       <Text>Dynamic & Static labels</Text>
       <Text type="secondary" size="small">
         Dynamic: label values are extracted from the alert payload using Jinja. Keys remain static.
@@ -376,6 +375,6 @@ const CustomLabels = (props: CustomLabelsProps) => {
           Add label
         </Button>
       </Dropdown>
-    </VerticalGroup>
+    </Stack>
   );
 };

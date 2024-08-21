@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
+import { InlineSwitch, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -10,6 +10,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import styles from 'containers/AlertRules/parts/connectors/Connectors.module.css';
 
@@ -48,7 +49,7 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
 
   return (
     <div className={cx('root')}>
-      <HorizontalGroup wrap spacing="sm">
+      <Stack wrap gap={StackSize.sm}>
         <div className={cx('slack-channel-switch')}>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
@@ -74,7 +75,7 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
             onChange={handleMSTeamsChannelChange}
           />
         </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      </Stack>
     </div>
   );
 });

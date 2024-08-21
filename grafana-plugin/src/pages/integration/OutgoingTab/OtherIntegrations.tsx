@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { HorizontalGroup } from '@grafana/ui';
+import { Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
@@ -29,12 +29,12 @@ export const OtherIntegrations = observer(() => {
       {isConnectModalOpened && <ConnectIntegrationModal onDismiss={() => setIsConnectModalOpened(false)} />}
       <IntegrationBlock
         heading={
-          <HorizontalGroup justify="space-between">
+          <Stack justifyContent='space-between'>
             <IntegrationTag>Send data from other integrations</IntegrationTag>
             <Button size="sm" variant="secondary" onClick={() => setIsConnectModalOpened(true)}>
               Connect
             </Button>
-          </HorizontalGroup>
+          </Stack>
         }
         content={
           itemsAsList?.length ? (
@@ -56,12 +56,12 @@ export const OtherIntegrations = observer(() => {
               }
             />
           ) : (
-            <HorizontalGroup align="center">
+            <Stack align="center">
               <Text type="secondary">There are no connected integrations.</Text>
               <Button variant="primary" showAsLink onClick={() => setIsConnectModalOpened(true)}>
                 Connect them
               </Button>
-            </HorizontalGroup>
+            </Stack>
           )
         }
       />

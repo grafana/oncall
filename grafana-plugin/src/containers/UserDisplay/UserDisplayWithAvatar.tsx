@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 
-import { HorizontalGroup } from '@grafana/ui';
+import { Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 interface UserDisplayProps {
   id: ApiSchemas['User']['pk'];
@@ -27,9 +28,9 @@ export const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
   }
 
   return (
-    <HorizontalGroup spacing="xs">
+    <Stack gap={StackSize.xs}>
       <Avatar size="small" src={user.avatar}></Avatar>
       <Text type="primary">{user.email}</Text>
-    </HorizontalGroup>
+    </Stack>
   );
 });

@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 
 import { LabelTag } from '@grafana/labels';
-import { VerticalGroup, HorizontalGroup, Button, Tooltip } from '@grafana/ui';
+import { Stack, Button, Tooltip } from '@grafana/ui';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
@@ -21,9 +21,9 @@ export const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClic
       addPadding
       text={labels?.length}
       tooltipContent={
-        <VerticalGroup spacing="sm">
+        <Stack direction="column" gap={StackSize.sm}>
           {labels.map((label) => (
-            <HorizontalGroup spacing="sm" key={label.key.id}>
+            <Stack gap={StackSize.sm} key={label.key.id}>
               <LabelTag label={label.key.name} value={label.value.name} />
               <Button
                 size="sm"
@@ -32,9 +32,9 @@ export const LabelsTooltipBadge: FC<LabelsTooltipBadgeProps> = ({ labels, onClic
                 variant="secondary"
                 onClick={() => onClick(label)}
               />
-            </HorizontalGroup>
+            </Stack>
           ))}
-        </VerticalGroup>
+        </Stack>
       }
     />
   ) : null;
@@ -47,16 +47,16 @@ interface LabelBadgesProps {
 export const LabelBadges: React.FC<LabelBadgesProps> = ({ labels = [], maxCount = 3 }) => {
   const renderer = (values: LabelBadgesProps['labels']) => {
     return (
-      <HorizontalGroup>
+      <Stack>
         {values.map((label) => (
           <LabelTag key={label.key.id} label={label.key.name} value={label.value.name} />
         ))}
-      </HorizontalGroup>
+      </Stack>
     );
   };
 
   return (
-    <HorizontalGroup spacing="sm">
+    <Stack gap={StackSize.sm}>
       {renderer(labels.slice(0, maxCount))}
 
       <RenderConditionally shouldRender={labels.length > maxCount}>
@@ -64,6 +64,6 @@ export const LabelBadges: React.FC<LabelBadgesProps> = ({ labels = [], maxCount 
           <div>{labels.length > maxCount ? `+ ${labels.length - maxCount}` : ``}</div>
         </Tooltip>
       </RenderConditionally>
-    </HorizontalGroup>
+    </Stack>
   );
 };

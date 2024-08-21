@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { cx } from '@emotion/css';
-import { Card, HorizontalGroup, useStyles2 } from '@grafana/ui';
+import { Card, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
@@ -58,9 +58,9 @@ export const Header = observer(() => {
 
     return (
       <>
-        <HorizontalGroup>
+        <Stack>
           <h1 className={styles.pageHeaderTitle}>Grafana OnCall</h1>
-        </HorizontalGroup>
+        </Stack>
         <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
       </>
     );

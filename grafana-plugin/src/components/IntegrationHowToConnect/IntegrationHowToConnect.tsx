@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 
@@ -50,10 +50,10 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
                 className={cx('u-pull-right')}
               >
                 <Text type="link" size="small">
-                  <HorizontalGroup>
+                  <Stack>
                     How it works
                     <Icon name="external-link-alt" />
-                  </HorizontalGroup>
+                  </Stack>
                 </Text>
               </a>
             </>
@@ -74,10 +74,10 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
                 className={cx('u-pull-right')}
               >
                 <Text type="link" size="small">
-                  <HorizontalGroup>
+                  <Stack>
                     How to connect
                     <Icon name="external-link-alt" />
-                  </HorizontalGroup>
+                  </Stack>
                 </Text>
               </a>
             </>
@@ -98,14 +98,14 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
     };
 
     return (
-      <VerticalGroup justify={'flex-start'} spacing={'xs'}>
+      <Stack direction="column" justify={'flex-start'} spacing={'xs'}>
         {!hasAlerts && (
-          <HorizontalGroup spacing={'xs'}>
+          <Stack spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
             <Text type={'primary'}>No alerts yet</Text> {callToAction()}
-          </HorizontalGroup>
+          </Stack>
         )}
-      </VerticalGroup>
+      </Stack>
     );
   }
 };

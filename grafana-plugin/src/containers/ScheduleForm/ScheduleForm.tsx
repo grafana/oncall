@@ -5,11 +5,10 @@ import {
   Button,
   Drawer,
   Field,
-  HorizontalGroup,
   Input,
   Switch,
   TextArea,
-  VerticalGroup,
+  Stack,
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -95,23 +94,23 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
       onClose={onHide}
       closeOnMaskClick={false}
     >
-      <VerticalGroup>
+      <Stack direction="column">
         <FormProvider {...formMethods}>
           <form id="Schedule" data-testid="schedule-form" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <FormFields scheduleType={data.type} />
             <div className="buttons">
-              <HorizontalGroup justify="flex-end">
+              <Stack justify="flex-end">
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button type="submit">{id === 'new' ? 'Create' : 'Update'} Schedule</Button>
                 </WithPermissionControlTooltip>
-              </HorizontalGroup>
+              </Stack>
             </div>
           </form>
         </FormProvider>
-      </VerticalGroup>
+      </Stack>
     </Drawer>
   );
 });

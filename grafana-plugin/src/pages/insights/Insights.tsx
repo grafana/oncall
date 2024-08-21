@@ -14,7 +14,7 @@ import {
   SceneAppPage,
   useSceneApp,
 } from '@grafana/scenes';
-import { Alert, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Alert, LoadingPlaceholder, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -109,13 +109,13 @@ const NoAlertCreatedTutorial = () => {
       <Tutorial
         step={TutorialStep.Integrations}
         title={
-          <VerticalGroup align="center" spacing="lg">
+          <Stack direction="column" align="center" gap={StackSize.lg}>
             <Text type="secondary">
               Your OnCall stack doesn’t have any alerts to visualise insights.
               <br />
               Make sure that you setup OnCall configuration to start monitoring.
             </Text>
-          </VerticalGroup>
+          </Stack>
         }
       />
     </div>

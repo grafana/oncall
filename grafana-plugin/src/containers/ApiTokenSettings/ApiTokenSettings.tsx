@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -82,9 +82,9 @@ class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
         <GTable
           title={() => (
             <div className={cx('header')}>
-              <HorizontalGroup align="flex-end">
+              <Stack align="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
-              </HorizontalGroup>
+              </Stack>
               <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
                 <Button
                   icon="plus"

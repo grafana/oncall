@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonList, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Badge, Button, Field, Modal, RadioButtonList, Tooltip, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -51,7 +51,7 @@ export const TeamsList = observer(() => {
 
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
-      <HorizontalGroup justify="flex-end">
+      <Stack justify="flex-end">
         {/* Keep  "Make default" here for backwards compatibility, can be removed in November 2023 */}
         <Tooltip content="This button is moved to your User Profile">
           <Button onClick={() => {}} disabled={true} fill="text">
@@ -70,7 +70,7 @@ export const TeamsList = observer(() => {
             Edit
           </Button>
         </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      </Stack>
     );
     return editButton;
   };
@@ -154,14 +154,14 @@ export const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
     <Modal
       isOpen
       title={
-        <HorizontalGroup>
+        <Stack>
           <Text.Title level={4}>{team.name} settings</Text.Title>
-        </HorizontalGroup>
+        </Stack>
       }
       onDismiss={onHide}
     >
       <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Field label="Who can see the team name and access the team resources">
             <div style={{ marginTop: '8px' }}>
               <RadioButtonList
@@ -175,17 +175,17 @@ export const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
               />
             </div>
           </Field>
-        </VerticalGroup>
+        </Stack>
       </WithPermissionControlTooltip>
 
-      <HorizontalGroup>
+      <Stack>
         <Button onClick={onHide} variant="secondary">
           Cancel
         </Button>
         <Button onClick={handleSubmit} variant="primary">
           Save
         </Button>
-      </HorizontalGroup>
+      </Stack>
     </Modal>
   );
 };
