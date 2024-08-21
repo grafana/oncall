@@ -39,17 +39,3 @@ class AlertGroupLogSlackRenderer:
                     for plan_line in escalation_policies_plan[time]:
                         result += f"*{humanize.naturaldelta(time)}:* {plan_line}\n"
         return result
-
-    @staticmethod
-    def render_incident_log_report_for_slack(alert_group: "AlertGroup"):
-        attachments = []
-        past = AlertGroupLogSlackRenderer.render_alert_group_past_log_report_text(alert_group)
-        future = AlertGroupLogSlackRenderer.render_alert_group_future_log_report_text(alert_group)
-        text = past + future
-        if len(text) > 0:
-            attachments.append(
-                {
-                    "text": text,
-                }
-            )
-        return attachments

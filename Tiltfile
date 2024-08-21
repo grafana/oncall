@@ -17,6 +17,8 @@ DOCKER_REGISTRY = "localhost:63628/"
 
 load("ext://docker_build_sub", "docker_build_sub")
 
+grafana_deps = ["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"]
+
 def get_profiles():
     profiles = os.getenv('ONCALL_PROFILES', 'grafana,plugin,backend,tests')
     return profiles.split(',')
@@ -38,6 +40,9 @@ def extra_env():
         "ONCALL_API_URL": "http://oncall-dev-engine:8080"
     }
 
+def extra_deps():
+    return grafana_deps
+    
 
 allow_k8s_contexts(["kind-kind"])
 
@@ -61,9 +66,8 @@ docker_build_sub(
 
 
 def load_oncall_helm():
-    helm_oncall_values = ["./dev/helm-local.yml", "./dev/helm-local.dev.yml"]
-    if is_ci:
-        helm_oncall_values = helm_oncall_values + ["./.github/helm-ci.yml"]
+    helm_oncall_values = ["./dev/helm-local.yml"]
+    helm_oncall_values += ["./.github/helm-ci.yml"] if is_ci else ["./dev/helm-local.dev.yml"]
     yaml = helm("helm/oncall", name=HELM_PREFIX, values=helm_oncall_values, set=twilio_values, namespace="default")
     k8s_yaml(yaml)
 
@@ -108,7 +112,7 @@ def load_grafana():
             context="grafana-plugin",
             plugin_files=["grafana-plugin/src/plugin.json"],
             namespace="default",
-            deps=["grafana-oncall-app-provisioning-configmap", "build-ui", "build-oncall-plugin-backend"],
+            deps=grafana_deps,
             extra_env={
                 "GF_SECURITY_ADMIN_PASSWORD": "oncall",
                 "GF_SECURITY_ADMIN_USER": "oncall",

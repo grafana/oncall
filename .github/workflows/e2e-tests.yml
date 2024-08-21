@@ -105,7 +105,9 @@ jobs:
         run: make cluster/up
 
       - name: Install Playwright deps
-        uses: docker://mcr.microsoft.com/playwright:next-jammy
+        shell: bash
+        working-directory: grafana-plugin
+        run: yarn playwright install
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
@@ -166,7 +168,6 @@ jobs:
 
       - name: Tilt CI - standard E2E tests
         shell: bash
-        if: ${{ inputs.run-expensive-tests == false }}
         env:
           GRAFANA_VERSION: ${{ inputs.grafana_version }}
           BROWSERS: ${{ inputs.browsers }}
