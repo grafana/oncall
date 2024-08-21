@@ -25,7 +25,7 @@ import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { GENERIC_ERROR } from 'utils/consts';
+import { GENERIC_ERROR, StackSize } from 'utils/consts';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -127,7 +127,7 @@ export const IntegrationContactPoint: React.FC<{
                       onClick={() => setState({ isConnectOpen: !isConnectOpen })}
                     >
                       <Stack justifyContent='space-between'>
-                        <Stack gap={StackSize.xs} align="center">
+                        <Stack gap={StackSize.xs} alignItems="center">
                           <Text type="primary">Grafana Alerting Contact point</Text>
                           <Icon name="info-circle" />
                         </Stack>
@@ -232,7 +232,7 @@ export const IntegrationContactPoint: React.FC<{
           />
         )}
 
-        <Stack align="center">
+        <Stack alignItems="center">
           <Button
             variant="primary"
             disabled={!selectedAlertManager || !selectedContactPoint || isLoading}

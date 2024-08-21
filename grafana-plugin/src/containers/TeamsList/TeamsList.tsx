@@ -51,7 +51,7 @@ export const TeamsList = observer(() => {
 
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
-      <Stack justify="flex-end">
+      <Stack justifyContent="flex-end">
         {/* Keep  "Make default" here for backwards compatibility, can be removed in November 2023 */}
         <Tooltip content="This button is moved to your User Profile">
           <Button onClick={() => {}} disabled={true} fill="text">

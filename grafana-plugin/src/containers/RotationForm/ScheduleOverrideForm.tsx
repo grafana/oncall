@@ -247,7 +247,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         <div className={cx('container')}>
           <div className={cx('override-form-content')} data-testid="override-inputs">
             <Stack direction="column">
-              <Stack align="flex-start">
+              <Stack alignItems="flex-start">
                 <Field
                   className={cx('date-time-picker')}
                   data-testid="override-start"

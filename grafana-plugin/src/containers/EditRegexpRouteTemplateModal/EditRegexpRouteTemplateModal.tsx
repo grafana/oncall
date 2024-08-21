@@ -81,7 +81,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
     >
       <Stack direction="column" gap={StackSize.lg}>
         <Stack direction="column" gap={StackSize.xs}>
-          <Stack gap={'xs'}>
+          <Stack gap={StackSize.xs}>
             <Text type={'secondary'}>Regular expression</Text>
             <Tooltip
               content={'Use python style regex to filter incidents based on a expression'}
@@ -109,7 +109,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
           <Text type="link">{templateJinja2Body}</Text>
         </Block>
 
-        <Stack justify={'flex-end'}>
+        <Stack justifyContent={'flex-end'}>
           <Button variant={'secondary'} onClick={onHide}>
             Cancel
           </Button>

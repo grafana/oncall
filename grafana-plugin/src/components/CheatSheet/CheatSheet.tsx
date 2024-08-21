@@ -28,7 +28,7 @@ export const CheatSheet = (props: CheatSheetProps) => {
     <div className={styles.cheatsheetContainer}>
       <div className={styles.cheatsheetInnerContainer}>
         <Stack direction="column">
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Text strong>{cheatSheetName} cheatsheet</Text>
             <IconButton aria-label="Close" name="times" onClick={onClose} />
           </Stack>

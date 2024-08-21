@@ -578,7 +578,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                 {hasUpdatedShift && (
                   <Block bordered className={cx('updated-shift-info')}>
                     <Stack direction="column">
-                      <Stack align="flex-start">
+                      <Stack alignItems="flex-start">
                         <Icon name="info-circle" size="md"></Icon>
                         <Text>
                           This rotation is read-only because it has newer version.{' '}
@@ -683,7 +683,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                 </div>
                 <Stack direction="column" gap={StackSize.md}>
                   <Stack direction="column">
-                    <Stack align="flex-start">
+                    <Stack alignItems="flex-start">
                       <Switch disabled={disabled} value={isMaskedByWeekdays} onChange={onMaskedByWeekdaysSwitch} />
                       <Stack direction="column">
                         <Text type="secondary">Mask by weekdays</Text>
@@ -699,7 +699,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                       </Stack>
                     </Stack>
 
-                    <Stack align="flex-start">
+                    <Stack alignItems="flex-start">
                       <Switch
                         disabled={isSelectedPartOfDayDisabled()}
                         value={isLimitShiftEnabled}

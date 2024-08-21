@@ -4,6 +4,7 @@ import { Stack, Modal as GrafanaModal, Button, InlineSwitch } from '@grafana/ui'
 import cn from 'classnames/bind';
 
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
 
@@ -43,7 +44,7 @@ export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
           onChange={handleIsForceDeleteChange}
         />
 
-        <Stack justify="flex-end">
+        <Stack justifyContent="flex-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>

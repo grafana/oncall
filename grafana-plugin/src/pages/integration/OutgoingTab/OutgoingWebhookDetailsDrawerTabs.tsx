@@ -86,7 +86,7 @@ const Settings: FC<SettingsProps> = observer(({ closeDrawer }) => {
               <OutgoingWebhookFormFields webhookId={webhook.id} />
             </div>
             <div className={commonStyles.bottomDrawerButtons}>
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={closeDrawer}>
                   Close
                 </Button>
@@ -130,7 +130,7 @@ const LastEventDetails: FC<LastEventDetailsProps> = observer(({ closeDrawer }) =
     <div>
       <WebhookLastEventDetails webhook={webhook} sourceCodeRootClassName={styles.sourceCodeRoot} />
       <div className={commonStyles.bottomDrawerButtons}>
-        <Stack justify="flex-end">
+        <Stack justifyContent="flex-end">
           <Button variant="secondary" onClick={closeDrawer}>
             Close
           </Button>

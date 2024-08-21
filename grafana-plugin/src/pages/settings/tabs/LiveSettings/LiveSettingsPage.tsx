@@ -117,7 +117,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
               <Stack>
                 <Text.Title level={3}>Env Variables</Text.Title>
               </Stack>
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
                   <Button
                     variant="primary"

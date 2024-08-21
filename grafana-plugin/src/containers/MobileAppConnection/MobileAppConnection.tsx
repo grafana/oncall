@@ -215,7 +215,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
         </div>
         {mobileAppIsCurrentlyConnected && isCurrentUser && !disconnectingMobileApp && (
           <div className={cx('notification-buttons')}>
-            <Stack gap={'md'} justify={'flex-end'}>
+            <Stack gap={StackSize.md} justifyContent={'flex-end'}>
               <Button
                 variant="secondary"
                 onClick={() => onSendTestNotification()}

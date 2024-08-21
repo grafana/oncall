@@ -10,6 +10,7 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { useStore } from 'state/useStore';
 
 import styles from './EscalationChainCard.module.css';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -28,7 +29,7 @@ export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps
 
   return (
     <div className={cx('root')}>
-      <Stack align="flex-start">
+      <Stack alignItems="flex-start">
         <Stack direction="column" gap={StackSize.xs}>
           <Stack gap={StackSize.sm}>
             <Text type="primary" size="medium">

@@ -71,7 +71,7 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
         <Stack direction="column" gap={StackSize.lg}>
           <Text type="primary">Are you sure you want to remove column {columnToBeRemoved?.name}?</Text>
 
-          <Stack justify="flex-end" gap={StackSize.md}>
+          <Stack justifyContent="flex-end" gap={StackSize.md}>
             <Button variant={'secondary'} onClick={onConfirmRemovalClose}>
               Cancel
             </Button>

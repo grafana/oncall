@@ -53,7 +53,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PAGE, StackSize, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { openNotification } from 'utils/utils';
 
@@ -533,7 +533,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={styles.integrationsActionItem}>
-                <Stack gap={'xs'}>
+                <Stack gap={StackSize.xs}>
                   <Icon name="copy" />
 
                   <Text type="primary">UID: {item.id}</Text>
@@ -564,7 +564,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                     className="u-width-100"
                   >
                     <Text type="danger">
-                      <Stack gap={'xs'}>
+                      <Stack gap={StackSize.xs}>
                         <Icon name="trash-alt" />
                         <span>Delete Integration</span>
                       </Stack>

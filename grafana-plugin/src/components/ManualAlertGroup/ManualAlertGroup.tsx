@@ -87,7 +87,7 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
             <AddResponders mode="create" />
 
             <div className={styles.buttons}>
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHideDrawer}>
                   Cancel
                 </Button>

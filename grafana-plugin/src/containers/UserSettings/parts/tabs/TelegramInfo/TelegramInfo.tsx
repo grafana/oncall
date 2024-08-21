@@ -14,7 +14,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
+import { DOCS_TELEGRAM_SETUP, StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import styles from './TelegramInfo.module.css';
@@ -78,7 +78,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
         <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock', 'u-width-100')}>
-            <Stack direction="column" align="center" gap={StackSize.lg}>
+            <Stack direction="column" alignItems="center" gap={StackSize.lg}>
               <TelegramColorIcon />
               <Text>You can manage alert groups in your team Telegram channel or from personal direct messages. </Text>
 

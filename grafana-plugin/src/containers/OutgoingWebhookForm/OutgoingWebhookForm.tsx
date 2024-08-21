@@ -264,7 +264,7 @@ const NewWebhook = (props: NewWebhookProps) => {
               onTemplateEditClick={onTemplateEditClick}
             />
             <div className={cx('buttons')}>
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 {action === WebhookFormActionType.NEW ? (
                   <Button variant="secondary" onClick={onBack}>
                     Back
@@ -399,7 +399,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
                   onTemplateEditClick={onTemplateEditClick}
                 />
                 <div className={cx('buttons')}>
-                  <Stack justify={'flex-end'}>
+                  <Stack justifyContent={'flex-end'}>
                     <Button variant="secondary" onClick={onHide}>
                       Cancel
                     </Button>

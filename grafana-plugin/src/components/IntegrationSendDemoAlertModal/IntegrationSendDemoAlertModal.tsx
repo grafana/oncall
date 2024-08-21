@@ -14,6 +14,7 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -53,7 +54,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
       }
     >
       <Stack direction="column">
-        <Stack gap={'xs'}>
+        <Stack gap={StackSize.xs}>
           <Text type={'secondary'}>Alert Payload</Text>
           <Tooltip
             content={
@@ -82,7 +83,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           />
         </div>
 
-        <Stack justify={'flex-end'} gap={'md'}>
+        <Stack justifyContent={'flex-end'} gap={'md'}>
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>

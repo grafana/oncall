@@ -38,7 +38,7 @@ export const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
       <div className={styles.inputContainer}>{renderInputField()}</div>
 
       <div className={cx(styles.icons, iconsClassName)}>
-        <Stack gap={'xs'}>
+        <Stack gap={StackSize.xs}>
           {showEye && <IconButton aria-label="Reveal" name={'eye'} size={'xs'} onClick={onInputReveal} />}
           {showCopy && <CopyToClipboardIcon text={value} iconButtonProps={{ size: 'xs' }} />}
           {showExternal && <IconButton aria-label="Open" name={'external-link-alt'} size={'xs'} onClick={onOpen} />}

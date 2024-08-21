@@ -182,7 +182,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
                   </Field>
                 )}
               />
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>

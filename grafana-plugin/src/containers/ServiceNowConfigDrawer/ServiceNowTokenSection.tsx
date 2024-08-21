@@ -11,7 +11,7 @@ import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
-import { DOCS_ROOT } from 'utils/consts';
+import { DOCS_ROOT, StackSize } from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
@@ -41,7 +41,7 @@ export const ServiceNowTokenSection: React.FC<ServiceNowTokenSectionProps> = obs
 
   return (
     <Stack direction="column">
-      <Stack gap={StackSize.xs} align="center">
+      <Stack gap={StackSize.xs} alignItems="center">
         <Text type="primary" strong>
           Generate ServiceNow Business Rule
         </Text>

@@ -45,7 +45,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withDrawer, withRouter } from 'utils/hoc';
 import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';

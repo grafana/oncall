@@ -92,7 +92,7 @@ export const GrafanaTeamSelect = observer(
               Edit teams
             </a>
           </WithPermissionControlTooltip>
-          <Stack justify="flex-end">
+          <Stack justifyContent="flex-end">
             <Button variant="primary" onClick={handleConfirm}>
               Ok
             </Button>

@@ -10,6 +10,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MSTeamsInstructions.module.css';
@@ -40,18 +41,18 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
   };
 
   return (
-    <Stack direction="column" align="flex-start" gap={StackSize.lg}>
+    <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
       {!personalSettings && <Text.Title level={2}>Connect MS Teams workspace</Text.Title>}
       {showInfoBox && (
         <Block bordered withBackground className={cx('info-block')}>
-          <Stack direction="column" align="center">
+          <Stack direction="column" alignItems="center">
             <div style={{ width: '60px', marginTop: '24px' }}>
               <MSTeamsLogo />
             </div>
             <Text>You can manage alert groups in your Microsoft Teams workspace.</Text>
             <br />
             {personalSettings ? (
-              <Stack direction="column" align="center">
+              <Stack direction="column" alignItems="center">
                 <Text>This setup is for direct profile connection with bot. </Text>
                 <br />
                 <Text className={cx('infoblock-text')}>
@@ -60,7 +61,7 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
                 </Text>
               </Stack>
             ) : (
-              <Stack direction="column" align="center">
+              <Stack direction="column" alignItems="center">
                 <Text>This setup is for Team channel connection with bot. </Text>
                 <br />
                 <Text className={cx('infoblock-text')}>

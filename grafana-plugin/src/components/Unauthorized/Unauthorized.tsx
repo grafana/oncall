@@ -7,6 +7,7 @@ import { contextSrv } from 'grafana/app/core/core';
 
 import { Text } from 'components/Text/Text';
 import { UserAction } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 type Props = {
   requiredUserAction: UserAction;
@@ -17,7 +18,7 @@ export const Unauthorized: FC<Props> = ({ requiredUserAction: { permission, fall
 
   return (
     <div className={styles.notFound}>
-      <Stack direction="column" gap={StackSize.lg} align="center">
+      <Stack direction="column" gap={StackSize.lg} alignItems="center">
         <Text.Title level={1} className={styles.errorCode}>
           403
         </Text.Title>

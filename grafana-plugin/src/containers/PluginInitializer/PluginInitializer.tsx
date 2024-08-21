@@ -19,7 +19,7 @@ export const PluginInitializer: FC<PluginInitializerProps> = observer(({ childre
 
   if (isCheckingConnectionStatus) {
     return (
-      <Stack direction="column" justifyContent="center" height="100%" align="center">
+      <Stack direction="column" justifyContent="center" height="100%" alignItems="center">
         <LoadingPlaceholder text="Loading..." />
       </Stack>
     );

@@ -149,7 +149,7 @@ export const Text: TextInterface = (props) => {
               value={value}
               onChange={handleInputChange}
             />
-            <Stack justify="flex-end">
+            <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={handleCancelEdit}>
                 Cancel
               </Button>

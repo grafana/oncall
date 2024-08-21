@@ -9,7 +9,7 @@ import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
-import { OnCallAGStatus } from 'utils/consts';
+import { OnCallAGStatus, StackSize } from 'utils/consts';
 
 import { ServiceNowHelper } from './ServiceNowConfig.helpers';
 
@@ -48,7 +48,7 @@ export const ServiceNowStatusSection: React.FC = observer(() => {
 
   return (
     <Stack direction="column" gap={StackSize.md}>
-      <Stack gap={StackSize.xs} align="center">
+      <Stack gap={StackSize.xs} alignItems="center">
         <Text type="primary" strong>
           Status Mapping
         </Text>

@@ -56,7 +56,7 @@ export const OtherIntegrations = observer(() => {
               }
             />
           ) : (
-            <Stack align="center">
+            <Stack alignItems="center">
               <Text type="secondary">There are no connected integrations.</Text>
               <Button variant="primary" showAsLink onClick={() => setIsConnectModalOpened(true)}>
                 Connect them

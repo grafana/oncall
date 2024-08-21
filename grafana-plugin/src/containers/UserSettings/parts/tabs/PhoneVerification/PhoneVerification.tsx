@@ -19,6 +19,7 @@ import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorizatio
 import { useIsLoading } from 'utils/hooks';
 
 import styles from './PhoneVerification.module.css';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -292,7 +293,7 @@ function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps
       <Text size="large" className={cx('phone__forgetHeading')}>
         Do you really want to forget the verified phone number <strong>{phone}</strong> ?
       </Text>
-      <Stack justify="flex-end">
+      <Stack justifyContent="flex-end">
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>

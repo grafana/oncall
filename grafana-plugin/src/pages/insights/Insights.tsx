@@ -21,7 +21,7 @@ import { Text } from 'components/Text/Text';
 import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT, PLUGIN_ROOT } from 'utils/consts';
+import { DOCS_ROOT, PLUGIN_ROOT, StackSize } from 'utils/consts';
 
 import { useAlertCreationChecker } from './Insights.hooks';
 import styles from './Insights.module.scss';
@@ -109,7 +109,7 @@ const NoAlertCreatedTutorial = () => {
       <Tutorial
         step={TutorialStep.Integrations}
         title={
-          <Stack direction="column" align="center" gap={StackSize.lg}>
+          <Stack direction="column" alignItems="center" gap={StackSize.lg}>
             <Text type="secondary">
               Your OnCall stack doesn’t have any alerts to visualise insights.
               <br />

@@ -30,7 +30,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_ROOT, DOCS_SLACK_SETUP, getPluginId } from 'utils/consts';
+import { DOCS_ROOT, DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
 import { useConfirmModal } from 'utils/hooks';
 import { showApiError } from 'utils/utils';
 

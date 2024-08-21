@@ -78,7 +78,7 @@ export const TemplateResult = (props: ResultProps) => {
             {template?.additionalData?.chatOpsName && isAlertGroupExisting && (
               <Stack direction="column">
                 <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
-                  <Stack gap={StackSize.xs} align="center">
+                  <Stack gap={StackSize.xs} alignItems="center">
                     Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
                     <Icon name="external-link-alt" />
                   </Stack>

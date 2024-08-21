@@ -15,6 +15,7 @@ import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';

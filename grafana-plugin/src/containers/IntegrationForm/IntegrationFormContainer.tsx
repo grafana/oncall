@@ -12,6 +12,7 @@ import { useStore } from 'state/useStore';
 
 import { IntegrationForm } from './IntegrationForm';
 import styles from './IntegrationFormContainer.module.scss';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -139,7 +140,7 @@ const IntegrationBlocks: React.FC<{
                 <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
               </div>
               <div className={cx('title')}>
-                <Stack direction="column" gap={alertReceiveChannelChoice.featured ? 'xs' : 'none'}>
+                <Stack direction="column" gap={alertReceiveChannelChoice.featured ? StackSize.xs : StackSize.none}>
                   <Stack>
                     <Text strong data-testid="integration-display-name">
                       {alertReceiveChannelChoice.display_name}

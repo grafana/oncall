@@ -9,7 +9,7 @@ import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/W
 import { SlackNewIcon } from 'icons/Icons';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId } from 'utils/consts';
+import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
 
 import styles from './SlackTab.module.css';
 
@@ -26,7 +26,7 @@ export const SlackTab = () => {
     <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
       <Stack direction="column" gap={StackSize.lg}>
         <Block bordered withBackground className={cx('slack-infoblock', 'personal-slack-infoblock')}>
-          <Stack direction="column" align="center" gap={StackSize.lg}>
+          <Stack direction="column" alignItems="center" gap={StackSize.lg}>
             <SlackNewIcon />
             <Text>
               Personal Slack connection will allow you to manage alert groups in your connected team's Internal Slack
@@ -48,7 +48,7 @@ export const SlackTab = () => {
           </Stack>
         </Block>
         <Button onClick={handleClickConnectSlackAccount}>
-          <Stack gap={StackSize.xs} align="center">
+          <Stack gap={StackSize.xs} alignItems="center">
             <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
           </Stack>
         </Button>

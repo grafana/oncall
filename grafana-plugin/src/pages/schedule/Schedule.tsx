@@ -43,7 +43,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { HTML_ID, scrollToElement } from 'utils/DOM';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import {
@@ -188,7 +188,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
             <div>
               {isNotFoundError ? (
                 <div className={styles.notFound}>
-                  <Stack direction="column" gap={StackSize.lg} align="center">
+                  <Stack direction="column" gap={StackSize.lg} alignItems="center">
                     <Text.Title level={1}>404</Text.Title>
                     <Text.Title level={4}>Schedule not found</Text.Title>
                     <PluginLink query={{ page: 'schedules', ...query }}>
@@ -201,7 +201,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
               ) : (
                 <Stack direction="column" gap={StackSize.lg}>
                   <div className={styles.header}>
-                    <Stack justifyContent='space-between'>
+                    <Stack justifyContent="space-between">
                       <div className={styles.title}>
                         <PluginLink query={{ page: 'schedules', ...query }}>
                           <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
@@ -337,7 +337,7 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 
                   <div className={styles.rotations}>
                     <div className={styles.controls}>
-                      <Stack justifyContent='space-between'>
+                      <Stack justifyContent="space-between">
                         <Stack>
                           <Button variant="secondary" onClick={this.handleTodayClick}>
                             Today

@@ -150,7 +150,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
       ) : (
         <>
           <div className={cx('template-block-title')}>
-            <Stack justifyContent='space-between' wrap>
+            <Stack justifyContent='space-between' wrap="wrap">
               <Stack>
                 <Text>{heading}</Text>
                 {/* <Tooltip content="Here will be information about alert groups" placement="top">

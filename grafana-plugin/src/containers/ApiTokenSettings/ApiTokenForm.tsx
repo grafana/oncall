@@ -57,7 +57,7 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 
             {renderCurlExample()}
 
-            <Stack justify="flex-end">
+            <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={() => onHide()}>
                 {token ? 'Close' : 'Cancel'}
               </Button>

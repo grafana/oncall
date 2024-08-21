@@ -580,7 +580,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         <Tutorial
           step={TutorialStep.Incidents}
           title={
-            <Stack direction="column" align="center" gap={StackSize.lg}>
+            <Stack direction="column" alignItems="center" gap={StackSize.lg}>
               <Text type="secondary">
                 No alert groups found, review your filter and team settings. Make sure you have at least one working
                 integration.

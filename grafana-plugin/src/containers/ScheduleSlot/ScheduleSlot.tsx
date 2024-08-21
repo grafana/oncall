@@ -17,6 +17,7 @@ import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { truncateTitle } from 'utils/string';
 
 import { getScheduleSlotStyleParams, getTitle } from './ScheduleSlot.helpers';
@@ -422,7 +423,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             {title}
           </Text>
         </Stack>
-        <Stack align="flex-start">
+        <Stack alignItems="flex-start">
           <div className={styles.detailsIcon}>
             <Icon className={styles.icon} name={isShiftSwap ? 'user-arrows' : 'user'} />
           </div>
@@ -448,7 +449,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             </Text>
           )}
         </Stack>
-        <Stack align="flex-start">
+        <Stack alignItems="flex-start">
           <div className={styles.detailsIcon}>
             <Icon className={styles.icon} name="clock-nine" />
           </div>
@@ -465,7 +466,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             <br />({getTzOffsetString(currentDateInSelectedTimezone)})
           </Text>
         </Stack>
-        <Stack align="flex-start">
+        <Stack alignItems="flex-start">
           <div className={styles.detailsIcon}>
             <Icon className={styles.icon} name="arrows-h" />
           </div>
@@ -483,7 +484,7 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             {getDateInSelectedTimezone(dayjs(event.end)).format('DD MMM, HH:mm')}
           </Text>
         </Stack>
-        <Stack justify="flex-end">
+        <Stack justifyContent="flex-end">
           {handleAddShiftSwap && (
             <Button size="sm" variant="secondary" onClick={handleAddShiftSwap}>
               Request shift swap

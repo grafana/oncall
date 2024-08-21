@@ -89,7 +89,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
     <Drawer
       title={
         <div className={cx('title-container')}>
-          <Stack justifyContent='space-between' align="flex-start">
+          <Stack justifyContent='space-between' alignItems="flex-start">
             <Stack direction="column">
               <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
               {template.description && <Text type="secondary">{template.description}</Text>}
@@ -141,7 +141,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
             <>
               <div className={cx('template-block-codeeditor')}>
                 <div className={cx('template-editor-block-title')}>
-                  <Stack justifyContent='space-between' align="center" wrap>
+                  <Stack justifyContent='space-between' alignItems="center" wrap="wrap">
                     <Text>Template editor</Text>
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
                       Cheatsheet

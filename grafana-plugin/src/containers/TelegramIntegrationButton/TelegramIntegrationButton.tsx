@@ -10,6 +10,7 @@ import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import styles from './TelegramIntegrationButton.module.css';
@@ -140,7 +141,7 @@ const TelegramModal = (props: TelegramModalProps) => {
           </Field>
         </Text>
         <Text type="secondary">7. Start to manage alerts in your team Telegram workspace.</Text>
-        <Stack justify="flex-end">
+        <Stack justifyContent="flex-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>

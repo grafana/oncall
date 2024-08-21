@@ -51,7 +51,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
         <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock')}>
-            <Stack direction="column" align="center">
+            <Stack direction="column" alignItems="center">
               <div className={cx('infoblock-icon')}>
                 <TelegramColorIcon />
               </div>
@@ -86,7 +86,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
         <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock')}>
-            <Stack direction="column" align="center">
+            <Stack direction="column" alignItems="center">
               <div className={cx('infoblock-icon')}>
                 <TelegramColorIcon />
               </div>
@@ -177,7 +177,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
   renderActionButtons = (record: TelegramChannel) => {
     return (
-      <Stack justify="flex-end">
+      <Stack justifyContent="flex-end">
         <Button
           onClick={() => this.makeTelegramChannelDefault(record.id)}
           disabled={record.is_default_channel}

@@ -94,7 +94,7 @@ export const TimeRange = (props: TimeRangeProps) => {
 
   return (
     <div className={cx(styles.root, className)}>
-      <Stack wrap>
+      <Stack wrap="wrap">
         <div data-testid="time-range-from">
           {/* @ts-ignore actually TimeOfDayPicker uses Moment objects */}
           <TimeOfDayPicker disabled={disabled} value={from} minuteStep={5} onChange={handleChangeFrom} />

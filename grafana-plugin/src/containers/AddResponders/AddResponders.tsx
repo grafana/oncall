@@ -214,7 +214,7 @@ export const AddResponders = observer(
                   title="This user is not currently on-call. We don't recommend to page users outside on-call hours."
                 />
               )}
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={closeUserConfirmationModal}>
                   Cancel
                 </Button>

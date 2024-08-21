@@ -82,7 +82,7 @@ class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
         <GTable
           title={() => (
             <div className={cx('header')}>
-              <Stack align="flex-end">
+              <Stack alignItems="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
               </Stack>
               <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>

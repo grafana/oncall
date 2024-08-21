@@ -99,7 +99,7 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
           <form id="Schedule" data-testid="schedule-form" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <FormFields scheduleType={data.type} />
             <div className="buttons">
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>

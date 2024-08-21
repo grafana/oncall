@@ -16,7 +16,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_ROOT } from 'utils/consts';
+import { DOCS_ROOT, StackSize } from 'utils/consts';
 
 const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ id }) => {
   const {
@@ -60,7 +60,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
       <Stack direction="column" gap={StackSize.lg}>
         {user.has_google_oauth2_connected ? (
           <Stack direction="column">
-            <Stack justifyContent='space-between' gap={StackSize.lg} align="flex-start">
+            <Stack justifyContent='space-between' gap={StackSize.lg} alignItems="flex-start">
               <Heading connected />
               <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                 <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
@@ -72,7 +72,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
             </Stack>
           </Stack>
         ) : (
-          <Stack justifyContent='space-between' gap={StackSize.lg} align="flex-start">
+          <Stack justifyContent='space-between' gap={StackSize.lg} alignItems="flex-start">
             <Heading connected={false} />
             <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
               <Button variant="primary" onClick={UserHelper.handleConnectGoogle}>
@@ -85,7 +85,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
         {user.has_google_oauth2_connected && (
           <Stack direction="column">
             <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-              <Stack gap={StackSize.md} align="center">
+              <Stack gap={StackSize.md} alignItems="center">
                 <Switch value={showSchedulesDropdown} onChange={handleShowSchedulesDropdownChange} />
                 <Text type="secondary">Specify the schedules to sync with Google calendar</Text>
               </Stack>
@@ -127,7 +127,7 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
   const styles = useStyles2(getStyles);
 
   return (
-    <Stack gap={StackSize.md} align="flex-start">
+    <Stack gap={StackSize.md} alignItems="flex-start">
       <div className={styles.icon}>
         <GoogleCalendarLogo width={32} height={32} />
       </div>

@@ -28,7 +28,7 @@ import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getEscalationChainStyles } from './EscalationChains.styles';
@@ -207,7 +207,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                 <Tutorial
                   step={TutorialStep.Escalations}
                   title={
-                    <Stack direction="column" align="center" gap={StackSize.lg}>
+                    <Stack direction="column" alignItems="center" gap={StackSize.lg}>
                       <Text type="secondary">No escalations found, check your filtering and current team.</Text>
                       <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                         <Button
@@ -381,7 +381,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
               <ul className={styles.list}>
                 {escalationChainDetails.map((alertReceiveChannel) => (
                   <li key={alertReceiveChannel.id}>
-                    <Stack align="flex-start">
+                    <Stack alignItems="flex-start">
                       <PluginLink query={{ page: 'integrations', id: alertReceiveChannel.id }}>
                         {alertReceiveChannel.display_name}
                       </PluginLink>

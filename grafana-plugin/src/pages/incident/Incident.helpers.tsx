@@ -187,7 +187,7 @@ export function getActionButtons(
     buttons.push(unresolveButton);
   }
 
-  return <Stack justify="flex-end">{buttons}</Stack>;
+  return <Stack justifyContent="flex-end">{buttons}</Stack>;
 }
 
 const getStyles = () => {

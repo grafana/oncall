@@ -54,7 +54,7 @@ export const PageErrorHandlingWrapper = function ({
 
   return (
     <div className={styles.notFound}>
-      <Stack direction="column" gap={StackSize.lg} align="center">
+      <Stack direction="column" gap={StackSize.lg} alignItems="center">
         <Text.Title level={1} className={styles.errorCode}>
           403
         </Text.Title>

@@ -25,7 +25,7 @@ import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT, GENERIC_ERROR } from 'utils/consts';
+import { DOCS_ROOT, GENERIC_ERROR, StackSize } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
@@ -158,7 +158,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
 
           <Collapse isOpen={false} label="Multi-label extraction template" contentClassName="u-padding-top-none">
             <Stack direction="column">
-              <Stack justifyContent='space-between' style={{ marginBottom: '10px' }} align="flex-end">
+              <Stack justifyContent='space-between' alignItems="flex-end">
                 <Text type="secondary" size="small" className="u-padding-left-lg">
                   Allows for the extraction and modification of multiple labels from the alert payload using a single
                   template. Supports not only dynamic values but also dynamic keys. The Jinja template must result in
@@ -186,7 +186,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
           </Collapse>
 
           <div className={cx('buttons')}>
-            <Stack justify="flex-end">
+            <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={onHide}>
                 Close
               </Button>

@@ -105,7 +105,7 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
               scheduleId={scheduleId}
             />
           ) : (
-            <Stack justifyContent="center" align="flex-start">
+            <Stack justifyContent="center" alignItems="flex-start">
               <Stack>
                 <Icon className={cx('icon')} name="users-alt" />
                 <Text type="secondary">Add rotation to see users</Text>

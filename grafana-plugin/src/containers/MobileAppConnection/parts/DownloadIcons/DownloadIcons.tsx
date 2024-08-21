@@ -9,6 +9,7 @@ import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 
 import styles from './DownloadIcons.module.scss';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

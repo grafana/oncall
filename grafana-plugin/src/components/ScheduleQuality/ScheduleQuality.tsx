@@ -12,6 +12,7 @@ import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 import { getScheduleQualityStyles } from './ScheduleQuality.styles';
 

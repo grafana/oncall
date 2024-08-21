@@ -41,7 +41,7 @@ export const TelegramConnector = observer(({ channelFilterId }: TelegramConnecto
 
   return (
     <div className={cx('root')}>
-      <Stack wrap gap={StackSize.sm}>
+      <Stack wrap="wrap" gap={StackSize.sm}>
         <div className={cx('slack-channel-switch')}>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch

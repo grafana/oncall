@@ -11,6 +11,7 @@ import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 

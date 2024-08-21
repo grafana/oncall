@@ -11,6 +11,7 @@ import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -98,9 +99,9 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
     };
 
     return (
-      <Stack direction="column" justify={'flex-start'} gap={'xs'}>
+      <Stack direction="column" justifyContent={'flex-start'} gap={StackSize.xs}>
         {!hasAlerts && (
-          <Stack gap={'xs'}>
+          <Stack gap={StackSize.xs}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
             <Text type={'primary'}>No alerts yet</Text> {callToAction()}
           </Stack>

@@ -143,7 +143,7 @@ const OutgoingWebhookContextMenu = observer(
                   onCopy={() => openNotification('Webhook ID has been copied')}
                 >
                   <div>
-                    <Stack type="primary" gap={StackSize.xs}>
+                    <Stack gap={StackSize.xs}>
                       <Icon name="clipboard-alt" />
                       <Text type="primary">UID: {webhook.id}</Text>
                     </Stack>

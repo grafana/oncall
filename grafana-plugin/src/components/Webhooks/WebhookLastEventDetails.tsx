@@ -10,6 +10,7 @@ import { Tabs } from 'components/Tabs/Tabs';
 import { Text } from 'components/Text/Text';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { StackSize } from 'utils/consts';
 
 import { WebhookStatusCodeBadge } from './WebhookStatusCodeBadge';
 

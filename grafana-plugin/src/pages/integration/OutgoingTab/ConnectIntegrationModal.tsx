@@ -101,7 +101,7 @@ export const ConnectIntegrationModal = observer(({ onDismiss }: { onDismiss: () 
           [styles.connectIntegrationModalButtons]: count > page_size,
         })}
       >
-        <Stack justify="flex-end">
+        <Stack justifyContent="flex-end">
           <Button variant="secondary" onClick={onDismiss}>
             Close
           </Button>

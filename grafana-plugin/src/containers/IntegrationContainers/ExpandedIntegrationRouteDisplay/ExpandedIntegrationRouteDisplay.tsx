@@ -43,6 +43,7 @@ import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.c
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -284,7 +285,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                 </Text>
 
                 <div data-testid="escalation-chain-select">
-                  <Stack gap={'xs'}>
+                  <Stack gap={StackSize.xs}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isClearable
@@ -505,7 +506,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
   return (
-    <Stack gap={'xs'}>
+    <Stack gap={StackSize.xs}>
       {routeIndex > 0 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Up'}>
@@ -532,7 +533,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
-                  <Stack gap={'xs'}>
+                  <Stack gap={StackSize.xs}>
                     <Icon name="copy" />
 
                     <Text type="primary">UID: {channelFilter.id}</Text>
@@ -545,7 +546,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={onDelete}>
                   <Text type="danger">
-                    <Stack gap={'xs'}>
+                    <Stack gap={StackSize.xs}>
                       <Icon name="trash-alt" />
                       <span>Delete Route</span>
                     </Stack>

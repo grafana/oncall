@@ -176,7 +176,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
           <div>
             {errorData.isNotFoundError ? (
               <div className={styles.notFound}>
-                <Stack direction="column" gap={StackSize.lg} align="center">
+                <Stack direction="column" gap={StackSize.lg} alignItems="center">
                   <Text.Title level={1}>404</Text.Title>
                   <Text.Title level={4}>Alert group not found</Text.Title>
                   <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
@@ -199,7 +199,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
                   <div className={styles.column}>
-                    <Stack direction="column" style={{ display: 'block' }}>
+                    <Stack direction="column">
                       {(!incident.resolved || incident?.paged_users?.length > 0) && (
                         <AddResponders
                           mode="update"
@@ -314,7 +314,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
     return (
       <Block className={styles.block}>
         <Stack direction="column">
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Stack>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
                 <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
@@ -340,7 +340,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 )}
               </Stack>
             </Stack>
-            <Stack align="center">
+            <Stack alignItems="center">
               <Text>
                 {showLinkTo && (
                   <IconButton
@@ -461,7 +461,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               )}
             </Stack>
           </div>
-          <Stack justifyContent='space-between' className={styles.buttonsRow}>
+          {/* TODO: Check if previous styles were being applied */}
+          <Stack justifyContent="space-between">
             <Stack>
               {getActionButtons(incident, {
                 onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
@@ -557,7 +558,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
         <ul className={styles.timeline} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
             <li key={idx} className={styles.timelineItem}>
-              <Stack align="flex-start">
+              <Stack alignItems="flex-start">
                 <div
                   className={cx(styles.timelineIconBackground, {
                     blue: item.realm === TimeLineRealm.ResolutionNote,
@@ -754,7 +755,7 @@ function GroupedIncidentsList({
       className={styles.collapse}
       isOpen={false}
       label={
-        <Stack wrap>
+        <Stack wrap="wrap">
           <Text>{incident.alerts_count} Grouped Alerts</Text>
           <Text type="secondary">latest {latestAlertMoment.fromNow()},</Text>
           <Text type="secondary">{latestAlertMoment.format('MMM DD, YYYY HH:mm:ss Z').toString()}</Text>
@@ -788,7 +789,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           </div>
           <Stack direction="column">
             <SourceCode showCopyToClipboard={false}>{payloadJSON}</SourceCode>
-            <Stack justify={'flex-end'}>
+            <Stack justifyContent={'flex-end'}>
               <CopyToClipboard
                 text={payloadJSON}
                 onCopy={() => {
@@ -807,7 +808,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
       <div key={incident.id}>
         <div className={styles.incidentRow}>
           <div className={styles.incidentRowLeftSide}>
-            <Stack wrap justify={'flex-start'}>
+            <Stack wrap="wrap" justifyContent={'flex-start'}>
               <Text.Title type="secondary" level={4}>
                 {incident.render_for_web.title}
               </Text.Title>
@@ -815,7 +816,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
             </Stack>
           </div>
           <div>
-            <Stack wrap={false} justify={'flex-end'}>
+            <Stack justifyContent={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
                 <IconButton aria-label="Alert Payload" name="arrow" onClick={() => openIncidentResponse(incident)} />
               </Tooltip>
@@ -864,12 +865,12 @@ function AttachedIncidentsList({
       headerWithBackground
       className={styles.collapse}
       isOpen
-      label={<Stack wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</Stack>}
+      label={<Stack wrap="wrap">{incident.dependent_alert_groups.length} Attached Alert Groups</Stack>}
       contentClassName={styles.incidentsContent}
     >
       {alerts.map((incident) => {
         return (
-          <Stack key={incident.pk} justify={'space-between'}>
+          <Stack key={incident.pk} justifyContent={'space-between'}>
             <PluginLink query={{ page: 'alert-groups', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
@@ -897,7 +898,7 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
           <Divider />
         </div>
         <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>
-        <Stack wrap justifyContent="center">
+        <Stack wrap="wrap" justifyContent="center">
           {buttons}
         </Stack>
       </>
