@@ -11,9 +11,9 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import styles from './Connectors.module.css';
-import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

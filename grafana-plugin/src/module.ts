@@ -20,15 +20,11 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
 if (isUseProfileExtensionPointEnabled()) {
   const extensionPointId = PluginExtensionPoints.UserProfileTab;
 
-  plugin.configureExtensionComponent({
+  plugin.addComponent({
     title: IRM_TAB,
     description: 'IRM settings',
-    extensionPointId,
-    /**
-     * typing MobileAppConnectionWrapper as any until 10.2.0 is released
-     * https://github.com/grafana/grafana/pull/75019#issuecomment-1724997540
-     */
     component: MobileAppConnectionWrapper,
+    targets: [extensionPointId],
   });
 }
 

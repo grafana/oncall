@@ -9,8 +9,8 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { openNotification } from 'utils/utils';
 import { StackSize } from 'utils/consts';
+import { openNotification } from 'utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface ICalConnectorProps {

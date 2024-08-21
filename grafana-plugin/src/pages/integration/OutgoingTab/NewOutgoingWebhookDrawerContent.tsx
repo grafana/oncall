@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, useStyles2 } from '@grafana/ui';
+import { Button, Stack, useStyles2 } from '@grafana/ui';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -42,7 +42,7 @@ export const NewOutgoingWebhookDrawerContent: FC<NewOutgoingWebhookDrawerContent
           <OutgoingWebhookFormFields webhookId="new" />
         </div>
         <div className={commonStyles.bottomDrawerButtons}>
-          <Stack justify="flex-end">
+          <Stack justifyContent="flex-end">
             <Button variant="secondary" onClick={closeDrawer}>
               Close
             </Button>

@@ -6,10 +6,10 @@ import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
+import { StackSize } from 'utils/consts';
 
 import { getScheduleQualityDetailsStyles } from './ScheduleQualityDetails.styles';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';
-import { StackSize } from 'utils/consts';
 
 interface ScheduleQualityDetailsProps {
   quality: ScheduleScoreQualityResponse;

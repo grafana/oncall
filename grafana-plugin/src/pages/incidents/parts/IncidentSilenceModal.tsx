@@ -10,7 +10,7 @@ import {
   isValidDuration,
   parseDuration,
 } from '@grafana/data';
-import { Button, DateTimePicker, Field, Input, Modal, useStyles2 } from '@grafana/ui';
+import { Button, DateTimePicker, Field, Input, Modal, Stack, useStyles2 } from '@grafana/ui';
 import { Controller, useForm } from 'react-hook-form';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
@@ -118,7 +118,7 @@ const IncidentSilenceModal: React.FC<IncidentSilenceModalProps> = ({
           />
         </div>
 
-        <Stack justify="flex-end">
+        <Stack justifyContent="flex-end">
           <Button variant={'secondary'} onClick={onDismiss}>
             Cancel
           </Button>

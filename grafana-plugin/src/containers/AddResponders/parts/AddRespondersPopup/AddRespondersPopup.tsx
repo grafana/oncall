@@ -12,10 +12,10 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
 import styles from './AddRespondersPopup.module.scss';
-import { StackSize } from 'utils/consts';
 
 type Props = {
   mode: 'create' | 'update';

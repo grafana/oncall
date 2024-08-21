@@ -18,9 +18,9 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import styles from './ScheduleUserDetails.module.css';
-import { StackSize } from 'utils/consts';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;

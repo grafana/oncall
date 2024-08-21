@@ -271,7 +271,6 @@ export class ScheduleStore extends BaseStore {
       method: 'POST',
     });
 
-    console.log({ rotation: response });
     await this.rootStore.scheduleStore.refreshEvents(scheduleId);
     await this.getScoreQuality(scheduleId);
 
@@ -372,8 +371,6 @@ export class ScheduleStore extends BaseStore {
       method: 'PUT',
     });
 
-    console.log({ response });
-
     runInAction(() => {
       this.shifts = {
         ...this.shifts,
@@ -465,8 +462,6 @@ export class ScheduleStore extends BaseStore {
     this.shiftsCurrentlyUpdating[shiftId] = true;
 
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {});
-
-    console.log({ d: response });
 
     runInAction(() => {
       this.shifts = {

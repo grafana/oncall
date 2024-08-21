@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useStyles2, Input, IconButton, Drawer } from '@grafana/ui';
+import { useStyles2, Input, IconButton, Drawer, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
