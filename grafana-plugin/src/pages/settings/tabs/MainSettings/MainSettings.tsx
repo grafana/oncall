@@ -8,6 +8,8 @@ import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import { Text } from 'components/Text/Text';
 import { ApiTokenSettings } from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { makeRequest } from 'network/network';
+import { PostStatusResponse } from 'network/oncall-api/api.types';
 import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
@@ -31,9 +33,8 @@ class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
   };
 
   async componentDidMount() {
-    const { store } = this.props;
-    const url = await store.getApiUrlForSettings();
-    this.setState({ apiUrl: url });
+    const { api_url } = await makeRequest<PostStatusResponse>(`/plugin/status`, {});
+    this.setState({ apiUrl: api_url });
   }
 
   render() {
