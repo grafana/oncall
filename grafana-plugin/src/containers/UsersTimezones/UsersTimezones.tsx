@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 
-import { Icon, Tooltip } from '@grafana/ui';
+import { Icon, Stack, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
@@ -105,7 +105,7 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
               scheduleId={scheduleId}
             />
           ) : (
-            <Stack justify="center" align="flex-start">
+            <Stack justifyContent="center" align="flex-start">
               <Stack>
                 <Icon className={cx('icon')} name="users-alt" />
                 <Text type="secondary">Add rotation to see users</Text>

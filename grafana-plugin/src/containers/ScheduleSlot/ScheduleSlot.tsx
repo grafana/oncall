@@ -520,7 +520,7 @@ const ScheduleGapDetails = observer((props: ScheduleGapDetailsProps) => {
     <div className={styles.details}>
       <Stack direction="column">
         <Stack gap={StackSize.sm}>
-          <Stack direction="column" spacing="none">
+          <Stack direction="column" gap={StackSize.none}>
             <Text type="primary">{selectedTimezoneLabel}</Text>
             <Text type="primary">{getDateInSelectedTimezone(dayjs(event.start)).format('DD MMM, HH:mm')}</Text>
             <Text type="primary">{getDateInSelectedTimezone(dayjs(event.end)).format('DD MMM, HH:mm')}</Text>

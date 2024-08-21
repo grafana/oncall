@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Drawer, Field, Input, useStyles2, Button } from '@grafana/ui';
+import { Drawer, Field, Input, useStyles2, Button, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
@@ -115,7 +115,7 @@ export const ServiceNowConfigDrawer: React.FC<ServiceNowConfigurationDrawerProps
             </div>
 
             <div className={styles.formButtons}>
-              <Stack justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHide} disabled={isLoading}>
                   Close
                 </Button>

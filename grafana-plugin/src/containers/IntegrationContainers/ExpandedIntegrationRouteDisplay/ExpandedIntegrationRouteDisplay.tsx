@@ -284,7 +284,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                 </Text>
 
                 <div data-testid="escalation-chain-select">
-                  <Stack spacing={'xs'}>
+                  <Stack gap={'xs'}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isClearable
@@ -505,7 +505,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
   return (
-    <Stack spacing={'xs'}>
+    <Stack gap={'xs'}>
       {routeIndex > 0 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Up'}>
@@ -532,7 +532,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
-                  <Stack spacing={'xs'}>
+                  <Stack gap={'xs'}>
                     <Icon name="copy" />
 
                     <Text type="primary">UID: {channelFilter.id}</Text>
@@ -545,7 +545,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={onDelete}>
                   <Text type="danger">
-                    <Stack spacing={'xs'}>
+                    <Stack gap={'xs'}>
                       <Icon name="trash-alt" />
                       <span>Delete Route</span>
                     </Stack>

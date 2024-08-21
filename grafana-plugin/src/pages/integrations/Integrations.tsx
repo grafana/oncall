@@ -533,7 +533,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
             <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={styles.integrationsActionItem}>
-                <Stack spacing={'xs'}>
+                <Stack gap={'xs'}>
                   <Icon name="copy" />
 
                   <Text type="primary">UID: {item.id}</Text>
@@ -564,7 +564,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                     className="u-width-100"
                   >
                     <Text type="danger">
-                      <Stack spacing={'xs'}>
+                      <Stack gap={'xs'}>
                         <Icon name="trash-alt" />
                         <span>Delete Integration</span>
                       </Stack>

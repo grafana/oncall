@@ -81,7 +81,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
     >
       <Stack direction="column" gap={StackSize.lg}>
         <Stack direction="column" gap={StackSize.xs}>
-          <Stack spacing={'xs'}>
+          <Stack gap={'xs'}>
             <Text type={'secondary'}>Regular expression</Text>
             <Tooltip
               content={'Use python style regex to filter incidents based on a expression'}

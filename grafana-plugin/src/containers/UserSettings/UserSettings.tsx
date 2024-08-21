@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { Alert, Modal } from '@grafana/ui';
+import { Alert, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';

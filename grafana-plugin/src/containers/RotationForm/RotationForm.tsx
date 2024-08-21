@@ -62,7 +62,7 @@ import {
   toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT, StackSize } from 'utils/consts';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
@@ -574,7 +574,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
           </div>
           <div className={cx('container')}>
             <div className={cx('content')}>
-              <Stack direction="column" spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {hasUpdatedShift && (
                   <Block bordered className={cx('updated-shift-info')}>
                     <Stack direction="column">

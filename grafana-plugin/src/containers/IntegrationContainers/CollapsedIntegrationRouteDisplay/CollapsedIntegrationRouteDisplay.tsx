@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
-import { ConfirmModal, Icon, IconName } from '@grafana/ui';
+import { ConfirmModal, Icon, IconName, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -15,6 +15,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

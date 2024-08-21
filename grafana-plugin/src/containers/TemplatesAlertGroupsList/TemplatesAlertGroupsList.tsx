@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, Icon, IconButton, Badge, LoadingPlaceholder } from '@grafana/ui';
+import { Button, Icon, IconButton, Badge, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 

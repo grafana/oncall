@@ -2,7 +2,7 @@ import React, { FC, useMemo } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, withTheme2 } from '@grafana/ui';
+import { Stack, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';

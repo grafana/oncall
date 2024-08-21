@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, Icon, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import { Button, Icon, LoadingPlaceholder, Stack, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';

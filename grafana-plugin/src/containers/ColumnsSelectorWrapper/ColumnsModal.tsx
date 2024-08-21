@@ -86,7 +86,7 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
               )}
 
               {inputRef?.current?.value && searchResults.length && (
-                <Stack direction="column" spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   {searchResults.map((result, index) => (
                     <Stack direction="column" key={index}>
                       <div className={styles.fieldRow}>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, InlineField } from '@grafana/ui';
+import { Button, InlineField, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -9,6 +9,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 interface GoogleConnectorProps {
   id: ApiSchemas['User']['pk'];

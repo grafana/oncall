@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Alert, Button, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { Alert, Button, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { useFormContext } from 'react-hook-form';
 

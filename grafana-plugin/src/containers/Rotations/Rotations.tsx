@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { ValuePicker, Button, Tooltip, withTheme2 } from '@grafana/ui';
+import { ValuePicker, Button, Tooltip, withTheme2, Stack } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';

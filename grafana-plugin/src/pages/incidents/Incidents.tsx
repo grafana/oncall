@@ -739,7 +739,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     }
 
     return (
-      <Stack direction="column" spacing="none" justify="center">
+      <Stack direction="column" gap={StackSize.none} justifyContent="center">
         <Text type="secondary">{date}</Text>
         <Text type="secondary">{time}</Text>
       </Stack>

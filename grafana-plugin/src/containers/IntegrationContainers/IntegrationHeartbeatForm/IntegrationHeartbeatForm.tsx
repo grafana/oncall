@@ -48,7 +48,7 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
   return (
     <Drawer width={'640px'} scrollableContent title={'Heartbeat'} onClose={onClose} closeOnMaskClick={false}>
       <div data-testid="heartbeat-settings-form">
-        <Stack direction="column" spacing={'lg'}>
+        <Stack direction="column" gap={'lg'}>
           <Text type="secondary">
             A heartbeat acts as a healthcheck for alert group monitoring. You can configure you monitoring to regularly
             send alerts to the heartbeat endpoint. If OnCall doesn't receive one of these alerts, it will create an new

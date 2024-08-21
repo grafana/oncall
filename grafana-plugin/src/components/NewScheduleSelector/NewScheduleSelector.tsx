@@ -40,7 +40,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
             <Stack justifyContent='space-between'>
               <Stack gap={StackSize.md}>
                 <Icon name="calendar-alt" size="xl" />
-                <Stack direction="column" spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="primary" size="large">
                     Set up on-call rotation schedule
                   </Text>
@@ -58,7 +58,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
             <Stack justifyContent='space-between'>
               <Stack gap={StackSize.md}>
                 <Icon name="download-alt" size="xl" />
-                <Stack direction="column" spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="primary" size="large">
                     Import schedule from iCal Url
                   </Text>
@@ -74,7 +74,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
             <Stack justifyContent='space-between'>
               <Stack gap={StackSize.md}>
                 <Icon name="cog" size="xl" />
-                <Stack direction="column" spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="primary" size="large">
                     Create schedule by API
                   </Text>

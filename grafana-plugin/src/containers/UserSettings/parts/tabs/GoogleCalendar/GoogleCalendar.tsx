@@ -132,7 +132,7 @@ const Heading: React.FC<{ connected: boolean }> = ({ connected }) => {
         <GoogleCalendarLogo width={32} height={32} />
       </div>
       <Stack direction="column" gap={StackSize.md}>
-        <Stack direction="column" spacing="none">
+        <Stack direction="column" gap={StackSize.none}>
           <Text.Title level={5}>
             {connected ? 'Google calendar is connected' : 'Connect your Google Calendar'}
           </Text.Title>

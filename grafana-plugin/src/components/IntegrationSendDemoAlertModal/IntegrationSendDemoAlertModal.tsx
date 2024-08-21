@@ -53,7 +53,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
       }
     >
       <Stack direction="column">
-        <Stack spacing={'xs'}>
+        <Stack gap={'xs'}>
           <Text type={'secondary'}>Alert Payload</Text>
           <Tooltip
             content={
@@ -82,7 +82,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           />
         </div>
 
-        <Stack justify={'flex-end'} spacing={'md'}>
+        <Stack justify={'flex-end'} gap={'md'}>
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>

@@ -257,7 +257,7 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                     onCopy={() => openNotification('Integration ID is copied')}
                   >
                     <div>
-                      <Stack spacing={'xs'}>
+                      <Stack gap={'xs'}>
                         <Icon name="copy" />
                         <Text type="primary">UID: {alertReceiveChannel.id}</Text>
                       </Stack>
@@ -283,7 +283,7 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 hidden: !alertReceiveChannel.allow_delete,
                 label: (
                   <Text type="danger">
-                    <Stack spacing={'xs'}>
+                    <Stack gap={'xs'}>
                       <Icon name="trash-alt" />
                       <span>Delete Integration</span>
                     </Stack>

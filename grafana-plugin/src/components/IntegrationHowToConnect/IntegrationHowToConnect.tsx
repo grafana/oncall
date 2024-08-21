@@ -98,9 +98,9 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
     };
 
     return (
-      <Stack direction="column" justify={'flex-start'} spacing={'xs'}>
+      <Stack direction="column" justify={'flex-start'} gap={'xs'}>
         {!hasAlerts && (
-          <Stack spacing={'xs'}>
+          <Stack gap={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
             <Text type={'primary'}>No alerts yet</Text> {callToAction()}
           </Stack>

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { InlineSwitch } from '@grafana/ui';
+import { InlineSwitch, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -13,6 +13,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './Connectors.module.css';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -45,7 +46,7 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
 
   return (
     <div className={cx('root')}>
-      <Stack wrap gap={StackSize.sm}>
+      <Stack wrap="wrap" gap={StackSize.sm}>
         <div className={cx('slack-channel-switch')}>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch

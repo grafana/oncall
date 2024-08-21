@@ -29,7 +29,7 @@ import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, StackSize, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getSchedulesStyles } from './Schedules.styles';
@@ -266,7 +266,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             text={item.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
-              <Stack direction="column" spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {item.warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
                     {warning}

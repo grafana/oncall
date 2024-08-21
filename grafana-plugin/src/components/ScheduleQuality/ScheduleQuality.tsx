@@ -71,7 +71,7 @@ export const ScheduleQuality: FC<ScheduleQualityProps> = observer(({ schedule })
             text={schedule.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
-              <Stack direction="column" spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {schedule.warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
                     {warning}

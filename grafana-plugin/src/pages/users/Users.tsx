@@ -27,7 +27,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getUserRowClassNameFn } from './Users.helpers';
@@ -306,7 +306,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
 
     return (
-      <Stack direction="column" justify="center">
+      <Stack direction="column" justifyContent="center">
         <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
           <WithPermissionControlTooltip userAction={action}>
             <Button
@@ -384,7 +384,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             text={warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
-              <Stack direction="column" spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
                     {warning}

@@ -565,7 +565,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 >
                   {this.renderTimelineItemIcon(item.realm)}
                 </div>
-                <Stack direction="column" spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   {item.realm === TimeLineRealm.ResolutionNote && (
                     <Text type="secondary" size="small">
                       {item.author && item.author.username} via{' '}
@@ -897,7 +897,7 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
           <Divider />
         </div>
         <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>
-        <Stack wrap justify="center">
+        <Stack wrap justifyContent="center">
           {buttons}
         </Stack>
       </>

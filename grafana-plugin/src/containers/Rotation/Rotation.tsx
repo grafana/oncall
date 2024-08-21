@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from 'react';
 
-import { LoadingPlaceholder } from '@grafana/ui';
+import { LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -177,7 +177,7 @@ export const Rotation: FC<RotationProps> = observer((props) => {
             <Empty text={emptyText} />
           )
         ) : (
-          <Stack align="center" justify="center">
+          <Stack alignItems="center" justifyContent="center">
             <LoadingPlaceholder text="Loading shifts..." />
           </Stack>
         )}

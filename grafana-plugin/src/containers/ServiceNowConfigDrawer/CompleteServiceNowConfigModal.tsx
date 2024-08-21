@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, Modal, useStyles2 } from '@grafana/ui';
+import { Button, Modal, Stack, useStyles2 } from '@grafana/ui';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -63,7 +63,7 @@ export const CompleteServiceNowModal: React.FC<CompleteServiceNowConfigModalProp
           </div>
 
           <div>
-            <Stack justify="flex-end">
+            <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={onFormAcknowledge} disabled={isFormActionsDisabled}>
                 Close
               </Button>

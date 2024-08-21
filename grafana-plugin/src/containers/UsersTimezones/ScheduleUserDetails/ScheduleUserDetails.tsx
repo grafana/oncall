@@ -20,6 +20,7 @@ import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
+import { StackSize } from 'utils/consts';
 
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
@@ -76,7 +77,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
             </div>
             <div className={cx('timezone-wrapper')}>
               <div className={cx('timezone-info')} data-testid="schedule-user-details_your-current-time">
-                <Stack direction="column" spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="secondary">Your current time</Text>
                   <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
                   <Text type="secondary">({getTzOffsetString(getCurrentlyLoggedInUserDate())})</Text>
@@ -84,7 +85,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
               </div>
 
               <div className={cx('timezone-info')} data-testid="schedule-user-details_user-local-time">
-                <Stack direction="column" className={cx('timezone-info')} spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
                   <Text>({user.timezone})</Text>

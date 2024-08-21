@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
-import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup } from '@grafana/ui';
+import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
@@ -15,6 +15,7 @@ import { useStore } from 'state/useStore';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
 import styles from './AddRespondersPopup.module.scss';
+import { StackSize } from 'utils/consts';
 
 type Props = {
   mode: 'create' | 'update';

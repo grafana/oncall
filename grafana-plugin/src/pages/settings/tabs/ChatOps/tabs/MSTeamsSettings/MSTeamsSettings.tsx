@@ -100,7 +100,7 @@ class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
 
   renderActionButtons = (record: MSTeamsChannel) => {
     return (
-      <Stack justify="flex-end">
+      <Stack justifyContent="flex-end">
         <Button
           onClick={() => this.setChannelAsDefault(record.id)}
           disabled={record.is_default}

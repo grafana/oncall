@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import { cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
-import { ActionMeta, IconButton, useStyles2 } from '@grafana/ui';
+import { ActionMeta, IconButton, Stack, useStyles2 } from '@grafana/ui';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';

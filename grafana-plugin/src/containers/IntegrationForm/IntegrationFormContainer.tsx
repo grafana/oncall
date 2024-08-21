@@ -139,7 +139,7 @@ const IntegrationBlocks: React.FC<{
                 <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
               </div>
               <div className={cx('title')}>
-                <Stack direction="column" spacing={alertReceiveChannelChoice.featured ? 'xs' : 'none'}>
+                <Stack direction="column" gap={alertReceiveChannelChoice.featured ? 'xs' : 'none'}>
                   <Stack>
                     <Text strong data-testid="integration-display-name">
                       {alertReceiveChannelChoice.display_name}
