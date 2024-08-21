@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
 import { Alert, Field, HorizontalGroup, Input, LoadingPlaceholder, useStyles2, VerticalGroup } from '@grafana/ui';
-import { observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { OnCallPluginMetaJSONData } from 'types';
