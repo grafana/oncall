@@ -125,7 +125,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         # Check if command is /escalate. It's a legacy command we keep for smooth transition.
         is_legacy_command = slash_command.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
         # Check if command is /grafana escalate. It's a new command from unified app.
-        is_unified_app_command = slash_command.is_grafana_command and slash_command.subcommand == "escalate"
+        is_unified_app_command = slash_command.is_root_command and slash_command.subcommand == "escalate"
         return is_legacy_command or is_unified_app_command
 
     def process_scenario(
@@ -163,13 +163,17 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                     # catch all exceptions to prevent the slash command from failing
                     logger.warning("StartDirectPaging: failed to send ephemeral message to user", exc_info=True)
             else:
-                self._slack_client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=slack_user_identity.slack_id,
-                    text="The new Slack IRM integration is now available. Please use /grafana-irm escalate to "
-                    "complete the action",
-                )
-                return
+                # hack, parsing command again to determine if it's a legacy command
+                cmd = SlashCommand.parse(payload)
+                is_legacy_command = cmd.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
+                if is_legacy_command:
+                    self._slack_client.chat_postEphemeral(
+                        channel=channel_id,
+                        user=slack_user_identity.slack_id,
+                        text=f"The new Slack IRM integration is now available. "
+                        f"Please use `/{settings.SLACK_IRM_ROOT_COMMAND}` escalate to complete the action",
+                    )
+                    return
 
         private_metadata = {
             "channel_id": channel_id,
