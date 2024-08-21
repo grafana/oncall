@@ -24,7 +24,7 @@ def api_call(method: str, base_url: str, path: str, **kwargs) -> requests.Respon
         if e.response.status_code == 429:
             cooldown_seconds = int(e.response.headers["Retry-After"])
             sleep(cooldown_seconds)
-            return api_call(method, path, **kwargs)
+            return api_call(method, base_url, path, **kwargs)
         elif e.response.status_code == 400:
             resp_json = None
             with suppress(requests.exceptions.JSONDecodeError):
