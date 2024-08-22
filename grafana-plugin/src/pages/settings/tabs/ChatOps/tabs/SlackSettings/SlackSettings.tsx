@@ -354,7 +354,7 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
   const { modalProps, openModal } = useConfirmModal();
 
   const SLACK_MIGRATION_DOCS =
-    'https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#migrate-from-the-oncall-slack-app-to-the-irm-slack-app';
+    'https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#migrate-to-the-grafana-irm-slack-integration';
   return (
     <>
       <ConfirmModal {...modalProps} />

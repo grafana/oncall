@@ -152,7 +152,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                     # Otherwise, provide a link to the documentation
                     link = (
                         "https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations"
-                        "/references/slack/#migrate-from-the-oncall-slack-app-to-the-irm-slack-app"
+                        "/references/slack/#migrate-to-the-grafana-irm-slack-integration"
                     )
                 upgrade = f"<{link}|Upgrade>"
                 msg = (
