@@ -10,7 +10,7 @@ from django.test import override_settings
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.grafana_plugin.sync_data import SyncData, SyncSettings, SyncUser
-from apps.user_management.models import User
+from apps.user_management.models import Organization, User
 from apps.user_management.sync import (
     apply_sync_data,
     cleanup_organization,
@@ -267,6 +267,18 @@ def test_sync_organization(make_organization):
 
     # check that is_grafana_labels_enabled flag is set
     assert organization.is_grafana_labels_enabled is True
+
+
+@pytest.mark.django_db
+def test_sync_organization_invalid_api_token(make_organization):
+    organization = make_organization()
+
+    with patch("apps.user_management.sync.GrafanaAPIClient") as mock_grafana_api_client:
+        mock_grafana_api_client.return_value.check_token.return_value = (None, {"connected": False})
+        sync_organization(organization)
+
+    organization.refresh_from_db()
+    organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
 
 
 @pytest.mark.parametrize(
