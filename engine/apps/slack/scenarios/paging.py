@@ -125,7 +125,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         # Check if command is /escalate. It's a legacy command we keep for smooth transition.
         is_legacy_command = slash_command.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
         # Check if command is /grafana escalate. It's a new command from unified app.
-        is_unified_app_command = slash_command.is_grafana_command and slash_command.subcommand == "escalate"
+        is_unified_app_command = slash_command.is_root_command and slash_command.subcommand == "escalate"
         return is_legacy_command or is_unified_app_command
 
     def process_scenario(
@@ -145,12 +145,16 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         if settings.UNIFIED_SLACK_APP_ENABLED:
             if slack_team_identity.needs_reinstall:
                 organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
-                # Provide a link  to web if user has access only to one organization
                 if len(organizations) == 1:
+                    # Provide a link  to web if user has access only to one organization
                     link = urljoin(organizations[0].web_link, "settings?tab=ChatOps&chatOpsTab=Slack")
-                    upgrade = f"<{link}|Upgrade>"
                 else:
-                    upgrade = "Upgrade"  # TODO: Add link to docs are available
+                    # Otherwise, provide a link to the documentation
+                    link = (
+                        "https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations"
+                        "/references/slack/#migrate-to-the-grafana-irm-slack-integration"
+                    )
+                upgrade = f"<{link}|Upgrade>"
                 msg = (
                     f"The new Slack IRM integration is now available. f{upgrade} for a more powerful and flexible "
                     f"way to interact with Grafana IRM on Slack."
@@ -163,13 +167,17 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                     # catch all exceptions to prevent the slash command from failing
                     logger.warning("StartDirectPaging: failed to send ephemeral message to user", exc_info=True)
             else:
-                self._slack_client.chat_postEphemeral(
-                    channel=channel_id,
-                    user=slack_user_identity.slack_id,
-                    text="The new Slack IRM integration is now available. Please use /grafana-irm escalate to "
-                    "complete the action",
-                )
-                return
+                # hack, parsing command again to determine if it's a legacy command
+                cmd = SlashCommand.parse(payload)
+                is_legacy_command = cmd.command == settings.SLACK_DIRECT_PAGING_SLASH_COMMAND
+                if is_legacy_command:
+                    self._slack_client.chat_postEphemeral(
+                        channel=channel_id,
+                        user=slack_user_identity.slack_id,
+                        text=f"The new Slack IRM integration is now available. "
+                        f"Please use `/{settings.SLACK_IRM_ROOT_COMMAND}` escalate to complete the action",
+                    )
+                    return
 
         private_metadata = {
             "channel_id": channel_id,

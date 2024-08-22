@@ -5,7 +5,7 @@ import { OnCallPluginMetaJSONData } from 'types';
 import { ActionKey } from 'models/loader/action-keys';
 import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { makeRequest } from 'network/network';
-import { PluginConnection, PostStatusResponse } from 'network/oncall-api/api.types';
+import { PluginConnection, StatusResponse } from 'network/oncall-api/api.types';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 import { waitInMs } from 'utils/async';
 import { AutoLoadingState } from 'utils/decorators';
@@ -31,6 +31,7 @@ On Cloud:
 export class PluginStore {
   rootStore: RootBaseStore;
   connectionStatus?: PluginConnection;
+  apiUrlFromStatus?: string;
   isPluginConnected = false;
   appliedOnCallApiUrl = '';
 
@@ -53,9 +54,10 @@ export class PluginStore {
 
   @AutoLoadingState(ActionKey.PLUGIN_VERIFY_CONNECTION)
   async verifyPluginConnection() {
-    const { pluginConnection } = await makeRequest<PostStatusResponse>(`/plugin/status`, {});
+    const { pluginConnection, api_url } = await makeRequest<StatusResponse>(`/plugin/status`, {});
     runInAction(() => {
       this.connectionStatus = pluginConnection;
+      this.apiUrlFromStatus = api_url;
       this.isPluginConnected = Object.keys(pluginConnection).every(
         (key) => pluginConnection[key as keyof PluginConnection]?.ok
       );

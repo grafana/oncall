@@ -70,6 +70,7 @@ export interface Shift {
   type: number; // 2 - rotations, 3 - overrides
   until: string | null;
   updated_shift: null;
+  start_rotation_from_user_index?: number;
 }
 
 export interface Rotation {

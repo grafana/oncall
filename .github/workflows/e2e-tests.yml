@@ -168,7 +168,6 @@ jobs:
 
       - name: Tilt CI - standard E2E tests
         shell: bash
-        if: ${{ inputs.run-expensive-tests == false }}
         env:
           GRAFANA_VERSION: ${{ inputs.grafana_version }}
           BROWSERS: ${{ inputs.browsers }}

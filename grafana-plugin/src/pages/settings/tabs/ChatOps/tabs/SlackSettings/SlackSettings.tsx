@@ -30,7 +30,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_ROOT, DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
+import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
 import { useConfirmModal } from 'utils/hooks';
 import { showApiError } from 'utils/utils';
 
@@ -352,6 +352,8 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
   } = useStore();
   const { modalProps, openModal } = useConfirmModal();
 
+  const SLACK_MIGRATION_DOCS =
+    'https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#migrate-to-the-grafana-irm-slack-integration';
   return (
     <>
       <ConfirmModal {...modalProps} />
@@ -359,8 +361,7 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
         <div className={styles.upgradeSlackAlertText}>
           The OnCall Slack app is now a Grafana IRM app with new incident management features. Migrate now to access the
           enhanced capabilities.{' '}
-          <a href={`${DOCS_ROOT}`} target="_blank" rel="noreferrer">
-            {/* TODO: update link to docs */}
+          <a href={`${SLACK_MIGRATION_DOCS}`} target="_blank" rel="noreferrer">
             Learn more
           </a>
         </div>
@@ -389,12 +390,7 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
                       </li>
                     </ul>
                   </p>
-                  <a
-                    href={`${DOCS_ROOT}`} // TODO: update link to docs
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.marginTop}
-                  >
+                  <a href={`${SLACK_MIGRATION_DOCS}`} target="_blank" rel="noreferrer" className={styles.marginTop}>
                     <Text type="link">
                       <span>Learn more in the docs</span>
                       <Icon name="external-link-alt" className="u-margin-left-xs u-margin-bottom-xxs" />
