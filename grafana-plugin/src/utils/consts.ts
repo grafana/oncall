@@ -72,7 +72,17 @@ export const getProcessEnvVarSafely = (name: string) => {
   }
 };
 
-export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
+const getGrafanaSubUrl = () => {
+  try {
+    return window.grafanaBootData.settings.appSubUrl || '';
+  } catch (_err) {
+    return '';
+  }
+};
+
+export const getOnCallApiPath = (subpath = '') => {
+  return `${getGrafanaSubUrl()}/api/plugins/${PLUGIN_ID}/resources${subpath}`;
+};
 
 // Faro
 export const FARO_ENDPOINT_DEV =
