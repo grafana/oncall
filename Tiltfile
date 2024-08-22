@@ -1,5 +1,4 @@
 load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
-load("ext://configmap", "configmap_create")
 load("ext://docker_build_sub", "docker_build_sub")
 
 grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
@@ -73,33 +72,24 @@ def load_oncall_helm():
 if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
 
-    # TODO: uncomment this when done testing, will need to publish new version of grafana-tilt-extensions
-    # and bump the ref here
-    # v1alpha1.extension_repo(
-    #     name="grafana-tilt-extensions",
-    #     ref="v1.4.2",
-    #     url="https://github.com/grafana/tilt-extensions",
-    # )
-    v1alpha1.extension_repo(name="grafana-tilt-extensions", url="file://~/coding/grafana/grafana-tilt-extensions")
+    v1alpha1.extension_repo(
+        name="grafana-tilt-extensions",
+        # TODO: once PR merged, publish new version of grafana-tilt-extensions and bump the ref here
+        # https://github.com/grafana/tilt-extensions/pull/19
+        ref="v1.4.2",
+        url="https://github.com/grafana/tilt-extensions",
+    )
 
 v1alpha1.extension(name="grafana", repo_name="grafana-tilt-extensions", repo_path="grafana")
 v1alpha1.extension(name="irm_plugin", repo_name="grafana-tilt-extensions", repo_path="irm_plugin")
 
 load("ext://grafana", "grafana")
-load("ext://irm_plugin", "irm_plugin")
+load("ext://irm_plugin", "create_irm_plugin_ui_k8s_resources")
 
 def load_grafana():
     # The user/pass that you will login to Grafana with
     grafana_admin_user_pass = os.getenv("GRAFANA_ADMIN_USER_PASS", "oncall")
     grafana_version = os.getenv("GRAFANA_VERSION", "latest")
-
-    if 'plugin' in profiles:
-        k8s_resource(
-            objects=["grafana-oncall-app-provisioning:configmap"],
-            new_name="grafana-oncall-app-provisioning-configmap",
-            resource_deps=["build-ui"],
-            labels=["Grafana"],
-        )
 
     # Use separate grafana helm chart
     if not running_under_parent_tiltfile:
