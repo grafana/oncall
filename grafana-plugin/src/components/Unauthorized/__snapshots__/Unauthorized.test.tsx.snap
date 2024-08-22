@@ -5,55 +5,41 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
   className="css-rs5aad"
 >
   <div
-    className="css-8tu8mo-vertical-group"
-    style={
-      {
-        "height": "100%",
-        "width": "100%",
-      }
-    }
+    className="css-zk53i4"
   >
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+    <h1
+      className="css-1fmhfo9"
     >
-      <h1
-        className="css-1fmhfo9"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          403
-        </span>
-      </h1>
-    </div>
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+        }
+      >
+        403
+      </span>
+    </h1>
+    <h4
+      className="css-u023fv"
     >
-      <h4
-        className="css-u023fv"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          You do not have access to view this page.
-           
-          You must be at least an Admin.
-          <br />
-          <br />
-          Please contact your organization administrator to request access.
-        </span>
-      </h4>
-    </div>
+        }
+      >
+        You do not have access to view this page.
+         
+        You must be at least an Admin.
+        <br />
+        <br />
+        Please contact your organization administrator to request access.
+      </span>
+    </h4>
   </div>
 </div>
 `;
@@ -63,55 +49,41 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
   className="css-rs5aad"
 >
   <div
-    className="css-8tu8mo-vertical-group"
-    style={
-      {
-        "height": "100%",
-        "width": "100%",
-      }
-    }
+    className="css-zk53i4"
   >
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+    <h1
+      className="css-1fmhfo9"
     >
-      <h1
-        className="css-1fmhfo9"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          403
-        </span>
-      </h1>
-    </div>
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+        }
+      >
+        403
+      </span>
+    </h1>
+    <h4
+      className="css-u023fv"
     >
-      <h4
-        className="css-u023fv"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          You do not have access to view this page.
-           
-          You are missing the grafana-oncall-app.testing:hi permission.
-          <br />
-          <br />
-          Please contact your organization administrator to request access.
-        </span>
-      </h4>
-    </div>
+        }
+      >
+        You do not have access to view this page.
+         
+        You are missing the grafana-irm-app.testing:hi permission.
+        <br />
+        <br />
+        Please contact your organization administrator to request access.
+      </span>
+    </h4>
   </div>
 </div>
 `;
@@ -121,55 +93,41 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
   className="css-rs5aad"
 >
   <div
-    className="css-8tu8mo-vertical-group"
-    style={
-      {
-        "height": "100%",
-        "width": "100%",
-      }
-    }
+    className="css-zk53i4"
   >
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+    <h1
+      className="css-1fmhfo9"
     >
-      <h1
-        className="css-1fmhfo9"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          403
-        </span>
-      </h1>
-    </div>
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+        }
+      >
+        403
+      </span>
+    </h1>
+    <h4
+      className="css-u023fv"
     >
-      <h4
-        className="css-u023fv"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          You do not have access to view this page.
-           
-          You must be at least an Admin.
-          <br />
-          <br />
-          Please contact your organization administrator to request access.
-        </span>
-      </h4>
-    </div>
+        }
+      >
+        You do not have access to view this page.
+         
+        You must be at least an Admin.
+        <br />
+        <br />
+        Please contact your organization administrator to request access.
+      </span>
+    </h4>
   </div>
 </div>
 `;
@@ -179,55 +137,41 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
   className="css-rs5aad"
 >
   <div
-    className="css-8tu8mo-vertical-group"
-    style={
-      {
-        "height": "100%",
-        "width": "100%",
-      }
-    }
+    className="css-zk53i4"
   >
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+    <h1
+      className="css-1fmhfo9"
     >
-      <h1
-        className="css-1fmhfo9"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          403
-        </span>
-      </h1>
-    </div>
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+        }
+      >
+        403
+      </span>
+    </h1>
+    <h4
+      className="css-u023fv"
     >
-      <h4
-        className="css-u023fv"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          You do not have access to view this page.
-           
-          You must be at least an Editor.
-          <br />
-          <br />
-          Please contact your organization administrator to request access.
-        </span>
-      </h4>
-    </div>
+        }
+      >
+        You do not have access to view this page.
+         
+        You must be at least an Editor.
+        <br />
+        <br />
+        Please contact your organization administrator to request access.
+      </span>
+    </h4>
   </div>
 </div>
 `;
@@ -237,55 +181,41 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
   className="css-rs5aad"
 >
   <div
-    className="css-8tu8mo-vertical-group"
-    style={
-      {
-        "height": "100%",
-        "width": "100%",
-      }
-    }
+    className="css-zk53i4"
   >
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+    <h1
+      className="css-1fmhfo9"
     >
-      <h1
-        className="css-1fmhfo9"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          403
-        </span>
-      </h1>
-    </div>
-    <div
-      className="css-qxdyop-layoutChildrenWrapper"
+        }
+      >
+        403
+      </span>
+    </h1>
+    <h4
+      className="css-u023fv"
     >
-      <h4
-        className="css-u023fv"
-      >
-        <span
-          className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-          style={
-            {
-              "maxWidth": undefined,
-            }
+      <span
+        className="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+        style={
+          {
+            "maxWidth": undefined,
           }
-        >
-          You do not have access to view this page.
-           
-          You must be at least a Viewer.
-          <br />
-          <br />
-          Please contact your organization administrator to request access.
-        </span>
-      </h4>
-    </div>
+        }
+      >
+        You do not have access to view this page.
+         
+        You must be at least a Viewer.
+        <br />
+        <br />
+        Please contact your organization administrator to request access.
+      </span>
+    </h4>
   </div>
 </div>
 `;

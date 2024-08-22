@@ -9,38 +9,29 @@ exports[`AddResponders should properly display the add responders button when hi
       class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
-        class="css-1mhys9y-horizontal-group"
-        style="width: 100%; height: 100%;"
+        class="css-iurco4"
       >
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
+        <h4
+          class="css-u023fv"
         >
-          <h4
-            class="css-u023fv"
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+          >
+            Participants
+          </span>
+        </h4>
+        <div>
+          <button
+            aria-disabled="false"
+            class="css-8b29hm-button"
+            type="button"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+              class="css-1riaxdn"
             >
-              Participants
+              Invite
             </span>
-          </h4>
-        </div>
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
-        >
-          <div>
-            <button
-              aria-disabled="false"
-              class="css-8b29hm-button"
-              type="button"
-            >
-              <span
-                class="css-1riaxdn"
-              >
-                Invite
-              </span>
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -60,22 +51,17 @@ exports[`AddResponders should properly display the add responders button when hi
       class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
-        class="css-1mhys9y-horizontal-group"
-        style="width: 100%; height: 100%;"
+        class="css-iurco4"
       >
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
+        <h4
+          class="css-u023fv"
         >
-          <h4
-            class="css-u023fv"
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
           >
-            <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
-            >
-              Participants
-            </span>
-          </h4>
-        </div>
+            Participants
+          </span>
+        </h4>
       </div>
     </div>
     <div>
@@ -94,38 +80,29 @@ exports[`AddResponders should render properly in create mode 1`] = `
       class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
-        class="css-1mhys9y-horizontal-group"
-        style="width: 100%; height: 100%;"
+        class="css-iurco4"
       >
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
+        <h4
+          class="css-u023fv"
         >
-          <h4
-            class="css-u023fv"
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+          >
+            Participants
+          </span>
+        </h4>
+        <div>
+          <button
+            aria-disabled="false"
+            class="css-8b29hm-button"
+            type="button"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+              class="css-1riaxdn"
             >
-              Participants
+              Invite
             </span>
-          </h4>
-        </div>
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
-        >
-          <div>
-            <button
-              aria-disabled="false"
-              class="css-8b29hm-button"
-              type="button"
-            >
-              <span
-                class="css-1riaxdn"
-              >
-                Invite
-              </span>
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -145,38 +122,29 @@ exports[`AddResponders should render properly in update mode 1`] = `
       class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
-        class="css-1mhys9y-horizontal-group"
-        style="width: 100%; height: 100%;"
+        class="css-iurco4"
       >
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
+        <h4
+          class="css-u023fv"
         >
-          <h4
-            class="css-u023fv"
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+          >
+            Participants
+          </span>
+        </h4>
+        <div>
+          <button
+            aria-disabled="false"
+            class="css-8b29hm-button"
+            type="button"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+              class="css-1riaxdn"
             >
-              Participants
+              Add
             </span>
-          </h4>
-        </div>
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
-        >
-          <div>
-            <button
-              aria-disabled="false"
-              class="css-8b29hm-button"
-              type="button"
-            >
-              <span
-                class="css-1riaxdn"
-              >
-                Add
-              </span>
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -196,38 +164,29 @@ exports[`AddResponders should render selected team and users properly 1`] = `
       class="css-1x53p5e css-1x53p5e--bordered"
     >
       <div
-        class="css-1mhys9y-horizontal-group"
-        style="width: 100%; height: 100%;"
+        class="css-iurco4"
       >
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
+        <h4
+          class="css-u023fv"
         >
-          <h4
-            class="css-u023fv"
+          <span
+            class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+          >
+            Participants
+          </span>
+        </h4>
+        <div>
+          <button
+            aria-disabled="false"
+            class="css-8b29hm-button"
+            type="button"
           >
             <span
-              class="css-77ouhj--primary css-77ouhj--medium css-1rchs6o--inline css-66w5es"
+              class="css-1riaxdn"
             >
-              Participants
+              Invite
             </span>
-          </h4>
-        </div>
-        <div
-          class="css-18qv8yz-layoutChildrenWrapper"
-        >
-          <div>
-            <button
-              aria-disabled="false"
-              class="css-8b29hm-button"
-              type="button"
-            >
-              <span
-                class="css-1riaxdn"
-              >
-                Invite
-              </span>
-            </button>
-          </div>
+          </button>
         </div>
       </div>
       <ul
@@ -235,47 +194,111 @@ exports[`AddResponders should render selected team and users properly 1`] = `
       >
         <li>
           <div
-            class="css-1mhys9y-horizontal-group"
-            style="width: 100%; height: 100%;"
+            class="css-iurco4"
           >
             <div
-              class="css-18qv8yz-layoutChildrenWrapper"
+              class="css-1keojjo"
             >
               <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
+                class="css-1yiiywv"
               >
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <div
-                    class="css-1yiiywv"
-                  >
-                    <img
-                      class="css-m6de9j css-m6de9j--medium"
-                      data-testid="test__avatar"
-                      src="https://example.com"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
-                  >
-                    my test team
-                  </span>
-                </div>
+                <img
+                  class="css-m6de9j css-m6de9j--medium"
+                  data-testid="test__avatar"
+                  src="https://example.com"
+                />
               </div>
+              <span
+                class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
+              >
+                my test team
+              </span>
+            </div>
+            <button
+              aria-label="Remove responder"
+              class="css-a2noi1"
+              data-testid="team-responder-delete-icon"
+              tabindex="0"
+              type="button"
+            />
+          </div>
+        </li>
+        <li>
+          <div
+            class="css-iurco4"
+          >
+            <div
+              class="css-1keojjo"
+            >
+              <div
+                class="css-1yiiywv timeline-icon-background--green"
+              >
+                <img
+                  class="css-m6de9j css-m6de9j--medium"
+                  data-testid="test__avatar"
+                  src="https://example.com/user9995.png"
+                />
+              </div>
+              <span
+                class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
+              >
+                my test user3
+              </span>
             </div>
             <div
-              class="css-18qv8yz-layoutChildrenWrapper"
+              class="css-1keojjo"
             >
+              <div
+                class="css-e49k3t-input-wrapper select css-8k5qe3-SelectContainer"
+              >
+                <span
+                  class="css-1f43avz-a11yText-A11yText"
+                  id="react-select-2-live-region"
+                />
+                <span
+                  aria-atomic="false"
+                  aria-live="polite"
+                  aria-relevant="additions text"
+                  class="css-1f43avz-a11yText-A11yText"
+                  role="log"
+                />
+                <div
+                  class="css-1i88p6p"
+                >
+                  <div
+                    class="css-1q0c0d5-grafana-select-value-container"
+                  >
+                    <div
+                      class=" css-1n8tjau-placeholder"
+                      id="react-select-2-placeholder"
+                    >
+                      Select...
+                    </div>
+                    <input
+                      aria-activedescendant=""
+                      aria-autocomplete="list"
+                      aria-describedby="react-select-2-placeholder"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                      aria-readonly="true"
+                      class="css-mohuvp-dummyInput-DummyInput"
+                      disabled=""
+                      id="react-select-2-input"
+                      inputmode="none"
+                      role="combobox"
+                      tabindex="0"
+                      value=""
+                    />
+                  </div>
+                  <div
+                    class="css-zyjsuv-input-suffix"
+                  />
+                </div>
+              </div>
               <button
                 aria-label="Remove responder"
                 class="css-a2noi1"
-                data-testid="team-responder-delete-icon"
+                data-testid="user-responder-delete-icon"
                 tabindex="0"
                 type="button"
               />
@@ -284,326 +307,163 @@ exports[`AddResponders should render selected team and users properly 1`] = `
         </li>
         <li>
           <div
-            class="css-1mhys9y-horizontal-group"
-            style="width: 100%; height: 100%;"
+            class="css-iurco4"
           >
             <div
-              class="css-18qv8yz-layoutChildrenWrapper"
+              class="css-1keojjo"
             >
               <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
+                class="css-1yiiywv timeline-icon-background--green"
               >
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <div
-                    class="css-1yiiywv timeline-icon-background--green"
-                  >
-                    <img
-                      class="css-m6de9j css-m6de9j--medium"
-                      data-testid="test__avatar"
-                      src="https://example.com/user9995.png"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
-                  >
-                    my test user3
-                  </span>
-                </div>
+                <img
+                  class="css-m6de9j css-m6de9j--medium"
+                  data-testid="test__avatar"
+                  src="https://example.com/user123.png"
+                />
               </div>
+              <span
+                class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
+              >
+                my test user
+              </span>
             </div>
             <div
-              class="css-18qv8yz-layoutChildrenWrapper"
+              class="css-1keojjo"
             >
               <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
+                class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
               >
+                <span
+                  class="css-1f43avz-a11yText-A11yText"
+                  id="react-select-3-live-region"
+                />
+                <span
+                  aria-atomic="false"
+                  aria-live="polite"
+                  aria-relevant="additions text"
+                  class="css-1f43avz-a11yText-A11yText"
+                  role="log"
+                />
                 <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
+                  class="css-1i88p6p"
                 >
                   <div
-                    class="css-e49k3t-input-wrapper select css-8k5qe3-SelectContainer"
+                    class="css-1q0c0d5-grafana-select-value-container"
                   >
-                    <span
-                      class="css-1f43avz-a11yText-A11yText"
-                      id="react-select-2-live-region"
-                    />
-                    <span
-                      aria-atomic="false"
-                      aria-live="polite"
-                      aria-relevant="additions text"
-                      class="css-1f43avz-a11yText-A11yText"
-                      role="log"
-                    />
                     <div
-                      class="css-1i88p6p"
+                      class=" css-1n8tjau-placeholder"
+                      id="react-select-3-placeholder"
                     >
-                      <div
-                        class="css-1q0c0d5-grafana-select-value-container"
-                      >
-                        <div
-                          class=" css-1n8tjau-placeholder"
-                          id="react-select-2-placeholder"
-                        >
-                          Select...
-                        </div>
-                        <input
-                          aria-activedescendant=""
-                          aria-autocomplete="list"
-                          aria-describedby="react-select-2-placeholder"
-                          aria-expanded="false"
-                          aria-haspopup="true"
-                          aria-readonly="true"
-                          class="css-mohuvp-dummyInput-DummyInput"
-                          disabled=""
-                          id="react-select-2-input"
-                          inputmode="none"
-                          role="combobox"
-                          tabindex="0"
-                          value=""
-                        />
-                      </div>
-                      <div
-                        class="css-zyjsuv-input-suffix"
-                      />
+                      Select...
                     </div>
+                    <input
+                      aria-activedescendant=""
+                      aria-autocomplete="list"
+                      aria-describedby="react-select-3-placeholder"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                      aria-readonly="true"
+                      class="css-mohuvp-dummyInput-DummyInput"
+                      id="react-select-3-input"
+                      inputmode="none"
+                      role="combobox"
+                      tabindex="0"
+                      value=""
+                    />
                   </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <button
-                    aria-label="Remove responder"
-                    class="css-a2noi1"
-                    data-testid="user-responder-delete-icon"
-                    tabindex="0"
-                    type="button"
+                  <div
+                    class="css-zyjsuv-input-suffix"
                   />
                 </div>
               </div>
+              <button
+                aria-label="Remove responder"
+                class="css-a2noi1"
+                data-testid="user-responder-delete-icon"
+                tabindex="0"
+                type="button"
+              />
             </div>
           </div>
         </li>
         <li>
           <div
-            class="css-1mhys9y-horizontal-group"
-            style="width: 100%; height: 100%;"
+            class="css-iurco4"
           >
             <div
-              class="css-18qv8yz-layoutChildrenWrapper"
+              class="css-1keojjo"
             >
               <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
+                class="css-1yiiywv timeline-icon-background--green"
               >
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <div
-                    class="css-1yiiywv timeline-icon-background--green"
-                  >
-                    <img
-                      class="css-m6de9j css-m6de9j--medium"
-                      data-testid="test__avatar"
-                      src="https://example.com/user123.png"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
-                  >
-                    my test user
-                  </span>
-                </div>
+                <img
+                  class="css-m6de9j css-m6de9j--medium"
+                  data-testid="test__avatar"
+                  src="https://example.com/user456.png"
+                />
               </div>
+              <span
+                class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
+              >
+                my test user2
+              </span>
             </div>
             <div
-              class="css-18qv8yz-layoutChildrenWrapper"
+              class="css-1keojjo"
             >
               <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
+                class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
               >
+                <span
+                  class="css-1f43avz-a11yText-A11yText"
+                  id="react-select-4-live-region"
+                />
+                <span
+                  aria-atomic="false"
+                  aria-live="polite"
+                  aria-relevant="additions text"
+                  class="css-1f43avz-a11yText-A11yText"
+                  role="log"
+                />
                 <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
+                  class="css-1i88p6p"
                 >
                   <div
-                    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
+                    class="css-1q0c0d5-grafana-select-value-container"
                   >
-                    <span
-                      class="css-1f43avz-a11yText-A11yText"
-                      id="react-select-3-live-region"
-                    />
-                    <span
-                      aria-atomic="false"
-                      aria-live="polite"
-                      aria-relevant="additions text"
-                      class="css-1f43avz-a11yText-A11yText"
-                      role="log"
-                    />
                     <div
-                      class="css-1i88p6p"
+                      class=" css-1n8tjau-placeholder"
+                      id="react-select-4-placeholder"
                     >
-                      <div
-                        class="css-1q0c0d5-grafana-select-value-container"
-                      >
-                        <div
-                          class=" css-1n8tjau-placeholder"
-                          id="react-select-3-placeholder"
-                        >
-                          Select...
-                        </div>
-                        <input
-                          aria-activedescendant=""
-                          aria-autocomplete="list"
-                          aria-describedby="react-select-3-placeholder"
-                          aria-expanded="false"
-                          aria-haspopup="true"
-                          aria-readonly="true"
-                          class="css-mohuvp-dummyInput-DummyInput"
-                          id="react-select-3-input"
-                          inputmode="none"
-                          role="combobox"
-                          tabindex="0"
-                          value=""
-                        />
-                      </div>
-                      <div
-                        class="css-zyjsuv-input-suffix"
-                      />
+                      Select...
                     </div>
+                    <input
+                      aria-activedescendant=""
+                      aria-autocomplete="list"
+                      aria-describedby="react-select-4-placeholder"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                      aria-readonly="true"
+                      class="css-mohuvp-dummyInput-DummyInput"
+                      id="react-select-4-input"
+                      inputmode="none"
+                      role="combobox"
+                      tabindex="0"
+                      value=""
+                    />
                   </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <button
-                    aria-label="Remove responder"
-                    class="css-a2noi1"
-                    data-testid="user-responder-delete-icon"
-                    tabindex="0"
-                    type="button"
+                  <div
+                    class="css-zyjsuv-input-suffix"
                   />
                 </div>
               </div>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div
-            class="css-1mhys9y-horizontal-group"
-            style="width: 100%; height: 100%;"
-          >
-            <div
-              class="css-18qv8yz-layoutChildrenWrapper"
-            >
-              <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
-              >
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <div
-                    class="css-1yiiywv timeline-icon-background--green"
-                  >
-                    <img
-                      class="css-m6de9j css-m6de9j--medium"
-                      data-testid="test__avatar"
-                      src="https://example.com/user456.png"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <span
-                    class="css-77ouhj--undefined css-77ouhj--medium css-1rchs6o--inline css-1dl45yk"
-                  >
-                    my test user2
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              class="css-18qv8yz-layoutChildrenWrapper"
-            >
-              <div
-                class="css-ffyaiw-horizontal-group"
-                style="width: 100%; height: 100%;"
-              >
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <div
-                    class="css-1nmqu8c-input-wrapper select css-8k5qe3-SelectContainer"
-                  >
-                    <span
-                      class="css-1f43avz-a11yText-A11yText"
-                      id="react-select-4-live-region"
-                    />
-                    <span
-                      aria-atomic="false"
-                      aria-live="polite"
-                      aria-relevant="additions text"
-                      class="css-1f43avz-a11yText-A11yText"
-                      role="log"
-                    />
-                    <div
-                      class="css-1i88p6p"
-                    >
-                      <div
-                        class="css-1q0c0d5-grafana-select-value-container"
-                      >
-                        <div
-                          class=" css-1n8tjau-placeholder"
-                          id="react-select-4-placeholder"
-                        >
-                          Select...
-                        </div>
-                        <input
-                          aria-activedescendant=""
-                          aria-autocomplete="list"
-                          aria-describedby="react-select-4-placeholder"
-                          aria-expanded="false"
-                          aria-haspopup="true"
-                          aria-readonly="true"
-                          class="css-mohuvp-dummyInput-DummyInput"
-                          id="react-select-4-input"
-                          inputmode="none"
-                          role="combobox"
-                          tabindex="0"
-                          value=""
-                        />
-                      </div>
-                      <div
-                        class="css-zyjsuv-input-suffix"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="css-18qv8yz-layoutChildrenWrapper"
-                >
-                  <button
-                    aria-label="Remove responder"
-                    class="css-a2noi1"
-                    data-testid="user-responder-delete-icon"
-                    tabindex="0"
-                    type="button"
-                  />
-                </div>
-              </div>
+              <button
+                aria-label="Remove responder"
+                class="css-a2noi1"
+                data-testid="user-responder-delete-icon"
+                tabindex="0"
+                type="button"
+              />
             </div>
           </div>
         </li>
@@ -642,17 +502,9 @@ exports[`AddResponders should render selected team and users properly 1`] = `
                       class="css-77ouhj--link css-77ouhj--medium css-1rchs6o--inline css-66w5es"
                     >
                       <div
-                        class="css-ffyaiw-horizontal-group"
-                        style="width: 100%; height: 100%;"
+                        class="css-1e57u0i"
                       >
-                        <div
-                          class="css-12kn7ff-layoutChildrenWrapper"
-                        >
-                          Learn more
-                        </div>
-                        <div
-                          class="css-12kn7ff-layoutChildrenWrapper"
-                        />
+                        Learn more
                       </div>
                     </span>
                   </a>
