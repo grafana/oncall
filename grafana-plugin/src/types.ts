@@ -1,4 +1,4 @@
-import { AppRootProps as BaseAppRootProps, AppPluginMeta, PluginConfigPageProps, BootData } from '@grafana/data';
+import { AppRootProps as BaseAppRootProps, AppPluginMeta, PluginConfigPageProps } from '@grafana/data';
 
 import { getPluginId } from 'utils/consts';
 
