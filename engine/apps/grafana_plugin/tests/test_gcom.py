@@ -1,5 +1,4 @@
-import uuid
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import pytest
 
