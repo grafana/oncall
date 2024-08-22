@@ -70,9 +70,6 @@ export class RootBaseStore {
   pageTitle = '';
 
   @observable
-  onCallApiUrl: string;
-
-  @observable
   insightsDatasource = 'grafanacloud-usage';
 
   // stores
@@ -184,11 +181,6 @@ export class RootBaseStore {
   @action.bound
   setPageTitle(title: string) {
     this.pageTitle = title;
-  }
-
-  @action.bound
-  async getApiUrlForSettings() {
-    return this.onCallApiUrl;
   }
 
   @action.bound

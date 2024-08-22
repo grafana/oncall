@@ -26,10 +26,22 @@ refs:
       destination: /docs/oncall/<ONCALL_VERSION>/set-up/open-source/#slack-setup
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/alerting-and-irm/oncall/set-up/open-source/#slack-setup
+  irm-slack:
+    - pattern: /docs/oncall/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/
 ---
 
 # Slack integration for Grafana OnCall
 
+{{< admonition type="warning" >}}
+The OnCall Slack app is now a Grafana IRM app with new incident management features. Migrate now to access the enhanced capabilities.
+
+Refer to the [Grafana IRM Slack integration](ref:irm-slack) documentation to learn more.
+{{< /admonition >}}
+
+{{< collapse title="Legacy Slack integration for Grafana OnCall" >}}
 The Slack integration for Grafana OnCall incorporates your Slack workspace directly into your incident response workflow
 to help your team focus on alert resolution with less friction.
 
@@ -210,3 +222,4 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 1. Hover over the message and select **More actions** from the menu options.
 1. Select **Add as resolution note**.
 1. The Grafana OnCall app will react to the message in Slack with the memo emoji and add the message to the alert group timeline.
+{{< /collapse >}}

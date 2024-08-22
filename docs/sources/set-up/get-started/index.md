@@ -34,9 +34,9 @@ refs:
       destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/escalation-chains-and-routes/#escalation-chains
   slack-integration-for-grafana-oncall:
     - pattern: /docs/oncall/
-      destination: /docs/oncall/<ONCALL_VERSION>/manage/notify/slack/
+      destination: /docs/oncall/<ONCALL_VERSION>/configure/integrations/references/slack/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/alerting-and-irm/oncall/manage/notify/slack/
+      destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/
   user-and-team-management:
     - pattern: /docs/oncall/
       destination: /docs/oncall/<ONCALL_VERSION>/manage/user-and-team-management/
@@ -233,7 +233,7 @@ To configure Slack for Grafana OnCall:
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
 For further instruction on connecting to your Slack workspace, refer to
-[Slack integration for Grafana OnCall](ref:slack-integration-for-grafana-oncall)
+[Slack integration for Grafana IRM](ref:slack-integration-for-grafana-oncall).
 
 Grafana OnCall also supports other ChatOps integration like Microsoft Teams and Telegram.
 For a full list of supported integrations, refer to [Notify people](ref:notify-people).
