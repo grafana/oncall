@@ -81,6 +81,7 @@ const getGrafanaSubUrl = () => {
 };
 
 export const getOnCallApiPath = (subpath = '') => {
+  // We need to consider the grafanaSubUrl in case Grafana is served from subpath, e.g. http://localhost:3000/grafana
   return `${getGrafanaSubUrl()}/api/plugins/${PLUGIN_ID}/resources${subpath}`;
 };
 
