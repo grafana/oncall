@@ -27,7 +27,9 @@ CLEANUP_PERIOD = timezone.timedelta(hours=13)
 def start_sync_organizations():
     sync_threshold = timezone.now() - SYNC_PERIOD
 
-    organization_qs = Organization.objects.filter(last_time_synced__lte=sync_threshold)
+    organization_qs = Organization.objects.filter(last_time_synced__lte=sync_threshold) | Organization.objects.filter(
+        last_time_synced__isnull=True
+    )
 
     active_instance_ids, is_cloud_configured = get_active_instance_ids()
     if is_cloud_configured:
