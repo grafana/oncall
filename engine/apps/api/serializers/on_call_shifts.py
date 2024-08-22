@@ -56,6 +56,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "source",
             "rolling_users",
             "updated_shift",
+            "start_rotation_from_user_index",
         ]
         extra_kwargs = {
             "interval": {"required": False, "allow_null": True},
