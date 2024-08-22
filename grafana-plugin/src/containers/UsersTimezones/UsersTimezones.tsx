@@ -80,7 +80,7 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
       />
       <div className={cx('content')}>
         <div className={cx('header')}>
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Stack>
               <div className={cx('title')}>
                 <Text.Title level={5} type="primary">

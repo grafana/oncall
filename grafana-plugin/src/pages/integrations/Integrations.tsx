@@ -2,18 +2,7 @@ import React from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import {
-  Button,
-  Stack,
-  Icon,
-  ConfirmModal,
-  Tooltip,
-  Tab,
-  TabsBar,
-  TabContent,
-  Alert,
-  withTheme2,
-} from '@grafana/ui';
+import { Button, Stack, Icon, ConfirmModal, Tooltip, Tab, TabsBar, TabContent, Alert, withTheme2 } from '@grafana/ui';
 import { debounce } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react';
@@ -226,7 +215,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       <>
         <div>
           <div className={styles.title}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Stack direction="column">
                 <Text.Title level={3}>Integrations</Text.Title>
                 <Text type="secondary">

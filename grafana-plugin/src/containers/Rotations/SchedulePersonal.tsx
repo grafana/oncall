@@ -105,7 +105,7 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <Stack justifyContent='space-between'>
+        <Stack justifyContent="space-between">
           <Stack>
             <RenderConditionally
               shouldRender={Boolean(storeUser)}

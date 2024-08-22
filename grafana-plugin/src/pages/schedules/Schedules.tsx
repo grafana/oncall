@@ -78,7 +78,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
       <>
         <div>
           <div className={styles.title}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={styles.schedulesActions}>
                 <Stack>

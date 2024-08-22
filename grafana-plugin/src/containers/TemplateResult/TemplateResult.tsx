@@ -44,7 +44,7 @@ export const TemplateResult = (props: ResultProps) => {
   return (
     <div className={cx('template-block-result')}>
       <div className={cx('template-block-title')}>
-        <Stack justifyContent='space-between'>
+        <Stack justifyContent="space-between">
           <Text>Result</Text>
         </Stack>
       </div>

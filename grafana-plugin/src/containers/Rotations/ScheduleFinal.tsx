@@ -94,7 +94,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
       >
         {!simplified && (
           <div className={styles.header}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text.Title level={5} type="primary">
                 Final schedule
               </Text.Title>

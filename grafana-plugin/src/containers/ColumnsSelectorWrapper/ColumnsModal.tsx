@@ -1,16 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import { LabelTag } from '@grafana/labels';
-import {
-  Button,
-  Checkbox,
-  IconButton,
-  Input,
-  LoadingPlaceholder,
-  Modal,
-  Stack,
-  useStyles2,
-} from '@grafana/ui';
+import { Button, Checkbox, IconButton, Input, LoadingPlaceholder, Modal, Stack, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 

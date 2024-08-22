@@ -106,7 +106,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       <>
         <div id={HTML_ID.SCHEDULE_ROTATIONS} className={styles.root}>
           <div className={styles.header}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text.Title level={5} type="primary">
                 Rotations
               </Text.Title>

@@ -1,16 +1,7 @@
 import React, { ChangeEvent, useState } from 'react';
 
 import { ServiceLabels } from '@grafana/labels';
-import {
-  Alert,
-  Button,
-  Drawer,
-  Dropdown,
-  InlineSwitch,
-  Input,
-  Menu,
-  Stack,
-} from '@grafana/ui';
+import { Alert, Button, Drawer, Dropdown, InlineSwitch, Input, Menu, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -158,7 +149,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
 
           <Collapse isOpen={false} label="Multi-label extraction template" contentClassName="u-padding-top-none">
             <Stack direction="column">
-              <Stack justifyContent='space-between' alignItems="flex-end">
+              <Stack justifyContent="space-between" alignItems="flex-end">
                 <Text type="secondary" size="small" className="u-padding-left-lg">
                   Allows for the extraction and modification of multiple labels from the alert payload using a single
                   template. Supports not only dynamic values but also dynamic keys. The Jinja template must result in

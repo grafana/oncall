@@ -1,16 +1,6 @@
 import React, { FC } from 'react';
 
-import {
-  Tooltip,
-  Icon,
-  useStyles2,
-  IconButton,
-  Switch,
-  Checkbox,
-  ConfirmModal,
-  useTheme2,
-  Stack,
-} from '@grafana/ui';
+import { Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox, ConfirmModal, useTheme2, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 

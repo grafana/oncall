@@ -1,17 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  Alert,
-  Button,
-  Field,
-  Icon,
-  IconButton,
-  InlineSwitch,
-  Select,
-  Switch,
-  Tooltip,
-  Stack,
-} from '@grafana/ui';
+import { Alert, Button, Field, Icon, IconButton, InlineSwitch, Select, Switch, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -551,7 +540,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
       >
         <div className={cx('root')} data-testid="rotation-form">
           <div>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Stack gap={StackSize.sm}>
                 {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
                 <Text.Title editModalTitle="Rotation name" onTextChange={handleRotationNameChange} level={5} editable>
@@ -766,7 +755,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
             </div>
           </div>
           <div>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text type="secondary">
                 Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
               </Text>

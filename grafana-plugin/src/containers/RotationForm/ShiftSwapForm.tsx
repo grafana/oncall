@@ -138,7 +138,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     >
       <div className={cx('root')}>
         <Stack direction="column">
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Stack gap={StackSize.sm}>
               {isNew && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
               <Text.Title level={5}>{isNew ? 'Shift swap request' : 'Shift swap'}</Text.Title>
@@ -209,7 +209,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
             )}
           </div>
 
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
             <Stack>
               <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>

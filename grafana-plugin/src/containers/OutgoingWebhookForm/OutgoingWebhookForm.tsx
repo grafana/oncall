@@ -1,15 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  Button,
-  ConfirmModal,
-  ConfirmModalProps,
-  Drawer,
-  Input,
-  Tab,
-  TabsBar,
-  Stack,
-} from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, Drawer, Input, Tab, TabsBar, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';

@@ -102,7 +102,7 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
       <>
         <div id={HTML_ID.SCHEDULE_OVERRIDES_AND_SWAPS} className={styles.root}>
           <div className={styles.header}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text.Title level={5} type="primary">
                 Overrides and swaps
               </Text.Title>

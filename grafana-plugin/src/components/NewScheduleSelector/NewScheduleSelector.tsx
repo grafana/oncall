@@ -37,7 +37,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
       <div className={styles.content}>
         <Stack direction="column" gap={StackSize.lg}>
           <Block bordered withBackground className={styles.block}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Stack gap={StackSize.md}>
                 <Icon name="calendar-alt" size="xl" />
                 <Stack direction="column" gap={StackSize.none}>
@@ -55,7 +55,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
             </Stack>
           </Block>
           <Block bordered withBackground className={styles.block}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Stack gap={StackSize.md}>
                 <Icon name="download-alt" size="xl" />
                 <Stack direction="column" gap={StackSize.none}>
@@ -71,7 +71,7 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
             </Stack>
           </Block>
           <Block bordered withBackground className={styles.block}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Stack gap={StackSize.md}>
                 <Icon name="cog" size="xl" />
                 <Stack direction="column" gap={StackSize.none}>

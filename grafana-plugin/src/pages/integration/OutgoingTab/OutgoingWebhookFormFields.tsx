@@ -102,7 +102,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         name="url"
         render={({ field }) => (
           <Stack direction="column">
-            <Stack width="100%" justifyContent='space-between'>
+            <Stack width="100%" justifyContent="space-between">
               <Label>
                 <span>Webhook URL</span>
               </Label>
@@ -145,7 +145,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         name="data"
         render={({ field }) => (
           <Stack direction="column">
-            <Stack width="100%" justifyContent='space-between'>
+            <Stack width="100%" justifyContent="space-between">
               <Label className={styles.switcherLabel}>Data template</Label>
               <Button
                 icon="edit"

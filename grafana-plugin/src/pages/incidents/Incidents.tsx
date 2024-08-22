@@ -3,15 +3,7 @@ import React, { SyntheticEvent } from 'react';
 import { cx } from '@emotion/css';
 import { GrafanaTheme2, durationToMilliseconds, parseDuration, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import {
-  Button,
-  Icon,
-  RadioButtonGroup,
-  RefreshPicker,
-  Tooltip,
-  Stack,
-  withTheme2,
-} from '@grafana/ui';
+import { Button, Icon, RadioButtonGroup, RefreshPicker, Tooltip, Stack, withTheme2 } from '@grafana/ui';
 import { capitalize } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -188,7 +180,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
       <>
         <div>
           <div className={styles.title}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
 
               <div className={styles.rightSideFilters}>

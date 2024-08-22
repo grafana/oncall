@@ -112,7 +112,7 @@ export const AddResponders = observer(
       <>
         <div className={styles.content}>
           <Block bordered>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text.Title type="primary" level={4}>
                 Participants
               </Text.Title>

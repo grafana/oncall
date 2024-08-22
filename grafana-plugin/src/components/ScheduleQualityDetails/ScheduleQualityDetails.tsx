@@ -113,7 +113,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             bem(styles.container, 'withLateralPadding')
           )}
         >
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Stack gap={StackSize.sm}>
               <Icon name="calculator-alt" />
               <Text type="secondary" className={styles.metholodogy}>

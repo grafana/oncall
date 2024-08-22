@@ -36,7 +36,13 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW, StackSize } from 'utils/consts';
+import {
+  PLUGIN_ROOT,
+  generateAssignToTeamInputDescription,
+  DOCS_ROOT,
+  INTEGRATION_SERVICENOW,
+  StackSize,
+} from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { validateURL } from 'utils/string';
 import { OmitReadonlyMembers } from 'utils/types';

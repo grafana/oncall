@@ -206,7 +206,7 @@ export const AddRespondersPopup = observer(
 
           return (
             <div onClick={() => addTeamResponder(team)} className={cx('responder-item')}>
-              <Stack justifyContent='space-between'>
+              <Stack justifyContent="space-between">
                 <Stack>
                   <Avatar size="small" src={avatar_url} />
                   <Text>{name}</Text>
@@ -234,7 +234,7 @@ export const AddRespondersPopup = observer(
 
           return (
             <div onClick={() => (disabled ? undefined : onClickUser(user))} className={cx('responder-item')}>
-              <Stack justifyContent='space-between'>
+              <Stack justifyContent="space-between">
                 <Stack>
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined} className={cx('responder-name')}>

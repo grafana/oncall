@@ -1,17 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import {
-  Button,
-  Drawer,
-  Icon,
-  IconButton,
-  Input,
-  RadioButtonGroup,
-  Select,
-  Tooltip,
-  Stack,
-} from '@grafana/ui';
+import { Button, Drawer, Icon, IconButton, Input, RadioButtonGroup, Select, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -126,7 +116,7 @@ export const IntegrationContactPoint: React.FC<{
                       className={cx('contactpoints__connect-toggler')}
                       onClick={() => setState({ isConnectOpen: !isConnectOpen })}
                     >
-                      <Stack justifyContent='space-between'>
+                      <Stack justifyContent="space-between">
                         <Stack gap={StackSize.xs} alignItems="center">
                           <Text type="primary">Grafana Alerting Contact point</Text>
                           <Icon name="info-circle" />

@@ -123,7 +123,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
       {isEditMode ? (
         <>
           <div className={cx('template-block-title-edit-mode')}>
-            <Stack justifyContent='space-between'>
+            <Stack justifyContent="space-between">
               <Text>Edit custom payload</Text>
 
               <Stack>
@@ -150,7 +150,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
       ) : (
         <>
           <div className={cx('template-block-title')}>
-            <Stack justifyContent='space-between' wrap="wrap">
+            <Stack justifyContent="space-between" wrap="wrap">
               <Stack>
                 <Text>{heading}</Text>
                 {/* <Tooltip content="Here will be information about alert groups" placement="top">
@@ -243,7 +243,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
     return (
       <>
         <div className={cx('template-block-title-edit-mode')}>
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <Text>Edit custom payload</Text>
 
             <Stack>

@@ -221,7 +221,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       )}
     >
       <Stack direction="column">
-        <Stack justifyContent='space-between'>
+        <Stack justifyContent="space-between">
           <Stack gap={StackSize.sm}>
             {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
             <Text.Title onTextChange={handleRotationNameChange} level={5} editable>
@@ -303,7 +303,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             </Stack>
           </div>
         </div>
-        <Stack justifyContent='space-between'>
+        <Stack justifyContent="space-between">
           <Text type="secondary">
             Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
           </Text>

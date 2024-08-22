@@ -81,7 +81,7 @@ const Settings: FC<SettingsProps> = observer(({ closeDrawer }) => {
       <ConfirmModal {...modalProps} />
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form}>
-          <Stack direction="column" justifyContent='space-between'>
+          <Stack direction="column" justifyContent="space-between">
             <div className={styles.formFieldsWrapper}>
               <OutgoingWebhookFormFields webhookId={webhook.id} />
             </div>

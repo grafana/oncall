@@ -277,7 +277,7 @@ const _CloudPage = observer((props: CloudPageProps) => {
                 emptyText={results ? 'No variables found' : 'Loading...'}
                 title={() => (
                   <div className={cx('table-title')}>
-                    <Stack justifyContent='space-between'>
+                    <Stack justifyContent="space-between">
                       <Text type="secondary">
                         {matched_users_count ? matched_users_count : 0} user
                         {matched_users_count === 1 ? '' : 's'}

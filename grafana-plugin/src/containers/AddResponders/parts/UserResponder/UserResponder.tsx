@@ -27,7 +27,7 @@ export const UserResponder: FC<Props> = ({
 
   return (
     <li>
-      <Stack justifyContent='space-between'>
+      <Stack justifyContent="space-between">
         <Stack>
           <div className={cx(styles.timelineIconBackground, { 'timeline-icon-background--green': true })}>
             <Avatar size="medium" src={avatar} />

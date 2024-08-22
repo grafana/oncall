@@ -29,7 +29,7 @@ export const OtherIntegrations = observer(() => {
       {isConnectModalOpened && <ConnectIntegrationModal onDismiss={() => setIsConnectModalOpened(false)} />}
       <IntegrationBlock
         heading={
-          <Stack justifyContent='space-between'>
+          <Stack justifyContent="space-between">
             <IntegrationTag>Send data from other integrations</IntegrationTag>
             <Button size="sm" variant="secondary" onClick={() => setIsConnectModalOpened(true)}>
               Connect

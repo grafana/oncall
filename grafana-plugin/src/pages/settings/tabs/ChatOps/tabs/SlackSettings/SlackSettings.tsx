@@ -1,16 +1,6 @@
 import React, { Component } from 'react';
 
-import {
-  Alert,
-  LoadingPlaceholder,
-  Icon,
-  Button,
-  InlineField,
-  Input,
-  Legend,
-  ConfirmModal,
-  Stack,
-} from '@grafana/ui';
+import { Alert, LoadingPlaceholder, Icon, Button, InlineField, Input, Legend, ConfirmModal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 

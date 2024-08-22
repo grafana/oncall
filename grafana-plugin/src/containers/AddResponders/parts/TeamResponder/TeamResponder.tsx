@@ -17,7 +17,7 @@ export const TeamResponder: FC<Props> = ({ team: { avatar_url, name }, handleDel
 
   return (
     <li>
-      <Stack justifyContent='space-between'>
+      <Stack justifyContent="space-between">
         <Stack>
           <div className={styles.timelineIconBackground}>
             <Avatar size="medium" src={avatar_url} />

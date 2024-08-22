@@ -60,7 +60,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
       <Stack direction="column" gap={StackSize.lg}>
         {user.has_google_oauth2_connected ? (
           <Stack direction="column">
-            <Stack justifyContent='space-between' gap={StackSize.lg} alignItems="flex-start">
+            <Stack justifyContent="space-between" gap={StackSize.lg} alignItems="flex-start">
               <Heading connected />
               <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                 <WithConfirm title="Are you sure to disconnect your Google account?" confirmText="Disconnect">
@@ -72,7 +72,7 @@ const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ i
             </Stack>
           </Stack>
         ) : (
-          <Stack justifyContent='space-between' gap={StackSize.lg} alignItems="flex-start">
+          <Stack justifyContent="space-between" gap={StackSize.lg} alignItems="flex-start">
             <Heading connected={false} />
             <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
               <Button variant="primary" onClick={UserHelper.handleConnectGoogle}>

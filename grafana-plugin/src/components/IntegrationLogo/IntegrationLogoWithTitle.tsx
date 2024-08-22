@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
 
-
 import { Stack } from '@grafana/ui';
 
 import { Text } from 'components/Text/Text';
