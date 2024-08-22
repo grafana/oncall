@@ -145,12 +145,16 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         if settings.UNIFIED_SLACK_APP_ENABLED:
             if slack_team_identity.needs_reinstall:
                 organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
-                # Provide a link  to web if user has access only to one organization
                 if len(organizations) == 1:
+                    # Provide a link  to web if user has access only to one organization
                     link = urljoin(organizations[0].web_link, "settings?tab=ChatOps&chatOpsTab=Slack")
-                    upgrade = f"<{link}|Upgrade>"
                 else:
-                    upgrade = "Upgrade"  # TODO: Add link to docs are available
+                    # Otherwise, provide a link to the documentation
+                    link = (
+                        "https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations"
+                        "/references/slack/#migrate-to-the-grafana-irm-slack-integration"
+                    )
+                upgrade = f"<{link}|Upgrade>"
                 msg = (
                     f"The new Slack IRM integration is now available. f{upgrade} for a more powerful and flexible "
                     f"way to interact with Grafana IRM on Slack."
