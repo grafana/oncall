@@ -12,11 +12,20 @@ from apps.user_management.models import Organization
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 GCOM_TOKEN_CHECK_PERIOD = timezone.timedelta(minutes=60)
+MIN_GRAFANA_TOKEN_LENGTH = 16
 
 
 class GcomToken:
     def __init__(self, organization):
         self.organization = organization
+
+
+def _validate_grafana_token_format(grafana_token: str) -> bool:
+    if not grafana_token or not isinstance(grafana_token, str):
+        return False
+    if len(grafana_token) < MIN_GRAFANA_TOKEN_LENGTH:
+        return False
+    return True
 
 
 def check_gcom_permission(token_string: str, context) -> GcomToken:
@@ -45,6 +54,8 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
     if not instance_info or str(instance_info["orgId"]) != org_id:
         raise InvalidToken
 
+    grafana_token_format_is_valid = _validate_grafana_token_format(grafana_token)
+
     if not organization:
         from apps.base.models import DynamicSetting
 
@@ -52,6 +63,11 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
             name="allow_plugin_organization_signup", defaults={"boolean_value": True}
         )[0].boolean_value
         if allow_signup:
+            if not grafana_token_format_is_valid:
+                logger.debug(
+                    f"grafana token sent when creating stack_id={stack_id} was invalid format. api_token will still be written to DB"
+                )
+
             # Get org from db or create a new one
             organization, _ = Organization.objects.get_or_create(
                 stack_id=instance_info["id"],
@@ -74,8 +90,13 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
         organization.grafana_url = instance_info["url"]
         organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token = token_string
-        organization.api_token = grafana_token
         organization.gcom_token_org_last_time_synced = timezone.now()
+        if not grafana_token_format_is_valid:
+            logger.debug(
+                f"grafana token sent when updating stack_id={stack_id} was invalid, api_token in DB will be unchanged"
+            )
+        else:
+            organization.api_token = grafana_token
         organization.save(
             update_fields=[
                 "stack_slug",
