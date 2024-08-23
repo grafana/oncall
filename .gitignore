@@ -12,3 +12,5 @@ yarn.lock
 node_modules
 
 test-results
+.turbo
+tsconfig.tsbuildinfo

@@ -1,6 +1,8 @@
 import { getBackendSrv } from '@grafana/runtime';
 import { OnCallPluginMetaJSONData } from 'types';
 
+import { getPluginId } from 'utils/consts';
+
 import {
   ApiAuthKeyDTO,
   NewApiKeyResult,
@@ -14,7 +16,7 @@ const KEYS_BASE_URL = '/api/auth/keys';
 const SERVICE_ACCOUNTS_BASE_URL = '/api/serviceaccounts';
 const ONCALL_KEY_NAME = 'OnCall';
 const ONCALL_SERVICE_ACCOUNT_NAME = 'sa-autogen-OnCall';
-const GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
+const GRAFANA_PLUGIN_SETTINGS_URL = `/api/plugins/${getPluginId()}/settings`;
 
 export class GrafanaApiClient {
   static grafanaBackend = getBackendSrv();

@@ -50,7 +50,6 @@ export const BREAKPOINT_TABS = 1024;
 // Default redirect page
 export const DEFAULT_PAGE = 'alert-groups';
 
-export const PLUGIN_ID = 'grafana-oncall-app';
 export const PLUGIN_ROOT = `/a/${getPluginId()}`;
 export const PLUGIN_CONFIG = `/plugins/${getPluginId()}`;
 
@@ -72,7 +71,7 @@ export const getProcessEnvVarSafely = (name: string) => {
   }
 };
 
-export const getOnCallApiPath = (subpath = '') => `/api/plugins/${PLUGIN_ID}/resources${subpath}`;
+export const getOnCallApiPath = (subpath = '') => `/api/plugins/${getPluginId()}/resources${subpath}`;
 
 // Faro
 export const FARO_ENDPOINT_DEV =
