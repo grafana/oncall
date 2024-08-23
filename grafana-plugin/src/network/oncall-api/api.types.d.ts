@@ -16,15 +16,10 @@ type PluginConnection = {
   grafana_url_from_engine: PluginConnectionCheck;
 };
 
-export type PostStatusResponse = {
+export type StatusResponse = {
   pluginConnection: PluginConnection;
-  allow_signup: boolean;
   api_url: string;
   currently_undergoing_maintenance_message: string | null;
-  is_installed: boolean;
-  is_user_anonymous: boolean;
   license: string;
-  recaptcha_site_key: string;
-  token_ok: boolean;
   version: string;
 };

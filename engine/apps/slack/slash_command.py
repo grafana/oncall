@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from apps.slack.types.interaction_payloads import SlashCommandPayload
 
 
@@ -37,5 +39,5 @@ class SlashCommand:
         return SlashCommand(command, args)
 
     @property
-    def is_grafana_command(self):
-        return self.command in ["grafana-irm", "grafana-irm-dev", "grafana-irm-ops", "grafana-irm-prod"]
+    def is_root_command(self):
+        return self.command == settings.SLACK_IRM_ROOT_COMMAND

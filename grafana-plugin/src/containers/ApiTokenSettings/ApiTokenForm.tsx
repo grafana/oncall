@@ -120,7 +120,7 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
       <VerticalGroup>
         <Label>Curl command example</Label>
         <SourceCode noMinHeight showClipboardIconOnly>
-          {getCurlExample(token, store.onCallApiUrl)}
+          {getCurlExample(token, store.pluginStore.apiUrlFromStatus)}
         </SourceCode>
       </VerticalGroup>
     );

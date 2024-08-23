@@ -117,7 +117,7 @@ METRICS_ALL = [
     METRIC_USER_WAS_NOTIFIED_OF_ALERT_GROUPS_NAME,
 ]
 # List of metrics to collect. Collect all available application metrics by default
-METRICS_TO_COLLECT = os.environ.get("METRICS_TO_COLLECT", METRICS_ALL)
+METRICS_TO_COLLECT = getenv_list("METRICS_TO_COLLECT", METRICS_ALL)
 
 
 # Database
@@ -710,6 +710,8 @@ SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate").lstrip("/")
+# it's a root command for unified slack - '/<SLACK_IRM_ROOT_COMMAND> incident new', '/<SLACK_IRM_ROOT_COMMAND> escalate'
+SLACK_IRM_ROOT_COMMAND = os.environ.get("SLACK_IRM_ROOT_COMMAND", "/grafana").lstrip("/")
 
 # Controls if slack integration can be installed/uninstalled.
 SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Field, Input, Switch } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Field, Input, Switch, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 
@@ -10,86 +10,71 @@ import { ApiTokenSettings } from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
-import { withMobXProviderContext } from 'state/withStore';
+import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
-import styles from './MainSettings.module.css';
+export const MainSettings = observer(() => {
+  const styles = useStyles2(getStyles);
+  const {
+    organizationStore: { currentOrganization, saveCurrentOrganization },
+    pluginStore: { apiUrlFromStatus },
+  } = useStore();
 
-const cx = cn.bind(styles);
-
-interface SettingsPageProps extends WithStoreProps {}
-
-interface SettingsPageState {
-  apiUrl?: string;
-}
-
-@observer
-class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
-  state: SettingsPageState = {
-    apiUrl: '',
-  };
-
-  async componentDidMount() {
-    const { store } = this.props;
-    const url = await store.getApiUrlForSettings();
-    this.setState({ apiUrl: url });
-  }
-
-  render() {
-    const { organizationStore } = this.props.store;
-    const { currentOrganization } = organizationStore;
-    const { apiUrl } = this.state;
-
-    return (
-      <div className={cx('root')}>
-        <LegacyNavHeading>
-          <Text.Title level={3} className={cx('title')}>
-            Organization settings
-          </Text.Title>
-        </LegacyNavHeading>
-
-        <div className={cx('settings')}>
-          <Text.Title level={3} className={cx('title')}>
-            Resolution Note
-          </Text.Title>
-          <Field
-            loading={!currentOrganization}
-            label="Require a resolution note when resolving Alert Groups"
-            description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
-          >
-            <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
-              <Switch
-                value={currentOrganization?.is_resolution_note_required}
-                onChange={(event) => {
-                  organizationStore.saveCurrentOrganization({
-                    is_resolution_note_required: event.currentTarget.checked,
-                  });
-                }}
-              />
-            </WithPermissionControlTooltip>
-          </Field>
-        </div>
-        {!isTopNavbar() && (
-          <div style={{ marginBottom: '20px' }}>
-            <Text.Title level={3} className={cx('title')}>
-              Teams and Access Settings
-            </Text.Title>
-            <TeamsSettings />
-          </div>
-        )}
-        <Text.Title level={3} className={cx('title')}>
-          API URL
+  return (
+    <div>
+      <LegacyNavHeading>
+        <Text.Title level={3} className={styles.title}>
+          Organization settings
         </Text.Title>
-        <div>
-          <Field>
-            <Input value={apiUrl} disabled />
-          </Field>
-        </div>
-        <ApiTokenSettings />
-      </div>
-    );
-  }
-}
+      </LegacyNavHeading>
 
-export const MainSettings = withMobXProviderContext(Settings);
+      <div className={styles.settings}>
+        <Text.Title level={3} className={styles.title}>
+          Resolution Note
+        </Text.Title>
+        <Field
+          loading={!currentOrganization}
+          label="Require a resolution note when resolving Alert Groups"
+          description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
+        >
+          <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
+            <Switch
+              value={currentOrganization?.is_resolution_note_required}
+              onChange={(event) => {
+                saveCurrentOrganization({
+                  is_resolution_note_required: event.currentTarget.checked,
+                });
+              }}
+            />
+          </WithPermissionControlTooltip>
+        </Field>
+      </div>
+      {!isTopNavbar() && (
+        <div style={{ marginBottom: '20px' }}>
+          <Text.Title level={3} className={styles.title}>
+            Teams and Access Settings
+          </Text.Title>
+          <TeamsSettings />
+        </div>
+      )}
+      <Text.Title level={3} className={styles.title}>
+        API URL
+      </Text.Title>
+      <div>
+        <Field>
+          <Input value={apiUrlFromStatus} disabled />
+        </Field>
+      </div>
+      <ApiTokenSettings />
+    </div>
+  );
+});
+
+const getStyles = () => ({
+  settings: css`
+    width: fit-content;
+  `,
+  title: css`
+    margin-bottom: 20px;
+  `,
+});

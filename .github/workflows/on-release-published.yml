@@ -13,6 +13,7 @@ jobs:
   snyk-security-scan:
     name: Snyk security scan
     uses: ./.github/workflows/snyk-security-scan.yml
+    secrets: inherit
 
   build-sign-and-publish-plugin-to-gcom:
     name: Build, sign, and publish frontend plugin to grafana.com
