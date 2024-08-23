@@ -39,6 +39,38 @@ def test_restricted_action_error(
     assert not alert.delivered
 
 
+@pytest.mark.django_db
+def test_timeout_error(
+    make_slack_team_identity,
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    SlackAlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
+    slack_team_identity = make_slack_team_identity()
+    organization = make_organization(
+        slack_team_identity=slack_team_identity, general_log_channel_id="DEFAULT_CHANNEL_ID"
+    )
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    alert = make_alert(alert_group, raw_request_data="{}")
+
+    step = SlackAlertShootingStep(slack_team_identity)
+
+    with pytest.raises(TimeoutError):
+        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+            mock_slack_api_call.side_effect = TimeoutError
+            step.process_signal(alert)
+
+    alert_group.refresh_from_db()
+    alert.refresh_from_db()
+    assert alert_group.slack_message is None
+    assert alert_group.slack_message_sent is False
+    assert SlackMessage.objects.count() == 0
+    assert not alert.delivered
+
+
 @patch.object(AlertShootingStep, "_post_alert_group_to_slack")
 @pytest.mark.django_db
 def test_alert_shooting_no_channel_filter(
