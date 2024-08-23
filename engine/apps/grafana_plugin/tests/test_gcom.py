@@ -12,6 +12,7 @@ from apps.grafana_plugin.helpers.gcom import check_gcom_permission
         ("abcdefghijklmnopqrztuvwxyz", True),
         ("abc", False),
         ("", False),
+        ("<no_value>", False),
         (None, False),
         (24, False),
     ],
