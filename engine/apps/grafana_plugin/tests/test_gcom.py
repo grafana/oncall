@@ -5,10 +5,22 @@ import pytest
 from apps.grafana_plugin.helpers.gcom import check_gcom_permission
 
 
+@pytest.mark.parametrize(
+    "api_token, api_token_updated",
+    [
+        ("glsa_abcdefghijklmnopqrztuvwxyz", True),
+        ("abcdefghijklmnopqrztuvwxyz", True),
+        ("abc", False),
+        ("", False),
+        ("<no_value>", False),
+        (None, False),
+        (24, False),
+    ],
+)
 @pytest.mark.django_db
-def test_check_gcom_permission_updates_fields(make_organization):
+def test_check_gcom_permission_updates_fields(make_organization, api_token, api_token_updated):
     gcom_token = "gcom:test_token"
-    fixed_token = "fixed_token"
+    broken_token = "broken_token"
     instance_info = {
         "id": 324534,
         "slug": "testinstance",
@@ -22,10 +34,11 @@ def test_check_gcom_permission_updates_fields(make_organization):
     context = {
         "stack_id": str(instance_info["id"]),
         "org_id": str(instance_info["orgId"]),
-        "grafana_token": fixed_token,
+        "grafana_token": api_token,
     }
 
-    org = make_organization(stack_id=instance_info["id"], org_id=instance_info["orgId"], api_token="broken_token")
+    org = make_organization(stack_id=instance_info["id"], org_id=instance_info["orgId"], api_token=broken_token)
+    last_time_gcom_synced = org.gcom_token_org_last_time_synced
 
     with patch(
         "apps.grafana_plugin.helpers.GcomAPIClient.get_instance_info",
@@ -43,5 +56,6 @@ def test_check_gcom_permission_updates_fields(make_organization):
     assert org.org_title == instance_info["orgName"]
     assert org.region_slug == instance_info["regionSlug"]
     assert org.cluster_slug == instance_info["clusterSlug"]
-    assert org.api_token == fixed_token
+    assert org.api_token == api_token if api_token_updated else broken_token
     assert org.gcom_token == gcom_token
+    assert org.gcom_token_org_last_time_synced != last_time_gcom_synced
