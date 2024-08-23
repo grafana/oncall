@@ -6,26 +6,17 @@ from django.utils import timezone
 
 from apps.auth_token.exceptions import InvalidToken
 from apps.auth_token.models import PluginAuthToken
-from apps.grafana_plugin.helpers import GcomAPIClient
+from apps.grafana_plugin.helpers import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 GCOM_TOKEN_CHECK_PERIOD = timezone.timedelta(minutes=60)
-MIN_GRAFANA_TOKEN_LENGTH = 16
 
 
 class GcomToken:
     def __init__(self, organization):
         self.organization = organization
-
-
-def _validate_grafana_token_format(grafana_token: str) -> bool:
-    if not grafana_token or not isinstance(grafana_token, str):
-        return False
-    if len(grafana_token) < MIN_GRAFANA_TOKEN_LENGTH:
-        return False
-    return True
 
 
 def check_gcom_permission(token_string: str, context) -> GcomToken:
@@ -54,7 +45,7 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
     if not instance_info or str(instance_info["orgId"]) != org_id:
         raise InvalidToken
 
-    grafana_token_format_is_valid = _validate_grafana_token_format(grafana_token)
+    grafana_token_format_is_valid = GrafanaAPIClient.validate_grafana_token_format(grafana_token)
 
     if not organization:
         from apps.base.models import DynamicSetting
