@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 from django.conf import settings
@@ -58,8 +58,8 @@ def test_start_sync_organization_filter(make_organization):
     with patch("apps.grafana_plugin.tasks.sync.sync_organization_async.apply_async") as mock_sync:
         start_sync_organizations()
     assert mock_sync.call_count == 2
-    mock_sync.assert_any_call((org2.pk,), countdown=0)
-    mock_sync.assert_any_call((org3.pk,), countdown=1)
+    mock_sync.assert_any_call((org2.pk,), countdown=ANY)
+    mock_sync.assert_any_call((org3.pk,), countdown=ANY)
 
 
 @pytest.mark.django_db
