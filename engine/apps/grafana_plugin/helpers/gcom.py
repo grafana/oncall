@@ -86,6 +86,7 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
                 "gcom_token",
                 "gcom_token_org_last_time_synced",
                 "cluster_slug",
+                "api_token",
             ]
         )
     logger.debug(f"Finish authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
