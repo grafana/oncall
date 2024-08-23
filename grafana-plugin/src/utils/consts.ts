@@ -71,7 +71,18 @@ export const getProcessEnvVarSafely = (name: string) => {
   }
 };
 
-export const getOnCallApiPath = (subpath = '') => `/api/plugins/${getPluginId()}/resources${subpath}`;
+const getGrafanaSubUrl = () => {
+  try {
+    return window.grafanaBootData.settings.appSubUrl || '';
+  } catch (_err) {
+    return '';
+  }
+};
+
+export const getOnCallApiPath = (subpath = '') => {
+  // We need to consider the grafanaSubUrl in case Grafana is served from subpath, e.g. http://localhost:3000/grafana
+  return `${getGrafanaSubUrl()}/api/plugins/${getPluginId()}/resources${subpath}`;
+};
 
 // Faro
 export const FARO_ENDPOINT_DEV =
