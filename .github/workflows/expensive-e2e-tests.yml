@@ -14,8 +14,7 @@ jobs:
     strategy:
       matrix:
         grafana_version:
-          - 10.1.7
-          - 10.3.3
+          - 11.0.0
       fail-fast: false
       # Run one version at a time to avoid the issue when SMS notification are bundled together for multiple versions
       # running at the same time (the affected test is in grafana-plugin/e2e-tests/alerts/sms.test.ts)
