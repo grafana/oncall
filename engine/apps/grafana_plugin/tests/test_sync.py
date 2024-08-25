@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 from django.conf import settings
@@ -6,7 +6,11 @@ from django.test.utils import override_settings
 from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.grafana_plugin.tasks.sync import cleanup_empty_deleted_integrations, run_organization_sync
+from apps.grafana_plugin.tasks.sync import (
+    cleanup_empty_deleted_integrations,
+    run_organization_sync,
+    start_sync_organizations,
+)
 
 
 class SyncOrganization(object):
@@ -43,6 +47,19 @@ class TestGcomAPIClient:
     def get_instance_info(self, stack_id: str):
         self.called = True
         return self.info
+
+
+@pytest.mark.django_db
+def test_start_sync_organization_filter(make_organization):
+    make_organization(last_time_synced=timezone.now())
+    org2 = make_organization(last_time_synced=None)
+    org3 = make_organization(last_time_synced=timezone.now() - timezone.timedelta(days=30))
+
+    with patch("apps.grafana_plugin.tasks.sync.sync_organization_async.apply_async") as mock_sync:
+        start_sync_organizations()
+    assert mock_sync.call_count == 2
+    mock_sync.assert_any_call((org2.pk,), countdown=ANY)
+    mock_sync.assert_any_call((org3.pk,), countdown=ANY)
 
 
 @pytest.mark.django_db

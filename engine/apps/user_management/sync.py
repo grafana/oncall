@@ -37,6 +37,14 @@ def _sync_organization(organization: Organization) -> None:
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
     gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
 
+    # check organization API token is valid
+    _, check_token_call_status = grafana_api_client.check_token()
+    if not check_token_call_status["connected"]:
+        organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
+        organization.save(update_fields=["api_token_status"])
+        logger.warning(f"Sync not successful org={organization.pk} token_status=FAILED")
+        return
+
     rbac_is_enabled = organization.is_rbac_permissions_enabled
     # Update organization's RBAC status if it's an open-source instance, or it's an active cloud instance.
     # Don't update non-active cloud instances (e.g. paused) as they can return 200 OK but not have RBAC enabled.
