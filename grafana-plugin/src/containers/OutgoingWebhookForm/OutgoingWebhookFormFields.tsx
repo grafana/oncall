@@ -129,7 +129,7 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
               error={errors.trigger_type?.message}
             >
               <Select
-                data-testid='triggerType-selector'
+                data-testid="triggerType-selector"
                 placeholder="Choose (Required)"
                 value={field.value}
                 menuShouldPortal

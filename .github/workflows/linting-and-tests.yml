@@ -243,6 +243,7 @@ jobs:
       matrix:
         grafana_version:
           - 11.1.3
+          - latest
           # TODO: fix issues with running e2e tests against Grafana v10.2.x and latest
           # - 10.2.4
           # - latest
