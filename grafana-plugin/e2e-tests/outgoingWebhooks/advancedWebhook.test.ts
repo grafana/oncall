@@ -1,4 +1,3 @@
-import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { test } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createIntegration } from '../utils/integrations';
