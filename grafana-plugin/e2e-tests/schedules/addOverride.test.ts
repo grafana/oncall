@@ -51,9 +51,13 @@ test('Fills in override time and reacts to timezone change', async ({ adminRoleP
   await expect(overrideEndEl.getByTestId('date-time-picker').getByRole('textbox')).toHaveValue('09:00');
 
   async function changeDatePickerTime(element: Locator, value: string) {
-    await element.getByRole('img').click();
+    await element.getByTestId('date-time-picker').getByRole('textbox').click();
+
     // set minutes to {value}
-    await page.locator('.rc-time-picker-panel').getByRole('button', { name: value }).first().click();
+    await page.getByRole('button', { name: value }).first().click();
+
+    // Old way
+    // await page.locator('.rc-time-picker-panel').getByRole('button', { name: value }).first().click();
     // set seconds to 00
     await page.getByRole('button', { name: '00' }).nth(1).click();
   }
