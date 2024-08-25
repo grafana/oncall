@@ -112,6 +112,7 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
                 placeholder="Choose (Optional)"
                 value={field.value}
                 onChange={field.onChange}
+                dataTestId="team-selector"
               />
             </Field>
           )}
@@ -128,6 +129,7 @@ export const OutgoingWebhookFormFields: React.FC<OutgoingWebhookFormFieldsProps>
               error={errors.trigger_type?.message}
             >
               <Select
+                data-testid='triggerType-selector'
                 placeholder="Choose (Required)"
                 value={field.value}
                 menuShouldPortal
