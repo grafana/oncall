@@ -41,7 +41,7 @@ def sync_organizations_v2(org_ids=None):
             orgs_per_second = math.ceil(len(organization_qs) / SYNC_PERIOD.seconds)
             logger.info(f"Syncing {len(organization_qs)} organizations @ {orgs_per_second} per 1s pause")
             for idx, org in enumerate(organization_qs):
-                if org.api_token:
+                if GrafanaAPIClient.validate_grafana_token_format(org.api_token):
                     client = GrafanaAPIClient(api_url=org.grafana_url, api_token=org.api_token)
                     _, status = client.sync()
                     if status["status_code"] != 200:
@@ -52,6 +52,6 @@ def sync_organizations_v2(org_ids=None):
                         logger.info(f"Sleep 1s after {idx + 1} organizations processed")
                         sleep(1)
                 else:
-                    logger.info(f"Skipping stack_slug={org.stack_slug}, api_token is not set")
+                    logger.info(f"Skipping stack_slug={org.stack_slug}, api_token format is invalid or not set")
         else:
             logger.info(f"Issuing sync requests already in progress lock_id={lock_id}, check slow outgoing requests")
