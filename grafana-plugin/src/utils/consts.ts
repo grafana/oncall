@@ -50,7 +50,6 @@ export const BREAKPOINT_TABS = 1024;
 // Default redirect page
 export const DEFAULT_PAGE = 'alert-groups';
 
-export const PLUGIN_ID = 'grafana-oncall-app';
 export const PLUGIN_ROOT = `/a/${getPluginId()}`;
 export const PLUGIN_CONFIG = `/plugins/${getPluginId()}`;
 
@@ -82,7 +81,7 @@ const getGrafanaSubUrl = () => {
 
 export const getOnCallApiPath = (subpath = '') => {
   // We need to consider the grafanaSubUrl in case Grafana is served from subpath, e.g. http://localhost:3000/grafana
-  return `${getGrafanaSubUrl()}/api/plugins/${PLUGIN_ID}/resources${subpath}`;
+  return `${getGrafanaSubUrl()}/api/plugins/${getPluginId()}/resources${subpath}`;
 };
 
 // Faro
