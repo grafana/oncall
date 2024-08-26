@@ -22,7 +22,8 @@ const createWebhook = async ({ page, webhookName, webhookUrl }) => {
   // Open team dropdown
   await page.getByTestId('team-selector').locator('div').filter({ hasText: 'Choose (Optional)' }).nth(1).click();
   // Set No Team
-  await page.getByTestId('data-testid Select option').getByText('No team').click();
+  await page.getByLabel('Select options menu').getByText('No team').click();
+  // await page.getByTestId('data-testid Select option').getByText('No team').click();
 
   await clickButton({ page, buttonText: 'Create' });
 };

@@ -25,7 +25,8 @@ test('create advanced webhook and check it is displayed on the list correctly', 
   // Open team dropdown
   await page.getByTestId('team-selector').locator('div').filter({ hasText: 'Choose (Optional)' }).nth(1).click();
   // Set No Team
-  await page.getByTestId('data-testid Select option').getByText('No team').click();
+  await page.getByLabel('Select options menu').getByText('No team').click();
+  // await page.getByTestId('data-testid Select option').getByText('No team').click();
 
   // Select trigger type
   await page.getByTestId('triggerType-selector').locator('div').nth(1).click();
