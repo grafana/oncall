@@ -4,18 +4,6 @@ import { goToOnCallPage } from '../utils/navigation';
 import { verifyThatUserCanViewOtherUsers, accessProfileTabs } from '../utils/users';
 
 test.describe('Users screen actions', () => {
-  test("Admin is allowed to edit other users' profile", async ({ adminRolePage: { page } }) => {
-    await goToOnCallPage(page, 'users');
-    const editableUsers = page.getByTestId('users-table').getByRole('button', { name: 'Edit', disabled: false });
-    await editableUsers.first().waitFor();
-    const editableUsersCount = await editableUsers.count();
-    expect(editableUsersCount).toBeGreaterThan(1);
-  });
-
-  test('Admin is allowed to view the list of users', async ({ adminRolePage: { page } }) => {
-    await verifyThatUserCanViewOtherUsers(page);
-  });
-
   test('Viewer is not allowed to view the list of users', async ({ viewerRolePage: { page } }) => {
     await verifyThatUserCanViewOtherUsers(page, false);
   });
@@ -64,6 +52,18 @@ test.describe('Users screen actions', () => {
       .getByRole('button', { name: 'Edit', disabled: true })
       .count();
     expect(usersCountWithDisabledEdit).toBeGreaterThan(1);
+  });
+
+  test("Admin is allowed to edit other users' profile", async ({ adminRolePage: { page } }) => {
+    await goToOnCallPage(page, 'users');
+    const editableUsers = page.getByTestId('users-table').getByRole('button', { name: 'Edit', disabled: false });
+    await editableUsers.first().waitFor();
+    const editableUsersCount = await editableUsers.count();
+    expect(editableUsersCount).toBeGreaterThan(1);
+  });
+
+  test('Admin is allowed to view the list of users', async ({ adminRolePage: { page } }) => {
+    await verifyThatUserCanViewOtherUsers(page);
   });
 
   test('Search updates the table view', async ({ adminRolePage }) => {
