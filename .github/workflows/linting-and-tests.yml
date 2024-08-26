@@ -242,7 +242,7 @@ jobs:
     strategy:
       matrix:
         grafana_version:
-          - 11.1.3
+          - 10.2.5
           - latest
       fail-fast: false
     with:
