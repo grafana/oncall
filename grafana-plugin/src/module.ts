@@ -30,6 +30,7 @@ if (isUseProfileExtensionPointEnabled()) {
     });
   } else {
     // v10
+    // eslint-disable-next-line
     plugin.configureExtensionComponent({
       component: MobileAppConnectionWrapper,
       title: IRM_TAB,
