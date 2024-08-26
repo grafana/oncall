@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -264,14 +265,15 @@ func (a *App) GetAllUsersWithPermissions(settings *OnCallPluginSettings) ([]OnCa
 			return nil, err
 		}
 		for i := range onCallUsers {
-			actions, exists := permissions["1"]
+			userId := strconv.Itoa(onCallUsers[i].ID)
+			actions, exists := permissions[userId]
 			if exists {
 				onCallUsers[i].Permissions = []OnCallPermission{}
 				for action, _ := range actions {
 					onCallUsers[i].Permissions = append(onCallUsers[i].Permissions, OnCallPermission{Action: action})
 				}
 			} else {
-				log.DefaultLogger.Error("Did not find permissions for user", "user", onCallUsers[i].Login)
+				log.DefaultLogger.Error("Did not find permissions for user", "user", onCallUsers[i].Login, "id", userId)
 			}
 		}
 	}

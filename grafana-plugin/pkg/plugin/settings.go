@@ -168,9 +168,9 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 			return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData), unable to fallback to grafana cfg")
 		}
 		settings.GrafanaURL = appUrl
-		log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from grafana cfg app url: %s", settings.GrafanaURL))
+		log.DefaultLogger.Debug(fmt.Sprintf("Using Grafana URL from grafana cfg app url: %s", settings.GrafanaURL))
 	} else {
-		log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
+		log.DefaultLogger.Debug(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 	}
 
 	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
