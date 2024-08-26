@@ -20,12 +20,23 @@ const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPlug
 if (isUseProfileExtensionPointEnabled()) {
   const extensionPointId = PluginExtensionPoints.UserProfileTab;
 
-  plugin.addComponent({
-    title: IRM_TAB,
-    description: 'IRM settings',
-    component: MobileAppConnectionWrapper,
-    targets: [extensionPointId],
-  });
+  if (plugin.addComponent) {
+    // v11
+    plugin.addComponent({
+      title: IRM_TAB,
+      description: 'IRM settings',
+      component: MobileAppConnectionWrapper,
+      targets: [extensionPointId],
+    });
+  } else {
+    // v10
+    plugin.configureExtensionComponent({
+      component: MobileAppConnectionWrapper,
+      title: IRM_TAB,
+      description: 'IRM settings',
+      extensionPointId: extensionPointId,
+    });
+  }
 }
 
 function isUseProfileExtensionPointEnabled(): boolean {
