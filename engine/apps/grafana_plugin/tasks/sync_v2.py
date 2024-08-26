@@ -1,6 +1,4 @@
 import logging
-import math
-from time import sleep
 
 from celery.utils.log import get_task_logger
 from django.utils import timezone
@@ -38,8 +36,7 @@ def sync_organizations_v2(org_ids=None):
                     logger.debug(f"Found {len(active_instance_ids)} active instances")
                     organization_qs = organization_qs.filter(stack_id__in=active_instance_ids)
 
-            orgs_per_second = math.ceil(len(organization_qs) / SYNC_PERIOD.seconds)
-            logger.info(f"Syncing {len(organization_qs)} organizations @ {orgs_per_second} per 1s pause")
+            logger.info(f"Syncing {len(organization_qs)} organizations")
             for idx, org in enumerate(organization_qs):
                 if GrafanaAPIClient.validate_grafana_token_format(org.api_token):
                     client = GrafanaAPIClient(api_url=org.grafana_url, api_token=org.api_token)
@@ -48,9 +45,8 @@ def sync_organizations_v2(org_ids=None):
                         logger.error(
                             f"Failed to request sync stack_slug={org.stack_slug} status_code={status['status_code']} url={status['url']} message={status['message']}"
                         )
-                    if idx % orgs_per_second == 0:
-                        logger.info(f"Sleep 1s after {idx + 1} organizations processed")
-                        sleep(1)
+                    if idx % 1000 == 0:
+                        logger.info(f"{idx + 1} organizations processed")
                 else:
                     logger.info(f"Skipping stack_slug={org.stack_slug}, api_token format is invalid or not set")
         else:
