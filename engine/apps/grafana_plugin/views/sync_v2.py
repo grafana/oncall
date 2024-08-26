@@ -1,5 +1,5 @@
 import logging
-from dataclasses import asdict
+from dataclasses import asdict, is_dataclass
 
 from django.conf import settings
 from rest_framework import status
@@ -49,6 +49,9 @@ class SyncV2View(APIView):
         try:
             self.do_sync(request)
         except SyncException as e:
-            return Response(data=asdict(e.error_data), status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data=asdict(e.error_data) if is_dataclass(e.error_data) else e.error_data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(status=status.HTTP_200_OK)

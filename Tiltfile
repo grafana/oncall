@@ -73,13 +73,6 @@ def load_oncall_helm():
 
 # --- GRAFANA START ----
 
-# Generate and load the grafana deploy yaml
-configmap_create(
-    "grafana-oncall-app-provisioning",
-    namespace="default",
-    from_file="dev/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml",
-)
-
 if not running_under_parent_tiltfile:
     # Load the custom Grafana extensions
     v1alpha1.extension_repo(
@@ -98,6 +91,13 @@ def load_grafana():
     grafana_version = os.getenv("GRAFANA_VERSION", "latest")
 
     if 'plugin' in profiles:
+        # Generate and load the grafana deploy yaml
+        configmap_create(
+            "grafana-oncall-app-provisioning",
+            namespace="default",
+            from_file="dev/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml",
+        )
+
         k8s_resource(
             objects=["grafana-oncall-app-provisioning:configmap"],
             new_name="grafana-oncall-app-provisioning-configmap",
