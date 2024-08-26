@@ -22,3 +22,6 @@ grafana-plugin.yml
 # Jest test report
 jest_html_reporters.html
 jest-html-reporters*
+
+.turbo
+tsconfig.tsbuildinfo
