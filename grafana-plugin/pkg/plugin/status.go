@@ -262,10 +262,4 @@ func (a *App) handleStatus(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
-	go func() {
-		err := a.makeSyncRequest(req.Context(), false)
-		if err != nil {
-			log.DefaultLogger.Error("Error making sync request from status", "error", err)
-		}
-	}()
 }
