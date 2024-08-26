@@ -47,6 +47,7 @@ export const createIntegration = async ({
   await searchIntegrationAndAssertItsPresence({ page, integrationName });
 
   await page.getByRole('link', { name: integrationName }).click();
+  await page.waitForLoadState('networkidle');
 };
 
 export const assignEscalationChainToIntegration = async (page: Page, escalationChainName: string): Promise<void> => {

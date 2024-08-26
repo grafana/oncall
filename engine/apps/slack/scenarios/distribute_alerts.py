@@ -73,7 +73,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                     else alert.group.channel.organization.general_log_channel_id
                 )
                 self._send_first_alert(alert, channel_id)
-            except SlackAPIError:
+            except (SlackAPIError, TimeoutError):
                 AlertGroup.objects.filter(pk=alert.group.pk).update(slack_message_sent=False)
                 raise
 

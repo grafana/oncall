@@ -8,7 +8,7 @@ import { isArray, concat, every, isEmpty, isObject, isPlainObject, flatMap, map,
 
 import { isNetworkError } from 'network/network';
 
-import { CLOUD_VERSION_REGEX, PLUGIN_ID } from './consts';
+import { CLOUD_VERSION_REGEX, getPluginId } from './consts';
 
 export class KeyValuePair<T = string | number> {
   key: T;
@@ -153,7 +153,7 @@ export const isCurrentGrafanaVersionEqualOrGreaterThan = ({
   );
 };
 
-export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[PLUGIN_ID]?.version);
+export const getIsRunningOpenSourceVersion = () => !CLOUD_VERSION_REGEX.test(config.apps[getPluginId()]?.version);
 
 export const getIsExternalServiceAccountFeatureAvailable = () =>
   isCurrentGrafanaVersionEqualOrGreaterThan({ minMajor: 10, minMinor: 3 }) &&
