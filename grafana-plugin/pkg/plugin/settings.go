@@ -132,6 +132,9 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 	}
 
 	settings.PluginID = pluginContext.PluginID
+	if settings.PluginID == "" {
+		return nil, fmt.Errorf("OnCallSettingsFromContext: couldn't get plugin ID from plugin context")
+	}
 
 	version := pluginContext.PluginVersion
 	if version == "" {
