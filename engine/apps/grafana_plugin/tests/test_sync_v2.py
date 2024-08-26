@@ -51,7 +51,8 @@ def test_invalid_auth(make_organization_and_user_with_plugin_token, make_user_au
     "api_token, sync_called",
     [
         ("", False),
-        ("abc", True),
+        ("abc", False),
+        ("glsa_abcdefghijklmnopqrstuvwxyz", True),
     ],
 )
 @pytest.mark.django_db
