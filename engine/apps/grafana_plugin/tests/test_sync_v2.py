@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.grafana_plugin.tasks import sync_organizations_v2
+from apps.grafana_plugin.tasks.sync_v2 import start_sync_organizations_v2
 
 
 @pytest.mark.django_db
@@ -57,19 +57,21 @@ def test_invalid_auth(make_organization_and_user_with_plugin_token, make_user_au
 )
 @pytest.mark.django_db
 def test_skip_org_without_api_token(make_organization, api_token, sync_called):
-    organization = make_organization(api_token=api_token)
+    make_organization(api_token=api_token)
 
     with patch(
-        "apps.grafana_plugin.helpers.GrafanaAPIClient.sync",
-        return_value=(
-            None,
-            {
-                "url": "",
-                "connected": True,
-                "status_code": status.HTTP_200_OK,
-                "message": "",
-            },
-        ),
-    ) as mock_sync:
-        sync_organizations_v2(org_ids=[organization.id])
-        assert mock_sync.called == sync_called
+            "apps.grafana_plugin.helpers.GrafanaAPIClient.sync",
+            return_value=(
+                    None,
+                    {
+                        "url": "",
+                        "connected": True,
+                        "status_code": status.HTTP_200_OK,
+                        "message": "",
+                    },
+            ),
+    ):
+        with patch("apps.grafana_plugin.tasks.sync_v2.sync_organizations_v2.apply_async", return_value=None
+                   ) as mock_sync:
+            start_sync_organizations_v2()
+            assert mock_sync.called == sync_called

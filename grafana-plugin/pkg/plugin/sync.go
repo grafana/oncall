@@ -16,7 +16,23 @@ import (
 
 type OnCallSyncCache struct {
 	syncMutex      sync.Mutex
+	timer          *time.Timer
 	lastOnCallSync *OnCallSync
+}
+
+type SyncCacheAlreadyLocked struct {
+	Message string
+}
+
+func (e *SyncCacheAlreadyLocked) Error() string {
+	return e.Message
+}
+
+func (oc *OnCallSyncCache) UnlockAfterDelay(delay time.Duration) {
+	oc.timer = time.AfterFunc(delay, func() {
+		oc.syncMutex.Unlock()
+		log.DefaultLogger.Info("released OnCallSyncCache lock")
+	})
 }
 
 func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
@@ -53,15 +69,22 @@ func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	} else {
-		go func() {
-			err := a.makeSyncRequest(req.Context(), forceSend)
-			if err != nil {
-				log.DefaultLogger.Error("Error making sync request", "error", err)
-			}
-		}()
+		a.doSync(req.Context(), forceSend)
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) doSync(ctx context.Context, forceSend bool) {
+	go func() {
+		err := a.makeSyncRequest(ctx, forceSend)
+		var cacheAlreadyLocked *SyncCacheAlreadyLocked
+		if errors.As(err, &cacheAlreadyLocked) {
+			log.DefaultLogger.Info("Skipping sync", "message", err)
+		} else {
+			log.DefaultLogger.Error("Error making sync request", "error", err)
+		}
+	}()
 }
 
 func (a *App) compareSyncData(newOnCallSync *OnCallSync) bool {
@@ -81,9 +104,9 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 
 	locked := a.syncMutex.TryLock()
 	if !locked {
-		return errors.New("sync already in progress")
+		return &SyncCacheAlreadyLocked{Message: "sync already in progress, OnCallSyncCache is locked"}
 	}
-	defer a.syncMutex.Unlock()
+	defer a.UnlockAfterDelay(5 * 60 * time.Second)
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
 	if err != nil {

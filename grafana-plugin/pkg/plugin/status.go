@@ -262,4 +262,5 @@ func (a *App) handleStatus(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
+	a.doSync(req.Context(), false)
 }
