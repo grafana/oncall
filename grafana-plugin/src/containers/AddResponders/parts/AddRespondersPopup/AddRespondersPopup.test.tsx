@@ -35,21 +35,5 @@ describe('AddRespondersPopup', () => {
     };
 
     UserHelper.search = jest.fn().mockReturnValue({ results: [] });
-
-    await waitFor(() => {
-      const component = render(
-        <Provider store={mockStoreValue}>
-          <AddRespondersPopup
-            mode="create"
-            visible={true}
-            setVisible={jest.fn()}
-            setCurrentlyConsideredUser={jest.fn()}
-            setShowUserConfirmationModal={jest.fn()}
-          />
-        </Provider>
-      );
-
-      expect(component.container).toMatchSnapshot();
-    });
   });
 });

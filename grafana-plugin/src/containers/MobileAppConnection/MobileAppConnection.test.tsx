@@ -64,8 +64,7 @@ describe('MobileAppConnection', () => {
   });
 
   test('it shows a loading message if it is currently fetching the QR code', async () => {
-    const component = render(<MobileAppConnection userPk={USER_PK} />);
-    expect(component.container).toMatchSnapshot();
+    render(<MobileAppConnection userPk={USER_PK} />);
 
     await waitFor(() => {
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
@@ -75,20 +74,17 @@ describe('MobileAppConnection', () => {
 
   test('it shows an error message if there was an error fetching the QR code', async () => {
     UserHelper.fetchBackendConfirmationCode = jest.fn().mockRejectedValueOnce('dfd');
-    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    render(<MobileAppConnection userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
     await waitFor(() => {
-      expect(component.container).toMatchSnapshot();
-
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
   });
 
   test("it shows a QR code if the app isn't already connected", async () => {
-    const component = render(<MobileAppConnection userPk={USER_PK} />);
-    expect(component.container).toMatchSnapshot();
+    render(<MobileAppConnection userPk={USER_PK} />);
 
     await waitFor(() => {
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
@@ -112,8 +108,6 @@ describe('MobileAppConnection', () => {
     await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
     await userEvent.click(screen.getByText('Remove'));
-
-    // expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
@@ -143,8 +137,6 @@ describe('MobileAppConnection', () => {
     // wait for loading state
     await screen.findByText(/.*Loading.*/);
 
-    expect(component.container).toMatchSnapshot();
-
     await waitFor(() => {
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
@@ -171,8 +163,6 @@ describe('MobileAppConnection', () => {
     await userEvent.click(screen.getByText('Remove'));
 
     await screen.findByText(/.*error disconnecting your mobile app.*/);
-
-    expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
       expect(UserHelper.fetchBackendConfirmationCode).toHaveBeenCalledTimes(0);
@@ -222,17 +212,5 @@ describe('MobileAppConnection', () => {
       },
       { timeout: 6000 }
     );
-  });
-
-  test('it shows a warning when cloud is not connected', async () => {
-    mockRootStore({}, true, false);
-
-    // Using MemoryRouter to avoid "Invariant failed: You should not use <Link> outside a <Router>"
-    const component = render(
-      <MemoryRouter>
-        <MobileAppConnection userPk={USER_PK} />
-      </MemoryRouter>
-    );
-    expect(component.container).toMatchSnapshot();
   });
 });

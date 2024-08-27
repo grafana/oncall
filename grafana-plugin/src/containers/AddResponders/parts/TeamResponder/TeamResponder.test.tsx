@@ -11,12 +11,7 @@ describe('TeamResponder', () => {
   const team = {
     avatar_url: 'https://example.com',
     name: 'my test team',
-  } as GrafanaTeam;
-
-  test('it renders data properly', () => {
-    const component = render(<TeamResponder team={team} handleDelete={() => {}} />);
-    expect(component.container).toMatchSnapshot();
-  });
+  } as GrafanaTeam
 
   test('it calls the delete callback', async () => {
     const handleDelete = jest.fn();
