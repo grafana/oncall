@@ -83,6 +83,7 @@ class LiveSetting(models.Model):
         "MATTERMOST_CLIENT_OAUTH_ID",
         "MATTERMOST_CLIENT_OAUTH_SECRET",
         "MATTERMOST_HOST",
+        "MATTERMOST_BOT_TOKEN",
     )
 
     DESCRIPTIONS = {
@@ -205,6 +206,11 @@ class LiveSetting(models.Model):
             "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
             "' target='_blank'>instruction</a> for details how to set up Mattermost. "
         ),
+        "MATTERMOST_BOT_TOKEN": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
     }
 
     SECRET_SETTING_NAMES = (
@@ -225,6 +231,7 @@ class LiveSetting(models.Model):
         "EXOTEL_API_TOKEN",
         "MATTERMOST_CLIENT_OAUTH_ID",
         "MATTERMOST_CLIENT_OAUTH_SECRET",
+        "MATTERMOST_BOT_TOKEN",
     )
 
     def __str__(self):
