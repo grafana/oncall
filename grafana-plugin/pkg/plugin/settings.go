@@ -46,6 +46,7 @@ type OnCallPluginSettings struct {
 	StackID                       int    `json:"stack_id"`
 	OrgID                         int    `json:"org_id"`
 	License                       string `json:"license"`
+	PluginID                      string `json:"plugin_id"`
 	GrafanaURL                    string `json:"grafana_url"`
 	GrafanaToken                  string `json:"grafana_token"`
 	RBACEnabled                   bool   `json:"rbac_enabled"`
@@ -69,6 +70,9 @@ func (a *OnCallPluginSettings) Equal(b *OnCallPluginSettings) bool {
 		return false
 	}
 	if a.License != b.License {
+		return false
+	}
+	if a.PluginID != b.PluginID {
 		return false
 	}
 	if a.GrafanaURL != b.GrafanaURL {
@@ -127,6 +131,11 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		GrafanaURL:   pluginSettingsJson.GrafanaURL,
 	}
 
+	settings.PluginID = pluginContext.PluginID
+	if settings.PluginID == "" {
+		return nil, fmt.Errorf("OnCallSettingsFromContext: couldn't get plugin ID from plugin context")
+	}
+
 	version := pluginContext.PluginVersion
 	if version == "" {
 		// older Grafana versions do not have the plugin version in the context
@@ -159,9 +168,9 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 			return &settings, fmt.Errorf("get GrafanaURL from provisioning failed (not set in jsonData), unable to fallback to grafana cfg")
 		}
 		settings.GrafanaURL = appUrl
-		log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from grafana cfg app url: %s", settings.GrafanaURL))
+		log.DefaultLogger.Debug(fmt.Sprintf("Using Grafana URL from grafana cfg app url: %s", settings.GrafanaURL))
 	} else {
-		log.DefaultLogger.Info(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
+		log.DefaultLogger.Debug(fmt.Sprintf("Using Grafana URL from provisioning: %s", settings.GrafanaURL))
 	}
 
 	settings.RBACEnabled = cfg.FeatureToggles().IsEnabled("accessControlOnCall")
@@ -286,7 +295,7 @@ func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
 		return fmt.Errorf("Marshal OnCall settings JSON: %w", err)
 	}
 
-	settingsUrl, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/plugins/grafana-oncall-app/settings"))
+	settingsUrl, err := url.JoinPath(settings.GrafanaURL, fmt.Sprintf("api/plugins/%s/settings", settings.PluginID))
 	if err != nil {
 		return err
 	}

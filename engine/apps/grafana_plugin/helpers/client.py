@@ -166,6 +166,8 @@ class GrafanaAPIClient(APIClient):
 
     USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
 
+    MIN_GRAFANA_TOKEN_LENGTH = 16
+
     class Types:
         class _BaseGrafanaAPIResponse(typing.TypedDict):
             totalCount: int
@@ -329,6 +331,14 @@ class GrafanaAPIClient(APIClient):
 
     def sync(self) -> APIClientResponse:
         return self.api_post("api/plugins/grafana-oncall-app/resources/plugin/sync")
+
+    @staticmethod
+    def validate_grafana_token_format(grafana_token: str) -> bool:
+        if not grafana_token or not isinstance(grafana_token, str):
+            return False
+        if len(grafana_token) < GrafanaAPIClient.MIN_GRAFANA_TOKEN_LENGTH:
+            return False
+        return True
 
 
 class GcomAPIClient(APIClient):

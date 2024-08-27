@@ -47,7 +47,7 @@ func (a *App) GetPermissions(settings *OnCallPluginSettings, onCallUser *OnCallU
 	if res.StatusCode == 200 {
 		var filtered []OnCallPermission
 		for _, permission := range permissions {
-			if strings.HasPrefix(permission.Action, "grafana-oncall-app") {
+			if strings.HasPrefix(permission.Action, settings.PluginID) {
 				filtered = append(filtered, permission)
 			}
 		}
@@ -65,7 +65,7 @@ func (a *App) GetAllPermissions(settings *OnCallPluginSettings) (map[string]map[
 
 	reqURL.Path += "api/access-control/users/permissions/search"
 	q := reqURL.Query()
-	q.Set("actionPrefix", "grafana-oncall-app")
+	q.Set("actionPrefix", settings.PluginID)
 	reqURL.RawQuery = q.Encode()
 
 	req, err := http.NewRequest("GET", reqURL.String(), nil)
