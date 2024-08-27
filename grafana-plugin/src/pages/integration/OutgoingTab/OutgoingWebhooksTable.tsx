@@ -1,6 +1,6 @@
 import React, { FC, ReactElement, useEffect } from 'react';
 
-import { IconButton, HorizontalGroup, Icon, ConfirmModal, useStyles2 } from '@grafana/ui';
+import { IconButton, Icon, ConfirmModal, useStyles2, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -13,6 +13,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { useConfirmModal } from 'utils/hooks';
 import { openNotification } from 'utils/utils';
 
@@ -142,10 +143,10 @@ const OutgoingWebhookContextMenu = observer(
                   onCopy={() => openNotification('Webhook ID has been copied')}
                 >
                   <div>
-                    <HorizontalGroup type="primary" spacing="xs">
+                    <Stack gap={StackSize.xs}>
                       <Icon name="clipboard-alt" />
                       <Text type="primary">UID: {webhook.id}</Text>
-                    </HorizontalGroup>
+                    </Stack>
                   </div>
                 </CopyToClipboard>
               ),
@@ -163,10 +164,10 @@ const OutgoingWebhookContextMenu = observer(
               },
               requiredPermission: UserActions.OutgoingWebhooksWrite,
               label: (
-                <HorizontalGroup spacing="xs">
+                <Stack gap={StackSize.xs}>
                   <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
                   <Text type="danger">Delete webhook</Text>
-                </HorizontalGroup>
+                </Stack>
               ),
             },
           ]}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
@@ -9,6 +9,7 @@ import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import { TemplatePreview, TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -43,13 +44,13 @@ export const TemplateResult = (props: ResultProps) => {
   return (
     <div className={cx('template-block-result')}>
       <div className={cx('template-block-title')}>
-        <HorizontalGroup justify="space-between">
+        <Stack justifyContent="space-between">
           <Text>Result</Text>
-        </HorizontalGroup>
+        </Stack>
       </div>
       <div className={cx('result')}>
         {payload || error ? (
-          <VerticalGroup spacing="lg">
+          <Stack direction="column" gap={StackSize.lg}>
             {error ? (
               <Block bordered fullWidth withBackground>
                 <Text>{error}</Text>
@@ -75,18 +76,18 @@ export const TemplateResult = (props: ResultProps) => {
             )}
 
             {template?.additionalData?.chatOpsName && isAlertGroupExisting && (
-              <VerticalGroup>
+              <Stack direction="column">
                 <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
-                  <HorizontalGroup spacing="xs" align="center">
+                  <Stack gap={StackSize.xs} alignItems="center">
                     Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
                     <Icon name="external-link-alt" />
-                  </HorizontalGroup>
+                  </Stack>
                 </Button>
 
                 {template.additionalData.data && <Text type="secondary">{template.additionalData.data}</Text>}
-              </VerticalGroup>
+              </Stack>
             )}
-          </VerticalGroup>
+          </Stack>
         ) : (
           <div>
             <Block bordered fullWidth className={cx('block-style')} withBackground>

@@ -1,18 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  Alert,
-  Button,
-  Field,
-  HorizontalGroup,
-  Icon,
-  IconButton,
-  InlineSwitch,
-  Select,
-  Switch,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Alert, Button, Field, Icon, IconButton, InlineSwitch, Select, Switch, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -63,7 +51,7 @@ import {
   toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT, StackSize } from 'utils/consts';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
@@ -552,14 +540,14 @@ export const RotationForm = observer((props: RotationFormProps) => {
       >
         <div className={cx('root')} data-testid="rotation-form">
           <div>
-            <HorizontalGroup justify="space-between">
-              <HorizontalGroup spacing="sm">
+            <Stack justifyContent="space-between">
+              <Stack gap={StackSize.sm}>
                 {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
                 <Text.Title editModalTitle="Rotation name" onTextChange={handleRotationNameChange} level={5} editable>
                   {rotationName}
                 </Text.Title>
-              </HorizontalGroup>
-              <HorizontalGroup>
+              </Stack>
+              <Stack>
                 {shiftId !== 'new' && (
                   <IconButton
                     variant="secondary"
@@ -575,16 +563,16 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   tooltip={shiftId === 'new' ? 'Cancel' : 'Close'}
                   onClick={onHide}
                 />
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </Stack>
+            </Stack>
           </div>
           <div className={cx('container')}>
             <div className={cx('content')}>
-              <VerticalGroup spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {hasUpdatedShift && (
                   <Block bordered className={cx('updated-shift-info')}>
-                    <VerticalGroup>
-                      <HorizontalGroup align="flex-start">
+                    <Stack direction="column">
+                      <Stack alignItems="flex-start">
                         <Icon name="info-circle" size="md"></Icon>
                         <Text>
                           This rotation is read-only because it has newer version.{' '}
@@ -593,15 +581,15 @@ export const RotationForm = observer((props: RotationFormProps) => {
                           </Text>{' '}
                           instead
                         </Text>
-                      </HorizontalGroup>
-                    </VerticalGroup>
+                      </Stack>
+                    </Stack>
                   </Block>
                 )}
                 {!hasUpdatedShift && ended && (
                   <div className={cx('updated-shift-info')}>
-                    <VerticalGroup>
+                    <Stack direction="column">
                       <Alert severity="info" title={(<Text>This rotation is over</Text>) as unknown as string} />
-                    </VerticalGroup>
+                    </Stack>
                   </div>
                 )}
                 <div className={cx('two-fields')}>
@@ -623,7 +611,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   </Field>
                   <Field
                     label={
-                      <HorizontalGroup spacing="xs">
+                      <Stack gap={StackSize.xs}>
                         <Text type="primary" size="small">
                           Ends
                         </Text>
@@ -634,7 +622,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                           onChange={handleChangeEndless}
                           disabled={disabled}
                         />
-                      </HorizontalGroup>
+                      </Stack>
                     }
                     data-testid="rotation-end"
                   >
@@ -658,14 +646,14 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     invalid={Boolean(errors.interval)}
                     error={'Invalid recurrence period'}
                     label={
-                      <HorizontalGroup spacing="sm">
+                      <Stack gap={StackSize.sm}>
                         <Text type="primary" size="small">
                           Recurrence period
                         </Text>
                         <Tooltip content="Time interval when users shifts are rotated. Shifts active period can be customised by days of the week and hours during a day.">
                           <Icon name="info-circle" size="md"></Icon>
                         </Tooltip>
-                      </HorizontalGroup>
+                      </Stack>
                     }
                   >
                     <Select
@@ -687,11 +675,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     />
                   </Field>
                 </div>
-                <VerticalGroup spacing="md">
-                  <VerticalGroup>
-                    <HorizontalGroup align="flex-start">
+                <Stack direction="column" gap={StackSize.md}>
+                  <Stack direction="column">
+                    <Stack alignItems="flex-start">
                       <Switch disabled={disabled} value={isMaskedByWeekdays} onChange={onMaskedByWeekdaysSwitch} />
-                      <VerticalGroup>
+                      <Stack direction="column">
                         <Text type="secondary">Mask by weekdays</Text>
                         {isMaskedByWeekdays && (
                           <DaysSelector
@@ -702,16 +690,16 @@ export const RotationForm = observer((props: RotationFormProps) => {
                             disabled={disabled}
                           />
                         )}
-                      </VerticalGroup>
-                    </HorizontalGroup>
+                      </Stack>
+                    </Stack>
 
-                    <HorizontalGroup align="flex-start">
+                    <Stack alignItems="flex-start">
                       <Switch
                         disabled={isSelectedPartOfDayDisabled()}
                         value={isLimitShiftEnabled}
                         onChange={onLimitShiftSwitch}
                       />
-                      <VerticalGroup>
+                      <Stack direction="column">
                         <Text type="secondary">Limit each shift length</Text>
                         {isLimitShiftEnabled && (
                           <ShiftPeriod
@@ -736,17 +724,17 @@ export const RotationForm = observer((props: RotationFormProps) => {
                             will repeat every day
                           </Text>
                         )}
-                      </VerticalGroup>
-                    </HorizontalGroup>
-                  </VerticalGroup>
-                </VerticalGroup>
+                      </Stack>
+                    </Stack>
+                  </Stack>
+                </Stack>
                 <div style={{ marginTop: '16px' }}>
-                  <HorizontalGroup>
+                  <Stack>
                     <Text size="small">Users</Text>
                     <Tooltip content="By default each new user creates new rotation group. You can customise groups by dragging.">
                       <Icon name="info-circle" size="md" />
                     </Tooltip>
-                  </HorizontalGroup>
+                  </Stack>
                 </div>
                 <UserGroups
                   disabled={disabled}
@@ -763,15 +751,15 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   )}
                   showError={Boolean(errors.rolling_users)}
                 />
-              </VerticalGroup>
+              </Stack>
             </div>
           </div>
           <div>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent="space-between">
               <Text type="secondary">
                 Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
               </Text>
-              <HorizontalGroup>
+              <Stack>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">
                     <Button disabled={disabled} variant="secondary" onClick={updateAsNew}>
@@ -790,8 +778,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     </Button>
                   </Tooltip>
                 )}
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </Stack>
+            </Stack>
           </div>
         </div>
       </Modal>
@@ -929,9 +917,9 @@ const ShiftPeriod = ({
   }, [unitToCreate]);
 
   return (
-    <VerticalGroup>
+    <Stack direction="column">
       {timeUnits.map((unit, index: number, arr) => (
-        <HorizontalGroup key={unit.unit}>
+        <Stack key={unit.unit}>
           <TimeUnitSelector
             disabled={disabled}
             unit={unit.unit}
@@ -960,7 +948,7 @@ const ShiftPeriod = ({
               onClick={handleTimeUnitAdd}
             />
           )}
-        </HorizontalGroup>
+        </Stack>
       ))}
       {timeUnits.length === 0 && unitToCreate !== undefined && (
         <Button disabled={disabled} variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd}>
@@ -969,6 +957,6 @@ const ShiftPeriod = ({
       )}
       <Text type="secondary">({duration || '0m'})</Text>
       {errors.shift_end && <Text type="danger">Shift length must be greater than zero</Text>}
-    </VerticalGroup>
+    </Stack>
   );
 };

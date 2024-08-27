@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { DateTime, dateTime } from '@grafana/data';
-import { DatePickerWithInput, TimeOfDayPicker, useStyles2, VerticalGroup } from '@grafana/ui';
+import { DatePickerWithInput, TimeOfDayPicker, useStyles2, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -61,7 +61,7 @@ export const DateTimePicker = observer(
     };
 
     return (
-      <VerticalGroup>
+      <Stack direction="column">
         <div className={styles.wrapper}>
           <div
             onFocus={onFocus}
@@ -87,7 +87,7 @@ export const DateTimePicker = observer(
           </div>
         </div>
         {error && <Text type="danger">{error}</Text>}
-      </VerticalGroup>
+      </Stack>
     );
   }
 );

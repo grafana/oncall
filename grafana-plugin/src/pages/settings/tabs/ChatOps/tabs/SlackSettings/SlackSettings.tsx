@@ -1,17 +1,6 @@
 import React, { Component } from 'react';
 
-import {
-  Alert,
-  HorizontalGroup,
-  LoadingPlaceholder,
-  Icon,
-  Button,
-  InlineField,
-  Input,
-  Legend,
-  ConfirmModal,
-  Stack,
-} from '@grafana/ui';
+import { Alert, LoadingPlaceholder, Icon, Button, InlineField, Input, Legend, ConfirmModal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -31,7 +20,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId } from 'utils/consts';
+import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
 import { useConfirmModal } from 'utils/hooks';
 import { showApiError } from 'utils/utils';
 
@@ -222,7 +211,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
           label="Timeout for acknowledged alerts"
           tooltip="Slack app will send reminders into alert group slack thread and unacknowledge alert group if no confirmation is received."
         >
-          <HorizontalGroup spacing="xs">
+          <Stack gap={StackSize.xs}>
             <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
               <RemoteSelect
                 showSearch={false}
@@ -240,7 +229,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
                 onChange={this.getSlackSettingsChangeHandler('unacknowledge_timeout')}
               />
             </WithPermissionControlTooltip>
-          </HorizontalGroup>
+          </Stack>
         </InlineField>
         {isUnifiedSlackInstalled && (
           <div className={styles.linkToIncidentWrapper}>

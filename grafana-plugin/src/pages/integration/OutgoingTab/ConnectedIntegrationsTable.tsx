@@ -1,16 +1,6 @@
 import React, { FC } from 'react';
 
-import {
-  HorizontalGroup,
-  Tooltip,
-  Icon,
-  useStyles2,
-  IconButton,
-  Switch,
-  Checkbox,
-  ConfirmModal,
-  useTheme2,
-} from '@grafana/ui';
+import { Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox, ConfirmModal, useTheme2, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
@@ -81,7 +71,7 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
         ? [
             {
               title: (
-                <HorizontalGroup>
+                <Stack>
                   <Text type="secondary">Backsync</Text>
                   {tokenExists ? (
                     <Tooltip
@@ -99,7 +89,7 @@ const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer
                       <Icon name={'info-circle'} color={colors.error.shade} />
                     </Tooltip>
                   )}
-                </HorizontalGroup>
+                </Stack>
               ),
               render: (connectedIntegration: ConnectedIntegration) => (
                 <BacksyncSwitcher
@@ -158,7 +148,7 @@ const ActionsColumn = ({
   return (
     <>
       <ConfirmModal {...modalProps} />
-      <HorizontalGroup>
+      <Stack>
         <a href={`${PLUGIN_ROOT}/integrations/${connectedIntegration.id}`} target="_blank" rel="noreferrer">
           <IconButton aria-label="Open integration in new tab" name="external-link-alt" />
         </a>
@@ -180,7 +170,7 @@ const ActionsColumn = ({
             }
           />
         )}
-      </HorizontalGroup>
+      </Stack>
     </>
   );
 };

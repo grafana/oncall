@@ -14,14 +14,14 @@ import {
   SceneAppPage,
   useSceneApp,
 } from '@grafana/scenes';
-import { Alert, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Alert, LoadingPlaceholder, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT, PLUGIN_ROOT } from 'utils/consts';
+import { DOCS_ROOT, PLUGIN_ROOT, StackSize } from 'utils/consts';
 
 import { useAlertCreationChecker } from './Insights.hooks';
 import styles from './Insights.module.scss';
@@ -109,13 +109,13 @@ const NoAlertCreatedTutorial = () => {
       <Tutorial
         step={TutorialStep.Integrations}
         title={
-          <VerticalGroup align="center" spacing="lg">
+          <Stack direction="column" alignItems="center" gap={StackSize.lg}>
             <Text type="secondary">
               Your OnCall stack doesn’t have any alerts to visualise insights.
               <br />
               Make sure that you setup OnCall configuration to start monitoring.
             </Text>
-          </VerticalGroup>
+          </Stack>
         }
       />
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent } from 'react';
 
-import { Drawer, VerticalGroup, HorizontalGroup, Input, Tag, EmptySearchResult } from '@grafana/ui';
+import { Drawer, Stack, Input, Tag, EmptySearchResult } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -9,6 +9,7 @@ import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 import { IntegrationForm } from './IntegrationForm';
 import styles from './IntegrationFormContainer.module.scss';
@@ -59,7 +60,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
       {showIntegrationsListDrawer && (
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
-            <VerticalGroup>
+            <Stack direction="column">
               <Text type="secondary">
                 Integration receives alerts on an unique API URL, interprets them using set of templates tailored for
                 monitoring system and starts escalations.
@@ -75,14 +76,14 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
               </div>
 
               <IntegrationBlocks options={options} onBlockClick={onBlockClick} />
-            </VerticalGroup>
+            </Stack>
           </div>
         </Drawer>
       )}
       {(showNewIntegrationForm || !showIntegrationsListDrawer) && (
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
-            <VerticalGroup>
+            <Stack direction="column">
               <IntegrationForm
                 id={id}
                 onBackClick={onBackClick}
@@ -91,7 +92,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
                 onSubmit={onSubmit}
                 onHide={onHide}
               />
-            </VerticalGroup>
+            </Stack>
           </div>
         </Drawer>
       )}
@@ -139,19 +140,19 @@ const IntegrationBlocks: React.FC<{
                 <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
               </div>
               <div className={cx('title')}>
-                <VerticalGroup spacing={alertReceiveChannelChoice.featured ? 'xs' : 'none'}>
-                  <HorizontalGroup>
+                <Stack direction="column" gap={alertReceiveChannelChoice.featured ? StackSize.xs : StackSize.none}>
+                  <Stack>
                     <Text strong data-testid="integration-display-name">
                       {alertReceiveChannelChoice.display_name}
                     </Text>
                     {alertReceiveChannelChoice.featured && alertReceiveChannelChoice.featured_tag_name && (
                       <Tag name={alertReceiveChannelChoice.featured_tag_name} colorIndex={5} />
                     )}
-                  </HorizontalGroup>
+                  </Stack>
                   <Text type="secondary" size="small">
                     {alertReceiveChannelChoice.short_description}
                   </Text>
-                </VerticalGroup>
+                </Stack>
               </div>
             </Block>
           );

@@ -270,6 +270,7 @@ export class ScheduleStore extends BaseStore {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
     });
+
     await this.rootStore.scheduleStore.refreshEvents(scheduleId);
     await this.getScoreQuality(scheduleId);
 

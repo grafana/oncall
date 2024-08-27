@@ -1,6 +1,6 @@
 import React, { HTMLAttributes, useEffect, useState } from 'react';
 
-import { Button, Icon, VerticalGroup, Field, Input } from '@grafana/ui';
+import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -14,7 +14,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
+import { DOCS_TELEGRAM_SETUP, StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import styles from './TelegramInfo.module.css';
@@ -43,7 +43,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
   return (
     <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
-        <VerticalGroup>
+        <Stack direction="column">
           <Text.Title level={5}>Manual connection</Text.Title>
 
           <Text type="secondary">
@@ -73,12 +73,12 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
             />
           </Field>
           <Text type="secondary">3. Refresh the page and start to manage alerts in your personal Telegram.</Text>
-        </VerticalGroup>
+        </Stack>
       ) : (
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock', 'u-width-100')}>
-            <VerticalGroup align="center" spacing="lg">
+            <Stack direction="column" alignItems="center" gap={StackSize.lg}>
               <TelegramColorIcon />
               <Text>You can manage alert groups in your team Telegram channel or from personal direct messages. </Text>
 
@@ -91,14 +91,14 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
-            </VerticalGroup>
+            </Stack>
           </Block>
           {store.hasFeature(AppFeature.LiveSettings) && (
             <PluginLink query={{ page: 'live-settings' }}>
               <Button variant="primary">Setup ENV Variables</Button>
             </PluginLink>
           )}
-        </VerticalGroup>
+        </Stack>
       )}
     </WithPermissionControlDisplay>
   );

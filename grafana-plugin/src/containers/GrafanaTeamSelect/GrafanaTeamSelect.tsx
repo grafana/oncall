@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, Label, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, Label, Modal, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -77,7 +77,7 @@ export const GrafanaTeamSelect = observer(
 
     return (
       <Modal onDismiss={onHide} closeOnEscape isOpen title="Select team" className={cx('root')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Label>
             <span className={cx('teamSelectText')}>
               Select team{''}
@@ -92,12 +92,12 @@ export const GrafanaTeamSelect = observer(
               Edit teams
             </a>
           </WithPermissionControlTooltip>
-          <HorizontalGroup justify="flex-end">
+          <Stack justifyContent="flex-end">
             <Button variant="primary" onClick={handleConfirm}>
               Ok
             </Button>
-          </HorizontalGroup>
-        </VerticalGroup>
+          </Stack>
+        </Stack>
       </Modal>
     );
   }

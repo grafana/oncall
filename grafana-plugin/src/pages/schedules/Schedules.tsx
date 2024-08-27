@@ -2,7 +2,7 @@ import React, { SyntheticEvent } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup, withTheme2 } from '@grafana/ui';
+import { Button, IconButton, LoadingPlaceholder, Stack, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { getUtilStyles } from 'styles/utils.styles';
@@ -29,7 +29,7 @@ import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, StackSize, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getSchedulesStyles } from './Schedules.styles';
@@ -78,20 +78,20 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
       <>
         <div>
           <div className={styles.title}>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent="space-between">
               <Text.Title level={3}>Schedules</Text.Title>
               <div className={styles.schedulesActions}>
-                <HorizontalGroup>
+                <Stack>
                   <Text type="secondary">View in timezone:</Text>
                   <UserTimezoneSelect onChange={this.refreshExpandedSchedules} />
-                </HorizontalGroup>
+                </Stack>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
                   </Button>
                 </WithPermissionControlTooltip>
               </div>
-            </HorizontalGroup>
+            </Stack>
           </div>
           <div className={cx(styles.schedule, styles.schedulePersonal)}>
             <SchedulePersonal userPk={store.userStore.currentUserPk} />
@@ -229,7 +229,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
     const relatedEscalationChains = scheduleStore.relatedEscalationChains[item.id];
     return (
-      <HorizontalGroup>
+      <Stack>
         {item.number_of_escalation_chains > 0 && (
           <TooltipBadge
             borderType="success"
@@ -237,7 +237,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             text={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
             tooltipContent={
-              <VerticalGroup spacing="sm">
+              <Stack direction="column" gap={StackSize.sm}>
                 {relatedEscalationChains ? (
                   relatedEscalationChains.length ? (
                     relatedEscalationChains.map((escalationChain) => (
@@ -253,7 +253,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
                 ) : (
                   <LoadingPlaceholder text="Loading related escalation chains..." />
                 )}
-              </VerticalGroup>
+              </Stack>
             }
             onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
           />
@@ -266,17 +266,17 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
             text={item.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
-              <VerticalGroup spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {item.warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
                     {warning}
                   </Text>
                 ))}
-              </VerticalGroup>
+              </Stack>
             }
           />
         )}
-      </HorizontalGroup>
+      </Stack>
     );
   };
 
@@ -293,22 +293,22 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     if (item.on_call_now?.length > 0) {
       return (
         <div className="table__email-column">
-          <VerticalGroup>
+          <Stack direction="column">
             {item.on_call_now.map((user) => {
               return (
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
-                  <HorizontalGroup>
+                  <Stack>
                     <TextEllipsisTooltip placement="top" content={user.username}>
                       <Text type="secondary" className={cx(TEXT_ELLIPSIS_CLASS)}>
                         <Avatar size="small" src={user.avatar} />{' '}
                         <span className={cx(utilsStyles.wordBreakAll)}>{user.username}</span>
                       </Text>
                     </TextEllipsisTooltip>
-                  </HorizontalGroup>
+                  </Stack>
                 </PluginLink>
               );
             })}
-          </VerticalGroup>
+          </Stack>
         </div>
       );
     }
@@ -331,7 +331,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
     return (
       /* Wrapper div for onClick event to prevent expanding schedule view on delete/edit click */
       <div onClick={(event: SyntheticEvent) => event.stopPropagation()}>
-        <HorizontalGroup>
+        <Stack>
           <WithPermissionControlTooltip key="edit" userAction={UserActions.SchedulesWrite}>
             <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
           </WithPermissionControlTooltip>
@@ -340,7 +340,7 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
               <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
             </WithConfirm>
           </WithPermissionControlTooltip>
-        </HorizontalGroup>
+        </Stack>
       </div>
     );
   };

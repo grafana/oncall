@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
 
 import { cx } from '@emotion/css';
-import { VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Stack, useStyles2 } from '@grafana/ui';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 
 import { getCardButtonStyles } from './CardButton.styles';
 
@@ -30,10 +31,10 @@ export const CardButton: FC<CardButtonProps> = (props) => {
     >
       <div className={styles.icon}>{icon}</div>
       <div className={styles.meta}>
-        <VerticalGroup spacing="xs">
+        <Stack gap={StackSize.xs}>
           <Text type="secondary">{description}</Text>
           <Text.Title level={1}>{title}</Text.Title>
-        </VerticalGroup>
+        </Stack>
       </div>
     </Block>
   );

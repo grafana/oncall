@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, useTheme2 } from '@grafana/ui';
+import { IconButton, Stack, Field, Button, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -16,6 +16,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
@@ -219,15 +220,15 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         </Draggable>
       )}
     >
-      <VerticalGroup>
-        <HorizontalGroup justify="space-between">
-          <HorizontalGroup spacing="sm">
+      <Stack direction="column">
+        <Stack justifyContent="space-between">
+          <Stack gap={StackSize.sm}>
             {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
             <Text.Title onTextChange={handleRotationNameChange} level={5} editable>
               {rotationName}
             </Text.Title>
-          </HorizontalGroup>
-          <HorizontalGroup>
+          </Stack>
+          <Stack>
             {shiftId !== 'new' && (
               <WithConfirm title="Are you sure you want to delete override?">
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
@@ -240,13 +241,13 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
               tooltip={shiftId === 'new' ? 'Cancel' : 'Close'}
               onClick={onHide}
             />
-          </HorizontalGroup>
-        </HorizontalGroup>
+          </Stack>
+        </Stack>
 
         <div className={cx('container')}>
           <div className={cx('override-form-content')} data-testid="override-inputs">
-            <VerticalGroup>
-              <HorizontalGroup align="flex-start">
+            <Stack direction="column">
+              <Stack alignItems="flex-start">
                 <Field
                   className={cx('date-time-picker')}
                   data-testid="override-start"
@@ -282,7 +283,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                     error={errors.shift_end}
                   />
                 </Field>
-              </HorizontalGroup>
+              </Stack>
 
               <UserGroups
                 disabled={disabled}
@@ -299,20 +300,20 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 )}
                 showError={Boolean(errors.rolling_users)}
               />
-            </VerticalGroup>
+            </Stack>
           </div>
         </div>
-        <HorizontalGroup justify="space-between">
+        <Stack justifyContent="space-between">
           <Text type="secondary">
             Current timezone: <Text type="primary">{store.timezoneStore.selectedTimezoneLabel}</Text>
           </Text>
-          <HorizontalGroup>
+          <Stack>
             <Button variant="primary" onClick={handleCreate} disabled={disabled || !isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
-          </HorizontalGroup>
-        </HorizontalGroup>
-      </VerticalGroup>
+          </Stack>
+        </Stack>
+      </Stack>
     </Modal>
   );
 

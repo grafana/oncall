@@ -2,7 +2,7 @@ import React from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Alert, Button, HorizontalGroup, VerticalGroup, withTheme2 } from '@grafana/ui';
+import { Alert, Button, Stack, withTheme2 } from '@grafana/ui';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
@@ -27,7 +27,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getUserRowClassNameFn } from './Users.helpers';
@@ -269,7 +269,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const styles = getUsersStyles(theme);
 
     return (
-      <HorizontalGroup>
+      <Stack>
         <Avatar className={styles.userAvatar} size="large" src={user.avatar} />
         <div
           className={cx({
@@ -286,7 +286,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             {user.verified_phone_number}
           </Text>
         </div>
-      </HorizontalGroup>
+      </Stack>
     );
   };
 
@@ -306,7 +306,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
 
     return (
-      <VerticalGroup justify="center">
+      <Stack direction="column" justifyContent="center">
         <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
           <WithPermissionControlTooltip userAction={action}>
             <Button
@@ -320,7 +320,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             </Button>
           </WithPermissionControlTooltip>
         </PluginLink>
-      </VerticalGroup>
+      </Stack>
     );
   };
 
@@ -377,23 +377,23 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     return (
       warnings.length > 0 && (
-        <HorizontalGroup>
+        <Stack>
           <TooltipBadge
             borderType="warning"
             icon="exclamation-triangle"
             text={warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
-              <VerticalGroup spacing="none">
+              <Stack direction="column" gap={StackSize.none}>
                 {warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
                     {warning}
                   </Text>
                 ))}
-              </VerticalGroup>
+              </Stack>
             }
           />
-        </HorizontalGroup>
+        </Stack>
       )
     );
   };

@@ -12,7 +12,6 @@ import {
   Tooltip,
   Button,
   withTheme2,
-  Themeable2,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
@@ -38,12 +37,13 @@ import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
 import { TimeRangePickerWrapper } from './TimeRangePickerWrapper';
 
-interface RemoteFiltersProps extends WithStoreProps, Themeable2 {
+interface RemoteFiltersProps extends WithStoreProps {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
   page: PAGE;
   grafanaTeamStore: GrafanaTeamStore;
   extraInformation?: FilterExtraInformation;
+  theme: GrafanaTheme2;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
   skipFilterOptionFn?: (filterOption: FilterOption) => boolean;
 }

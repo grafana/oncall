@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, Modal, Icon, HorizontalGroup, VerticalGroup, Field, Input } from '@grafana/ui';
+import { Button, Modal, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -10,6 +10,7 @@ import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import styles from './TelegramIntegrationButton.module.css';
@@ -76,7 +77,7 @@ const TelegramModal = (props: TelegramModalProps) => {
 
   return (
     <Modal title="Adding Telegram Channel" closeOnEscape isOpen onDismiss={onUpdate}>
-      <VerticalGroup spacing="md">
+      <Stack direction="column" gap={StackSize.md}>
         <Block withBackground bordered className={cx('telegram-block')}>
           <Text type="secondary">
             If you already have a private channel to work with OnCall, use the following activation code:
@@ -140,15 +141,15 @@ const TelegramModal = (props: TelegramModalProps) => {
           </Field>
         </Text>
         <Text type="secondary">7. Start to manage alerts in your team Telegram workspace.</Text>
-        <HorizontalGroup justify="flex-end">
+        <Stack justifyContent="flex-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
           <Button variant="primary" onClick={onUpdate}>
             Done
           </Button>
-        </HorizontalGroup>
-      </VerticalGroup>
+        </Stack>
+      </Stack>
     </Modal>
   );
 };

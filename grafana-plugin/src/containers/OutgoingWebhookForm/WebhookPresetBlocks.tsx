@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { EmptySearchResult, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { EmptySearchResult, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -11,6 +11,7 @@ import { Text } from 'components/Text/Text';
 import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 
@@ -38,16 +39,16 @@ export const WebhookPresetBlocks: React.FC<{
             <Block bordered hover shadowed onClick={() => onBlockClick(preset)} key={preset.id} className={cx('card')}>
               <div className={cx('card-bg')}>{logo}</div>
               <div className={cx('title')}>
-                <VerticalGroup spacing="xs">
-                  <HorizontalGroup>
+                <Stack direction="column" gap={StackSize.xs}>
+                  <Stack>
                     <Text strong data-testid="webhook-preset-display-name">
                       {preset.name}
                     </Text>
-                  </HorizontalGroup>
+                  </Stack>
                   <Text type="secondary" size="small">
                     {preset.description}
                   </Text>
-                </VerticalGroup>
+                </Stack>
               </div>
             </Block>
           );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Button, ConfirmModal, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -22,7 +22,7 @@ import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { useDrawer } from 'utils/hooks';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
@@ -226,12 +226,12 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                     isOpen: true,
                     title: 'Migrate Integration?',
                     body: (
-                      <VerticalGroup spacing="lg">
+                      <Stack direction="column" gap={StackSize.lg}>
                         <Text type="primary">
                           Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
                         </Text>
 
-                        <VerticalGroup spacing="xs">
+                        <Stack direction="column" gap={StackSize.xs}>
                           <Text type="secondary">- Integration internal behaviour will be changed</Text>
                           <Text type="secondary">
                             - Integration URL will stay the same, so no need to change {getMigrationDisplayName()}{' '}
@@ -239,8 +239,8 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                           </Text>
                           <Text type="secondary">- Integration templates will be reset to suit the new payload</Text>
                           <Text type="secondary">- It is needed to adjust routes manually to the new payload</Text>
-                        </VerticalGroup>
-                      </VerticalGroup>
+                        </Stack>
+                      </Stack>
                     ),
                     onConfirm: onIntegrationMigrate,
                     dismissText: 'Cancel',
@@ -257,10 +257,10 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                     onCopy={() => openNotification('Integration ID is copied')}
                   >
                     <div>
-                      <HorizontalGroup spacing={'xs'}>
+                      <Stack gap={StackSize.xs}>
                         <Icon name="copy" />
                         <Text type="primary">UID: {alertReceiveChannel.id}</Text>
-                      </HorizontalGroup>
+                      </Stack>
                     </div>
                   </CopyToClipboard>
                 ),
@@ -283,10 +283,10 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 hidden: !alertReceiveChannel.allow_delete,
                 label: (
                   <Text type="danger">
-                    <HorizontalGroup spacing={'xs'}>
+                    <Stack gap={StackSize.xs}>
                       <Icon name="trash-alt" />
                       <span>Delete Integration</span>
-                    </HorizontalGroup>
+                    </Stack>
                   </Text>
                 ),
                 requiredPermission: UserActions.IntegrationsWrite,

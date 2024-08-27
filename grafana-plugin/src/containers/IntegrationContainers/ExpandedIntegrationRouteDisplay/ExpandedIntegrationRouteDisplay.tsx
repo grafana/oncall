@@ -3,8 +3,7 @@ import React, { useEffect, useReducer, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import {
   Button,
-  HorizontalGroup,
-  VerticalGroup,
+  Stack,
   Icon,
   Tooltip,
   ConfirmModal,
@@ -44,6 +43,7 @@ import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.c
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -179,13 +179,13 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   </Text>
                 </div>
               ) : (
-                <VerticalGroup spacing="sm">
+                <Stack direction="column" gap={StackSize.sm}>
                   <Text customTag="h6" type="primary">
                     {hasLabels ? 'Alerts matched by' : 'Use routing template'}
                   </Text>
 
                   <RenderConditionally shouldRender={hasLabels}>
-                    <VerticalGroup>
+                    <Stack direction="column">
                       <div className={cx('labels-panel')}>
                         <RadioButtonGroup
                           options={QueryBuilderOptions}
@@ -195,7 +195,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                       </div>
 
                       <RenderConditionally shouldRender={routingOption === RoutingOption.LABELS}>
-                        <VerticalGroup>
+                        <Stack direction="column">
                           <RouteLabelsDisplay labels={labels} onChange={onLabelsChange} labelErrors={labelErrors} />
 
                           <RenderConditionally shouldRender={shouldShowLabelAlert()}>
@@ -210,14 +210,14 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                               }
                             />
                           </RenderConditionally>
-                        </VerticalGroup>
+                        </Stack>
                       </RenderConditionally>
-                    </VerticalGroup>
+                    </Stack>
                   </RenderConditionally>
 
                   <RenderConditionally shouldRender={routingOption === RoutingOption.TEMPLATE || !hasLabels}>
-                    <VerticalGroup>
-                      <HorizontalGroup spacing="xs">
+                    <Stack direction="column">
+                      <Stack gap={StackSize.xs}>
                         <div className={cx('input', 'input--align')}>
                           <MonacoEditor
                             value={channelFilterTemplate}
@@ -234,7 +234,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                           size={'md'}
                           onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                         />
-                      </HorizontalGroup>
+                      </Stack>
                       <Alert
                         severity="info"
                         title={
@@ -246,9 +246,9 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                           ) as unknown as string
                         }
                       />
-                    </VerticalGroup>
+                    </Stack>
                   </RenderConditionally>
-                </VerticalGroup>
+                </Stack>
               )}
             </div>
           ),
@@ -261,12 +261,12 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
           canHoverIcon: false,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
-              <VerticalGroup spacing="sm">
+              <Stack direction="column" gap={StackSize.sm}>
                 <Text customTag="h6" type="primary">
                   Publish to ChatOps
                 </Text>
                 <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-              </VerticalGroup>
+              </Stack>
             </div>
           ),
         },
@@ -279,13 +279,13 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
           canHoverIcon: false,
           expandedView: () => (
             <div className={cx('adjust-element-padding')}>
-              <VerticalGroup spacing="sm">
+              <Stack direction="column" gap={StackSize.sm}>
                 <Text customTag="h6" type="primary">
                   Trigger escalation chain
                 </Text>
 
                 <div data-testid="escalation-chain-select">
-                  <HorizontalGroup spacing={'xs'}>
+                  <Stack gap={StackSize.xs}>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isClearable
@@ -336,19 +336,19 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         variant={'secondary'}
                         onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
                       >
-                        <HorizontalGroup>
+                        <Stack>
                           <Text type="link">{isEscalationCollapsed ? 'Show' : 'Hide'} escalation chain</Text>
                           {isEscalationCollapsed && <Icon name={'angle-right'} />}
                           {!isEscalationCollapsed && <Icon name={'angle-up'} />}
-                        </HorizontalGroup>
+                        </Stack>
                       </Button>
                     )}
-                  </HorizontalGroup>
+                  </Stack>
                 </div>
                 {!isEscalationCollapsed && (
                   <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
                 )}
-              </VerticalGroup>
+              </Stack>
             </div>
           ),
         },
@@ -506,7 +506,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
   return (
-    <HorizontalGroup spacing={'xs'}>
+    <Stack gap={StackSize.xs}>
       {routeIndex > 0 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Up'}>
@@ -533,11 +533,11 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
-                  <HorizontalGroup spacing={'xs'}>
+                  <Stack gap={StackSize.xs}>
                     <Icon name="copy" />
 
                     <Text type="primary">UID: {channelFilter.id}</Text>
-                  </HorizontalGroup>
+                  </Stack>
                 </div>
               </CopyToClipboard>
 
@@ -546,10 +546,10 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={onDelete}>
                   <Text type="danger">
-                    <HorizontalGroup spacing={'xs'}>
+                    <Stack gap={StackSize.xs}>
                       <Icon name="trash-alt" />
                       <span>Delete Route</span>
-                    </HorizontalGroup>
+                    </Stack>
                   </Text>
                 </div>
               </WithPermissionControlTooltip>
@@ -567,7 +567,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           )}
         </WithContextMenu>
       )}
-    </HorizontalGroup>
+    </Stack>
   );
 
   function onDelete() {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, Modal, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -14,6 +14,7 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
@@ -42,18 +43,18 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
       isOpen={isOpen}
       onDismiss={onHideOrCancel}
       title={
-        <HorizontalGroup>
+        <Stack>
           <Text.Title level={4}>
             Send demo alert to integration: {''}
             <strong>
               <Emoji text={alertReceiveChannel.verbal_name} />
             </strong>
           </Text.Title>
-        </HorizontalGroup>
+        </Stack>
       }
     >
-      <VerticalGroup>
-        <HorizontalGroup spacing={'xs'}>
+      <Stack direction="column">
+        <Stack gap={StackSize.xs}>
           <Text type={'secondary'}>Alert Payload</Text>
           <Tooltip
             content={
@@ -66,7 +67,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           >
             <Icon name={'info-circle'} />
           </Tooltip>
-        </HorizontalGroup>
+        </Stack>
 
         <div className={cx('integration__payloadInput')}>
           <MonacoEditor
@@ -82,7 +83,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           />
         </div>
 
-        <HorizontalGroup justify={'flex-end'} spacing={'md'}>
+        <Stack justifyContent={'flex-end'} gap={StackSize.md}>
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>
@@ -92,8 +93,8 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           <Button variant={'primary'} onClick={onSendAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
-        </HorizontalGroup>
-      </VerticalGroup>
+        </Stack>
+      </Stack>
     </Modal>
   );
 

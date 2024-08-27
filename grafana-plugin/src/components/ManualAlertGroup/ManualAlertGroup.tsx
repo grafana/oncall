@@ -1,7 +1,7 @@
 import React, { FC, useCallback } from 'react';
 
 import { css } from '@emotion/css';
-import { Button, Drawer, Field, HorizontalGroup, TextArea, useStyles2, VerticalGroup } from '@grafana/ui';
+import { Button, Drawer, Field, TextArea, useStyles2, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { getUtilStyles } from 'styles/utils.styles';
@@ -70,7 +70,7 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
 
   return (
     <Drawer scrollableContent title="New escalation" onClose={onHideDrawer} closeOnMaskClick={false} width="70%">
-      <VerticalGroup>
+      <Stack direction="column">
         <FormProvider {...formMethods}>
           <form id="Manual Alert Group" onSubmit={handleSubmit(onSubmit)} className={utilStyles.width100}>
             <Controller
@@ -87,18 +87,18 @@ export const ManualAlertGroup: FC<ManualAlertGroupProps> = observer(({ onCreate,
             <AddResponders mode="create" />
 
             <div className={styles.buttons}>
-              <HorizontalGroup justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHideDrawer}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={!formIsSubmittable}>
                   Create
                 </Button>
-              </HorizontalGroup>
+              </Stack>
             </div>
           </form>
         </FormProvider>
-      </VerticalGroup>
+      </Stack>
     </Drawer>
   );
 });

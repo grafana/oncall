@@ -1,17 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { css } from '@emotion/css';
-import {
-  Button,
-  Drawer,
-  Field,
-  HorizontalGroup,
-  Input,
-  Switch,
-  TextArea,
-  VerticalGroup,
-  useStyles2,
-} from '@grafana/ui';
+import { Button, Drawer, Field, Input, Switch, TextArea, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { getUtilStyles } from 'styles/utils.styles';
@@ -95,23 +85,23 @@ export const ScheduleForm = observer((props: ScheduleFormProps) => {
       onClose={onHide}
       closeOnMaskClick={false}
     >
-      <VerticalGroup>
+      <Stack direction="column">
         <FormProvider {...formMethods}>
           <form id="Schedule" data-testid="schedule-form" onSubmit={handleSubmit(onSubmit)} className={utils.width100}>
             <FormFields scheduleType={data.type} />
             <div className="buttons">
-              <HorizontalGroup justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button type="submit">{id === 'new' ? 'Create' : 'Update'} Schedule</Button>
                 </WithPermissionControlTooltip>
-              </HorizontalGroup>
+              </Stack>
             </div>
           </form>
         </FormProvider>
-      </VerticalGroup>
+      </Stack>
     </Drawer>
   );
 });

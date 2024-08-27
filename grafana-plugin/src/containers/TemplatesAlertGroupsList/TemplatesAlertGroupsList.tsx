@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } from '@grafana/ui';
+import { Button, Icon, IconButton, Badge, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
@@ -123,13 +123,13 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
       {isEditMode ? (
         <>
           <div className={cx('template-block-title-edit-mode')}>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent="space-between">
               <Text>Edit custom payload</Text>
 
-              <HorizontalGroup>
+              <Stack>
                 <IconButton aria-label="List View" name="times" onClick={returnToListView} />
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </Stack>
+            </Stack>
           </div>
           <div className={cx('alert-groups-editor')}>
             <MonacoEditor
@@ -150,18 +150,18 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
       ) : (
         <>
           <div className={cx('template-block-title')}>
-            <HorizontalGroup justify="space-between" wrap>
-              <HorizontalGroup>
+            <Stack justifyContent="space-between" wrap="wrap">
+              <Stack>
                 <Text>{heading}</Text>
                 {/* <Tooltip content="Here will be information about alert groups" placement="top">
                   <Icon name="info-circle" />
                 </Tooltip> */}
-              </HorizontalGroup>
+              </Stack>
 
               <Button variant="secondary" fill="outline" onClick={() => setIsEditMode(true)} size="sm">
                 Use custom payload
               </Button>
-            </HorizontalGroup>
+            </Stack>
           </div>
           <div className={cx('alert-groups-list')}>
             {templatePage === TemplatePage.Webhooks ? renderOutgoingWebhookLastResponses() : renderAlertGroupList()}
@@ -243,13 +243,13 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
     return (
       <>
         <div className={cx('template-block-title-edit-mode')}>
-          <HorizontalGroup justify="space-between">
+          <Stack justifyContent="space-between">
             <Text>Edit custom payload</Text>
 
-            <HorizontalGroup>
+            <Stack>
               <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
-            </HorizontalGroup>
-          </HorizontalGroup>
+            </Stack>
+          </Stack>
         </div>
         <div className={cx('alert-groups-editor')}>
           <MonacoEditor

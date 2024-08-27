@@ -24,7 +24,8 @@ test.describe('maintenance mode works', () => {
     await page.waitForTimeout(2000);
     const integrationSettingsPopupElement = page
       .getByTestId('integration-settings-context-menu-wrapper')
-      .getByRole('img');
+      .locator('svg');
+
     await integrationSettingsPopupElement.click();
     /**
      * sometimes we need to click twice (e.g. adding the escalation chain route

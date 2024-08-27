@@ -2,7 +2,7 @@ import React, { FC, useMemo } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { HorizontalGroup, useStyles2, withTheme2 } from '@grafana/ui';
+import { Stack, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -94,11 +94,11 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
       >
         {!simplified && (
           <div className={styles.header}>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent="space-between">
               <Text.Title level={5} type="primary">
                 Final schedule
               </Text.Title>
-            </HorizontalGroup>
+            </Stack>
           </div>
         )}
         <div className="u-position-relative">

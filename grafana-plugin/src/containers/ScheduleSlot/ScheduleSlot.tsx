@@ -2,7 +2,7 @@ import React, { FC, useCallback, useEffect, useMemo } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, Icon, Tooltip, useStyles2, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, Tooltip, useStyles2, Stack } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { Colors, getLabelCss } from 'styles/utils.styles';
@@ -17,6 +17,7 @@ import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { truncateTitle } from 'utils/string';
 
 import { getScheduleSlotStyleParams, getTitle } from './ScheduleSlot.helpers';
@@ -413,21 +414,21 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
 
   return (
     <div className={styles.details}>
-      <VerticalGroup>
-        <HorizontalGroup>
+      <Stack direction="column">
+        <Stack>
           <div className={styles.detailsIcon}>
             <div className={styles.badge} style={{ backgroundColor: color }} />
           </div>
           <Text type="primary" maxWidth="222px">
             {title}
           </Text>
-        </HorizontalGroup>
-        <HorizontalGroup align="flex-start">
+        </Stack>
+        <Stack alignItems="flex-start">
           <div className={styles.detailsIcon}>
             <Icon className={styles.icon} name={isShiftSwap ? 'user-arrows' : 'user'} />
           </div>
           {isShiftSwap ? (
-            <VerticalGroup spacing="xs">
+            <Stack direction="column" gap={StackSize.xs}>
               <Text type="primary">Swap pair</Text>
               <Text type="primary" className={styles.username}>
                 {beneficiaryName} <Text type="secondary"> (requested by)</Text>
@@ -441,14 +442,14 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
                   Not accepted yet
                 </Text>
               )}
-            </VerticalGroup>
+            </Stack>
           ) : (
             <Text type="primary" className={styles.username}>
               {user?.username}
             </Text>
           )}
-        </HorizontalGroup>
-        <HorizontalGroup align="flex-start">
+        </Stack>
+        <Stack alignItems="flex-start">
           <div className={styles.detailsIcon}>
             <Icon className={styles.icon} name="clock-nine" />
           </div>
@@ -464,8 +465,8 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             {currentDateInSelectedTimezone.format('DD MMM, HH:mm')}
             <br />({getTzOffsetString(currentDateInSelectedTimezone)})
           </Text>
-        </HorizontalGroup>
-        <HorizontalGroup align="flex-start">
+        </Stack>
+        <Stack alignItems="flex-start">
           <div className={styles.detailsIcon}>
             <Icon className={styles.icon} name="arrows-h" />
           </div>
@@ -482,8 +483,8 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
             <br />
             {getDateInSelectedTimezone(dayjs(event.end)).format('DD MMM, HH:mm')}
           </Text>
-        </HorizontalGroup>
-        <HorizontalGroup justify="flex-end">
+        </Stack>
+        <Stack justifyContent="flex-end">
           {handleAddShiftSwap && (
             <Button size="sm" variant="secondary" onClick={handleAddShiftSwap}>
               Request shift swap
@@ -499,8 +500,8 @@ const ScheduleSlotDetails = observer((props: ScheduleSlotDetailsProps) => {
               Open schedule
             </Button>
           )}
-        </HorizontalGroup>
-      </VerticalGroup>
+        </Stack>
+      </Stack>
     </div>
   );
 });
@@ -518,15 +519,15 @@ const ScheduleGapDetails = observer((props: ScheduleGapDetailsProps) => {
 
   return (
     <div className={styles.details}>
-      <VerticalGroup>
-        <HorizontalGroup spacing="sm">
-          <VerticalGroup spacing="none">
+      <Stack direction="column">
+        <Stack gap={StackSize.sm}>
+          <Stack direction="column" gap={StackSize.none}>
             <Text type="primary">{selectedTimezoneLabel}</Text>
             <Text type="primary">{getDateInSelectedTimezone(dayjs(event.start)).format('DD MMM, HH:mm')}</Text>
             <Text type="primary">{getDateInSelectedTimezone(dayjs(event.end)).format('DD MMM, HH:mm')}</Text>
-          </VerticalGroup>
-        </HorizontalGroup>
-      </VerticalGroup>
+          </Stack>
+        </Stack>
+      </Stack>
     </div>
   );
 });

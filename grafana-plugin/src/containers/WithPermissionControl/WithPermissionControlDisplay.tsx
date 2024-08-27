@@ -1,9 +1,10 @@
 import React, { ReactElement } from 'react';
 
-import { VerticalGroup } from '@grafana/ui';
+import { Stack } from '@grafana/ui';
 
 import { Text } from 'components/Text/Text';
 import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 interface WithPermissionControlDisplayProps {
   userAction: UserAction;
@@ -25,9 +26,9 @@ export const WithPermissionControlDisplay: React.FC<WithPermissionControlDisplay
   return hasPermission ? (
     children
   ) : (
-    <VerticalGroup spacing="lg">
+    <Stack direction="column" gap={StackSize.lg}>
       {title && <Text.Title level={3}>{title}</Text.Title>}
       <Text>{message}</Text>
-    </VerticalGroup>
+    </Stack>
   );
 };

@@ -43,6 +43,7 @@ interface GSelectProps<Item> {
   openMenuOnFocus?: boolean;
   width?: number | 'auto';
   icon?: string;
+  dataTestId?: string;
 }
 
 export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
@@ -72,6 +73,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     fetchItemFn,
     getSearchResult,
     parseDisplayName,
+    dataTestId = null,
   } = props;
 
   const onChangeCallback = useCallback(
@@ -151,7 +153,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
   const Tag = isMulti ? AsyncMultiSelect : AsyncSelect;
 
   return (
-    <div className={cx('root', className)}>
+    <div className={cx('root', className)} data-testid={dataTestId}>
       <Tag
         autoFocus={autoFocus}
         isSearchable
