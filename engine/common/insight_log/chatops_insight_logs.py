@@ -22,6 +22,7 @@ class ChatOpsTypePlug(enum.Enum):
     # ChatOpsTypePlug provides backend_id string for chatops integration not supporting messaging_backends.
     SLACK = "slack"
     TELEGRAM = "telegram"
+    MATTERMOST = "mattermost"
 
 
 def write_chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: str, **kwargs):
