@@ -18,6 +18,7 @@ type OnCallSyncCache struct {
 	syncMutex      sync.Mutex
 	timer          *time.Timer
 	lastOnCallSync *OnCallSync
+	start          time.Time
 }
 
 type SyncCacheAlreadyLocked struct {
@@ -103,10 +104,16 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 	}()
 
 	locked := a.syncMutex.TryLock()
+	const duration = 5 * 60 * time.Second
 	if !locked {
-		return &SyncCacheAlreadyLocked{Message: "sync already in progress, OnCallSyncCache is locked"}
+		elapsed := time.Since(a.start)
+		remaining := duration - elapsed
+		msg := fmt.Sprintf("sync already in progress, OnCallSyncCache is locked, remaining time  %.0fs", remaining.Seconds())
+		return &SyncCacheAlreadyLocked{Message: msg}
 	}
-	defer a.UnlockAfterDelay(5 * 60 * time.Second)
+
+	defer a.UnlockAfterDelay(duration)
+	a.start = time.Now()
 
 	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
 	if err != nil {

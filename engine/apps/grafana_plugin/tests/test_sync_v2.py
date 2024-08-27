@@ -60,18 +60,19 @@ def test_skip_org_without_api_token(make_organization, api_token, sync_called):
     make_organization(api_token=api_token)
 
     with patch(
-            "apps.grafana_plugin.helpers.GrafanaAPIClient.sync",
-            return_value=(
-                    None,
-                    {
-                        "url": "",
-                        "connected": True,
-                        "status_code": status.HTTP_200_OK,
-                        "message": "",
-                    },
-            ),
+        "apps.grafana_plugin.helpers.GrafanaAPIClient.sync",
+        return_value=(
+            None,
+            {
+                "url": "",
+                "connected": True,
+                "status_code": status.HTTP_200_OK,
+                "message": "",
+            },
+        ),
     ):
-        with patch("apps.grafana_plugin.tasks.sync_v2.sync_organizations_v2.apply_async", return_value=None
-                   ) as mock_sync:
+        with patch(
+            "apps.grafana_plugin.tasks.sync_v2.sync_organizations_v2.apply_async", return_value=None
+        ) as mock_sync:
             start_sync_organizations_v2()
             assert mock_sync.called == sync_called

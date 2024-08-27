@@ -233,7 +233,7 @@ func (a *App) GetAllUsers(settings *OnCallPluginSettings) ([]OnCallUser, error) 
 	var result []OrgUser
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	if res.StatusCode == 200 {
