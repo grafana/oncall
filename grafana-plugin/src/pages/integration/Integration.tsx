@@ -2,7 +2,7 @@ import React from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, HorizontalGroup, VerticalGroup, LoadingPlaceholder, IconButton, Drawer, Alert } from '@grafana/ui';
+import { Button, Stack, LoadingPlaceholder, IconButton, Drawer, Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -45,7 +45,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
-import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withDrawer, withRouter } from 'utils/hoc';
 import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
@@ -301,7 +301,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           severity="warning"
           title={
             (
-              <VerticalGroup>
+              <Stack direction="column">
                 <Text type="secondary">
                   We are introducing a new {getDisplayName()} integration. The existing integration is marked as Legacy
                   and will be migrated on 1st February 2024.
@@ -320,7 +320,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                   </a>{' '}
                   for more information.
                 </Text>
-              </VerticalGroup>
+              </Stack>
             ) as any
           }
         />
@@ -363,7 +363,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           onRemove={onAlertRemove}
           title={
             (
-              <VerticalGroup>
+              <Stack direction="column">
                 <Text type="secondary">
                   This legacy integration was automatically migrated at {migratedAt}. It now relies on Alertmanager's
                   grouping and autoresolution mechanism.
@@ -387,7 +387,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                   </a>{' '}
                   for more information.
                 </Text>
-              </VerticalGroup>
+              </Stack>
             ) as any
           }
         />
@@ -537,11 +537,11 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         startingElemPosition: '40px',
         expandedView: () => (
           <div className={cx('routesSection')}>
-            <VerticalGroup spacing="md">
+            <Stack direction="column" gap={StackSize.md}>
               <Text type={'primary'} className={cx('routesSection__heading')}>
                 Routes
               </Text>
-              <HorizontalGroup>
+              <Stack>
                 <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                   <Button variant={'primary'} className={cx('routesSection__add')} onClick={this.handleAddNewRoute}>
                     Add route
@@ -550,8 +550,8 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                 {this.state.isAddingRoute && (
                   <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
                 )}
-              </HorizontalGroup>
-            </VerticalGroup>
+              </Stack>
+            </Stack>
           </div>
         ),
       },
@@ -851,11 +851,11 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
           addPadding
           text={alertReceiveChannel.labels.length}
           tooltipContent={
-            <VerticalGroup spacing="sm">
+            <Stack direction="column" gap={StackSize.sm}>
               {alertReceiveChannel.labels.map((label) => (
                 <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
               ))}
-            </VerticalGroup>
+            </Stack>
           }
         />
       )}

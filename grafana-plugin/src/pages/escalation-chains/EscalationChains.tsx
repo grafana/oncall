@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, HorizontalGroup, Icon, IconButton, Tooltip, VerticalGroup, withTheme2 } from '@grafana/ui';
+import { Button, Icon, IconButton, Tooltip, Stack, withTheme2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { getUtilStyles } from 'styles/utils.styles';
 
@@ -28,7 +28,7 @@ import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT } from 'utils/consts';
+import { PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getEscalationChainStyles } from './EscalationChains.styles';
@@ -193,11 +193,11 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                           {(item) => <EscalationChainCard id={item.id} />}
                         </GList>
                       ) : (
-                        <VerticalGroup>
+                        <Stack direction="column">
                           <Text type="primary" className={utilStyles.loadingPlaceholder}>
                             Loading...
                           </Text>
-                        </VerticalGroup>
+                        </Stack>
                       )}
                     </div>
                   </div>
@@ -207,7 +207,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                 <Tutorial
                   step={TutorialStep.Escalations}
                   title={
-                    <VerticalGroup align="center" spacing="lg">
+                    <Stack direction="column" alignItems="center" gap={StackSize.lg}>
                       <Text type="secondary">No escalations found, check your filtering and current team.</Text>
                       <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                         <Button
@@ -221,7 +221,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                           New Escalation Chain
                         </Button>
                       </WithPermissionControlTooltip>
-                    </VerticalGroup>
+                    </Stack>
                   }
                 />
               )}
@@ -324,7 +324,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
             {escalationChain.name}
           </Text>
           <div className={styles.buttons}>
-            <HorizontalGroup>
+            <Stack>
               <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
                   tooltip="Edit"
@@ -365,7 +365,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                   <Icon name="info-circle" />
                 </Tooltip>
               )}
-            </HorizontalGroup>
+            </Stack>
           </div>
         </Block>
         <EscalationChainSteps id={selectedEscalationChain} />
@@ -381,7 +381,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
               <ul className={styles.list}>
                 {escalationChainDetails.map((alertReceiveChannel) => (
                   <li key={alertReceiveChannel.id}>
-                    <HorizontalGroup align="flex-start">
+                    <Stack alignItems="flex-start">
                       <PluginLink query={{ page: 'integrations', id: alertReceiveChannel.id }}>
                         {alertReceiveChannel.display_name}
                       </PluginLink>
@@ -393,7 +393,7 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
                           </li>
                         ))}
                       </ul>
-                    </HorizontalGroup>
+                    </Stack>
                   </li>
                 ))}
               </ul>

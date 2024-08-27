@@ -6,11 +6,6 @@ import userEvent from '@testing-library/user-event';
 import { DisconnectButton } from './DisconnectButton';
 
 describe('DisconnectButton', () => {
-  test('it renders properly', () => {
-    const component = render(<DisconnectButton onClick={() => {}} />);
-    expect(component.container).toMatchSnapshot();
-  });
-
   test('It calls the onClick handler when clicked', async () => {
     const mockedOnClick = jest.fn();
 

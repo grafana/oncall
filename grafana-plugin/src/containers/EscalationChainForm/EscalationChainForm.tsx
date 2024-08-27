@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
+import { Button, Field, Input, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
@@ -108,14 +108,14 @@ export const EscalationChainForm: FC<EscalationChainFormProps> = observer((props
               )}
             />
 
-            <HorizontalGroup justify="flex-end">
+            <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={onHide}>
                 Cancel
               </Button>
               <Button type="submit" variant="primary">
                 {`${mode} Escalation Chain`}
               </Button>
-            </HorizontalGroup>
+            </Stack>
           </form>
         </FormProvider>
       </div>

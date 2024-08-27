@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useStyles2, Input, IconButton, Drawer, HorizontalGroup } from '@grafana/ui';
+import { useStyles2, Input, IconButton, Drawer, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
@@ -56,12 +56,12 @@ export const OutgoingTab = ({ openSnowConfigurationDrawer }: { openSnowConfigura
                   openDrawer={openDrawer}
                   noItemsInfo={
                     <div className={styles.noWebhooksInfo}>
-                      <HorizontalGroup>
+                      <Stack>
                         <Text type="secondary">There are no webhooks.</Text>
                         <Button variant="primary" showAsLink onClick={() => openDrawer('newOutgoingWebhook')}>
                           Add one
                         </Button>
-                      </HorizontalGroup>
+                      </Stack>
                     </div>
                   }
                 />

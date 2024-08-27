@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
 
 import { cx } from '@emotion/css';
-import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup, useStyles2 } from '@grafana/ui';
+import { Icon, Tooltip, IconName, Stack, useStyles2 } from '@grafana/ui';
 import { bem } from 'styles/utils.styles';
 
 import { Text, TextType } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 
 import { getTooltipBadgeStyles } from './TooltipBadge.styles';
 
@@ -47,10 +48,10 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       interactive
       content={
         <div className={styles.tooltip}>
-          <VerticalGroup spacing="xs">
+          <Stack direction="column" gap={StackSize.xs}>
             <Text type="primary">{tooltipTitle}</Text>
             {tooltipContent && <Text type="secondary">{tooltipContent}</Text>}
-          </VerticalGroup>
+          </Stack>
         </div>
       }
     >
@@ -59,10 +60,10 @@ export const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
         onMouseEnter={onHover}
         {...(testId ? { 'data-testid': testId } : {})}
       >
-        <HorizontalGroup spacing="xs">
+        <Stack gap={StackSize.xs}>
           {renderIcon()}
           {text !== undefined && <Text {...(testId ? { 'data-testid': `${testId}-text` } : {})}>{text}</Text>}
-        </HorizontalGroup>
+        </Stack>
       </div>
     </Tooltip>
   );

@@ -1,6 +1,6 @@
 import React, { HTMLAttributes, useState } from 'react';
 
-import { Button, Field, HorizontalGroup, Input, Label, Modal, VerticalGroup } from '@grafana/ui';
+import { Button, Field, Input, Label, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -48,7 +48,7 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
     <Modal isOpen closeOnEscape={false} title={token ? 'Your new API Token' : 'Create API Token'} onDismiss={onHide}>
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onCreateTokenCallback)}>
-          <VerticalGroup>
+          <Stack direction="column">
             <Label>Token Name</Label>
             <div className={cx('token__inputContainer')}>
               {renderTokenInput()}
@@ -57,7 +57,7 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 
             {renderCurlExample()}
 
-            <HorizontalGroup justify="flex-end">
+            <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={() => onHide()}>
                 {token ? 'Close' : 'Cancel'}
               </Button>
@@ -67,8 +67,8 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
                   Create Token
                 </Button>
               </RenderConditionally>
-            </HorizontalGroup>
-          </VerticalGroup>
+            </Stack>
+          </Stack>
         </form>
       </FormProvider>
     </Modal>
@@ -117,12 +117,12 @@ export const ApiTokenForm = observer((props: TokenCreationModalProps) => {
       return null;
     }
     return (
-      <VerticalGroup>
+      <Stack direction="column">
         <Label>Curl command example</Label>
         <SourceCode noMinHeight showClipboardIconOnly>
           {getCurlExample(token, store.pluginStore.apiUrlFromStatus)}
         </SourceCode>
-      </VerticalGroup>
+      </Stack>
     );
   }
 

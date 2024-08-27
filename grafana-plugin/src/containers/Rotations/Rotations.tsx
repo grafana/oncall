@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { ValuePicker, HorizontalGroup, Button, Tooltip, withTheme2 } from '@grafana/ui';
+import { ValuePicker, Button, Tooltip, withTheme2, Stack } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -106,11 +106,11 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
       <>
         <div id={HTML_ID.SCHEDULE_ROTATIONS} className={styles.root}>
           <div className={styles.header}>
-            <HorizontalGroup justify="space-between">
+            <Stack justifyContent="space-between">
               <Text.Title level={5} type="primary">
                 Rotations
               </Text.Title>
-              <HorizontalGroup>
+              <Stack>
                 {disabled ? (
                   isTypeReadOnly ? (
                     <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
@@ -153,8 +153,8 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                     Add rotation
                   </Button>
                 )}
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </Stack>
+            </Stack>
           </div>
           <div className={styles.rotationsPlusTitle}>
             {layers && layers.length ? (

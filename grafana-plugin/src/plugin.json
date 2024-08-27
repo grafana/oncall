@@ -682,7 +682,7 @@
     ]
   },
   "dependencies": {
-    "grafanaDependency": ">=9.2.0",
+    "grafanaDependency": ">=10.2.5",
     "plugins": []
   },
   "extensions": [

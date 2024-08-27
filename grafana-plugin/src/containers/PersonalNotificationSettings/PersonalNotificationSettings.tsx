@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import { Button, Icon, LoadingPlaceholder, Stack, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -65,7 +65,7 @@ export const PersonalNotificationSettings = observer((props: PersonalNotificatio
   const allNotificationPolicies = userStore.notificationPolicies[userPk];
   const title = (
     <Text.Title level={5}>
-      <HorizontalGroup>
+      <Stack>
         {isImportant ? 'Important Notifications' : 'Default Notifications'}
         <Tooltip
           placement="top"
@@ -77,7 +77,7 @@ export const PersonalNotificationSettings = observer((props: PersonalNotificatio
         >
           <Icon name="info-circle" size="md"></Icon>
         </Tooltip>
-      </HorizontalGroup>
+      </Stack>
     </Text.Title>
   );
 

@@ -242,11 +242,8 @@ jobs:
     strategy:
       matrix:
         grafana_version:
-          - 10.1.7
-          - 10.3.3
-          # TODO: fix issues with running e2e tests against Grafana v10.2.x and latest
-          # - 10.2.4
-          # - latest
+          - 10.3.0
+          - latest
       fail-fast: false
     with:
       grafana_version: ${{ matrix.grafana_version }}

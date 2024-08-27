@@ -18,8 +18,12 @@ const createWebhook = async ({ page, webhookName, webhookUrl }) => {
 
   await page.keyboard.insertText(webhookUrl);
   await page.locator('[name=name]').fill(webhookName);
-  await page.getByLabel('New Outgoing Webhook').getByRole('img').nth(1).click(); // Open team dropdown
+
+  // Open team dropdown
+  await page.getByTestId('team-selector').locator('div').filter({ hasText: 'Choose (Optional)' }).nth(1).click();
+  // Set No Team
   await page.getByLabel('Select options menu').getByText('No team').click();
+
   await clickButton({ page, buttonText: 'Create' });
 };
 

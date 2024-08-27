@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { noop } from 'lodash-es';
 
@@ -11,6 +11,7 @@ import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -50,10 +51,10 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
                 className={cx('u-pull-right')}
               >
                 <Text type="link" size="small">
-                  <HorizontalGroup>
+                  <Stack>
                     How it works
                     <Icon name="external-link-alt" />
-                  </HorizontalGroup>
+                  </Stack>
                 </Text>
               </a>
             </>
@@ -74,10 +75,10 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
                 className={cx('u-pull-right')}
               >
                 <Text type="link" size="small">
-                  <HorizontalGroup>
+                  <Stack>
                     How to connect
                     <Icon name="external-link-alt" />
-                  </HorizontalGroup>
+                  </Stack>
                 </Text>
               </a>
             </>
@@ -98,14 +99,14 @@ export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveCha
     };
 
     return (
-      <VerticalGroup justify={'flex-start'} spacing={'xs'}>
+      <Stack direction="column" justifyContent={'flex-start'} gap={StackSize.xs}>
         {!hasAlerts && (
-          <HorizontalGroup spacing={'xs'}>
+          <Stack gap={StackSize.xs}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
             <Text type={'primary'}>No alerts yet</Text> {callToAction()}
-          </HorizontalGroup>
+          </Stack>
         )}
-      </VerticalGroup>
+      </Stack>
     );
   }
 };

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { VerticalGroup, useTheme2 } from '@grafana/ui';
+import { Stack, useTheme2 } from '@grafana/ui';
 
 import { Timeline } from 'components/Timeline/Timeline';
 import { MSTeamsConnector } from 'containers/AlertRules/parts/connectors/MSTeamsConnector';
@@ -38,11 +38,11 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
 
   return (
     <Timeline.Item number={0} backgroundHexNumber={theme.colors.secondary.main} isDisabled={!showLineNumber}>
-      <VerticalGroup>
+      <Stack direction="column">
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}
         {isMSTeamsInstalled && <MSTeamsConnector channelFilterId={channelFilterId} />}
-      </VerticalGroup>
+      </Stack>
     </Timeline.Item>
   );
 };

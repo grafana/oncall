@@ -12,7 +12,7 @@ module.exports = {
     {
       files: ['src/**/*.{ts,tsx}'],
       rules: {
-        'deprecation/deprecation': 'off',
+        'deprecation/deprecation': 'warn',
       },
       parserOptions: {
         project: './tsconfig.json',

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Button, HorizontalGroup, LoadingPlaceholder, Badge } from '@grafana/ui';
+import { Button, LoadingPlaceholder, Badge, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -100,7 +100,7 @@ class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
 
   renderActionButtons = (record: MSTeamsChannel) => {
     return (
-      <HorizontalGroup justify="flex-end">
+      <Stack justifyContent="flex-end">
         <Button
           onClick={() => this.setChannelAsDefault(record.id)}
           disabled={record.is_default}
@@ -114,7 +114,7 @@ class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
             Disconnect
           </Button>
         </WithConfirm>
-      </HorizontalGroup>
+      </Stack>
     );
   };
 

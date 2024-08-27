@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
+import { Button, InlineField, Input, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -8,6 +8,7 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 import styles from 'containers/UserSettings/parts/connectors/Connectors.module.css';
 
@@ -40,7 +41,7 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
     <div className={cx('user-item')}>
       {storeUser.messaging_backends.MSTEAMS ? (
         <InlineField label="MS Teams" labelWidth={12}>
-          <HorizontalGroup spacing="xs">
+          <Stack gap={StackSize.xs}>
             <Input disabled={true} value={(storeUser.messaging_backends.MSTEAMS?.name as string) || '—'} />
             <WithConfirm title="Are you sure to disconnect your Microsoft Teams account?" confirmText="Disconnect">
               <Button
@@ -51,7 +52,7 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
                 tooltip={'Unlink MS Teams Account'}
               />
             </WithConfirm>
-          </HorizontalGroup>
+          </Stack>
         </InlineField>
       ) : (
         <div>

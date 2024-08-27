@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { HorizontalGroup, IconButton, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { IconButton, Stack, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
@@ -26,11 +27,11 @@ export const CheatSheet = (props: CheatSheetProps) => {
   return (
     <div className={styles.cheatsheetContainer}>
       <div className={styles.cheatsheetInnerContainer}>
-        <VerticalGroup>
-          <HorizontalGroup justify="space-between">
+        <Stack direction="column">
+          <Stack justifyContent="space-between">
             <Text strong>{cheatSheetName} cheatsheet</Text>
             <IconButton aria-label="Close" name="times" onClick={onClose} />
-          </HorizontalGroup>
+          </Stack>
           <Text type="secondary">{cheatSheetData.description}</Text>
           <div className={utils.width100}>
             {cheatSheetData.fields?.map((field: CheatSheetItem) => {
@@ -41,7 +42,7 @@ export const CheatSheet = (props: CheatSheetProps) => {
               );
             })}
           </div>
-        </VerticalGroup>
+        </Stack>
       </div>
     </div>
   );
@@ -60,7 +61,7 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
       {field.listItems?.map((item, key) => {
         return (
           <div key={key}>
-            <VerticalGroup spacing="md">
+            <Stack direction="column" gap={StackSize.md}>
               {item.listItemName && (
                 <li style={{ margin: '0 0 0 4px' }}>
                   <Text>{item.listItemName}</Text>
@@ -69,18 +70,18 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
               {item.codeExample && (
                 <div className={bem(styles.cheatsheetItem, 'small')}>
                   <Block bordered fullWidth withBackground>
-                    <HorizontalGroup justify="space-between">
+                    <Stack justifyContent="space-between">
                       <Text type="link" className={styles.code}>
                         {item.codeExample}
                       </Text>
                       <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
                         <IconButton aria-label="Copy" name="copy" />
                       </CopyToClipboard>
-                    </HorizontalGroup>
+                    </Stack>
                   </Block>
                 </div>
               )}
-            </VerticalGroup>
+            </Stack>
           </div>
         );
       })}
