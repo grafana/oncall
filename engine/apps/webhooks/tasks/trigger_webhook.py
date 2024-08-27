@@ -8,6 +8,7 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Prefetch
+from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
@@ -45,6 +46,7 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_ESCALATION_STEP: "escalation",
     Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
     Webhook.TRIGGER_STATUS_CHANGE: "status change",
+    Webhook.TRIGGER_MANUAL: "manual",
 }
 
 
@@ -106,6 +108,8 @@ def _build_payload(
     elif payload_trigger_type == Webhook.TRIGGER_SILENCE:
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
+    elif payload_trigger_type == Webhook.TRIGGER_MANUAL:
+        event["time"] = _isoformat_date(timezone.now())
 
     # include latest response data per webhook in the event input data
     # exclude past responses from webhook being executed

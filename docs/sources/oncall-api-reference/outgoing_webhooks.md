@@ -134,6 +134,7 @@ For more detail, refer to [Event types](ref:event-types).
 - `unresolve`
 - `unacknowledge`
 - `status change`
+- `manual`
 
 ### HTTP Methods
 

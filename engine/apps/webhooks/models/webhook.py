@@ -88,7 +88,8 @@ class Webhook(models.Model):
         TRIGGER_UNRESOLVE,
         TRIGGER_UNACKNOWLEDGE,
         TRIGGER_STATUS_CHANGE,
-    ) = range(9)
+        TRIGGER_MANUAL,
+    ) = range(10)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -101,6 +102,7 @@ class Webhook(models.Model):
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
         (TRIGGER_STATUS_CHANGE, "Status change"),
+        (TRIGGER_MANUAL, "Manual"),
     )
 
     ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
@@ -123,6 +125,7 @@ class Webhook(models.Model):
         TRIGGER_UNRESOLVE: "unresolve",
         TRIGGER_UNACKNOWLEDGE: "unacknowledge",
         TRIGGER_STATUS_CHANGE: "status change",
+        TRIGGER_MANUAL: "manual",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]

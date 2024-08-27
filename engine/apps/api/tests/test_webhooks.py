@@ -859,6 +859,90 @@ def test_create_invalid_missing_fields(webhook_internal_api_setup, make_user_aut
 
 
 @pytest.mark.django_db
+def test_webhook_filter_by_trigger_type(
+    make_organization_and_user_with_plugin_token,
+    make_custom_webhook,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    webhook_on_ack = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE)
+    make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_MANUAL)
+
+    client = APIClient()
+
+    # no filter
+    url = reverse("api-internal:webhooks-list")
+    response = client.get(
+        url,
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 2
+
+    # test filter on type
+    url = reverse("api-internal:webhooks-list")
+    response = client.get(
+        f"{url}?trigger_type={Webhook.TRIGGER_ACKNOWLEDGE}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 1
+    assert response.json()[0]["id"] == webhook_on_ack.public_primary_key
+
+    # test filter empty results
+    response = client.get(
+        f"{url}?trigger_type={Webhook.TRIGGER_STATUS_CHANGE}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert len(response.json()) == 0
+
+
+@pytest.mark.django_db
+def test_webhook_filter_by_integration(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_custom_webhook,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    webhook_all = make_custom_webhook(organization)
+    integration = make_alert_receive_channel(organization)
+    webhook_for_integration = make_custom_webhook(organization)
+    webhook_for_integration.filtered_integrations.add(integration)
+    another_integration = make_alert_receive_channel(organization)
+    another_webhook = make_custom_webhook(organization)
+    another_webhook.filtered_integrations.add(another_integration)
+
+    client = APIClient()
+
+    # no filter
+    url = reverse("api-internal:webhooks-list")
+    response = client.get(
+        url,
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 3
+
+    # test filter on integration
+    url = reverse("api-internal:webhooks-list")
+    response = client.get(
+        f"{url}?integration={integration.public_primary_key}",
+        content_type="application/json",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()) == 2
+    expected = {webhook_all.public_primary_key, webhook_for_integration.public_primary_key}
+    assert set(w["id"] for w in response.json()) == expected
+
+
+@pytest.mark.django_db
 def test_webhook_filter_by_labels(
     make_organization_and_user_with_plugin_token,
     make_custom_webhook,
@@ -1079,3 +1163,93 @@ def test_team_not_updated_if_not_in_data(
 
     webhook.refresh_from_db()
     assert webhook.team == team
+
+
+@pytest.mark.django_db
+def test_webhook_trigger_manual(
+    make_organization_and_user_with_plugin_token,
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    integration = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(integration)
+    webhook_on_ack = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE)
+    webhook_manual = make_custom_webhook(organization, trigger_type=Webhook.TRIGGER_MANUAL)
+
+    client = APIClient()
+    url = reverse("api-internal:webhooks-trigger-manual", kwargs={"pk": webhook_manual.public_primary_key})
+    data = {"alert_group": alert_group.public_primary_key}
+
+    # success
+    with patch("apps.api.views.webhooks.execute_webhook") as mock_execute:
+        response = client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json",
+            **make_user_auth_headers(user, token),
+        )
+    assert response.status_code == status.HTTP_200_OK
+    mock_execute.apply_async.assert_called_once_with(
+        (webhook_manual.pk, alert_group.pk, user.pk, None), kwargs={"trigger_type": Webhook.TRIGGER_MANUAL}
+    )
+
+    # filtering integration
+    webhook_manual.filtered_integrations.add(integration)
+    with patch("apps.api.views.webhooks.execute_webhook") as mock_execute:
+        response = client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json",
+            **make_user_auth_headers(user, token),
+        )
+    assert response.status_code == status.HTTP_200_OK
+    mock_execute.apply_async.assert_called_once_with(
+        (webhook_manual.pk, alert_group.pk, user.pk, None), kwargs={"trigger_type": Webhook.TRIGGER_MANUAL}
+    )
+
+    # exclude integration
+    another_integration = make_alert_receive_channel(organization)
+    webhook_manual.filtered_integrations.set([another_integration])
+    with patch("apps.api.views.webhooks.execute_webhook") as mock_execute:
+        response = client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json",
+            **make_user_auth_headers(user, token),
+        )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert mock_execute.apply_async.call_count == 0
+
+    # invalid trigger type
+    url = reverse("api-internal:webhooks-trigger-manual", kwargs={"pk": webhook_on_ack.public_primary_key})
+    data = {"alert_group": alert_group.public_primary_key}
+
+    with patch("apps.api.views.webhooks.execute_webhook") as mock_execute:
+        response = client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json",
+            **make_user_auth_headers(user, token),
+        )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert mock_execute.apply_async.call_count == 0
+
+    # alert group from different org
+    another_org = make_organization()
+    another_org_integration = make_alert_receive_channel(another_org)
+    another_org_alert_group = make_alert_group(another_org_integration)
+    url = reverse("api-internal:webhooks-trigger-manual", kwargs={"pk": webhook_manual.public_primary_key})
+    data = {"alert_group": another_org_alert_group.public_primary_key}
+    with patch("apps.api.views.webhooks.execute_webhook") as mock_execute:
+        response = client.post(
+            url,
+            data=json.dumps(data),
+            content_type="application/json",
+            **make_user_auth_headers(user, token),
+        )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert mock_execute.apply_async.call_count == 0

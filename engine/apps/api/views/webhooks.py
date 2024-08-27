@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.alerts.models import AlertGroup, AlertReceiveChannel
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
@@ -19,9 +20,15 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.labels.utils import is_labels_feature_enabled
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
+from apps.webhooks.tasks import execute_webhook
 from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
+from common.api_helpers.filters import (
+    ByTeamModelFieldFilterMixin,
+    ModelFieldFilterMixin,
+    MultipleChoiceCharFilter,
+    TeamModelMultipleChoiceFilter,
+)
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -38,8 +45,30 @@ WEBHOOK_TRIGGER_DATA = "data"
 WEBHOOK_TEMPLATE_NAMES = [WEBHOOK_URL, WEBHOOK_HEADERS, WEBHOOK_TRIGGER_TEMPLATE, WEBHOOK_TRIGGER_DATA]
 
 
+def get_integration_queryset(request):
+    if request is None:
+        return AlertReceiveChannel.objects.none()
+
+    return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
+
+
 class WebhooksFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     team = TeamModelMultipleChoiceFilter()
+    trigger_type = filters.MultipleChoiceFilter(choices=Webhook.TRIGGER_TYPES)
+    integration = MultipleChoiceCharFilter(
+        field_name="filtered_integrations",
+        queryset=get_integration_queryset,
+        to_field_name="public_primary_key",
+        method="filter_integration",
+    )
+
+    def filter_integration(self, queryset, name, value):
+        if not value:
+            return queryset
+        lookup_kwargs = {f"{name}__in": value}
+        # include webhooks without filtered_integrations set (ie. apply to all integrations)
+        queryset = queryset.filter(**lookup_kwargs) | queryset.filter(filtered_integrations__isnull=True)
+        return queryset
 
 
 class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelViewSet):
@@ -58,6 +87,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "preset_options": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "trigger_manual": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
     }
 
     model = Webhook
@@ -150,6 +180,12 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
                 "href": api_root + "teams/",
                 "global": True,
             },
+            {
+                "name": "trigger_type",
+                "type": "options",
+                "options": [{"display_name": label, "value": value} for value, label in Webhook.TRIGGER_TYPES],
+            },
+            {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
         ]
 
         if is_labels_feature_enabled(self.request.auth.organization):
@@ -213,3 +249,32 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
     def preset_options(self, request):
         result = [asdict(preset) for preset in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES]
         return Response(result)
+
+    @action(methods=["post"], detail=True)
+    def trigger_manual(self, request, pk):
+        user = self.request.user
+        organization = self.request.auth.organization
+        webhook = self.get_object()
+        if webhook.trigger_type != Webhook.TRIGGER_MANUAL:
+            raise BadRequest(detail={"trigger_type": "This webhook is not manually triggerable."})
+
+        alert_group_ppk = request.data.get("alert_group")
+        if not alert_group_ppk:
+            raise BadRequest(detail={"alert_group": "This field is required."})
+
+        alert_groups = AlertGroup.objects.filter(
+            channel__organization=organization,
+            public_primary_key=alert_group_ppk,
+        )
+        # check for filtered integrations
+        if webhook.filtered_integrations.exists():
+            alert_groups = alert_groups.filter(channel_id__in=webhook.filtered_integrations.all())
+        try:
+            alert_group = alert_groups.get()
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        execute_webhook.apply_async(
+            (webhook.pk, alert_group.pk, user.pk, None), kwargs={"trigger_type": Webhook.TRIGGER_MANUAL}
+        )
+        return Response(status=status.HTTP_200_OK)
