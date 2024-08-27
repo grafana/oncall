@@ -63,6 +63,10 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
         path("slack/", include("apps.slack.urls")),
     ]
 
+if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
+    urlpatterns += [
+        path("api/internal/v1/mattermost/", include("apps.mattermost.urls", namespace="mattermost")),
+    ]
 
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
