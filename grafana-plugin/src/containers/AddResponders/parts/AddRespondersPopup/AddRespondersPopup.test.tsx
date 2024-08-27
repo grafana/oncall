@@ -1,11 +1,4 @@
-import React from 'react';
-
-import { render, waitFor } from '@testing-library/react';
-import { Provider } from 'mobx-react';
-
 import { UserHelper } from 'models/user/user.helpers';
-
-import { AddRespondersPopup } from './AddRespondersPopup';
 
 describe('AddRespondersPopup', () => {
   const teams = [

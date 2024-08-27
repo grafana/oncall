@@ -11,7 +11,7 @@ describe('TeamResponder', () => {
   const team = {
     avatar_url: 'https://example.com',
     name: 'my test team',
-  } as GrafanaTeam
+  } as GrafanaTeam;
 
   test('it calls the delete callback', async () => {
     const handleDelete = jest.fn();
