@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -13,7 +13,7 @@ interface TextEllipsisTooltipProps {
   queryClassName?: string;
   placement?: string;
   className?: string;
-  children: JSX.Element | JSX.Element[];
+  children: ReactElement | ReactElement[];
 }
 
 export const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
