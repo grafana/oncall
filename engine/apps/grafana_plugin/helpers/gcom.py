@@ -28,7 +28,13 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
     stack_id = context["stack_id"]
     org_id = context["org_id"]
     grafana_token = context["grafana_token"]
-    organization = Organization.objects.filter(stack_id=stack_id, org_id=org_id).first()
+    organization = Organization.objects_with_deleted.filter(stack_id=stack_id, org_id=org_id).first()
+
+    if organization and organization.deleted_at:
+        # if an organization has been deleted, it should not be allowed to be automatically reactivated
+        # (it should go through a manual request and process)
+        raise InvalidToken
+
     if (
         organization
         and organization.gcom_token == token_string
