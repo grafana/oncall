@@ -197,6 +197,9 @@ class MobileAppGatewayView(APIView):
         downstream_path = kwargs["downstream_path"]
         method = request.method
         user = request.user
+        org = user.organization
+        if not org.is_grafana_incident_enabled:
+            raise NotFound(f"Incident is not enabled for organization {org.pk}")
 
         if downstream_backend not in self.ALL_SUPPORTED_DOWNSTREAM_BACKENDS:
             raise NotFound(f"Downstream backend {downstream_backend} not supported")
@@ -208,6 +211,8 @@ class MobileAppGatewayView(APIView):
 
         downstream_request_handler = getattr(requests, method.lower())
 
+        final_status = None
+        response_data = None
         try:
             downstream_response = downstream_request_handler(
                 downstream_url,
@@ -217,8 +222,12 @@ class MobileAppGatewayView(APIView):
                 timeout=PROXY_REQUESTS_TIMEOUT,  # set a timeout to prevent hanging
             )
             final_status = downstream_response.status_code
+            response_data = downstream_response.json()
             logger.info(f"Successfully proxied {log_msg_common}")
-            return Response(status=downstream_response.status_code, data=downstream_response.json())
+            # raise an exception if the response status code is not 2xx
+            # (exception handler will log and still return the response)
+            downstream_response.raise_for_status()
+            return Response(status=downstream_response.status_code, data=response_data)
         except (
             requests.exceptions.RequestException,
             requests.exceptions.JSONDecodeError,
@@ -229,7 +238,7 @@ class MobileAppGatewayView(APIView):
                 final_status = status.HTTP_400_BAD_REQUEST
             elif isinstance(e, requests.exceptions.Timeout):
                 final_status = status.HTTP_504_GATEWAY_TIMEOUT
-            else:
+            elif final_status is None:
                 final_status = status.HTTP_502_BAD_GATEWAY
 
             logger.error(
@@ -243,7 +252,7 @@ class MobileAppGatewayView(APIView):
                 ),
                 exc_info=True,
             )
-            return Response(status=final_status)
+            return Response(status=final_status, data=response_data)
         finally:
             request_end = time.perf_counter()
             seconds = request_end - request_start
