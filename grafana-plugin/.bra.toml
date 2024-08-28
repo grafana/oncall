@@ -4,7 +4,8 @@
 [run]
 init_cmds = [
   ["mage", "-v", "build:debugLinuxARM64"],
-  ["mage", "-v" , "reloadPlugin"]
+  ["mage", "-v", "build:debugLinuxAMD64"],
+  ["mage", "-v" , "reloadPlugin"],
 ]
 watch_all = true
 follow_symlinks = false
@@ -18,5 +19,6 @@ watch_exts = [".go", ".json"]
 build_delay = 2000
 cmds = [
   ["mage", "-v", "build:debugLinuxARM64"],
-  ["mage", "-v" , "reloadPlugin"]
+  ["mage", "-v", "build:debugLinuxAMD64"],
+  ["mage", "-v" , "reloadPlugin"],
 ]
