@@ -77,7 +77,7 @@ function DeclareIncidentMenuItem({ extensions, declareIncidentLink, grafanaIncid
   );
 }
 
-function renderItems(extensions: Array<Partial<PluginExtensionLink>>): JSX.Element[] {
+function renderItems(extensions: Array<Partial<PluginExtensionLink>>): ReactElement[] {
   return extensions.map((extension) => (
     <Menu.Item
       ariaLabel={extension.title}
