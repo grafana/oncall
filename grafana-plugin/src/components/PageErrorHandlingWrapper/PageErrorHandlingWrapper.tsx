@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -33,7 +33,7 @@ export const PageErrorHandlingWrapper = function ({
   pageName: string;
   itemNotFoundMessage?: string;
   children: () => React.ReactNode;
-}): JSX.Element {
+}): ReactElement {
   const styles = useStyles2(getStyles);
 
   useEffect(() => {
