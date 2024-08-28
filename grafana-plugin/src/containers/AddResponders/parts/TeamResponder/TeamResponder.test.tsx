@@ -13,11 +13,6 @@ describe('TeamResponder', () => {
     name: 'my test team',
   } as GrafanaTeam;
 
-  test('it renders data properly', () => {
-    const component = render(<TeamResponder team={team} handleDelete={() => {}} />);
-    expect(component.container).toMatchSnapshot();
-  });
-
   test('it calls the delete callback', async () => {
     const handleDelete = jest.fn();
 

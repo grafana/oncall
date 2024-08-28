@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, HorizontalGroup, Drawer, VerticalGroup } from '@grafana/ui';
+import { Button, Drawer, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -165,13 +165,13 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
     <Drawer
       title={
         <div className={cx('title-container')}>
-          <HorizontalGroup justify="space-between" align="flex-start">
-            <VerticalGroup>
+          <Stack justifyContent="space-between" alignItems="flex-start">
+            <Stack direction="column">
               <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
               {template.description && <Text type="secondary">{template.description}</Text>}
-            </VerticalGroup>
+            </Stack>
 
-            <HorizontalGroup>
+            <Stack>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
@@ -182,8 +182,8 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
                   Save
                 </Button>
               </WithPermissionControlTooltip>
-            </HorizontalGroup>
-          </HorizontalGroup>
+            </Stack>
+          </Stack>
         </div>
       }
       onClose={onHide}
@@ -231,13 +231,13 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
       <>
         <div className={cx('template-block-codeeditor')}>
           <div className={cx('template-editor-block-title')}>
-            <HorizontalGroup justify="space-between" align="center" wrap>
+            <Stack justifyContent="space-between" alignItems="center" wrap="wrap">
               <Text>Template editor</Text>
 
               <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
                 Cheatsheet
               </Button>
-            </HorizontalGroup>
+            </Stack>
           </div>
           <div className={cx('template-editor-block-content')}>
             <MonacoEditor

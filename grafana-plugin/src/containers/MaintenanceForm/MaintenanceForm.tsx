@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, Field, HorizontalGroup, Select, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, Drawer, Field, Select, Stack, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -74,7 +74,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   return (
     <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
       <div className={cx('content')} data-testid="maintenance-mode-drawer">
-        <VerticalGroup>
+        <Stack direction="column">
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
           trigger false alarms.
           <FormProvider {...formMethods}>
@@ -182,7 +182,7 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
                   </Field>
                 )}
               />
-              <HorizontalGroup justify="flex-end">
+              <Stack justifyContent="flex-end">
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
@@ -191,10 +191,10 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
                     Start
                   </Button>
                 </WithPermissionControlTooltip>
-              </HorizontalGroup>
+              </Stack>
             </form>
           </FormProvider>
-        </VerticalGroup>
+        </Stack>
       </div>
     </Drawer>
   );

@@ -4,7 +4,7 @@
 [run]
 init_cmds = [
   ["mage", "-v", "build:debug"],
-  ["mage", "-v" , "reloadPlugin"]
+  ["mage", "-v" , "reloadPlugin"],
 ]
 watch_all = true
 follow_symlinks = false
@@ -18,5 +18,5 @@ watch_exts = [".go", ".json"]
 build_delay = 2000
 cmds = [
   ["mage", "-v", "build:debug"],
-  ["mage", "-v" , "reloadPlugin"]
+  ["mage", "-v" , "reloadPlugin"],
 ]

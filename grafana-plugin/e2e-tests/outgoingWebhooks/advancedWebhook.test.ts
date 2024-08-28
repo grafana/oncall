@@ -22,12 +22,14 @@ test('create advanced webhook and check it is displayed on the list correctly', 
   // Enter webhook name
   await webhooksFormDivs.locator('[name=name]').fill(WEBHOOK_NAME);
 
-  // Select team
-  await page.getByLabel('New Outgoing Webhook').getByRole('img').nth(1).click(); // Open team dropdown
-  await page.getByLabel('Select options menu').getByText('No team').click(); // Select "No team"
+  // Open team dropdown
+  await page.getByTestId('team-selector').locator('div').filter({ hasText: 'Choose (Optional)' }).nth(1).click();
+  // Set No Team
+  await page.getByLabel('Select options menu').getByText('No team').click();
 
   // Select trigger type
-  await webhooksFormDivs.filter({ hasText: 'Trigger Type' }).getByRole('img').click();
+  await page.getByTestId('triggerType-selector').locator('div').nth(1).click();
+
   await page.getByLabel('Select options menu').getByText('Resolved', { exact: true }).click();
 
   // Select integration

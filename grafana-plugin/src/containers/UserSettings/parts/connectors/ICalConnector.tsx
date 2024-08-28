@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Alert, Button, HorizontalGroup, InlineField, Input, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import { Alert, Button, InlineField, Input, LoadingPlaceholder, Stack, Tooltip } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -9,6 +9,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -65,7 +66,7 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                     labelWidth={12}
                     tooltip={'Secret iCal export link to add your assigned on call shifts to your calendar'}
                   >
-                    <HorizontalGroup spacing="xs">
+                    <Stack gap={StackSize.xs}>
                       <Tooltip content={'In case you lost your iCal link you can revoke it and generate a new one.'}>
                         <Input disabled value={showiCalLink} />
                       </Tooltip>
@@ -79,7 +80,7 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                           Copy
                         </Button>
                       </CopyToClipboard>
-                    </HorizontalGroup>
+                    </Stack>
                   </InlineField>
                   <Alert severity="warning" title="Make sure you copy it - you won't be able to access it again." />
                 </>
@@ -91,7 +92,7 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                       labelWidth={12}
                       tooltip={'Secret iCal export link to add your assigned on call shifts to your calendar'}
                     >
-                      <HorizontalGroup spacing="xs">
+                      <Stack gap={StackSize.xs}>
                         <Tooltip content={'In case you lost your iCal link you can revoke it and generate a new one.'}>
                           <Input value={'***'} />
                         </Tooltip>
@@ -110,7 +111,7 @@ export const ICalConnector = (props: ICalConnectorProps) => {
                             Revoke
                           </Button>
                         </WithConfirm>
-                      </HorizontalGroup>
+                      </Stack>
                     </InlineField>
                   </WithPermissionControlTooltip>
                 </>

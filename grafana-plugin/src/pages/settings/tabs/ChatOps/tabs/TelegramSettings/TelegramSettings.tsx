@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Badge, Button, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -15,7 +15,7 @@ import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types'
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
+import { DOCS_TELEGRAM_SETUP, StackSize } from 'utils/consts';
 
 import styles from './TelegramSettings.module.css';
 
@@ -48,10 +48,10 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
     if (!telegramConfigured && store.hasFeature(AppFeature.LiveSettings)) {
       return (
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock')}>
-            <VerticalGroup align="center">
+            <Stack direction="column" alignItems="center">
               <div className={cx('infoblock-icon')}>
                 <TelegramColorIcon />
               </div>
@@ -68,12 +68,12 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
-            </VerticalGroup>
+            </Stack>
           </Block>
           <PluginLink query={{ page: 'live-settings' }}>
             <Button variant="primary">Setup ENV Variables</Button>
           </PluginLink>
-        </VerticalGroup>
+        </Stack>
       );
     }
 
@@ -83,10 +83,10 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
     if (!connectedChannels.length) {
       return (
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock')}>
-            <VerticalGroup align="center">
+            <Stack direction="column" alignItems="center">
               <div className={cx('infoblock-icon')}>
                 <TelegramColorIcon />
               </div>
@@ -99,7 +99,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
-            </VerticalGroup>
+            </Stack>
           </Block>
           <Text>
             <Text.Title level={4}>Features</Text.Title>
@@ -112,15 +112,15 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
             </div>
             Make sure your team connects Telegram in their OnCall user profiles too or they cannot manage alert groups.
           </Text>
-          <HorizontalGroup>
+          <Stack>
             <TelegramIntegrationButton size="md" onUpdate={this.update} />
             {store.hasFeature(AppFeature.LiveSettings) && (
               <PluginLink query={{ page: 'live-settings' }}>
                 <Button variant="secondary">See ENV Variables</Button>
               </PluginLink>
             )}
-          </HorizontalGroup>
-        </VerticalGroup>
+          </Stack>
+        </Stack>
       );
     }
 
@@ -177,7 +177,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
   renderActionButtons = (record: TelegramChannel) => {
     return (
-      <HorizontalGroup justify="flex-end">
+      <Stack justifyContent="flex-end">
         <Button
           onClick={() => this.makeTelegramChannelDefault(record.id)}
           disabled={record.is_default_channel}
@@ -190,7 +190,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
             Disconnect
           </Button>
         </WithConfirm>
-      </HorizontalGroup>
+      </Stack>
     );
   };
 

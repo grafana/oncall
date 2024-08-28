@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Alert, Button, HorizontalGroup, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { Alert, Button, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { useFormContext } from 'react-hook-form';
 
@@ -43,7 +43,7 @@ export const ServiceNowAuthSection = observer(
           />
         </RenderConditionally>
 
-        <HorizontalGroup>
+        <Stack>
           <Button className={''} variant="secondary" onClick={onAuthTest} disabled={isAuthTestRunning}>
             Test Connection
           </Button>
@@ -52,7 +52,7 @@ export const ServiceNowAuthSection = observer(
               <LoadingPlaceholder text="Loading..." className={styles.loader} />
             </RenderConditionally>
           </div>
-        </HorizontalGroup>
+        </Stack>
       </div>
     );
 

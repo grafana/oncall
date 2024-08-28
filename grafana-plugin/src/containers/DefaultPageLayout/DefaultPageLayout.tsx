@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, ReactElement } from 'react';
 
 import { NavModelItem } from '@grafana/data';
 import { PluginPage } from 'PluginPage';
@@ -28,7 +28,7 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
 
   return renderLegacyNavbar();
 
-  function renderTopNavbar(): JSX.Element {
+  function renderTopNavbar(): ReactElement {
     return (
       <PluginPage page={page} pageNav={pageNav as any}>
         <div className={cx('root')}>{children}</div>
@@ -36,7 +36,7 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
     );
   }
 
-  function renderLegacyNavbar(): JSX.Element {
+  function renderLegacyNavbar(): ReactElement {
     return (
       <PluginPage page={page}>
         <div className="page-container u-height-100">

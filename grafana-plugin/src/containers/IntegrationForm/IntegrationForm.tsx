@@ -4,7 +4,6 @@ import { SelectableValue } from '@grafana/data';
 import {
   Button,
   Field,
-  HorizontalGroup,
   Icon,
   Input,
   Label,
@@ -14,7 +13,7 @@ import {
   Switch,
   TextArea,
   Tooltip,
-  VerticalGroup,
+  Stack,
   useStyles2,
 } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -37,7 +36,13 @@ import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integrat
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, generateAssignToTeamInputDescription, DOCS_ROOT, INTEGRATION_SERVICENOW } from 'utils/consts';
+import {
+  PLUGIN_ROOT,
+  generateAssignToTeamInputDescription,
+  DOCS_ROOT,
+  INTEGRATION_SERVICENOW,
+  StackSize,
+} from 'utils/consts';
 import { useIsLoading } from 'utils/hooks';
 import { validateURL } from 'utils/string';
 import { OmitReadonlyMembers } from 'utils/types';
@@ -296,17 +301,17 @@ export const IntegrationForm = observer(
 
           <RenderConditionally shouldRender={isServiceNow && isNew}>
             <div className={styles.serviceNowHeading}>
-              <HorizontalGroup>
+              <Stack>
                 <Text type="primary">ServiceNow configuration</Text>
-              </HorizontalGroup>
-              <HorizontalGroup>
+              </Stack>
+              <Stack>
                 <Text type={'primary'} size={'small'}>
                   Fill in ServiceNow credentials to be used by Grafana OnCall.{' '}
                   <a href={`${DOCS_ROOT}/integrations/servicenow/`} target="_blank" rel="noreferrer">
                     <Text type="link">Read setup guide</Text>
                   </a>
                 </Text>
-              </HorizontalGroup>
+              </Stack>
             </div>
 
             <Controller
@@ -382,7 +387,7 @@ export const IntegrationForm = observer(
           </RenderConditionally>
 
           <div>
-            <HorizontalGroup justify="flex-end">
+            <Stack justifyContent="flex-end">
               {id === 'new' ? (
                 <Button variant="secondary" onClick={onBackClick}>
                   Back
@@ -396,7 +401,7 @@ export const IntegrationForm = observer(
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 {renderUpdateIntegrationButton(id)}
               </WithPermissionControlTooltip>
-            </HorizontalGroup>
+            </Stack>
           </div>
         </form>
       </FormProvider>
@@ -543,13 +548,13 @@ const GrafanaContactPoint = observer(
 
     return (
       <div className={styles.extraFields}>
-        <VerticalGroup spacing="md">
-          <HorizontalGroup spacing="xs" align="center">
+        <Stack direction="column" gap={StackSize.md}>
+          <Stack gap={StackSize.xs} alignItems="center">
             <Text type="primary" size="small">
               Grafana Alerting Contact point
             </Text>
             <Icon name="info-circle" />
-          </HorizontalGroup>
+          </Stack>
 
           <div className={styles.extraFieldsRadio}>
             <Controller
@@ -625,7 +630,7 @@ const GrafanaContactPoint = observer(
               )}
             />
           </div>
-        </VerticalGroup>
+        </Stack>
       </div>
     );
 

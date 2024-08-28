@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 
 import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
@@ -7,8 +7,8 @@ interface ScheduleBorderedAvatarProps {
   colors: string[];
   width: number;
   height: number;
-  renderAvatar: () => JSX.Element;
-  renderIcon: () => JSX.Element;
+  renderAvatar: () => ReactElement;
+  renderIcon: () => ReactElement;
 }
 
 export const ScheduleBorderedAvatar = function ({

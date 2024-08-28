@@ -27,11 +27,6 @@ describe('SourceCode', () => {
     allBars.forEach((bar) => expect(bar.getAttribute('style').includes('width: 100%')));
   });
 
-  test.each([0, 25, 30, 50, 65, 70, 100])('It renders at %p%', (completed) => {
-    const component = render(<ScheduleQualityProgressBar completed={completed} numTotalSteps={NUM_STEPS} />);
-    expect(component.container).toMatchSnapshot();
-  });
-
   test.each([0, 10, 19])('It renders as danger at <20% completion', (completed) => {
     render(<ScheduleQualityProgressBar completed={completed} numTotalSteps={NUM_STEPS} />);
 

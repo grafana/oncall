@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { ReactElement, useEffect } from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Stack, useStyles2 } from '@grafana/ui';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 import { openWarningNotification } from 'utils/utils';
 
 export interface PageBaseState {
@@ -32,7 +33,7 @@ export const PageErrorHandlingWrapper = function ({
   pageName: string;
   itemNotFoundMessage?: string;
   children: () => React.ReactNode;
-}): JSX.Element {
+}): ReactElement {
   const styles = useStyles2(getStyles);
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export const PageErrorHandlingWrapper = function ({
 
   return (
     <div className={styles.notFound}>
-      <VerticalGroup spacing="lg" align="center">
+      <Stack direction="column" gap={StackSize.lg} alignItems="center">
         <Text.Title level={1} className={styles.errorCode}>
           403
         </Text.Title>
@@ -66,7 +67,7 @@ export const PageErrorHandlingWrapper = function ({
         <Text type="secondary">
           Or return to the <PluginLink query={{ page: pageName }}>{objectName} list</PluginLink>
         </Text>
-      </VerticalGroup>
+      </Stack>
     </div>
   );
 };

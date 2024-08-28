@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, Icon, VerticalGroup, Field, Input } from '@grafana/ui';
+import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -10,6 +10,7 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MSTeamsInstructions.module.css';
@@ -40,36 +41,36 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
   };
 
   return (
-    <VerticalGroup align="flex-start" spacing="lg">
+    <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
       {!personalSettings && <Text.Title level={2}>Connect MS Teams workspace</Text.Title>}
       {showInfoBox && (
         <Block bordered withBackground className={cx('info-block')}>
-          <VerticalGroup align="center">
+          <Stack direction="column" alignItems="center">
             <div style={{ width: '60px', marginTop: '24px' }}>
               <MSTeamsLogo />
             </div>
             <Text>You can manage alert groups in your Microsoft Teams workspace.</Text>
             <br />
             {personalSettings ? (
-              <VerticalGroup align="center">
+              <Stack direction="column" alignItems="center">
                 <Text>This setup is for direct profile connection with bot. </Text>
                 <br />
                 <Text className={cx('infoblock-text')}>
                   To manage alert groups in Team channel, setup{' '}
                   <PluginLink query={{ page: 'chat-ops', tab: 'MSTeams' }}>Team ChatOps</PluginLink>
                 </Text>
-              </VerticalGroup>
+              </Stack>
             ) : (
-              <VerticalGroup align="center">
+              <Stack direction="column" alignItems="center">
                 <Text>This setup is for Team channel connection with bot. </Text>
                 <br />
                 <Text className={cx('infoblock-text')}>
                   To manage alert groups in Direct Messages and verify users who are allowed to operate with MS Teams,
                   setup <PluginLink query={{ page: 'users', id: 'me' }}>personal MS Teams connection</PluginLink>
                 </Text>
-              </VerticalGroup>
+              </Stack>
             )}
-          </VerticalGroup>
+          </Stack>
         </Block>
       )}
 
@@ -126,6 +127,6 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
           <Button onClick={handleMSTeamsGetChannels}>Done</Button>
         </div>
       )}
-    </VerticalGroup>
+    </Stack>
   );
 });

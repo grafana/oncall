@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
-import { HorizontalGroup, VerticalGroup, Modal, Tooltip, Icon, Button } from '@grafana/ui';
+import { Stack, Modal, Tooltip, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -13,6 +13,7 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
 import styles from './EditRegexpRouteTemplateModal.module.css';
@@ -78,9 +79,9 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
       title="Edit regular expression template"
       className={cx('regexp-template-editor-modal')}
     >
-      <VerticalGroup spacing="lg">
-        <VerticalGroup spacing="xs">
-          <HorizontalGroup spacing={'xs'}>
+      <Stack direction="column" gap={StackSize.lg}>
+        <Stack direction="column" gap={StackSize.xs}>
+          <Stack gap={StackSize.xs}>
             <Text type={'secondary'}>Regular expression</Text>
             <Tooltip
               content={'Use python style regex to filter incidents based on a expression'}
@@ -88,7 +89,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
             >
               <Icon name={'info-circle'} />
             </Tooltip>
-          </HorizontalGroup>
+          </Stack>
 
           <div className={cx('regexp-template-code', { 'regexp-template-code-error': showErrorTemplate })}>
             <MonacoEditor
@@ -99,16 +100,16 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
               onChange={handleRegexpBodyChange()}
             />
           </div>
-        </VerticalGroup>
-        <VerticalGroup>
+        </Stack>
+        <Stack direction="column">
           <Text>Click "Convert to Jinja2" for a rich editor with debugger and additional functionality</Text>
           <Text type={'secondary'}>Your template will be saved as the jinja2 template below</Text>
-        </VerticalGroup>
+        </Stack>
         <Block bordered fullWidth withBackground>
           <Text type="link">{templateJinja2Body}</Text>
         </Block>
 
-        <HorizontalGroup justify={'flex-end'}>
+        <Stack justifyContent={'flex-end'}>
           <Button variant={'secondary'} onClick={onHide}>
             Cancel
           </Button>
@@ -118,8 +119,8 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
           <Button variant={'primary'} onClick={() => handleSave()}>
             Save
           </Button>
-        </HorizontalGroup>
-      </VerticalGroup>
+        </Stack>
+      </Stack>
     </Modal>
   );
 });

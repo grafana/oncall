@@ -70,7 +70,7 @@ func (a *App) GetTeamsForUser(settings *OnCallPluginSettings, onCallUser *OnCall
 	var result []Team
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	if res.StatusCode == 200 {
@@ -115,7 +115,7 @@ func (a *App) GetAllTeams(settings *OnCallPluginSettings) ([]OnCallTeam, error) 
 	var result Teams
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	if res.StatusCode == 200 {
@@ -161,7 +161,7 @@ func (a *App) GetTeamsMembersForTeam(settings *OnCallPluginSettings, onCallTeam 
 	var result []OrgUser
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	if res.StatusCode == 200 {

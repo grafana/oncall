@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, VerticalGroup, Icon, Badge } from '@grafana/ui';
+import { Stack, Icon, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -18,6 +18,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import styles from './ScheduleUserDetails.module.css';
 
@@ -47,7 +48,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
 
   return (
     <div className={cx('root')} data-testid="schedule-user-details">
-      <VerticalGroup spacing="xs">
+      <Stack direction="column" gap={StackSize.xs}>
         <ScheduleBorderedAvatar
           colors={colorSchemeList}
           width={35}
@@ -56,18 +57,18 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
           renderIcon={() => null}
         />
 
-        <VerticalGroup spacing="xs" width="100%">
+        <Stack direction="column" gap={StackSize.xs} width="100%">
           <div className={cx('username')}>
             <Text type="primary">{user.username}</Text>
           </div>
-          <HorizontalGroup spacing="xs">
+          <Stack gap={StackSize.xs}>
             {isOncall && <Badge text="On-call" color="green" />}
             {isInWH ? (
               <Badge text="Inside working hours" color="blue" />
             ) : (
               <Badge text="Outside working hours" color="orange" />
             )}
-          </HorizontalGroup>
+          </Stack>
           <div className={cx('user-timezones')}>
             <div className={cx('timezone-icon')}>
               <Text type="secondary">
@@ -76,28 +77,28 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
             </div>
             <div className={cx('timezone-wrapper')}>
               <div className={cx('timezone-info')} data-testid="schedule-user-details_your-current-time">
-                <VerticalGroup spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="secondary">Your current time</Text>
                   <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
                   <Text type="secondary">({getTzOffsetString(getCurrentlyLoggedInUserDate())})</Text>
-                </VerticalGroup>
+                </Stack>
               </div>
 
               <div className={cx('timezone-info')} data-testid="schedule-user-details_user-local-time">
-                <VerticalGroup className={cx('timezone-info')} spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
                   <Text>({user.timezone})</Text>
-                </VerticalGroup>
+                </Stack>
               </div>
             </div>
           </div>
-        </VerticalGroup>
+        </Stack>
 
         {isUserActionAllowed(UserActions.UserSettingsAdmin) && (
-          <VerticalGroup spacing="xs">
+          <Stack direction="column" gap={StackSize.xs}>
             <hr className={cx('line-break')} />
-            <VerticalGroup spacing="xs">
+            <Stack direction="column" gap={StackSize.xs}>
               <Text>Contacts</Text>
 
               <div className={cx('contact-details')}>
@@ -144,10 +145,10 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                   <Text type="secondary">{user.verified_phone_number}</Text>
                 </div>
               )}
-            </VerticalGroup>
-          </VerticalGroup>
+            </Stack>
+          </Stack>
         )}
-      </VerticalGroup>
+      </Stack>
     </div>
   );
 });

@@ -76,6 +76,15 @@ type OnCallStatus struct {
 	APIURL                                string                 `json:"api_url"`
 }
 
+func (s *OnCallStatus) AllOk() bool {
+	return s.PluginConnection.Settings.Ok &&
+		s.PluginConnection.GrafanaURLFromPlugin.Ok &&
+		s.PluginConnection.ServiceAccountToken.Ok &&
+		s.PluginConnection.OnCallAPIURL.Ok &&
+		s.PluginConnection.OnCallToken.Ok &&
+		s.PluginConnection.GrafanaURLFromEngine.Ok
+}
+
 func (c *OnCallPluginConnection) ValidateOnCallPluginSettings(settings *OnCallPluginSettings) bool {
 	// TODO: Return all instead of first?
 	if settings.StackID == 0 {
@@ -262,4 +271,7 @@ func (a *App) handleStatus(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
+	if status.AllOk() {
+		a.doSync(req.Context(), false)
+	}
 }

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
+import { InlineSwitch, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -10,6 +10,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import styles from './Connectors.module.css';
 
@@ -40,7 +41,7 @@ export const TelegramConnector = observer(({ channelFilterId }: TelegramConnecto
 
   return (
     <div className={cx('root')}>
-      <HorizontalGroup wrap spacing="sm">
+      <Stack wrap="wrap" gap={StackSize.sm}>
         <div className={cx('slack-channel-switch')}>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
@@ -66,7 +67,7 @@ export const TelegramConnector = observer(({ channelFilterId }: TelegramConnecto
             onChange={handleTelegramChannelChange}
           />
         </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      </Stack>
     </div>
   );
 });

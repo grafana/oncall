@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { Alert, HorizontalGroup, Icon } from '@grafana/ui';
+import { Alert, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -116,27 +116,27 @@ const Tabs = (props: TabsProps) => {
     <VerticalTabsBar activeTab={activeTab} onChange={onTabChange}>
       {store.hasFeature(AppFeature.Slack) && (
         <VerticalTab id={ChatOpsTab.Slack}>
-          <HorizontalGroup>
+          <Stack>
             <Icon name="slack" />
             Slack
-          </HorizontalGroup>
+          </Stack>
         </VerticalTab>
       )}
 
       {store.hasFeature(AppFeature.Telegram) && (
         <VerticalTab id={ChatOpsTab.Telegram}>
-          <HorizontalGroup>
+          <Stack>
             <Icon name="message" />
             Telegram
-          </HorizontalGroup>
+          </Stack>
         </VerticalTab>
       )}
       {store.hasFeature(AppFeature.MsTeams) && (
         <VerticalTab id={ChatOpsTab.MSTeams}>
-          <HorizontalGroup>
+          <Stack>
             <Icon name="microsoft" />
             Microsoft Teams
-          </HorizontalGroup>
+          </Stack>
         </VerticalTab>
       )}
     </VerticalTabsBar>

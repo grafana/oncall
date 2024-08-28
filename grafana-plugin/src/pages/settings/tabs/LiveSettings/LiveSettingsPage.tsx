@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Checkbox, HorizontalGroup, Icon } from '@grafana/ui';
+import { Button, Checkbox, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
@@ -114,10 +114,10 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
           emptyText={data ? 'No variables found' : 'Loading...'}
           title={() => (
             <div className={cx('header')}>
-              <HorizontalGroup>
+              <Stack>
                 <Text.Title level={3}>Env Variables</Text.Title>
-              </HorizontalGroup>
-              <HorizontalGroup justify="flex-end">
+              </Stack>
+              <Stack justifyContent="flex-end">
                 <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
                   <Button
                     variant="primary"
@@ -127,7 +127,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                     {hideValues ? 'Show values' : 'Hide values'}
                   </Button>
                 </WithPermissionControlTooltip>
-              </HorizontalGroup>
+              </Stack>
             </div>
           )}
           rowKey="id"

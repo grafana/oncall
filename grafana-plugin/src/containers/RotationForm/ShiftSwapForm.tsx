@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button, Field, HorizontalGroup, IconButton, Input, TextArea, VerticalGroup } from '@grafana/ui';
+import { Button, Field, IconButton, Input, TextArea, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
@@ -15,6 +15,7 @@ import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
@@ -136,13 +137,13 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
       )}
     >
       <div className={cx('root')}>
-        <VerticalGroup>
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup spacing="sm">
+        <Stack direction="column">
+          <Stack justifyContent="space-between">
+            <Stack gap={StackSize.sm}>
               {isNew && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
               <Text.Title level={5}>{isNew ? 'Shift swap request' : 'Shift swap'}</Text.Title>
-            </HorizontalGroup>
-            <HorizontalGroup>
+            </Stack>
+            <Stack>
               {!isNew && (
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
@@ -158,8 +159,8 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               )}
               <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
               <IconButton name="times" variant="secondary" tooltip="Close" onClick={handleHide} />
-            </HorizontalGroup>
-          </HorizontalGroup>
+            </Stack>
+          </Stack>
 
           <div className={cx('fields')}>
             {!isNew && (
@@ -168,7 +169,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               </Field>
             )}
 
-            <HorizontalGroup height="auto">
+            <Stack height="auto">
               <Field label="Swap start">
                 <DateTimePicker
                   disabled={!isNew}
@@ -185,7 +186,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                   onChange={handleShiftSwapEndChange}
                 />
               </Field>
-            </HorizontalGroup>
+            </Stack>
 
             <Field label="Description">
               <TextArea rows={4} disabled={!isNew} value={shiftSwap.description} onChange={handleDescriptionChange}>
@@ -208,9 +209,9 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
             )}
           </div>
 
-          <HorizontalGroup justify="space-between">
+          <Stack justifyContent="space-between">
             <Text type="secondary">Current timezone: {store.timezoneStore.selectedTimezoneLabel}</Text>
-            <HorizontalGroup>
+            <Stack>
               <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                 {isNew ? (
                   <Button variant="primary" onClick={handleCreate}>
@@ -228,9 +229,9 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
                   </Button>
                 )}
               </WithPermissionControlTooltip>
-            </HorizontalGroup>
-          </HorizontalGroup>
-        </VerticalGroup>
+            </Stack>
+          </Stack>
+        </Stack>
       </div>
     </Modal>
   );

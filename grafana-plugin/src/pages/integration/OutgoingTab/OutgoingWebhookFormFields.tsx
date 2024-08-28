@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 
-import { Button, Field, HorizontalGroup, Label, Select, Switch, useStyles2, VerticalGroup } from '@grafana/ui';
+import { Button, Field, Label, Select, Switch, useStyles2, Stack } from '@grafana/ui';
 import cn from 'classnames';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -8,6 +8,7 @@ import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG, MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { StackSize } from 'utils/consts';
 
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabFormValues } from './OutgoingTab.types';
@@ -31,7 +32,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
   const [showTriggerTemplate] = watch(['triggerTemplateToogle']);
 
   return (
-    <VerticalGroup spacing="lg">
+    <Stack direction="column" gap={StackSize.lg}>
       <div className={styles.switcherFieldWrapper}>
         <Controller
           control={control}
@@ -100,8 +101,8 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
         control={control}
         name="url"
         render={({ field }) => (
-          <VerticalGroup>
-            <HorizontalGroup width="100%" justify="space-between">
+          <Stack direction="column">
+            <Stack width="100%" justifyContent="space-between">
               <Label>
                 <span>Webhook URL</span>
               </Label>
@@ -116,7 +117,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
                   });
                 }}
               />
-            </HorizontalGroup>
+            </Stack>
             <MonacoEditor
               {...field}
               data={{}} // TODO:update
@@ -136,15 +137,15 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
                 template={templateToEdit}
               />
             )}
-          </VerticalGroup>
+          </Stack>
         )}
       />
       <Controller
         control={control}
         name="data"
         render={({ field }) => (
-          <VerticalGroup>
-            <HorizontalGroup width="100%" justify="space-between">
+          <Stack direction="column">
+            <Stack width="100%" justifyContent="space-between">
               <Label className={styles.switcherLabel}>Data template</Label>
               <Button
                 icon="edit"
@@ -157,7 +158,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
                   });
                 }}
               />
-            </HorizontalGroup>
+            </Stack>
             <MonacoEditor
               {...field}
               data={{}} // TODO:update
@@ -176,7 +177,7 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
                 template={templateToEdit}
               />
             )}
-          </VerticalGroup>
+          </Stack>
         )}
       />
       <div className={styles.triggerTemplateWrapper}>
@@ -231,6 +232,6 @@ export const OutgoingWebhookFormFields: FC<OutgoingWebhookFormFieldsProps> = ({ 
           />
         )}
       </div>
-    </VerticalGroup>
+    </Stack>
   );
 };

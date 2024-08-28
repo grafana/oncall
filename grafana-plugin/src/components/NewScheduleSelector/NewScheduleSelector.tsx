@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useState } from 'react';
 
 import { css } from '@emotion/css';
-import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup, useStyles2 } from '@grafana/ui';
+import { Button, Drawer, Icon, Stack, useStyles2 } from '@grafana/ui';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
@@ -9,6 +9,7 @@ import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { UserActions } from 'utils/authorization/authorization';
+import { StackSize } from 'utils/consts';
 
 interface NewScheduleSelectorProps {
   onHide: () => void;
@@ -34,52 +35,52 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
   return (
     <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick={false}>
       <div className={styles.content}>
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Block bordered withBackground className={styles.block}>
-            <HorizontalGroup justify="space-between">
-              <HorizontalGroup spacing="md">
+            <Stack justifyContent="space-between">
+              <Stack gap={StackSize.md}>
                 <Icon name="calendar-alt" size="xl" />
-                <VerticalGroup spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="primary" size="large">
                     Set up on-call rotation schedule
                   </Text>
                   <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
-                </VerticalGroup>
-              </HorizontalGroup>
+                </Stack>
+              </Stack>
               <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                 <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
                   Create
                 </Button>
               </WithPermissionControlTooltip>
-            </HorizontalGroup>
+            </Stack>
           </Block>
           <Block bordered withBackground className={styles.block}>
-            <HorizontalGroup justify="space-between">
-              <HorizontalGroup spacing="md">
+            <Stack justifyContent="space-between">
+              <Stack gap={StackSize.md}>
                 <Icon name="download-alt" size="xl" />
-                <VerticalGroup spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="primary" size="large">
                     Import schedule from iCal Url
                   </Text>
                   <Text type="secondary">Import rotations and shifts from your calendar app</Text>
-                </VerticalGroup>
-              </HorizontalGroup>
+                </Stack>
+              </Stack>
               <Button variant="secondary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Ical)}>
                 Create
               </Button>
-            </HorizontalGroup>
+            </Stack>
           </Block>
           <Block bordered withBackground className={styles.block}>
-            <HorizontalGroup justify="space-between">
-              <HorizontalGroup spacing="md">
+            <Stack justifyContent="space-between">
+              <Stack gap={StackSize.md}>
                 <Icon name="cog" size="xl" />
-                <VerticalGroup spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   <Text type="primary" size="large">
                     Create schedule by API
                   </Text>
                   <Text type="secondary">Use API or Terraform to manage rotations</Text>
-                </VerticalGroup>
-              </HorizontalGroup>
+                </Stack>
+              </Stack>
               <a
                 target="_blank"
                 href="https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/"
@@ -87,9 +88,9 @@ export const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCr
               >
                 <Button variant="secondary">Read more</Button>
               </a>
-            </HorizontalGroup>
+            </Stack>
           </Block>
-        </VerticalGroup>
+        </Stack>
       </div>
     </Drawer>
   );

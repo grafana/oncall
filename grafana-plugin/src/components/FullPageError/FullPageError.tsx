@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
 
 import { css } from '@emotion/css';
-import { useStyles2, VerticalGroup } from '@grafana/ui';
+import { useStyles2, Stack } from '@grafana/ui';
 
 import errorSVG from 'assets/img/error.svg';
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 
 interface FullPageErrorProps {
   children?: React.ReactNode;
@@ -21,12 +22,12 @@ export const FullPageError: FC<FullPageErrorProps> = ({
 
   return (
     <div className={styles.wrapper}>
-      <VerticalGroup align="center" spacing="md">
+      <Stack direction="column" alignItems="center" gap={StackSize.md}>
         <img src={errorSVG} alt="" />
         <Text.Title level={3}>{title}</Text.Title>
         {subtitle && <Text type="secondary">{subtitle}</Text>}
         {children}
-      </VerticalGroup>
+      </Stack>
     </div>
   );
 };

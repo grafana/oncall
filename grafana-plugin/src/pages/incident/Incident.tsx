@@ -5,14 +5,13 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import {
   Button,
-  HorizontalGroup,
   Icon,
   IconButton,
   LoadingPlaceholder,
   RadioButtonGroup,
   TextArea,
   ToolbarButton,
-  VerticalGroup,
+  Stack,
   Field,
   Modal,
   Tooltip,
@@ -61,7 +60,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { INTEGRATION_SERVICENOW, PLUGIN_ROOT } from 'utils/consts';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
 import { PropsWithRouter, withRouter } from 'utils/hoc';
 import { sanitize } from 'utils/sanitize';
 import { parseURL } from 'utils/url';
@@ -177,7 +176,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
           <div>
             {errorData.isNotFoundError ? (
               <div className={styles.notFound}>
-                <VerticalGroup spacing="lg" align="center">
+                <Stack direction="column" gap={StackSize.lg} alignItems="center">
                   <Text.Title level={1}>404</Text.Title>
                   <Text.Title level={4}>Alert group not found</Text.Title>
                   <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
@@ -185,7 +184,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       Go to Alert Groups page
                     </Button>
                   </PluginLink>
-                </VerticalGroup>
+                </Stack>
               </div>
             ) : (
               <>
@@ -200,7 +199,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
                   <div className={styles.column}>
-                    <VerticalGroup style={{ display: 'block' }}>
+                    <Stack direction="column">
                       {(!incident.resolved || incident?.paged_users?.length > 0) && (
                         <AddResponders
                           mode="update"
@@ -211,7 +210,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                         />
                       )}
                       {this.renderTimeline()}
-                    </VerticalGroup>
+                    </Stack>
                   </div>
                 </div>
                 {showIntegrationSettings && (
@@ -314,14 +313,14 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 
     return (
       <Block className={styles.block}>
-        <VerticalGroup>
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup>
+        <Stack direction="column">
+          <Stack justifyContent="space-between">
+            <Stack>
               <PluginLink query={{ page: 'alert-groups', ...query }}>
                 <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
-              <HorizontalGroup align="baseline">
+              <Stack align="baseline">
                 <Text.Title level={3} data-testid="incident-title">
                   {store.pageTitle}
                 </Text.Title>
@@ -339,9 +338,9 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                     </WithPermissionControlTooltip>
                   </Text>
                 )}
-              </HorizontalGroup>
-            </HorizontalGroup>
-            <HorizontalGroup align="center">
+              </Stack>
+            </Stack>
+            <Stack alignItems="center">
               <Text>
                 {showLinkTo && (
                   <IconButton
@@ -363,10 +362,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                   <IconButton name="copy" tooltip="Copy link" className={styles.titleIcon} />
                 </CopyToClipboard>
               </Text>
-            </HorizontalGroup>
-          </HorizontalGroup>
+            </Stack>
+          </Stack>
           <div className={styles.infoRow}>
-            <HorizontalGroup>
+            <Stack>
               <div className={styles.statusTagContainer}>
                 <IncidentDropdown
                   alert={incident}
@@ -386,17 +385,17 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                   addPadding
                   text={incident.labels.length}
                   tooltipContent={
-                    <VerticalGroup spacing="sm">
+                    <Stack direction="column" gap={StackSize.sm}>
                       {incident.labels.map((label) => (
                         <LabelTag label={label.key.name} value={label.value.name} key={label.key.id} />
                       ))}
-                    </VerticalGroup>
+                    </Stack>
                   }
                 />
               )}
 
               {integration && (
-                <HorizontalGroup>
+                <Stack>
                   <PluginLink
                     disabled={incident.alert_receive_channel.deleted}
                     query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
@@ -428,10 +427,10 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
 
                   {isServiceNow && (
                     <Button variant="secondary" fill="outline" size="sm" className={styles.labelButton}>
-                      <HorizontalGroup spacing="xs">
+                      <Stack gap={StackSize.xs}>
                         <Icon name="exchange-alt" />
                         <span>Service Now</span>
-                      </HorizontalGroup>
+                      </Stack>
                     </Button>
                   )}
 
@@ -458,12 +457,13 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                       </Button>
                     </a>
                   </Tooltip>
-                </HorizontalGroup>
+                </Stack>
               )}
-            </HorizontalGroup>
+            </Stack>
           </div>
-          <HorizontalGroup justify="space-between" className={styles.buttonsRow}>
-            <HorizontalGroup>
+          {/* TODO: Check if previous styles were being applied */}
+          <Stack justifyContent="space-between">
+            <Stack>
               {getActionButtons(incident, {
                 onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
                 onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
@@ -478,7 +478,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 declareIncidentLink={incident.declare_incident_link}
                 grafanaIncidentId={incident.grafana_incident_id}
               />
-            </HorizontalGroup>
+            </Stack>
 
             <Button
               disabled={incident.alert_receive_channel.deleted}
@@ -488,8 +488,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
             >
               Edit templates
             </Button>
-          </HorizontalGroup>
-        </VerticalGroup>
+          </Stack>
+        </Stack>
       </Block>
     );
   };
@@ -558,7 +558,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
         <ul className={styles.timeline} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
             <li key={idx} className={styles.timelineItem}>
-              <HorizontalGroup align="flex-start">
+              <Stack alignItems="flex-start">
                 <div
                   className={cx(styles.timelineIconBackground, {
                     blue: item.realm === TimeLineRealm.ResolutionNote,
@@ -566,7 +566,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 >
                   {this.renderTimelineItemIcon(item.realm)}
                 </div>
-                <VerticalGroup spacing="none">
+                <Stack direction="column" gap={StackSize.none}>
                   {item.realm === TimeLineRealm.ResolutionNote && (
                     <Text type="secondary" size="small">
                       {item.author && item.author.username} via{' '}
@@ -589,8 +589,8 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                   <Text type="secondary" size="small">
                     {moment(item.created_at).format('MMM DD, YYYY HH:mm:ss Z')}
                   </Text>
-                </VerticalGroup>
-              </HorizontalGroup>
+                </Stack>
+              </Stack>
             </li>
           ))}
         </ul>
@@ -755,11 +755,11 @@ function GroupedIncidentsList({
       className={styles.collapse}
       isOpen={false}
       label={
-        <HorizontalGroup wrap>
+        <Stack wrap="wrap">
           <Text>{incident.alerts_count} Grouped Alerts</Text>
           <Text type="secondary">latest {latestAlertMoment.fromNow()},</Text>
           <Text type="secondary">{latestAlertMoment.format('MMM DD, YYYY HH:mm:ss Z').toString()}</Text>
-        </HorizontalGroup>
+        </Stack>
       }
       contentClassName={styles.incidentsContent}
     >
@@ -781,15 +781,15 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
       {isModalOpen && (
         <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={isModalOpen} title="Alert Payload">
           <div className={styles.payloadSubtitle}>
-            <HorizontalGroup>
+            <Stack>
               <Text type="secondary">
                 {incident.render_for_web.title} - {datetimeReference}
               </Text>
-            </HorizontalGroup>
+            </Stack>
           </div>
-          <VerticalGroup>
+          <Stack direction="column">
             <SourceCode showCopyToClipboard={false}>{payloadJSON}</SourceCode>
-            <HorizontalGroup justify={'flex-end'}>
+            <Stack justifyContent={'flex-end'}>
               <CopyToClipboard
                 text={payloadJSON}
                 onCopy={() => {
@@ -800,27 +800,27 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
                   Copy to Clipboard
                 </Button>
               </CopyToClipboard>
-            </HorizontalGroup>
-          </VerticalGroup>
+            </Stack>
+          </Stack>
         </Modal>
       )}
 
       <div key={incident.id}>
         <div className={styles.incidentRow}>
           <div className={styles.incidentRowLeftSide}>
-            <HorizontalGroup wrap justify={'flex-start'}>
+            <Stack wrap="wrap" justifyContent={'flex-start'}>
               <Text.Title type="secondary" level={4}>
                 {incident.render_for_web.title}
               </Text.Title>
               <Text type="secondary">{datetimeReference}</Text>
-            </HorizontalGroup>
+            </Stack>
           </div>
           <div>
-            <HorizontalGroup wrap={false} justify={'flex-end'}>
+            <Stack justifyContent={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
                 <IconButton aria-label="Alert Payload" name="arrow" onClick={() => openIncidentResponse(incident)} />
               </Tooltip>
-            </HorizontalGroup>
+            </Stack>
           </div>
         </div>
         <Text type="secondary">
@@ -865,12 +865,12 @@ function AttachedIncidentsList({
       headerWithBackground
       className={styles.collapse}
       isOpen
-      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</HorizontalGroup>}
+      label={<Stack wrap="wrap">{incident.dependent_alert_groups.length} Attached Alert Groups</Stack>}
       contentClassName={styles.incidentsContent}
     >
       {alerts.map((incident) => {
         return (
-          <HorizontalGroup key={incident.pk} justify={'space-between'}>
+          <Stack key={incident.pk} justifyContent={'space-between'}>
             <PluginLink query={{ page: 'alert-groups', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
@@ -879,7 +879,7 @@ function AttachedIncidentsList({
                 Unattach
               </Button>
             </WithPermissionControlTooltip>
-          </HorizontalGroup>
+          </Stack>
         );
       })}
     </Collapse>
@@ -898,9 +898,9 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
           <Divider />
         </div>
         <Text type="secondary">Meanwhile, you could try changing the status of this Alert Group:</Text>
-        <HorizontalGroup wrap justify="center">
+        <Stack wrap="wrap" justifyContent="center">
           {buttons}
-        </HorizontalGroup>
+        </Stack>
       </>
     </FullPageError>
   );

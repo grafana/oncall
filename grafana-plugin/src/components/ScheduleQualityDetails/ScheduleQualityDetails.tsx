@@ -1,11 +1,12 @@
 import React, { FC, useCallback, useState } from 'react';
 
 import { cx } from '@emotion/css';
-import { HorizontalGroup, Icon, IconButton, useStyles2 } from '@grafana/ui';
+import { Icon, IconButton, Stack, useStyles2 } from '@grafana/ui';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
+import { StackSize } from 'utils/consts';
 
 import { getScheduleQualityDetailsStyles } from './ScheduleQualityDetails.styles';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';
@@ -112,19 +113,19 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             bem(styles.container, 'withLateralPadding')
           )}
         >
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup spacing="sm">
+          <Stack justifyContent="space-between">
+            <Stack gap={StackSize.sm}>
               <Icon name="calculator-alt" />
               <Text type="secondary" className={styles.metholodogy}>
                 Calculation methodology
               </Text>
-            </HorizontalGroup>
+            </Stack>
             <IconButton
               aria-label={expanded ? 'Collapse' : 'Expand'}
               name={expanded ? 'arrow-down' : 'arrow-right'}
               onClick={handleExpandClick}
             />
-          </HorizontalGroup>
+          </Stack>
           {expanded && (
             <Text type="primary" className={styles.text}>
               The next 52 weeks (~1 year) are taken into account when generating the quality report. Refer to the{' '}

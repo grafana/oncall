@@ -30,7 +30,7 @@ test('dates in schedule are correct according to selected current timezone', asy
   await expect(page.getByTestId('timezone-select')).toHaveText('GMT+3');
 
   // Change timezone to GMT
-  await page.getByTestId('timezone-select').getByRole('img').click();
+  await page.getByTestId('timezone-select').locator('div').filter({ hasText: 'GMT+' }).nth(1).click();
   await page.getByText('GMT', { exact: true }).click();
 
   // Selected timezone and local time is correctly displayed

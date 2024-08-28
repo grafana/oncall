@@ -1,9 +1,10 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, Icon, Select } from '@grafana/ui';
+import { Button, Icon, Select, Stack } from '@grafana/ui';
 
 import { Text } from 'components/Text/Text';
+import { StackSize } from 'utils/consts';
 
 interface CursorPaginationProps {
   current: string;
@@ -30,8 +31,8 @@ export const CursorPagination: FC<CursorPaginationProps> = (props) => {
   }, []);
 
   return (
-    <HorizontalGroup spacing="md" justify="flex-end">
-      <HorizontalGroup>
+    <Stack gap={StackSize.md} justifyContent="flex-end">
+      <Stack>
         <Text type="secondary">Items per list</Text>
         <Select
           isSearchable={false}
@@ -39,8 +40,8 @@ export const CursorPagination: FC<CursorPaginationProps> = (props) => {
           value={itemsPerPage}
           onChange={onChangeItemsPerPageCallback}
         />
-      </HorizontalGroup>
-      <HorizontalGroup>
+      </Stack>
+      <Stack>
         <Button
           aria-label="previous"
           size="sm"
@@ -66,7 +67,7 @@ export const CursorPagination: FC<CursorPaginationProps> = (props) => {
         >
           <Icon name="angle-right" />
         </Button>
-      </HorizontalGroup>
-    </HorizontalGroup>
+      </Stack>
+    </Stack>
   );
 };

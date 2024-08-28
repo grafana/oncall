@@ -1,16 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  Button,
-  ConfirmModal,
-  ConfirmModalProps,
-  Drawer,
-  HorizontalGroup,
-  Input,
-  Tab,
-  TabsBar,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, Drawer, Input, Tab, TabsBar, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
@@ -212,7 +202,7 @@ const Presets = (props: PresetsProps) => {
   return (
     <Drawer scrollableContent title="New Outgoing Webhook" onClose={onHide} closeOnMaskClick={false} width="640px">
       <div className={cx('content')}>
-        <VerticalGroup>
+        <Stack direction="column">
           <Text type="secondary">
             Outgoing webhooks can send alert data to other systems. They can be triggered by various conditions and can
             use templates to transform data to fit the recipient system. Presets listed below provide a starting point
@@ -231,7 +221,7 @@ const Presets = (props: PresetsProps) => {
           )}
 
           <WebhookPresetBlocks presets={presets} onBlockClick={onSelect} />
-        </VerticalGroup>
+        </Stack>
       </div>
     </Drawer>
   );
@@ -265,7 +255,7 @@ const NewWebhook = (props: NewWebhookProps) => {
               onTemplateEditClick={onTemplateEditClick}
             />
             <div className={cx('buttons')}>
-              <HorizontalGroup justify="flex-end">
+              <Stack justifyContent="flex-end">
                 {action === WebhookFormActionType.NEW ? (
                   <Button variant="secondary" onClick={onBack}>
                     Back
@@ -280,7 +270,7 @@ const NewWebhook = (props: NewWebhookProps) => {
                     Create
                   </Button>
                 </WithPermissionControlTooltip>
-              </HorizontalGroup>
+              </Stack>
             </div>
           </form>
         </div>
@@ -400,7 +390,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
                   onTemplateEditClick={onTemplateEditClick}
                 />
                 <div className={cx('buttons')}>
-                  <HorizontalGroup justify={'flex-end'}>
+                  <Stack justifyContent={'flex-end'}>
                     <Button variant="secondary" onClick={onHide}>
                       Cancel
                     </Button>
@@ -428,7 +418,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = observer(
                         {action === WebhookFormActionType.NEW ? 'Create' : 'Update'}
                       </Button>
                     </WithPermissionControlTooltip>
-                  </HorizontalGroup>
+                  </Stack>
                 </div>
               </form>
             </div>

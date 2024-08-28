@@ -1,8 +1,8 @@
 import React, { FC } from 'react';
 
-import { Button, HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, Stack, LoadingPlaceholder } from '@grafana/ui';
 import { observer } from 'mobx-react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom-v5-compat';
 
 import { FullPageError } from 'components/FullPageError/FullPageError';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -19,9 +19,9 @@ export const PluginInitializer: FC<PluginInitializerProps> = observer(({ childre
 
   if (isCheckingConnectionStatus) {
     return (
-      <VerticalGroup justify="center" height="100%" align="center">
+      <Stack direction="column" justifyContent="center" height="100%" alignItems="center">
         <LoadingPlaceholder text="Loading..." />
-      </VerticalGroup>
+      </Stack>
     );
   }
   return (
@@ -36,7 +36,7 @@ export const PluginInitializer: FC<PluginInitializerProps> = observer(({ childre
 const PluginNotConnectedFullPageError = observer(() => {
   const isOpenSource = getIsRunningOpenSourceVersion();
   const isCurrentUserAdmin = window.grafanaBootData.user.orgRole === 'Admin';
-  const { push } = useHistory();
+  const navigate = useNavigate();
 
   const getSubtitleExtension = () => {
     if (!isOpenSource) {
@@ -57,13 +57,15 @@ const PluginNotConnectedFullPageError = observer(() => {
         </>
       }
     >
-      <HorizontalGroup>
+      <Stack>
         <Button variant="secondary" onClick={() => window.location.reload()}>
           Retry
         </Button>
         {!isOpenSource && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
-        {isOpenSource && isCurrentUserAdmin && <Button onClick={() => push(PLUGIN_CONFIG)}>Open configuration</Button>}
-      </HorizontalGroup>
+        {isOpenSource && isCurrentUserAdmin && (
+          <Button onClick={() => navigate(PLUGIN_CONFIG)}>Open configuration</Button>
+        )}
+      </Stack>
     </FullPageError>
   );
 });

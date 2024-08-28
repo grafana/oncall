@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Badge, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Badge, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -150,15 +150,15 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
     return (
       <Text type={conditionalResult.value === 'True' ? 'success' : 'danger'}>
         {conditionalResult.value === 'True' ? (
-          <VerticalGroup>
-            <HorizontalGroup>
+          <Stack direction="column">
+            <Stack>
               <Icon name="check" size="lg" /> {conditionalResult.value}
-            </HorizontalGroup>
+            </Stack>
             {conditionalMessage(conditionalResult.value === 'True')}
-          </VerticalGroup>
+          </Stack>
         ) : (
-          <VerticalGroup>
-            <HorizontalGroup>
+          <Stack direction="column">
+            <Stack>
               <Icon name="times-circle" size="lg" />
               <div
                 className={cx('message')}
@@ -166,9 +166,9 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
                   __html: sanitize(result.preview),
                 }}
               />
-            </HorizontalGroup>
+            </Stack>
             {conditionalMessage(conditionalResult.value === 'True')}
-          </VerticalGroup>
+          </Stack>
         )}
       </Text>
     );

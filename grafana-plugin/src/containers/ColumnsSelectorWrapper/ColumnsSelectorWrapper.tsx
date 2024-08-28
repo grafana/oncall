@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useStyles2, Button, HorizontalGroup, Icon, LoadingPlaceholder, Modal, VerticalGroup } from '@grafana/ui';
+import { useStyles2, Button, Icon, LoadingPlaceholder, Modal, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -13,7 +13,7 @@ import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { PROCESSING_REQUEST_ERROR } from 'utils/consts';
+import { PROCESSING_REQUEST_ERROR, StackSize } from 'utils/consts';
 import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
 import { useIsLoading } from 'utils/hooks';
 
@@ -68,10 +68,10 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
         onDismiss={onConfirmRemovalClose}
         className={styles.removalModal}
       >
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text type="primary">Are you sure you want to remove column {columnToBeRemoved?.name}?</Text>
 
-          <HorizontalGroup justify="flex-end" spacing="md">
+          <Stack justifyContent="flex-end" gap={StackSize.md}>
             <Button variant={'secondary'} onClick={onConfirmRemovalClose}>
               Cancel
             </Button>
@@ -90,8 +90,8 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
                 {isRemoveLoading ? <LoadingPlaceholder text="Loading..." className="loadingPlaceholder" /> : 'Remove'}
               </Button>
             </WithPermissionControlTooltip>
-          </HorizontalGroup>
-        </VerticalGroup>
+          </Stack>
+        </Stack>
       </Modal>
 
       <div ref={wrappingFloatingContainerRef}>
@@ -147,10 +147,10 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
         id="toggletip-button"
         onClick={() => setIsFloatingDisplayOpen(!isFloatingDisplayOpen)}
       >
-        <HorizontalGroup spacing="xs">
+        <Stack gap={StackSize.xs}>
           Columns
           <Icon name="angle-down" />
-        </HorizontalGroup>
+        </Stack>
       </Button>
     );
   }
