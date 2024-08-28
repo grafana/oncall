@@ -198,11 +198,12 @@ class MobileAppGatewayView(APIView):
         method = request.method
         user = request.user
         org = user.organization
-        if not org.is_grafana_incident_enabled:
-            raise NotFound(f"Incident is not enabled for organization {org.pk}")
 
         if downstream_backend not in self.ALL_SUPPORTED_DOWNSTREAM_BACKENDS:
             raise NotFound(f"Downstream backend {downstream_backend} not supported")
+
+        if downstream_backend == self.SupportedDownstreamBackends.INCIDENT and not org.is_grafana_incident_enabled:
+            raise NotFound(f"Incident is not enabled for organization {org.pk}")
 
         downstream_url = self._get_downstream_url(user.organization, downstream_backend, downstream_path)
 
