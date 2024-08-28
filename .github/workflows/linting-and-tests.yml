@@ -243,7 +243,7 @@ jobs:
       matrix:
         grafana_version:
           - 10.3.0
-          - latest
+          - 11.2.0
       fail-fast: false
     with:
       grafana_version: ${{ matrix.grafana_version }}

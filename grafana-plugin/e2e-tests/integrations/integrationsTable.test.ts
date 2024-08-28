@@ -25,7 +25,7 @@ test('Integrations table shows data in Monitoring Systems and Direct Paging tabs
   await goToOnCallPage(page, 'integrations');
 
   // Create 1 Direct Paging integration if it doesn't exist
-  await page.getByRole('tab', { name: 'Tab Manual Direct Paging' }).click();
+  await page.getByTestId('data-testid Tab Manual Direct Paging').click();
   const integrationsTable = page.getByTestId('integrations-table');
   await page.waitForTimeout(2000);
   const isDirectPagingAlreadyCreated = (await integrationsTable.getByText('Direct paging').count()) >= 1;
@@ -52,7 +52,7 @@ test('Integrations table shows data in Monitoring Systems and Direct Paging tabs
   });
 
   // Then after switching to Direct Paging tab only Direct Paging integration is visible
-  await page.getByRole('tab', { name: 'Tab Manual Direct Paging' }).click();
+  await page.getByTestId('data-testid Tab Manual Direct Paging').click();
   await searchIntegrationAndAssertItsPresence({
     page,
     integrationName: WEBHOOK_INTEGRATION_NAME,
