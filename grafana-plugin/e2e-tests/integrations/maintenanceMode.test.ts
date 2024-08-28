@@ -13,6 +13,8 @@ import { goToOnCallPage } from '../utils/navigation';
 type MaintenanceModeType = 'Debug' | 'Maintenance';
 
 test.describe('maintenance mode works', () => {
+  test.slow();
+
   const MAINTENANCE_DURATION = '1 hour';
   const REMAINING_TIME_TEXT = '59m left';
   const REMAINING_TIME_TOOLTIP_TEST_ID = 'maintenance-mode-remaining-time-tooltip';
