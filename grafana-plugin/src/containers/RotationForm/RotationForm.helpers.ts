@@ -191,11 +191,9 @@ export function getDraggableModalCoordinatesOnInit(
     return undefined;
   }
 
-  const scrollBarReferenceElements = document.querySelectorAll<HTMLElement>('.scrollbar-view');
-  // top navbar display has 2 scrollbar-view elements (navbar & content)
-  const baseReferenceElRect = (
-    scrollBarReferenceElements.length === 1 ? scrollBarReferenceElements[0] : scrollBarReferenceElements[1]
-  ).getBoundingClientRect();
+  const body = document.body;
+  const baseReferenceElRect = body.getBoundingClientRect();
+  const { innerHeight } = window;
 
   const { right, bottom } = baseReferenceElRect;
 
@@ -205,7 +203,7 @@ export function getDraggableModalCoordinatesOnInit(
         left: -data.node.offsetLeft + 4,
         right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
         top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
-        bottom: bottom - data.node.offsetHeight - offsetTop - 12,
+        bottom: innerHeight - data.node.offsetHeight - offsetTop - 12,
       }
     : {
         left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
