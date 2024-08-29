@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
@@ -136,6 +137,16 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 		return fmt.Errorf("error marshalling JSON: %v", err)
 	}
 
+	var syncDataBuffer bytes.Buffer
+	gzipWriter := gzip.NewWriter(&syncDataBuffer)
+	_, err = gzipWriter.Write(onCallSyncJsonData)
+	if err != nil {
+		return fmt.Errorf("error writing sync data to gzip writer: %v", err)
+	}
+	if err := gzipWriter.Close(); err != nil {
+		return fmt.Errorf("error closing gzip writer: %v", err)
+	}
+
 	syncURL, err := url.JoinPath(onCallPluginSettings.OnCallAPIURL, "api/internal/v1/plugin/v2/sync")
 	if err != nil {
 		return fmt.Errorf("error joining path: %v", err)
@@ -146,7 +157,7 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 		return fmt.Errorf("error parsing path: %v", err)
 	}
 
-	syncReq, err := http.NewRequest("POST", parsedSyncURL.String(), bytes.NewBuffer(onCallSyncJsonData))
+	syncReq, err := http.NewRequest("POST", parsedSyncURL.String(), &syncDataBuffer)
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
@@ -156,6 +167,7 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 		return err
 	}
 	syncReq.Header.Set("Content-Type", "application/json")
+	syncReq.Header.Set("Content-Encoding", "gzip")
 
 	res, err := a.httpClient.Do(syncReq)
 	if err != nil {

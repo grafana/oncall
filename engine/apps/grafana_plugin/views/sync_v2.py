@@ -1,3 +1,5 @@
+import gzip
+import json
 import logging
 from dataclasses import asdict, is_dataclass
 
@@ -25,7 +27,14 @@ class SyncV2View(APIView):
     authentication_classes = (BasePluginAuthentication,)
 
     def do_sync(self, request: Request) -> Organization:
-        serializer = SyncDataSerializer(data=request.data)
+        if request.headers.get("Content-Encoding") == "gzip":
+            gzip_data = gzip.GzipFile(fileobj=request).read()
+            decoded_data = gzip_data.decode("utf-8")
+            data = json.loads(decoded_data)
+        else:
+            data = request.data
+
+        serializer = SyncDataSerializer(data=data)
         if not serializer.is_valid():
             raise SyncException(serializer.errors)
 
