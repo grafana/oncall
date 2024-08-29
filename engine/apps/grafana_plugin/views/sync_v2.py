@@ -29,7 +29,7 @@ class SyncV2View(APIView):
 
     def do_sync(self, request: Request) -> Organization:
         if request.headers.get("Content-Encoding") == "gzip":
-            gzip_data = gzip.GzipFile(fileobj=io.BytesIO(request.body)).read()
+            gzip_data = gzip.GzipFile(fileobj=request).read()
             decoded_data = gzip_data.decode("utf-8")
             data = json.loads(decoded_data)
         else:
