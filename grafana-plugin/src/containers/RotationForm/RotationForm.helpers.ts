@@ -200,15 +200,15 @@ export function getDraggableModalCoordinatesOnInit(
   return isTopNavbar()
     ? {
         // values are adjusted by any padding/margin differences
-        left: -data.node.offsetLeft + 4,
+        left: -data.node.offsetLeft + 12,
         right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-        top: -offsetTop + GRAFANA_HEADER_HEIGHT + 4,
+        top: -offsetTop + GRAFANA_HEADER_HEIGHT + 12,
         bottom: innerHeight - data.node.offsetHeight - offsetTop - 12,
       }
     : {
-        left: -data.node.offsetLeft + 4 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
+        left: -data.node.offsetLeft + 12 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
         right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-        top: -offsetTop + 4,
+        top: -offsetTop + 12,
         bottom: bottom - data.node.offsetHeight - offsetTop - 12,
       };
 }
