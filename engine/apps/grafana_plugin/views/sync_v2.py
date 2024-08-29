@@ -1,5 +1,4 @@
 import gzip
-import io
 import json
 import logging
 from dataclasses import asdict, is_dataclass
