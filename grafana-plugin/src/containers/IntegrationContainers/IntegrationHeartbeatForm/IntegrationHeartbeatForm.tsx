@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Icon, Select, Stack } from '@grafana/ui';
@@ -138,4 +138,4 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
 
 export const IntegrationHeartbeatForm = withMobXProviderContext(_IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
-}: IntegrationHeartbeatFormProps) => JSX.Element;
+}: IntegrationHeartbeatFormProps) => ReactElement;

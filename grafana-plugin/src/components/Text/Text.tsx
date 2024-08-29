@@ -1,7 +1,7 @@
 import React, { FC, HTMLAttributes, ChangeEvent, useState, useCallback } from 'react';
 
 import { cx } from '@emotion/css';
-import { IconButton, Modal, Input, Button, Stack, useStyles2 } from '@grafana/ui';
+import { IconButton, Modal, Input, Stack, Button, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem } from 'styles/utils.styles';
 
@@ -31,13 +31,9 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   withBackground?: boolean;
 }
 
-interface TextInterface extends React.FC<TextProps> {
-  Title: React.FC<TitleProps>;
-}
-
 const PLACEHOLDER = '**********';
 
-export const Text: TextInterface = (props) => {
+export const Text: React.FC<TextProps> & { Title: typeof Title } = (props) => {
   const {
     type,
     size = 'medium',
