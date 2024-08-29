@@ -132,6 +132,7 @@ func (a *App) registerRoutes(mux *http.ServeMux) {
 	//mux.HandleFunc("/debug/settings", a.handleDebugSettings)
 	//mux.HandleFunc("/debug/permissions", a.handleDebugPermissions)
 	//mux.HandleFunc("/debug/stats", a.handleDebugStats)
+	//mux.HandleFunc("/debug/unlock", a.handleDebugUnlock)
 
 	mux.HandleFunc("/", a.handleInternalApi)
 }

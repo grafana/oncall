@@ -95,3 +95,8 @@ func (a *App) handleDebugStats(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (a *App) handleDebugUnlock(w http.ResponseWriter, req *http.Request) {
+	a.OnCallSyncCache.syncMutex.Unlock()
+	w.WriteHeader(http.StatusOK)
+}
