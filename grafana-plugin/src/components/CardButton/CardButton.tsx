@@ -31,7 +31,7 @@ export const CardButton: FC<CardButtonProps> = (props) => {
     >
       <div className={styles.icon}>{icon}</div>
       <div className={styles.meta}>
-        <Stack gap={StackSize.xs}>
+        <Stack gap={StackSize.xs} direction="column">
           <Text type="secondary">{description}</Text>
           <Text.Title level={1}>{title}</Text.Title>
         </Stack>
