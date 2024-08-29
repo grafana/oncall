@@ -268,7 +268,7 @@ func (a *App) GetOtherPluginSettings(settings *OnCallPluginSettings, pluginID st
 	var result map[string]interface{}
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	return result, nil

@@ -41,7 +41,7 @@ func (a *App) GetPermissions(settings *OnCallPluginSettings, onCallUser *OnCallU
 	var permissions []OnCallPermission
 	err = json.Unmarshal(body, &permissions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	if res.StatusCode == 200 {
@@ -88,7 +88,7 @@ func (a *App) GetAllPermissions(settings *OnCallPluginSettings) (map[string]map[
 	var permissions map[string]map[string]interface{}
 	err = json.Unmarshal(body, &permissions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+		return nil, fmt.Errorf("failed to parse JSON response: %v body=%v", err, body)
 	}
 
 	if res.StatusCode == 200 {

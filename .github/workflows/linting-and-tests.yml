@@ -35,7 +35,7 @@ jobs:
         uses: ./.github/actions/install-frontend-dependencies
       - name: Build, lint and test frontend
         working-directory: grafana-plugin
-        run: yarn lint && yarn test && yarn build
+        run: yarn lint && yarn type-check && yarn test && yarn build
 
   test-technical-documentation:
     name: "Test technical documentation"

@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren } from 'react';
+import React, { FC, PropsWithChildren, ReactElement } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -8,7 +8,7 @@ import ReactModal from 'react-modal';
 ReactModal.setAppElement('#reactRoot');
 
 export interface ModalProps {
-  title?: string | JSX.Element;
+  title?: string | ReactElement;
   className?: string;
   contentClassName?: string;
   closeOnEscape?: boolean;
