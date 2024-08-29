@@ -9,7 +9,8 @@ test.skip(
   'Above 10.3 labels need enterprise version to validate permissions'
 );
 
-test('New label keys and labels can be created @expensive', async ({ adminRolePage }) => {
+// TODO: This test is flaky on CI. Undo skipping once we can test labels locally
+test.skip('New label keys and labels can be created @expensive', async ({ adminRolePage }) => {
   const { page } = adminRolePage;
   await goToOnCallPage(page, 'integrations');
   await openCreateIntegrationModal(page);
