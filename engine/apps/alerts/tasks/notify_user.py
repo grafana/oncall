@@ -103,7 +103,7 @@ def notify_user_task(
     important=False,
     notify_anyway=False,
 ):
-    from apps.alerts.models import AlertGroup, UserHasNotification, UserNotificationBundle
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, UserHasNotification, UserNotificationBundle
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.user_management.models import User
 
@@ -198,6 +198,22 @@ def notify_user_task(
             log_record = _create_notification_finished_user_notification_policy_log_record()
             task_logger.info(f"Personal escalation exceeded. User: {user.pk}, alert_group: {alert_group.pk}")
         else:
+            if (
+                # don't force notify direct paged user who has already acknowledged the alert group
+                # after the last time they were paged.
+                notify_even_acknowledged
+                and (
+                    direct_paging_log_record := alert_group.log_records.filter(
+                        type=AlertGroupLogRecord.TYPE_DIRECT_PAGING, step_specific_info__user=user.public_primary_key
+                    ).last()
+                )
+                and alert_group.log_records.filter(
+                    type=AlertGroupLogRecord.TYPE_ACK, author=user, created_at__gte=direct_paging_log_record.created_at
+                ).exists()
+            ):
+                notify_even_acknowledged = False
+                task_logger.info(f"notify_even_acknowledged=False for user {user.pk}, alert_group {alert_group.pk})")
+
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
                 or (alert_group.silenced and not notify_anyway)
