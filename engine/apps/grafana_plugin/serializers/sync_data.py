@@ -22,7 +22,7 @@ class SyncUserSerializer(serializers.Serializer):
     login = serializers.CharField()
     email = serializers.CharField()
     role = serializers.CharField()
-    avatar_url = serializers.CharField()
+    avatar_url = serializers.CharField(allow_blank=True)
     permissions = SyncPermissionSerializer(many=True, allow_empty=True, allow_null=True)
     teams = serializers.ListField(child=serializers.IntegerField(), allow_empty=True, allow_null=True)
 
