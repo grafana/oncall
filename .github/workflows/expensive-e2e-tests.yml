@@ -15,6 +15,7 @@ jobs:
       matrix:
         grafana_version:
           - 10.3.0
+          - 11.2.0
           - latest
       fail-fast: false
       # Run one version at a time to avoid the issue when SMS notification are bundled together for multiple versions

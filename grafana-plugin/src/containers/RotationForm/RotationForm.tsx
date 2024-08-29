@@ -809,7 +809,8 @@ export const RotationForm = observer((props: RotationFormProps) => {
       return;
     }
 
-    setDraggableBounds(getDraggableModalCoordinatesOnInit(data, offsetTop));
+    const bounds = getDraggableModalCoordinatesOnInit(data, offsetTop);
+    setDraggableBounds(bounds);
   }
 });
 

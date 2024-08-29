@@ -84,6 +84,8 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
         permission_classes=(IsAuthenticated,),
     )
     def schedule_export(self, request, pk):
-        schedules = OnCallSchedule.objects.filter(organization=self.request.auth.organization)
+        schedules = OnCallSchedule.objects.filter(organization=self.request.auth.organization).related_to_user(
+            self.request.user
+        )
         export = user_ical_export(self.request.user, schedules)
         return Response(export)

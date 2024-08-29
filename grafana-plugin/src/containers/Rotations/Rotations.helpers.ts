@@ -10,7 +10,7 @@ export const calculateScheduleFormOffset = async (queryClassName: string) => {
   const modal = await waitForElement(queryClassName);
   const modalHeight = modal.clientHeight;
 
-  return document.documentElement.scrollHeight / 2 - modalHeight / 2;
+  return window.innerHeight / 2 - modalHeight / 2;
 };
 
 // DatePickers will convert the date passed to local timezone, instead we want to use the date in the given timezone
