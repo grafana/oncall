@@ -3,20 +3,23 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Field, IconButton, Input, TextArea, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { Modal } from 'components/Modal/Modal';
 import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT, StackSize } from 'utils/consts';
+import { useDebouncedCallback, useResize } from 'utils/hooks';
 
+import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
 import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
 
@@ -36,6 +39,15 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
   const { onUpdate, onHide, id, scheduleId, params: defaultParams } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
+  const [offsetTop, setOffsetTop] = useState(GRAFANA_HEADER_HEIGHT + 10);
+  const [draggablePosition, setDraggablePosition] = useState<{ x: number; y: number }>(undefined);
+  const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
+    undefined
+  );
+
+  const debouncedOnResize = useDebouncedCallback(onResize, 250);
+
+  useResize(debouncedOnResize);
 
   const store = useStore();
   const {
@@ -43,6 +55,12 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     userStore: { currentUserPk },
     timezoneStore: { selectedTimezoneOffset },
   } = store;
+
+  useEffect(() => {
+    (async () => {
+      setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -131,7 +149,15 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
       width="430px"
       onDismiss={handleHide}
       contentElement={(props, children) => (
-        <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: 200 }}>
+        <Draggable
+          handle=".drag-handler"
+          defaultClassName={cx('draggable')}
+          positionOffset={{ x: 0, y: offsetTop }}
+          position={draggablePosition}
+          bounds={{ ...bounds } || 'body'}
+          onStart={onDraggableInit}
+          onStop={(_e, data) => setDraggablePosition({ x: data.x, y: data.y })}
+        >
           <div {...props}>{children}</div>
         </Draggable>
       )}
@@ -235,4 +261,19 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
       </div>
     </Modal>
   );
+
+  async function onResize() {
+    setOffsetTop(await calculateScheduleFormOffset(`.${cx('draggable')}`));
+
+    setDraggablePosition({ x: 0, y: 0 });
+  }
+
+  function onDraggableInit(_e: DraggableEvent, data: DraggableData) {
+    if (!data) {
+      return;
+    }
+
+    const bounds = getDraggableModalCoordinatesOnInit(data, offsetTop);
+    setDraggableBounds(bounds);
+  }
 };

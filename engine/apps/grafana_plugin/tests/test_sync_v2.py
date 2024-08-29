@@ -1,3 +1,6 @@
+import gzip
+import json
+from dataclasses import asdict
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +9,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
+from apps.grafana_plugin.sync_data import SyncData, SyncSettings, SyncUser
 from apps.grafana_plugin.tasks.sync_v2 import start_sync_organizations_v2
 
 
@@ -76,3 +80,59 @@ def test_skip_org_without_api_token(make_organization, api_token, sync_called):
         ) as mock_sync:
             start_sync_organizations_v2()
             assert mock_sync.called == sync_called
+
+
+@pytest.mark.parametrize("format", [("json"), ("gzip")])
+@pytest.mark.django_db
+def test_sync_v2_content_encoding(
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, settings, format
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    settings.LICENSE = settings.CLOUD_LICENSE_NAME
+    client = APIClient()
+    headers = make_user_auth_headers(None, token, organization=organization)
+
+    data = SyncData(
+        users=[
+            SyncUser(
+                id=user.user_id,
+                name=user.username,
+                login=user.username,
+                email=user.email,
+                role="Admin",
+                avatar_url="",
+                permissions=[],
+                teams=[],
+            )
+        ],
+        teams=[],
+        team_members={},
+        settings=SyncSettings(
+            stack_id=organization.stack_id,
+            org_id=organization.org_id,
+            license=settings.CLOUD_LICENSE_NAME,
+            oncall_api_url="http://localhost",
+            oncall_token="",
+            grafana_url="http://localhost",
+            grafana_token="fake_token",
+            rbac_enabled=False,
+            incident_enabled=False,
+            incident_backend_url="",
+            labels_enabled=False,
+        ),
+    )
+
+    payload = asdict(data)
+    headers["HTTP_Content-Type"] = "application/json"
+    url = reverse("grafana-plugin:sync-v2")
+    with patch("apps.grafana_plugin.views.sync_v2.apply_sync_data") as mock_sync:
+        if format == "gzip":
+            headers["HTTP_Content-Encoding"] = "gzip"
+            json_data = json.dumps(payload)
+            payload = gzip.compress(json_data.encode("utf-8"))
+            response = client.generic("POST", url, data=payload, **headers)
+        else:
+            response = client.post(url, format=format, data=payload, **headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        mock_sync.assert_called()
