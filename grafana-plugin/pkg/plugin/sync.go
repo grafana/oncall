@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -83,7 +84,7 @@ func (a *App) doSync(ctx context.Context, forceSend bool) {
 		var cacheAlreadyLocked *SyncCacheAlreadyLocked
 		if errors.As(err, &cacheAlreadyLocked) {
 			log.DefaultLogger.Info("Skipping sync", "message", err)
-		} else {
+		} else if err != nil {
 			log.DefaultLogger.Error("Error making sync request", "error", err)
 		}
 	}()
@@ -174,6 +175,17 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 		return fmt.Errorf("error request to oncall: %v", err)
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.DefaultLogger.Error("failed to read response body", "error", err, "status", res.StatusCode)
+		} else {
+			log.DefaultLogger.Error("sync not ok", "status", res.StatusCode, "message", string(bodyBytes))
+		}
+	} else {
+		log.DefaultLogger.Info("sync ok", "status", res.StatusCode)
+	}
 
 	a.lastOnCallSync = onCallSync
 	return nil
