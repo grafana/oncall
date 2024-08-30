@@ -7,11 +7,12 @@ from apps.mattermost.models import MattermostChannel
 from common.api_helpers.utils import CurrentOrganizationDefault
 
 
-class MattermostChannelSerializer(serializers.Serializer):
+class MattermostChannelSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     channel_id = serializers.CharField()
     channel_name = serializers.CharField()
+    display_name = serializers.CharField()
 
     class Meta:
         model = MattermostChannel
@@ -20,9 +21,7 @@ class MattermostChannelSerializer(serializers.Serializer):
             "organization",
             "channel_id",
             "channel_name",
-        ]
-        validators = [
-            UniqueTogetherValidator(queryset=MattermostChannel.objects.all(), fields=["organization", "channel_id"])
+            "display_name",
         ]
 
     def create(self, validated_data):
@@ -45,4 +44,10 @@ class MattermostChannelSerializer(serializers.Serializer):
         except (MattermostAPIException, MattermostAPITokenInvalid):
             raise serializers.ValidationError("Unable to fetch channel from mattermost server")
 
-        return super().to_internal_value({"channel_id": response.channel_id, "channel_name": response.channel_name})
+        return super().to_internal_value(
+            {
+                "channel_id": response.channel_id,
+                "channel_name": response.channel_name,
+                "display_name": response.display_name,
+            }
+        )
