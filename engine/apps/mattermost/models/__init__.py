@@ -1,1 +1,1 @@
-from .mattermost_channel import MattermostChannel  # noqa: F401
+from .channel import MattermostChannel  # noqa: F401
