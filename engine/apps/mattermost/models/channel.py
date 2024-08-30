@@ -5,8 +5,8 @@ from django.db import models
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
-def generate_public_primary_key_for_slack_channel():
-    prefix = "M"
+def generate_public_primary_key_for_mattermost_channel():
+    prefix = "MT"
     new_public_primary_key = generate_public_primary_key(prefix)
 
     failure_counter = 0
@@ -30,9 +30,13 @@ class MattermostChannel(models.Model):
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
         unique=True,
-        default=generate_public_primary_key_for_slack_channel,
+        default=generate_public_primary_key_for_mattermost_channel,
     )
 
     channel_id = models.CharField(max_length=100, default=None)
     channel_name = models.CharField(max_length=100, default=None)
+    display_name = models.CharField(max_length=100, default=None)
     datetime = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("organization", "channel_id")

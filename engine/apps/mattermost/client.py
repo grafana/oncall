@@ -22,6 +22,7 @@ class TokenAuth(AuthBase):
 class MattermostChannel:
     channel_id: str
     channel_name: str
+    display_name: str
 
 
 class MattermostClient:
@@ -63,4 +64,4 @@ class MattermostClient:
         response = requests.get(url=url, timeout=self.timeout, auth=TokenAuth(self.token))
         self._check_response(response)
         data = response.json()
-        return MattermostChannel(channel_id=data["id"], channel_name=data["name"])
+        return MattermostChannel(channel_id=data["id"], channel_name=data["name"], display_name=data["display_name"])
