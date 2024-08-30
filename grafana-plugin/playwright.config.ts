@@ -27,7 +27,16 @@ export default defineConfig({
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1_000, // 20 minutes
 
-  reporter: [['html', { open: IS_CI ? 'never' : 'always' }]],
+  reporter: [
+    [
+      'html',
+      {
+        open: IS_CI ? 'never' : 'always',
+        port: 31000, // explicitly specify a port for k8s port forwarding to avoid clashes with Incident and IRM
+      },
+    ],
+    ['list', { printSteps: true }],
+  ],
 
   /* Maximum time one test can run for. */
   timeout: 60_000,

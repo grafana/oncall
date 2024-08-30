@@ -24,7 +24,7 @@
     "test:e2e:watch": "yarn test:e2e --ui",
     "test:e2e-expensive:watch": "yarn test:e2e-expensive --ui",
     "test:e2e:gen": "yarn playwright codegen http://localhost:3000",
-    "e2e-show-report": "yarn playwright show-report",
+    "e2e-show-report": "yarn playwright show-report --port 31000",
     "generate-types": "cd ./src/network/oncall-api/types-generator && yarn generate",
     "watch": "NODE_ENV=development webpack -w -c ./webpack.config.ts --env development",
     "sign": "npx --yes @grafana/sign-plugin@latest",
