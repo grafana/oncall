@@ -79,7 +79,7 @@ class Webhook(models.Model):
     objects_with_deleted = models.Manager()
 
     (
-        TRIGGER_ESCALATION_STEP,
+        TRIGGER_MANUAL,
         TRIGGER_ALERT_GROUP_CREATED,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
@@ -88,12 +88,11 @@ class Webhook(models.Model):
         TRIGGER_UNRESOLVE,
         TRIGGER_UNACKNOWLEDGE,
         TRIGGER_STATUS_CHANGE,
-        TRIGGER_MANUAL,
-    ) = range(10)
+    ) = range(9)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
-        (TRIGGER_ESCALATION_STEP, "Escalation step"),
+        (TRIGGER_MANUAL, "Manual or escalation step"),
         (TRIGGER_ALERT_GROUP_CREATED, "Alert Group Created"),
         (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
         (TRIGGER_RESOLVE, "Resolved"),
@@ -102,7 +101,6 @@ class Webhook(models.Model):
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
         (TRIGGER_STATUS_CHANGE, "Status change"),
-        (TRIGGER_MANUAL, "Manual"),
     )
 
     ALL_TRIGGER_TYPES = [i[0] for i in TRIGGER_TYPES]
@@ -116,7 +114,7 @@ class Webhook(models.Model):
     }
 
     PUBLIC_TRIGGER_TYPES_MAP = {
-        TRIGGER_ESCALATION_STEP: "escalation",
+        TRIGGER_MANUAL: "escalation",
         TRIGGER_ALERT_GROUP_CREATED: "alert group created",
         TRIGGER_ACKNOWLEDGE: "acknowledge",
         TRIGGER_RESOLVE: "resolve",
@@ -125,7 +123,6 @@ class Webhook(models.Model):
         TRIGGER_UNRESOLVE: "unresolve",
         TRIGGER_UNACKNOWLEDGE: "unacknowledge",
         TRIGGER_STATUS_CHANGE: "status change",
-        TRIGGER_MANUAL: "manual",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
@@ -161,7 +158,7 @@ class Webhook(models.Model):
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST", null=True)
-    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_ESCALATION_STEP, null=True)
+    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=TRIGGER_MANUAL, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     # NOTE: integration_filter is deprecated (to be removed), use filtered_integrations instead
     integration_filter = models.JSONField(default=None, null=True, blank=True)

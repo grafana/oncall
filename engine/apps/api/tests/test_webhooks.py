@@ -69,7 +69,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_custom_webhook, make
             },
             "trigger_template": None,
             "trigger_type": "0",
-            "trigger_type_name": "Escalation step",
+            "trigger_type_name": "Manual or escalation step",
             "preset": None,
         }
     ]
@@ -113,7 +113,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         },
         "trigger_template": None,
         "trigger_type": "0",
-        "trigger_type_name": "Escalation step",
+        "trigger_type_name": "Manual or escalation step",
         "preset": None,
     }
 
@@ -161,7 +161,7 @@ def test_get_detail_connected_integration_webhook(
         },
         "trigger_template": None,
         "trigger_type": "0",
-        "trigger_type_name": "Escalation step",
+        "trigger_type_name": "Manual or escalation step",
         "preset": None,
     }
 

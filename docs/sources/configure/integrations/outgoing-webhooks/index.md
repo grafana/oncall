@@ -108,7 +108,7 @@ This setting does not restrict outgoing webhook execution to events from the sel
 
 The type of event that will cause this outgoing webhook to execute. The types of triggers are:
 
-- [Escalation Step](#escalation-step)
+- [Manual or Escalation Step](#escalation-step)
 - [Alert Group Created](#alert-group-created)
 - [Acknowledged](#acknowledged)
 - [Resolved](#resolved)
@@ -117,7 +117,6 @@ The type of event that will cause this outgoing webhook to execute. The types of
 - [Unresolved](#unresolved)
 - [Unacknowledged](#unacknowledged)
 - [Status Change](#status-change)
-- [Manual](#manual)
 
 For more details about types of triggers see [Event types](#event-types)
 
@@ -481,6 +480,7 @@ Now the result is correct:
 `event.type` `escalation`
 
 This event will trigger when the outgoing webhook is included as a step in an escalation chain.
+Webhooks with this trigger type can also be manually triggered in the context of an alert group in the web UI.
 
 ### Alert Group Created
 
@@ -533,12 +533,6 @@ This event will trigger when a user unacknowledges an alert group.
 This event will trigger when any of the status change actions happen (acknowledge, resolve, silence,
 unacknowledge, unresolve, or unsilence). The event details included in the payload will match those of
 the original action triggering the event.
-
-### Manual
-
-`event.type` `manual`
-
-This event will trigger when a manual trigger of the outgoing webhook is requested.
 
 ## Viewing status of outgoing webhooks
 

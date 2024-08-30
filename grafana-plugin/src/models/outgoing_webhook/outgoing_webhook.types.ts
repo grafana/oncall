@@ -20,7 +20,7 @@ export interface OutgoingWebhookPreset {
 }
 
 export const WebhookTriggerType = {
-  EscalationStep: new KeyValuePair('0', 'Escalation Step'),
+  EscalationStep: new KeyValuePair('0', 'Manual or Escalation Step'),
   AlertGroupCreated: new KeyValuePair('1', 'Alert Group Created'),
   Acknowledged: new KeyValuePair('2', 'Acknowledged'),
   Resolved: new KeyValuePair('3', 'Resolved'),
@@ -29,17 +29,12 @@ export const WebhookTriggerType = {
   Unresolved: new KeyValuePair('6', 'Unresolved'),
   Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
   AlertGroupStatusChange: new KeyValuePair('8', 'Alert Group Status Change'),
-  Manual: new KeyValuePair('9', 'Manual'),
 };
 
 export const WEBHOOK_TRIGGGER_TYPE_OPTIONS = [
   {
     value: WebhookTriggerType.EscalationStep.key,
     label: WebhookTriggerType.EscalationStep.value,
-  },
-  {
-    value: WebhookTriggerType.Manual.key,
-    label: WebhookTriggerType.Manual.value,
   },
   {
     value: WebhookTriggerType.AlertGroupCreated.key,

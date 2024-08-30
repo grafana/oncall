@@ -296,7 +296,7 @@ def test_execute_webhook_via_escalation_ok(
         organization=organization,
         url="https://something/{{ alert_group_id }}/",
         http_method="POST",
-        trigger_type=Webhook.TRIGGER_ESCALATION_STEP,
+        trigger_type=Webhook.TRIGGER_MANUAL,
         trigger_template="{{{{ alert_group.integration_id == '{}' }}}}".format(
             alert_receive_channel.public_primary_key
         ),

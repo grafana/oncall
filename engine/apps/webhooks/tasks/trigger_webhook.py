@@ -43,10 +43,9 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_SILENCE: "silence",
     Webhook.TRIGGER_UNSILENCE: "unsilence",
     Webhook.TRIGGER_UNRESOLVE: "unresolve",
-    Webhook.TRIGGER_ESCALATION_STEP: "escalation",
+    Webhook.TRIGGER_MANUAL: "escalation",
     Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
     Webhook.TRIGGER_STATUS_CHANGE: "status change",
-    Webhook.TRIGGER_MANUAL: "manual",
 }
 
 
@@ -270,6 +269,9 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     # create log record
     error_code = None
     log_type = AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
+    trigger_log = TRIGGER_TYPE_TO_LABEL[webhook.trigger_type]
+    if webhook.trigger_type == Webhook.TRIGGER_MANUAL and escalation_policy is None:
+        trigger_log = None  # triggered manually
     reason = str(status["status_code"])
     if error is not None:
         log_type = AlertGroupLogRecord.TYPE_ESCALATION_FAILED
@@ -285,7 +287,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
             step_specific_info={
                 "webhook_name": webhook.name,
                 "webhook_id": webhook.public_primary_key,
-                "trigger": TRIGGER_TYPE_TO_LABEL[webhook.trigger_type],
+                "trigger": trigger_log,
             },
             escalation_policy=escalation_policy,
             escalation_policy_step=step,
