@@ -24,4 +24,4 @@ runs:
       shell: bash
       run: |
         pip install uv setuptools
-        uv pip sync --system ${{ inputs.python-requirements-paths }}
+        uv pip sync --system --python-preference only-system ${{ inputs.python-requirements-paths }}
