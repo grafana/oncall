@@ -5,6 +5,7 @@ from django.utils import timezone
 from telegram.error import RetryAfter
 
 from apps.alerts.models import AlertGroup
+from apps.alerts.paging import direct_paging
 from apps.alerts.tasks.notify_user import notify_user_task, perform_notification, send_bundled_notification
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models.user_notification_policy import UserNotificationPolicy
@@ -577,3 +578,48 @@ def test_notify_user_task_notification_bundle_eta_is_outdated(
     assert notification_bundle.notification_task_id != test_task_id
     assert notification_bundle.last_notified_at == now
     assert notification_bundle.notifications.count() == 2
+
+
+@patch.object(perform_notification, "apply_async")
+@pytest.mark.django_db
+def test_notify_user_task_direct_paging_acknowledged(
+    mock_perform_notification_apply_async,
+    make_organization,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+    make_user_notification_policy,
+    django_capture_on_commit_callbacks,
+):
+    organization = make_organization()
+    from_user = make_user(organization=organization)
+    user1 = make_user(organization=organization)
+    user2 = make_user(organization=organization)
+    make_user_notification_policy(
+        user=user1,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TESTONLY,
+    )
+    make_user_notification_policy(
+        user=user2,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TESTONLY,
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+
+    direct_paging(organization, from_user, "Test", alert_group=alert_group, users=[(user1, False), (user2, False)])
+    alert_group.acknowledge_by_user_or_backsync(user1)
+
+    # no notification should be sent for user1 because they have acknowledged the alert group
+    with django_capture_on_commit_callbacks(execute=True):
+        notify_user_task(user1.pk, alert_group.pk, notify_even_acknowledged=True)
+
+    mock_perform_notification_apply_async.assert_not_called()
+
+    # user2 should receive a notification because they have not acknowledged the alert group
+    with django_capture_on_commit_callbacks(execute=True):
+        notify_user_task(user2.pk, alert_group.pk, notify_even_acknowledged=True)
+
+    mock_perform_notification_apply_async.assert_called_once()
