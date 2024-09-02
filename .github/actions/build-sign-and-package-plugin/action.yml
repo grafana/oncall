@@ -41,9 +41,9 @@ runs:
         GRAFANA_ACCESS_POLICY_TOKEN: ${{ inputs.grafana_access_policy_token }}
       run: |
         jq --arg v "${{ inputs.plugin_version_number }}" '.version=$v' package.json > package.new && mv package.new package.json && jq '.version' package.json;
-        yarn build
+        pnpm build
         mage buildAll || true
-        yarn sign
+        pnpm sign
         if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
         mv dist grafana-oncall-app
         zip -r grafana-oncall-app.zip ./grafana-oncall-app

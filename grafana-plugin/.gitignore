@@ -8,8 +8,8 @@
 /dist
 
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+pnpm-debug.log*
+pnpm-error.log*
 
 # This file is generated
 grafana-plugin.yml
