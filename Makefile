@@ -141,7 +141,7 @@ init:  ## build the frontend plugin code then run make start
 # this makes sure that it will be available when the grafana container starts up without the need to
 # restart the grafana container initially
 ifeq ($(findstring $(UI_PROFILE),$(COMPOSE_PROFILES)),$(UI_PROFILE))
-	$(call run_ui_docker_command,yarn install && yarn build:dev)
+	$(call run_ui_docker_command,pnpm install && pnpm build:dev)
 endif
 
 stop:  # stop all of the docker containers
@@ -168,7 +168,7 @@ install-pre-commit:
 	fi
 
 lint: install-pre-commit  ## run both frontend and backend linters
-                          ## may need to run `yarn install` from within `grafana-plugin`
+                          ## may need to run `pnpm install` from within `grafana-plugin`
                           ## to install several `pre-commit` dependencies
 	pre-commit run --all-files
 
@@ -203,25 +203,25 @@ engine-manage:  ## run Django's `manage.py` script, inside of a docker container
 	$(call run_engine_docker_command,python manage.py $(CMD))
 
 test-e2e:  ## run the e2e tests in headless mode
-	yarn --cwd grafana-plugin test:e2e
+	pnpm --dir grafana-plugin test:e2e
 
 test-e2e-watch:  ## start e2e tests in watch mode
-	yarn --cwd grafana-plugin test:e2e:watch
+	pnpm --dir grafana-plugin test:e2e:watch
 
 test-e2e-show-report:  ## open last e2e test report
-	yarn --cwd grafana-plugin playwright show-report
+	pnpm --dir grafana-plugin playwright show-report
 
 ui-test:  ## run the UI tests
-	$(call run_ui_docker_command,yarn test)
+	$(call run_ui_docker_command,pnpm test)
 
 ui-lint:  ## run the UI linter
-	$(call run_ui_docker_command,yarn lint)
+	$(call run_ui_docker_command,pnpm lint)
 
 ui-build:  ## build the UI
-	$(call run_ui_docker_command,yarn build)
+	$(call run_ui_docker_command,pnpm build)
 
 ui-command:  ## run any command, inside of a UI docker container, passing `$CMD` as arguments.
-             ## e.g. `make ui-command CMD="yarn test"`
+             ## e.g. `make ui-command CMD="pnpm test"`
 	$(call run_ui_docker_command,$(CMD))
 
 exec-engine:  ## exec into engine container's bash

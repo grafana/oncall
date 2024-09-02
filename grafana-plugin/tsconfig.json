@@ -3,6 +3,8 @@
   "include": ["src", "e2e-tests", "playwright.config.ts"],
   "types": ["node", "@emotion/core"],
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
     "rootDir": "",
     "typeRoots": ["./node_modules/@types"],
     "noUnusedLocals": false,

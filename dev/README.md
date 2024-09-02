@@ -12,7 +12,7 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 - [tilt-dev/ctlptl: Making local Kubernetes clusters fun and easy to set up](https://github.com/tilt-dev/ctlptl)
 - [Kind](https://kind.sigs.k8s.io)
 - [Node.js v20.x](https://nodejs.org/en/download)
-- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)
+- [pnpm](https://pnpm.io/installation)
 
 ### Launch the environment
 
@@ -519,7 +519,7 @@ In order to automate types creation and prevent API usage pitfalls, OnCall proje
 
 ### Instruction
 
-1. Whenever API contract changes, run `yarn generate-types` from `grafana-plugin` directory
+1. Whenever API contract changes, run `pnpm generate-types` from `grafana-plugin` directory
 2. Then you can start consuming types and you can use fully typed http client:
 
    ```ts
