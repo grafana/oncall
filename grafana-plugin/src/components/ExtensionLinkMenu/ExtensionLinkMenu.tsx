@@ -62,7 +62,7 @@ function TriggerManualWebhook({
   };
 }) {
   return (
-    <Menu.Group key={'triggerwebhook'} label={'Trigger Webhook'}>
+    <Menu.Group key={'triggerwebhook'} label={'Webhook'}>
       <div>
         <Menu.Item icon={'upload'} key={'triggerWebhook'} label={'Trigger webhook'} onClick={modal.onOpenModal} />
       </div>

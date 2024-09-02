@@ -88,10 +88,13 @@ const TriggerManualWebhook = observer(({ isModalOpen, setIsModalOpen, alertGroup
   useEffect(() => {
     (async () => {
       if (isModalOpen) {
-        await store.outgoingWebhookStore.updateItems({
-          trigger_type: 0,
-          integration: alertGroup.alert_receive_channel.id,
-        }, true);
+        await store.outgoingWebhookStore.updateItems(
+          {
+            trigger_type: 0,
+            integration: alertGroup.alert_receive_channel.id,
+          },
+          true
+        );
       }
     })();
   }, [isModalOpen]);
