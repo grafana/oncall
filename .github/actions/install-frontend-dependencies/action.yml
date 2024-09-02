@@ -11,6 +11,7 @@ runs:
       with:
         node-version: 20.15.1
         cache: pnpm
+        cache-dependency-path: grafana-plugin/pnpm-lock.yaml
     - name: Install frontend dependencies
       shell: bash
       run: pnpm install --frozen-lockfile --prefer-offline
