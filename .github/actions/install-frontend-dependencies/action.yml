@@ -18,10 +18,14 @@ runs:
       # yamllint disable rule:line-length
       run: echo "pnpm-lock-location=${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}/pnpm.lock" >> $GITHUB_OUTPUT
       # yamllint enable rule:line-length
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9.1.4
     - uses: actions/setup-node@v4
       with:
         node-version: 20.15.1
-        cache: "pnpm"
+        cache: pnpm
         cache-dependency-path: ${{ steps.pnpm-lock-location.outputs.pnpm-lock-location }}
     - name: Use cached frontend dependencies
       id: cache-frontend-dependencies
