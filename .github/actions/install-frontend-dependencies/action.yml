@@ -1,23 +1,8 @@
-name: "Install frontend dependencies"
-description: "Setup node + install frontend dependencies"
-inputs:
-  working-directory:
-    description: "Relative path to oncall/grafana-plugin directory"
-    required: false
-    default: "."
+name: Install frontend dependencies
+description: Setup node/pnpm + install frontend dependencies
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - name: Determine grafana-plugin directory location
-      id: grafana-plugin-directory
-      shell: bash
-      run: echo "grafana-plugin-directory=${{ inputs.working-directory }}/grafana-plugin" >> $GITHUB_OUTPUT
-    - name: Determine pnpm.lock location
-      id: pnpm-lock-location
-      shell: bash
-      # yamllint disable rule:line-length
-      run: echo "pnpm-lock-location=${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}/pnpm.lock" >> $GITHUB_OUTPUT
-      # yamllint enable rule:line-length
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
@@ -26,17 +11,6 @@ runs:
       with:
         node-version: 20.15.1
         cache: pnpm
-        cache-dependency-path: ${{ steps.pnpm-lock-location.outputs.pnpm-lock-location }}
-    - name: Use cached frontend dependencies
-      id: cache-frontend-dependencies
-      uses: actions/cache@v4
-      with:
-        path: ${{ inputs.working-directory }}/grafana-plugin/node_modules
-        # yamllint disable rule:line-length
-        key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles(steps.pnpm-lock-location.outputs.pnpm-lock-location) }}
-        # yamllint enable rule:line-length
     - name: Install frontend dependencies
-      if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
       shell: bash
-      working-directory: ${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}
-      run: pnpm install --frozen-lockfile --prefer-offline --network-timeout 500000
+      run: pnpm install --frozen-lockfile --prefer-offline
