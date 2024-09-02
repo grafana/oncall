@@ -14,4 +14,5 @@ runs:
         cache-dependency-path: grafana-plugin/pnpm-lock.yaml
     - name: Install frontend dependencies
       shell: bash
+      working-directory: grafana-plugin
       run: pnpm install --frozen-lockfile --prefer-offline
