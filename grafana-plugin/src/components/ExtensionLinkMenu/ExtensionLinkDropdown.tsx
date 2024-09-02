@@ -7,19 +7,15 @@ import {
   usePluginLinks as originalUsePluginLinks,
 } from '@grafana/runtime';
 import { Button, Dropdown, Modal, Select, Stack, ToolbarButton } from '@grafana/ui';
+import { observer } from 'mobx-react';
 import { OnCallPluginExtensionPoints } from 'app-types';
 
+import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { useStore } from 'state/useStore';
+import { StackSize } from 'utils/consts';
 
 import { ExtensionLinkMenu } from './ExtensionLinkMenu';
-import { toJS } from 'mobx';
-import { useStore } from 'state/useStore';
-import { alertGroupDynamicLabelCheatSheet } from 'components/CheatSheet/CheatSheet.config';
-import { StackSize } from 'utils/consts';
-import { SelectOption } from 'state/types';
-import { ActionKey } from 'models/loader/action-keys';
-import { observer } from 'mobx-react';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 interface Props {
   alertGroup: ApiSchemas['AlertGroup'];
