@@ -91,7 +91,7 @@ const TriggerManualWebhook = observer(({ isModalOpen, setIsModalOpen, alertGroup
         await store.outgoingWebhookStore.updateItems({
           trigger_type: 0,
           integration: alertGroup.alert_receive_channel.id,
-        });
+        }, true);
       }
     })();
   }, [isModalOpen]);
@@ -117,7 +117,7 @@ const TriggerManualWebhook = observer(({ isModalOpen, setIsModalOpen, alertGroup
           <Button
             variant="primary"
             onClick={onTriggerWebhook}
-            disabled={store.loaderStore.isLoading(ActionKey.TRIGGER_MANUAL_WEBHOOK)}
+            disabled={selectedWebhookOption === null || store.loaderStore.isLoading(ActionKey.TRIGGER_MANUAL_WEBHOOK)}
           >
             Trigger webhook
           </Button>

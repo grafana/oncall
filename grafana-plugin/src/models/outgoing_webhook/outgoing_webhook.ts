@@ -67,7 +67,7 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @action.bound
   @AutoLoadingState(ActionKey.FETCH_WEBHOOKS)
-  async updateItems(query: any = '') {
+  async updateItems(query: any = '', forceUpdate = false) {
     const params = typeof query === 'string' ? { search: query } : query;
 
     const results = await makeRequest(`${this.path}`, {
@@ -76,7 +76,7 @@ export class OutgoingWebhookStore extends BaseStore {
 
     runInAction(() => {
       this.items = {
-        ...this.items,
+        ...(forceUpdate ? {} : this.items),
         ...results.reduce(
           (acc: { [key: number]: ApiSchemas['Webhook'] }, item: ApiSchemas['Webhook']) => ({
             ...acc,
