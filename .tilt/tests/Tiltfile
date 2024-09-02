@@ -16,7 +16,7 @@ local_resource(
 
 cmd_button(
     name="E2E Tests - headless run",
-    argv=["sh", "-c", "pnpm --cwd ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
+    argv=["sh", "-c", "pnpm --dir ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
     text="Restart headless run",
     resource="e2e-tests",
     icon_name="replay",
@@ -29,7 +29,7 @@ cmd_button(
 
 cmd_button(
     name="E2E Tests - open watch mode",
-    argv=["sh", "-c", "pnpm --cwd grafana-plugin test:e2e:watch"],
+    argv=["sh", "-c", "pnpm --dir grafana-plugin test:e2e:watch"],
     text="Open watch mode",
     resource="e2e-tests",
     icon_name="visibility",
@@ -37,7 +37,7 @@ cmd_button(
 
 cmd_button(
     name="E2E Tests - show report",
-    argv=["sh", "-c", "pnpm --cwd grafana-plugin playwright show-report"],
+    argv=["sh", "-c", "pnpm --dir grafana-plugin playwright show-report"],
     text="Show last HTML report",
     resource="e2e-tests",
     icon_name="assignment",
