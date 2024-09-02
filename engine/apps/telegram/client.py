@@ -186,4 +186,4 @@ class TelegramClient:
 
     @staticmethod
     def error_message_is(error: TelegramError, messages: list[str]) -> bool:
-        return error.message in messages
+        return error.message.lower() in (m.lower() for m in messages)
