@@ -6,6 +6,8 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
 
 import { OutgoingWebhookPreset } from './outgoing_webhook.types';
+import { AutoLoadingState, WithGlobalNotification, WrapWithGlobalNotification } from 'utils/decorators';
+import { ActionKey } from 'models/loader/action-keys';
 
 export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
@@ -64,6 +66,7 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action.bound
+  @AutoLoadingState(ActionKey.FETCH_WEBHOOKS)
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
@@ -89,6 +92,19 @@ export class OutgoingWebhookStore extends BaseStore {
         ...this.searchResult,
         [key]: results.map((item: ApiSchemas['Webhook']) => item.id),
       };
+    });
+  }
+
+  @action.bound
+  @AutoLoadingState(ActionKey.TRIGGER_MANUAL_WEBHOOK)
+  @WithGlobalNotification({ success: 'Webhook has been triggered successfully.', failure: 'Failed to trigger webhook' })
+  async triggerManualWebhook(id: ApiSchemas['Webhook']['id'], alertGroupId: ApiSchemas['AlertGroup']['pk']) {
+    await makeRequest(`${this.path}${id}/trigger_manual`, {
+      method: 'POST',
+      data: {
+        // @ts-ignore
+        alert_group: alertGroupId,
+      },
     });
   }
 
