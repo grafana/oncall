@@ -133,6 +133,7 @@ const TriggerManualWebhookModal = observer(
     async function onTriggerWebhook() {
       await store.outgoingWebhookStore.triggerManualWebhook(selectedWebhookOption.value, alertGroup.pk);
       setIsModalOpen(false);
+      setSelectedWebhookOption(null);
     }
   }
 );
