@@ -52,7 +52,7 @@ PyMySQL==1.1.1
 python-telegram-bot==13.13
 recurring-ical-events==2.1.0
 redis==5.0.1
-regex==2021.11.2
+regex==2024.7.24
 requests==2.32.3
 slack-export-viewer==1.1.4
 slack_sdk==3.21.3

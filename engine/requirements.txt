@@ -393,7 +393,7 @@ referencing==0.33.0
     # via
     #   jsonschema
     #   jsonschema-specifications
-regex==2021.11.2
+regex==2024.7.24
     # via -r requirements.in
 requests==2.32.3
     # via
