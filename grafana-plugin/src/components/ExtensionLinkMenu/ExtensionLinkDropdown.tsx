@@ -50,7 +50,7 @@ export function ExtensionLinkDropdown({
   const menu = (
     <ExtensionLinkMenu
       extensions={links}
-      triggerWebhookModal={{
+      webhookModal={{
         onOpenModal: onOpenTriggerWebhookModal,
       }}
       declareIncidentLink={declareIncidentLink}
@@ -60,7 +60,7 @@ export function ExtensionLinkDropdown({
 
   return (
     <div>
-      <TriggerManualWebhook
+      <TriggerManualWebhookModal
         alertGroup={alertGroup}
         isModalOpen={isTriggerWebhookModalOpen}
         setIsModalOpen={setIsTriggerWebhookModalOpen}
@@ -75,65 +75,67 @@ export function ExtensionLinkDropdown({
   );
 }
 
-interface TriggerManualWebhookProps {
+interface TriggerManualWebhookModalProps {
   alertGroup: ApiSchemas['AlertGroup'];
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
 }
 
-const TriggerManualWebhook = observer(({ isModalOpen, setIsModalOpen, alertGroup }: TriggerManualWebhookProps) => {
-  const store = useStore();
-  const [selectedWebhookOption, setSelectedWebhookOption] = useState<SelectableValue<string>>(null);
+const TriggerManualWebhookModal = observer(
+  ({ isModalOpen, setIsModalOpen, alertGroup }: TriggerManualWebhookModalProps) => {
+    const store = useStore();
+    const [selectedWebhookOption, setSelectedWebhookOption] = useState<SelectableValue<string>>(null);
 
-  useEffect(() => {
-    (async () => {
-      if (isModalOpen) {
-        await store.outgoingWebhookStore.updateItems(
-          {
-            trigger_type: 0,
-            integration: alertGroup.alert_receive_channel.id,
-          },
-          true
-        );
-      }
-    })();
-  }, [isModalOpen]);
+    useEffect(() => {
+      (async () => {
+        if (isModalOpen) {
+          await store.outgoingWebhookStore.updateItems(
+            {
+              trigger_type: 0,
+              integration: alertGroup.alert_receive_channel.id,
+            },
+            true
+          );
+        }
+      })();
+    }, [isModalOpen]);
 
-  return (
-    <Modal isOpen={isModalOpen} title={'Select outgoing webhook to trigger'} onDismiss={() => setIsModalOpen(false)}>
-      <Stack direction="column" gap={StackSize.lg}>
-        <Select
-          isLoading={store.loaderStore.isLoading(ActionKey.FETCH_WEBHOOKS)}
-          menuShouldPortal
-          value={selectedWebhookOption}
-          onChange={(option) => setSelectedWebhookOption(option)}
-          options={Object.values(store.outgoingWebhookStore.items).map((item) => ({
-            label: item.name,
-            value: item.id,
-          }))}
-        />
+    return (
+      <Modal isOpen={isModalOpen} title={'Select outgoing webhook to trigger'} onDismiss={() => setIsModalOpen(false)}>
+        <Stack direction="column" gap={StackSize.lg}>
+          <Select
+            isLoading={store.loaderStore.isLoading(ActionKey.FETCH_WEBHOOKS)}
+            menuShouldPortal
+            value={selectedWebhookOption}
+            onChange={(option) => setSelectedWebhookOption(option)}
+            options={Object.values(store.outgoingWebhookStore.items).map((item) => ({
+              label: item.name,
+              value: item.id,
+            }))}
+          />
 
-        <Stack gap={StackSize.md} justifyContent={'flex-end'}>
-          <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={onTriggerWebhook}
-            disabled={selectedWebhookOption === null || store.loaderStore.isLoading(ActionKey.TRIGGER_MANUAL_WEBHOOK)}
-          >
-            Trigger webhook
-          </Button>
+          <Stack gap={StackSize.md} justifyContent={'flex-end'}>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={onTriggerWebhook}
+              disabled={selectedWebhookOption === null || store.loaderStore.isLoading(ActionKey.TRIGGER_MANUAL_WEBHOOK)}
+            >
+              Trigger webhook
+            </Button>
+          </Stack>
         </Stack>
-      </Stack>
-    </Modal>
-  );
+      </Modal>
+    );
 
-  async function onTriggerWebhook() {
-    await store.outgoingWebhookStore.triggerManualWebhook(selectedWebhookOption.value, alertGroup.pk);
-    setIsModalOpen(false);
+    async function onTriggerWebhook() {
+      await store.outgoingWebhookStore.triggerManualWebhook(selectedWebhookOption.value, alertGroup.pk);
+      setIsModalOpen(false);
+    }
   }
-});
+);
 
 function useExtensionPointContext(incident: ApiSchemas['AlertGroup']): PluginExtensionOnCallAlertGroupContext {
   return { alertGroup: incident };

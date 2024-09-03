@@ -9,7 +9,7 @@ import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBri
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 
 type Props = {
-  triggerWebhookModal: {
+  webhookModal: {
     onOpenModal: () => void;
   };
 
@@ -25,7 +25,7 @@ export function ExtensionLinkMenu({
   extensions,
   declareIncidentLink,
   grafanaIncidentId,
-  triggerWebhookModal,
+  webhookModal,
 }: Props): ReactElement | null {
   const { categorised, uncategorised } = useExtensionLinksByCategory(extensions);
   const showDivider = uncategorised.length > 0 && Object.keys(categorised).length > 0;
@@ -33,14 +33,14 @@ export function ExtensionLinkMenu({
   return (
     <Menu>
       <>
-        <TriggerManualWebhook modal={triggerWebhookModal} />
+        <IRMActionSection
+          webhookModal={webhookModal}
+          extensions={extensions}
+          declareIncidentLink={declareIncidentLink}
+          grafanaIncidentId={grafanaIncidentId}
+        />
 
         <RenderConditionally shouldRender={extensions.length > 0}>
-          <DeclareIncidentMenuItem
-            extensions={extensions}
-            declareIncidentLink={declareIncidentLink}
-            grafanaIncidentId={grafanaIncidentId}
-          />
           {Object.keys(categorised).map((category) => (
             <Menu.Group key={category} label={truncateTitle(category, 25)}>
               {renderItems(categorised[category])}
@@ -54,21 +54,21 @@ export function ExtensionLinkMenu({
   );
 }
 
-function TriggerManualWebhook({
-  modal,
-}: {
-  modal: {
-    onOpenModal: () => void;
-  };
-}) {
+const IRMActionSection: React.FC<Props> = ({ webhookModal, extensions, declareIncidentLink, grafanaIncidentId }) => {
   return (
-    <Menu.Group key={'triggerwebhook'} label={'Webhook'}>
-      <div>
-        <Menu.Item icon={'upload'} key={'triggerWebhook'} label={'Trigger webhook'} onClick={modal.onOpenModal} />
-      </div>
+    <Menu.Group key={'IRM'} label={'IRM'}>
+      <Menu.Item icon={'upload'} key={'triggerWebhook'} label={'Trigger webhook'} onClick={webhookModal.onOpenModal} />
+
+      {extensions.length > 0 && (
+        <DeclareIncidentMenuItem
+          extensions={extensions}
+          declareIncidentLink={declareIncidentLink}
+          grafanaIncidentId={grafanaIncidentId}
+        />
+      )}
     </Menu.Group>
   );
-}
+};
 
 // This menu item is a temporary workaround for the fact that the Incident plugin doesn't
 // register its own extension link.
@@ -77,7 +77,7 @@ function DeclareIncidentMenuItem({
   extensions,
   declareIncidentLink,
   grafanaIncidentId,
-}: Omit<Props, 'triggerWebhookModal'>): ReactElement | null {
+}: Omit<Props, 'webhookModal'>): ReactElement | null {
   const declareIncidentExtensionLink = extensions.find(
     (extension) => extension.pluginId === 'grafana-incident-app' && extension.title === 'Declare incident'
   );
@@ -95,7 +95,7 @@ function DeclareIncidentMenuItem({
 
   return (
     <PluginBridge plugin={SupportedPlugin.Incident}>
-      <Menu.Group key={'Declare incident'} label={'Incident'}>
+      <>
         {renderItems([
           {
             type: PluginExtensionTypes.link,
@@ -106,7 +106,7 @@ function DeclareIncidentMenuItem({
             pluginId: getPluginId(),
           } as Partial<PluginExtensionLink>,
         ])}
-      </Menu.Group>
+      </>
     </PluginBridge>
   );
 }
