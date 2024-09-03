@@ -158,4 +158,4 @@ def test_sync_team_serialization(test_team, validation_pass):
         serializer.is_valid(raise_exception=True)
     except ValidationError as e:
         validation_error = e
-    assert bool(validation_error is None) == validation_pass
+    assert (validation_error is None) == validation_pass
