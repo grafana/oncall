@@ -317,32 +317,29 @@ func (a *App) SaveOnCallSettings(settings *OnCallPluginSettings) error {
 	return nil
 }
 
-func (a *App) GetSyncData(ctx context.Context, settings *OnCallPluginSettings) (*OnCallSync, error) {
+func (a *App) GetSyncData(pluginSettings *OnCallPluginSettings) (*OnCallSync, error) {
+	var err error
+
 	startGetSyncData := time.Now()
 	defer func() {
 		elapsed := time.Since(startGetSyncData)
 		log.DefaultLogger.Info("GetSyncData", "time", elapsed.Milliseconds())
 	}()
 
-	onCallPluginSettings, err := a.OnCallSettingsFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error getting settings from context = %v", err)
-	}
-
 	onCallSync := OnCallSync{
-		Settings: *settings,
+		Settings: *pluginSettings,
 	}
-	onCallSync.Users, err = a.GetAllUsersWithPermissions(onCallPluginSettings)
+	onCallSync.Users, err = a.GetAllUsersWithPermissions(pluginSettings)
 	if err != nil {
 		return nil, fmt.Errorf("error getting users = %v", err)
 	}
 
-	onCallSync.Teams, err = a.GetAllTeams(onCallPluginSettings)
+	onCallSync.Teams, err = a.GetAllTeams(pluginSettings)
 	if err != nil {
 		return nil, fmt.Errorf("error getting teams = %v", err)
 	}
 
-	teamMembers, err := a.GetAllTeamMembers(onCallPluginSettings, onCallSync.Teams)
+	teamMembers, err := a.GetAllTeamMembers(pluginSettings, onCallSync.Teams)
 	if err != nil {
 		return nil, fmt.Errorf("error getting team members = %v", err)
 	}
