@@ -81,17 +81,21 @@ We prepared multiple environments:
    ```bash
    docker-compose pull && docker-compose up -d
    ```
-
-5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials
-   as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_
-   with OnCall _backend_:
-
+   
+5. Provision the plugin:
    ```text
-   OnCall backend URL: http://engine:8080
+   curl -X POST "http://admin:admin@localhost:3000/api/plugins/grafana-oncall-app/settings" -H "Content-Type: application/json" -d '{"enabled":true, "jsonData":{"stackId":5, "orgId":100, "onCallApiUrl":"http://engine:8080", "grafanaUrl":"http://grafana:3000"}}'
+   curl -X POST "http://admin:admin@localhost:3000/api/plugins/grafana-oncall-app/resources/plugin/install"
    ```
 
-6. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up
+6. Start using OnCall, log in to Grafana with credentials
+   as defined above: `admin`/`admin`
+
+7. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up
    Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
+
+> [!IMPORTANT]  
+> If you are using Grafana 11 with Grafana OnCall the feature toggle for externalServiceAccounts must be enabled.
 
 ## Update version
 
