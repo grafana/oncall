@@ -2,7 +2,7 @@ name: Install frontend dependencies
 description: Setup node/pnpm + install frontend dependencies
 inputs:
   working-directory:
-    description: "Relative path to oncall/grafana-plugin directory"
+    description: "Relative path to oncall directory"
     required: false
     default: "."
 runs:
@@ -29,5 +29,5 @@ runs:
         cache-dependency-path: ${{ steps.pnpm-lock-location.outputs.pnpm-lock-location }}
     - name: Install frontend dependencies
       shell: bash
-      working-directory: grafana-plugin
+      working-directory: ${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}
       run: pnpm install --frozen-lockfile --prefer-offline
