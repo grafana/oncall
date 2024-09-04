@@ -21,7 +21,7 @@ def get_from_email(user):
         return live_settings.EMAIL_FROM_ADDRESS
 
     if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
-        return "oncall@{}.grafana.net".format(user.organization.stack_slug)
+        return "oncall@{}.{}".format(user.organization.stack_slug, settings.EMAIL_FROM_DOMAIN)
 
     return live_settings.EMAIL_HOST_USER
 
