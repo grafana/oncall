@@ -313,7 +313,6 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           padding-top: 12px;
         `}
       >
-        <div className="haleluia">asadsd</div>
         <Alert
           severity="warning"
           title={

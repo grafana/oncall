@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, Drawer, Stack } from '@grafana/ui';
+import { Button, Drawer, Stack, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
@@ -8,15 +8,13 @@ import { CheatSheet } from 'components/CheatSheet/CheatSheet';
 import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
-import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import { TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
-
-const cx = cn.bind(styles);
+import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 
 interface Template {
   value: string;
@@ -42,6 +40,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
   const [changedTemplateBody, setChangedTemplateBody] = useState(template.value);
   const [selectedPayload, setSelectedPayload] = useState();
   const [resultError, setResultError] = useState<string>(undefined);
+  const styles = useStyles2(getIntegrationTemplateStyles);
 
   const getChangeHandler = () => {
     return debounce((value: string) => {
@@ -88,7 +87,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
   return (
     <Drawer
       title={
-        <div className={cx('title-container')}>
+        <div className={styles.titleContainer}>
           <Stack justifyContent="space-between" alignItems="flex-start">
             <Stack direction="column">
               <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
@@ -114,8 +113,8 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
       closeOnMaskClick={false}
       width="95%"
     >
-      <div className={cx('container-wrapper')}>
-        <div className={cx('container')}>
+      <div className={styles.containerWrapper}>
+        <div className={styles.container}>
           <TemplatesAlertGroupsList
             heading="Last events"
             templatePage={TemplatePage.Webhooks}
@@ -139,8 +138,8 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
             />
           ) : (
             <>
-              <div className={cx('template-block-codeeditor')}>
-                <div className={cx('template-editor-block-title')}>
+              <div className={styles.templateBlockCodeEditor}>
+                <div className={styles.templateEditorBlockTitle}>
                   <Stack justifyContent="space-between" alignItems="center" wrap="wrap">
                     <Text>Template editor</Text>
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
@@ -148,7 +147,7 @@ export const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({
                     </Button>
                   </Stack>
                 </div>
-                <div className={cx('template-editor-block-content')}>
+                <div className={styles.templateEditorBlockContent}>
                   <MonacoEditor
                     value={template.value}
                     data={{ payload_example: selectedPayload }}
