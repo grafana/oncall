@@ -15,50 +15,50 @@ type OnCallInstall struct {
 	OnCallError `json:"onCallError,omitempty"`
 }
 
-func (a *App) InstallOnCallFromPluginSettings(pluginSettings *OnCallPluginSettings, persistPluginSettingsToGrafana bool) (*OnCallProvisioningJSONData, error, int) {
+func (a *App) InstallOnCallFromPluginSettings(pluginSettings *OnCallPluginSettings, persistPluginSettingsToGrafana bool) (*OnCallProvisioningJSONData, int, *OnCallInstall, error) {
 	var provisioningData OnCallProvisioningJSONData
 
 	healthStatus, err := a.CheckOnCallApiHealthStatus(pluginSettings)
 	if err != nil {
 		log.DefaultLogger.Error("Error checking on-call API health", "error", err)
-		return nil, err, healthStatus
+		return nil, healthStatus, nil, err
 	}
 
 	onCallSync, err := a.GetSyncData(pluginSettings)
 	if err != nil {
 		log.DefaultLogger.Error("Error getting sync data", "error", err)
-		return nil, err, http.StatusInternalServerError
+		return nil, http.StatusInternalServerError, nil, err
 	}
 
 	onCallSyncJsonData, err := json.Marshal(onCallSync)
 	if err != nil {
 		log.DefaultLogger.Error("Error marshalling JSON", "error", err)
-		return nil, err, http.StatusInternalServerError
+		return nil, http.StatusInternalServerError, nil, err
 	}
 
 	installURL, err := url.JoinPath(pluginSettings.OnCallAPIURL, "api/internal/v1/plugin/v2/install")
 	if err != nil {
 		log.DefaultLogger.Error("Error joining path", "error", err)
-		return nil, err, http.StatusInternalServerError
+		return nil, http.StatusInternalServerError, nil, err
 	}
 
 	parsedInstallURL, err := url.Parse(installURL)
 	if err != nil {
 		log.DefaultLogger.Error("Error parsing path", "error", err)
-		return nil, err, http.StatusInternalServerError
+		return nil, http.StatusInternalServerError, nil, err
 	}
 
 	installReq, err := http.NewRequest("POST", parsedInstallURL.String(), bytes.NewBuffer(onCallSyncJsonData))
 	if err != nil {
 		log.DefaultLogger.Error("Error creating request", "error", err)
-		return nil, err, http.StatusBadRequest
+		return nil, http.StatusBadRequest, nil, err
 	}
 	installReq.Header.Set("Content-Type", "application/json")
 
 	res, err := a.httpClient.Do(installReq)
 	if err != nil {
 		log.DefaultLogger.Error("Error request to oncall", "error", err)
-		return nil, err, http.StatusInternalServerError
+		return nil, http.StatusInternalServerError, nil, err
 	}
 	defer res.Body.Close()
 
@@ -83,25 +83,18 @@ func (a *App) InstallOnCallFromPluginSettings(pluginSettings *OnCallPluginSettin
 			}
 		}
 
-		// TODO: what to do here?
-		// w.Header().Add("Content-Type", "application/json")
-		// if err := json.NewEncoder(w).Encode(installError); err != nil {
-		// 	log.DefaultLogger.Error("Error encoding response", "error", err)
-		// 	http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		// 	return err, http.StatusInternalServerError
-		// }
-		// w.WriteHeader(http.StatusBadRequest)
+		return nil, http.StatusBadRequest, &installError, nil
 	} else {
 		provisionBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			log.DefaultLogger.Error("Error reading response body", "error", err)
-			return nil, err, http.StatusInternalServerError
+			return nil, http.StatusInternalServerError, nil, err
 		}
 
 		err = json.Unmarshal(provisionBody, &provisioningData)
 		if err != nil {
 			log.DefaultLogger.Error("Error unmarshalling OnCallProvisioningJSONData", "error", err)
-			return nil, err, http.StatusInternalServerError
+			return nil, http.StatusInternalServerError, nil, err
 		}
 
 		if persistPluginSettingsToGrafana {
@@ -109,12 +102,12 @@ func (a *App) InstallOnCallFromPluginSettings(pluginSettings *OnCallPluginSettin
 
 			if err = a.SaveOnCallSettings(pluginSettings); err != nil {
 				log.DefaultLogger.Error("Error saving settings", "error", err)
-				return nil, err, http.StatusInternalServerError
+				return nil, http.StatusInternalServerError, nil, err
 			}
 		}
 	}
 
-	return &provisioningData, nil, http.StatusOK
+	return &provisioningData, http.StatusOK, nil, nil
 }
 
 func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
@@ -136,10 +129,18 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err, httpStatusCode := a.InstallOnCallFromPluginSettings(onCallPluginSettings, true)
+	_, httpStatusCode, installError, err := a.InstallOnCallFromPluginSettings(onCallPluginSettings, true)
 	if err != nil {
 		log.DefaultLogger.Error("Error installing oncall", "error", err)
 		http.Error(w, err.Error(), httpStatusCode)
+		return
+	} else if installError != nil {
+		w.Header().Add("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(installError); err != nil {
+			log.DefaultLogger.Error("Error encoding response", "error", err)
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		}
+		w.WriteHeader(httpStatusCode)
 		return
 	}
 
