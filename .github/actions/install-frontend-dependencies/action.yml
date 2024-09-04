@@ -1,7 +1,7 @@
 name: Install frontend dependencies
 description: Setup node/pnpm + install frontend dependencies
 inputs:
-  working-directory:
+  oncall-directory:
     description: "Relative path to oncall directory"
     required: false
     default: "."
@@ -15,7 +15,7 @@ runs:
     - name: Determine grafana-plugin directory location
       id: grafana-plugin-directory
       shell: bash
-      run: echo "grafana-plugin-directory=${{ inputs.working-directory }}/grafana-plugin" >> $GITHUB_OUTPUT
+      run: echo "grafana-plugin-directory=${{ inputs.oncall-directory }}/grafana-plugin" >> $GITHUB_OUTPUT
     - name: Determine pnpm-lock.yaml location
       id: pnpm-lock-location
       shell: bash
