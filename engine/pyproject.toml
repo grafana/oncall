@@ -71,6 +71,7 @@ module = [
     "polymorphic.*",
     "pyroscope.*",
     "ratelimit.*",
+    "regex.*",
     "recurring_ical_events.*",
     "rest_polymorphic.*",
     "slackclient.*",

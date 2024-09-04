@@ -15,6 +15,38 @@ from common.jinja_templater.apply_jinja_template import (
     templated_value_is_truthy,
 )
 
+EMAIL_SAMPLE_PAYLOAD = {
+    "subject": "[Reminder] Review GKE getServerConfig API permission changes",
+    "message": "Hello Google Kubernetes Customer,\r\n"
+    "\r\n"
+    "We’re writing to remind you that starting October 22, 2024, "
+    "the  \r\n"
+    "getServerConfig API for Google Kubernetes Engine (GKE) will "
+    "enforce  \r\n"
+    "Identity and Access Management (IAM) container.clusters.list "
+    "checks. This  \r\n"
+    "change follows a series of security improvements as IAM  \r\n"
+    "container.clusters.list permissions are being enforced across "
+    "the  \r\n"
+    "getServerConfig API.\r\n"
+    "\r\n"
+    "We’ve provided additional information below to guide you through "
+    "this  \r\n"
+    "change.\r\n"
+    "\r\n"
+    "What you need to know\r\n"
+    "\r\n"
+    "The current implementation doesn’t apply a specific permissions "
+    "check via  \r\n"
+    "getServerConfig API. After this change goes into effect for the "
+    "Google  \r\n"
+    "Kubernetes Engine API getServerConfig, only authorized users with "
+    "the  \r\n"
+    "container.clusters.list permissions will be able to call the  \r\n"
+    "GetServerConfig.\r\n",
+    "sender": "someone@somewhere.dev",
+}
+
 
 def test_apply_jinja_template():
     payload = {"name": "test"}
@@ -127,25 +159,49 @@ def test_apply_jinja_template_json_dumps():
     assert result == expected
 
 
+@pytest.mark.filterwarnings("ignore:::jinja2.*")  # ignore regex escape sequence warning
 def test_apply_jinja_template_regex_match():
-    payload = {"name": "test"}
+    payload = {
+        "name": "test",
+        "message": json.dumps(EMAIL_SAMPLE_PAYLOAD),
+    }
 
     assert apply_jinja_template("{{ payload.name | regex_match('.*') }}", payload) == "True"
     assert apply_jinja_template("{{ payload.name | regex_match('tes') }}", payload) == "True"
     assert apply_jinja_template("{{ payload.name | regex_match('test1') }}", payload) == "False"
+    # check for timeouts
+    with patch("common.jinja_templater.filters.REGEX_TIMEOUT", 1):
+        assert (
+            apply_jinja_template(
+                "{{ payload.message | regex_match('(.|\\s)+Severity(.|\\s){2}High(.|\\s)+') }}", payload
+            )
+            == "False"
+        )
 
     # Check that exception is raised when regex is invalid
     with pytest.raises(JinjaTemplateError):
         apply_jinja_template("{{ payload.name | regex_match('*') }}", payload)
 
 
+@pytest.mark.filterwarnings("ignore:::jinja2.*")  # ignore regex escape sequence warning
 def test_apply_jinja_template_regex_search():
-    payload = {"name": "test"}
+    payload = {
+        "name": "test",
+        "message": json.dumps(EMAIL_SAMPLE_PAYLOAD),
+    }
 
     assert apply_jinja_template("{{ payload.name | regex_search('.*') }}", payload) == "True"
     assert apply_jinja_template("{{ payload.name | regex_search('tes') }}", payload) == "True"
     assert apply_jinja_template("{{ payload.name | regex_search('est') }}", payload) == "True"
     assert apply_jinja_template("{{ payload.name | regex_search('test1') }}", payload) == "False"
+    # check for timeouts
+    with patch("common.jinja_templater.filters.REGEX_TIMEOUT", 1):
+        assert (
+            apply_jinja_template(
+                "{{ payload.message | regex_search('(.|\\s)+Severity(.|\\s){2}High(.|\\s)+') }}", payload
+            )
+            == "False"
+        )
 
     # Check that exception is raised when regex is invalid
     with pytest.raises(JinjaTemplateError):

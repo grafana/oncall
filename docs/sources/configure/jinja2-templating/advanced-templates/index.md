@@ -95,6 +95,8 @@ Grafana OnCall enhances Jinja with additional functions:
 - `regex_replace`: Performs a regex find and replace
 - `regex_match`: Performs a regex match, returns `True` or `False`
   - Usage example: `{{ payload.ruleName | regex_match(".*") }}`
+- `regex_search`: Performs a regex search, returns `True` or `False`
+  - Usage example: `{{ payload.message | regex_search("Severity: (High|Critical)") }}`
 - `b64decode`: Performs a base64 string decode
   - Usage example: `{{ payload.data | b64decode }}`
 - `parse_json`:Parses a JSON string to an object
