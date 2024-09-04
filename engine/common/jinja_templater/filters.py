@@ -1,10 +1,12 @@
 import base64
 import json
-import re
 from datetime import datetime
 
+import regex
 from django.utils.dateparse import parse_datetime
 from pytz import timezone
+
+REGEX_TIMEOUT = 2
 
 
 def datetimeparse(value, format="%H:%M / %d-%m-%Y"):
@@ -52,22 +54,22 @@ def json_dumps(value):
 
 def regex_replace(value, find, replace):
     try:
-        return re.sub(find, replace, value)
-    except (ValueError, AttributeError, TypeError):
+        return regex.sub(find, replace, value, timeout=REGEX_TIMEOUT)
+    except (ValueError, AttributeError, TypeError, TimeoutError):
         return None
 
 
 def regex_match(pattern, value):
     try:
-        return bool(re.match(value, pattern))
-    except (ValueError, AttributeError, TypeError):
+        return bool(regex.match(value, pattern, timeout=REGEX_TIMEOUT))
+    except (ValueError, AttributeError, TypeError, TimeoutError):
         return None
 
 
 def regex_search(pattern, value):
     try:
-        return bool(re.search(value, pattern))
-    except (ValueError, AttributeError, TypeError):
+        return bool(regex.search(value, pattern, timeout=REGEX_TIMEOUT))
+    except (ValueError, AttributeError, TypeError, TimeoutError):
         return None
 
 
