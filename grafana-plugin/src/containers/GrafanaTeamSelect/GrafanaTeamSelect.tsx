@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, Icon, Label, Modal, Tooltip, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Icon, Label, Modal, Tooltip, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
@@ -10,9 +9,8 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 
-import styles from './GrafanaTeamSelect.module.scss';
-
-const cx = cn.bind(styles);
+import { GrafanaTheme2 } from '@grafana/data';
+import { css } from '@emotion/css';
 
 interface GrafanaTeamSelectProps {
   onSelect: (id: GrafanaTeam['id']) => void;
@@ -24,6 +22,7 @@ interface GrafanaTeamSelectProps {
 export const GrafanaTeamSelect = observer(
   ({ onSelect, onHide, withoutModal, defaultValue }: GrafanaTeamSelectProps) => {
     const store = useStore();
+    const styles = useStyles2(getTeamStyles);
 
     const {
       userStore,
@@ -76,19 +75,19 @@ export const GrafanaTeamSelect = observer(
     }
 
     return (
-      <Modal onDismiss={onHide} closeOnEscape isOpen title="Select team" className={cx('root')}>
+      <Modal onDismiss={onHide} closeOnEscape isOpen title="Select team" className={styles.root}>
         <Stack direction="column">
           <Label>
-            <span className={cx('teamSelectText')}>
+            <span>
               Select team{''}
               <Tooltip content="It will also update your default team">
-                <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
+                <Icon name="info-circle" size="md" className={styles.teamSelectInfo}></Icon>
               </Tooltip>
             </span>
           </Label>
-          <div className={cx('teamSelect')}>{select}</div>
+          <div>{select}</div>
           <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
-            <a href="/org/teams" className={cx('teamSelectLink')}>
+            <a href="/org/teams" className={styles.teamSelectLink}>
               Edit teams
             </a>
           </WithPermissionControlTooltip>
@@ -102,3 +101,23 @@ export const GrafanaTeamSelect = observer(
     );
   }
 );
+
+const getTeamStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      width: 400px;
+    `,
+
+    teamSelectLabel: css`
+      display: flex;
+    `,
+
+    teamSelectLink: css`
+      color: ${theme.colors.text.primary};
+    `,
+
+    teamSelectInfo: css`
+      margin-left: 4px;
+    `,
+  };
+};

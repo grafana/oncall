@@ -1,16 +1,13 @@
 import React, { ReactElement, useCallback, useEffect } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { AsyncMultiSelect, AsyncSelect, useStyles2 } from '@grafana/ui';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { useDebouncedCallback } from 'utils/hooks';
 
-import styles from './GSelect.module.scss';
-
-const cx = cn.bind(styles);
+import { cx, css } from '@emotion/css';
 
 interface GSelectProps<Item> {
   items: {
@@ -75,6 +72,8 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     parseDisplayName,
     dataTestId = null,
   } = props;
+
+  const styles = useStyles2(getGSelectStyles);
 
   const onChangeCallback = useCallback(
     (option) => {
@@ -153,7 +152,7 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
   const Tag = isMulti ? AsyncMultiSelect : AsyncSelect;
 
   return (
-    <div className={cx('root', className)} data-testid={dataTestId}>
+    <div className={cx(styles.root, className)} data-testid={dataTestId}>
       <Tag
         autoFocus={autoFocus}
         isSearchable
@@ -179,3 +178,16 @@ export const GSelect = observer(<Item,>(props: GSelectProps<Item>) => {
     </div>
   );
 });
+
+const getGSelectStyles = () => {
+  return {
+    root: css`
+      min-width: 200px;
+
+      & > div {
+        // If not set then inner div will not benefit of min-width
+        min-width: 200px;
+      }
+    `,
+  };
+};

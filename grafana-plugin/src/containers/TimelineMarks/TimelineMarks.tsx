@@ -1,6 +1,5 @@
 import React, { FC, useMemo } from 'react';
 
-import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
@@ -8,8 +7,9 @@ import { Text } from 'components/Text/Text';
 import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { ScheduleView } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-
-import styles from './TimelineMarks.module.scss';
+import { useStyles2 } from '@grafana/ui';
+import { getTimelineMarksStyles } from './TimelineMarks.styles';
+import { cx } from '@emotion/css';
 
 interface TimelineMarksProps {
   debug?: boolean;
@@ -18,14 +18,14 @@ interface TimelineMarksProps {
   scheduleView?: ScheduleView;
 }
 
-const cx = cn.bind(styles);
-
 export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   const {
     timezoneStore: { currentDateInSelectedTimezone, calendarStartDate },
     scheduleStore: { scheduleView: storeScheduleView },
   } = useStore();
   const { debug, startDate: propsStartDate, withBorderBottom = false, scheduleView: propsScheduleView } = props;
+
+  const styles = useStyles2(getTimelineMarksStyles);
 
   const startDate = propsStartDate || calendarStartDate;
   const scheduleView = propsScheduleView || storeScheduleView;
@@ -59,9 +59,9 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
   }, [days]);
 
   return (
-    <div className={cx('root', { 'root--borderBottom': withBorderBottom })}>
+    <div className={cx(styles.root, { [styles.rootBorderBottom]: withBorderBottom })}>
       {debug && (
-        <svg version="1.1" width="100%" height="6px" xmlns="http://www.w3.org/2000/svg" className={cx('debug-scale')}>
+        <svg version="1.1" width="100%" height="6px" xmlns="http://www.w3.org/2000/svg" className={styles.debugScale}>
           {cuts.map((_cut, index) => (
             <line
               key={index}
@@ -78,34 +78,20 @@ export const TimelineMarks: FC<TimelineMarksProps> = observer((props) => {
 
       {momentsToRender.map((m, i) => {
         const isCurrentDay = currentDateInSelectedTimezone.isSame(m.moment, 'day');
-
         const isWeekend = m.moment.day() === 0 || m.moment.day() === 6;
 
         return (
           <div
             key={i}
             data-testid="schedule-weekday"
-            className={cx('weekday', { 'weekday--weekEnd': isWeekend })}
+            className={cx(styles.weekday, { [styles.weekdayEnd]: isWeekend })}
             style={{ width: `${100 / days}%` }}
           >
-            <div className={cx('weekday-title')}>
+            <div className={styles.weekdayTitle}>
               <Text type={isCurrentDay ? 'primary' : 'secondary'}>
                 {m.moment.date() === 1 ? m.moment.format('ddd D MMM') : m.moment.format('ddd D')}
               </Text>
             </div>
-            {/* <div className={cx('weekday-times')}>
-              {m.moments.map((mm, j) => (
-                <div key={j} className={cx('weekday-time')}>
-                  <div
-                    className={cx('weekday-time-title', {
-                      'weekday-time-title__hidden': i === 0 && j === 0,
-                    })}
-                  >
-                    <Text type="secondary">{mm.format('HH:mm')}</Text>
-                  </div>
-                </div>
-              ))}
-            </div> */}
           </div>
         );
       })}

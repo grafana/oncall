@@ -129,5 +129,6 @@ export enum Colors {
   GRAY_8 = '#595959',
   GRAY_9 = '#434343',
   GREEN_5 = '#6ccf8e',
+  GREEN_6 = '#73d13d',
   BORDER = 'rgba(204, 204, 220, 0.25)',
 }
