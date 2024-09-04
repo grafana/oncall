@@ -2,7 +2,7 @@ label = "OnCall.AllTests"
 
 load('ext://uibutton', 'cmd_button', 'location', 'text_input', 'bool_input')
 
-e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd ../../grafana-plugin && yarn test:e2e")
+e2e_tests_cmd=os.getenv("E2E_TESTS_CMD", "cd ../../grafana-plugin && pnpm test:e2e")
 is_ci=config.tilt_subcommand == "ci"
 
 local_resource(
@@ -16,7 +16,7 @@ local_resource(
 
 cmd_button(
     name="E2E Tests - headless run",
-    argv=["sh", "-c", "yarn --cwd ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
+    argv=["sh", "-c", "pnpm --dir ./grafana-plugin test:e2e $STOP_ON_FIRST_FAILURE $TESTS_FILTER"],
     text="Restart headless run",
     resource="e2e-tests",
     icon_name="replay",
@@ -29,7 +29,7 @@ cmd_button(
 
 cmd_button(
     name="E2E Tests - open watch mode",
-    argv=["sh", "-c", "yarn --cwd grafana-plugin test:e2e:watch"],
+    argv=["sh", "-c", "pnpm --dir grafana-plugin test:e2e:watch"],
     text="Open watch mode",
     resource="e2e-tests",
     icon_name="visibility",
@@ -37,7 +37,7 @@ cmd_button(
 
 cmd_button(
     name="E2E Tests - show report",
-    argv=["sh", "-c", "yarn --cwd grafana-plugin playwright show-report"],
+    argv=["sh", "-c", "pnpm --dir grafana-plugin playwright show-report"],
     text="Show last HTML report",
     resource="e2e-tests",
     icon_name="assignment",

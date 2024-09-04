@@ -365,14 +365,23 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         else:
             return AlertGroup.NEW
 
-    ACCOUNT_INACTIVE, CHANNEL_ARCHIVED, NO_REASON, RATE_LIMITED, CHANNEL_NOT_SPECIFIED, RESTRICTED_ACTION = range(6)
+    (
+        ACCOUNT_INACTIVE,
+        CHANNEL_ARCHIVED,
+        NO_REASON,
+        RATE_LIMITED,
+        CHANNEL_NOT_SPECIFIED,
+        RESTRICTED_ACTION,
+        INVALID_AUTH,
+    ) = range(7)
     REASONS_TO_SKIP_ESCALATIONS = (
         (ACCOUNT_INACTIVE, "account_inactive"),
-        (CHANNEL_ARCHIVED, "channel_archived"),
+        (CHANNEL_ARCHIVED, "is_archived"),
         (NO_REASON, "no_reason"),
         (RATE_LIMITED, "rate_limited"),
         (CHANNEL_NOT_SPECIFIED, "channel_not_specified"),
         (RESTRICTED_ACTION, "restricted_action"),
+        (INVALID_AUTH, "invalid_auth"),
     )
     reason_to_skip_escalation = models.IntegerField(choices=REASONS_TO_SKIP_ESCALATIONS, default=NO_REASON)
 

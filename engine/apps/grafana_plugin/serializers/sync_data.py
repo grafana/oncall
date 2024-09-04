@@ -36,8 +36,8 @@ class SyncUserSerializer(serializers.Serializer):
 class SyncTeamSerializer(serializers.Serializer):
     team_id = serializers.IntegerField()
     name = serializers.CharField()
-    email = serializers.EmailField(allow_blank=True)
-    avatar_url = serializers.CharField()
+    email = serializers.CharField(allow_blank=True)
+    avatar_url = serializers.CharField(allow_blank=True)
 
     def create(self, validated_data):
         return SyncTeam(**validated_data)

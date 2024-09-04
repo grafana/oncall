@@ -16,6 +16,7 @@ from apps.slack.errors import (
     SlackAPIChannelArchivedError,
     SlackAPIChannelNotFoundError,
     SlackAPIError,
+    SlackAPIInvalidAuthError,
     SlackAPIMessageNotFoundError,
     SlackAPIRatelimitError,
     SlackAPIRestrictedActionError,
@@ -161,6 +162,10 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             alert_group.reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
             alert_group.save(update_fields=["reason_to_skip_escalation"])
             logger.info("Not delivering alert due to account_inactive.")
+        except SlackAPIInvalidAuthError:
+            alert_group.reason_to_skip_escalation = AlertGroup.INVALID_AUTH
+            alert_group.save(update_fields=["reason_to_skip_escalation"])
+            logger.info("Not delivering alert due to invalid_auth.")
         except SlackAPIChannelArchivedError:
             alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
             alert_group.save(update_fields=["reason_to_skip_escalation"])

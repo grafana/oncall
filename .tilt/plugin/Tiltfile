@@ -9,7 +9,7 @@ if is_ci:
         "build-ui",
         labels=[label],
         dir=grafana_plugin_dir,
-        cmd="yarn build",
+        cmd="pnpm build",
         allow_parallel=True,
     )
 
@@ -19,9 +19,9 @@ if not is_ci:
         "build-ui",
         labels=[label],
         dir=grafana_plugin_dir,
-        cmd="yarn install",
+        cmd="pnpm install",
         serve_dir=grafana_plugin_dir,
-        serve_cmd="yarn watch",
+        serve_cmd="pnpm watch",
         allow_parallel=True,
     )
 

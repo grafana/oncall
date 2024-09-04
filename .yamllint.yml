@@ -2,6 +2,7 @@ extends: default
 
 ignore: |
   helm/oncall/templates/**/*.yaml
+  pnpm-lock.yaml
 
 rules:
   line-length:

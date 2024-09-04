@@ -8,7 +8,7 @@ venv
 .DS_Store
 .env
 
-yarn.lock
+pnpm.lock
 node_modules
 
 test-results

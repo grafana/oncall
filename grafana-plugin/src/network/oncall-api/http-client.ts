@@ -59,14 +59,17 @@ const clientConfig = {
 };
 
 // We might want to switch to middleware instead of 2 clients once this is published: https://github.com/drwpow/openapi-typescript/pull/1521
-const onCallApiWithGlobalErrorHandling = createClient<paths>({
+const onCallApiWithGlobalErrorHandling: ReturnType<typeof createClient<paths>> = createClient<paths>({
   ...clientConfig,
   fetch: getCustomFetchFn({ withGlobalErrorHandler: true }),
 });
-const onCallApiSkipErrorHandling = createClient<paths>({
+const onCallApiSkipErrorHandling: ReturnType<typeof createClient<paths>> = createClient<paths>({
   ...clientConfig,
   fetch: getCustomFetchFn({ withGlobalErrorHandler: false }),
 });
 
-export const onCallApi = ({ skipErrorHandling = false }: { skipErrorHandling?: boolean } = {}) =>
-  skipErrorHandling ? onCallApiSkipErrorHandling : onCallApiWithGlobalErrorHandling;
+export function onCallApi({ skipErrorHandling = false }: { skipErrorHandling?: boolean } = {}):
+  | typeof onCallApiSkipErrorHandling
+  | typeof onCallApiWithGlobalErrorHandling {
+  return skipErrorHandling ? onCallApiSkipErrorHandling : onCallApiWithGlobalErrorHandling;
+}

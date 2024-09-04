@@ -78,12 +78,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: grafana-plugin/dist
-          key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/yarn.lock') }}
+          key: ${{ runner.os }}-plugin-frontend-${{ hashFiles('grafana-plugin/src/**/*', 'grafana-plugin/pnpm.lock') }}
 
       - name: Build plugin frontend
         if: steps.cache-plugin-frontend.outputs.cache-hit != 'true'
         working-directory: grafana-plugin
-        run: yarn build:dev
+        run: pnpm build:dev
 
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
@@ -107,7 +107,7 @@ jobs:
       - name: Install Playwright deps
         shell: bash
         working-directory: grafana-plugin
-        run: yarn playwright install
+        run: pnpm playwright install
 
       # ---------- Expensive e2e tests steps start -----------
       - name: Install Go
@@ -150,7 +150,7 @@ jobs:
         if: inputs.run-expensive-tests
         shell: bash
         env:
-          E2E_TESTS_CMD: "cd ../../grafana-plugin && yarn test:e2e-expensive"
+          E2E_TESTS_CMD: "cd ../../grafana-plugin && pnpm test:e2e-expensive"
           GRAFANA_VERSION: ${{ inputs.grafana_version }}
           GF_FEATURE_TOGGLES_ENABLE: "externalServiceAccounts"
           ONCALL_API_URL: "http://oncall-dev-engine:8080"

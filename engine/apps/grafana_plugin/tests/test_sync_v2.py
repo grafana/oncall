@@ -6,9 +6,11 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
+from apps.grafana_plugin.serializers.sync_data import SyncTeamSerializer
 from apps.grafana_plugin.sync_data import SyncData, SyncSettings, SyncUser
 from apps.grafana_plugin.tasks.sync_v2 import start_sync_organizations_v2
 
@@ -136,3 +138,24 @@ def test_sync_v2_content_encoding(
 
         assert response.status_code == status.HTTP_200_OK
         mock_sync.assert_called()
+
+
+@pytest.mark.parametrize(
+    "test_team, validation_pass",
+    [
+        ({"team_id": 1, "name": "Test Team", "email": "", "avatar_url": ""}, True),
+        ({"team_id": 1, "name": "", "email": "", "avatar_url": ""}, False),
+        ({"name": "ABC", "email": "", "avatar_url": ""}, False),
+        ({"team_id": 1, "name": "ABC", "email": "test@example.com", "avatar_url": ""}, True),
+        ({"team_id": 1, "name": "123", "email": "<invalid email>", "avatar_url": ""}, True),
+    ],
+)
+@pytest.mark.django_db
+def test_sync_team_serialization(test_team, validation_pass):
+    serializer = SyncTeamSerializer(data=test_team)
+    validation_error = None
+    try:
+        serializer.is_valid(raise_exception=True)
+    except ValidationError as e:
+        validation_error = e
+    assert (validation_error is None) == validation_pass

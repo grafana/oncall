@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from apps.alerts.models import AlertGroup
-from apps.slack.errors import SlackAPIRestrictedActionError
+from apps.slack.errors import get_error_class
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios.distribute_alerts import AlertShootingStep
 from apps.slack.scenarios.scenario_step import ScenarioStep
@@ -11,11 +11,21 @@ from apps.slack.tests.conftest import build_slack_response
 
 
 @pytest.mark.django_db
-def test_restricted_action_error(
+@pytest.mark.parametrize(
+    "reason,slack_error",
+    [
+        (reason, slack_error)
+        for reason, slack_error in AlertGroup.REASONS_TO_SKIP_ESCALATIONS
+        if reason != AlertGroup.NO_REASON
+    ],
+)
+def test_skip_escalations_error(
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    reason,
+    slack_error,
 ):
     SlackAlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
     organization, _, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
@@ -26,14 +36,17 @@ def test_restricted_action_error(
     step = SlackAlertShootingStep(slack_team_identity)
 
     with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
-        mock_slack_api_call.side_effect = SlackAPIRestrictedActionError(
-            response=build_slack_response({"error": "restricted_action"})
-        )
-        step._post_alert_group_to_slack(slack_team_identity, alert_group, alert, None, "channel-id", [])
+        error_response = build_slack_response({"error": slack_error})
+        error_class = get_error_class(error_response)
+        mock_slack_api_call.side_effect = error_class(error_response)
+        channel_id = "channel-id"
+        if reason == AlertGroup.CHANNEL_NOT_SPECIFIED:
+            channel_id = None
+        step._post_alert_group_to_slack(slack_team_identity, alert_group, alert, None, channel_id, [])
 
     alert_group.refresh_from_db()
     alert.refresh_from_db()
-    assert alert_group.reason_to_skip_escalation == AlertGroup.RESTRICTED_ACTION
+    assert alert_group.reason_to_skip_escalation == reason
     assert alert_group.slack_message is None
     assert SlackMessage.objects.count() == 0
     assert not alert.delivered
