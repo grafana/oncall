@@ -1,13 +1,24 @@
 import React from 'react';
 
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
-import { Button, Stack, LoadingPlaceholder, IconButton, Drawer, Alert } from '@grafana/ui';
-import cn from 'classnames/bind';
+import {
+  Button,
+  Stack,
+  LoadingPlaceholder,
+  IconButton,
+  Drawer,
+  Alert,
+  withTheme2,
+  Themeable2,
+  useStyles2,
+} from '@grafana/ui';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { getTemplatesForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
@@ -38,7 +49,6 @@ import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
-import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithDrawerConfig, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -51,10 +61,9 @@ import { getItem, setItem } from 'utils/localStorage';
 import { sanitize } from 'utils/sanitize';
 import { openNotification, openErrorNotification } from 'utils/utils';
 
+import { getIntegrationStyles } from './Integration.styles';
 import { IntegrationActions } from './IntegrationActions';
 import { OutgoingTab } from './OutgoingTab/OutgoingTab';
-
-const cx = cn.bind(styles);
 
 export type IntegrationDrawerKey = typeof INTEGRATION_SERVICENOW | 'completeConfig';
 
@@ -66,7 +75,8 @@ interface IntegrationProps
   extends WithDrawerConfig<IntegrationDrawerKey>,
     WithStoreProps,
     PageProps,
-    PropsWithRouter<RouteProps> {
+    PropsWithRouter<RouteProps>,
+    Themeable2 {
   theme: GrafanaTheme2;
 }
 
@@ -131,6 +141,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         params: { id },
       },
       drawerConfig,
+      theme,
     } = this.props;
 
     const { alertReceiveChannelStore } = store;
@@ -142,7 +153,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
     if (isLoading && !isNotFoundError && !isWrongTeamError) {
       return (
-        <div className={cx('root')}>
+        <div>
           <LoadingPlaceholder text="Loading Integration..." />
         </div>
       );
@@ -155,6 +166,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
     const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
+    const styles = getIntegrationStyles(theme);
 
     const incomingPart = (
       <>
@@ -189,7 +201,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
         {() => (
-          <div className={cx('root')}>
+          <div>
             {isTemplateSettingsOpen && (
               <Drawer
                 width="75%"
@@ -209,11 +221,11 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               </Drawer>
             )}
 
-            <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations', ...query }} className={cx('back-arrow')}>
+            <div className={styles.integrationHeadingContainer}>
+              <PluginLink query={{ page: 'integrations', ...query }} className={styles.backArrow}>
                 <IconButton aria-label="Go Back" name="arrow-left" size="xl" />
               </PluginLink>
-              <h2 className={cx('integration__name')}>
+              <h2 className={styles.integrationName}>
                 <Emoji text={alertReceiveChannel.verbal_name} />
               </h2>
               <IntegrationActions
@@ -224,7 +236,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               />
             </div>
 
-            <div className={cx('integration__subheading-container')}>
+            <div className={styles.integrationSubHeadingContainer}>
               {this.renderDeprecatedHeaderMaybe(integration, isLegacyIntegration)}
               {this.renderAlertmanagerV2MigrationHeaderMaybe(alertReceiveChannel)}
 
@@ -233,7 +245,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               {/* MobX seems to have issues updating contact points if we don't reference it here */}
               {contactPoints && contactPoints.length === 0 && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
 
-              <div className={cx('no-wrap')}>
+              <div className={styles.noWrap}>
                 <IntegrationHeader
                   alertReceiveChannel={alertReceiveChannel}
                   alertReceiveChannelCounter={alertReceiveChannelCounter}
@@ -243,7 +255,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
               </div>
 
               {alertReceiveChannel.description && (
-                <div className={cx('integration__description-alert')}>
+                <div className={styles.integrationDescriptionAlert}>
                   <Alert
                     title={
                       (
@@ -296,7 +308,12 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     }
 
     return (
-      <div className="u-padding-top-md">
+      <div
+        className={css`
+          padding-top: 12px;
+        `}
+      >
+        <div className="haleluia">asadsd</div>
         <Alert
           severity="warning"
           title={
@@ -357,7 +374,11 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
     )}`;
 
     return (
-      <div className="u-padding-top-md">
+      <div
+        className={css`
+          padding-top: 12px;
+        `}
+      >
         <Alert
           severity="warning"
           onRemove={onAlertRemove}
@@ -396,12 +417,14 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
   }
 
   renderDescriptionMaybe(alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) {
+    const styles = getIntegrationStyles(this.props.theme);
+
     if (!alertReceiveChannel.description_short) {
       return null;
     }
 
     return (
-      <Text type="secondary" className={cx('integration__description')}>
+      <Text type="secondary" className={styles.integrationDescription}>
         {alertReceiveChannel.description_short}
       </Text>
     );
@@ -410,7 +433,11 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
   renderContactPointsWarningMaybe(alertReceiveChannel: ApiSchemas['AlertReceiveChannel']) {
     if (IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting')) {
       return (
-        <div className={cx('u-padding-top-md')}>
+        <div
+          className={css`
+            padding-top: 12px;
+          `}
+        >
           <Alert
             title={
               (
@@ -423,7 +450,9 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                 </Text>
               ) as any
             }
-            className={cx('u-margin-bottom-none')}
+            className={css`
+              margin-bottom: none;
+            `}
             severity="error"
           />
         </div>
@@ -435,6 +464,7 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
   getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
     const {
+      theme,
       store: { alertReceiveChannelStore },
     } = this.props;
 
@@ -443,6 +473,8 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
 
     const isAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'grafana_alerting');
     const isLegacyAlerting = IntegrationHelper.isSpecificIntegration(alertReceiveChannel, 'legacy_grafana_alerting');
+    const styles = getIntegrationStyles(theme);
+    const utilStyles = getUtilStyles(theme);
 
     const configs: Array<CollapsibleItem | CollapsibleItem[]> = [
       (isAlerting || isLegacyAlerting) && {
@@ -472,16 +504,16 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
           <IntegrationBlock
             noContent
             heading={
-              <div className={cx('templates__outer-container')}>
+              <div className={styles.templatesOuterContainer}>
                 <IntegrationTag>Templates</IntegrationTag>
 
-                <div className={cx('templates__content')}>
-                  <div className={cx('templates__container')}>
+                <div className={styles.templatesContent}>
+                  <div className={cx(styles.templatesContainer)}>
                     <div
-                      className={cx('templates__item', 'templates__item--large')}
+                      className={cx(styles.templatesItem, styles.templatesItemLarge)}
                       onClick={() => this.setState({ isTemplateSettingsOpen: true })}
                     >
-                      <Text type="secondary" className={cx('templates__item-text')}>
+                      <Text type="secondary" className={styles.templatesItemText}>
                         Grouping:
                       </Text>
                       <Text type="primary">
@@ -490,10 +522,10 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                     </div>
 
                     <div
-                      className={cx('templates__item', 'templates__item--large')}
+                      className={cx(styles.templatesItem, styles.templatesItemLarge)}
                       onClick={() => this.setState({ isTemplateSettingsOpen: true })}
                     >
-                      <Text type="secondary" className={cx('templates__item-text')}>
+                      <Text type="secondary" className={styles.templatesItemText}>
                         Autoresolve:
                       </Text>
                       <Text type="primary">
@@ -502,17 +534,17 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
                     </div>
 
                     <div
-                      className={cx('templates__item', 'templates__item--large')}
+                      className={cx(styles.templatesItem, styles.templatesItemLarge)}
                       onClick={() => this.setState({ isTemplateSettingsOpen: true })}
                     >
-                      <Text type="secondary" className={cx('templates__item-text')}>
+                      <Text type="secondary" className={cx(styles.templatesItemText)}>
                         Other:
                       </Text>
                       <Text type="primary">Click to see more</Text>
                     </div>
                   </div>
 
-                  <div className={cx('templates__edit')}>
+                  <div className={styles.templatesEdit}>
                     <Button
                       variant={'secondary'}
                       icon="edit"
@@ -536,19 +568,19 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         canHoverIcon: false,
         startingElemPosition: '40px',
         expandedView: () => (
-          <div className={cx('routesSection')}>
+          <div>
             <Stack direction="column" gap={StackSize.md}>
-              <Text type={'primary'} className={cx('routesSection__heading')}>
+              <Text type={'primary'} className={styles.routesSectionHeading}>
                 Routes
               </Text>
               <Stack>
                 <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                  <Button variant={'primary'} className={cx('routesSection__add')} onClick={this.handleAddNewRoute}>
+                  <Button variant={'primary'} onClick={this.handleAddNewRoute}>
                     Add route
                   </Button>
                 </WithPermissionControlTooltip>
                 {this.state.isAddingRoute && (
-                  <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+                  <LoadingPlaceholder text="Loading..." className={utilStyles.loadingPlaceholder} />
                 )}
               </Stack>
             </Stack>
@@ -826,15 +858,12 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   renderLabels,
 }) => {
   const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
+  const styles = useStyles2(getIntegrationStyles);
 
   return (
-    <div className={cx('headerTop')}>
+    <div className={styles.headerTop}>
       {alertReceiveChannelCounter && (
-        <PluginLink
-          className={cx('hover-button')}
-          target="_blank"
-          query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
-        >
+        <PluginLink target="_blank" query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}>
           <TooltipBadge
             borderType="primary"
             tooltipTitle={getAlertReceiveChannelCounterTooltip()}
@@ -893,16 +922,16 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       {renderHeartbeat(alertReceiveChannel)}
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
-        <div className={cx('headerTop__item')}>
+        <div className={styles.headerTopItem}>
           <Text type="secondary">Type:</Text>
           <IntegrationLogoWithTitle integration={integration} />
         </div>
-        <div className={cx('headerTop__item')}>
+        <div className={styles.headerTopItem}>
           <Text type="secondary">Team:</Text>
           <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
         </div>
         {alertReceiveChannel.author && (
-          <div className={cx('headerTop__item')}>
+          <div className={styles.headerTopItem}>
             <Text type="secondary">Created by:</Text>
             <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
           </div>
@@ -938,7 +967,9 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     return (
       <TooltipBadge
         text={undefined}
-        className={cx('heartbeat-badge')}
+        className={css`
+          padding: 4px 8px;
+        `}
         borderType={heartbeatStatus ? 'success' : 'danger'}
         customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
         tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
@@ -951,4 +982,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 export const IntegrationPage = withRouter<
   RouteProps,
   Omit<IntegrationProps, 'store' | 'meta' | 'theme' | 'drawerConfig'>
->(withMobXProviderContext(withDrawer<IntegrationDrawerKey>(_IntegrationPage)));
+>(withMobXProviderContext(withTheme2(withDrawer<IntegrationDrawerKey>(_IntegrationPage))));

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, ConfirmModal, Icon, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, ConfirmModal, Icon, Stack, useStyles2 } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -18,7 +17,6 @@ import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/Servic
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
@@ -28,8 +26,7 @@ import { openErrorNotification, openNotification } from 'utils/utils';
 
 import { IntegrationDrawerKey } from './Integration';
 import { getIsBidirectionalIntegration } from './Integration.helper';
-
-const cx = cn.bind(styles);
+import { getIntegrationStyles } from './Integration.styles';
 
 interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
@@ -68,6 +65,8 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   const [maintenanceData, setMaintenanceData] = useState<{
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
+
+  const styles = useStyles2(getIntegrationStyles);
 
   const { closeDrawer, openDrawer, getIsDrawerOpened } = drawerConfig;
 
@@ -151,7 +150,7 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      <div className={cx('integration__actions')}>
+      <div className={styles.integrationActions}>
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button
             variant="secondary"

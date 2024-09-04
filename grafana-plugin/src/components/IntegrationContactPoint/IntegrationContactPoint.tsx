@@ -1,8 +1,19 @@
 import React, { useEffect, useReducer } from 'react';
 
+import { cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, Icon, IconButton, Input, RadioButtonGroup, Select, Tooltip, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import {
+  Button,
+  Drawer,
+  Icon,
+  IconButton,
+  Input,
+  RadioButtonGroup,
+  Select,
+  Tooltip,
+  Stack,
+  useStyles2,
+} from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';
@@ -13,12 +24,10 @@ import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import styles from 'pages/integration/Integration.module.scss';
+import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
 import { GENERIC_ERROR, StackSize } from 'utils/consts';
 import { openErrorNotification, openNotification } from 'utils/utils';
-
-const cx = cn.bind(styles);
 
 interface IntegrationContactPointState {
   isLoading: boolean;
@@ -39,6 +48,7 @@ interface IntegrationContactPointState {
 export const IntegrationContactPoint: React.FC<{
   id: ApiSchemas['AlertReceiveChannel']['id'];
 }> = observer(({ id }) => {
+  const styles = useStyles2(getIntegrationStyles);
   const { alertReceiveChannelStore } = useStore();
   const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
   const warnings = contactPoints?.filter((cp) => !cp.notificationConnected);
@@ -101,19 +111,19 @@ export const IntegrationContactPoint: React.FC<{
         <div className={cx('u-flex', 'u-flex-space-between')}>
           {isDrawerOpen && (
             <Drawer scrollableContent title="Connected Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
-              <div className={cx('contactpoints__drawer')}>
+              <div>
                 <GTable
                   emptyText={'No contact points'}
-                  className={cx('contactpoints__table')}
+                  className={styles.contactPointsTable}
                   rowKey="id"
                   data={contactPoints}
                   columns={getTableColumns()}
                 />
 
-                <div className={cx('contactpoints__connect')}>
+                <div className={styles.contactPointsConnect}>
                   <Stack direction="column" gap={StackSize.md}>
                     <div
-                      className={cx('contactpoints__connect-toggler')}
+                      className={styles.contactPointsConnectToggler}
                       onClick={() => setState({ isConnectOpen: !isConnectOpen })}
                     >
                       <Stack justifyContent="space-between">
@@ -304,7 +314,7 @@ export const IntegrationContactPoint: React.FC<{
 
   function renderExclamationIcon() {
     return (
-      <div className={cx('icon-exclamation')}>
+      <div className={cx(styles.iconExclamation)}>
         <Icon name="exclamation-triangle" />
       </div>
     );

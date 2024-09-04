@@ -73,6 +73,14 @@ const getCommonFlexStyles = () => {
     flexGapXS: css`
       gap: 4px;
     `,
+
+    pullRight: css`
+      margin-left: auto;
+    `,
+
+    pullLeft: css`
+      margin-right: auto;
+    `,
   };
 };
 
