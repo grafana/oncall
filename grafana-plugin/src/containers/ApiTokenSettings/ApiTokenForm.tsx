@@ -2,6 +2,7 @@ import React, { HTMLAttributes, useState } from 'react';
 
 import { Button, Field, Input, Label, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { openErrorNotification, openNotification } from 'helpers/utils';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -10,7 +11,6 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 import styles from './ApiTokenForm.module.css';
 

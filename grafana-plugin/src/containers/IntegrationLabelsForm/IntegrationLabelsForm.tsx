@@ -3,6 +3,8 @@ import React, { ChangeEvent, useState } from 'react';
 import { ServiceLabels } from '@grafana/labels';
 import { Alert, Button, Drawer, Dropdown, InlineSwitch, Input, Menu, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { DOCS_ROOT, GENERIC_ERROR, StackSize } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -16,8 +18,6 @@ import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT, GENERIC_ERROR, StackSize } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
 

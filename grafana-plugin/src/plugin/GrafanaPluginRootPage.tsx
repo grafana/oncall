@@ -2,6 +2,10 @@ import React, { useEffect } from 'react';
 
 import { ErrorBoundary, LoadingPlaceholder } from '@grafana/ui';
 import classnames from 'classnames';
+import { isUserActionAllowed } from 'helpers/authorization/authorization';
+import { DEFAULT_PAGE, getOnCallApiUrl } from 'helpers/consts';
+import { FaroHelper } from 'helpers/faro';
+import { useOnMount } from 'helpers/hooks';
 import { observer, Provider } from 'mobx-react';
 import { Header } from 'navbar/Header/Header';
 import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
@@ -30,13 +34,9 @@ import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed } from 'utils/authorization/authorization';
-import { DEFAULT_PAGE, getOnCallApiUrl } from 'utils/consts';
 import 'assets/style/vars.css';
 import 'assets/style/global.css';
 import 'assets/style/utils.css';
-import { FaroHelper } from 'utils/faro';
-import { useOnMount } from 'utils/hooks';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 

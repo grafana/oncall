@@ -19,6 +19,12 @@ import {
   withTheme2,
   useStyles2,
 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
+import { sanitize } from 'helpers/sanitize';
+import { parseURL } from 'helpers/url';
+import { openNotification } from 'helpers/utils';
 import Linkify from 'linkify-react';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -59,12 +65,6 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { sanitize } from 'utils/sanitize';
-import { parseURL } from 'utils/url';
-import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
 import { getIncidentStyles } from './Incident.styles';

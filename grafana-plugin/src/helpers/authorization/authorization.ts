@@ -1,8 +1,7 @@
 import { OrgRole } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-
-import { PluginId } from 'utils/consts';
+import { PluginId } from 'helpers/consts';
 
 export type UserAction = {
   permission: string;

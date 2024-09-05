@@ -1,13 +1,13 @@
 import React, { useCallback } from 'react';
 
 import { Button, InlineField, Input, Stack } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 interface TelegramConnectorProps {
   id: ApiSchemas['User']['pk'];

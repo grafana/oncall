@@ -4,6 +4,8 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Icon, Tooltip, useStyles2, Stack } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { StackSize } from 'helpers/consts';
+import { truncateTitle } from 'helpers/string';
 import { observer } from 'mobx-react';
 import { Colors, getLabelCss } from 'styles/utils.styles';
 
@@ -17,8 +19,6 @@ import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { truncateTitle } from 'utils/string';
 
 import { getScheduleSlotStyleParams, getTitle } from './ScheduleSlot.helpers';
 

@@ -2,10 +2,10 @@ import React, { FC, HTMLAttributes, ChangeEvent, useState, useCallback } from 'r
 
 import { cx } from '@emotion/css';
 import { IconButton, Modal, Input, Stack, Button, useStyles2 } from '@grafana/ui';
+import { openNotification } from 'helpers/utils';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem } from 'styles/utils.styles';
 
-import { openNotification } from 'utils/utils';
 
 import { getTextStyles } from './Text.styles';
 

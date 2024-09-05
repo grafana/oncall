@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 
 import { Stack, Modal, Tooltip, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/utils';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -13,8 +15,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
 import styles from './EditRegexpRouteTemplateModal.module.css';
 

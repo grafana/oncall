@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { useInitializePlugin } from 'helpers/hooks';
+import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';
@@ -15,10 +19,6 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore, rootStore as store } from 'state/rootStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { useInitializePlugin } from 'utils/hooks';
-import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MobileAppConnection.module.scss';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';

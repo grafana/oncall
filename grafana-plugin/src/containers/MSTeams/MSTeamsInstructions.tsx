@@ -2,6 +2,8 @@ import React, { FC } from 'react';
 
 import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
+import { openNotification, openWarningNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -10,8 +12,6 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { openNotification, openWarningNotification } from 'utils/utils';
 
 import styles from './MSTeamsInstructions.module.css';
 

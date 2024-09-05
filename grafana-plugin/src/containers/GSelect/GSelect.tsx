@@ -3,10 +3,10 @@ import React, { ReactElement, useCallback, useEffect } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { useDebouncedCallback } from 'helpers/hooks';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './GSelect.module.scss';
 

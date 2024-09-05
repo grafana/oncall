@@ -1,12 +1,12 @@
 import { ComponentClass } from 'react';
 
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
+import { IRM_TAB } from 'helpers/consts';
+import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'helpers/utils';
 
 import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
 import { PluginConfigPage } from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
-import { IRM_TAB } from 'utils/consts';
-import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'utils/utils';
 
 import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './types';
 

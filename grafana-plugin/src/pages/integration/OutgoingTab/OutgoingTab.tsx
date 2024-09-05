@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { useStyles2, Input, IconButton, Drawer, Stack } from '@grafana/ui';
+import { useDrawer } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import { Button } from 'components/Button/Button';
@@ -9,7 +10,6 @@ import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipbo
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { IntegrationTag } from 'components/Integrations/IntegrationTag';
 import { Text } from 'components/Text/Text';
-import { useDrawer } from 'utils/hooks';
 
 import { NewOutgoingWebhookDrawerContent } from './NewOutgoingWebhookDrawerContent';
 import { OtherIntegrations } from './OtherIntegrations';

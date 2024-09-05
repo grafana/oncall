@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { Button, Field, Icon, Input, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions, determineRequiredAuthString } from 'helpers/authorization/authorization';
+import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
+import { openErrorNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -13,10 +17,6 @@ import { Cloud } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions, determineRequiredAuthString } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { openErrorNotification } from 'utils/utils';
 
 import styles from './CloudPage.module.css';
 

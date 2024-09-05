@@ -4,6 +4,7 @@ import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Stack, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { HTML_ID } from 'helpers/DOM';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { bem } from 'styles/utils.styles';
@@ -24,7 +25,6 @@ import { Event, Schedule, ScheduleView, ShiftSwap } from 'models/schedule/schedu
 import { getCurrentTimeX } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { HTML_ID } from 'utils/DOM';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';

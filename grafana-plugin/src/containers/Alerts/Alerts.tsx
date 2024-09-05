@@ -3,6 +3,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { sanitize } from 'dompurify';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { useForceUpdate, useQueryParams } from 'helpers/hooks';
+import { getItem, setItem } from 'helpers/localStorage';
 import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -13,10 +17,6 @@ import { UserHelper } from 'models/user/user.helpers';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { useForceUpdate, useQueryParams } from 'utils/hooks';
-import { getItem, setItem } from 'utils/localStorage';
 
 import styles from './Alerts.module.scss';
 

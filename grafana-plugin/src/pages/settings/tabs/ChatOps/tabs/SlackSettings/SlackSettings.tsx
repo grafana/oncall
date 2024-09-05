@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 
 import { Alert, LoadingPlaceholder, Icon, Button, InlineField, Input, Legend, ConfirmModal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'helpers/consts';
+import { useConfirmModal } from 'helpers/hooks';
+import { showApiError } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -19,10 +23,6 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
-import { useConfirmModal } from 'utils/hooks';
-import { showApiError } from 'utils/utils';
 
 import styles from './SlackSettings.module.css';
 

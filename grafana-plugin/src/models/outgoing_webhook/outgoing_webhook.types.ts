@@ -1,4 +1,4 @@
-import { KeyValuePair } from 'utils/utils';
+import { KeyValuePair } from 'helpers/utils';
 
 export interface OutgoingWebhookResponse {
   timestamp: string;

@@ -2,6 +2,7 @@ import React, { FC, useCallback } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Drawer, Field, TextArea, useStyles2, Stack } from '@grafana/ui';
+import { openWarningNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { getUtilStyles } from 'styles/utils.styles';
@@ -11,7 +12,6 @@ import { prepareForUpdate } from 'containers/AddResponders/AddResponders.helpers
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils/utils';
 
 export type FormData = {
   message: string;

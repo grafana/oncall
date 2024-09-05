@@ -2,13 +2,13 @@ import React, { useCallback, useState } from 'react';
 
 import { Button, Icon, Label, Modal, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './GrafanaTeamSelect.module.scss';
 

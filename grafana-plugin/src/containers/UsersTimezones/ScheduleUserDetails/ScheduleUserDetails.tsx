@@ -3,6 +3,8 @@ import React, { FC } from 'react';
 import { Stack, Icon, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -17,8 +19,6 @@ import {
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 import styles from './ScheduleUserDetails.module.css';
 

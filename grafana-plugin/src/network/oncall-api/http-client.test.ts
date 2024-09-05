@@ -1,4 +1,4 @@
-import { FaroHelper } from 'utils/faro';
+import { FaroHelper } from 'helpers/faro';
 
 import { getCustomFetchFn } from './http-client';
 

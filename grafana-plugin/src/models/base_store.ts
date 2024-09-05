@@ -1,9 +1,9 @@
 import { sentenceCase } from 'change-case';
+import { openWarningNotification } from 'helpers/utils';
 import { action } from 'mobx';
 
 import { makeRequest } from 'network/network';
 import { RootStore } from 'state/rootStore';
-import { openWarningNotification } from 'utils/utils';
 
 export class BaseStore {
   protected rootStore: RootStore;

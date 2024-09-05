@@ -3,6 +3,10 @@ import React from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, ConfirmModal, ConfirmModalProps, Icon, IconButton, Stack, withTheme2 } from '@grafana/ui';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { PAGE, PLUGIN_ROOT, StackSize, TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
+import { openErrorNotification, openNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -30,10 +34,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT, StackSize, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 import { WebhookFormActionType } from './OutgoingWebhooks.types';
 

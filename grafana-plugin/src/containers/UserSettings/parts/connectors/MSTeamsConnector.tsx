@@ -2,13 +2,13 @@ import React, { useCallback } from 'react';
 
 import { Button, InlineField, Input, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 import styles from 'containers/UserSettings/parts/connectors/Connectors.module.css';
 

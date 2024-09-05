@@ -2,6 +2,9 @@ import React, { HTMLAttributes, useEffect, useState } from 'react';
 
 import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { DOCS_TELEGRAM_SETUP, StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -13,9 +16,6 @@ import { TelegramColorIcon } from 'icons/Icons';
 import { UserHelper } from 'models/user/user.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_TELEGRAM_SETUP, StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 import styles from './TelegramInfo.module.css';
 

@@ -3,6 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
 import { Alert, Field, Input, LoadingPlaceholder, useStyles2, Stack } from '@grafana/ui';
+import {
+  DEFAULT_PAGE,
+  DOCS_ONCALL_OSS_INSTALL,
+  DOCS_SERVICE_ACCOUNTS,
+  PLUGIN_CONFIG,
+  PLUGIN_ROOT,
+  REQUEST_HELP_URL,
+} from 'helpers/consts';
+import { useOnMount } from 'helpers/hooks';
+import { validateURL } from 'helpers/string';
+import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -14,17 +25,6 @@ import { RenderConditionally } from 'components/RenderConditionally/RenderCondit
 import { Text } from 'components/Text/Text';
 import { ActionKey } from 'models/loader/action-keys';
 import { rootStore } from 'state/rootStore';
-import {
-  DEFAULT_PAGE,
-  DOCS_ONCALL_OSS_INSTALL,
-  DOCS_SERVICE_ACCOUNTS,
-  PLUGIN_CONFIG,
-  PLUGIN_ROOT,
-  REQUEST_HELP_URL,
-} from 'utils/consts';
-import { useOnMount } from 'utils/hooks';
-import { validateURL } from 'utils/string';
-import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'utils/utils';
 
 type PluginConfigFormValues = {
   onCallApiUrl: string;

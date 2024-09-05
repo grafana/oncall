@@ -3,6 +3,10 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Drawer, Field, Input, useStyles2, Button, Stack } from '@grafana/ui';
+import { useIsLoading } from 'helpers/hooks';
+import { validateURL } from 'helpers/string';
+import { OmitReadonlyMembers } from 'helpers/types';
+import { openNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
@@ -10,10 +14,6 @@ import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
-import { useIsLoading } from 'utils/hooks';
-import { validateURL } from 'utils/string';
-import { OmitReadonlyMembers } from 'utils/types';
-import { openNotification } from 'utils/utils';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowAuthSection } from './ServiceNowAuthSection';

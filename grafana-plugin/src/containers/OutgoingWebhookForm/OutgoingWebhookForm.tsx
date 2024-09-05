@@ -2,6 +2,9 @@ import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'r
 
 import { Button, ConfirmModal, ConfirmModalProps, Drawer, Input, Tab, TabsBar, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { PLUGIN_ROOT } from 'helpers/consts';
+import { KeyValuePair } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -15,9 +18,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
-import { KeyValuePair } from 'utils/utils';
 
 import { TemplateParams, WebhookFormFieldName } from './OutgoingWebhookForm.types';
 import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';

@@ -1,4 +1,4 @@
-import { KeyValuePair } from 'utils/utils';
+import { KeyValuePair } from 'helpers/utils';
 
 export const TEXTAREA_ROWS_COUNT = 4;
 export const MAX_CHARACTERS_COUNT = 50;

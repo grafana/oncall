@@ -4,6 +4,8 @@ import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Badge, BadgeColor, Button, Icon, Stack, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { useIsLoading } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -24,8 +26,6 @@ import { Event, ScheduleView } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getCurrentTimeX, getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { useIsLoading } from 'utils/hooks';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { getRotationsStyles } from './Rotations.styles';

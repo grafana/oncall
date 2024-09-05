@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Modal, Stack, useStyles2 } from '@grafana/ui';
+import { OmitReadonlyMembers } from 'helpers/types';
+import { openNotification } from 'helpers/utils';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
-import { OmitReadonlyMembers } from 'utils/types';
-import { openNotification } from 'utils/utils';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 import { ServiceNowStatusSection } from './ServiceNowStatusSection';

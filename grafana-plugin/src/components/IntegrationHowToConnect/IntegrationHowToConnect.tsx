@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 import { noop } from 'lodash-es';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
@@ -11,7 +12,6 @@ import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
