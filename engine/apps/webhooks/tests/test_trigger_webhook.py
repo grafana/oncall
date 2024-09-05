@@ -269,6 +269,7 @@ def test_execute_webhook_ok(
         "trigger": "acknowledge",
         "webhook_id": webhook.public_primary_key,
         "webhook_name": webhook.name,
+        "response_id": log.id,
     }
     assert log_record.step_specific_info == expected_info
     assert log_record.escalation_policy is None
@@ -325,6 +326,7 @@ def test_execute_webhook_via_escalation_ok(
         "trigger": "escalation",
         "webhook_id": webhook.public_primary_key,
         "webhook_name": webhook.name,
+        "response_id": webhook.responses.all()[0].id,
     }
     assert log_record.step_specific_info == expected_info
     assert log_record.escalation_policy == escalation_policy
@@ -728,6 +730,7 @@ def test_execute_webhook_errors(
         "trigger": "resolve",
         "webhook_id": webhook.public_primary_key,
         "webhook_name": webhook.name,
+        "response_id": log.id,
     }
     assert log_record.step_specific_info == expected_info
     assert log_record.reason == expected_error
@@ -779,6 +782,7 @@ def test_execute_webhook_ssl_error(
         "trigger": "resolve",
         "webhook_id": webhook.public_primary_key,
         "webhook_name": webhook.name,
+        "response_id": webhook.responses.all()[0].id,
     }
     assert log_record.reason == expected_error
     assert (

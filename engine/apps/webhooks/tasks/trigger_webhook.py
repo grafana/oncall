@@ -251,8 +251,9 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     triggered, status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry only if webhook was triggered
+    response = None
     if triggered:
-        WebhookResponse.objects.create(
+        response = WebhookResponse.objects.create(
             alert_group=alert_group,
             trigger_type=trigger_type or webhook.trigger_type,
             **status,
@@ -288,6 +289,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
                 "webhook_name": webhook.name,
                 "webhook_id": webhook.public_primary_key,
                 "trigger": trigger_log,
+                "response_id": response.pk if response else None,
             },
             escalation_policy=escalation_policy,
             escalation_policy_step=step,
