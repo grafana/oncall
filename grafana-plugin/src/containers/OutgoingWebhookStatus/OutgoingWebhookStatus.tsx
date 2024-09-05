@@ -2,12 +2,12 @@ import React from 'react';
 
 import { Button, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { useCommonStyles } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDetails';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { useCommonStyles } from 'utils/hooks';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 

@@ -1,12 +1,12 @@
 import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { INTEGRATION_SERVICENOW } from 'helpers/consts';
 
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
-import { INTEGRATION_SERVICENOW } from 'utils/consts';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 

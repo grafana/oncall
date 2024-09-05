@@ -1,9 +1,9 @@
 import React, { FC } from 'react';
 
 import { Stack } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
 
 import { IntegrationLogo, IntegrationLogoProps } from './IntegrationLogo';
 

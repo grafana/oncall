@@ -3,6 +3,7 @@ import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 import { cx } from '@emotion/css';
 import { intervalToAbbreviatedDurationString } from '@grafana/data';
 import { Icon, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { CUSTOM_SILENCE_VALUE } from 'components/Policy/Policy.consts';
@@ -12,7 +13,6 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { UserActions } from 'utils/authorization/authorization';
 
 import { getIncidentDropdownStyles } from './IncidentDropdown.styles';
 import { IncidentSilenceModal } from './IncidentSilenceModal';

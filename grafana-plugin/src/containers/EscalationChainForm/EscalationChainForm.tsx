@@ -2,6 +2,7 @@ import React, { FC } from 'react';
 
 import { Button, Field, Input, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { openWarningNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
@@ -9,7 +10,6 @@ import { GSelect } from 'containers/GSelect/GSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { openWarningNotification } from 'utils/utils';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
 

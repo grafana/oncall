@@ -1,4 +1,4 @@
-import { PLUGIN_CONFIG } from 'utils/consts';
+import { PLUGIN_CONFIG } from 'helpers/consts';
 
 import { test, expect } from '../fixtures';
 import { goToGrafanaPage } from '../utils/navigation';

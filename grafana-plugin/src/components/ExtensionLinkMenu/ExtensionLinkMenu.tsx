@@ -2,10 +2,10 @@ import React, { ReactElement, useMemo } from 'react';
 
 import { locationUtil, PluginExtensionLink, PluginExtensionTypes } from '@grafana/data';
 import { IconName, Menu } from '@grafana/ui';
+import { getPluginId } from 'helpers/consts';
+import { truncateTitle } from 'helpers/string';
 
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
-import { getPluginId } from 'utils/consts';
-import { truncateTitle } from 'utils/string';
 
 type Props = {
   extensions: PluginExtensionLink[];

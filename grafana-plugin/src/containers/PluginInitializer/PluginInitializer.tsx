@@ -1,14 +1,14 @@
 import React, { FC } from 'react';
 
 import { Button, Stack, LoadingPlaceholder } from '@grafana/ui';
+import { REQUEST_HELP_URL, PLUGIN_CONFIG } from 'helpers/consts';
+import { getIsRunningOpenSourceVersion } from 'helpers/helpers';
+import { useInitializePlugin } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom-v5-compat';
 
 import { FullPageError } from 'components/FullPageError/FullPageError';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
-import { REQUEST_HELP_URL, PLUGIN_CONFIG } from 'utils/consts';
-import { useInitializePlugin } from 'utils/hooks';
-import { getIsRunningOpenSourceVersion } from 'utils/utils';
 
 interface PluginInitializerProps {
   children: React.ReactNode;

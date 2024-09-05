@@ -2,6 +2,7 @@ import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Select, SelectBaseProps, Stack } from '@grafana/ui';
+import { OnCallAGStatus, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 import { Controller, useFormContext } from 'react-hook-form';
 
@@ -9,7 +10,6 @@ import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
 import { useStore } from 'state/useStore';
-import { OnCallAGStatus, StackSize } from 'utils/consts';
 
 import { ServiceNowHelper } from './ServiceNowConfig.helpers';
 

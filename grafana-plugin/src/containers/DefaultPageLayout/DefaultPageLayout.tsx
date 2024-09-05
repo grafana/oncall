@@ -2,9 +2,9 @@ import React, { FC, ReactElement } from 'react';
 
 import { NavModelItem } from '@grafana/data';
 import { PluginPage } from 'PluginPage';
+import { AppRootProps } from 'app-types';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import { AppRootProps } from 'types';
 
 import { Alerts } from 'containers/Alerts/Alerts';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';

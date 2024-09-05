@@ -3,10 +3,10 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, InlineLabel, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization/authorization';
 
 interface IntegrationTemplateBlockProps {
   label: string;

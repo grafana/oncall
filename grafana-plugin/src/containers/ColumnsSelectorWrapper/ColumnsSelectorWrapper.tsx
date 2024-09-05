@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useStyles2, Button, Icon, LoadingPlaceholder, Modal, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { PROCESSING_REQUEST_ERROR, StackSize } from 'helpers/consts';
+import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'helpers/decorators';
+import { useIsLoading } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -12,10 +16,6 @@ import { AlertGroupColumn } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { PROCESSING_REQUEST_ERROR, StackSize } from 'utils/consts';
-import { WrapAutoLoadingState, WrapWithGlobalNotification } from 'utils/decorators';
-import { useIsLoading } from 'utils/hooks';
 
 import { ColumnsModal } from './ColumnsModal';
 

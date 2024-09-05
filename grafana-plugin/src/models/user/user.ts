@@ -1,5 +1,7 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { AutoLoadingState } from 'helpers/decorators';
 import { get } from 'lodash-es';
 import { action, computed, runInAction, makeAutoObservable } from 'mobx';
 
@@ -10,8 +12,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { AutoLoadingState } from 'utils/decorators';
 
 import { UserHelper } from './user.helpers';
 

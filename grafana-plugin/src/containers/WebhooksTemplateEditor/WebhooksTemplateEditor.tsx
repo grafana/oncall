@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 
 import { Button, Drawer, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
 import { debounce } from 'lodash-es';
 
 import { CheatSheet } from 'components/CheatSheet/CheatSheet';
@@ -14,7 +15,6 @@ import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { UserActions } from 'utils/authorization/authorization';
 
 const cx = cn.bind(styles);
 

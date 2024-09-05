@@ -2,12 +2,12 @@ import React, { useCallback, useState, useEffect } from 'react';
 
 import { Button, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './MSTeamsIntegrationButton.module.css';
 

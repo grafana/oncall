@@ -1,14 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { Button, InlineField, Input, Stack } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
+import { getPathFromQueryParams } from 'helpers/url';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { getPathFromQueryParams } from 'utils/url';
 
 interface SlackConnectorProps {
   id: ApiSchemas['User']['pk'];
