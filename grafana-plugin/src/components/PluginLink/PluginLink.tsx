@@ -7,7 +7,6 @@ import { getPathFromQueryParams } from 'helpers/url';
 import { Link } from 'react-router-dom-v5-compat';
 import { bem } from 'styles/utils.styles';
 
-
 interface PluginLinkProps {
   disabled?: boolean;
   className?: string;

@@ -5,7 +5,6 @@ import { getPathFromQueryParams } from 'helpers/url';
 import qs from 'query-string';
 import { useNavigate } from 'react-router-dom-v5-compat';
 
-
 export const NoMatch = () => {
   const navigate = useNavigate();
 

@@ -5,7 +5,6 @@ import cn from 'classnames/bind';
 import { isUserActionAllowed, UserAction } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
-
 import styles from './WithPermissionControlTooltip.module.css';
 
 const cx = cn.bind(styles);

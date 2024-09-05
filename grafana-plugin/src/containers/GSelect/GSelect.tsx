@@ -7,7 +7,6 @@ import { useDebouncedCallback } from 'helpers/hooks';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-
 import styles from './GSelect.module.scss';
 
 const cx = cn.bind(styles);
