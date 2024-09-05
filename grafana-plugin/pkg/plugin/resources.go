@@ -84,7 +84,7 @@ func afterRequest(handler http.Handler, afterFunc func(*responseWriter, *http.Re
 	})
 }
 
-func (a *App) handleInternalApi(w http.ResponseWriter, req *http.Request) {
+func (a *App) HandleInternalApi(w http.ResponseWriter, req *http.Request) {
 	a.ProxyRequestToOnCall(w, req, "api/internal/v1/")
 }
 
@@ -121,10 +121,10 @@ func (a *App) handleLegacyInstall(w *responseWriter, req *http.Request) {
 // registerRoutes takes a *http.ServeMux and registers some HTTP handlers.
 func (a *App) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/plugin/install", a.handleInstall)
-	mux.HandleFunc("/plugin/status", a.handleStatus)
-	mux.HandleFunc("/plugin/sync", a.handleSync)
+	mux.HandleFunc("/plugin/status", a.HandleStatus)
+	mux.HandleFunc("/plugin/sync", a.HandleSync)
 
-	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.handleInternalApi), a.handleLegacyInstall))
+	mux.Handle("/plugin/self-hosted/install", afterRequest(http.HandlerFunc(a.HandleInternalApi), a.handleLegacyInstall))
 
 	// Disable debug endpoints
 	//mux.HandleFunc("/debug/user", a.handleDebugUser)
@@ -134,5 +134,5 @@ func (a *App) registerRoutes(mux *http.ServeMux) {
 	//mux.HandleFunc("/debug/stats", a.handleDebugStats)
 	//mux.HandleFunc("/debug/unlock", a.handleDebugUnlock)
 
-	mux.HandleFunc("/", a.handleInternalApi)
+	mux.HandleFunc("/", a.HandleInternalApi)
 }
