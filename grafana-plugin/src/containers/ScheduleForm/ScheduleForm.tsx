@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react';
 import { css } from '@emotion/css';
 import { Button, Drawer, Field, Input, Switch, TextArea, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { openWarningNotification } from 'helpers/utils';
+import { openWarningNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { getUtilStyles } from 'styles/utils.styles';

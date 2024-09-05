@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Modal, Stack, useStyles2 } from '@grafana/ui';
+import { openNotification } from 'helpers/helpers';
 import { OmitReadonlyMembers } from 'helpers/types';
-import { openNotification } from 'helpers/utils';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';

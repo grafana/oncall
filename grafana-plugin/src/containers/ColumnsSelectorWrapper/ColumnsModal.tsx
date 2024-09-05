@@ -6,8 +6,8 @@ import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { PROCESSING_REQUEST_ERROR, StackSize } from 'helpers/consts';
 import { WrapWithGlobalNotification } from 'helpers/decorators';
+import { pluralize } from 'helpers/helpers';
 import { useDebouncedCallback, useIsLoading } from 'helpers/hooks';
-import { pluralize } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import styles from 'assets/style/utils.css';

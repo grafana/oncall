@@ -3,10 +3,10 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Drawer, Field, Input, useStyles2, Button, Stack } from '@grafana/ui';
+import { openNotification } from 'helpers/helpers';
 import { useIsLoading } from 'helpers/hooks';
 import { validateURL } from 'helpers/string';
 import { OmitReadonlyMembers } from 'helpers/types';
-import { openNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 

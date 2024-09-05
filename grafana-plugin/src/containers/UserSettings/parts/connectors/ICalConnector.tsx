@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, InlineField, Input, LoadingPlaceholder, Stack, Tooltip } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
-import { openNotification } from 'helpers/utils';
+import { openNotification } from 'helpers/helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';

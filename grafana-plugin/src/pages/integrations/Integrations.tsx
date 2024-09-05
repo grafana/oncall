@@ -6,8 +6,8 @@ import { Button, Stack, Icon, ConfirmModal, Tooltip, Tab, TabsBar, TabContent, A
 import { LocationHelper } from 'helpers/LocationHelper';
 import { UserActions } from 'helpers/authorization/authorization';
 import { PAGE, StackSize, TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import { PropsWithRouter, withRouter } from 'helpers/hoc';
-import { openNotification } from 'helpers/utils';
 import { debounce } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react';

@@ -4,7 +4,7 @@ import { ServiceLabels } from '@grafana/labels';
 import { Alert, Button, Drawer, Dropdown, InlineSwitch, Input, Menu, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { DOCS_ROOT, GENERIC_ERROR, StackSize } from 'helpers/consts';
-import { openErrorNotification } from 'helpers/utils';
+import { openErrorNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';

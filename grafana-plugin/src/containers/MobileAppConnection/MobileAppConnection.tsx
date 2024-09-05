@@ -4,8 +4,8 @@ import { Button, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
+import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'helpers/helpers';
 import { useInitializePlugin } from 'helpers/hooks';
-import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';

@@ -2,8 +2,8 @@ import React, { FC } from 'react';
 
 import { Button, Stack, LoadingPlaceholder } from '@grafana/ui';
 import { REQUEST_HELP_URL, PLUGIN_CONFIG } from 'helpers/consts';
+import { getIsRunningOpenSourceVersion } from 'helpers/helpers';
 import { useInitializePlugin } from 'helpers/hooks';
-import { getIsRunningOpenSourceVersion } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom-v5-compat';
 

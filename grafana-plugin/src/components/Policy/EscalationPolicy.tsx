@@ -4,7 +4,7 @@ import { cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton, withTheme2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { openWarningNotification } from 'helpers/utils';
+import { openWarningNotification } from 'helpers/helpers';
 import { isNumber } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';

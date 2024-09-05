@@ -4,7 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Icon, IconButton, Input, RadioButtonGroup, Select, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { GENERIC_ERROR, StackSize } from 'helpers/consts';
-import { openErrorNotification, openNotification } from 'helpers/utils';
+import { openErrorNotification, openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';

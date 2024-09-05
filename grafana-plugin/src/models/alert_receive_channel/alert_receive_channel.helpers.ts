@@ -1,6 +1,6 @@
 import { AutoLoadingState, WithGlobalNotification } from 'helpers/decorators';
+import { showApiError } from 'helpers/helpers';
 import { OmitReadonlyMembers } from 'helpers/types';
-import { showApiError } from 'helpers/utils';
 
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';

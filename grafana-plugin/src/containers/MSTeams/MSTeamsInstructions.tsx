@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { StackSize } from 'helpers/consts';
-import { openNotification, openWarningNotification } from 'helpers/utils';
+import { openNotification, openWarningNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

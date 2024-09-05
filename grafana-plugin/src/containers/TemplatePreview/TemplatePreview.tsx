@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 import { Badge, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { openErrorNotification } from 'helpers/helpers';
 import { useDebouncedCallback } from 'helpers/hooks';
 import { sanitize } from 'helpers/sanitize';
-import { openErrorNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';

@@ -2,7 +2,7 @@ import React, { FC, useCallback } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Drawer, Field, TextArea, useStyles2, Stack } from '@grafana/ui';
-import { openWarningNotification } from 'helpers/utils';
+import { openWarningNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { getUtilStyles } from 'styles/utils.styles';

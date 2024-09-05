@@ -1,8 +1,7 @@
-
 import { getOnCallApiPath } from 'helpers/consts';
 import { FaroHelper } from 'helpers/faro';
+import { formatBackendError, openErrorNotification } from 'helpers/helpers';
 import { safeJSONStringify } from 'helpers/string';
-import { formatBackendError, openErrorNotification } from 'helpers/utils';
 import createClient from 'openapi-fetch';
 import qs from 'query-string';
 

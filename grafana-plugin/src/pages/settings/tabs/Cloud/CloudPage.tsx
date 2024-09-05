@@ -4,8 +4,8 @@ import { Button, Field, Icon, Input, LoadingPlaceholder, Stack } from '@grafana/
 import cn from 'classnames/bind';
 import { UserActions, determineRequiredAuthString } from 'helpers/authorization/authorization';
 import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/helpers';
 import { PropsWithRouter, withRouter } from 'helpers/hoc';
-import { openErrorNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';

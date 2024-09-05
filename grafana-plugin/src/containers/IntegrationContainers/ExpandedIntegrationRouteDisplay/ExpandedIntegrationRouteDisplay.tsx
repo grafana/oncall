@@ -15,7 +15,7 @@ import {
 import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
-import { openNotification } from 'helpers/utils';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

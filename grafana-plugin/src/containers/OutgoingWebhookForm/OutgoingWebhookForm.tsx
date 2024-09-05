@@ -4,7 +4,7 @@ import { Button, ConfirmModal, ConfirmModalProps, Drawer, Input, Tab, TabsBar, S
 import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { PLUGIN_ROOT } from 'helpers/consts';
-import { KeyValuePair } from 'helpers/utils';
+import { KeyValuePair } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';

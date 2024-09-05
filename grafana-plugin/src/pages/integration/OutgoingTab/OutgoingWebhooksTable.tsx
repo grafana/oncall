@@ -4,8 +4,8 @@ import { IconButton, Icon, ConfirmModal, useStyles2, Stack } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import { useConfirmModal } from 'helpers/hooks';
-import { openNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

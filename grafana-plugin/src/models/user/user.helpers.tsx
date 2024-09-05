@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { throttlingError } from 'helpers/utils';
+import { throttlingError } from 'helpers/helpers';
 import { pick } from 'lodash-es';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';

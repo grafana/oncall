@@ -22,10 +22,10 @@ import {
 import { OnCallPluginExtensionPoints } from 'app-types';
 import { UserActions } from 'helpers/authorization/authorization';
 import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { sanitize } from 'helpers/sanitize';
 import { parseURL } from 'helpers/url';
-import { openNotification } from 'helpers/utils';
 import Linkify from 'linkify-react';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';

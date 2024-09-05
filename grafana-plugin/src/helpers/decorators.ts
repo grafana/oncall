@@ -1,4 +1,4 @@
-import { openErrorNotification, openNotification, openWarningNotification } from 'helpers/utils';
+import { openErrorNotification, openNotification, openWarningNotification } from 'helpers/helpers';
 
 import { LoaderStore } from 'models/loader/loader';
 

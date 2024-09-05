@@ -4,7 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Select, Stack, useStyles2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
-import { openNotification, showApiError } from 'helpers/utils';
+import { openNotification, showApiError } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { Controller, FormProvider, useForm } from 'react-hook-form';

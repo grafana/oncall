@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from 'react';
 
 import { Button, Icon, Label, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { openNotification } from 'helpers/utils';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

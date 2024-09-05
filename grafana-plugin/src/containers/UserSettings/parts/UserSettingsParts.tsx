@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 
 import { Tab, TabContent, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { isUseProfileExtensionPointEnabled } from 'helpers/utils';
+import { isUseProfileExtensionPointEnabled } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';

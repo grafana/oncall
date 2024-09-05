@@ -2,7 +2,7 @@ import { ComponentClass } from 'react';
 
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
 import { IRM_TAB } from 'helpers/consts';
-import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'helpers/utils';
+import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'helpers/helpers';
 
 import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
 import { PluginConfigPage } from 'containers/PluginConfigPage/PluginConfigPage';

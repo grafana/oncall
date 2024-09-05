@@ -3,7 +3,7 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { ServiceLabelsProps, ServiceLabels } from '@grafana/labels';
 import { Field, Label } from '@grafana/ui';
 import { GENERIC_ERROR } from 'helpers/consts';
-import { openErrorNotification } from 'helpers/utils';
+import { openErrorNotification } from 'helpers/helpers';
 import { isEmpty } from 'lodash-es';
 import { observer } from 'mobx-react';
 

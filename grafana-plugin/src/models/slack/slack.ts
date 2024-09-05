@@ -1,5 +1,5 @@
 import { GENERIC_ERROR } from 'helpers/consts';
-import { openErrorNotification } from 'helpers/utils';
+import { openErrorNotification } from 'helpers/helpers';
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';

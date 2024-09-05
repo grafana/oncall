@@ -4,8 +4,8 @@ import { Alert, LoadingPlaceholder, Icon, Button, InlineField, Input, Legend, Co
 import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'helpers/consts';
+import { showApiError } from 'helpers/helpers';
 import { useConfirmModal } from 'helpers/hooks';
-import { showApiError } from 'helpers/utils';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';

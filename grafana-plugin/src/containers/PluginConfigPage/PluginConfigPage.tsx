@@ -12,9 +12,9 @@ import {
   PLUGIN_ROOT,
   REQUEST_HELP_URL,
 } from 'helpers/consts';
+import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'helpers/helpers';
 import { useOnMount } from 'helpers/hooks';
 import { validateURL } from 'helpers/string';
-import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';

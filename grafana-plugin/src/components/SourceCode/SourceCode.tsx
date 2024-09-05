@@ -3,11 +3,10 @@ import React, { FC } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, IconButton, useStyles2 } from '@grafana/ui';
+import { openNotification } from 'helpers/helpers';
 import { formatSourceCodeJsonString } from 'helpers/string';
-import { openNotification } from 'helpers/utils';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem } from 'styles/utils.styles';
-
 
 interface SourceCodeProps {
   noMaxHeight?: boolean;

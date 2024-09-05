@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import { Button, Field, Input, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { openWarningNotification } from 'helpers/utils';
+import { openWarningNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 

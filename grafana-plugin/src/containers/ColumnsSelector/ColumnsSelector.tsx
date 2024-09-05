@@ -20,8 +20,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
+import { openErrorNotification } from 'helpers/helpers';
 import { useIsLoading } from 'helpers/hooks';
-import { openErrorNotification } from 'helpers/utils';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 

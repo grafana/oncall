@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Stack, Modal, Tooltip, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { StackSize } from 'helpers/consts';
-import { openErrorNotification } from 'helpers/utils';
+import { openErrorNotification } from 'helpers/helpers';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 

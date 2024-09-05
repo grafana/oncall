@@ -1,4 +1,4 @@
-import { KeyValuePair } from 'helpers/utils';
+import { KeyValuePair } from 'helpers/helpers';
 
 export const SettingsPageTab = {
   MainSettings: new KeyValuePair('MainSettings', 'Organization Settings'),

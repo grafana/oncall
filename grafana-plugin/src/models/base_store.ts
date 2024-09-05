@@ -1,5 +1,5 @@
 import { sentenceCase } from 'change-case';
-import { openWarningNotification } from 'helpers/utils';
+import { openWarningNotification } from 'helpers/helpers';
 import { action } from 'mobx';
 
 import { makeRequest } from 'network/network';

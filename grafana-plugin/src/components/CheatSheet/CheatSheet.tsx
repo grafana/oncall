@@ -2,7 +2,7 @@ import React from 'react';
 
 import { IconButton, Stack, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
-import { openNotification } from 'helpers/utils';
+import { openNotification } from 'helpers/helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
