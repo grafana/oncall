@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { css } from '@emotion/css';
 import {
   EmbeddedScene,
   SceneTimeRange,
@@ -36,7 +37,6 @@ import { getNewAlertGroupsNotificationsTableScene } from './scenes/NewAlertGroup
 import { getNewAlertGroupsNotificationsTimeseriesScene } from './scenes/NewAlertGroupsNotificationsTimeseries';
 import { getNewAlertGroupsTimeseriesScene } from './scenes/NewAlertGroupsTimeseries';
 import getVariables from './variables';
-import { css } from '@emotion/css';
 
 export const Insights = observer(() => {
   const {

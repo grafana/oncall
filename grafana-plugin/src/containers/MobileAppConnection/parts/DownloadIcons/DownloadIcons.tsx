@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 
+import { css } from '@emotion/css';
 import { Stack, useStyles2 } from '@grafana/ui';
 
 import AppleLogoSVG from 'assets/img/apple-logo.svg';
@@ -7,8 +8,6 @@ import PlayStoreLogoSVG from 'assets/img/play-store-logo.svg';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { StackSize } from 'utils/consts';
-
-import { css } from '@emotion/css';
 
 export const DownloadIcons: FC = () => {
   const styles = useStyles2(getStyles);

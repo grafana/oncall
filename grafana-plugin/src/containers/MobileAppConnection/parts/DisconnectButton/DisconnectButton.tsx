@@ -1,10 +1,9 @@
 import React, { FC } from 'react';
 
+import { css } from '@emotion/css';
 import { Button } from '@grafana/ui';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-
-import { css } from '@emotion/css';
 
 type Props = {
   onClick: () => void;

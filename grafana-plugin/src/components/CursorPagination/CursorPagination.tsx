@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Icon, Select, Stack } from '@grafana/ui';
 
@@ -33,7 +34,14 @@ export const CursorPagination: FC<CursorPaginationProps> = (props) => {
   return (
     <Stack gap={StackSize.md} justifyContent="flex-end">
       <Stack>
-        <Text type="secondary">Items per list</Text>
+        <Text
+          type="secondary"
+          className={css`
+            width: 200px;
+          `}
+        >
+          Items per list
+        </Text>
         <Select
           isSearchable={false}
           options={itemsPerPageOptions}

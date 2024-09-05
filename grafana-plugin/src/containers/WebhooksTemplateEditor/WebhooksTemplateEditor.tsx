@@ -1,20 +1,19 @@
 import React, { useCallback, useState } from 'react';
 
 import { Button, Drawer, Stack, useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
 import { CheatSheet } from 'components/CheatSheet/CheatSheet';
 import { genericTemplateCheatSheet, webhookPayloadCheatSheet } from 'components/CheatSheet/CheatSheet.config';
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { Text } from 'components/Text/Text';
+import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 import { TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { UserActions } from 'utils/authorization/authorization';
-import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 
 interface Template {
   value: string;

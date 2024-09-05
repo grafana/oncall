@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { Button, Icon, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';
@@ -20,12 +20,11 @@ import { StackSize } from 'utils/consts';
 import { useInitializePlugin } from 'utils/hooks';
 import { isMobile, openErrorNotification, openNotification, openWarningNotification } from 'utils/utils';
 
+import { getMobileAppConnectionStyles } from './MobileAppConnection.styles';
 import { DisconnectButton } from './parts/DisconnectButton/DisconnectButton';
 import { DownloadIcons } from './parts/DownloadIcons/DownloadIcons';
 import { LinkLoginButton } from './parts/LinkLoginButton/LinkLoginButton';
 import { QRCode } from './parts/QRCode/QRCode';
-import { css, cx } from '@emotion/css';
-import { getMobileAppConnectionStyles } from './MobileAppConnection.styles';
 
 type Props = {
   userPk?: ApiSchemas['User']['pk'];

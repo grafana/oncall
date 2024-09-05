@@ -5,10 +5,10 @@ import { Button, Icon, Stack, useStyles2 } from '@grafana/ui';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
+import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 import { TemplatePreview, TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { StackSize } from 'utils/consts';
-import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 
 interface ResultProps {
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];

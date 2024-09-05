@@ -1,13 +1,12 @@
 import React, { ReactElement, useCallback, useEffect } from 'react';
 
+import { cx, css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect, useStyles2 } from '@grafana/ui';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { useDebouncedCallback } from 'utils/hooks';
-
-import { cx, css } from '@emotion/css';
 
 interface GSelectProps<Item> {
   items: {

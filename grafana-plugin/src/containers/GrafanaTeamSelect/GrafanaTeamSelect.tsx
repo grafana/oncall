@@ -1,5 +1,7 @@
 import React, { useCallback, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Icon, Label, Modal, Tooltip, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
@@ -8,9 +10,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-
-import { GrafanaTheme2 } from '@grafana/data';
-import { css } from '@emotion/css';
 
 interface GrafanaTeamSelectProps {
   onSelect: (id: GrafanaTeam['id']) => void;

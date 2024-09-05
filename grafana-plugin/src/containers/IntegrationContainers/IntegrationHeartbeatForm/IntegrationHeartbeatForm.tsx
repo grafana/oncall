@@ -1,7 +1,8 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, Field, Icon, Select, Stack, useStyles2 } from '@grafana/ui';
+import { Button, Drawer, Field, Icon, Select, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
@@ -16,8 +17,6 @@ import { UserActions } from 'utils/authorization/authorization';
 import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
-import { css, cx } from '@emotion/css';
-
 interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
   onClose?: () => void;
@@ -27,7 +26,6 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
   const [interval, setInterval] = useState<number>(undefined);
 
   const { heartbeatStore, alertReceiveChannelStore } = useStore();
-  const styles = useStyles2(getStyles);
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceveChannelId];
   const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
@@ -145,16 +143,3 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
 export const IntegrationHeartbeatForm = withMobXProviderContext(_IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
 }: IntegrationHeartbeatFormProps) => ReactElement;
-
-const getStyles = () => {
-  return {
-    instruction: css`
-      ol,
-      ul {
-        padding: 0;
-        margin: 0;
-        list-style: none;
-      }
-    `,
-  };
-};

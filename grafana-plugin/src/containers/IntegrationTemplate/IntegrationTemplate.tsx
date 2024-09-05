@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
 import { Button, Drawer, Stack, useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -28,6 +27,7 @@ import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integrat
 import { useStore } from 'state/useStore';
 import { LocationHelper } from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization/authorization';
+
 import { getIntegrationTemplateStyles } from './IntegrationTemplate.styles';
 
 interface IntegrationTemplateProps {

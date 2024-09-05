@@ -1,11 +1,10 @@
 import React from 'react';
 
+import { css } from '@emotion/css';
 import { IconName, Tab, TabsBar } from '@grafana/ui';
 
 import { pages } from 'pages/pages';
 import { useStore } from 'state/useStore';
-
-import { css } from '@emotion/css';
 
 export const LegacyNavTabsBar = function ({ currentPage }: { currentPage: string }): JSX.Element {
   const store = useStore();
