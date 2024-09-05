@@ -7,13 +7,13 @@ import {
   usePluginLinks as originalUsePluginLinks,
 } from '@grafana/runtime';
 import { Button, Dropdown, Modal, Select, Stack, ToolbarButton } from '@grafana/ui';
-import { observer } from 'mobx-react';
 import { OnCallPluginExtensionPoints } from 'app-types';
+import { StackSize } from 'helpers/consts';
+import { observer } from 'mobx-react';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 import { ExtensionLinkMenu } from './ExtensionLinkMenu';
 

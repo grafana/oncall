@@ -1,3 +1,4 @@
+import { AutoLoadingState, WithGlobalNotification } from 'helpers/decorators';
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
@@ -5,7 +6,6 @@ import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
-import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
 
 import { OutgoingWebhookPreset } from './outgoing_webhook.types';
 
