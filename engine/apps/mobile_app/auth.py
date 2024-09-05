@@ -33,7 +33,7 @@ class MobileAppAuthTokenAuthentication(BaseAuthentication):
     def authenticate(self, request) -> Optional[Tuple[User, MobileAppAuthToken]]:
         auth = get_authorization_header(request).decode("utf-8")
         user, auth_token = self.authenticate_credentials(auth)
-        if user is None:
+        if user is None or not user.is_active:
             return None
         return user, auth_token
 
