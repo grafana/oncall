@@ -3,8 +3,7 @@ import React, { ChangeEvent, useCallback, useEffect, useRef } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, Input, useStyles2 } from '@grafana/ui';
-
-import { useDebouncedCallback } from 'utils/hooks';
+import { useDebouncedCallback } from 'helpers/hooks';
 
 interface UsersFiltersProps {
   value: any;

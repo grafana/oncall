@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 import { Badge, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { openErrorNotification } from 'helpers/helpers';
+import { useDebouncedCallback } from 'helpers/hooks';
+import { sanitize } from 'helpers/sanitize';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -10,9 +13,6 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { useDebouncedCallback } from 'utils/hooks';
-import { sanitize } from 'utils/sanitize';
-import { openErrorNotification } from 'utils/utils';
 
 import styles from './TemplatePreview.module.css';
 

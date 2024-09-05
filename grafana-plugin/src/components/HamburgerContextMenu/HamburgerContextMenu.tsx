@@ -3,11 +3,11 @@ import React, { FC, ReactNode } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
+import { isUserActionAllowed, UserAction } from 'helpers/authorization/authorization';
 
 import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
 
 interface HamburgerContextMenuProps {
   items: Array<

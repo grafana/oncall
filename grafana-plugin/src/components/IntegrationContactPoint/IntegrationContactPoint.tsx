@@ -3,6 +3,8 @@ import React, { useEffect, useReducer } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Icon, IconButton, Input, RadioButtonGroup, Select, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { GENERIC_ERROR, StackSize } from 'helpers/consts';
+import { openErrorNotification, openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';
@@ -15,8 +17,6 @@ import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { GENERIC_ERROR, StackSize } from 'utils/consts';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

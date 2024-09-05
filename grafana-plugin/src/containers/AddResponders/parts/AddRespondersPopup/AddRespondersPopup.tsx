@@ -2,6 +2,8 @@ import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
 import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
+import { useDebouncedCallback, useOnClickOutside } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
 
@@ -12,8 +14,6 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
 import styles from './AddRespondersPopup.module.scss';
 

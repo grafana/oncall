@@ -2,9 +2,9 @@ import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
 
 import styles from 'assets/style/utils.css';
-import { TEXT_ELLIPSIS_CLASS } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

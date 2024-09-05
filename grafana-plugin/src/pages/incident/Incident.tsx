@@ -19,13 +19,19 @@ import {
   withTheme2,
   useStyles2,
 } from '@grafana/ui';
+import { OnCallPluginExtensionPoints } from 'app-types';
+import { UserActions } from 'helpers/authorization/authorization';
+import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
+import { sanitize } from 'helpers/sanitize';
+import { parseURL } from 'helpers/url';
 import Linkify from 'linkify-react';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
-import { OnCallPluginExtensionPoints } from 'types';
 
 import { Collapse } from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';
@@ -59,12 +65,6 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { sanitize } from 'utils/sanitize';
-import { parseURL } from 'utils/url';
-import { openNotification } from 'utils/utils';
 
 import { getActionButtons } from './Incident.helpers';
 import { getIncidentStyles } from './Incident.styles';

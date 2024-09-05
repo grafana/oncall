@@ -2,9 +2,9 @@ import React, { ChangeEvent, useCallback, useState } from 'react';
 
 import { Stack, Modal as GrafanaModal, Button, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';
 

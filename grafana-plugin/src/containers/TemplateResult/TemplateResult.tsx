@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Button, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import { Block } from 'components/GBlock/Block';
@@ -9,7 +10,6 @@ import { Text } from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import { TemplatePreview, TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { StackSize } from 'utils/consts';
 
 const cx = cn.bind(styles);
 

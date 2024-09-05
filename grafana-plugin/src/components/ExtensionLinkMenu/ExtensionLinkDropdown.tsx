@@ -7,7 +7,7 @@ import {
   usePluginLinks as originalUsePluginLinks,
 } from '@grafana/runtime';
 import { Dropdown, ToolbarButton } from '@grafana/ui';
-import { OnCallPluginExtensionPoints } from 'types';
+import { OnCallPluginExtensionPoints } from 'app-types';
 
 import { ApiSchemas } from 'network/oncall-api/api.types';
 

@@ -1,6 +1,11 @@
 import React, { FC, ReactElement, useEffect } from 'react';
 
 import { IconButton, Icon, ConfirmModal, useStyles2, Stack } from '@grafana/ui';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
+import { useConfirmModal } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -11,11 +16,6 @@ import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventT
 import { WebhookName } from 'components/Webhooks/WebhookName';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { useConfirmModal } from 'utils/hooks';
-import { openNotification } from 'utils/utils';
 
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';

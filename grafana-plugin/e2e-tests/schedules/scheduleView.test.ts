@@ -1,6 +1,7 @@
+import { HTML_ID } from 'helpers/DOM';
+
 import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { ScheduleView } from 'models/schedule/schedule.types';
-import { HTML_ID } from 'utils/DOM';
 
 import { expect, Page, test } from '../fixtures';
 import { isGrafanaVersionLowerThan } from '../utils/constants';

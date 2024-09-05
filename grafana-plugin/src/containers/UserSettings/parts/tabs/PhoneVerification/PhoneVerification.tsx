@@ -2,6 +2,9 @@ import React, { HTMLAttributes, useCallback, useRef, useReducer } from 'react';
 
 import { Alert, Button, Field, Icon, Input, Switch, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { isUserActionAllowed, UserAction, UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { useIsLoading } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -15,9 +18,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { useIsLoading } from 'utils/hooks';
 
 import styles from './PhoneVerification.module.css';
 

@@ -2,14 +2,14 @@ import React, { FC, useCallback, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Drawer, Icon, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 interface NewScheduleSelectorProps {
   onHide: () => void;

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Button, Checkbox, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
 import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
 
@@ -12,7 +13,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';

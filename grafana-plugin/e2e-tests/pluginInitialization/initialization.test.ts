@@ -1,4 +1,4 @@
-import { waitInMs } from 'utils/async';
+import { waitInMs } from 'helpers/async';
 
 import { test, expect, Page } from '../fixtures';
 import { OrgRole, isGrafanaVersionLowerThan } from '../utils/constants';

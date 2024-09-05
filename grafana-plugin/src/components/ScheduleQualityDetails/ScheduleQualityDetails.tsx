@@ -2,11 +2,11 @@ import React, { FC, useCallback, useState } from 'react';
 
 import { cx } from '@emotion/css';
 import { Icon, IconButton, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
-import { StackSize } from 'utils/consts';
 
 import { getScheduleQualityDetailsStyles } from './ScheduleQualityDetails.styles';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';
