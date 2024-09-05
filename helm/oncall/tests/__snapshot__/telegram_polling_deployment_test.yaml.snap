@@ -6,7 +6,7 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
         - python manage.py start_telegram_polling
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -38,7 +38,7 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
         - name: FEATURE_TELEGRAM_LONG_POLLING_ENABLED
           value: "True"
         - name: TELEGRAM_WEBHOOK_HOST
-          value: https://example.com
+          value: http://example.com
         - name: TELEGRAM_TOKEN
           value: ""
         - name: MYSQL_HOST

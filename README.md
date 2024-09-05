@@ -29,7 +29,7 @@ Developer-friendly incident response with brilliant Slack integration.
 ## Getting Started
 
 > [!IMPORTANT]  
-> These instructions are for using Grafana 11 or newer. You must enable the feature toggle for 
+> These instructions are for using Grafana 11 or newer. You must enable the feature toggle for
 > externalServiceAccounts. This is already done for the docker files and helm charts.  If you are running Grafana
 > separately see the Grafana documentation on how to enable this.
 
@@ -86,8 +86,9 @@ We prepared multiple environments:
    ```bash
    docker-compose pull && docker-compose up -d
    ```
-   
+
 5. Provision the plugin (If you run Grafana outside the included docker files, install the plugin before these steps):
+
    ```bash
    curl -X POST 'http://admin:admin@localhost:3000/api/plugins/grafana-oncall-app/settings' -H "Content-Type: application/json" -d '{"enabled":true, "jsonData":{"stackId":5, "orgId":100, "onCallApiUrl":"http://engine:8080", "grafanaUrl":"http://grafana:3000"}}'
    curl -X POST 'http://admin:admin@localhost:3000/api/plugins/grafana-oncall-app/resources/plugin/install'
@@ -101,7 +102,8 @@ We prepared multiple environments:
 
 ## Troubleshooting
 
-Here are some API calls that can be made to help if you are having difficulty connecting Grafana and OnCall. (Modify parameters to match your credentials and environemt)
+Here are some API calls that can be made to help if you are having difficulty connecting Grafana and OnCall.
+(Modify parameters to match your credentials and environemt)
 
    ```bash
    # Use this to get more information about the connection between Grafana and OnCall

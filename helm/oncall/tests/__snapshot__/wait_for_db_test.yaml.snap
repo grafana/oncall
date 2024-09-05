@@ -6,7 +6,7 @@ database.type=mysql -> should create initContainer for MySQL database (default):
         - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -94,7 +94,7 @@ database.type=mysql -> should create initContainer for MySQL database (default):
         - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -182,7 +182,7 @@ database.type=mysql -> should create initContainer for MySQL database (default):
         - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -271,7 +271,7 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
         - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -361,7 +361,7 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
         - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
@@ -451,7 +451,7 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
         - until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done
       env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:
