@@ -1,8 +1,7 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, Field, Icon, Select, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Drawer, Field, Icon, Select, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
@@ -17,9 +16,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
-import styles from './IntegrationHeartbeatForm.module.scss';
-
-const cx = cn.bind(styles);
+import { css, cx } from '@emotion/css';
 
 interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
@@ -30,6 +27,7 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
   const [interval, setInterval] = useState<number>(undefined);
 
   const { heartbeatStore, alertReceiveChannelStore } = useStore();
+  const styles = useStyles2(getStyles);
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceveChannelId];
   const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
@@ -56,7 +54,11 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
           </Text>
 
           <Stack direction="column" gap={StackSize.md}>
-            <div className={cx('u-width-100')}>
+            <div
+              className={css`
+                width: 100%;
+              `}
+            >
               <Field label={'Setup heartbeat interval'}>
                 <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                   <Select
@@ -73,7 +75,11 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
                 </WithPermissionControlTooltip>
               </Field>
             </div>
-            <div className={cx('u-width-100')}>
+            <div
+              className={css`
+                width: 100%;
+              `}
+            >
               <Field label="Endpoint" description="Use the following unique Grafana link to send GET and POST requests">
                 <IntegrationInputField value={heartbeat?.link} showEye={false} isMasked={false} />
               </Field>
@@ -139,3 +145,16 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
 export const IntegrationHeartbeatForm = withMobXProviderContext(_IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
 }: IntegrationHeartbeatFormProps) => ReactElement;
+
+const getStyles = () => {
+  return {
+    instruction: css`
+      ol,
+      ul {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+    `,
+  };
+};
