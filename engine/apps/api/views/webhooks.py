@@ -3,7 +3,8 @@ from dataclasses import asdict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters import rest_framework as filters
-from rest_framework import status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
@@ -168,6 +169,19 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
 
         return obj
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="WebhookFilters",
+            fields={
+                "name": serializers.CharField(),
+                "display_name": serializers.CharField(required=False),
+                "type": serializers.CharField(),
+                "href": serializers.CharField(),
+                "global": serializers.BooleanField(required=False),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def filters(self, request):
         api_root = "/api/internal/v1/"
@@ -199,8 +213,10 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
 
         return Response(filter_options)
 
+    @extend_schema(responses=WebhookResponseSerializer(many=True))
     @action(methods=["get"], detail=True)
     def responses(self, request, pk):
+        """Return recent responses data for the webhook."""
         if pk == NEW_WEBHOOK_PK:
             return Response([], status=status.HTTP_200_OK)
 
@@ -211,8 +227,25 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         response_serializer = WebhookResponseSerializer(queryset, many=True)
         return Response(response_serializer.data)
 
+    @extend_schema(
+        request=inline_serializer(
+            name="WebhookPreviewTemplateRequest",
+            fields={
+                "template_body": serializers.CharField(required=False, allow_null=True),
+                "template_name": serializers.CharField(required=False, allow_null=True),
+                "payload": serializers.DictField(required=False, allow_null=True),
+            },
+        ),
+        responses=inline_serializer(
+            name="WebhookPreviewTemplateResponse",
+            fields={
+                "preview": serializers.CharField(allow_null=True),
+            },
+        ),
+    )
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
+        """Return webhook template preview."""
         if pk != NEW_WEBHOOK_PK:
             self.get_object()  # Check webhook exists
 
@@ -245,13 +278,33 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         response = {"preview": result}
         return Response(response, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={
+            status.HTTP_200_OK: inline_serializer(
+                name="WebhookPresetOptions",
+                fields={
+                    "id": serializers.CharField(),
+                    "name": serializers.CharField(),
+                    "logo": serializers.CharField(),
+                    "description": serializers.CharField(),
+                    "controlled_fields": serializers.ListField(child=serializers.CharField()),
+                },
+            )
+        },
+    )
     @action(methods=["get"], detail=False)
     def preset_options(self, request):
+        """Return available webhook preset options."""
         result = [asdict(preset) for preset in WebhookPresetOptions.WEBHOOK_PRESET_CHOICES]
         return Response(result)
 
+    @extend_schema(
+        parameters=[inline_serializer(name="WebhookTriggerManual", fields={"alert_group": serializers.CharField()})],
+        responses={status.HTTP_200_OK: None},
+    )
     @action(methods=["post"], detail=True)
     def trigger_manual(self, request, pk):
+        """Trigger specified webhook in the context of the given alert group."""
         user = self.request.user
         organization = self.request.auth.organization
         webhook = self.get_object()
