@@ -19,6 +19,7 @@ import {
   withTheme2,
   useStyles2,
 } from '@grafana/ui';
+import { OnCallPluginExtensionPoints } from 'app-types';
 import { UserActions } from 'helpers/authorization/authorization';
 import { INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'helpers/consts';
 import { PropsWithRouter, withRouter } from 'helpers/hoc';
@@ -31,7 +32,6 @@ import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
-import { OnCallPluginExtensionPoints } from 'types';
 
 import { Collapse } from 'components/Collapse/Collapse';
 import { ExtensionLinkDropdown } from 'components/ExtensionLinkMenu/ExtensionLinkDropdown';

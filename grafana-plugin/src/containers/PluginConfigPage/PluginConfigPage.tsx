@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PluginConfigPageProps, PluginMeta } from '@grafana/data';
 import { Alert, Field, Input, LoadingPlaceholder, useStyles2, Stack } from '@grafana/ui';
+import { OnCallPluginMetaJSONData } from 'app-types';
 import {
   DEFAULT_PAGE,
   DOCS_ONCALL_OSS_INSTALL,
@@ -17,7 +18,6 @@ import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVers
 import { observer } from 'mobx-react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { OnCallPluginMetaJSONData } from 'types';
 
 import { Button } from 'components/Button/Button';
 import { CollapsibleTreeView } from 'components/CollapsibleTreeView/CollapsibleTreeView';

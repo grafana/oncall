@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 import { ErrorBoundary, LoadingPlaceholder } from '@grafana/ui';
+import { AppRootProps } from 'app-types';
 import classnames from 'classnames';
 import { isUserActionAllowed } from 'helpers/authorization/authorization';
 import { DEFAULT_PAGE, getOnCallApiUrl } from 'helpers/consts';
@@ -10,7 +11,6 @@ import { observer, Provider } from 'mobx-react';
 import { Header } from 'navbar/Header/Header';
 import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom-v5-compat';
-import { AppRootProps } from 'types';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Unauthorized } from 'components/Unauthorized/Unauthorized';

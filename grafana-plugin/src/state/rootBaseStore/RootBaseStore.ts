@@ -1,9 +1,9 @@
+import { OnCallAppPluginMeta } from 'app-types';
 import { retryFailingPromises } from 'helpers/async';
 import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'helpers/consts';
 import { loadJs } from 'helpers/loadJs';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
-import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannelConnectedChannelsStore } from 'models/alert_receive_channel_connected_channels/alert_receive_channel_connected_channels';
