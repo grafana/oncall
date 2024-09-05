@@ -2,7 +2,7 @@ import { FaroHelper } from 'helpers/faro';
 
 import { getCustomFetchFn } from './http-client';
 
-jest.mock('utils/faro', () => ({
+jest.mock('helpers/faro', () => ({
   __esModule: true,
 
   FaroHelper: {
