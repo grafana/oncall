@@ -87,9 +87,13 @@ We prepared multiple environments:
    docker-compose pull && docker-compose up -d
    ```
 
-5. Provision the plugin (If you run Grafana outside the included docker files, install the plugin before these steps):
+5. Provision the plugin (If you run Grafana outside the included docker files install the plugin before these steps):
+   If you are using the included docker compose file use `admin`/`admin` credentials and `localhost:3000` to
+   perform this task.  If you have configured Grafana differently adjust your credentials and hostnames accordingly.
 
    ```bash
+   # Note: onCallApiUrl 'engine' and grafanaUrl 'grafana' use the name from the docker compose file.  If you are 
+   # running your grafana or oncall engine instance with another hostname adjust accordingly. 
    curl -X POST 'http://admin:admin@localhost:3000/api/plugins/grafana-oncall-app/settings' -H "Content-Type: application/json" -d '{"enabled":true, "jsonData":{"stackId":5, "orgId":100, "onCallApiUrl":"http://engine:8080", "grafanaUrl":"http://grafana:3000"}}'
    curl -X POST 'http://admin:admin@localhost:3000/api/plugins/grafana-oncall-app/resources/plugin/install'
    ```
