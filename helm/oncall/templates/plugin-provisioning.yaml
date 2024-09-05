@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helm-testing-grafana-plugin-provisioning
+  labels:
+    app: {{ include "oncall.name" . }}
+data:
+  grafana-oncall-app-provisioning.yaml: |
+    apps:
+      - type: grafana-oncall-app
+        name: grafana-oncall-app
+        disabled: false
+        jsonData:
+          stackId: 5
+          orgId: 100
+          onCallApiUrl: http://helm-testing-oncall-engine:8080
