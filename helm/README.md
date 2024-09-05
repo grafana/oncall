@@ -2,7 +2,7 @@
 
 1. Create the cluster with [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
-   > Make sure ports 30001, 30002 (Grafana, optional)
+   > Make sure ports 30001, 30002 (Grafana, optional) are available
 
    ```bash
    kind create cluster --image kindest/node:v1.24.7 --config kind.yml
