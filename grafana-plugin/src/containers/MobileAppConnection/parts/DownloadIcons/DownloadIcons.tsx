@@ -2,12 +2,12 @@ import React, { FC } from 'react';
 
 import { Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 
 import AppleLogoSVG from 'assets/img/apple-logo.svg';
 import PlayStoreLogoSVG from 'assets/img/play-store-logo.svg';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
 
 import styles from './DownloadIcons.module.scss';
 

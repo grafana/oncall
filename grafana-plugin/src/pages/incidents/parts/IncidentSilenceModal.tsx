@@ -11,12 +11,12 @@ import {
   parseDuration,
 } from '@grafana/data';
 import { Button, DateTimePicker, Field, Input, Modal, Stack, useStyles2 } from '@grafana/ui';
+import { openWarningNotification } from 'helpers/helpers';
+import { useDebouncedCallback } from 'helpers/hooks';
 import { Controller, useForm } from 'react-hook-form';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Text } from 'components/Text/Text';
-import { useDebouncedCallback } from 'utils/hooks';
-import { openWarningNotification } from 'utils/utils';
 
 interface IncidentSilenceModalProps {
   isOpen: boolean;

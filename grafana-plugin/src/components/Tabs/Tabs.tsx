@@ -3,8 +3,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { css } from '@emotion/css';
 import { Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
-
-import { LocationHelper } from 'utils/LocationHelper';
+import { LocationHelper } from 'helpers/LocationHelper';
 
 interface TabConfig {
   label: string;

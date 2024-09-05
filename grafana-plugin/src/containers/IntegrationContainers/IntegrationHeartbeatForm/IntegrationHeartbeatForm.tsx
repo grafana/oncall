@@ -3,6 +3,9 @@ import React, { ReactElement, useEffect, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Icon, Select, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';
@@ -13,9 +16,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 import styles from './IntegrationHeartbeatForm.module.scss';
 

@@ -16,6 +16,10 @@ import {
   DatePicker,
 } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { HTML_ID, scrollToElement } from 'helpers/DOM';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { observer } from 'mobx-react';
 
 import { PageErrorHandlingWrapper } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -41,10 +45,6 @@ import { Event, Layer, Schedule, ScheduleType, ScheduleView, Shift, ShiftSwap } 
 import { UserHelper } from 'models/user/user.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { HTML_ID, scrollToElement } from 'utils/DOM';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import {
   getCalendarStartDate,

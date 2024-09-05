@@ -1,7 +1,7 @@
 import { AppPluginMeta, KeyValue } from '@grafana/data';
+import { useDrawer } from 'helpers/hooks';
 
 import { RootStore } from 'state/rootStore';
-import { useDrawer } from 'utils/hooks';
 
 export interface WithStoreProps {
   store: RootStore;

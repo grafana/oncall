@@ -1,13 +1,13 @@
 import React from 'react';
 
 import { IconButton, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { bem, getUtilStyles } from 'styles/utils.styles';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
 import { getCheatSheetStyles } from './CheatSheet.styles';

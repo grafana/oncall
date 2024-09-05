@@ -1,7 +1,6 @@
 import { getBackendSrv } from '@grafana/runtime';
-import { OnCallPluginMetaJSONData } from 'types';
-
-import { getPluginId, PluginId } from 'utils/consts';
+import { OnCallPluginMetaJSONData } from 'app-types';
+import { getPluginId, PluginId } from 'helpers/consts';
 
 import {
   ApiAuthKeyDTO,

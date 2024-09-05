@@ -2,14 +2,14 @@ import React, { useCallback } from 'react';
 
 import { Button, Stack, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'helpers/consts';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { SlackNewIcon } from 'icons/Icons';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
 
 import styles from './SlackTab.module.css';
 

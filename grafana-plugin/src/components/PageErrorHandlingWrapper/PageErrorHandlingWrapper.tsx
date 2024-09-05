@@ -3,11 +3,11 @@ import React, { ReactElement, useEffect } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
+import { openWarningNotification } from 'helpers/helpers';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
-import { openWarningNotification } from 'utils/utils';
 
 export interface PageBaseState {
   errorData: PageErrorData;

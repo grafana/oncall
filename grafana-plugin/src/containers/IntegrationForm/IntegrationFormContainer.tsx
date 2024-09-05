@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent } from 'react';
 
 import { Drawer, Stack, Input, Tag, EmptySearchResult } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -9,7 +10,6 @@ import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 import { IntegrationForm } from './IntegrationForm';
 import styles from './IntegrationFormContainer.module.scss';

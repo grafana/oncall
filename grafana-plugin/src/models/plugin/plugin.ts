@@ -1,14 +1,14 @@
+import { OnCallPluginMetaJSONData } from 'app-types';
+import { waitInMs } from 'helpers/async';
+import { AutoLoadingState } from 'helpers/decorators';
 import { isEqual } from 'lodash-es';
 import { makeAutoObservable, runInAction } from 'mobx';
-import { OnCallPluginMetaJSONData } from 'types';
 
 import { ActionKey } from 'models/loader/action-keys';
 import { GrafanaApiClient } from 'network/grafana-api/http-client';
 import { makeRequest } from 'network/network';
 import { PluginConnection, StatusResponse } from 'network/oncall-api/api.types';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
-import { waitInMs } from 'utils/async';
-import { AutoLoadingState } from 'utils/decorators';
 
 import { PluginHelper } from './plugin.helper';
 

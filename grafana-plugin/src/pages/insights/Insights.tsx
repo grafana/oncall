@@ -15,13 +15,13 @@ import {
   useSceneApp,
 } from '@grafana/scenes';
 import { Alert, LoadingPlaceholder, Stack } from '@grafana/ui';
+import { DOCS_ROOT, PLUGIN_ROOT, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { Tutorial } from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT, PLUGIN_ROOT, StackSize } from 'utils/consts';
 
 import { useAlertCreationChecker } from './Insights.hooks';
 import styles from './Insights.module.scss';

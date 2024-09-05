@@ -13,8 +13,8 @@ jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
 }));
 
-jest.mock('utils/authorization/authorization', () => ({
-  ...jest.requireActual('utils/authorization/authorization'),
+jest.mock('helpers/authorization/authorization', () => ({
+  ...jest.requireActual('helpers/authorization/authorization'),
   isUserActionAllowed: jest.fn().mockReturnValue(true),
 }));
 

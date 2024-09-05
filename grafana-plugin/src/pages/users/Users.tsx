@@ -3,6 +3,14 @@ import React from 'react';
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Alert, Button, Stack, withTheme2 } from '@grafana/ui';
+import { LocationHelper } from 'helpers/LocationHelper';
+import {
+  UserActions,
+  generateMissingPermissionMessage,
+  isUserActionAllowed,
+} from 'helpers/authorization/authorization';
+import { PAGE, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
@@ -25,10 +33,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions, generateMissingPermissionMessage, isUserActionAllowed } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 import { getUsersStyles } from './Users.styles';

@@ -1,8 +1,8 @@
 import { KeyValue } from '@grafana/data';
 import type { Page } from '@playwright/test';
+import { getPluginId } from 'helpers/consts';
 import qs from 'query-string';
 
-import { getPluginId } from 'utils/consts';
 
 import { BASE_URL } from './constants';
 

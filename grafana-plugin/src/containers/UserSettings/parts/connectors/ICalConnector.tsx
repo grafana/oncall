@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
 import { Alert, Button, InlineField, Input, LoadingPlaceholder, Stack, Tooltip } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -8,9 +11,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface ICalConnectorProps {

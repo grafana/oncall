@@ -2,11 +2,11 @@ import React, { useCallback, useMemo, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
+import { UserAction, generateMissingPermissionMessage } from 'helpers/authorization/authorization';
+import { useDebouncedCallback } from 'helpers/hooks';
 import { inject, observer } from 'mobx-react';
 
 import { makeRequest, isNetworkError } from 'network/network';
-import { UserAction, generateMissingPermissionMessage } from 'utils/authorization/authorization';
-import { useDebouncedCallback } from 'utils/hooks';
 
 interface RemoteSelectProps {
   autoFocus?: boolean;

@@ -19,6 +19,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button, Checkbox, Icon, IconButton, LoadingPlaceholder, Tooltip, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { openErrorNotification } from 'helpers/helpers';
+import { useIsLoading } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -28,9 +31,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertGroupColumn, AlertGroupColumnType } from 'models/alertgroup/alertgroup.types';
 import { ActionKey } from 'models/loader/action-keys';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { useIsLoading } from 'utils/hooks';
-import { openErrorNotification } from 'utils/utils';
 
 import { getColumnsSelectorStyles } from './ColumnsSelector.styles';
 

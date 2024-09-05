@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 import { Button, ConfirmModal, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { openErrorNotification, openNotification } from 'helpers/helpers';
+import { useDrawer } from 'helpers/hooks';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -21,10 +25,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { useDrawer } from 'utils/hooks';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 import { IntegrationDrawerKey } from './Integration';
 import { getIsBidirectionalIntegration } from './Integration.helper';

@@ -2,6 +2,8 @@ import React from 'react';
 
 import { css, cx } from '@emotion/css';
 import { Button, IconButton, Tooltip, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -13,8 +15,6 @@ import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SilenceSelect } from 'pages/incidents/parts/SilenceSelect';
 import { move } from 'state/helpers';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']; isFull: boolean }) => {
   const { incident, isFull } = props;
