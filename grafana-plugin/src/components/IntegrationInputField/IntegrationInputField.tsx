@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 
 import { cx } from '@emotion/css';
 import { IconButton, Input, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import { CopyToClipboardIcon } from 'components/CopyToClipboardIcon/CopyToClipboardIcon';
-import { StackSize } from 'utils/consts';
 
 import { getIntegrationInputFieldStyles } from './IntegrationInputField.styles';
 

@@ -1,11 +1,11 @@
 import { NavModelItem } from '@grafana/data';
+import { UserActions, UserAction, isUserActionAllowed } from 'helpers/authorization/authorization';
+import { PLUGIN_ROOT } from 'helpers/consts';
 import { matchPath } from 'react-router-dom-v5-compat';
 
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
-import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
 
 export type PageDefinition = {
   path: string;

@@ -1,9 +1,8 @@
 import axios, { AxiosError } from 'axios';
+import { getOnCallApiPath } from 'helpers/consts';
+import { FaroHelper } from 'helpers/faro';
+import { safeJSONStringify } from 'helpers/string';
 import qs from 'query-string';
-
-import { getOnCallApiPath } from 'utils/consts';
-import { FaroHelper } from 'utils/faro';
-import { safeJSONStringify } from 'utils/string';
 
 const instance = axios.create();
 

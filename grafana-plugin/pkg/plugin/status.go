@@ -244,7 +244,7 @@ func (a *App) ValidateOnCallStatus(ctx context.Context, settings *OnCallPluginSe
 	return &status, nil
 }
 
-func (a *App) handleStatus(w http.ResponseWriter, req *http.Request) {
+func (a *App) HandleStatus(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return

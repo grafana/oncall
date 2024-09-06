@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Button, Icon, Input, Modal, Stack, useStyles2 } from '@grafana/ui';
 import cn from 'classnames';
+import { useCommonStyles, useIsLoading } from 'helpers/hooks';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -10,7 +11,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { useCommonStyles, useIsLoading } from 'utils/hooks';
 
 import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
 import { useCurrentIntegration } from './OutgoingTab.hooks';

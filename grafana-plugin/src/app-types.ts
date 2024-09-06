@@ -1,6 +1,5 @@
 import { AppRootProps as BaseAppRootProps, AppPluginMeta, PluginConfigPageProps } from '@grafana/data';
-
-import { getPluginId } from 'utils/consts';
+import { getPluginId } from 'helpers/consts';
 
 export type OnCallPluginMetaJSONData = {
   stackId: number;

@@ -1,7 +1,6 @@
 import 'jest/matchMedia';
 import { describe, test } from '@jest/globals';
-
-import { FaroHelper } from 'utils/faro';
+import { FaroHelper } from 'helpers/faro';
 
 import '@testing-library/jest-dom';
 import { ONCALL_DEV, ONCALL_OPS, ONCALL_PROD } from './consts';

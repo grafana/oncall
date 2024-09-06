@@ -3,6 +3,10 @@ import React, { SyntheticEvent } from 'react';
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, IconButton, LoadingPlaceholder, Stack, withTheme2 } from '@grafana/ui';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { UserActions } from 'helpers/authorization/authorization';
+import { PAGE, PLUGIN_ROOT, StackSize, TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { observer } from 'mobx-react';
 import qs from 'query-string';
 import { getUtilStyles } from 'styles/utils.styles';
@@ -27,10 +31,6 @@ import { Schedule, ScheduleView } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT, StackSize, TEXT_ELLIPSIS_CLASS } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getSchedulesStyles } from './Schedules.styles';
 

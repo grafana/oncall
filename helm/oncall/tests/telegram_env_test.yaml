@@ -24,7 +24,7 @@ tests:
     set:
       oncall.telegram:
         enabled: true
-        webhookUrl: https://example.com
+        webhookUrl: http://example.com
         token: "abcd:123"
     asserts:
       - contains:
@@ -36,7 +36,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: TELEGRAM_WEBHOOK_HOST
-            value: "https://example.com"
+            value: "http://example.com"
       - contains:
           path: spec.template.spec.containers[0].env
           content:

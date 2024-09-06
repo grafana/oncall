@@ -2,6 +2,11 @@ import React from 'react';
 
 import { Button, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import {
+  generateMissingPermissionMessage,
+  isUserActionAllowed,
+  UserActions,
+} from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
@@ -12,7 +17,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { ApiTokenForm } from './ApiTokenForm';
 

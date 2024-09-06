@@ -2,6 +2,8 @@ import React, { useCallback, useState, useEffect } from 'react';
 
 import { Button, Drawer, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { UserActions } from 'helpers/authorization/authorization';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -26,8 +28,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './IntegrationTemplate.module.scss';
 

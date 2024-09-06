@@ -41,7 +41,7 @@ func (a *App) handleInstall(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	onCallSync, err := a.GetSyncData(req.Context(), onCallPluginSettings)
+	onCallSync, err := a.GetSyncData(onCallPluginSettings)
 	if err != nil {
 		log.DefaultLogger.Error("Error getting sync data", "error", err)
 		return

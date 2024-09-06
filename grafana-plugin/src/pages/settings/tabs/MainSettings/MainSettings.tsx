@@ -2,6 +2,7 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { Field, Input, Switch, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 
@@ -11,7 +12,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 export const MainSettings = observer(() => {
   const styles = useStyles2(getStyles);

@@ -16,6 +16,17 @@ import {
   Stack,
   useStyles2,
 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import {
+  PLUGIN_ROOT,
+  generateAssignToTeamInputDescription,
+  DOCS_ROOT,
+  INTEGRATION_SERVICENOW,
+  StackSize,
+} from 'helpers/consts';
+import { useIsLoading } from 'helpers/hooks';
+import { validateURL } from 'helpers/string';
+import { OmitReadonlyMembers } from 'helpers/types';
 import { observer } from 'mobx-react';
 import { Controller, useForm, useFormContext, FormProvider } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -35,17 +46,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper, getIsBidirectionalIntegration } from 'pages/integration/Integration.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import {
-  PLUGIN_ROOT,
-  generateAssignToTeamInputDescription,
-  DOCS_ROOT,
-  INTEGRATION_SERVICENOW,
-  StackSize,
-} from 'utils/consts';
-import { useIsLoading } from 'utils/hooks';
-import { validateURL } from 'utils/string';
-import { OmitReadonlyMembers } from 'utils/types';
 
 import { prepareForEdit } from './IntegrationForm.helpers';
 import { getIntegrationFormStyles } from './IntegrationForm.styles';

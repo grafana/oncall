@@ -2,6 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 
 import { Alert, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { BREAKPOINT_TABS } from 'helpers/consts';
+import { useQueryParams } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
@@ -10,9 +13,6 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts/UserSettingsPar
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { BREAKPOINT_TABS } from 'utils/consts';
-import { useQueryParams } from 'utils/hooks';
 
 import { UserSettingsTab } from './UserSettings.types';
 

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/grafana-labs/grafana-oncall-app/pkg/plugin"
+	"github.com/grafana/grafana-oncall-app/pkg/plugin"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/app"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
@@ -16,7 +16,7 @@ func main() {
 	// argument. This factory will be automatically called on incoming request
 	// from Grafana to create different instances of `App` (per plugin
 	// ID).
-	if err := app.Manage("grafana-oncall-app", plugin.NewApp, app.ManageOpts{}); err != nil {
+	if err := app.Manage("grafana-oncall-app", plugin.NewInstance, app.ManageOpts{}); err != nil {
 		log.DefaultLogger.Error(err.Error())
 		os.Exit(1)
 	}

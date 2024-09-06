@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 
 import { InlineSwitch, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
@@ -10,8 +12,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 import styles from './Connectors.module.css';
 

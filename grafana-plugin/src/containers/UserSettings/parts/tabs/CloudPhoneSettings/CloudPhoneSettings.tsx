@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 import { Button, LoadingPlaceholder, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -10,8 +12,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: ApiSchemas['User']['pk'];

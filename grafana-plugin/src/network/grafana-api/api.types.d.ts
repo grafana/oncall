@@ -1,4 +1,4 @@
-import { OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
+import { OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'app-types';
 
 export type ServiceAccountDTO = {
   description: string;

@@ -2,9 +2,10 @@ package plugin
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
-	"net/http"
 )
 
 type OnCallDebugStats struct {
@@ -47,7 +48,7 @@ func (a *App) handleDebugSync(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	onCallSync, err := a.GetSyncData(req.Context(), onCallPluginSettings)
+	onCallSync, err := a.GetSyncData(onCallPluginSettings)
 	if err != nil {
 		log.DefaultLogger.Error("Error getting sync data", "error", err)
 		return

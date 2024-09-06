@@ -2,6 +2,7 @@ import React from 'react';
 
 import { cx } from '@emotion/css';
 import { Card, Stack, useStyles2 } from '@grafana/ui';
+import { APP_SUBTITLE } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
@@ -9,7 +10,6 @@ import logo from 'assets/img/logo.svg';
 import { Alerts } from 'containers/Alerts/Alerts';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import { APP_SUBTITLE } from 'utils/consts';
 
 import { getHeaderStyles } from './Header.styles';
 

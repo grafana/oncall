@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 
 import { Badge, Button, Field, Modal, RadioButtonList, Tooltip, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -9,7 +10,6 @@ import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 export const TeamsList = observer(() => {
   const store = useStore();

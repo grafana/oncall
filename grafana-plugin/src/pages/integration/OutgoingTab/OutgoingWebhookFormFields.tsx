@@ -2,13 +2,13 @@ import React, { FC, useState } from 'react';
 
 import { Button, Field, Label, Select, Switch, useStyles2, Stack } from '@grafana/ui';
 import cn from 'classnames';
+import { StackSize } from 'helpers/consts';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { MonacoEditor } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG, MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import { WebhooksTemplateEditor } from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { HTTP_METHOD_OPTIONS, WEBHOOK_TRIGGGER_TYPE_OPTIONS } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { StackSize } from 'utils/consts';
 
 import { getStyles } from './OutgoingTab.styles';
 import { OutgoingTabFormValues } from './OutgoingTab.types';

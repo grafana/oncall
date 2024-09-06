@@ -3,6 +3,8 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { AppRootProps } from '@grafana/data';
 import { Tab, TabsBar, useStyles2 } from '@grafana/ui';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
 import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
@@ -11,8 +13,6 @@ import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import { CloudPage } from './tabs/Cloud/CloudPage';

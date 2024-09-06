@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 
 import { Tab, TabContent, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { isUseProfileExtensionPointEnabled } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -19,7 +20,6 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { isUseProfileExtensionPointEnabled } from 'utils/utils';
 
 import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
 

@@ -3,6 +3,7 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 import { Alert, Icon, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { LocationHelper } from 'helpers/LocationHelper';
 import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
@@ -13,7 +14,6 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { LocationHelper } from 'utils/LocationHelper';
 
 import { handleChatOpsQueryParamError } from './ChatOps.helpers';
 

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import { Badge, Button, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { DOCS_TELEGRAM_SETUP, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -15,7 +16,6 @@ import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types'
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { DOCS_TELEGRAM_SETUP, StackSize } from 'utils/consts';
 
 import styles from './TelegramSettings.module.css';
 

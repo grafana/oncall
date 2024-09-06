@@ -3,6 +3,8 @@ import React from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, IconButton, Select, withTheme2 } from '@grafana/ui';
+import { UserAction } from 'helpers/authorization/authorization';
+import { openWarningNotification } from 'helpers/helpers';
 import { isNumber } from 'lodash';
 import { SortableElement } from 'react-sortable-hoc';
 
@@ -15,8 +17,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { UserAction } from 'utils/authorization/authorization';
-import { openWarningNotification } from 'utils/utils';
 
 import { DragHandle } from './DragHandle';
 import { POLICY_DURATION_LIST_MINUTES, POLICY_DURATION_LIST_SECONDS } from './Policy.consts';
