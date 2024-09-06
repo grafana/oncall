@@ -124,11 +124,18 @@ export class OutgoingWebhookStore extends BaseStore {
     return result;
   }
 
-  async renderPreview(id: ApiSchemas['Webhook']['id'], template_name: string, template_body: string, payload) {
-    return await onCallApi().POST('/webhooks/{id}/preview_template/', {
-      params: { path: { id } },
-      body: { template_name, template_body, payload },
-    });
+  async renderPreview(
+    id: ApiSchemas['Webhook']['id'],
+    template_name: string,
+    template_body: string,
+    payload: { [key: string]: unknown } = undefined
+  ) {
+    return (
+      await onCallApi().POST('/webhooks/{id}/preview_template/', {
+        params: { path: { id } },
+        body: { template_name, template_body, payload },
+      })
+    ).data;
   }
 
   @action.bound
