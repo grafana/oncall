@@ -299,7 +299,12 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin[Webhook], ModelView
         return Response(result)
 
     @extend_schema(
-        parameters=[inline_serializer(name="WebhookTriggerManual", fields={"alert_group": serializers.CharField()})],
+        request=inline_serializer(
+            name="WebhookTriggerManual",
+            fields={
+                "alert_group": serializers.CharField(),
+            },
+        ),
         responses={status.HTTP_200_OK: None},
     )
     @action(methods=["post"], detail=True)

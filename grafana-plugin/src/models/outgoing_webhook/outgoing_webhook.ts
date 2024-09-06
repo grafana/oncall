@@ -5,6 +5,7 @@ import { BaseStore } from 'models/base_store';
 import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 
 import { OutgoingWebhookPreset } from './outgoing_webhook.types';
@@ -99,10 +100,9 @@ export class OutgoingWebhookStore extends BaseStore {
   @AutoLoadingState(ActionKey.TRIGGER_MANUAL_WEBHOOK)
   @WithGlobalNotification({ success: 'Webhook has been triggered successfully.', failure: 'Failed to trigger webhook' })
   async triggerManualWebhook(id: ApiSchemas['Webhook']['id'], alertGroupId: ApiSchemas['AlertGroup']['pk']) {
-    await makeRequest(`${this.path}${id}/trigger_manual`, {
-      method: 'POST',
-      data: {
-        // @ts-ignore
+    await onCallApi().POST(`/webhooks/{id}/trigger_manual/`, {
+      params: { path: { id } },
+      body: {
         alert_group: alertGroupId,
       },
     });
@@ -125,9 +125,9 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   async renderPreview(id: ApiSchemas['Webhook']['id'], template_name: string, template_body: string, payload) {
-    return await makeRequest(`${this.path}${id}/preview_template/`, {
-      method: 'POST',
-      data: { template_name, template_body, payload },
+    return await onCallApi().POST('/webhooks/{id}/preview_template/', {
+      params: { path: { id } },
+      body: { template_name, template_body, payload },
     });
   }
 
