@@ -320,8 +320,8 @@ importers:
         specifier: 0.5.45
         version: 0.5.45
       openapi-typescript:
-        specifier: ^7.0.0-next.4
-        version: 7.3.3(typescript@5.1.6)
+        specifier: ^7.4.0
+        version: 7.4.0(typescript@5.1.6)
       postcss-loader:
         specifier: ^7.0.1
         version: 7.3.4(postcss@8.4.43)(typescript@5.1.6)(webpack@5.94.0(@swc/core@1.7.22(@swc/helpers@0.5.12))(webpack-cli@5.1.4))
@@ -2150,6 +2150,9 @@ packages:
 
   change-case@4.1.2:
     resolution: {integrity: sha512-bSxY2ws9OtviILG1EiY5K7NNxkqg/JnRnFxLtKQ96JaviiIxi7djMrSd0ECT9AC+lttClmYwKw53BWpOMblo7A==}
+
+  change-case@5.4.4:
+    resolution: {integrity: sha512-HRQyTk2/YPEkt9TnUPbOpr64Uw3KOicFWPVBb+xiHvd6eBx/qPr9xqfBFDT8P2vWsvvz4jbEkfDe71W3VyNu2w==}
 
   char-regex@1.0.2:
     resolution: {integrity: sha512-kWWXztvZ5SBQV+eRgKFeh8q5sLuZY2+8WUIzlxWVTg+oGwY14qylx1KbKzHd8P6ZYkAg0xyIDU9JMHhyJMZ1jw==}
@@ -4475,8 +4478,8 @@ packages:
   openapi-typescript-helpers@0.0.5:
     resolution: {integrity: sha512-MRffg93t0hgGZbYTxg60hkRIK2sRuEOHEtCUgMuLgbCC33TMQ68AmxskzUlauzZYD47+ENeGV/ElI7qnWqrAxA==}
 
-  openapi-typescript@7.3.3:
-    resolution: {integrity: sha512-NkUBI8fr5mg/3s001UPfUiBpKmHtSjkvFQO/IipCrQal5d5nGFoev1OXdxr7J9PHTswrAqU2hKdpoCL6OnammA==}
+  openapi-typescript@7.4.0:
+    resolution: {integrity: sha512-u4iVuTGkzKG4rHFUMA/IFXTks9tYVQzkowZsScMOdzJSvIF10qSNySWHTwnN2fD+MEeWFAM8i1f3IUBlgS92eQ==}
     hasBin: true
     peerDependencies:
       typescript: ^5.x
@@ -8757,6 +8760,8 @@ snapshots:
       snake-case: 3.0.4
       tslib: 2.5.3
 
+  change-case@5.4.4: {}
+
   char-regex@1.0.2: {}
 
   chokidar@3.6.0:
@@ -11516,10 +11521,11 @@ snapshots:
 
   openapi-typescript-helpers@0.0.5: {}
 
-  openapi-typescript@7.3.3(typescript@5.1.6):
+  openapi-typescript@7.4.0(typescript@5.1.6):
     dependencies:
       '@redocly/openapi-core': 1.22.1(supports-color@9.4.0)
       ansi-colors: 4.1.3
+      change-case: 5.4.4
       parse-json: 8.1.0
       supports-color: 9.4.0
       typescript: 5.1.6

@@ -1489,7 +1489,7 @@ export interface components {
      * @enum {string}
      */
     ActionEnum: 'acknowledge' | 'resolve' | 'silence' | 'restart';
-    AdditionalSettingsField: unknown;
+    AdditionalSettingsField: components['schemas']['Settings'];
     Alert: {
       readonly id: string;
       /** Format: uri */
@@ -2034,6 +2034,22 @@ export interface components {
      *     * `grafana` - Grafana Legacy Alerting
      *     * `legacy_alertmanager` - (Legacy) AlertManager
      *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
+     *     * `servicenow` - ServiceNow
+     *     * `amazon_sns` - Amazon SNS
+     *     * `stackdriver` - Stackdriver
+     *     * `curler` - Curler
+     *     * `datadog` - Datadog
+     *     * `demo` - Demo
+     *     * `fabric` - Fabric
+     *     * `newrelic` - New Relic
+     *     * `pagerduty` - Pagerduty
+     *     * `pingdom` - Pingdom
+     *     * `prtg` - PRTG
+     *     * `sentry` - Sentry
+     *     * `uptimerobot` - UptimeRobot
+     *     * `jira` - Jira
+     *     * `zendesk` - Zendesk
+     *     * `appdynamics` - AppDynamics
      * @enum {string}
      */
     IntegrationEnum:
@@ -2052,7 +2068,23 @@ export interface components {
       | 'direct_paging'
       | 'grafana'
       | 'legacy_alertmanager'
-      | 'legacy_grafana_alerting';
+      | 'legacy_grafana_alerting'
+      | 'servicenow'
+      | 'amazon_sns'
+      | 'stackdriver'
+      | 'curler'
+      | 'datadog'
+      | 'demo'
+      | 'fabric'
+      | 'newrelic'
+      | 'pagerduty'
+      | 'pingdom'
+      | 'prtg'
+      | 'sentry'
+      | 'uptimerobot'
+      | 'jira'
+      | 'zendesk'
+      | 'appdynamics';
     IntegrationHeartBeat: {
       readonly id: string;
       timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
@@ -2324,6 +2356,20 @@ export interface components {
      * @enum {integer}
      */
     RoleEnum: 0 | 1 | 2 | 3;
+    Settings: {
+      instance_url: string;
+      username: string;
+      password: string;
+      /** @default {
+       *       "firing": null,
+       *       "acknowledged": null,
+       *       "resolved": null,
+       *       "silenced": null
+       *     } */
+      state_mapping: components['schemas']['StateMapping'];
+      /** @default false */
+      is_configured: boolean;
+    };
     ShortAlertGroup: {
       readonly pk: string;
       readonly render_for_web:
@@ -2344,8 +2390,15 @@ export interface components {
       readonly name: string;
       readonly display_name: string | null;
     };
+    StateMapping: {
+      firing: unknown[] | null;
+      acknowledged: unknown[] | null;
+      resolved: unknown[] | null;
+      silenced: unknown[] | null;
+    };
     TelegramToUserConnector: {
       telegram_nick_name?: string | null;
+      /** Format: int64 */
       telegram_chat_id: number;
     };
     /**
@@ -2556,24 +2609,56 @@ export interface operations {
          *     * `direct_paging` - Direct paging
          *     * `grafana` - Grafana Legacy Alerting
          *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting */
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
+         *     * `servicenow` - ServiceNow
+         *     * `amazon_sns` - Amazon SNS
+         *     * `stackdriver` - Stackdriver
+         *     * `curler` - Curler
+         *     * `datadog` - Datadog
+         *     * `demo` - Demo
+         *     * `fabric` - Fabric
+         *     * `newrelic` - New Relic
+         *     * `pagerduty` - Pagerduty
+         *     * `pingdom` - Pingdom
+         *     * `prtg` - PRTG
+         *     * `sentry` - Sentry
+         *     * `uptimerobot` - UptimeRobot
+         *     * `jira` - Jira
+         *     * `zendesk` - Zendesk
+         *     * `appdynamics` - AppDynamics */
         integration?: (
           | 'alertmanager'
+          | 'amazon_sns'
+          | 'appdynamics'
+          | 'curler'
+          | 'datadog'
+          | 'demo'
           | 'direct_paging'
           | 'elastalert'
+          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
+          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
+          | 'newrelic'
+          | 'pagerduty'
+          | 'pingdom'
+          | 'prtg'
+          | 'sentry'
+          | 'servicenow'
           | 'slack_channel'
+          | 'stackdriver'
+          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
+          | 'zendesk'
         )[];
         /** @description * `grafana_alerting` - Grafana Alerting
          *     * `webhook` - Webhook
@@ -2590,24 +2675,56 @@ export interface operations {
          *     * `direct_paging` - Direct paging
          *     * `grafana` - Grafana Legacy Alerting
          *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting */
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
+         *     * `servicenow` - ServiceNow
+         *     * `amazon_sns` - Amazon SNS
+         *     * `stackdriver` - Stackdriver
+         *     * `curler` - Curler
+         *     * `datadog` - Datadog
+         *     * `demo` - Demo
+         *     * `fabric` - Fabric
+         *     * `newrelic` - New Relic
+         *     * `pagerduty` - Pagerduty
+         *     * `pingdom` - Pingdom
+         *     * `prtg` - PRTG
+         *     * `sentry` - Sentry
+         *     * `uptimerobot` - UptimeRobot
+         *     * `jira` - Jira
+         *     * `zendesk` - Zendesk
+         *     * `appdynamics` - AppDynamics */
         integration_ne?: (
           | 'alertmanager'
+          | 'amazon_sns'
+          | 'appdynamics'
+          | 'curler'
+          | 'datadog'
+          | 'demo'
           | 'direct_paging'
           | 'elastalert'
+          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
+          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
+          | 'newrelic'
+          | 'pagerduty'
+          | 'pingdom'
+          | 'prtg'
+          | 'sentry'
+          | 'servicenow'
           | 'slack_channel'
+          | 'stackdriver'
+          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
+          | 'zendesk'
         )[];
         /** @description * `0` - Debug
          *     * `1` - Maintenance */
