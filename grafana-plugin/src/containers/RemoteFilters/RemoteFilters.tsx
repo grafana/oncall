@@ -14,6 +14,9 @@ import {
   withTheme2,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { PAGE } from 'helpers/consts';
+import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'helpers/datetime';
 import { debounce, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -29,9 +32,6 @@ import { FilterExtraInformation, FilterExtraInformationValues } from 'models/fil
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { PAGE } from 'utils/consts';
-import { convertTimerangeToFilterValue, getValueForDateRangeFilterType } from 'utils/datetime';
 
 import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';

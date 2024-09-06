@@ -89,6 +89,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      GF_FEATURE_TOGGLES_ENABLE: externalServiceAccounts
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app

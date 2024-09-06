@@ -1,6 +1,8 @@
 import React, { FC } from 'react';
 
 import { Tooltip, Icon, useStyles2, IconButton, Switch, Checkbox, ConfirmModal, useTheme2, Stack } from '@grafana/ui';
+import { PLUGIN_ROOT } from 'helpers/consts';
+import { useConfirmModal } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
@@ -11,8 +13,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useIntegrationTokenCheck } from 'pages/integration/Integration.hooks';
 import { useStore } from 'state/useStore';
-import { PLUGIN_ROOT } from 'utils/consts';
-import { useConfirmModal } from 'utils/hooks';
 
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';

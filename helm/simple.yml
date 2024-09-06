@@ -15,9 +15,9 @@ grafana:
     type: NodePort
     nodePort: 30002
 detached_integrations:
-  enabled: true
+  enabled: false
 detached_integrations_service:
-  enabled: true
+  enabled: false
   type: NodePort
   port: 8080
   nodePort: 30003

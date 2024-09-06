@@ -38,15 +38,9 @@ type App struct {
 }
 
 // NewApp creates a new example *App instance.
-func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (instancemgmt.Instance, error) {
+func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (*App, error) {
 	var app App
 
-	// Use a httpadapter (provided by the SDK) for resource calls. This allows us
-	// to use a *http.ServeMux for resource calls, so we can map multiple routes
-	// to CallResource without having to implement extra logic.
-	mux := http.NewServeMux()
-	app.registerRoutes(mux)
-	app.CallResourceHandler = httpadapter.New(mux)
 	app.OnCallSyncCache = &OnCallSyncCache{}
 	app.OnCallSettingsCache = &OnCallSettingsCache{}
 	app.OnCallUserCache = NewOnCallUserCache()
@@ -64,6 +58,25 @@ func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (instance
 	app.httpClient = cl
 
 	return &app, nil
+}
+
+// NewInstance creates a new example *Instance instance.
+func NewInstance(ctx context.Context, settings backend.AppInstanceSettings) (instancemgmt.Instance, error) {
+	app, err := NewApp(ctx, settings)
+
+	if err != nil {
+		log.DefaultLogger.Error("Error creating new app", "error", err)
+		return nil, err
+	}
+
+	// Use a httpadapter (provided by the SDK) for resource calls. This allows us
+	// to use a *http.ServeMux for resource calls, so we can map multiple routes
+	// to CallResource without having to implement extra logic.
+	mux := http.NewServeMux()
+	app.registerRoutes(mux)
+	app.CallResourceHandler = httpadapter.New(mux)
+
+	return app, nil
 }
 
 // Dispose here tells plugin SDK that plugin wants to clean up resources when a new instance

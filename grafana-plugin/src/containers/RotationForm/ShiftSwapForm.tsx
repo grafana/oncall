@@ -3,6 +3,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Field, IconButton, Input, TextArea, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { UserActions } from 'helpers/authorization/authorization';
+import { GRAFANA_HEADER_HEIGHT, StackSize } from 'helpers/consts';
+import { useDebouncedCallback, useResize } from 'helpers/hooks';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { Modal } from 'components/Modal/Modal';
@@ -15,9 +18,6 @@ import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { GRAFANA_HEADER_HEIGHT, StackSize } from 'utils/consts';
-import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
 import { DateTimePicker } from './parts/DateTimePicker';

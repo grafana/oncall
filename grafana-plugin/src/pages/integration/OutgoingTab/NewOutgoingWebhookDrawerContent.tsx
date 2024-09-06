@@ -1,12 +1,12 @@
 import React, { FC } from 'react';
 
 import { Button, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { useCommonStyles } from 'helpers/hooks';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { useCommonStyles } from 'utils/hooks';
 
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';

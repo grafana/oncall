@@ -3,7 +3,7 @@
 # Set the domain name Grafana OnCall will be installed on.
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
-base_url_protocol: https
+base_url_protocol: http
 
 ## Optionally specify an array of imagePullSecrets.
 ## Secrets must be manually created in the namespace.
@@ -634,9 +634,11 @@ grafana:
   enabled: true
   grafana.ini:
     server:
-      domain: example.com
-      root_url: "%(protocol)s://%(domain)s/grafana"
+      domain: helm-testing-grafana
+      root_url: "%(protocol)s://%(domain)s/grafana/"
       serve_from_sub_path: true
+    feature_toggles:
+      enable: externalServiceAccounts
   persistence:
     enabled: true
   # Disable psp as PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
@@ -644,6 +646,14 @@ grafana:
     pspEnabled: false
   plugins:
     - grafana-oncall-app
+  extraVolumes:
+    - name: provisioning
+      configMap:
+        name: helm-testing-grafana-plugin-provisioning
+  extraVolumeMounts:
+    - name: provisioning
+      mountPath: /etc/grafana/provisioning/plugins/grafana-oncall-app-provisioning.yaml
+      subPath: grafana-oncall-app-provisioning.yaml
 
 externalGrafana:
   # Example: https://grafana.mydomain.com

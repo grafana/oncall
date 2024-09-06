@@ -2,6 +2,7 @@ import React from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Button, Field, Input, RadioButtonList, Select, Switch, useStyles2 } from '@grafana/ui';
+import { generateAssignToTeamInputDescription } from 'helpers/consts';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { Controller, useFormContext } from 'react-hook-form';
@@ -20,7 +21,6 @@ import {
 } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 import { getStyles } from './OutgoingWebhookForm.styles';
 import { TemplateParams, WebhookFormFieldName } from './OutgoingWebhookForm.types';

@@ -2,6 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Drawer, Field, Input, Switch, TextArea, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { openWarningNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import { Controller, FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { getUtilStyles } from 'styles/utils.styles';
@@ -16,8 +18,6 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { openWarningNotification } from 'utils/utils';
 
 import { prepareForEdit } from './ScheduleForm.helpers';
 

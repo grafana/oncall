@@ -2,6 +2,9 @@ import React, { useCallback, useState, useEffect } from 'react';
 
 import { Button, Modal, Icon, Stack, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -9,9 +12,6 @@ import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 import styles from './TelegramIntegrationButton.module.css';
 

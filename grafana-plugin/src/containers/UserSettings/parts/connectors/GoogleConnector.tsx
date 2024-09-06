@@ -1,6 +1,8 @@
 import React from 'react';
 
 import { Button, InlineField, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
@@ -8,8 +10,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 interface GoogleConnectorProps {
   id: ApiSchemas['User']['pk'];

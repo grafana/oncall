@@ -1,8 +1,7 @@
 import { OrgRole } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
-
-import { getPluginId } from 'utils/consts';
+import { getPluginId } from 'helpers/consts';
 
 import * as auth from './authorization';
 

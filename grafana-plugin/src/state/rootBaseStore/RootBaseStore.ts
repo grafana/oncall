@@ -1,6 +1,9 @@
+import { OnCallAppPluginMeta } from 'app-types';
+import { retryFailingPromises } from 'helpers/async';
+import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'helpers/consts';
+import { loadJs } from 'helpers/loadJs';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
-import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannelConnectedChannelsStore } from 'models/alert_receive_channel_connected_channels/alert_receive_channel_connected_channels';
@@ -33,9 +36,6 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
-import { retryFailingPromises } from 'utils/async';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
-import { loadJs } from 'utils/loadJs';
 
 // ------ Dashboard ------ //
 

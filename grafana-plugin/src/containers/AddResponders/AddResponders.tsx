@@ -3,6 +3,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, Modal, Alert, Stack, Icon, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -11,8 +13,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 import { getAddRespondersStyles } from './AddResponders.styles';
 import { NotificationPolicyValue, UserResponder as UserResponderType } from './AddResponders.types';

@@ -2,10 +2,10 @@ import React, { FC } from 'react';
 
 import { css } from '@emotion/css';
 import { useStyles2, Stack } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import errorSVG from 'assets/img/error.svg';
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
 
 interface FullPageErrorProps {
   children?: React.ReactNode;

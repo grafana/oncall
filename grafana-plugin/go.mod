@@ -1,4 +1,4 @@
-module github.com/grafana-labs/grafana-oncall-app
+module github.com/grafana/grafana-oncall-app
 
 go 1.21.5
 

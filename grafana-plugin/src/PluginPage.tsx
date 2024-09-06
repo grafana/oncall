@@ -1,12 +1,12 @@
 import React from 'react';
 
 import { PluginPageProps, PluginPage as RealPluginPage } from '@grafana/runtime';
+import { DEFAULT_PAGE } from 'helpers/consts';
 import { Header } from 'navbar/Header/Header';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { pages } from 'pages/pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-import { DEFAULT_PAGE } from 'utils/consts';
 
 interface AppPluginPageProps extends PluginPageProps {
   page?: string;

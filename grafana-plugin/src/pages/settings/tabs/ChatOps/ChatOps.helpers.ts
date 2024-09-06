@@ -1,5 +1,5 @@
-import { LocationHelper } from 'utils/LocationHelper';
-import { openErrorNotification } from 'utils/utils';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { openErrorNotification } from 'helpers/helpers';
 
 export const handleChatOpsQueryParamError = () => {
   const error = LocationHelper.getQueryParam('error');

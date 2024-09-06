@@ -2,6 +2,9 @@ import React from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Icon, IconButton, Tooltip, Stack, withTheme2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { PAGE, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { observer } from 'mobx-react';
 import { getUtilStyles } from 'styles/utils.styles';
 
@@ -27,9 +30,6 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { PAGE, PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
 
 import { getEscalationChainStyles } from './EscalationChains.styles';
 
