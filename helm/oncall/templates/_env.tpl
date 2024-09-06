@@ -106,7 +106,7 @@
   value: {{ .Values.telegramPolling.enabled | toString | title | quote }}
 {{- end }}
 - name: TELEGRAM_WEBHOOK_HOST
-  value: {{ .Values.oncall.telegram.webhookUrl | default (printf "https://%s" .Values.base_url) | quote }}
+  value: {{ .Values.oncall.telegram.webhookUrl | default (printf "%s://%s" .Values.base_url_protocol .Values.base_url) | quote }}
 {{- if .Values.oncall.telegram.existingSecret }}
 - name: TELEGRAM_TOKEN
   valueFrom:
