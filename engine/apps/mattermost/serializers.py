@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from apps.mattermost.client import MattermostClient
 from apps.mattermost.exceptions import MattermostAPIException, MattermostAPITokenInvalid
@@ -10,22 +9,27 @@ from common.api_helpers.utils import CurrentOrganizationDefault
 class MattermostChannelSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
-    channel_id = serializers.CharField()
-    channel_name = serializers.CharField()
-    display_name = serializers.CharField()
 
     class Meta:
         model = MattermostChannel
         fields = [
             "id",
             "organization",
+            "mattermost_team_id",
             "channel_id",
             "channel_name",
             "display_name",
+            "is_default_channel",
         ]
 
     def create(self, validated_data):
         return MattermostChannel.objects.create(**validated_data)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        del ret["mattermost_team_id"]
+        ret["display_name"] = instance.unique_display_name
+        return ret
 
     def to_internal_value(self, data):
         team_name = data.get("team_name")
@@ -47,6 +51,7 @@ class MattermostChannelSerializer(serializers.ModelSerializer):
         return super().to_internal_value(
             {
                 "channel_id": response.channel_id,
+                "mattermost_team_id": response.team_id,
                 "channel_name": response.channel_name,
                 "display_name": response.display_name,
             }
