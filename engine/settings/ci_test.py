@@ -57,3 +57,6 @@ EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend"
 #   File "/usr/local/lib/python3.12/site-packages/silk/model_factory.py", line 243, in construct_request_model
 #     request_model = models.Request.objects.create(
 SILK_PROFILER_ENABLED = False
+
+# Dummy token
+MATTERMOST_BOT_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"

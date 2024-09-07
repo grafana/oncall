@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -33,10 +34,39 @@ class MattermostChannel(models.Model):
         default=generate_public_primary_key_for_mattermost_channel,
     )
 
+    mattermost_team_id = models.CharField(max_length=100, default=None)
     channel_id = models.CharField(max_length=100, default=None)
     channel_name = models.CharField(max_length=100, default=None)
     display_name = models.CharField(max_length=100, default=None)
+    is_default_channel = models.BooleanField(null=True, default=False)
     datetime = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def unique_display_name(self) -> str:
+        return f"{self.display_name}-{self.mattermost_team_id[:5]}"
 
     class Meta:
         unique_together = ("organization", "channel_id")
+
+    def make_channel_default(self, author):
+        try:
+            old_default_channel = MattermostChannel.objects.get(organization=self.organization, is_default_channel=True)
+            old_default_channel.is_default_channel = False
+        except MattermostChannel.DoesNotExist:
+            old_default_channel = None
+            self.is_default_channel = True
+            self.save(update_fields=["is_default_channel"])
+        else:
+            self.is_default_channel = True
+            with transaction.atomic():
+                old_default_channel.save(update_fields=["is_default_channel"])
+                self.save(update_fields=["is_default_channel"])
+
+        print(f"Model: {self.is_default_channel}")
+        write_chatops_insight_log(
+            author=author,
+            event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
+            chatops_type=ChatOpsTypePlug.MATTERMOST.value,
+            prev_channel=old_default_channel.channel_name if old_default_channel else None,
+            new_channel=self.channel_name,
+        )
