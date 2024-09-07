@@ -1,5 +1,7 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
@@ -25,12 +27,20 @@ class MattermostChannelViewSet(
         "retrieve": [RBACPermission.Permissions.CHATOPS_READ],
         "create": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
         "destroy": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+        "set_default": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     serializer_class = MattermostChannelSerializer
 
     def get_queryset(self):
         return MattermostChannel.objects.filter(organization=self.request.user.organization)
+
+    @action(detail=True, methods=["post"])
+    def set_default(self, request, pk):
+        mattermost_channel = self.get_object()
+        mattermost_channel.make_channel_default(request.user)
+
+        return Response(status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save()
