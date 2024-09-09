@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import {
   Button,
@@ -11,10 +12,11 @@ import {
   Select,
   RadioButtonGroup,
   Alert,
+  useStyles2,
 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { CollapsibleTreeView, CollapsibleItem } from 'components/CollapsibleTreeView/CollapsibleTreeView';
 import { HamburgerMenuIcon } from 'components/HamburgerMenuIcon/HamburgerMenuIcon';
@@ -27,7 +29,6 @@ import { Text } from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { ChatOpsConnectors } from 'containers/AlertRules/AlertRules';
 import { EscalationChainSteps } from 'containers/EscalationChainSteps/EscalationChainSteps';
-import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import { RouteHeading } from 'containers/IntegrationContainers/RouteHeading';
 import { RouteLabelsDisplay } from 'containers/RouteLabelsDisplay/RouteLabelsDisplay';
 import { TeamName } from 'containers/TeamName/TeamName';
@@ -46,7 +47,7 @@ import { UserActions } from 'utils/authorization/authorization';
 import { StackSize } from 'utils/consts';
 import { openNotification } from 'utils/utils';
 
-const cx = cn.bind(styles);
+import { getExpandedIntegrationRouteDisplayStyles } from './ExpandedIntegrationRouteDisplay.styles';
 
 interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
@@ -107,6 +108,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
     const [routingOption, setRoutingOption] = useState<string>(undefined);
     const [labels, setLabels] = useState<Array<components['schemas']['LabelPair']>>([]);
     const [labelErrors, setLabelErrors] = useState([]);
+    const styles = useStyles2(getExpandedIntegrationRouteDisplayStyles);
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -170,9 +172,9 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
           collapsedView: null,
           canHoverIcon: false,
           expandedView: () => (
-            <div className={cx('adjust-element-padding')}>
+            <div className={styles.adjustElementPadding}>
               {isDefault ? (
-                <div className={cx('default-route-view')}>
+                <div className={styles.defaultRouteView}>
                   <Text customTag="h6" type="primary">
                     All unmatched alerts are directed to this route, grouped using the Grouping Template, sent to
                     messengers, and trigger the escalation chain
@@ -186,7 +188,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
 
                   <RenderConditionally shouldRender={hasLabels}>
                     <Stack direction="column">
-                      <div className={cx('labels-panel')}>
+                      <div className={styles.labelsPanel}>
                         <RadioButtonGroup
                           options={QueryBuilderOptions}
                           value={routingOption}
@@ -218,7 +220,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                   <RenderConditionally shouldRender={routingOption === RoutingOption.TEMPLATE || !hasLabels}>
                     <Stack direction="column">
                       <Stack gap={StackSize.xs}>
-                        <div className={cx('input', 'input--align')}>
+                        <div className={cx(styles.input, styles.inputAlign)}>
                           <MonacoEditor
                             value={channelFilterTemplate}
                             disabled={true}
@@ -260,7 +262,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
           collapsedView: null,
           canHoverIcon: false,
           expandedView: () => (
-            <div className={cx('adjust-element-padding')}>
+            <div className={styles.adjustElementPadding}>
               <Stack direction="column" gap={StackSize.sm}>
                 <Text customTag="h6" type="primary">
                   Publish to ChatOps
@@ -278,7 +280,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
           collapsedView: null,
           canHoverIcon: false,
           expandedView: () => (
-            <div className={cx('adjust-element-padding')}>
+            <div className={styles.adjustElementPadding}>
               <Stack direction="column" gap={StackSize.sm}>
                 <Text customTag="h6" type="primary">
                   Trigger escalation chain
@@ -322,7 +324,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                       <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
                     </Tooltip>
 
-                    <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
+                    <PluginLink target="_blank" query={escalationChainRedirectObj}>
                       <Tooltip
                         placement={'top'}
                         content={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add an escalation chain'}
@@ -365,16 +367,16 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
           noContent={false}
           key={channelFilterId}
           heading={
-            <div className={cx('heading-container')}>
+            <div className={styles.headingContainer}>
               <RouteHeading
-                className={cx('heading-container__item', 'heading-container__item--large')}
+                className={cx(styles.headingContainerItem, styles.headingContainerItemLarge)}
                 routeWording={routeWording}
                 routeIndex={routeIndex}
                 channelFilter={channelFilter}
                 channelFilterIds={alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId]}
               />
 
-              <div className={cx('heading-container__item')}>
+              <div className={styles.headingContainerItem}>
                 <RouteButtonsDisplay
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
@@ -504,6 +506,8 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
   const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
+  const styles = useStyles2(getExpandedIntegrationRouteDisplayStyles);
+  const utilStyles = useStyles2(getUtilStyles);
 
   return (
     <Stack gap={StackSize.xs}>
@@ -526,13 +530,13 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       {!channelFilter.is_default && (
         <WithContextMenu
           renderMenuItems={() => (
-            <div className={cx('integrations-actionsList')}>
-              <div className={cx('integrations-actionItem')} onClick={openRouteTemplateEditor}>
+            <div className={styles.integrationsActionsList}>
+              <div className={styles.integrationsActionItem} onClick={openRouteTemplateEditor}>
                 <Text type="primary">Edit Template</Text>
               </div>
 
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
-                <div className={cx('integrations-actionItem')}>
+                <div className={cx(styles.integrationsActionItem)}>
                   <Stack gap={StackSize.xs}>
                     <Icon name="copy" />
 
@@ -541,10 +545,10 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
                 </div>
               </CopyToClipboard>
 
-              <div className={cx('thin-line-break')} />
+              <div className={cx(utilStyles.thinLineBreak)} />
 
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integrations-actionItem')} onClick={onDelete}>
+                <div className={styles.integrationsActionItem} onClick={onDelete}>
                   <Text type="danger">
                     <Stack gap={StackSize.xs}>
                       <Icon name="trash-alt" />
@@ -561,7 +565,11 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
               openMenu={openMenu}
               listBorder={2}
               listWidth={200}
-              className={'hamburgerMenu--small'}
+              className={css`
+                height: 24px;
+                width: 22px;
+                cursor: pointer;
+              `}
               stopPropagation={true}
             />
           )}

@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
 
-import { Drawer, Stack, Input, Tag, EmptySearchResult } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Drawer, Stack, Input, Tag, EmptySearchResult, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -12,9 +12,7 @@ import { useStore } from 'state/useStore';
 import { StackSize } from 'utils/consts';
 
 import { IntegrationForm } from './IntegrationForm';
-import styles from './IntegrationFormContainer.module.scss';
-
-const cx = cn.bind(styles);
+import { getIntegrationFormContainerStyles } from './IntegrationFormContainer.styles';
 
 interface IntegrationFormContainerProps {
   id: ApiSchemas['AlertReceiveChannel']['id'] | 'new';
@@ -31,6 +29,8 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
   const { alertReceiveChannelStore } = store;
 
   const [filterValue, setFilterValue] = useState('');
+  const styles = useStyles2(getIntegrationFormContainerStyles);
+
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<ApiSchemas['AlertReceiveChannelIntegrationOptions']>(undefined);
   const [showIntegrationsListDrawer, setshowIntegrationsListDrawer] = useState(id === 'new');
@@ -59,14 +59,14 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
     <>
       {showIntegrationsListDrawer && (
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
-          <div className={cx('content')}>
+          <div className={styles.content}>
             <Stack direction="column">
               <Text type="secondary">
                 Integration receives alerts on an unique API URL, interprets them using set of templates tailored for
                 monitoring system and starts escalations.
               </Text>
 
-              <div className={cx('search-integration')}>
+              <div className={styles.searchIntegration}>
                 <Input
                   autoFocus
                   value={filterValue}
@@ -82,7 +82,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
       )}
       {(showNewIntegrationForm || !showIntegrationsListDrawer) && (
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
-          <div className={cx('content')}>
+          <div className={styles.content}>
             <Stack direction="column">
               <IntegrationForm
                 id={id}
@@ -123,8 +123,10 @@ const IntegrationBlocks: React.FC<{
   options: Array<ApiSchemas['AlertReceiveChannelIntegrationOptions']>;
   onBlockClick: (option: ApiSchemas['AlertReceiveChannelIntegrationOptions']) => void;
 }> = ({ options, onBlockClick }) => {
+  const styles = useStyles2(getIntegrationFormContainerStyles);
+
   return (
-    <div className={cx('cards')} data-testid="create-integration-modal">
+    <div className={styles.cards} data-testid="create-integration-modal">
       {options.length ? (
         options.map((alertReceiveChannelChoice) => {
           return (
@@ -134,12 +136,12 @@ const IntegrationBlocks: React.FC<{
               shadowed
               onClick={() => onBlockClick(alertReceiveChannelChoice)}
               key={alertReceiveChannelChoice.value}
-              className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
+              className={cx({ [styles.cardFeatured]: alertReceiveChannelChoice.featured })}
             >
-              <div className={cx('card-bg')}>
+              <div>
                 <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
               </div>
-              <div className={cx('title')}>
+              <div className={styles.title}>
                 <Stack direction="column" gap={alertReceiveChannelChoice.featured ? StackSize.xs : StackSize.none}>
                   <Stack>
                     <Text strong data-testid="integration-display-name">

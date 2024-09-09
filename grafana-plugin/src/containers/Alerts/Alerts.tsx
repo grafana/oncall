@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { Alert, useStyles2 } from '@grafana/ui';
 import { sanitize } from 'dompurify';
 import { observer } from 'mobx-react';
@@ -18,8 +20,6 @@ import { useForceUpdate, useQueryParams } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 
 import plugin from '../../../package.json'; // eslint-disable-line
-import { GrafanaTheme2 } from '@grafana/data';
-import { css, cx } from '@emotion/css';
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',

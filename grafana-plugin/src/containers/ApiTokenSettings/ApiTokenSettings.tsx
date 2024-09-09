@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Button, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
@@ -16,9 +15,7 @@ import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } fr
 
 import { ApiTokenForm } from './ApiTokenForm';
 
-import styles from './ApiTokenSettings.module.css';
-
-const cx = cn.bind(styles);
+import { css } from '@emotion/css';
 
 const MAX_TOKENS_PER_USER = 5;
 const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;
@@ -77,11 +74,13 @@ class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
       emptyText = 'No tokens found';
     }
 
+    const styles = getStyles();
+
     return (
       <>
         <GTable
           title={() => (
-            <div className={cx('header')}>
+            <div className={styles.header}>
               <Stack alignItems="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
               </Stack>
@@ -156,5 +155,15 @@ class _ApiTokenSettings extends React.Component<ApiTokensProps, any> {
     apiTokenStore.updateItems();
   };
 }
+
+const getStyles = () => {
+  return {
+    header: css`
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `,
+  };
+};
 
 export const ApiTokenSettings = withMobXProviderContext(_ApiTokenSettings);

@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 
-import { InlineSwitch, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { InlineSwitch, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
@@ -13,9 +13,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
 import { StackSize } from 'utils/consts';
 
-import styles from './Connectors.module.css';
-
-const cx = cn.bind(styles);
+import { getConnectorsStyles } from './Connectors.styles';
 
 interface SlackConnectorProps {
   channelFilterId: ChannelFilter['id'];
@@ -25,6 +23,8 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
+  const styles = useStyles2(getConnectorsStyles);
+
   const {
     organizationStore: { currentOrganization },
     alertReceiveChannelStore,
@@ -45,9 +45,9 @@ export const SlackConnector = observer((props: SlackConnectorProps) => {
   }, []);
 
   return (
-    <div className={cx('root')}>
+    <div className={styles.root}>
       <Stack wrap="wrap" gap={StackSize.sm}>
-        <div className={cx('slack-channel-switch')}>
+        <div>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notify_in_slack}

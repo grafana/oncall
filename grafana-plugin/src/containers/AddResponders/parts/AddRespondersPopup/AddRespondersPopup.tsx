@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
+import { css } from '@emotion/css';
 import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
@@ -13,8 +14,8 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { StackSize } from 'utils/consts';
 import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
+
 import { getAddRespondersPopupStyles } from './AddRespondersPopup.styles';
-import { css } from '@emotion/css';
 
 type Props = {
   mode: 'create' | 'update';

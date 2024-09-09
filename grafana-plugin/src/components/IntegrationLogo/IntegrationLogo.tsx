@@ -1,25 +1,24 @@
 import React, { FC } from 'react';
 
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 
 import { SelectOption } from 'state/types';
 
 import { logoCoors } from './IntegrationLogo.config';
-
-import styles from 'components/IntegrationLogo/IntegrationLogo.module.css';
 
 export interface IntegrationLogoProps {
   integration: SelectOption;
   scale: number;
 }
 
-const cx = cn.bind(styles);
-
 const SPRITESHEET_WIDTH = 3000;
 const LOGO_WIDTH = 200;
 
 export const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
   const { integration, scale } = props;
+  const styles = useStyles2(getStyles);
+
   if (!integration) {
     return null;
   }
@@ -34,13 +33,55 @@ export const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
   };
 
   return (
-    <div className={cx('root')}>
-      <div
-        className={cx('bg', {
-          [`bg_${integration.display_name.replace(new RegExp(' ', 'g'), '')}`]: true,
-        })}
-        style={bgStyle}
-      />
-    </div>
+    <div
+      className={cx(styles.bg, {
+        [styles[`${integration.display_name.replace(new RegExp(' ', 'g'), '')}`]]: true,
+      })}
+      style={bgStyle}
+    />
   );
+};
+
+const getStyles = () => {
+  return {
+    bg: css`
+      background: url(../../assets/img/integration-logos.png);
+      background-repeat: no-repeat;
+    `,
+
+    bgServiceNow: css`
+      background: url(../../assets/img/ServiceNow.png);
+      background-size: 100% !important;
+    `,
+
+    bgPagerDuty: css`
+      background: url(../../assets/img/PagerDuty.png);
+      background-size: 100% !important;
+    `,
+
+    bgElastAlert: css`
+      background: url(../../assets/img/ElastAlert.svg);
+      background-size: 100% !important;
+    `,
+
+    bgHeartBeatMonitoring: css`
+      background: url(../../assets/img/HeartBeatMonitoring.png);
+      background-size: 100% !important;
+    `,
+
+    bgGrafanaLegacyAlerting: css`
+      background: url(../../assets/img/grafana-legacy-alerting-icon.svg);
+      background-size: 100% !important;
+    `,
+
+    bgGrafanaAlerting: css`
+      background: url(../../assets/img/grafana_icon.svg);
+      background-size: 100% !important;
+    `,
+
+    bgInboundEmail: css`
+      background: url(../../assets/img/inbound-email.png);
+      background-size: 100% !important;
+    `,
+  };
 };
