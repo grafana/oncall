@@ -13,6 +13,7 @@
     "labels:unlink": "pnpm --dir ../../gops-labels/frontend unlink",
     "mage:build-dev": "go mod download && mage -v build:debug",
     "mage:watch": "go mod download && mage -v watch",
+    "mod:download": "go mod download",
     "test-utc": "TZ=UTC jest --verbose --testNamePattern '^((?!@london-tz).)*$'",
     "test-london-tz": "TZ=Europe/London jest --verbose --testNamePattern '@london-tz'",
     "test": "PLUGIN_ID=grafana-oncall-app pnpm test-utc && pnpm test-london-tz",
