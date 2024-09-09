@@ -8,6 +8,7 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Prefetch
+from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
@@ -42,7 +43,7 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_SILENCE: "silence",
     Webhook.TRIGGER_UNSILENCE: "unsilence",
     Webhook.TRIGGER_UNRESOLVE: "unresolve",
-    Webhook.TRIGGER_ESCALATION_STEP: "escalation",
+    Webhook.TRIGGER_MANUAL: "escalation",
     Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
     Webhook.TRIGGER_STATUS_CHANGE: "status change",
 }
@@ -106,6 +107,8 @@ def _build_payload(
     elif payload_trigger_type == Webhook.TRIGGER_SILENCE:
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
+    elif payload_trigger_type == Webhook.TRIGGER_MANUAL:
+        event["time"] = _isoformat_date(timezone.now())
 
     # include latest response data per webhook in the event input data
     # exclude past responses from webhook being executed
@@ -248,8 +251,9 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     triggered, status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry only if webhook was triggered
+    response = None
     if triggered:
-        WebhookResponse.objects.create(
+        response = WebhookResponse.objects.create(
             alert_group=alert_group,
             trigger_type=trigger_type or webhook.trigger_type,
             **status,
@@ -266,6 +270,9 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     # create log record
     error_code = None
     log_type = AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
+    trigger_log = TRIGGER_TYPE_TO_LABEL[webhook.trigger_type]
+    if webhook.trigger_type == Webhook.TRIGGER_MANUAL and escalation_policy is None:
+        trigger_log = None  # triggered manually
     reason = str(status["status_code"])
     if error is not None:
         log_type = AlertGroupLogRecord.TYPE_ESCALATION_FAILED
@@ -281,7 +288,8 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
             step_specific_info={
                 "webhook_name": webhook.name,
                 "webhook_id": webhook.public_primary_key,
-                "trigger": TRIGGER_TYPE_TO_LABEL[webhook.trigger_type],
+                "trigger": trigger_log,
+                "response_id": response.pk if response else None,
             },
             escalation_policy=escalation_policy,
             escalation_policy_step=step,

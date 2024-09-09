@@ -61,20 +61,22 @@ export const ColumnsModal: React.FC<ColumnsModalProps> = observer(
         <Stack direction="column" gap={StackSize.md}>
           <div className={styles.content}>
             <Stack direction="column" gap={StackSize.md}>
-              <Input
-                className={styles.input}
-                autoFocus
-                placeholder="Search..."
-                ref={inputRef}
-                onChange={debouncedOnInputChange}
-              />
+              <Stack direction="column" gap={StackSize.xs}>
+                <Input
+                  className={styles.input}
+                  autoFocus
+                  placeholder="Search..."
+                  ref={inputRef}
+                  onChange={debouncedOnInputChange}
+                />
 
-              {inputRef?.current?.value === '' && (
-                <Text type="primary">
-                  {availableKeysForSearching.length} {pluralize('item', availableKeysForSearching.length)} available.
-                  Type to see suggestions
-                </Text>
-              )}
+                {inputRef?.current?.value === '' && (
+                  <Text type="primary">
+                    {availableKeysForSearching.length} {pluralize('item', availableKeysForSearching.length)} available.
+                    Type to see suggestions
+                  </Text>
+                )}
+              </Stack>
 
               {inputRef?.current?.value && searchResults.length && (
                 <Stack direction="column" gap={StackSize.none}>
