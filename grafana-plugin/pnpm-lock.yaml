@@ -253,9 +253,6 @@ importers:
       dompurify:
         specifier: ^2.3.12
         version: 2.5.6
-      dotenv:
-        specifier: ^16.4.0
-        version: 16.4.5
       eslint:
         specifier: ^8.25.0
         version: 8.57.0
@@ -2717,10 +2714,6 @@ packages:
 
   dot-case@3.0.4:
     resolution: {integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==}
-
-  dotenv@16.4.5:
-    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
-    engines: {node: '>=12'}
 
   downshift@9.0.8:
     resolution: {integrity: sha512-59BWD7+hSUQIM1DeNPLirNNnZIO9qMdIK5GQ/Uo8q34gT4B78RBlb9dhzgnh0HfQTJj4T/JKYD8KoLAlMWnTsA==}
@@ -9323,8 +9316,6 @@ snapshots:
     dependencies:
       no-case: 3.0.4
       tslib: 2.5.3
-
-  dotenv@16.4.5: {}
 
   downshift@9.0.8(react@18.2.0):
     dependencies:
