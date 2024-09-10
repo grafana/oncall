@@ -16,7 +16,8 @@ import { useStore } from 'state/useStore';
 export const MainSettings = observer(() => {
   const styles = useStyles2(getStyles);
   const {
-    organizationStore: { currentOrganization, saveCurrentOrganization },
+    organizationStore,
+    organizationStore: { currentOrganization },
     pluginStore: { apiUrlFromStatus },
   } = useStore();
 
@@ -41,7 +42,7 @@ export const MainSettings = observer(() => {
             <Switch
               value={currentOrganization?.is_resolution_note_required}
               onChange={(event) => {
-                saveCurrentOrganization({
+                organizationStore.saveCurrentOrganization({
                   is_resolution_note_required: event.currentTarget.checked,
                 });
               }}
