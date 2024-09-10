@@ -34,12 +34,12 @@ class MattermostChannel(models.Model):
         default=generate_public_primary_key_for_mattermost_channel,
     )
 
-    mattermost_team_id = models.CharField(max_length=100, default=None)
-    channel_id = models.CharField(max_length=100, default=None)
+    mattermost_team_id = models.CharField(max_length=100)
+    channel_id = models.CharField(max_length=100)
     channel_name = models.CharField(max_length=100, default=None)
     display_name = models.CharField(max_length=100, default=None)
     is_default_channel = models.BooleanField(null=True, default=False)
-    datetime = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @property
     def unique_display_name(self) -> str:
@@ -61,8 +61,6 @@ class MattermostChannel(models.Model):
             with transaction.atomic():
                 old_default_channel.save(update_fields=["is_default_channel"])
                 self.save(update_fields=["is_default_channel"])
-
-        print(f"Model: {self.is_default_channel}")
         write_chatops_insight_log(
             author=author,
             event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,

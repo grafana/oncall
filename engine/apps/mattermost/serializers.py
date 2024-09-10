@@ -21,13 +21,16 @@ class MattermostChannelSerializer(serializers.ModelSerializer):
             "display_name",
             "is_default_channel",
         ]
+        extra_kwargs = {
+            "mattermost_team_id": {"required": True, "write_only": True},
+            "channel_id": {"required": True},
+        }
 
     def create(self, validated_data):
         return MattermostChannel.objects.create(**validated_data)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        del ret["mattermost_team_id"]
         ret["display_name"] = instance.unique_display_name
         return ret
 
