@@ -147,7 +147,7 @@ export const ColumnsSelectorWrapper: React.FC<ColumnsSelectorWrapperProps> = obs
         id="toggletip-button"
         onClick={() => setIsFloatingDisplayOpen(!isFloatingDisplayOpen)}
       >
-        <Stack gap={StackSize.xs}>
+        <Stack gap={StackSize.xs} alignItems={'center'}>
           Columns
           <Icon name="angle-down" />
         </Stack>

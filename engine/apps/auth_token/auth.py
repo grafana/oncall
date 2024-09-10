@@ -52,7 +52,7 @@ class ApiTokenAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).decode("utf-8")
         user, auth_token = self.authenticate_credentials(auth)
 
-        if not user_is_authorized(user, [RBACPermission.Permissions.API_KEYS_WRITE]):
+        if not user.is_active or not user_is_authorized(user, [RBACPermission.Permissions.API_KEYS_WRITE]):
             raise exceptions.AuthenticationFailed(
                 "Only users with Admin permissions are allowed to perform this action."
             )

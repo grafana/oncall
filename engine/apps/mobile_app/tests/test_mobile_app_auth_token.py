@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.mobile_app.models import MobileAppAuthToken
+from apps.user_management.models import User
 
 
 @pytest.mark.django_db
@@ -76,3 +77,17 @@ def test_mobile_app_auth_token(
 
     response = client.get(url, HTTP_AUTHORIZATION=verification_token)
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_mobile_app_auth_token_deleted_user(
+    make_organization_and_user_with_mobile_app_auth_token,
+):
+    _, user, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    # user is deleted via queryset (ie. setting it to inactive, during sync)
+    User.objects.filter(id=user.id).delete()
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(url, HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_403_FORBIDDEN

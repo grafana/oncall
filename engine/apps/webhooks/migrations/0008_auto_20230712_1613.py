@@ -30,7 +30,7 @@ def convert_custom_button_to_webhook(apps, schema_editor):
                 username=cb.user,
                 password=cb.password,
                 authorization_header=cb.authorization_header,
-                trigger_type=Webhook.TRIGGER_ESCALATION_STEP,
+                trigger_type=Webhook.TRIGGER_MANUAL,
                 forward_all=cb.forward_whole_payload,
                 data=cb.data,
             )

@@ -473,7 +473,7 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
                 onUnsilence: this.getUnsilenceClickHandler(incident.pk),
               })}
               <ExtensionLinkDropdown
-                incident={incident}
+                alertGroup={incident}
                 extensionPointId={OnCallPluginExtensionPoints.AlertGroupAction}
                 declareIncidentLink={incident.declare_incident_link}
                 grafanaIncidentId={incident.grafana_incident_id}

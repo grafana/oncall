@@ -84,6 +84,26 @@ def test_plugin_authentication_fail(authorization, instance_context):
 
 
 @pytest.mark.django_db
+def test_plugin_authentication_inactive_user(make_organization, make_user, make_token_for_organization):
+    organization = make_organization(stack_id=42, org_id=24)
+    token, token_string = make_token_for_organization(organization)
+    user = make_user(organization=organization, user_id=12)
+    # user is set to inactive if deleted via queryset (ie. during sync)
+    user.is_active = False
+    user.save()
+
+    headers = {
+        "HTTP_AUTHORIZATION": token_string,
+        "HTTP_X-Instance-Context": INSTANCE_CONTEXT,
+        "HTTP_X-Grafana-Context": '{"UserId": 12}',
+    }
+    request = APIRequestFactory().get("/", **headers)
+
+    with pytest.raises(AuthenticationFailed):
+        PluginAuthentication().authenticate(request)
+
+
+@pytest.mark.django_db
 def test_plugin_authentication_gcom_setup_new_user(make_organization):
     # Setting gcom_token_org_last_time_synced to now, so it doesn't try to sync with gcom
     organization = make_organization(
