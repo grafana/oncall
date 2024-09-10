@@ -13,7 +13,7 @@ featured_tag_name = "Prometheus"
 
 
 # Behaviour
-source_link = "{{ payload.externalURL }}"
+source_link = "{{ payload.alerts[0].generatorURL }}"
 
 grouping_id = "{{ payload.groupKey }}"
 
