@@ -2130,7 +2130,7 @@ def _webhook_data(webhook_id=ANY, webhook_name=ANY, webhook_url=ANY, alert_recei
         "team": None,
         "trigger_template": None,
         "trigger_type": "0",
-        "trigger_type_name": "Escalation step",
+        "trigger_type_name": "Manual or escalation step",
         "url": webhook_url,
         "username": None,
     }

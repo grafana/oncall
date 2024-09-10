@@ -52,9 +52,9 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
     templatePage,
   } = props;
 
-  const [result, setResult] = useState<{ preview: string | null; is_valid_json_object?: boolean } | undefined>(
-    undefined
-  );
+  const [result, setResult] = useState<
+    ApiSchemas['WebhookPreviewTemplateResponse'] & { is_valid_json_object?: boolean }
+  >(undefined);
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
@@ -62,11 +62,21 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
 
   const handleTemplateBodyChange = useDebouncedCallback(async () => {
     try {
-      const data = await (templatePage === TemplatePage.Webhooks
-        ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
-        : alertGroupId
-        ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
-        : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload));
+      let data: ApiSchemas['WebhookPreviewTemplateResponse'] & { is_valid_json_object?: boolean } = undefined;
+
+      if (templatePage === TemplatePage.Webhooks) {
+        data = await outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload);
+      } else if (alertGroupId) {
+        data = await AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody);
+      } else {
+        data = await AlertReceiveChannelHelper.renderPreview(
+          alertReceiveChannelId,
+          templateName,
+          templateBody,
+          payload
+        );
+      }
+
       setResult(data);
 
       if (data?.preview === 'True') {

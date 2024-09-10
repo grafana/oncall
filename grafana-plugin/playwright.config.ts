@@ -1,11 +1,6 @@
 import { PlaywrightTestProject, defineConfig, devices } from '@playwright/test';
 
 import path from 'path';
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-require('dotenv').config({ path: path.resolve(process.cwd(), 'e2e-tests/.env') });
 
 export const VIEWER_USER_STORAGE_STATE = path.join(process.cwd(), 'e2e-tests/.auth/viewer.json');
 export const EDITOR_USER_STORAGE_STATE = path.join(process.cwd(), 'e2e-tests/.auth/editor.json');

@@ -475,7 +475,7 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           width={'auto'}
           filterOptions={(id) => {
             const webhook = outgoingWebhookStore.items[id];
-            return webhook.trigger_type_name === 'Escalation step';
+            return webhook.trigger_type === '0';
           }}
         />
       </WithPermissionControlTooltip>
