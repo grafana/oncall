@@ -3,7 +3,6 @@ import React, { ReactElement, useCallback, useEffect } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
 
@@ -15,10 +14,6 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-
-import styles from './EscalationChainSteps.module.css';
-
-const cx = cn.bind(styles);
 
 interface EscalationChainStepsProps {
   id: EscalationChain['id'];

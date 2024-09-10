@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Field, Icon, Modal, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
@@ -13,10 +13,6 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-
-import styles from './AttachIncidentForm.module.css';
-
-const cx = cn.bind(styles);
 
 interface AttachIncidentFormProps {
   id: ApiSchemas['AlertGroup']['pk'];
@@ -70,7 +66,9 @@ export const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachInci
           <Text.Title level={4}>Attach to another alert group</Text.Title>
         </Stack>
       }
-      className={cx('root')}
+      className={css`
+        display: block;
+      `}
       onDismiss={onHide}
     >
       <Field

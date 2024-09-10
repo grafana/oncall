@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 
-import { Stack, Modal, Tooltip, Icon, Button } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Stack, Modal, Tooltip, Icon, Button, useStyles2 } from '@grafana/ui';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -16,10 +17,6 @@ import { useStore } from 'state/useStore';
 import { StackSize } from 'utils/consts';
 import { openErrorNotification } from 'utils/utils';
 
-import styles from './EditRegexpRouteTemplateModal.module.css';
-
-const cx = cn.bind(styles);
-
 interface EditRegexpRouteTemplateModalProps {
   channelFilterId: ChannelFilter['id'];
   template?: TemplateForEdit;
@@ -32,6 +29,7 @@ interface EditRegexpRouteTemplateModalProps {
 export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateModalProps) => {
   const { onHide, onUpdateRoute, channelFilterId, onOpenEditIntegrationTemplate, alertReceiveChannelId } = props;
   const store = useStore();
+  const styles = useStyles2(getStyles);
 
   const regexpBody = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
 
@@ -77,7 +75,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
       isOpen
       onDismiss={onHide}
       title="Edit regular expression template"
-      className={cx('regexp-template-editor-modal')}
+      className={styles.regexTemplateEditorModal}
     >
       <Stack direction="column" gap={StackSize.lg}>
         <Stack direction="column" gap={StackSize.xs}>
@@ -91,7 +89,7 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
             </Tooltip>
           </Stack>
 
-          <div className={cx('regexp-template-code', { 'regexp-template-code-error': showErrorTemplate })}>
+          <div className={cx(styles.regexTemplateCode, { [styles.regexTemplateCodeError]: showErrorTemplate })}>
             <MonacoEditor
               value={regexpTemplateBody}
               height={'200px'}
@@ -124,3 +122,19 @@ export const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemp
     </Modal>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    regexTemplateCode: css`
+      width: 100%;
+    `,
+
+    regexTemplateCodeError: css`
+      border: 1px solid ${theme.colors.error.text};
+    `,
+
+    regexTemplateEditorModal: css`
+      width: 700px;
+    `,
+  };
+};

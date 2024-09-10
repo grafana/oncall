@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { css } from '@emotion/css';
 import { Button, Stack } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -14,8 +15,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
 
 import { ApiTokenForm } from './ApiTokenForm';
-
-import { css } from '@emotion/css';
 
 const MAX_TOKENS_PER_USER = 5;
 const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;

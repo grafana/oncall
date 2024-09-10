@@ -1,7 +1,6 @@
 import React, { HTMLAttributes, useState } from 'react';
 
 import { Button, Field, Input, Label, Modal, Stack, useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -12,10 +11,7 @@ import { SourceCode } from 'components/SourceCode/SourceCode';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils/utils';
 
-import styles from './ApiTokenForm.module.css';
 import { getApiTokenFormStyles } from './ApiTokenForm.styles';
-
-const cx = cn.bind(styles);
 
 interface TokenCreationModalProps extends HTMLAttributes<HTMLElement> {
   visible: boolean;

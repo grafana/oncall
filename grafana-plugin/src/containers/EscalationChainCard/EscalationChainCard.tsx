@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Stack, Badge } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Stack, Badge, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -9,10 +10,6 @@ import { TeamName } from 'containers/TeamName/TeamName';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { useStore } from 'state/useStore';
 import { StackSize } from 'utils/consts';
-
-import styles from './EscalationChainCard.module.css';
-
-const cx = cn.bind(styles);
 
 interface AlertReceiveChannelCardProps {
   id: EscalationChain['id'];
@@ -22,13 +19,14 @@ export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps
   const { id } = props;
 
   const store = useStore();
+  const styles = useStyles2(getStyles);
 
   const { escalationChainStore, grafanaTeamStore } = store;
 
   const escalationChain = escalationChainStore.items[id];
 
   return (
-    <div className={cx('root')}>
+    <div className={styles.root}>
       <Stack alignItems="flex-start">
         <Stack direction="column" gap={StackSize.xs}>
           <Stack gap={StackSize.sm}>
@@ -57,3 +55,14 @@ export const EscalationChainCard = observer((props: AlertReceiveChannelCardProps
     </div>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      display: block;
+    `,
+    icon: css`
+      color: ${theme.colors.success.text};
+    `,
+  };
+};

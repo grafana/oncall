@@ -5,7 +5,6 @@ import { useStyles2 } from '@grafana/ui';
 
 import { getTimelineStyles } from './Timeline.styles';
 
-
 export interface TimelineItemProps {
   className?: string;
   contentClassName?: string;
