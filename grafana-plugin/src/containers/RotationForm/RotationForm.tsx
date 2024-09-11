@@ -1,7 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Alert, Button, Field, Icon, IconButton, InlineSwitch, Select, Switch, Tooltip, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import {
+  Alert,
+  Button,
+  Field,
+  Icon,
+  IconButton,
+  InlineSwitch,
+  Select,
+  Switch,
+  Tooltip,
+  Stack,
+  useStyles2,
+} from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
@@ -54,9 +65,7 @@ import { useStore } from 'state/useStore';
 import { GRAFANA_HEADER_HEIGHT, StackSize } from 'utils/consts';
 import { useDebouncedCallback, useResize } from 'utils/hooks';
 
-import styles from './RotationForm.module.css';
-
-const cx = cn.bind(styles);
+import { getRotationFormStyles } from './RotationForm.styles';
 
 interface RotationFormProps {
   layerPriority: number;
@@ -100,6 +109,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   } = props;
 
   const shift = store.scheduleStore.shifts[shiftId];
+  const styles = useStyles2(getRotationFormStyles);
 
   const [startRotationFromUserIndex, setStartRotationFromUserIndex] = useState(0);
 
@@ -527,7 +537,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
         contentElement={(props, children) => (
           <Draggable
             handle=".drag-handler"
-            defaultClassName={cx('draggable')}
+            defaultClassName={'draggable'}
             positionOffset={{ x: 0, y: offsetTop }}
             position={draggablePosition}
             bounds={{ ...bounds } || 'body'}
@@ -538,7 +548,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
           </Draggable>
         )}
       >
-        <div className={cx('root')} data-testid="rotation-form">
+        <div data-testid="rotation-form">
           <div>
             <Stack justifyContent="space-between">
               <Stack gap={StackSize.sm}>
@@ -556,7 +566,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     onClick={() => setShowDeleteRotationConfirmation(true)}
                   />
                 )}
-                <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+                <IconButton aria-label="Drag" variant="secondary" className="drag-handler" name="draggabledots" />
                 <IconButton
                   name="times"
                   variant="secondary"
@@ -566,11 +576,11 @@ export const RotationForm = observer((props: RotationFormProps) => {
               </Stack>
             </Stack>
           </div>
-          <div className={cx('container')}>
-            <div className={cx('content')}>
+          <div className={styles.container}>
+            <div>
               <Stack direction="column" gap={StackSize.none}>
                 {hasUpdatedShift && (
-                  <Block bordered className={cx('updated-shift-info')}>
+                  <Block bordered className={styles.updatedShiftInfo}>
                     <Stack direction="column">
                       <Stack alignItems="flex-start">
                         <Icon name="info-circle" size="md"></Icon>
@@ -586,13 +596,13 @@ export const RotationForm = observer((props: RotationFormProps) => {
                   </Block>
                 )}
                 {!hasUpdatedShift && ended && (
-                  <div className={cx('updated-shift-info')}>
+                  <div className={styles.updatedShiftInfo}>
                     <Stack direction="column">
                       <Alert severity="info" title={(<Text>This rotation is over</Text>) as unknown as string} />
                     </Stack>
                   </div>
                 )}
-                <div className={cx('two-fields')}>
+                <div className={styles.twoFields}>
                   <Field
                     label={
                       <Text type="primary" size="small">
@@ -616,7 +626,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                           Ends
                         </Text>
                         <InlineSwitch
-                          className={cx('inline-switch')}
+                          className={styles.inlineSwitch}
                           transparent
                           value={!endLess}
                           onChange={handleChangeEndless}
@@ -641,7 +651,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
                     )}
                   </Field>
                 </div>
-                <div className={cx('two-fields')}>
+                <div className={styles.twoFields}>
                   <Field
                     invalid={Boolean(errors.interval)}
                     error={'Invalid recurrence period'}
@@ -833,6 +843,7 @@ const ShiftPeriod = ({
   disabled,
 }: ShiftPeriodProps) => {
   const [timeUnits, setTimeUnits] = useState<TimeUnit[]>([]);
+  const styles = useStyles2(getRotationFormStyles);
 
   useEffect(() => {
     if (defaultValue === undefined) {
@@ -927,7 +938,7 @@ const ShiftPeriod = ({
             value={unit.value}
             onChange={getTimeUnitChangeHandler(unit.unit)}
             maxValue={unit.maxValue}
-            className={cx('time-unit')}
+            className={styles.timeUnit}
           />
           {index === arr.length - 1 && (
             <Button

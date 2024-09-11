@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { Alert, Icon, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { AppRootProps, GrafanaTheme2 } from '@grafana/data';
+import { Alert, Icon, Stack, Themeable2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
-import MSTeamsSettings from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
+import { MSTeamsSettings } from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
 import { SlackSettings } from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
@@ -17,16 +17,12 @@ import { LocationHelper } from 'utils/LocationHelper';
 
 import { handleChatOpsQueryParamError } from './ChatOps.helpers';
 
-import styles from './ChatOps.module.css';
-
-const cx = cn.bind(styles);
-
 export enum ChatOpsTab {
   Slack = 'Slack',
   Telegram = 'Telegram',
   MSTeams = 'MSTeams',
 }
-interface ChatOpsProps extends AppRootProps, WithStoreProps {}
+interface ChatOpsProps extends AppRootProps, WithStoreProps, Themeable2 {}
 interface ChatOpsState {
   activeTab: ChatOpsTab;
 }
@@ -50,18 +46,19 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   render() {
     const { activeTab } = this.state;
-    const { store } = this.props;
+    const { store, theme } = this.props;
+    const styles = getStyles(theme);
 
     if (!this.isChatOpsConfigured() && store.isOpenSource) {
       return this.renderNoChatOpsBannerInfo();
     }
 
     return (
-      <div className={cx('root')}>
-        <div className={cx('tabs')}>
+      <div className={styles.root}>
+        <div className={styles.tabs}>
           <Tabs activeTab={activeTab} onTabChange={(tab: ChatOpsTab) => this.handleChatopsTabChange(tab)} />
         </div>
-        <div className={cx('content')}>
+        <div className={styles.content}>
           <TabsContent activeTab={activeTab} />
         </div>
       </div>
@@ -69,8 +66,11 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   }
 
   renderNoChatOpsBannerInfo() {
+    const { theme } = this.props;
+    const styles = getStyles(theme);
+
     return (
-      <div className={cx('root')} data-testid="chatops-banner">
+      <div className={styles.root} data-testid="chatops-banner">
         <Alert severity="warning" title="No ChatOps found">
           ChatOps is disabled because no chat integration is enabled. See{' '}
           <a href="https://grafana.com/docs/oncall/latest/open-source/#telegram-setup" target="_blank" rel="noreferrer">
@@ -153,21 +153,27 @@ const TabsContent = (props: TabsContentProps) => {
 
   return (
     <>
-      {store.hasFeature(AppFeature.Slack) && activeTab === ChatOpsTab.Slack && (
-        <div className={cx('messenger-settings')}>
-          <SlackSettings />
-        </div>
-      )}
-      {store.hasFeature(AppFeature.Telegram) && activeTab === ChatOpsTab.Telegram && (
-        <div className={cx('messenger-settings')}>
-          <TelegramSettings />
-        </div>
-      )}
-      {store.hasFeature(AppFeature.MsTeams) && activeTab === ChatOpsTab.MSTeams && (
-        <div className={cx('messenger-settings')}>
-          <MSTeamsSettings />
-        </div>
-      )}
+      {store.hasFeature(AppFeature.Slack) && activeTab === ChatOpsTab.Slack && <SlackSettings />}
+      {store.hasFeature(AppFeature.Telegram) && activeTab === ChatOpsTab.Telegram && <TelegramSettings />}
+      {store.hasFeature(AppFeature.MsTeams) && activeTab === ChatOpsTab.MSTeams && <MSTeamsSettings />}
     </>
   );
+};
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      display: flex;
+    `,
+
+    tabs: css`
+      width: 250px;
+    `,
+
+    content: css`
+      flex-grow: 1;
+      padding-left: 20px;
+      border-left: 1px solid ${theme.colors.border.weak};
+    `,
+  };
 };

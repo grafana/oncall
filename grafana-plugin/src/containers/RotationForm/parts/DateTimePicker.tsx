@@ -1,19 +1,15 @@
 import React from 'react';
 
-import { css } from '@emotion/css';
-import { DateTime, dateTime } from '@grafana/data';
+import { css, cx } from '@emotion/css';
+import { DateTime, dateTime, GrafanaTheme2 } from '@grafana/data';
 import { DatePickerWithInput, TimeOfDayPicker, useStyles2, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { toDatePickerDate } from 'containers/Rotations/Rotations.helpers';
 import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
-
-import styles from 'containers/RotationForm/RotationForm.module.css';
-
-const cx = cn.bind(styles);
+import { getRotationFormStyles } from '../RotationForm.styles';
 
 interface DateTimePickerProps {
   value: dayjs.Dayjs;
@@ -67,7 +63,7 @@ export const DateTimePicker = observer(
             onFocus={onFocus}
             onBlur={onBlur}
             style={{ width: '58%' }}
-            className={cx({ 'control--error': Boolean(error) })}
+            className={cx({ [styles.controlError]: Boolean(error) })}
           >
             <DatePickerWithInput
               open
@@ -80,7 +76,7 @@ export const DateTimePicker = observer(
             onFocus={onFocus}
             onBlur={onBlur}
             style={{ width: '42%' }}
-            className={cx({ 'control--error': Boolean(error) })}
+            className={cx({ [styles.controlError]: Boolean(error) })}
             data-testid="date-time-picker"
           >
             <TimeOfDayPicker disabled={disabled} value={getTimeValueInSelectedTimezone()} onChange={handleTimeChange} />
@@ -92,11 +88,13 @@ export const DateTimePicker = observer(
   }
 );
 
-const getStyles = () => ({
+const getStyles = (theme: GrafanaTheme2) => ({
   wrapper: css`
     display: flex;
     flex-wrap: nowrap;
     gap: 8px;
     z-index: 2;
   `,
+
+  ...getRotationFormStyles(theme),
 });

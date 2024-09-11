@@ -1,12 +1,9 @@
 import React, { useMemo } from 'react';
 
-import cn from 'classnames/bind';
-
 import { SelectOption } from 'state/types';
-
-import styles from 'containers/RotationForm/RotationForm.module.css';
-
-const cx = cn.bind(styles);
+import { useStyles2 } from '@grafana/ui';
+import { getRotationFormStyles } from '../RotationForm.styles';
+import { cx } from '@emotion/css';
 
 interface DaysSelectorProps {
   value: string[];
@@ -35,13 +32,15 @@ export const DaysSelector = ({ value, onChange, options: optionsProp, weekStart,
     return [...optionsProp.slice(index), ...optionsProp.slice(0, index)];
   }, [optionsProp, weekStart]);
 
+  const styles = useStyles2(getRotationFormStyles);
+
   return (
-    <div className={cx('days', { days_disabled: disabled })}>
+    <div className={cx(styles.days, { [styles.daysDisabled]: disabled })}>
       {options.map(({ display_name, value: itemValue }) => (
         <div
           key={display_name}
           onClick={getDayClickHandler(itemValue as string)}
-          className={cx('day', { day__selected: value?.includes(itemValue as string) })}
+          className={cx(styles.day, { [styles.daySelected]: value?.includes(itemValue as string) })}
         >
           {display_name.substring(0, 2)}
         </div>

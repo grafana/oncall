@@ -1,8 +1,8 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
-import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -11,9 +11,6 @@ import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } fro
 import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
-import styles from './UserTimezoneSelect.module.css';
-
-const cx = cn.bind(styles);
 
 interface TimezoneOption {
   value: number; // utcOffset
@@ -114,7 +111,12 @@ export const UserTimezoneSelect: FC<UserTimezoneSelectProps> = observer(({ sched
   );
 
   return (
-    <div className={cx('root')} data-testid="timezone-select">
+    <div
+      className={css`
+        width: auto;
+      `}
+      data-testid="timezone-select"
+    >
       <Select
         value={selectedOption}
         onChange={(option) => {

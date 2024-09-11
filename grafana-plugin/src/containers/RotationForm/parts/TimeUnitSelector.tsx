@@ -1,14 +1,10 @@
 import React, { useMemo } from 'react';
 
-import { Select } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Select, useStyles2 } from '@grafana/ui';
 
 import { repeatEveryPeriodToUnitName } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
-
-import styles from 'containers/RotationForm/RotationForm.module.css';
-
-const cx = cn.bind(styles);
+import { getRotationFormStyles } from '../RotationForm.styles';
 
 interface TimeUnitSelectorProps {
   value: number;
@@ -36,7 +32,7 @@ export const TimeUnitSelector = ({ value, unit, onChange, maxValue, className, d
   );
 
   return (
-    <div className={cx('root', className)}>
+    <div className={className}>
       <Select disabled={disabled} value={value} options={options} onChange={handleChange} />
     </div>
   );

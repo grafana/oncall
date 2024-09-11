@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button, Field, IconButton, Input, TextArea, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { Button, Field, IconButton, Input, TextArea, Stack, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
@@ -22,10 +22,6 @@ import { useDebouncedCallback, useResize } from 'utils/hooks';
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
 import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
-
-import styles from './RotationForm.module.css';
-
-const cx = cn.bind(styles);
 
 interface ShiftSwapFormProps {
   id: ShiftSwap['id'] | 'new';
@@ -130,6 +126,8 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     onUpdate();
   }, [id]);
 
+  const styles = useStyles2(getStyles);
+
   const handleTake = useCallback(async () => {
     await scheduleStore.takeShiftSwap(id);
 
@@ -151,7 +149,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
       contentElement={(props, children) => (
         <Draggable
           handle=".drag-handler"
-          defaultClassName={cx('draggable')}
+          defaultClassName="draggable"
           positionOffset={{ x: 0, y: offsetTop }}
           position={draggablePosition}
           bounds={{ ...bounds } || 'body'}
@@ -162,7 +160,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
         </Draggable>
       )}
     >
-      <div className={cx('root')}>
+      <div className={styles.root}>
         <Stack direction="column">
           <Stack justifyContent="space-between">
             <Stack gap={StackSize.sm}>
@@ -188,7 +186,7 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
             </Stack>
           </Stack>
 
-          <div className={cx('fields')}>
+          <div className={styles.fields}>
             {!isNew && (
               <Field label="Requested by">
                 <Input disabled value={beneficiaryName}></Input>
@@ -276,4 +274,17 @@ export const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     const bounds = getDraggableModalCoordinatesOnInit(data, offsetTop);
     setDraggableBounds(bounds);
   }
+};
+
+const getStyles = () => {
+  return {
+    root: css`
+      display: block;
+      width: 100%;
+    `,
+
+    fields: css`
+      width: 100%;
+    `,
+  };
 };

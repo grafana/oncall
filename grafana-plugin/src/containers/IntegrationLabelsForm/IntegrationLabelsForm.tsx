@@ -1,8 +1,8 @@
 import React, { ChangeEvent, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { ServiceLabels } from '@grafana/labels';
-import { Alert, Button, Drawer, Dropdown, InlineSwitch, Input, Menu, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Alert, Button, Drawer, Dropdown, InlineSwitch, Input, Menu, Stack, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -21,10 +21,6 @@ import { openErrorNotification } from 'utils/utils';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
 
-import styles from './IntegrationLabelsForm.module.css';
-
-const cx = cn.bind(styles);
-
 const INPUT_WIDTH = 280;
 
 interface IntegrationLabelsFormProps {
@@ -42,6 +38,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
   const [showTemplateEditor, setShowTemplateEditor] = useState<boolean>(false);
   const [customLabelsErrors, setCustomLabelsErrors] = useState<LabelsErrors>([]);
   const [customLabelIndexToShowTemplateEditor, setCustomLabelIndexToShowTemplateEditor] = useState<number>(undefined);
+  const styles = useStyles2(getStyles);
 
   const { alertReceiveChannelStore } = store;
 
@@ -83,7 +80,12 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
         scrollableContent
         title="Alert group labeling"
         subtitle={
-          <Text size="small" className="u-margin-top-xs">
+          <Text
+            size="small"
+            className={css`
+              margin-top: 4px;
+            `}
+          >
             Combination of settings that manage the labeling of alert groups. More information in{' '}
             <a href={`${DOCS_ROOT}/integrations/#alert-group-labels`} target="_blank" rel="noreferrer">
               <Text type="link">documentation</Text>
@@ -111,7 +113,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
                   Labels inherited from <PluginLink onClick={handleOpenIntegrationSettings}>the integration</PluginLink>
                   . This behavior can be disabled using the toggle option.
                 </Text>
-                <ul className={cx('labels-list')}>
+                <ul className={styles.labelsList}>
                   {alertReceiveChannel.labels.map((label) => (
                     <li key={label.key.id}>
                       <Stack gap={StackSize.xs}>
@@ -147,10 +149,22 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
             customLabelsErrors={customLabelsErrors}
           />
 
-          <Collapse isOpen={false} label="Multi-label extraction template" contentClassName="u-padding-top-none">
+          <Collapse
+            isOpen={false}
+            label="Multi-label extraction template"
+            contentClassName={css`
+              padding-top: none;
+            `}
+          >
             <Stack direction="column">
               <Stack justifyContent="space-between" alignItems="flex-end">
-                <Text type="secondary" size="small" className="u-padding-left-lg">
+                <Text
+                  type="secondary"
+                  size="small"
+                  className={css`
+                    padding-left: 24px;
+                  `}
+                >
                   Allows for the extraction and modification of multiple labels from the alert payload using a single
                   template. Supports not only dynamic values but also dynamic keys. The Jinja template must result in
                   valid JSON dictionary.
@@ -176,7 +190,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
             </Stack>
           </Collapse>
 
-          <div className={cx('buttons')}>
+          <div className={styles.buttons}>
             <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={onHide}>
                 Close
@@ -188,6 +202,7 @@ export const IntegrationLabelsForm = observer((props: IntegrationLabelsFormProps
           </div>
         </Stack>
       </Drawer>
+
       {customLabelIndexToShowTemplateEditor !== undefined && (
         <IntegrationTemplate
           id={id}
@@ -368,4 +383,23 @@ const CustomLabels = (props: CustomLabelsProps) => {
       </Dropdown>
     </Stack>
   );
+};
+
+const getStyles = () => {
+  return {
+    labelsList: css`
+      margin: 0;
+      list-style-type: none;
+
+      > li {
+        margin: 10px 0;
+      }
+    `,
+
+    buttons: css`
+      width: 100%;
+      margin-top: 30px;
+      margin-bottom: 24px;
+    `,
+  };
 };

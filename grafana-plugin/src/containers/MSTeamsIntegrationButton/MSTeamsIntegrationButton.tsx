@@ -1,17 +1,13 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, Modal } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Button, Modal, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization/authorization';
-
-import styles from './MSTeamsIntegrationButton.module.css';
-
-const cx = cn.bind(styles);
 
 interface MSTeamsIntegrationProps {
   disabled?: boolean;
@@ -58,6 +54,7 @@ interface MSTeamsModalProps {
 const MSTeamsModal = (props: MSTeamsModalProps) => {
   const { onHide, onUpdate } = props;
   const [verificationCode, setVerificationCode] = useState<string>();
+  const styles = useStyles2(getStyles);
   const store = useStore();
   useEffect(() => {
     (async () => {
@@ -67,8 +64,16 @@ const MSTeamsModal = (props: MSTeamsModalProps) => {
   }, []);
 
   return (
-    <Modal className={cx('msTeams-modal')} title="Connect MS Teams workspace" closeOnEscape isOpen onDismiss={onUpdate}>
+    <Modal className={styles.msteamsModal} title="Connect MS Teams workspace" closeOnEscape isOpen onDismiss={onUpdate}>
       <MSTeamsInstructions onHide={onHide} verificationCode={verificationCode} onCallisAdded />
     </Modal>
   );
+};
+
+const getStyles = () => {
+  return {
+    msteamsModal: css`
+      min-width: 800px;
+    `,
+  };
 };
