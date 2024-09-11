@@ -58,6 +58,38 @@ def slack_team_identity(make_slack_team_identity):
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch("apps.slack.views.SlackEventApiEndpointView._open_warning_window_if_needed")
 @pytest.mark.django_db
+def test_no_user_in_organization_for_slack_team_identity(
+    mock_open_warning_window_if_needed,
+    _mock_verify_signature,
+    make_organization,
+    make_slack_user_identity,
+    slack_team_identity,
+):
+    # only create SlackUserIdentity, not actual OnCall user
+    make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    organization = make_organization(slack_team_identity=slack_team_identity, grafana_url="https://test.com")
+
+    event_payload = {
+        "type": PayloadType.BLOCK_ACTIONS,
+        "trigger_id": EVENT_TRIGGER_ID,
+        "user": {"id": SLACK_USER_ID},
+        "team": {"id": SLACK_TEAM_ID},
+        "actions": [{"value": json.dumps({"organization_id": organization.id})}],
+    }
+
+    response = _make_request(event_payload)
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_open_warning_window_if_needed.assert_called_once_with(
+        event_payload,
+        slack_team_identity,
+        "Permission denied. Please connect your Slack account to OnCall: https://test.com/a/grafana-oncall-app/users/me/",
+    )
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch("apps.slack.views.SlackEventApiEndpointView._open_warning_window_if_needed")
+@pytest.mark.django_db
 def test_organization_not_found_scenario_properly_handled(
     mock_open_warning_window_if_needed,
     _mock_verify_signature,
