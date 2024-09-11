@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.mattermost.client import MattermostClient
 from apps.mattermost.exceptions import MattermostAPIException, MattermostAPITokenInvalid
 from apps.mattermost.models import MattermostChannel
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.utils import CurrentOrganizationDefault
 
 
@@ -48,8 +49,8 @@ class MattermostChannelSerializer(serializers.ModelSerializer):
             response = MattermostClient().get_channel_by_name_and_team_name(
                 team_name=team_name, channel_name=channel_name
             )
-        except (MattermostAPIException, MattermostAPITokenInvalid):
-            raise serializers.ValidationError("Unable to fetch channel from mattermost server")
+        except (MattermostAPIException, MattermostAPITokenInvalid) as ex:
+            raise BadRequest(detail=ex.msg)
 
         return super().to_internal_value(
             {
