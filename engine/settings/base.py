@@ -572,7 +572,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "start_sync_organizations": {
         "task": "apps.grafana_plugin.tasks.sync_v2.start_sync_organizations_v2",
-        "schedule": crontab(minute="*/5"),
+        "schedule": crontab(minute="*/30"),
         "args": (),
     },
     "start_cleanup_deleted_integrations": {
