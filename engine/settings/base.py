@@ -571,7 +571,7 @@ CELERY_BEAT_SCHEDULE = {
         "args": (),
     },
     "start_sync_organizations": {
-        "task": "apps.grafana_plugin.tasks.sync.start_sync_organizations",
+        "task": "apps.grafana_plugin.tasks.sync_v2.start_sync_organizations_v2",
         "schedule": crontab(minute="*/30"),
         "args": (),
     },
@@ -964,6 +964,6 @@ DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", de
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
 
-SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 10)
-SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 300)
+SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 6)
+SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 240)
 SYNC_V2_BATCH_SIZE = getenv_integer("SYNC_V2_BATCH_SIZE", 500)
