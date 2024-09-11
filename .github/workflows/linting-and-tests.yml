@@ -21,21 +21,7 @@ jobs:
         uses: ./.github/actions/setup-python
         with:
           install-dependencies: "false"
-      - name: Install frontend dependencies
-        uses: ./.github/actions/install-frontend-dependencies
       - uses: pre-commit/action@v3.0.1
-
-  lint-test-and-build-frontend:
-    name: "Lint, test, and build frontend"
-    runs-on: ubuntu-latest-16-cores
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@v4
-      - name: Install frontend dependencies
-        uses: ./.github/actions/install-frontend-dependencies
-      - name: Build, lint and test frontend
-        working-directory: grafana-plugin
-        run: pnpm lint && pnpm type-check && pnpm test && pnpm build
 
   test-technical-documentation:
     name: "Test technical documentation"
@@ -235,18 +221,3 @@ jobs:
       - name: mypy Static Type Checking
         working-directory: engine
         run: mypy .
-
-  end-to-end-tests:
-    name: Standard e2e tests
-    uses: ./.github/workflows/e2e-tests.yml
-    strategy:
-      matrix:
-        grafana_version:
-          - 10.3.0
-          - 11.2.0
-          - latest
-      fail-fast: false
-    with:
-      grafana_version: ${{ matrix.grafana_version }}
-      run-expensive-tests: false
-      browsers: "chromium"

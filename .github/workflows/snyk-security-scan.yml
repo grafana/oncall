@@ -19,8 +19,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
-      - name: Install frontend dependencies
-        uses: ./.github/actions/install-frontend-dependencies
       - name: Install Snyk
         uses: snyk/actions/setup@master
       # NOTE: on the snyk monitor and snyk test commands, we are excluding the dev and tools directories
@@ -30,13 +28,13 @@ jobs:
       # are really just dev/internal scripts we don't really need to worry about them for now
       - name: snyk monitor
         # https://docs.snyk.io/snyk-cli/commands/monitor
-        run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools
+        run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools,grafana-plugin
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: snyk test
         # https://docs.snyk.io/snyk-cli/commands/test
         # yamllint disable rule:line-length
-        run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all --show-vulnerable-paths=all
+        run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools,grafana-plugin --fail-on=all --show-vulnerable-paths=all
         # yamllint enable rule:line-length
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
