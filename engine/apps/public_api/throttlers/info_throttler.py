@@ -1,6 +1,6 @@
-from rest_framework.throttling import UserRateThrottle
+from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrottler
 
 
-class InfoThrottler(UserRateThrottle):
+class InfoThrottler(CustomRateUserThrottler):
     scope = "info"
-    rate = "100/m"
+    rate = "100/1m"

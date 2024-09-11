@@ -1,6 +1,6 @@
-from rest_framework.throttling import UserRateThrottle
+from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrottler
 
 
-class DemoAlertThrottler(UserRateThrottle):
+class DemoAlertThrottler(CustomRateUserThrottler):
     scope = "send_demo_alert"
-    rate = "30/m"
+    rate = "30/4m"
