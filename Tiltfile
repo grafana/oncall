@@ -67,7 +67,7 @@ docker_build_sub(
 
 def load_oncall_helm():
     helm_oncall_values_files = ["./dev/helm-local.yml"]
-    local_dev_helm_values_file = ".dev/helm-local.dev.yml"
+    local_dev_helm_values_file = "./dev/helm-local.dev.yml"
 
     if is_ci:
         helm_oncall_values_files.append("./.github/helm-ci.yml")
