@@ -65,7 +65,7 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 
 if settings.FEATURE_MATTERMOST_INTEGRATION_ENABLED:
     urlpatterns += [
-        path("api/internal/v1/mattermost/", include("apps.mattermost.urls", namespace="mattermost")),
+        path("api/internal/v1/mattermost/", include("apps.mattermost.urls")),
     ]
 
 if settings.IS_OPEN_SOURCE:

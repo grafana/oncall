@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 import requests
@@ -189,6 +189,36 @@ def test_post_mattermost_channels(
     else:
         mock_request.assert_not_called()
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_post_mattermost_channels_mattermost_api_call_failure(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    client = APIClient()
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    # Timeout Error
+    mock_response = Mock()
+    mock_response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    mock_response.request = requests.Request(
+        url="https://example.com",
+        method="GET",
+    )
+    mock_response.raise_for_status.side_effect = requests.Timeout(response=mock_response)
+
+    url = reverse("mattermost:channel-list")
+    with patch("apps.mattermost.client.requests.get", return_value=mock_response) as mock_request:
+        response = client.post(
+            url,
+            data={"team_name": "fuzzteam", "channel_name": "fuzzchannel"},
+            format="json",
+            **make_user_auth_headers(user, token),
+        )
+    mock_request.assert_called_once()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Mattermost api call gateway timedout"
 
 
 @pytest.mark.django_db
