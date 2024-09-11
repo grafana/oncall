@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Input, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { DOCS_ROOT, StackSize } from 'helpers/consts';
+import { useIsLoading } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -11,8 +13,6 @@ import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ActionKey } from 'models/loader/action-keys';
 import { useCurrentIntegration } from 'pages/integration/OutgoingTab/OutgoingTab.hooks';
-import { DOCS_ROOT, StackSize } from 'utils/consts';
-import { useIsLoading } from 'utils/hooks';
 
 import { getCommonServiceNowConfigStyles } from './ServiceNow.styles';
 

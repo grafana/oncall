@@ -25,8 +25,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization/authorization';
 
 import { getIntegrationTemplateStyles } from './IntegrationTemplate.styles';
 

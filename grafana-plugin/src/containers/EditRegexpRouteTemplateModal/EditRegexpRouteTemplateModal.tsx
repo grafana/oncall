@@ -14,8 +14,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
 interface EditRegexpRouteTemplateModalProps {
   channelFilterId: ChannelFilter['id'];

@@ -7,7 +7,6 @@ import AppleLogoSVG from 'assets/img/apple-logo.svg';
 import PlayStoreLogoSVG from 'assets/img/play-store-logo.svg';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
 
 export const DownloadIcons: FC = () => {
   const styles = useStyles2(getStyles);

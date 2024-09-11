@@ -10,6 +10,7 @@ test('schedule calendar and list of schedules is correctly displayed', async ({ 
   await createOnCallSchedule(page, onCallScheduleName, userName);
 
   await goToOnCallPage(page, 'schedules');
+  await page.waitForLoadState('networkidle');
 
   // schedule slots are present in calendar
   const nbOfSlotsInCalendar = await page.getByTestId('schedule-slot').count();

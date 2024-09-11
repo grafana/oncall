@@ -8,9 +8,6 @@ import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';

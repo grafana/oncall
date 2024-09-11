@@ -2,7 +2,7 @@ detached_integrations.enabled=true -> should create integrations deployment:
   1: |
     - env:
         - name: BASE_URL
-          value: https://example.com
+          value: http://example.com
         - name: SECRET_KEY
           valueFrom:
             secretKeyRef:

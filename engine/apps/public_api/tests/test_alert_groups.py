@@ -181,6 +181,20 @@ def test_get_alert_groups(alert_group_public_api_setup):
 
 
 @pytest.mark.django_db
+def test_get_alert_groups_inactive_user(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    # user is set to inactive if deleted via queryset (ie. during sync)
+    user.is_active = False
+    user.save()
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
 def test_get_alert_groups_include_labels(alert_group_public_api_setup, make_alert_group_label_association):
     token, _, _, _ = alert_group_public_api_setup
     alert_groups = AlertGroup.objects.all().order_by("-started_at")

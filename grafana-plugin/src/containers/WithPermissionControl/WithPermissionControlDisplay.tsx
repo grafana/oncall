@@ -1,10 +1,10 @@
 import React, { ReactElement } from 'react';
 
 import { Stack } from '@grafana/ui';
+import { isUserActionAllowed, UserAction } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
-import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 interface WithPermissionControlDisplayProps {
   userAction: UserAction;

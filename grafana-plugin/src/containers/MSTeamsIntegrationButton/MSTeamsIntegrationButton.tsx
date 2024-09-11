@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 interface MSTeamsIntegrationProps {
   disabled?: boolean;

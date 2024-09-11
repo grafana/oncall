@@ -21,7 +21,7 @@ export const groupingTemplateCheatSheet: CheatSheetInterface = {
       name: 'Additional variables and functions',
       listItems: [
         { listItemName: 'time(), datetimeformat, iso8601_to_time' },
-        { listItemName: 'regex_replace, regex_match' },
+        { listItemName: 'regex_replace, regex_match, regex_search' },
       ],
     },
     {
@@ -86,7 +86,7 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
         { listItemName: 'payload, grafana_oncall_link, grafana_oncall_incident_id, integration_name, source_link' },
         { listItemName: 'time(), datetimeformat, datetimeformat_as_timezone, datetimeparse, iso8601_to_time' },
         { listItemName: 'to_pretty_json' },
-        { listItemName: 'regex_replace, regex_match' },
+        { listItemName: 'regex_replace, regex_match, regex_search' },
         { listItemName: 'b64decode' },
       ],
     },
@@ -143,7 +143,7 @@ export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
         { listItemName: 'payload, grafana_oncall_link, grafana_oncall_incident_id, integration_name, source_link' },
         { listItemName: 'time(), datetimeformat, iso8601_to_time' },
         { listItemName: 'to_pretty_json' },
-        { listItemName: 'regex_replace, regex_match' },
+        { listItemName: 'regex_replace, regex_match, regex_search' },
       ],
     },
     {

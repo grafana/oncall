@@ -7,7 +7,6 @@ import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDet
 import { getWebhookFormStyles } from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { useCommonStyles } from 'utils/hooks';
 
 interface OutgoingWebhookStatusProps {
   id: ApiSchemas['Webhook']['id'];

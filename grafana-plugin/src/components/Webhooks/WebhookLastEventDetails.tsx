@@ -4,13 +4,13 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Stack, Badge, useStyles2, useTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { StackSize } from 'helpers/consts';
 
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { Tabs } from 'components/Tabs/Tabs';
 import { Text } from 'components/Text/Text';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { StackSize } from 'utils/consts';
 
 import { WebhookStatusCodeBadge } from './WebhookStatusCodeBadge';
 

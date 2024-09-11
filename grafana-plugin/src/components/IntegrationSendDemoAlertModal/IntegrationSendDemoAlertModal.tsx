@@ -13,8 +13,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;

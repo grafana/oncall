@@ -9,7 +9,6 @@ import { Text } from 'components/Text/Text';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 interface AlertReceiveChannelCardProps {
   id: EscalationChain['id'];

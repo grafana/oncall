@@ -11,7 +11,6 @@ import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 export const IntegrationHowToConnect: React.FC<{ id: ApiSchemas['AlertReceiveChannel']['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();

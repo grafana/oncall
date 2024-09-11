@@ -13,7 +13,6 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { LocationHelper } from 'utils/LocationHelper';
 
 import { handleChatOpsQueryParamError } from './ChatOps.helpers';
 

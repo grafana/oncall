@@ -13,7 +13,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 interface EscalationChainStepsProps {
   id: EscalationChain['id'];

@@ -14,8 +14,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { openNotification, showApiError } from 'utils/utils';
 
 interface MaintenanceFormProps {
   initialData: {

@@ -9,8 +9,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 import { getConnectorsStyles } from './Connectors.styles';
 

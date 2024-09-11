@@ -15,9 +15,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks/OutgoingWebhooks.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
-import { KeyValuePair } from 'utils/utils';
 
 import { TemplateParams, WebhookFormFieldName } from './OutgoingWebhookForm.types';
 import { OutgoingWebhookFormFields } from './OutgoingWebhookFormFields';

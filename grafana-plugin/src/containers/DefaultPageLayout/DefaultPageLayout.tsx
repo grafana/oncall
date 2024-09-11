@@ -5,7 +5,6 @@ import { NavModelItem } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import { observer } from 'mobx-react';
-import { AppRootProps } from 'types';
 
 import { Alerts } from 'containers/Alerts/Alerts';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';

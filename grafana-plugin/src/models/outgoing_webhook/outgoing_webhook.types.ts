@@ -1,4 +1,4 @@
-import { KeyValuePair } from 'utils/utils';
+import { KeyValuePair } from 'helpers/helpers';
 
 export interface OutgoingWebhookResponse {
   timestamp: string;
@@ -20,7 +20,7 @@ export interface OutgoingWebhookPreset {
 }
 
 export const WebhookTriggerType = {
-  EscalationStep: new KeyValuePair('0', 'Escalation Step'),
+  EscalationStep: new KeyValuePair('0', 'Manual or Escalation Step'),
   AlertGroupCreated: new KeyValuePair('1', 'Alert Group Created'),
   Acknowledged: new KeyValuePair('2', 'Acknowledged'),
   Resolved: new KeyValuePair('3', 'Resolved'),

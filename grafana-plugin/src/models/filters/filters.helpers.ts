@@ -1,4 +1,4 @@
-import { convertRelativeToAbsoluteDate } from 'utils/datetime';
+import { convertRelativeToAbsoluteDate } from 'helpers/datetime';
 
 import { FilterOption, FiltersValues } from './filters.types';
 

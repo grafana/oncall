@@ -16,8 +16,6 @@ import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { DOCS_ROOT, GENERIC_ERROR, StackSize } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
 

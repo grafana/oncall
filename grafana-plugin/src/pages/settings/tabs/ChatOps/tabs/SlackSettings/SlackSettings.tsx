@@ -30,10 +30,6 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'utils/consts';
-import { useConfirmModal } from 'utils/hooks';
-import { showApiError } from 'utils/utils';
 
 import { getSlackSettingsStyles } from './SlackSettings.styles';
 

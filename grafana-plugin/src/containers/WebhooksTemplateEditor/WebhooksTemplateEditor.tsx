@@ -13,7 +13,6 @@ import { TemplateResult } from 'containers/TemplateResult/TemplateResult';
 import { TemplatesAlertGroupsList } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { UserActions } from 'utils/authorization/authorization';
 
 interface Template {
   value: string;

@@ -16,7 +16,6 @@ import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];

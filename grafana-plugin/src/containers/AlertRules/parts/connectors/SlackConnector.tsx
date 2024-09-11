@@ -10,8 +10,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 import { getConnectorsStyles } from './Connectors.styles';
 

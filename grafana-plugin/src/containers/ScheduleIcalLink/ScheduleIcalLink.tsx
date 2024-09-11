@@ -7,7 +7,6 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { Text } from 'components/Text/Text';
 import { CreateScheduleExportTokenResponse, Schedule } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils/utils';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';

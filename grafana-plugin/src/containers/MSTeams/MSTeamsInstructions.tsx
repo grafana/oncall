@@ -11,8 +11,6 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { openNotification, openWarningNotification } from 'utils/utils';
 
 interface MSTeamsInstructionsProps {
   onCallisAdded?: boolean;

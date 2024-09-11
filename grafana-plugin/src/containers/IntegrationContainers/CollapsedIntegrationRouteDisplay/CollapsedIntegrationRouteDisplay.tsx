@@ -15,7 +15,6 @@ import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.hel
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 interface CollapsedIntegrationRouteDisplayProps {
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];

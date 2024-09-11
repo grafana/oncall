@@ -13,9 +13,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];

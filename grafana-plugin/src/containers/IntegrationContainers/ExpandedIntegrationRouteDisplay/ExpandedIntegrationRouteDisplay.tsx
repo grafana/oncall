@@ -43,9 +43,6 @@ import { IntegrationHelper } from 'pages/integration/Integration.helper';
 import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 import { getExpandedIntegrationRouteDisplayStyles } from './ExpandedIntegrationRouteDisplay.styles';
 

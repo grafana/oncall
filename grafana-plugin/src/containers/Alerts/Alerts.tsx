@@ -4,6 +4,10 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Alert, useStyles2 } from '@grafana/ui';
 import { sanitize } from 'dompurify';
+import { LocationHelper } from 'helpers/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { useForceUpdate, useQueryParams } from 'helpers/hooks';
+import { getItem, setItem } from 'helpers/localStorage';
 import { observer } from 'mobx-react';
 
 import { PluginLink } from 'components/PluginLink/PluginLink';
@@ -14,10 +18,6 @@ import { UserHelper } from 'models/user/user.helpers';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { LocationHelper } from 'utils/LocationHelper';
-import { isUserActionAllowed, UserActions } from 'utils/authorization/authorization';
-import { useForceUpdate, useQueryParams } from 'utils/hooks';
-import { getItem, setItem } from 'utils/localStorage';
 
 import plugin from '../../../package.json'; // eslint-disable-line
 

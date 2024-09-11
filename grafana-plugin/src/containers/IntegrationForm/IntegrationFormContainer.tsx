@@ -9,7 +9,6 @@ import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 import { IntegrationForm } from './IntegrationForm';
 import { getIntegrationFormContainerStyles } from './IntegrationFormContainer.styles';

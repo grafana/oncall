@@ -346,6 +346,7 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
     "/alert_receive_channels",
+    "/webhooks",
     # current user endpoint 👇, without trailing slash we pick-up /user_group endpoints, which we don't want for now
     "/user/",
     "/users",
@@ -844,6 +845,7 @@ EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
 EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_USE_SSL = getenv_boolean("EMAIL_USE_SSL", False)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
+EMAIL_FROM_DOMAIN = os.getenv("EMAIL_FROM_DOMAIN", "grafana.net")
 EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
 EMAIL_BACKEND_INTERNAL_ID = 8
@@ -961,3 +963,7 @@ EXOTEL_SMS_DLT_ENTITY_ID = os.getenv("EXOTEL_SMS_DLT_ENTITY_ID", None)
 DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", default=False)
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
+
+SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 10)
+SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 300)
+SYNC_V2_BATCH_SIZE = getenv_integer("SYNC_V2_BATCH_SIZE", 500)

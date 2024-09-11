@@ -9,7 +9,6 @@ import { GSelect } from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 interface GrafanaTeamSelectProps {
   onSelect: (id: GrafanaTeam['id']) => void;

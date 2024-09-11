@@ -2,9 +2,8 @@ import React, { ReactElement, useCallback } from 'react';
 
 import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { isUserActionAllowed, UserAction } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
-
-import { isUserActionAllowed, UserAction } from 'utils/authorization/authorization';
 
 import styles from './WithPermissionControlTooltip.module.css';
 

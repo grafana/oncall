@@ -26,8 +26,6 @@ import { ContactPoint } from 'models/alert_receive_channel/alert_receive_channel
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
-import { GENERIC_ERROR, StackSize } from 'utils/consts';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 interface IntegrationContactPointState {
   isLoading: boolean;

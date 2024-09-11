@@ -1,6 +1,8 @@
 import React, { FC } from 'react';
 
 import { Button, ConfirmModal, useStyles2, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { useCommonStyles, useConfirmModal } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { useForm, FormProvider } from 'react-hook-form';
 
@@ -9,8 +11,6 @@ import { Tabs } from 'components/Tabs/Tabs';
 import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDetails';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { useCommonStyles, useConfirmModal } from 'utils/hooks';
 
 import { useDrawerWebhook, useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';

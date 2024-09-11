@@ -8,7 +8,6 @@ import { Text } from 'components/Text/Text';
 import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 import { TemplatePreview, TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { StackSize } from 'utils/consts';
 
 interface ResultProps {
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];

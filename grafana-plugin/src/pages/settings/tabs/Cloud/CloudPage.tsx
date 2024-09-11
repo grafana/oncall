@@ -12,10 +12,6 @@ import { Cloud } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions, determineRequiredAuthString } from 'utils/authorization/authorization';
-import { PLUGIN_ROOT, StackSize } from 'utils/consts';
-import { PropsWithRouter, withRouter } from 'utils/hoc';
-import { openErrorNotification } from 'utils/utils';
 
 import { getCloudPageStyles } from './CloudPage.styles';
 

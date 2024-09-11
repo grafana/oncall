@@ -14,6 +14,8 @@ import {
   useStyles2,
 } from '@grafana/ui';
 import dayjs from 'dayjs';
+import { GRAFANA_HEADER_HEIGHT, StackSize } from 'helpers/consts';
+import { useDebouncedCallback, useResize } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
@@ -62,8 +64,6 @@ import {
   toDateWithTimezoneOffsetAtMidnight,
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { GRAFANA_HEADER_HEIGHT, StackSize } from 'utils/consts';
-import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import { getRotationFormStyles } from './RotationForm.styles';
 

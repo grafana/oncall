@@ -9,7 +9,6 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { SourceCode } from 'components/SourceCode/SourceCode';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils/utils';
 
 import { getApiTokenFormStyles } from './ApiTokenForm.styles';
 

@@ -12,7 +12,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 interface AttachIncidentFormProps {
   id: ApiSchemas['AlertGroup']['pk'];

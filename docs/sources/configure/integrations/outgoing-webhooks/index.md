@@ -108,7 +108,7 @@ This setting does not restrict outgoing webhook execution to events from the sel
 
 The type of event that will cause this outgoing webhook to execute. The types of triggers are:
 
-- [Escalation Step](#escalation-step)
+- [Manual or Escalation Step](#escalation-step)
 - [Alert Group Created](#alert-group-created)
 - [Acknowledged](#acknowledged)
 - [Resolved](#resolved)
@@ -480,6 +480,7 @@ Now the result is correct:
 `event.type` `escalation`
 
 This event will trigger when the outgoing webhook is included as a step in an escalation chain.
+Webhooks with this trigger type can also be manually triggered in the context of an alert group in the web UI.
 
 ### Alert Group Created
 

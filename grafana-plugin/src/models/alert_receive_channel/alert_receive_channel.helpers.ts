@@ -1,3 +1,7 @@
+import { AutoLoadingState, WithGlobalNotification } from 'helpers/decorators';
+import { showApiError } from 'helpers/helpers';
+import { OmitReadonlyMembers } from 'helpers/types';
+
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { ActionKey } from 'models/loader/action-keys';
@@ -5,9 +9,6 @@ import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { onCallApi } from 'network/oncall-api/http-client';
 import { SelectOption } from 'state/types';
-import { AutoLoadingState, WithGlobalNotification } from 'utils/decorators';
-import { OmitReadonlyMembers } from 'utils/types';
-import { showApiError } from 'utils/utils';
 
 import { AlertReceiveChannelStore } from './alert_receive_channel';
 import { MaintenanceMode } from './alert_receive_channel.types';

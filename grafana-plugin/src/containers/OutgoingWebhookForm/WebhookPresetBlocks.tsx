@@ -10,7 +10,6 @@ import { Text } from 'components/Text/Text';
 import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 import { getWebhookFormStyles } from './OutgoingWebhookForm';
 

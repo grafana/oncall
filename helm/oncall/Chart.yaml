@@ -2,8 +2,8 @@ apiVersion: v2
 name: oncall
 description: Developer-friendly incident response with brilliant Slack integration
 type: application
-version: 1.7.2
-appVersion: v1.7.2
+version: 1.9.22
+appVersion: v1.9.22
 dependencies:
   - name: cert-manager
     version: v1.8.0
@@ -26,7 +26,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
   - name: grafana
-    version: 6.57.1
+    version: 8.4.6
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: ingress-nginx

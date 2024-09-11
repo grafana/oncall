@@ -1,5 +1,10 @@
 name: Install frontend dependencies
 description: Setup node/pnpm + install frontend dependencies
+inputs:
+  oncall-directory:
+    description: "Relative path to oncall directory"
+    required: false
+    default: "."
 runs:
   using: composite
   steps:
@@ -7,12 +12,22 @@ runs:
       uses: pnpm/action-setup@v4
       with:
         version: 9.1.4
+    - name: Determine grafana-plugin directory location
+      id: grafana-plugin-directory
+      shell: bash
+      run: echo "grafana-plugin-directory=${{ inputs.oncall-directory }}/grafana-plugin" >> $GITHUB_OUTPUT
+    - name: Determine pnpm-lock.yaml location
+      id: pnpm-lock-location
+      shell: bash
+      # yamllint disable rule:line-length
+      run: echo "pnpm-lock-location=${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}/pnpm-lock.yaml" >> $GITHUB_OUTPUT
+      # yamllint enable rule:line-length
     - uses: actions/setup-node@v4
       with:
         node-version: 20.15.1
         cache: pnpm
-        cache-dependency-path: grafana-plugin/pnpm-lock.yaml
+        cache-dependency-path: ${{ steps.pnpm-lock-location.outputs.pnpm-lock-location }}
     - name: Install frontend dependencies
       shell: bash
-      working-directory: grafana-plugin
+      working-directory: ${{ steps.grafana-plugin-directory.outputs.grafana-plugin-directory }}
       run: pnpm install --frozen-lockfile --prefer-offline
