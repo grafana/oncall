@@ -1,7 +1,7 @@
 import re
 
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
-from common.utils import convert_md_to_html, escape_html, url_re, urlize_with_respect_to_a
+from common.utils import convert_md_to_html, url_re, urlize_with_respect_to_a
 
 
 class AlertWebTemplater(AlertTemplater):
@@ -13,9 +13,9 @@ class AlertWebTemplater(AlertTemplater):
     def _postformat(self, templated_alert):
         link_substitution = {}
         if templated_alert.title:
-            templated_alert.title = escape_html(self._slack_format_for_web(templated_alert.title))
+            templated_alert.title = self._slack_format_for_web(templated_alert.title)
         if templated_alert.message:
-            message = escape_html(self._slack_format_for_web(templated_alert.message))
+            message = self._slack_format_for_web(templated_alert.message)
             link_matches = re.findall(url_re, message)
             for idx, link in enumerate(link_matches):
                 substitution = f"oncallsubstitutedlink{idx}marker"
@@ -25,8 +25,6 @@ class AlertWebTemplater(AlertTemplater):
             for substitution, original_link in link_substitution.items():
                 message = message.replace(substitution, original_link)
             templated_alert.message = urlize_with_respect_to_a(message)
-        if templated_alert.image_url:
-            templated_alert.image_url = escape_html(templated_alert.image_url)
 
         return templated_alert
 
