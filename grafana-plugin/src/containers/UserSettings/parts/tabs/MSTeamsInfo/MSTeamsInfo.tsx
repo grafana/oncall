@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';
 import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
-
-import { css } from '@emotion/css';
 
 export const MSTeamsInfo = observer(() => {
   const { userStore, msteamsChannelStore } = useStore();

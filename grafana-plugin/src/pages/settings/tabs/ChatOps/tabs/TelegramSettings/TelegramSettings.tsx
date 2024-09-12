@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { Badge, Button, Icon, LoadingPlaceholder, Stack, Themeable2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { DOCS_TELEGRAM_SETUP, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
@@ -16,11 +16,6 @@ import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types'
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-
-import styles from './TelegramSettings.module.css';
-import { css } from '@emotion/css';
-
-const cx = cn.bind(styles);
 
 interface TelegramProps extends WithStoreProps, Themeable2 {}
 
@@ -41,10 +36,10 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
   };
 
   render() {
-    const { store, theme } = this.props;
+    const { store } = this.props;
     const { telegramChannelStore, organizationStore } = store;
     const connectedChannels = telegramChannelStore.getSearchResult();
-    const styles = getStyles(theme);
+    const styles = getStyles();
 
     const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 

@@ -1,7 +1,8 @@
 import React, { HTMLAttributes, useEffect, useState } from 'react';
 
-import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, Icon, Stack, Field, Input, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { DOCS_TELEGRAM_SETUP, StackSize } from 'helpers/consts';
 import { openNotification } from 'helpers/helpers';
@@ -17,10 +18,6 @@ import { UserHelper } from 'models/user/user.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
-import styles from './TelegramInfo.module.css';
-
-const cx = cn.bind(styles);
-
 interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
 export const TelegramInfo = observer((_props: TelegramInfoProps) => {
@@ -29,6 +26,8 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
+
+  const styles = useStyles2(getStyles);
 
   const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
@@ -48,7 +47,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
 
           <Text type="secondary">
             1. Go to{' '}
-            <a className={cx('verification-code')} href={botLink} target="_blank" rel="noreferrer">
+            <a className={styles.verificationCode} href={botLink} target="_blank" rel="noreferrer">
               {botLink}
             </a>
           </Text>
@@ -56,7 +55,7 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
           <Text type="secondary">
             2. Send this verification code to the bot and wait for <Text>the confirmation message: </Text>
           </Text>
-          <Field className={cx('field-command')}>
+          <Field className={styles.fieldCommand}>
             <Input
               id="telegramVerificationCode"
               value={verificationCode}
@@ -77,7 +76,16 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
       ) : (
         <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
-          <Block bordered withBackground className={cx('telegram-infoblock', 'u-width-100')}>
+          <Block
+            bordered
+            withBackground
+            className={cx(
+              styles.telegramInfoBlock,
+              css`
+                width: 100%;
+              `
+            )}
+          >
             <Stack direction="column" alignItems="center" gap={StackSize.lg}>
               <TelegramColorIcon />
               <Text>You can manage alert groups in your team Telegram channel or from personal direct messages. </Text>
@@ -103,3 +111,33 @@ export const TelegramInfo = observer((_props: TelegramInfoProps) => {
     </WithPermissionControlDisplay>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    verificationCode: css`
+      color: ${theme.colors.primary.text};
+    `,
+
+    verificationCodeText: css`
+      display: flex;
+      justify-content: space-between;
+    `,
+
+    automaticConnect: css`
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    `,
+
+    fieldCommand: css`
+      width: 100%;
+      display: inline-block;
+    `,
+
+    telegramInfoBlock: css`
+      text-align: center;
+      width: 725px;
+    `,
+  };
+};

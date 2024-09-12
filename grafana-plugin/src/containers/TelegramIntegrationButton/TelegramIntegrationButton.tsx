@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
+import { css } from '@emotion/css';
 import { Button, Modal, Icon, Stack, Field, Input, useStyles2 } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -8,9 +9,6 @@ import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-
-import { GrafanaTheme2 } from '@grafana/data';
-import { css } from '@emotion/css';
 
 interface TelegramIntegrationProps {
   disabled?: boolean;

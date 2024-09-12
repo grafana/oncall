@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 
-import { SelectOption } from 'state/types';
-import { useStyles2 } from '@grafana/ui';
-import { getRotationFormStyles } from '../RotationForm.styles';
 import { cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
+
+import { getRotationFormStyles } from 'containers/RotationForm/RotationForm.styles';
+import { SelectOption } from 'state/types';
 
 interface DaysSelectorProps {
   value: string[];

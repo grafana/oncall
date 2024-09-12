@@ -13,7 +13,6 @@ import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-
 interface MSTeamsProps extends WithStoreProps {}
 
 interface MSTeamsState {
@@ -150,10 +149,10 @@ const getStyles = () => {
     root: css`
       display: block;
     `,
-    
+
     header: css`
       display: flex;
       justify-content: space-between;
     `,
-  }
-}
+  };
+};

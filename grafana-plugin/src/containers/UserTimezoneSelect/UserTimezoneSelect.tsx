@@ -11,7 +11,6 @@ import { allTimezones, getGMTTimezoneLabelBasedOnOffset, getTzOffsetString } fro
 import { UserHelper } from 'models/user/user.helpers';
 import { useStore } from 'state/useStore';
 
-
 interface TimezoneOption {
   value: number; // utcOffset
   label: string;

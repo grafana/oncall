@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 
+import { css } from '@emotion/css';
 import { Button, Stack, Icon, useStyles2 } from '@grafana/ui';
 
 import { Block } from 'components/GBlock/Block';
@@ -7,8 +8,6 @@ import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { SlackNewIcon } from 'icons/Icons';
 import { useStore } from 'state/useStore';
-
-import { css } from '@emotion/css';
 
 export const SlackTab = () => {
   const { slackStore } = useStore();

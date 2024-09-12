@@ -7,9 +7,9 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
+import { getRotationFormStyles } from 'containers/RotationForm/RotationForm.styles';
 import { toDatePickerDate } from 'containers/Rotations/Rotations.helpers';
 import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
-import { getRotationFormStyles } from '../RotationForm.styles';
 
 interface DateTimePickerProps {
   value: dayjs.Dayjs;

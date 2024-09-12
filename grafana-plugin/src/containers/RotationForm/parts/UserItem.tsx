@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { Colors } from 'styles/utils.styles';
@@ -8,10 +9,9 @@ import { Colors } from 'styles/utils.styles';
 import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
+import { getRotationFormStyles } from 'containers/RotationForm/RotationForm.styles';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { getRotationFormStyles } from '../RotationForm.styles';
-import { GrafanaTheme2 } from '@grafana/data';
 
 interface UserItemProps {
   pk: ApiSchemas['User']['pk'];

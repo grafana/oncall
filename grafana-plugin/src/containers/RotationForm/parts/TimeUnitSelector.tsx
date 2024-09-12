@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 
-import { Select, useStyles2 } from '@grafana/ui';
+import { Select } from '@grafana/ui';
 
 import { repeatEveryPeriodToUnitName } from 'containers/RotationForm/RotationForm.helpers';
 import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
-import { getRotationFormStyles } from '../RotationForm.styles';
 
 interface TimeUnitSelectorProps {
   value: number;

@@ -13,6 +13,7 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
+
 import { getTemplatesAlertGroupsListStyles } from './TemplatesAlertGroupsList.styles';
 
 interface TemplatesAlertGroupsListProps {

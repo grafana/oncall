@@ -1,7 +1,7 @@
 import React, { HTMLAttributes, useCallback, useRef, useReducer } from 'react';
 
-import { Alert, Button, Field, Icon, Input, Switch, Tooltip, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Alert, Button, Field, Icon, Input, Switch, Tooltip, Stack, useStyles2 } from '@grafana/ui';
 import { isUserActionAllowed, UserAction, UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
 import { useIsLoading } from 'helpers/hooks';
@@ -18,10 +18,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-
-import styles from './PhoneVerification.module.css';
-
-const cx = cn.bind(styles);
 
 interface PhoneVerificationProps extends HTMLAttributes<HTMLElement> {
   userPk?: ApiSchemas['User']['pk'];
@@ -158,6 +154,8 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
     userStore.fetchItemById({ userPk });
   }, [code, userPk, UserHelper.verifyPhone, userStore.fetchItemById]);
 
+  const styles = useStyles2(getStyles);
+
   const providerConfiguration = organizationStore.currentOrganization?.env_status.phone_provider;
   const isPhoneProviderConfigured = providerConfiguration?.configured;
 
@@ -212,7 +210,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
         )}
 
         <Field
-          className={cx('phone__field')}
+          className={styles.phoneField}
           invalid={showPhoneInputError}
           error={showPhoneInputError ? 'Enter a valid phone number' : null}
         >
@@ -236,7 +234,7 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
             autoFocus={isCodeSent}
             onChange={onChangeCodeCallback}
             placeholder="Please enter the code"
-            className={cx('phone__field')}
+            className={styles.phoneField}
           />
         )}
         <Stack gap={StackSize.xs}>
@@ -254,11 +252,11 @@ export const PhoneVerification = observer((props: PhoneVerificationProps) => {
           </Text>
         </Stack>
         {showToggle && (
-          <div className={cx('switch')}>
-            <div className={cx('switch__icon')}>
+          <div className={styles.switch}>
+            <div className={styles.switchIcon}>
               <Switch value={isPhoneNumberHidden} onChange={onTogglePhoneCallback} />
             </div>
-            <label className={cx('switch__label')}>Hide my phone number from teammates</label>
+            <label>Hide my phone number from teammates</label>
           </div>
         )}
 
@@ -288,9 +286,11 @@ interface ForgetPhoneScreenProps {
 }
 
 function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps) {
+  const styles = useStyles2(getStyles);
+
   return (
     <>
-      <Text size="large" className={cx('phone__forgetHeading')}>
+      <Text size="large" className={styles.phoneForgetHeading}>
         Do you really want to forget the verified phone number <strong>{phone}</strong> ?
       </Text>
       <Stack justifyContent="flex-end">
@@ -444,3 +444,27 @@ const PhoneVerificationButtonsGroup = observer(
     );
   }
 );
+
+const getStyles = () => {
+  return {
+    switch: css`
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    `,
+
+    switchIcon: css`
+      margin-right: 12px;
+    `,
+
+    phoneField: css`
+      width: 100%;
+      margin-bottom: 8px;
+    `,
+
+    phoneForgetHeading: css`
+      display: block;
+      margin-bottom: 24px;
+    `,
+  };
+};
