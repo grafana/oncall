@@ -3,4 +3,4 @@ from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrott
 
 class PhoneNotificationThrottler(CustomRateUserThrottler):
     scope = "phone_notification"
-    rate = "60/1m"
+    rate = "60/m"

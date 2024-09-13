@@ -3,4 +3,4 @@ from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrott
 
 class DemoAlertThrottler(CustomRateUserThrottler):
     scope = "send_demo_alert"
-    rate = "30/4m"
+    rate = "30/m"

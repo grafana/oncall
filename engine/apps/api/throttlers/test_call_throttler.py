@@ -10,7 +10,7 @@ class TestCallThrottler(CustomRateUserThrottler):
     __test__ = False
 
     scope = "make_test_call"
-    rate = "5/1m"
+    rate = "5/m"
 
 
 class TestPushThrottler(CustomRateUserThrottler):
@@ -22,4 +22,4 @@ class TestPushThrottler(CustomRateUserThrottler):
     __test__ = False
 
     scope = "send_test_push"
-    rate = "10/1m"
+    rate = "10/m"

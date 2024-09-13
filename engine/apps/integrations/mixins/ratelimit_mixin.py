@@ -2,10 +2,10 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.views import View
-from django.conf import settings
 from ratelimit import ALL
 from ratelimit.exceptions import Ratelimited
 from ratelimit.utils import is_ratelimited
@@ -26,8 +26,6 @@ RATELIMIT_BYPASS_CACHE_KEY = f"{INTEGRATION_TOKEN_TO_IGNORE_KEY}_cache_key"
 RATELIMIT_BYPASS_CACHE_TIMEOUT = 5
 
 
-custom_ratelimits = settings.CUSTOM_RATELIMITS
-
 def get_rate_limit_per_channel_key(_, request):
     """
     Rate limiting based on AlertReceiveChannel's PK
@@ -41,7 +39,10 @@ def get_rate_limit_per_team_key(_, request):
     """
     return str(request.alert_receive_channel.organization_id)
 
+
 def get_rate_limit(group, request):
+    custom_ratelimits = settings.CUSTOM_RATELIMITS
+
     organization_id = str(request.alert_receive_channel.organization_id)
 
     if group == RATELIMIT_INTEGRATION_GROUP_NAME:
@@ -226,7 +227,11 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
         block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=get_rate_limit, group=RATELIMIT_TEAM_GROUP_NAME, reason=RATELIMIT_REASON_TEAM, block=True
+        key=get_rate_limit_per_team_key,
+        rate=get_rate_limit,
+        group=RATELIMIT_TEAM_GROUP_NAME,
+        reason=RATELIMIT_REASON_TEAM,
+        block=True,
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass

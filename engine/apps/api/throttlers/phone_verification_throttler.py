@@ -1,4 +1,4 @@
-from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrottler, CustomRateOrganizationThrottler
+from common.api_helpers.custom_rate_scoped_throttler import CustomRateOrganizationThrottler, CustomRateUserThrottler
 
 
 class GetPhoneVerificationCodeThrottlerPerUser(CustomRateUserThrottler):

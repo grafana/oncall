@@ -3,4 +3,4 @@ from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrott
 
 class InfoThrottler(CustomRateUserThrottler):
     scope = "info"
-    rate = "100/1m"
+    rate = "100/m"
