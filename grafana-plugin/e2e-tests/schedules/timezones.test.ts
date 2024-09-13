@@ -21,6 +21,17 @@ const currentMoscowDate = dayjs().utcOffset(180).format('DD MMM');
 test('dates in schedule are correct according to selected current timezone', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
+  /**
+   * Always set a fixed time of today's date but at 12:00:00 (noon)
+   *
+   * This solves the issue here https://github.com/grafana/oncall/issues/4991
+   * where we would occasionally see this test flake if it srtated and finished at a different hour
+   *
+   * See playwright docs for more details
+   * https://playwright.dev/docs/clock
+   */
+  await page.clock.setFixedTime(new Date().setHours(12, 0, 0, 0));
+
   await setTimezoneInProfile(page, MOSCOW_TIMEZONE);
 
   const onCallScheduleName = generateRandomValue();
@@ -36,7 +47,7 @@ test('dates in schedule are correct according to selected current timezone', asy
   // Selected timezone and local time is correctly displayed
   await expect(page.getByText(`Current timezone: GMT, local time: ${currentUtcTimeHour}`)).toBeVisible();
 
-  // // User avatar tooltip shows correct time and timezones
+  // User avatar tooltip shows correct time and timezones
   await page.getByTestId('user-avatar-in-schedule').hover();
   await expect(page.getByTestId('schedule-user-details_your-current-time')).toHaveText(/GMT\+3/);
   await expect(page.getByTestId('schedule-user-details_your-current-time')).toHaveText(
