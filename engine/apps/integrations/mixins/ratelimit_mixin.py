@@ -33,7 +33,7 @@ def get_rate_limit_per_channel_key(_, request):
     return str(request.alert_receive_channel.pk)
 
 
-def get_rate_limit_per_team_key(_, request):
+def get_rate_limit_per_organization_key(_, request):
     """
     Rate limiting based on AlertReceiveChannel's team PK
     """
@@ -191,7 +191,7 @@ class IntegrationHeartBeatRateLimitMixin(RateLimitMixin, View):
         block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
+        key=get_rate_limit_per_organization_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass
@@ -227,7 +227,7 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
         block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key,
+        key=get_rate_limit_per_organization_key,
         rate=get_rate_limit,
         group=RATELIMIT_TEAM_GROUP_NAME,
         reason=RATELIMIT_REASON_TEAM,
