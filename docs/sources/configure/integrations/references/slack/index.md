@@ -3,6 +3,8 @@ title: Slack integration for Grafana IRM
 menuTitle: IRM Slack
 description: Learn more about Slack integration for Grafana IRM.
 weight: 0
+_build:
+  list: false
 keywords:
   - OnCall
   - IRM

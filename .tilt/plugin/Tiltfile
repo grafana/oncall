@@ -21,7 +21,7 @@ if not is_ci:
         dir=grafana_plugin_dir,
         cmd="pnpm install",
         serve_dir=grafana_plugin_dir,
-        serve_cmd="pnpm watch",
+        serve_cmd="pnpm dev",
         allow_parallel=True,
     )
 
