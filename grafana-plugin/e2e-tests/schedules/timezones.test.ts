@@ -13,10 +13,6 @@ dayjs.extend(utc);
 dayjs.extend(isoWeek);
 
 test.use({ timezoneId: MOSCOW_TIMEZONE }); // GMT+3 the whole year
-const currentUtcTimeHour = dayjs().utc().format('HH');
-const currentUtcDate = dayjs().utc().format('DD MMM');
-const currentMoscowTimeHour = dayjs().utcOffset(180).format('HH');
-const currentMoscowDate = dayjs().utcOffset(180).format('DD MMM');
 
 test('dates in schedule are correct according to selected current timezone', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
@@ -30,7 +26,19 @@ test('dates in schedule are correct according to selected current timezone', asy
    * See playwright docs for more details
    * https://playwright.dev/docs/clock
    */
-  await page.clock.setFixedTime(new Date().setHours(12, 0, 0, 0));
+  const fixedDateAtNoon = new Date().setHours(12, 0, 0, 0);
+  await page.clock.setFixedTime(fixedDateAtNoon);
+
+  /**
+   * Use the fixed time for all time calculations + use the same fixed time for both UTC and Moscow time
+   */
+  const fixedDayjs = dayjs(fixedDateAtNoon).utc();
+
+  // Calculate time and date based on the fixed time
+  const currentUtcTimeHour = fixedDayjs.format('HH'); // 12 in this case
+  const currentUtcDate = fixedDayjs.format('DD MMM');
+  const currentMoscowTimeHour = fixedDayjs.utcOffset(180).format('HH'); // Adjust for Moscow time (UTC+3)
+  const currentMoscowDate = fixedDayjs.utcOffset(180).format('DD MMM');
 
   await setTimezoneInProfile(page, MOSCOW_TIMEZONE);
 
