@@ -27,9 +27,9 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getCurrentTimeX, getStartOfWeekBasedOnCurrentDate } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
+import { getAnimationClasses } from './Animations.styles';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { getRotationsStyles } from './Rotations.styles';
-import { getAnimationClasses } from './Animations.styles';
 
 const animationStyles = getAnimationClasses();
 

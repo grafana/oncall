@@ -22,10 +22,10 @@ import { getCurrentTimeX, toDateWithTimezoneOffset } from 'pages/schedule/Schedu
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { getAnimationClasses } from './Animations.styles';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor, getCalendarStartDateInTimezone } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
-import { getAnimationClasses } from './Animations.styles';
 
 interface RotationsProps extends WithStoreProps {
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
