@@ -15,7 +15,7 @@ class AlertWebTemplater(AlertTemplater):
         if templated_alert.title:
             templated_alert.title = escape_html(self._slack_format_for_web(templated_alert.title))
         if templated_alert.message:
-            message = templated_alert.message
+            message = self._slack_format_for_web(templated_alert.message)
             link_matches = re.findall(url_re, message)
             for idx, link in enumerate(link_matches):
                 substitution = f"oncallsubstitutedlink{idx}marker"
