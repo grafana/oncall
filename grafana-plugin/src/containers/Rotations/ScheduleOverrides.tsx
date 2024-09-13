@@ -31,8 +31,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
-
-import animationStyles from './Rotations.module.css';
+import { getAnimationClasses } from './Animations.styles';
 
 interface ScheduleOverridesProps extends WithStoreProps {
   shiftStartToShowOverrideForm: dayjs.Dayjs;
@@ -54,6 +53,8 @@ interface ScheduleOverridesState {
   shiftStartToShowOverrideForm?: dayjs.Dayjs;
   shiftEndToShowOverrideForm?: dayjs.Dayjs;
 }
+
+const animationStyles = getAnimationClasses();
 
 @observer
 class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {

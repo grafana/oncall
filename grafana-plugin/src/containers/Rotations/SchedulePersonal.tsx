@@ -29,8 +29,9 @@ import { useStore } from 'state/useStore';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { getRotationsStyles } from './Rotations.styles';
+import { getAnimationClasses } from './Animations.styles';
 
-import animationStyles from './Rotations.module.css';
+const animationStyles = getAnimationClasses();
 
 interface SchedulePersonalProps {
   userPk: ApiSchemas['User']['pk'];

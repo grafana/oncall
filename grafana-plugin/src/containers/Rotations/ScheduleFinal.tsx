@@ -29,8 +29,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
-
-import animationStyles from './Rotations.module.css';
+import { getAnimationClasses } from './Animations.styles';
 
 interface ScheduleFinalProps extends WithStoreProps {
   scheduleId: Schedule['id'];
@@ -124,7 +123,11 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
               {shifts?.length ? (
                 shifts.map(({ events }, index) => {
                   return (
-                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
+                    <CSSTransition
+                      key={index}
+                      timeout={DEFAULT_TRANSITION_TIMEOUT}
+                      classNames={{ ...getAnimationClasses() }}
+                    >
                       <Rotation
                         scheduleView={scheduleView}
                         startDate={startDate}

@@ -25,8 +25,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor, getCalendarStartDateInTimezone } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
-
-import animationStyles from './Rotations.module.css';
+import { getAnimationClasses } from './Animations.styles';
 
 interface RotationsProps extends WithStoreProps {
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
@@ -172,7 +171,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                   <CSSTransition
                     key={layerIndex}
                     timeout={DEFAULT_TRANSITION_TIMEOUT}
-                    classNames={{ ...animationStyles }}
+                    classNames={{ ...getAnimationClasses() }}
                   >
                     <div
                       id={`layer${layer.priority}`}
