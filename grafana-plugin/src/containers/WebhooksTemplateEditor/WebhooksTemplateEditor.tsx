@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 
 import { Button, Drawer, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { debounce } from 'lodash-es';
 
 import { CheatSheet } from 'components/CheatSheet/CheatSheet';

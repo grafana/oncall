@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, Icon, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import { Block } from 'components/GBlock/Block';

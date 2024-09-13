@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Stack, Icon, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize, DOCS_SLACK_SETUP, getPluginId } from 'helpers/consts';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';

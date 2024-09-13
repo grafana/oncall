@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { EmptySearchResult, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';

@@ -3,6 +3,7 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Stack, Badge, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';

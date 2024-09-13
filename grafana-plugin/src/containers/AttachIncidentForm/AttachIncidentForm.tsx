@@ -3,6 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Field, Icon, Modal, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 

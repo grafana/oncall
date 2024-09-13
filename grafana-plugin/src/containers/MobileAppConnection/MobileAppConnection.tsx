@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { Button, Icon, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { isMobile, openNotification, openWarningNotification, openErrorNotification } from 'helpers/helpers';
+import { useInitializePlugin } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';

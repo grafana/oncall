@@ -1,7 +1,7 @@
 import React, { FC, ReactElement } from 'react';
 
-import { css } from '@emotion/css';
-import { NavModelItem } from '@grafana/data';
+import { css, cx } from '@emotion/css';
+import { AppRootProps, NavModelItem } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import { observer } from 'mobx-react';

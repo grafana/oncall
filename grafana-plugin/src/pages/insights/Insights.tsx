@@ -16,6 +16,7 @@ import {
   useSceneApp,
 } from '@grafana/scenes';
 import { Alert, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { DOCS_ROOT, StackSize, PLUGIN_ROOT } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';

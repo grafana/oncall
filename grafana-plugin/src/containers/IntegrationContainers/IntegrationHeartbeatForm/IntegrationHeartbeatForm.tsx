@@ -3,6 +3,9 @@ import React, { ReactElement, useEffect, useState } from 'react';
 import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Icon, Select, Stack } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { IntegrationInputField } from 'components/IntegrationInputField/IntegrationInputField';

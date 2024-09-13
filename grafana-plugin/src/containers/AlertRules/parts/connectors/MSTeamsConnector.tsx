@@ -2,6 +2,8 @@ import React, { useCallback } from 'react';
 
 import { cx } from '@emotion/css';
 import { InlineSwitch, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';
