@@ -68,14 +68,20 @@ def test_render_web_postformat_html_a_links(
     )
     alert_group = make_alert_group(alert_receive_channel)
 
-    message = '<a href="https://www.google.com">google</a>\n<a href="http://www.google.com">google</a>\n<a href="//www.google.com">google</a>'
+    message = (
+        '<a href="https://www.google.com">google</a>\n'
+        '<a href="http://www.google.com">google</a>\n'
+        '<a href="//www.google.com">google</a>'
+    )
     alert = make_alert(alert_group=alert_group, raw_request_data={"message": message})
 
     templater = AlertWebTemplater(alert)
     templated_alert = templater.render()
     assert (
         templated_alert.message
-        == '<p><a href="https://www.google.com" rel="nofollow noopener" target="_blank">google</a> <br/>\n<a href="http://www.google.com" rel="nofollow noopener" target="_blank">google</a> <br/>\n<a href="//www.google.com" rel="nofollow noopener" target="_blank">google</a> </p>'
+        == '<p><a href="https://www.google.com" rel="nofollow noopener" target="_blank">google</a> <br/>\n'
+        '<a href="http://www.google.com" rel="nofollow noopener" target="_blank">google</a> <br/>\n'
+        '<a href="//www.google.com" rel="nofollow noopener" target="_blank">google</a> </p>'
     )
 
 
