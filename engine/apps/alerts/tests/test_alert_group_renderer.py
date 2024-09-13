@@ -55,12 +55,36 @@ def test_render_web_alert_links(
     )
 
 
+@pytest.mark.parametrize(
+    "message, expected_result",
+    [
+        (
+            '<a href="https://www.google.com">google</a>',
+            '<p><a href="https://www.google.com" rel="nofollow noopener" target="_blank">google</a> </p>',
+        ),
+        (
+            '<a href="http://www.google.com">google</a>',
+            '<p><a href="http://www.google.com" rel="nofollow noopener" target="_blank">google</a> </p>',
+        ),
+        (
+            '<a href="//www.google.com">google</a>',
+            '<p><a href="//www.google.com" rel="nofollow noopener" target="_blank">google</a> </p>',
+        ),
+        ("http://www.google.com/", '<p><a href="http://www.google.com/">http://www.google.com/</a> </p>'),
+        (
+            "[Hello](http://www.google.com)",
+            '<p><a href="http://www.google.com" rel="nofollow noopener" target="_blank">Hello</a> </p>',
+        ),
+    ],
+)
 @pytest.mark.django_db
 def test_render_web_postformat_html_a_links(
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    message,
+    expected_result,
 ):
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(
@@ -68,21 +92,11 @@ def test_render_web_postformat_html_a_links(
     )
     alert_group = make_alert_group(alert_receive_channel)
 
-    message = (
-        '<a href="https://www.google.com">google</a>\n'
-        '<a href="http://www.google.com">google</a>\n'
-        '<a href="//www.google.com">google</a>'
-    )
     alert = make_alert(alert_group=alert_group, raw_request_data={"message": message})
 
     templater = AlertWebTemplater(alert)
     templated_alert = templater.render()
-    assert (
-        templated_alert.message
-        == '<p><a href="https://www.google.com" rel="nofollow noopener" target="_blank">google</a> <br/>\n'
-        '<a href="http://www.google.com" rel="nofollow noopener" target="_blank">google</a> <br/>\n'
-        '<a href="//www.google.com" rel="nofollow noopener" target="_blank">google</a> </p>'
-    )
+    assert templated_alert.message == expected_result
 
 
 @pytest.mark.django_db
