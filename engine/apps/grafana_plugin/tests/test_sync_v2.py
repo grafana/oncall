@@ -1,7 +1,7 @@
 import gzip
 import json
 from dataclasses import asdict
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pytest
 from django.urls import reverse
@@ -159,3 +159,34 @@ def test_sync_team_serialization(test_team, validation_pass):
     except ValidationError as e:
         validation_error = e
     assert (validation_error is None) == validation_pass
+
+
+@pytest.mark.django_db
+def test_sync_batch_tasks(make_organization, settings):
+    settings.SYNC_V2_MAX_TASKS = 2
+    settings.SYNC_V2_PERIOD_SECONDS = 10
+    settings.SYNC_V2_BATCH_SIZE = 2
+
+    for _ in range(9):
+        make_organization(api_token="glsa_abcdefghijklmnopqrstuvwxyz")
+
+    expected_calls = [
+        call(size=2, countdown=0),
+        call(size=2, countdown=0),
+        call(size=2, countdown=10),
+        call(size=2, countdown=10),
+        call(size=1, countdown=20),
+    ]
+    with patch("apps.grafana_plugin.tasks.sync_v2.sync_organizations_v2.apply_async", return_value=None) as mock_sync:
+        start_sync_organizations_v2()
+
+        def check_call(actual, expected):
+            return (
+                len(actual.args[0][0]) == expected.kwargs["size"]
+                and actual.kwargs["countdown"] == expected.kwargs["countdown"]
+            )
+
+        for actual_call, expected_call in zip(mock_sync.call_args_list, expected_calls):
+            assert check_call(actual_call, expected_call)
+
+        assert mock_sync.call_count == len(expected_calls)

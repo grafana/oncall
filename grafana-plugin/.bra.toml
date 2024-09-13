@@ -4,19 +4,14 @@
 [run]
 init_cmds = [
   ["mage", "-v", "build:debug"],
-  ["mage", "-v" , "reloadPlugin"],
 ]
 watch_all = true
 follow_symlinks = false
 ignore = [".git", "node_modules", "dist"]
 ignore_files = ["mage_output_file.go"]
-watch_dirs = [
-  "pkg",
-  # "src",
-]
+watch_dirs = ["pkg"]
 watch_exts = [".go", ".json"]
 build_delay = 2000
 cmds = [
   ["mage", "-v", "build:debug"],
-  ["mage", "-v" , "reloadPlugin"],
 ]

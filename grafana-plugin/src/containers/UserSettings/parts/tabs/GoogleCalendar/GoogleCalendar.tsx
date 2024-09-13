@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Switch, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { DOCS_ROOT, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 import { getUtilStyles } from 'styles/utils.styles';
 
@@ -15,8 +17,6 @@ import { Schedule } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
-import { DOCS_ROOT, StackSize } from 'utils/consts';
 
 const GoogleCalendar: React.FC<{ id: ApiSchemas['User']['pk'] }> = observer(({ id }) => {
   const {

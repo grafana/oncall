@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 import { Badge, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { openErrorNotification } from 'helpers/helpers';
+import { useDebouncedCallback } from 'helpers/hooks';
+import { sanitize } from 'helpers/sanitize';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -10,9 +13,6 @@ import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-import { useDebouncedCallback } from 'utils/hooks';
-import { sanitize } from 'utils/sanitize';
-import { openErrorNotification } from 'utils/utils';
 
 import styles from './TemplatePreview.module.css';
 
@@ -52,9 +52,9 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
     templatePage,
   } = props;
 
-  const [result, setResult] = useState<{ preview: string | null; is_valid_json_object?: boolean } | undefined>(
-    undefined
-  );
+  const [result, setResult] = useState<
+    ApiSchemas['WebhookPreviewTemplateResponse'] & { is_valid_json_object?: boolean }
+  >(undefined);
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
@@ -62,11 +62,21 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
 
   const handleTemplateBodyChange = useDebouncedCallback(async () => {
     try {
-      const data = await (templatePage === TemplatePage.Webhooks
-        ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
-        : alertGroupId
-        ? AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody)
-        : AlertReceiveChannelHelper.renderPreview(alertReceiveChannelId, templateName, templateBody, payload));
+      let data: ApiSchemas['WebhookPreviewTemplateResponse'] & { is_valid_json_object?: boolean } = undefined;
+
+      if (templatePage === TemplatePage.Webhooks) {
+        data = await outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload);
+      } else if (alertGroupId) {
+        data = await AlertGroupHelper.renderPreview(alertGroupId, templateName, templateBody);
+      } else {
+        data = await AlertReceiveChannelHelper.renderPreview(
+          alertReceiveChannelId,
+          templateName,
+          templateBody,
+          payload
+        );
+      }
+
       setResult(data);
 
       if (data?.preview === 'True') {

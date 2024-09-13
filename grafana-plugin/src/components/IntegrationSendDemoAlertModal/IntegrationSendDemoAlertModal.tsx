@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 import { Button, Icon, Modal, Tooltip, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
+import { openNotification } from 'helpers/helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { debounce } from 'throttle-debounce';
@@ -14,8 +16,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import styles from 'pages/integration/Integration.module.scss';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { openNotification } from 'utils/utils';
 
 const cx = cn.bind(styles);
 

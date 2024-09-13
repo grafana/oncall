@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { AutoLoadingState } from 'helpers/decorators';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 
 import { PageErrorData } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -11,7 +12,6 @@ import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { RootStore } from 'state/rootStore';
 import { SelectOption } from 'state/types';
-import { AutoLoadingState } from 'utils/decorators';
 
 import {
   createShiftSwapEventFromShiftSwap,

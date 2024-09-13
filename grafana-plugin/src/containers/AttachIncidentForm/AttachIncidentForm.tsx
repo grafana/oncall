@@ -3,6 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { Button, Field, Icon, Modal, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 
@@ -12,7 +13,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertGroupHelper } from 'models/alertgroup/alertgroup.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 import styles from './AttachIncidentForm.module.css';
 

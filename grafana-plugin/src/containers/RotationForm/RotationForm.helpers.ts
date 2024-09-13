@@ -1,8 +1,8 @@
 import { Dayjs, ManipulateType } from 'dayjs';
+import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'helpers/consts';
 import { DraggableData } from 'react-draggable';
 
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'utils/consts';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 

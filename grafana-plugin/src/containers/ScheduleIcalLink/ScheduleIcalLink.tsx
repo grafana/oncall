@@ -2,13 +2,13 @@ import React, { FC, useEffect, useState } from 'react';
 
 import { Button, Icon, Label, LoadingPlaceholder, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { Text } from 'components/Text/Text';
 import { CreateScheduleExportTokenResponse, Schedule } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils/utils';
 
 import styles from './ScheduleIcalLink.module.css';
 

@@ -3,6 +3,8 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { IconButton, Stack, Field, Button, useTheme2 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { StackSize } from 'helpers/consts';
+import { useDebouncedCallback, useResize } from 'helpers/hooks';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { Modal } from 'components/Modal/Modal';
@@ -16,8 +18,6 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getDateTime, getUTCString, toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
-import { useDebouncedCallback, useResize } from 'utils/hooks';
 
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
 import { DateTimePicker } from './parts/DateTimePicker';

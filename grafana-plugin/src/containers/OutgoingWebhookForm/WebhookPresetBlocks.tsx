@@ -2,6 +2,7 @@ import React from 'react';
 
 import { EmptySearchResult, Stack } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -11,7 +12,6 @@ import { Text } from 'components/Text/Text';
 import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 

@@ -1,10 +1,10 @@
 import dayjs from 'dayjs';
+import { waitForElement } from 'helpers/DOM';
 
 import { getColor, getOverrideColor } from 'models/schedule/schedule.helpers';
 import { Layer, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { toDateWithTimezoneOffset } from 'pages/schedule/Schedule.helpers';
-import { waitForElement } from 'utils/DOM';
 
 export const calculateScheduleFormOffset = async (queryClassName: string) => {
   const modal = await waitForElement(queryClassName);

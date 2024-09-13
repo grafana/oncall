@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 
 import { Button, Icon, LoadingPlaceholder, Stack, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { UserActions } from 'helpers/authorization/authorization';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -14,7 +15,6 @@ import { NotificationPolicyType } from 'models/notification_policy/notification_
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization/authorization';
 
 import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';

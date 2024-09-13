@@ -4,10 +4,10 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2, OrgRole } from '@grafana/data';
 import { Stack, useStyles2 } from '@grafana/ui';
 import { contextSrv } from 'grafana/app/core/core';
+import { UserAction } from 'helpers/authorization/authorization';
+import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
-import { UserAction } from 'utils/authorization/authorization';
-import { StackSize } from 'utils/consts';
 
 type Props = {
   requiredUserAction: UserAction;

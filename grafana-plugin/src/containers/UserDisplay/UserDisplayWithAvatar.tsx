@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 
 import { Stack } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { Text } from 'components/Text/Text';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { StackSize } from 'utils/consts';
 
 interface UserDisplayProps {
   id: ApiSchemas['User']['pk'];

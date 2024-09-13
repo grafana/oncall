@@ -2,9 +2,9 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Button, Icon, Select, Stack } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
-import { StackSize } from 'utils/consts';
 
 interface CursorPaginationProps {
   current: string;

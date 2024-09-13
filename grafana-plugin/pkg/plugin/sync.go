@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 type OnCallSyncCache struct {
@@ -38,7 +39,7 @@ func (oc *OnCallSyncCache) UnlockAfterDelay(delay time.Duration) {
 	})
 }
 
-func (a *App) handleSync(w http.ResponseWriter, req *http.Request) {
+func (a *App) HandleSync(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -122,7 +123,7 @@ func (a *App) makeSyncRequest(ctx context.Context, forceSend bool) error {
 		return fmt.Errorf("error getting settings from context: %v ", err)
 	}
 
-	onCallSync, err := a.GetSyncData(ctx, onCallPluginSettings)
+	onCallSync, err := a.GetSyncData(onCallPluginSettings)
 	if err != nil {
 		return fmt.Errorf("error getting sync data: %v", err)
 	}

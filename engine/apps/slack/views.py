@@ -3,6 +3,7 @@ import hmac
 import json
 import logging
 from contextlib import suppress
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -291,11 +292,13 @@ class SlackEventApiEndpointView(APIView):
                 return Response()
         elif organization:
             user = slack_user_identity.get_user(organization)
-            if not user:
-                # Means that user slack_user_identity is not in any organization, connected to this Slack workspace
-                warning_text = "Permission denied. Please connect your Slack account to OnCall."
-                # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
-                self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
+            if not user:  # SlackUserIdentity exists but not connected to any user in this organization
+                user_settings_url = urljoin(organization.grafana_url, "/a/grafana-oncall-app/users/me/")
+                self._open_warning_window_if_needed(
+                    payload,
+                    slack_team_identity,
+                    f"Permission denied. Please connect your Slack account to OnCall: {user_settings_url}",
+                )
                 return Response(status=200)
         # direct paging / manual incident / schedule update dialogs don't require organization to be set
         elif (

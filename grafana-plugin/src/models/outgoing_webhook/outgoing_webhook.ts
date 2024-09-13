@@ -1,8 +1,11 @@
+import { AutoLoadingState, WithGlobalNotification } from 'helpers/decorators';
 import { action, observable, makeObservable, runInAction } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
+import { ActionKey } from 'models/loader/action-keys';
 import { makeRequest } from 'network/network';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { onCallApi } from 'network/oncall-api/http-client';
 import { RootStore } from 'state/rootStore';
 
 import { OutgoingWebhookPreset } from './outgoing_webhook.types';
@@ -64,7 +67,8 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action.bound
-  async updateItems(query: any = '') {
+  @AutoLoadingState(ActionKey.FETCH_WEBHOOKS)
+  async updateItems(query: any = '', forceUpdate = false) {
     const params = typeof query === 'string' ? { search: query } : query;
 
     const results = await makeRequest(`${this.path}`, {
@@ -73,7 +77,7 @@ export class OutgoingWebhookStore extends BaseStore {
 
     runInAction(() => {
       this.items = {
-        ...this.items,
+        ...(forceUpdate ? {} : this.items),
         ...results.reduce(
           (acc: { [key: number]: ApiSchemas['Webhook'] }, item: ApiSchemas['Webhook']) => ({
             ...acc,
@@ -89,6 +93,18 @@ export class OutgoingWebhookStore extends BaseStore {
         ...this.searchResult,
         [key]: results.map((item: ApiSchemas['Webhook']) => item.id),
       };
+    });
+  }
+
+  @action.bound
+  @AutoLoadingState(ActionKey.TRIGGER_MANUAL_WEBHOOK)
+  @WithGlobalNotification({ success: 'Webhook has been triggered successfully.', failure: 'Failed to trigger webhook' })
+  async triggerManualWebhook(id: ApiSchemas['Webhook']['id'], alertGroupId: ApiSchemas['AlertGroup']['pk']) {
+    await onCallApi().POST(`/webhooks/{id}/trigger_manual/`, {
+      params: { path: { id } },
+      body: {
+        alert_group: alertGroupId,
+      },
     });
   }
 
@@ -108,11 +124,18 @@ export class OutgoingWebhookStore extends BaseStore {
     return result;
   }
 
-  async renderPreview(id: ApiSchemas['Webhook']['id'], template_name: string, template_body: string, payload) {
-    return await makeRequest(`${this.path}${id}/preview_template/`, {
-      method: 'POST',
-      data: { template_name, template_body, payload },
-    });
+  async renderPreview(
+    id: ApiSchemas['Webhook']['id'],
+    template_name: string,
+    template_body: string,
+    payload: { [key: string]: unknown } = undefined
+  ) {
+    return (
+      await onCallApi().POST('/webhooks/{id}/preview_template/', {
+        params: { path: { id } },
+        body: { template_name, template_body, payload },
+      })
+    ).data;
   }
 
   @action.bound
