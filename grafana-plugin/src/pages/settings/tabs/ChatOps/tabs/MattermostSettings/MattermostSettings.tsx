@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, Icon } from '@grafana/ui';
+import { Button, Stack, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { DOCS_MATTERMOST_SETUP, StackSize } from 'helpers/consts';
+import { showApiError } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -10,8 +12,6 @@ import { Text } from 'components/Text/Text';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { DOCS_MATTERMOST_SETUP } from 'helpers/consts';
-import { showApiError } from 'helpers/helpers';
 
 import styles from './MattermostSettings.module.css';
 
@@ -42,10 +42,10 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
 
     if (!isIntegrated) {
       return (
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Mattermost workspace</Text.Title>
           <Block bordered withBackground className={cx('mattermost-infoblock')}>
-            <VerticalGroup align="center">
+            <Stack direction="column" alignItems="center">
               <Text className={cx('infoblock-text')}>
                 Connecting Mattermost App will allow you to manage alert groups in your team Mattermost workspace.
               </Text>
@@ -60,36 +60,36 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
-            </VerticalGroup>
+            </Stack>
           </Block>
           {envStatus ? (
-            <HorizontalGroup>
+            <Stack>
               <Button onClick={this.handleOpenMattermostInstructions}>
-                <HorizontalGroup spacing="xs" align="center">
-                  <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Mattermost connection
-                  page
-                </HorizontalGroup>
+                <Stack gap={StackSize.xs} alignItems="center">
+                  <Icon name="external-link-alt" className="u-margin-left-xs u-margin-bottom-xxs" /> Open Mattermost
+                  connection page
+                </Stack>
               </Button>
               {store.hasFeature(AppFeature.LiveSettings) && (
                 <PluginLink query={{ page: 'live-settings' }}>
                   <Button variant="secondary">See ENV Variables</Button>
                 </PluginLink>
               )}
-            </HorizontalGroup>
+            </Stack>
           ) : (
-            <HorizontalGroup>
+            <Stack>
               <PluginLink query={{ page: 'live-settings' }}>
                 <Button variant="primary">Setup ENV Variables</Button>
               </PluginLink>
-            </HorizontalGroup>
+            </Stack>
           )}
-        </VerticalGroup>
+        </Stack>
       );
     } else {
       return (
-        <VerticalGroup spacing="lg">
+        <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connected Mattermost workspace</Text.Title>
-        </VerticalGroup>
+        </Stack>
       );
     }
   }
