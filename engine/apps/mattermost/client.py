@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 import requests
+from django.conf import settings
 from requests.auth import AuthBase
 from requests.models import PreparedRequest
 
-from apps.base.utils import live_settings
 from apps.mattermost.exceptions import MattermostAPIException, MattermostAPITokenInvalid
 
 
@@ -28,8 +28,8 @@ class MattermostChannel:
 
 class MattermostClient:
     def __init__(self, token: Optional[str] = None) -> None:
-        self.token = token or live_settings.MATTERMOST_BOT_TOKEN
-        self.base_url = f"{live_settings.MATTERMOST_HOST}/api/v4"
+        self.token = token or settings.MATTERMOST_BOT_TOKEN
+        self.base_url = f"{settings.MATTERMOST_HOST}/api/v4"
         self.timeout: int = 10
 
         if self.token is None:

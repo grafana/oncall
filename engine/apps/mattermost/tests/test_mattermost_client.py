@@ -3,15 +3,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 import requests
+from django.conf import settings
 from rest_framework import status
 
-from apps.base.utils import live_settings
 from apps.mattermost.client import MattermostAPIException, MattermostAPITokenInvalid, MattermostClient
 
 
 @pytest.mark.django_db
 def test_mattermost_client_initialization():
-    live_settings.MATTERMOST_BOT_TOKEN = None
+    settings.MATTERMOST_BOT_TOKEN = None
     with pytest.raises(MattermostAPITokenInvalid) as exc:
         MattermostClient()
         assert type(exc) is MattermostAPITokenInvalid
