@@ -144,18 +144,10 @@ const Tabs = (props: TabsProps) => {
       )}
       {store.hasFeature(AppFeature.Mattermost) && (
         <VerticalTab id={ChatOpsTab.Mattermost}>
-          <HorizontalGroup>
+          <Stack>
             <Icon name="message" />
             Mattermost
-          </HorizontalGroup>
-        </VerticalTab>
-      )}
-      {store.hasFeature(AppFeature.Mattermost) && (
-        <VerticalTab id={ChatOpsTab.Mattermost}>
-          <HorizontalGroup>
-            <Icon name="message" />
-            Mattermost
-          </HorizontalGroup>
+          </Stack>
         </VerticalTab>
       )}
     </VerticalTabsBar>
