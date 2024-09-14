@@ -280,7 +280,10 @@ def test_list_mattermost_channels(
     url = reverse("mattermost:channel-list")
     response = client.get(url, **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected_payload
+    response_data = response.json()
+    assert len(response_data) == 2
+    for channel_data in expected_payload:
+        assert channel_data in response_data
 
 
 @pytest.mark.django_db
