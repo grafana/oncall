@@ -49,8 +49,10 @@ class MattermostChannelSerializer(serializers.ModelSerializer):
             response = MattermostClient().get_channel_by_name_and_team_name(
                 team_name=team_name, channel_name=channel_name
             )
-        except (MattermostAPIException, MattermostAPITokenInvalid) as ex:
+        except MattermostAPIException as ex:
             raise BadRequest(detail=ex.msg)
+        except MattermostAPITokenInvalid:
+            raise BadRequest(detail="Mattermost API token is invalid.")
 
         return super().to_internal_value(
             {

@@ -1,10 +1,10 @@
+import { GENERIC_ERROR } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/helpers';
 import { makeObservable } from 'mobx';
 
 import { BaseStore } from 'models/base_store';
 import { makeRequestRaw } from 'network/network';
 import { RootStore } from 'state/rootStore';
-import { GENERIC_ERROR } from 'utils/consts';
-import { openErrorNotification } from 'utils/utils';
 
 export class MattermostStore extends BaseStore {
   constructor(rootStore: RootStore) {
