@@ -27,9 +27,9 @@ test('schedule calendar and list of schedules is correctly displayed', async ({ 
   await page.waitForTimeout(2000);
 
   // schedules table displays details created schedule
-  const schedulesTable = page.getByTestId('schedules-table');
-  await expect(schedulesTable.getByRole('cell', { name: onCallScheduleName })).toBeVisible();
-  await expect(schedulesTable.getByRole('cell', { name: 'Web' })).toBeVisible();
-  await expect(schedulesTable.getByRole('cell', { name: userName })).toBeVisible();
-  await expect(schedulesTable.getByRole('cell', { name: 'No team' })).toBeVisible();
+  const schedulesTableLastRow = page.getByTestId('schedules-table').getByRole('row').last();
+  await expect(schedulesTableLastRow.getByRole('cell', { name: onCallScheduleName })).toBeVisible();
+  await expect(schedulesTableLastRow.getByRole('cell', { name: 'Web' })).toBeVisible();
+  await expect(schedulesTableLastRow.getByRole('cell', { name: userName })).toBeVisible();
+  await expect(schedulesTableLastRow.getByRole('cell', { name: 'No team' })).toBeVisible();
 });
