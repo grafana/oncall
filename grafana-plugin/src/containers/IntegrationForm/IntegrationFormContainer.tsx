@@ -136,11 +136,10 @@ const IntegrationBlocks: React.FC<{
               shadowed
               onClick={() => onBlockClick(alertReceiveChannelChoice)}
               key={alertReceiveChannelChoice.value}
-              className={cx({ [styles.cardFeatured]: alertReceiveChannelChoice.featured })}
+              className={cx(styles.card, { [styles.cardFeatured]: alertReceiveChannelChoice.featured })}
             >
-              <div>
-                <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
-              </div>
+              <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
+
               <div className={styles.title}>
                 <Stack direction="column" gap={alertReceiveChannelChoice.featured ? StackSize.xs : StackSize.none}>
                   <Stack>

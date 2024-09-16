@@ -39,6 +39,7 @@ export const getIntegrationFormContainerStyles = (theme: GrafanaTheme2) => {
     cardFeatured: css`
       width: 100%;
       height: 106px;
+      cursor: pointer;
     `,
 
     title: css`
