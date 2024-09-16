@@ -3,6 +3,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Icon, Label, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

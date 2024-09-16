@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 
 import { cx } from '@emotion/css';
 import { InlineSwitch, Tooltip, useStyles2 } from '@grafana/ui';
+import { openNotification, openErrorNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { IntegrationBlockItem } from 'components/Integrations/IntegrationBlockItem';

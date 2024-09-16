@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { ConfirmModal, Icon, IconName, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';

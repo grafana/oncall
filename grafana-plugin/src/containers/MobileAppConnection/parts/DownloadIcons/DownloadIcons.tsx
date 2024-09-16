@@ -2,6 +2,7 @@ import React, { FC } from 'react';
 
 import { css } from '@emotion/css';
 import { Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import AppleLogoSVG from 'assets/img/apple-logo.svg';
 import PlayStoreLogoSVG from 'assets/img/play-store-logo.svg';

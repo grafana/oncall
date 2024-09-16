@@ -3,6 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Icon, Label, Modal, Tooltip, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
 import { GSelect } from 'containers/GSelect/GSelect';

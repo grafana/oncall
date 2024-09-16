@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Icon, Stack, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 import { noop } from 'lodash-es';
 import { getUtilStyles } from 'styles/utils.styles';
 

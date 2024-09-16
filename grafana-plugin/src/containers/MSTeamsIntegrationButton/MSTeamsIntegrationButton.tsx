@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Modal, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
 import { MSTeamsInstructions } from 'containers/MSTeams/MSTeamsInstructions';

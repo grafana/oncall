@@ -3,6 +3,7 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { AppRootProps, GrafanaTheme2 } from '@grafana/data';
 import { Alert, Icon, Stack, Themeable2 } from '@grafana/ui';
+import { LocationHelper } from 'helpers/LocationHelper';
 import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';

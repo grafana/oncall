@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, Stack, useStyles2 } from '@grafana/ui';
+import { useCommonStyles } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 
 import { WebhookLastEventDetails } from 'components/Webhooks/WebhookLastEventDetails';

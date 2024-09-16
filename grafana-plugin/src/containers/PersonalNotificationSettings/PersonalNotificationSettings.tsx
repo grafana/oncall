@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 
 import { css } from '@emotion/css';
 import { Button, Icon, LoadingPlaceholder, Stack, Tooltip, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
