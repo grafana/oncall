@@ -17,7 +17,7 @@ import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize, DOCS_SLACK_SETUP, getPluginId } from 'helpers/consts';
 import { showApiError } from 'helpers/helpers';
 import { useConfirmModal } from 'helpers/hooks';
-import { observer, observer } from 'mobx-react';
+import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';

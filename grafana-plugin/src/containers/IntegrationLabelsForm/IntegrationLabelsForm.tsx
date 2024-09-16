@@ -18,6 +18,8 @@ import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config
 import { useStore } from 'state/useStore';
 
 import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
+import { DOCS_ROOT, StackSize, GENERIC_ERROR } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/helpers';
 
 const INPUT_WIDTH = 280;
 

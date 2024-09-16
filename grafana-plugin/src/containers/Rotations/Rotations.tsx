@@ -188,7 +188,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                             <CSSTransition
                               key={rotationIndex}
                               timeout={DEFAULT_TRANSITION_TIMEOUT}
-                              classNames={{ ...animationStyles }}
+                              classNames={{ ...getAnimationClasses() }}
                             >
                               <Rotation
                                 onClick={(shiftStart, shiftEnd) => {

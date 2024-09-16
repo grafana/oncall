@@ -1,6 +1,6 @@
 import React, { ReactElement, useCallback } from 'react';
 
-import { css, cx, cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { Tooltip } from '@grafana/ui';
 import { isUserActionAllowed, UserAction } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';

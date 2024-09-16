@@ -16,6 +16,7 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
+import { UserActions, isUserActionAllowed } from 'helpers/authorization/authorization';
 
 interface LiveSettingsProps extends WithStoreProps, Themeable2 {}
 

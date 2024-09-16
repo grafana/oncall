@@ -145,7 +145,7 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
                   );
                 })
               ) : (
-                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...animationStyles }}>
+                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...getAnimationClasses() }}>
                   <Rotation scheduleView={scheduleView} startDate={calendarStartDate} events={[]} />
                 </CSSTransition>
               )}
