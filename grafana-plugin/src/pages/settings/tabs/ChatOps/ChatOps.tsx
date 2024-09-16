@@ -2,14 +2,14 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { AppRootProps, GrafanaTheme2 } from '@grafana/data';
-import { Alert, Icon, Stack, Themeable2 } from '@grafana/ui';
+import { Alert, Icon, Stack, Themeable2, withTheme2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import { MSTeamsSettings } from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings';
 import { SlackSettings } from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
-import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
+import { TelegramSettings } from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -101,7 +101,7 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
   }
 }
 
-export const ChatOpsPage = withMobXProviderContext(_ChatOpsPage);
+export const ChatOpsPage = withMobXProviderContext(withTheme2(_ChatOpsPage));
 
 interface TabsProps {
   activeTab: string;

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, Checkbox, Icon, Stack, Themeable2 } from '@grafana/ui';
+import { Button, Checkbox, Icon, Stack, Themeable2, withTheme2 } from '@grafana/ui';
 import { UserActions, isUserActionAllowed } from 'helpers/authorization/authorization';
 import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
@@ -280,4 +280,4 @@ const getStyles = (theme: GrafanaTheme2) => {
   };
 };
 
-export default withMobXProviderContext(LiveSettings);
+export default withMobXProviderContext(withTheme2(LiveSettings));

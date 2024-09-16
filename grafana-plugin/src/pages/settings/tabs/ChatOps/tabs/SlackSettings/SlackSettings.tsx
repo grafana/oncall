@@ -12,6 +12,7 @@ import {
   ConfirmModal,
   Stack,
   Themeable2,
+  withTheme2,
 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize, DOCS_SLACK_SETUP, getPluginId } from 'helpers/consts';
@@ -417,4 +418,4 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
   );
 });
 
-export const SlackSettings = withMobXProviderContext(_SlackSettings);
+export const SlackSettings = withMobXProviderContext(withTheme2(_SlackSettings));

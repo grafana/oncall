@@ -12,7 +12,7 @@ import { ActionKey } from 'models/loader/action-keys';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
-import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
+import { ConnectedIntegrationsTable } from './ConnectedIntegrationsTable';
 import { useCurrentIntegration } from './OutgoingTab.hooks';
 import { getStyles } from './OutgoingTab.styles';
 

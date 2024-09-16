@@ -10,7 +10,7 @@ import { Text } from 'components/Text/Text';
 import { useStore } from 'state/useStore';
 
 import { ConnectIntegrationModal } from './ConnectIntegrationModal';
-import ConnectedIntegrationsTable from './ConnectedIntegrationsTable';
+import { ConnectedIntegrationsTable } from './ConnectedIntegrationsTable';
 import { useIntegrationIdFromUrl } from './OutgoingTab.hooks';
 
 export const OtherIntegrations = observer(() => {

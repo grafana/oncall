@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { css, cx } from '@emotion/css';
-import { Badge, Button, Icon, LoadingPlaceholder, Stack, Themeable2 } from '@grafana/ui';
+import { Badge, Button, Icon, LoadingPlaceholder, Stack, Themeable2, withTheme2 } from '@grafana/ui';
 import { DOCS_TELEGRAM_SETUP, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
@@ -22,7 +22,7 @@ interface TelegramProps extends WithStoreProps, Themeable2 {}
 interface TelegramState {}
 
 @observer
-class TelegramSettings extends Component<TelegramProps, TelegramState> {
+class _TelegramSettings extends Component<TelegramProps, TelegramState> {
   state: TelegramState = {};
 
   componentDidMount() {
@@ -169,6 +169,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
       </>
     );
   };
+
   renderDefaultChannel = (isDefault: boolean) => {
     return <>{isDefault && <Icon name="check" />}</>;
   };
@@ -209,7 +210,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
   };
 }
 
-export default withMobXProviderContext(TelegramSettings);
+export const TelegramSettings = withMobXProviderContext(withTheme2(_TelegramSettings));
 
 const getStyles = () => {
   return {
