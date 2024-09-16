@@ -3,6 +3,8 @@ import React, { useCallback } from 'react';
 import { css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Select, Stack, useStyles2 } from '@grafana/ui';
+import { UserActions } from 'helpers/authorization/authorization';
+import { openNotification, showApiError } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
@@ -14,8 +16,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'helpers/authorization/authorization';
-import { openNotification, showApiError } from 'helpers/helpers';
 
 interface MaintenanceFormProps {
   initialData: {

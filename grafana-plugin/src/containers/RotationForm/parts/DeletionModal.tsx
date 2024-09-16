@@ -1,10 +1,10 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
 import { Stack, Modal as GrafanaModal, Button, InlineSwitch, useStyles2 } from '@grafana/ui';
+import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
 import { getRotationFormStyles } from 'containers/RotationForm/RotationForm.styles';
-import { StackSize } from 'helpers/consts';
 
 interface DeletionModalProps {
   onHide: () => void;

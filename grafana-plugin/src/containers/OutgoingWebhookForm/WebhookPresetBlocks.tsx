@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
 import { IntegrationLogo } from 'components/IntegrationLogo/IntegrationLogo';
-import { logoCoors } from 'components/IntegrationLogo/IntegrationLogo.config';
+import { logoColors } from 'components/IntegrationLogo/IntegrationLogo.config';
 import { Text } from 'components/Text/Text';
 import { getWebhookPresetIcons } from 'containers/OutgoingWebhookForm/WebhookPresetIcons.config';
 import { OutgoingWebhookPreset } from 'models/outgoing_webhook/outgoing_webhook.types';
@@ -28,7 +28,7 @@ export const WebhookPresetBlocks: React.FC<{
       {presets.length ? (
         presets.map((preset) => {
           let logo = <IntegrationLogo integration={{ value: 'webhook', display_name: preset.name }} scale={0.2} />;
-          if (preset.logo in logoCoors) {
+          if (preset.logo in logoColors) {
             logo = <IntegrationLogo integration={{ value: preset.logo, display_name: preset.name }} scale={0.2} />;
           } else if (preset.logo in webhookPresetIcons) {
             logo = webhookPresetIcons[preset.logo]();

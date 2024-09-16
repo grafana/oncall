@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { Button, Field, Icon, Input, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { determineRequiredAuthString, UserActions } from 'helpers/authorization/authorization';
+import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/helpers';
+import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { observer } from 'mobx-react';
 
 import { Block } from 'components/GBlock/Block';
@@ -14,10 +18,6 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getCloudPageStyles } from './CloudPage.styles';
-import { determineRequiredAuthString, UserActions } from 'helpers/authorization/authorization';
-import { PLUGIN_ROOT, StackSize } from 'helpers/consts';
-import { openErrorNotification } from 'helpers/helpers';
-import { PropsWithRouter, withRouter } from 'helpers/hoc';
 
 interface CloudPageProps extends WithStoreProps, PropsWithRouter<{}> {}
 const ITEMS_PER_PAGE = 50;

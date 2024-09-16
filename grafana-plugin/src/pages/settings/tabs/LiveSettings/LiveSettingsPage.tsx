@@ -3,6 +3,7 @@ import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Checkbox, Icon, Stack, Themeable2 } from '@grafana/ui';
+import { UserActions, isUserActionAllowed } from 'helpers/authorization/authorization';
 import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
 
@@ -16,7 +17,6 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
-import { UserActions, isUserActionAllowed } from 'helpers/authorization/authorization';
 
 interface LiveSettingsProps extends WithStoreProps, Themeable2 {}
 

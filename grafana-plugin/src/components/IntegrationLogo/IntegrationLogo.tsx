@@ -3,18 +3,17 @@ import React, { FC } from 'react';
 import { css, cx } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
 
-import { SelectOption } from 'state/types';
-
-import { logoCoors } from './IntegrationLogo.config';
-
-import IntegrationLogos from 'assets/img/integration-logos.png';
-import GrafanaIcon from 'assets/img/grafana_icon.svg';
-import ServiceNowIcon from 'assets/img/ServiceNow.png';
-import PagerDutyIcon from 'assets/img/PagerDuty.png';
 import ElasticAlertIcon from 'assets/img/ElastAlert.svg';
 import HeartbeatMonitoringIcon from 'assets/img/HeartBeatMonitoring.png';
+import PagerDutyIcon from 'assets/img/PagerDuty.png';
+import ServiceNowIcon from 'assets/img/ServiceNow.png';
 import GrafanaLegacyAlertingIcon from 'assets/img/grafana-legacy-alerting-icon.svg';
+import GrafanaIcon from 'assets/img/grafana_icon.svg';
 import InboundEmailIcon from 'assets/img/inbound-email.png';
+import IntegrationLogos from 'assets/img/integration-logos.png';
+import { logoColors } from 'components/IntegrationLogo/IntegrationLogo.config';
+import { SelectOption } from 'state/types';
+
 
 export interface IntegrationLogoProps {
   integration: SelectOption;
@@ -32,7 +31,7 @@ export const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
     return null;
   }
 
-  const coors = logoCoors[integration.value] || { x: 2, y: 14 };
+  const coors = logoColors[integration.value] || { x: 2, y: 14 };
 
   const bgStyle = {
     backgroundPosition: `-${coors?.x * LOGO_WIDTH * scale}px -${coors?.y * LOGO_WIDTH * scale}px`,

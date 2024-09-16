@@ -3,6 +3,8 @@ import React, { ChangeEvent, useState } from 'react';
 import { css } from '@emotion/css';
 import { ServiceLabels } from '@grafana/labels';
 import { Alert, Button, Drawer, Dropdown, InlineSwitch, Input, Menu, Stack, useStyles2 } from '@grafana/ui';
+import { DOCS_ROOT, StackSize, GENERIC_ERROR } from 'helpers/consts';
+import { openErrorNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { Collapse } from 'components/Collapse/Collapse';
@@ -10,16 +12,16 @@ import { MonacoEditor, MonacoLanguage } from 'components/MonacoEditor/MonacoEdit
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { Text } from 'components/Text/Text';
+import {
+  getIsAddBtnDisabled,
+  getIsTooManyLabelsWarningVisible,
+} from 'containers/IntegrationLabelsForm/IntegrationLabelsForm.helpers';
 import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { splitToGroups } from 'models/label/label.helpers';
 import { LabelsErrors } from 'models/label/label.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-
-import { getIsAddBtnDisabled, getIsTooManyLabelsWarningVisible } from './IntegrationLabelsForm.helpers';
-import { DOCS_ROOT, StackSize, GENERIC_ERROR } from 'helpers/consts';
-import { openErrorNotification } from 'helpers/helpers';
 
 const INPUT_WIDTH = 280;
 

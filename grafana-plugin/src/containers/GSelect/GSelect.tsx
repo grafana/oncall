@@ -3,9 +3,9 @@ import React, { ReactElement, useCallback, useEffect } from 'react';
 import { cx, css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect, useStyles2 } from '@grafana/ui';
+import { useDebouncedCallback } from 'helpers/hooks';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
-import { useDebouncedCallback } from 'helpers/hooks';
 
 interface GSelectProps<Item> {
   items: {
