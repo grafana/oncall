@@ -7,6 +7,15 @@ import { SelectOption } from 'state/types';
 
 import { logoCoors } from './IntegrationLogo.config';
 
+import IntegrationLogos from 'assets/img/integration-logos.png';
+import GrafanaIcon from 'assets/img/grafana_icon.svg';
+import ServiceNowIcon from 'assets/img/ServiceNow.png';
+import PagerDutyIcon from 'assets/img/PagerDuty.png';
+import ElasticAlertIcon from 'assets/img/ElastAlert.svg';
+import HeartbeatMonitoringIcon from 'assets/img/HeartBeatMonitoring.png';
+import GrafanaLegacyAlertingIcon from 'assets/img/grafana-legacy-alerting-icon.svg';
+import InboundEmailIcon from 'assets/img/inbound-email.png';
+
 export interface IntegrationLogoProps {
   integration: SelectOption;
   scale: number;
@@ -45,42 +54,42 @@ export const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
 const getStyles = () => {
   return {
     bg: css`
-      background: url(../../assets/img/integration-logos.png);
+      background: url(${IntegrationLogos});
       background-repeat: no-repeat;
     `,
 
     bgServiceNow: css`
-      background: url(../../assets/img/ServiceNow.png);
+      background: url(${ServiceNowIcon})
       background-size: 100% !important;
     `,
 
     bgPagerDuty: css`
-      background: url(../../assets/img/PagerDuty.png);
+      background: url(${PagerDutyIcon});
       background-size: 100% !important;
     `,
 
     bgElastAlert: css`
-      background: url(../../assets/img/ElastAlert.svg);
+      background: url(${ElasticAlertIcon});
       background-size: 100% !important;
     `,
 
     bgHeartBeatMonitoring: css`
-      background: url(../../assets/img/HeartBeatMonitoring.png);
+      background: url(${HeartbeatMonitoringIcon});
       background-size: 100% !important;
     `,
 
     bgGrafanaLegacyAlerting: css`
-      background: url(../../assets/img/grafana-legacy-alerting-icon.svg);
+      background: url(${GrafanaLegacyAlertingIcon});
       background-size: 100% !important;
     `,
 
     bgGrafanaAlerting: css`
-      background: url(../../assets/img/grafana_icon.svg);
+      background: url(${GrafanaIcon});
       background-size: 100% !important;
     `,
 
     bgInboundEmail: css`
-      background: url(../../assets/img/inbound-email.png);
+      background: url(${InboundEmailIcon});
       background-size: 100% !important;
     `,
   };
