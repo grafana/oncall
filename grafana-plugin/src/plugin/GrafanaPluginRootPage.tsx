@@ -30,7 +30,7 @@ import { SchedulesPage } from 'pages/schedules/Schedules';
 import { SettingsPage } from 'pages/settings/SettingsPage';
 import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { CloudPage } from 'pages/settings/tabs/Cloud/CloudPage';
-import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
+import { LiveSettings } from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
