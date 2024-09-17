@@ -130,6 +130,34 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
 
 `POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unresolve`
 
+## Silence an alert group
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/silence" \
+  --request POST \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/silence`
+
+| Parameter | Required | Description                                                                                                                                                                                                                                                                                                                                             |
+|-----------|:--------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `delay`    |    Yes    | The duration of silence in seconds, `-1` for silencing the alert forever |
+
+## unsilence an alert group
+
+```shell
+curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unsilence" \
+  --request POST \
+  --header "Authorization: meowmeowmeow"
+```
+
+**HTTP request**
+
+`POST {{API_URL}}/api/v1/alert_groups/<ALERT_GROUP_ID>/unsilence`
+
 ## Delete an alert group
 
 ```shell
