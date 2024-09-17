@@ -79,11 +79,12 @@ export const Root = observer((props: AppRootProps) => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line deprecation/deprecation
     let link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
 
-    // create a style element
+    // eslint-disable-next-line deprecation/deprecation
     const styleEl = document.createElement('style');
     const head = document.head || document.getElementsByTagName('head')[0];
     styleEl.appendChild(document.createTextNode(grafanaGlobalStyle));

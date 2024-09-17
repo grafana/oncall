@@ -1,10 +1,10 @@
 import React, { ComponentProps, FC, useCallback } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@grafana/ui';
 import { getPaths } from 'helpers/helpers';
 
 import { conf, language as jinja2Language } from './jinja2';
-import { css, cx } from '@emotion/css';
 
 declare const monaco: any;
 

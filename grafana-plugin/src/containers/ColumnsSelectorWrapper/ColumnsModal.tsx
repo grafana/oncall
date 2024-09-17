@@ -8,7 +8,6 @@ import {
   IconButton,
   Input,
   LoadingPlaceholder,
-  LoadingPlaceholder,
   Modal,
   Stack,
   useStyles2,

@@ -1,5 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { ServiceLabelsProps, ServiceLabels } from '@grafana/labels';
 import { Field, Label } from '@grafana/ui';
 import { GENERIC_ERROR } from 'helpers/consts';
@@ -10,7 +11,6 @@ import { observer } from 'mobx-react';
 import { splitToGroups } from 'models/label/label.helpers';
 import { LabelKeyValue } from 'models/label/label.types';
 import { useStore } from 'state/useStore';
-import { css } from '@emotion/css';
 
 export interface LabelsProps {
   value: LabelKeyValue[];
