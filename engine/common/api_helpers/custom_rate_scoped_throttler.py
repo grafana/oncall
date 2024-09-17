@@ -22,6 +22,8 @@ class CustomRateUserThrottler(UserRateThrottle):
 
 
 class CustomRateOrganizationThrottler(CustomRateUserThrottler):
+    scope = "organization"
+
     def get_cache_key(self, request, view):
         if request.user.is_authenticated:
             ident = request.user.organization.pk

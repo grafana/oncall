@@ -8,6 +8,7 @@ from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
 from common.utils import getenv_boolean, getenv_integer, getenv_list
+from common.api_helpers.custom_ratelimit import CustomRateLimit
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -964,7 +965,18 @@ DETACHED_INTEGRATIONS_SERVER = getenv_boolean("DETACHED_INTEGRATIONS_SERVER", de
 
 ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS", default=14)
 
-CUSTOM_RATELIMITS: str = json.loads(os.getenv("CUSTOM_RATELIMITS", "{}"))
+# The CUSTOM_RATELIMITS environment variable is expected to be a JSON string that defines rate limits
+# for different levels (e.g., integration, organization, public API).
+# Example of CUSTOM_RATELIMITS in environment variable:
+# CUSTOM_RATELIMITS={"1": {"integration": "10/5m", "organization": "15/5m", "public_api": "10/5m"}}
+# Where, "1" is the pk of the organization
+
+# Load the environment variable and parse it into a dictionary, falling back to an empty dictionary if not set.
+CUSTOM_RATELIMITS: typing.Dict[str, CustomRateLimit] = json.loads(os.getenv("CUSTOM_RATELIMITS", "{}"))
+# Convert the parsed JSON into a dictionary of RateLimit dataclasses
+CUSTOM_RATELIMITS = {
+    key: CustomRateLimit(**value) for key, value in CUSTOM_RATELIMITS.items()
+}
 
 SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 6)
 SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 240)
