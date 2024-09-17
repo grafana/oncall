@@ -14,7 +14,6 @@ import IntegrationLogos from 'assets/img/integration-logos.png';
 import { logoColors } from 'components/IntegrationLogo/IntegrationLogo.config';
 import { SelectOption } from 'state/types';
 
-
 export interface IntegrationLogoProps {
   integration: SelectOption;
   scale: number;

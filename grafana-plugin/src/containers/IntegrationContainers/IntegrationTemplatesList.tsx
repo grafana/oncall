@@ -86,7 +86,9 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
                       )}
                       {isTemplateEditable(contents.name) && (
                         <div
-                          className={cx(styles.input, { [styles.inputWithToggler]: isResolveConditionTemplate(contents.name) })}
+                          className={cx(styles.input, {
+                            [styles.inputWithToggler]: isResolveConditionTemplate(contents.name),
+                          })}
                         >
                           <MonacoEditor
                             value={IntegrationHelper.getFilteredTemplate(

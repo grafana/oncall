@@ -19,7 +19,7 @@ export const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
   placement,
   children,
 }) => {
-  const [isEllipsis, setIsEllipsis] = useState(true);
+  const [isEllipsis, setIsEllipsis] = useState(false);
   const elContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

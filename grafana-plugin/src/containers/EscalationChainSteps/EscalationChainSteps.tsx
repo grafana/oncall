@@ -71,7 +71,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   return (
     // @ts-ignore
-    <SortableList useDragHandle className={cx('steps')} axis="y" lockAxis="y" onSortEnd={handleSortEnd}>
+    <SortableList useDragHandle axis="y" lockAxis="y" onSortEnd={handleSortEnd}>
       {addonBefore}
       {escalationPolicyIds ? (
         escalationPolicyIds.map((escalationPolicyId, index) => {

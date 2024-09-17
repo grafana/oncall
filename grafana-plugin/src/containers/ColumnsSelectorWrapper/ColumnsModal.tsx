@@ -2,16 +2,7 @@ import React, { useMemo, useState } from 'react';
 
 import { css } from '@emotion/css';
 import { LabelTag } from '@grafana/labels';
-import {
-  Button,
-  Checkbox,
-  IconButton,
-  Input,
-  LoadingPlaceholder,
-  Modal,
-  Stack,
-  useStyles2,
-} from '@grafana/ui';
+import { Button, Checkbox, IconButton, Input, LoadingPlaceholder, Modal, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { PROCESSING_REQUEST_ERROR, StackSize } from 'helpers/consts';
 import { WrapWithGlobalNotification } from 'helpers/decorators';

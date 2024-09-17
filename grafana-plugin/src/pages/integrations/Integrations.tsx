@@ -602,7 +602,6 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         key: 'name',
         render: this.renderName,
       },
-
       {
         width: '15%',
         title: 'Status',
