@@ -248,10 +248,6 @@ def test_get_organization_slack_config_checks(
     expected_result = {
         "is_chatops_connected": False,
         "is_integration_chatops_connected": False,
-        "mattermost": {
-            "env_status": True,
-            "is_integrated": False,
-        },
     }
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -307,10 +303,6 @@ def test_get_organization_telegram_config_checks(
     expected_result = {
         "is_chatops_connected": False,
         "is_integration_chatops_connected": False,
-        "mattermost": {
-            "env_status": True,
-            "is_integrated": False,
-        },
     }
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
