@@ -55,7 +55,7 @@ const getStyles = () => {
       display: flex;
       flex-direction: column;
 
-      :global(.filter-table) td {
+      .filter-table td {
         white-space: break-spaces;
         line-height: 20px;
         height: auto;

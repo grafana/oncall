@@ -25,7 +25,7 @@ interface LiveSettingsState {
 }
 
 @observer
-class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState> {
+class _LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState> {
   state: LiveSettingsState = {
     hideValues: true,
   };
@@ -64,7 +64,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     const columns = [
       {
-        width: '15%',
+        width: '20%',
         title: 'Name',
         dataIndex: 'name',
         key: 'name',
@@ -89,7 +89,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         key: 'value',
       },
       {
-        width: '20%',
+        width: '10%',
         title: 'ENV or default',
         render: (item: GlobalSetting) => this.renderDefault(item), // to avoid caching previous render result
         key: 'default',
@@ -108,7 +108,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     return (
       <div>
         <GTable
-          rowClassName="row"
+          tableLayout="fixed"
           emptyText={data ? 'No variables found' : 'Loading...'}
           title={() => (
             <div className={styles.header}>
@@ -157,7 +157,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     }
 
     return (
-      <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+      <div className={breakwordStyles}>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
@@ -174,7 +174,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   renderError = (item: GlobalSetting) => {
     if (item.error) {
       return (
-        <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div className={breakwordStyles}>
           <Text type="warning">{item.error}</Text>
         </div>
       );
@@ -183,7 +183,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const styles = getStyles(this.props.theme);
 
     return (
-      <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+      <div className={breakwordStyles}>
         <Text>
           <Icon className={styles.checkIcon} name="check" />
         </Text>
@@ -208,12 +208,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const { hideValues } = this.state;
 
     return (
-      <div
-        className={css`
-          word-wrap: break-word;
-          word-break: break-word;
-        `}
-      >
+      <div className={breakwordStyles}>
         <Text>{hideValues && item.is_secret ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
       </div>
     );
@@ -254,6 +249,12 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 }
 
+const breakwordStyles = css`
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+`;
+
 const getStyles = (theme: GrafanaTheme2) => {
   return {
     alignTop: css`
@@ -272,6 +273,7 @@ const getStyles = (theme: GrafanaTheme2) => {
     descriptionStyle: css`
       word-wrap: break-word;
       word-break: break-word;
+      white-space: normal;
 
       a {
         color: ${theme.colors.primary.text};
@@ -280,4 +282,4 @@ const getStyles = (theme: GrafanaTheme2) => {
   };
 };
 
-export default withMobXProviderContext(withTheme2(LiveSettings));
+export const LiveSettings = withMobXProviderContext(withTheme2(_LiveSettings));
