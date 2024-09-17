@@ -1,6 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import {
   Button,
@@ -108,7 +108,12 @@ export const IntegrationContactPoint: React.FC<{
     <IntegrationBlock
       noContent={true}
       heading={
-        <div className={cx('u-flex', 'u-flex-space-between')}>
+        <div
+          className={css`
+            display: flex;
+            justify-content: space-between;
+          `}
+        >
           {isDrawerOpen && (
             <Drawer scrollableContent title="Connected Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
               <div>
@@ -156,7 +161,12 @@ export const IntegrationContactPoint: React.FC<{
                     content={'Check the notification policy for the contact point in Grafana Alerting'}
                     placement={'top'}
                   >
-                    <div className={cx('u-flex', 'u-flex-gap-xs')}>
+                    <div
+                      className={css`
+                        display: flex;
+                        gap: 4px;
+                      `}
+                    >
                       {renderExclamationIcon()}
                       <Text type="primary">{warnings.length} with error</Text>
                     </div>
@@ -243,7 +253,16 @@ export const IntegrationContactPoint: React.FC<{
           <Button variant="secondary" onClick={closeDrawer}>
             Cancel
           </Button>
-          {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
+          {isLoading && (
+            <Icon
+              name="fa fa-spinner"
+              size="md"
+              className={css`
+                margin-bottom: 0;
+                margin-right: 4px;
+              `}
+            />
+          )}
         </Stack>
       </Stack>
     );

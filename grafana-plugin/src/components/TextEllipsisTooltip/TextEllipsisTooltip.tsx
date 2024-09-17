@@ -1,12 +1,8 @@
 import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
+import { cx } from '@emotion/css';
 import { Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
-
-import styles from 'assets/style/utils.css';
-
-const cx = cn.bind(styles);
 
 interface TextEllipsisTooltipProps {
   content?: string;

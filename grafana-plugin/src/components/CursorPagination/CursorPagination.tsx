@@ -32,24 +32,27 @@ export const CursorPagination: FC<CursorPaginationProps> = (props) => {
   }, []);
 
   return (
-    <Stack gap={StackSize.md} justifyContent="flex-end">
-      <Stack>
+    <Stack gap={StackSize.xs} justifyContent="flex-end">
+      <Stack gap={StackSize.xs} alignItems="center">
         <Text
           type="secondary"
           className={css`
-            width: 200px;
+            width: 120px;
           `}
         >
           Items per list
         </Text>
         <Select
+          className={css`
+            max-width: 75px;
+          `}
           isSearchable={false}
           options={itemsPerPageOptions}
           value={itemsPerPage}
           onChange={onChangeItemsPerPageCallback}
         />
       </Stack>
-      <Stack>
+      <Stack gap={StackSize.xs} alignItems="center">
         <Button
           aria-label="previous"
           size="sm"

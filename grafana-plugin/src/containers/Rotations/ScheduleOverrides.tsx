@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Stack, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
@@ -135,7 +135,11 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </Stack>
             </Stack>
           </div>
-          <div className="u-position-relative">
+          <div
+            className={css`
+              position: relative;
+            `}
+          >
             {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
             {shiftSwaps && shiftSwaps.length ? (

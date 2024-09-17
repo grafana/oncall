@@ -215,11 +215,3 @@
   opacity: 0;
   transition: opacity 300ms ease-in, max-height 300ms ease-in;
 }
-
-/* -----
- * Widths
- */
-
-.u-max-width-1000 {
-  max-width: 1000px;
-}

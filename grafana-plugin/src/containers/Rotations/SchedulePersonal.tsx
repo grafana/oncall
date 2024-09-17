@@ -1,6 +1,6 @@
 import React, { FC, useEffect } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Badge, BadgeColor, Button, Icon, Stack, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
@@ -143,7 +143,11 @@ const _SchedulePersonal: FC<SchedulePersonalProps> = observer(({ userPk, onSlotC
           </Stack>
         </Stack>
       </div>
-      <div className={'u-position-relative'}>
+      <div
+        className={css`
+          position: relative;
+        `}
+      >
         {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
         <TimelineMarks scheduleView={ScheduleView.OneWeek} />
         <TransitionGroup className={cx(styles.layer, styles.layerFirst)}>

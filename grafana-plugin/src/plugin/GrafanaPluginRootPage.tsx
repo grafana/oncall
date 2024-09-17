@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { ErrorBoundary, LoadingPlaceholder } from '@grafana/ui';
 import { AppRootProps } from 'app-types';
-import classnames from 'classnames';
 import { isUserActionAllowed } from 'helpers/authorization/authorization';
 import { DEFAULT_PAGE, getOnCallApiUrl } from 'helpers/consts';
 import { FaroHelper } from 'helpers/faro';
@@ -120,10 +120,16 @@ export const Root = observer((props: AppRootProps) => {
         </>
       )}
       <div
-        className={classnames('u-position-relative', 'u-flex-grow-1', {
-          'u-overflow-x-auto': !isTopNavbar(),
-          'page-body': !isTopNavbar(),
-        })}
+        className={cx(
+          css`
+            position: relative;
+            flex-grow: 1;
+          `,
+          {
+            'u-overflow-x-auto': !isTopNavbar(),
+            'page-body': !isTopNavbar(),
+          }
+        )}
       >
         <RenderConditionally
           shouldRender={userHasAccess}

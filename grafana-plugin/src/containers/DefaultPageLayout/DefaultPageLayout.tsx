@@ -36,7 +36,14 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
   function renderLegacyNavbar(): ReactElement {
     return (
       <PluginPage page={page}>
-        <div className={cx('page-container', css`u-height-100`)}>
+        <div
+          className={cx(
+            'page-container',
+            css`
+              height: 100%;
+            `
+          )}
+        >
           <div className={cx(styles.root)}>
             <Alerts />
             {children}

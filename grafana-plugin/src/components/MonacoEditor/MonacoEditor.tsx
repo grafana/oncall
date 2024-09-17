@@ -1,10 +1,10 @@
 import React, { ComponentProps, FC, useCallback } from 'react';
 
 import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames';
 import { getPaths } from 'helpers/helpers';
 
 import { conf, language as jinja2Language } from './jinja2';
+import { css, cx } from '@emotion/css';
 
 declare const monaco: any;
 
@@ -104,7 +104,13 @@ export const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       height={height}
       onEditorDidMount={handleMount}
       getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
-      containerStyles={cn('u-width-height-100', containerClassName)}
+      containerStyles={cx(
+        css`
+          width: 100%;
+          height: 100%;
+        `,
+        containerClassName
+      )}
       {...codeEditorProps}
     />
   );

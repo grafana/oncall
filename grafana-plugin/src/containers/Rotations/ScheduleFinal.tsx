@@ -1,6 +1,6 @@
 import React, { FC, useMemo } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Stack, useStyles2, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
@@ -100,9 +100,22 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
             </Stack>
           </div>
         )}
-        <div className="u-position-relative">
+        <div
+          className={css`
+            position: relative;
+          `}
+        >
           {rows.map(({ startDate }, index) => (
-            <TransitionGroup key={index} className={cx('u-position-relative', styles.layer, styles.layerFirst)}>
+            <TransitionGroup
+              key={index}
+              className={cx(
+                css`
+                  position: relative;
+                `,
+                styles.layer,
+                styles.layerFirst
+              )}
+            >
               <TimelineMarks
                 scheduleView={scheduleView}
                 startDate={startDate}
