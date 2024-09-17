@@ -1,3 +1,27 @@
+:root {
+  --green-6: #73d13d;
+  --gray-9: #434343;
+  --cyan-1: #e6fffb;
+  --border-radius: 2px;
+  --gradient-brandVertical: linear-gradient(0.01deg, #f53e4c -31.2%, #f83 113.07%);
+
+  --always-gray: #ccccdc;
+  --title-marginBottom: 16px;
+  --opacity: 0.5;
+}
+
+.theme-light {
+  --highlighted-row-bg: var(--cyan-1);
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.04);
+}
+
+.theme-dark:not(.theme-light) {
+  --highlighted-row-bg: var(--gray-9);
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.1);
+}
+
 .configure-plugin {
   margin-top: 10px;
 }

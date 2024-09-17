@@ -34,9 +34,7 @@ import { LiveSettings } from 'pages/settings/tabs/LiveSettings/LiveSettingsPage'
 import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import 'assets/style/vars.css';
 import 'assets/style/global.css';
-import 'assets/style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 

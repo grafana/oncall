@@ -1,5 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
+import { Colors } from 'styles/utils.styles';
 
 export const getTemplatesAlertGroupsListStyles = (theme: GrafanaTheme2) => {
   return {
@@ -58,7 +59,7 @@ export const getTemplatesAlertGroupsListStyles = (theme: GrafanaTheme2) => {
       height: calc(100% - 60px);
 
       div[aria-label='Code editor container'] {
-        background-color: var(--box-background);
+        background-color: ${theme.isLight ? 'rgba(244, 245, 245)' : Colors.GRAY_9};
         border-bottom: none;
         border-right: none;
         padding-top: 52px;

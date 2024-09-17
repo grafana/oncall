@@ -6,7 +6,7 @@ export const getAddRespondersPopupStyles = (theme: GrafanaTheme2) => {
     addRespondersDropdown: css`
              max-height: 500px;
         overflow: hidden;
-        border: var(--border-medium);
+        border: 1px solid ${theme.colors.border.medium};
         position: absolute;
         right: 16px;
         top: 55px;

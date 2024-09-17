@@ -165,8 +165,8 @@ export const getIntegrationStyles = (theme: GrafanaTheme2) => {
     contactPointsConnect: css`
       padding: 12px;
       margin-bottom: 24px;
-      border: var(--border-weak);
-      border-radius: var(--border-radius);
+      border: 1px solid ${theme.colors.border.weak};
+      border-radius: 2px;
     `,
 
     contactPointsConnectToggler: css`
