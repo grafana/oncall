@@ -191,7 +191,11 @@ class IntegrationHeartBeatRateLimitMixin(RateLimitMixin, View):
         block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_organization_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
+        key=get_rate_limit_per_organization_key,
+        rate=RATELIMIT_TEAM,
+        group="team",
+        reason=RATELIMIT_REASON_TEAM,
+        block=True,
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass
