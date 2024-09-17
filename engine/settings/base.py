@@ -7,8 +7,8 @@ from random import randrange
 from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
-from common.utils import getenv_boolean, getenv_integer, getenv_list
 from common.api_helpers.custom_ratelimit import CustomRateLimit
+from common.utils import getenv_boolean, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -974,9 +974,7 @@ ACKNOWLEDGE_REMINDER_TASK_EXPIRY_DAYS = os.environ.get("ACKNOWLEDGE_REMINDER_TAS
 # Load the environment variable and parse it into a dictionary, falling back to an empty dictionary if not set.
 CUSTOM_RATELIMITS: typing.Dict[str, CustomRateLimit] = json.loads(os.getenv("CUSTOM_RATELIMITS", "{}"))
 # Convert the parsed JSON into a dictionary of RateLimit dataclasses
-CUSTOM_RATELIMITS = {
-    key: CustomRateLimit(**value) for key, value in CUSTOM_RATELIMITS.items()
-}
+CUSTOM_RATELIMITS = {key: CustomRateLimit(**value) for key, value in CUSTOM_RATELIMITS.items()}
 
 SYNC_V2_MAX_TASKS = getenv_integer("SYNC_V2_MAX_TASKS", 6)
 SYNC_V2_PERIOD_SECONDS = getenv_integer("SYNC_V2_PERIOD_SECONDS", 240)
