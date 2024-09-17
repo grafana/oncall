@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.views import View
@@ -16,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 RATELIMIT_INTEGRATION = "300/5m"
 RATELIMIT_TEAM = "900/5m"
+RATELIMIT_INTEGRATION_GROUP_NAME = "integration"
+RATELIMIT_TEAM_GROUP_NAME = "team"
 RATELIMIT_REASON_INTEGRATION = "channel"
 RATELIMIT_REASON_TEAM = "team"
 INTEGRATION_TOKEN_TO_IGNORE_KEY = "integration_tokens_to_ignore_ratelimit"
@@ -30,11 +33,28 @@ def get_rate_limit_per_channel_key(_, request):
     return str(request.alert_receive_channel.pk)
 
 
-def get_rate_limit_per_team_key(_, request):
+def get_rate_limit_per_organization_key(_, request):
     """
     Rate limiting based on AlertReceiveChannel's team PK
     """
     return str(request.alert_receive_channel.organization_id)
+
+
+def get_rate_limit(group, request):
+    custom_ratelimits = settings.CUSTOM_RATELIMITS
+
+    organization_id = str(request.alert_receive_channel.organization_id)
+
+    if group == RATELIMIT_INTEGRATION_GROUP_NAME:
+        if organization_id in custom_ratelimits:
+            return custom_ratelimits[organization_id]["integration"]
+        return RATELIMIT_INTEGRATION
+    elif group == RATELIMIT_TEAM_GROUP_NAME:
+        if organization_id in custom_ratelimits:
+            return custom_ratelimits[organization_id]["organization"]
+        return RATELIMIT_TEAM
+    else:
+        raise Exception("Unknown group")
 
 
 def ratelimit(group=None, key=None, rate=None, method=ALL, block=False, reason=None):
@@ -171,7 +191,11 @@ class IntegrationHeartBeatRateLimitMixin(RateLimitMixin, View):
         block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
+        key=get_rate_limit_per_organization_key,
+        rate=RATELIMIT_TEAM,
+        group="team",
+        reason=RATELIMIT_REASON_TEAM,
+        block=True,
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass
@@ -201,13 +225,17 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
 
     @ratelimit(
         key=get_rate_limit_per_channel_key,
-        rate=RATELIMIT_INTEGRATION,
-        group="integration",
+        rate=get_rate_limit,
+        group=RATELIMIT_INTEGRATION_GROUP_NAME,
         reason=RATELIMIT_REASON_INTEGRATION,
         block=True,  # use block=True so integration rate limit 429s are not counted towards the team rate limit
     )
     @ratelimit(
-        key=get_rate_limit_per_team_key, rate=RATELIMIT_TEAM, group="team", reason=RATELIMIT_REASON_TEAM, block=True
+        key=get_rate_limit_per_organization_key,
+        rate=get_rate_limit,
+        group=RATELIMIT_TEAM_GROUP_NAME,
+        reason=RATELIMIT_REASON_TEAM,
+        block=True,
     )
     def execute_rate_limit(self, *args, **kwargs):
         pass

@@ -1,6 +1,6 @@
-from rest_framework.throttling import UserRateThrottle
+from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrottler
 
 
-class UserThrottle(UserRateThrottle):
+class UserThrottle(CustomRateUserThrottler):
     scope = "public_api"
     rate = "300/m"

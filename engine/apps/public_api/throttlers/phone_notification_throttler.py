@@ -1,6 +1,6 @@
-from rest_framework.throttling import UserRateThrottle
+from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrottler
 
 
-class PhoneNotificationThrottler(UserRateThrottle):
+class PhoneNotificationThrottler(CustomRateUserThrottler):
     scope = "phone_notification"
     rate = "60/m"
