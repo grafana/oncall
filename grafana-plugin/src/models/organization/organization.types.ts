@@ -32,8 +32,3 @@ export interface Organization {
     mattermost_configured: boolean;
   };
 }
-
-export interface OrganizationConfigChecks {
-  is_chatops_connected: boolean;
-  is_integration_chatops_connected: boolean;
-}
