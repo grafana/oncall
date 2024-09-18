@@ -1,12 +1,10 @@
 import React from 'react';
 
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 
+import { getTimelineStyles } from './Timeline.styles';
 import { TimelineItem, TimelineItemProps } from './TimelineItem';
-
-import styles from 'components/Timeline/Timeline.module.css';
-
-const cx = cn.bind(styles);
 
 export interface TimelineProps {
   className?: string;
@@ -19,8 +17,9 @@ interface TimelineType extends React.FC<TimelineProps> {
 
 export const Timeline: TimelineType = (props) => {
   const { className, children } = props;
+  const styles = useStyles2(getTimelineStyles);
 
-  return <ul className={cx('root', className)}>{children}</ul>;
+  return <ul className={cx(styles.root, className)}>{children}</ul>;
 };
 
 Timeline.Item = TimelineItem;

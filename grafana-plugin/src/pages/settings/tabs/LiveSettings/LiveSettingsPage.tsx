@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Button, Checkbox, Icon, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
-import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, Checkbox, Icon, Stack, Themeable2, withTheme2 } from '@grafana/ui';
+import { UserActions, isUserActionAllowed } from 'helpers/authorization/authorization';
 import { Lambda, observe } from 'mobx';
 import { observer } from 'mobx-react';
 
@@ -17,18 +18,14 @@ import { withMobXProviderContext } from 'state/withStore';
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
-import styles from './LiveSettings.module.css';
-
-const cx = cn.bind(styles);
-
-interface LiveSettingsProps extends WithStoreProps {}
+interface LiveSettingsProps extends WithStoreProps, Themeable2 {}
 
 interface LiveSettingsState {
   hideValues: boolean;
 }
 
 @observer
-class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState> {
+class _LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState> {
   state: LiveSettingsState = {
     hideValues: true,
   };
@@ -67,7 +64,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     const columns = [
       {
-        width: '15%',
+        width: '20%',
         title: 'Name',
         dataIndex: 'name',
         key: 'name',
@@ -92,7 +89,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         key: 'value',
       },
       {
-        width: '20%',
+        width: '10%',
         title: 'ENV or default',
         render: (item: GlobalSetting) => this.renderDefault(item), // to avoid caching previous render result
         key: 'default',
@@ -106,14 +103,15 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     ];
 
     const data: any = globalSettingStore.getSearchResult();
+    const styles = getStyles(this.props.theme);
 
     return (
-      <div className={cx('root')}>
+      <div>
         <GTable
-          rowClassName={cx('row')}
+          tableLayout="fixed"
           emptyText={data ? 'No variables found' : 'Loading...'}
           title={() => (
-            <div className={cx('header')}>
+            <div className={styles.header}>
               <Stack>
                 <Text.Title level={3}>Env Variables</Text.Title>
               </Stack>
@@ -159,7 +157,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     }
 
     return (
-      <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+      <div className={breakwordStyles}>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
@@ -176,28 +174,32 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   renderError = (item: GlobalSetting) => {
     if (item.error) {
       return (
-        <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div className={breakwordStyles}>
           <Text type="warning">{item.error}</Text>
         </div>
       );
     }
 
+    const styles = getStyles(this.props.theme);
+
     return (
-      <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+      <div className={breakwordStyles}>
         <Text>
-          <Icon className={cx('check-icon')} name="check" />
+          <Icon className={styles.checkIcon} name="check" />
         </Text>
       </div>
     );
   };
 
   renderDescription = (item: GlobalSetting) => {
+    const styles = getStyles(this.props.theme);
+
     return (
       <div
         dangerouslySetInnerHTML={{
           __html: item.description,
         }}
-        className={cx('description-style')}
+        className={styles.descriptionStyle}
       />
     );
   };
@@ -206,7 +208,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const { hideValues } = this.state;
 
     return (
-      <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
+      <div className={breakwordStyles}>
         <Text>{hideValues && item.is_secret ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
       </div>
     );
@@ -247,4 +249,37 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 }
 
-export default withMobXProviderContext(LiveSettings);
+const breakwordStyles = css`
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+`;
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    alignTop: css`
+      vertical-align: top;
+    `,
+
+    header: css`
+      display: flex;
+      justify-content: space-between;
+    `,
+
+    checkIcon: css`
+      color: green;
+    `,
+
+    descriptionStyle: css`
+      word-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
+
+      a {
+        color: ${theme.colors.primary.text};
+      }
+    `,
+  };
+};
+
+export const LiveSettings = withMobXProviderContext(withTheme2(_LiveSettings));

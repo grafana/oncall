@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-import { Badge, Icon, LoadingPlaceholder, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Badge, Icon, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { openErrorNotification } from 'helpers/helpers';
 import { useDebouncedCallback } from 'helpers/hooks';
 import { sanitize } from 'helpers/sanitize';
@@ -14,9 +14,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 
-import styles from './TemplatePreview.module.css';
-
-const cx = cn.bind(styles);
+import { getTemplatePreviewStyles } from './TemplatePreview.styles';
 
 interface TemplatePreviewProps {
   templateName: string;
@@ -51,6 +49,8 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
     templateIsRoute,
     templatePage,
   } = props;
+
+  const styles = useStyles2(getTemplatePreviewStyles);
 
   const [result, setResult] = useState<
     ApiSchemas['WebhookPreviewTemplateResponse'] & { is_valid_json_object?: boolean }
@@ -134,7 +134,7 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
 
     const checkResult = getExtraCheckResult();
 
-    return checkResult ? <div className={cx('extra-check')}>{checkResult}</div> : null;
+    return checkResult ? <div className={styles.extraCheck}>{checkResult}</div> : null;
   }
 
   function renderResult() {
@@ -171,7 +171,7 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
             <Stack>
               <Icon name="times-circle" size="lg" />
               <div
-                className={cx('message')}
+                className={styles.message}
                 dangerouslySetInnerHTML={{
                   __html: sanitize(result.preview),
                 }}
@@ -183,29 +183,32 @@ export const TemplatePreview = observer((props: TemplatePreviewProps) => {
       </Text>
     );
   }
+
   function renderHtmlResult() {
     return (
       <div
-        className={cx('message')}
+        className={styles.message}
         dangerouslySetInnerHTML={{
           __html: sanitize(result.preview),
         }}
       />
     );
   }
+
   function renderPlainResult() {
     return (
       <div
-        className={cx('message', 'display-linebreak')}
+        className={cx(styles.message, styles.displayLinebreak)}
         dangerouslySetInnerHTML={{
           __html: sanitize(result.preview),
         }}
       />
     );
   }
+
   function renderImageResult() {
     return (
-      <div className={cx('image-result')}>
+      <div className={styles.imageResult}>
         <img
           src={result.preview}
           onError={(e) => {

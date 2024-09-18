@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 
-import { InlineSwitch, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
-import { openErrorNotification, openNotification } from 'helpers/helpers';
+import { cx } from '@emotion/css';
+import { InlineSwitch, Tooltip, useStyles2 } from '@grafana/ui';
+import { openNotification, openErrorNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
 import { IntegrationBlockItem } from 'components/Integrations/IntegrationBlockItem';
@@ -14,11 +14,9 @@ import { getTemplatesToRender } from 'containers/IntegrationContainers/Integrati
 import { AlertTemplatesDTO } from 'models/alert_templates/alert_templates';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
-import styles from 'pages/integration/Integration.module.scss';
+import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
-
-const cx = cn.bind(styles);
 
 interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];
@@ -40,6 +38,7 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
     const [isRestoringTemplate, setIsRestoringTemplate] = useState(false);
     const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
     const [autoresolveValue, setAutoresolveValue] = useState(alertReceiveChannelAllowSourceBasedResolving);
+    const styles = useStyles2(getIntegrationStyles);
 
     const handleSaveClick = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
       setAutoresolveValue(event.target.checked);
@@ -52,7 +51,7 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
     const templatesToRender = getTemplatesToRender(features);
 
     return (
-      <div className={cx('integration__templates')}>
+      <div>
         {templatesToRender.map((template, key) => (
           <IntegrationBlockItem key={key}>
             <VerticalBlock>
@@ -80,14 +79,16 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
                           <InlineSwitch
                             value={autoresolveValue}
                             onChange={handleSaveClick}
-                            className={cx('inline-switch')}
+                            className={styles.inlineSwitch}
                             transparent
                           />
                         </Tooltip>
                       )}
                       {isTemplateEditable(contents.name) && (
                         <div
-                          className={cx('input', { 'input-with-toggle': isResolveConditionTemplate(contents.name) })}
+                          className={cx(styles.input, {
+                            [styles.inputWithToggler]: isResolveConditionTemplate(contents.name),
+                          })}
                         >
                           <MonacoEditor
                             value={IntegrationHelper.getFilteredTemplate(
@@ -144,5 +145,6 @@ export const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = o
 );
 
 const VerticalBlock: React.FC<{ children: any[] }> = ({ children }) => {
-  return <div className={cx('vertical-block')}>{children}</div>;
+  const styles = useStyles2(getIntegrationStyles);
+  return <div className={styles.verticalBlock}>{children}</div>;
 };

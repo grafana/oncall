@@ -3,7 +3,6 @@ import React, { ReactElement, useCallback, useEffect } from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { LoadingPlaceholder, Select, useStyles2, useTheme2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 import { getLabelBackgroundTextColorObject } from 'styles/utils.styles';
@@ -15,10 +14,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
-
-import styles from './EscalationChainSteps.module.css';
-
-const cx = cn.bind(styles);
 
 interface EscalationChainStepsProps {
   id: EscalationChain['id'];
@@ -75,8 +70,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
   const { bgColor: successBgColor, textColor: successTextColor } = getLabelBackgroundTextColorObject('green', theme);
 
   return (
-    // @ts-ignore
-    <SortableList useDragHandle className={cx('steps')} axis="y" lockAxis="y" onSortEnd={handleSortEnd}>
+    <SortableList useDragHandle axis="y" lockAxis="y" onSortEnd={handleSortEnd}>
       {addonBefore}
       {escalationPolicyIds ? (
         escalationPolicyIds.map((escalationPolicyId, index) => {

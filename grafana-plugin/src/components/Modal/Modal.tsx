@@ -66,7 +66,7 @@ const getStyles = (theme: GrafanaTheme2) => {
       padding: 15px;
       background: ${theme.colors.background.primary};
       border: 1px solid ${theme.colors.border.weak};
-      box-shadow: var(--shadows-z3);
+      box-shadow: ${theme.shadows.z3};
       border-radius: 2px;
       z-index: 10;
     `,

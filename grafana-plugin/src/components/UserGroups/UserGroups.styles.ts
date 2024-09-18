@@ -10,8 +10,8 @@ export const getUserGroupStyles = (theme: GrafanaTheme2) => {
 
     sortable: css`
       z-index: 1062;
-      box-shadow: var(--focused-box-shadow);
-      background: var(--hover-selected-hardcoded) !important;
+      box-shadow: ${theme.isDark ? 'rgb(17 18 23) 0 0 0 2px, rgb(61 113 217) 0 0 0 4px;' : ''};
+      background: ${theme.isDark ? '#34363d' : ''};
     `,
 
     separator: css`

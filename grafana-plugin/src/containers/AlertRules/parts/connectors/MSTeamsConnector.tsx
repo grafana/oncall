@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 
-import { InlineSwitch, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { InlineSwitch, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
@@ -12,9 +12,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { useStore } from 'state/useStore';
 
-import styles from 'containers/AlertRules/parts/connectors/Connectors.module.css';
-
-const cx = cn.bind(styles);
+import { getConnectorsStyles } from './Connectors.styles';
 
 interface MSTeamsConnectorProps {
   channelFilterId: ChannelFilter['id'];
@@ -24,6 +22,8 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
+  const styles = useStyles2(getConnectorsStyles);
+
   const {
     alertReceiveChannelStore,
     msteamsChannelStore,
@@ -48,9 +48,9 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
   }, []);
 
   return (
-    <div className={cx('root')}>
+    <div className={styles.root}>
       <Stack wrap="wrap" gap={StackSize.sm}>
-        <div className={cx('slack-channel-switch')}>
+        <div>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notification_backends?.MSTEAMS?.enabled}

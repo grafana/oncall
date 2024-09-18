@@ -1,7 +1,8 @@
 import React, { FC, useEffect, useState } from 'react';
 
-import { Button, Icon, Label, LoadingPlaceholder, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, Icon, Label, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -10,10 +11,6 @@ import { Text } from 'components/Text/Text';
 import { CreateScheduleExportTokenResponse, Schedule } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
-import styles from './ScheduleIcalLink.module.css';
-
-const cx = cn.bind(styles);
-
 interface ScheduleICalSettingsProps {
   id: Schedule['id'];
 }
@@ -21,6 +18,7 @@ interface ScheduleICalSettingsProps {
 export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => {
   const { id } = props;
   const store = useStore();
+  const styles = useStyles2(getStyles);
 
   const [ICalLink, setICalLink] = useState<string>(undefined);
   const [isiCalLinkExist, setIsICalLinkExist] = useState(false);
@@ -73,7 +71,7 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
                     <Icon name="exclamation-triangle" />
                     <Text type="warning">Make sure you copy it - you won't be able to access it again.</Text>
                   </Stack>
-                  <Text className={cx('link-container')}>{ICalLink}</Text>
+                  <Text className={styles.linkContainer}>{ICalLink}</Text>
                   <CopyToClipboard
                     text={ICalLink}
                     onCopy={() => {
@@ -106,3 +104,11 @@ export const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((pro
     </Stack>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    linkContainer: css`
+      background-color: ${theme.colors.background.secondary};
+    `,
+  };
+};

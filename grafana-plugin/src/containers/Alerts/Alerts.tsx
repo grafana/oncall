@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Alert } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Alert, useStyles2 } from '@grafana/ui';
 import { sanitize } from 'dompurify';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
@@ -18,11 +19,7 @@ import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
-import styles from './Alerts.module.scss';
-
 import plugin from '../../../package.json'; // eslint-disable-line
-
-const cx = cn.bind(styles);
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
@@ -32,6 +29,7 @@ enum AlertID {
 export const Alerts = observer(() => {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
+  const styles = useStyles2(getStyles);
 
   const forceUpdate = useForceUpdate();
 
@@ -78,10 +76,10 @@ export const Alerts = observer(() => {
     return null;
   }
   return (
-    <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
+    <div className={cx(styles.alertsContainer, { [styles.alertsContainerLegacy]: !isTopNavbar() })}>
       {showSlackInstallAlert && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           onRemove={handleCloseInstallSlackAlert}
           severity="error"
           title="Slack integration error"
@@ -91,7 +89,7 @@ export const Alerts = observer(() => {
       )}
       {showCurrentUserGoogleOAuth2TokenIsMissingScopes() && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           severity="warning"
           title="User Google OAuth2 token is missing scopes"
           onRemove={getRemoveAlertHandler(AlertID.USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES)}
@@ -107,7 +105,7 @@ export const Alerts = observer(() => {
       )}
       {showBannerTeam() && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           severity="success"
           title={currentOrganization.banner.title}
           onRemove={getRemoveAlertHandler(currentOrganization?.banner.title)}
@@ -121,7 +119,7 @@ export const Alerts = observer(() => {
       )}
       {showMismatchWarning() && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           severity="warning"
           title={'Version mismatch!'}
           onRemove={getRemoveAlertHandler(versionMismatchLocalStorageId)}
@@ -136,7 +134,7 @@ export const Alerts = observer(() => {
             href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
             target="_blank"
             rel="noreferrer"
-            className={cx('instructions-link')}
+            className={styles.instructionsLink}
           >
             the update instructions
           </a>
@@ -146,7 +144,7 @@ export const Alerts = observer(() => {
       {showChannelWarnings() && (
         <Alert
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
-          className={cx('alert')}
+          className={styles.alert}
           severity="warning"
           title="Notification Warning! Possible notification miss."
         >
@@ -211,3 +209,34 @@ export const Alerts = observer(() => {
     );
   }
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    alertsContainer: css`
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+      gap: 10px;
+
+      '&:empty': {
+        display: none;
+      }
+    `,
+
+    alert: css`
+      margin: 0;
+    `,
+
+    instructionsLink: css`
+      color: ${theme.colors.primary.text};
+    `,
+
+    alertsContainerLegacy: css`
+      paddingtop: '10px';
+
+      @media (max-width: 768px) {
+        padding-top: 50px;
+      }
+    `,
+  };
+};

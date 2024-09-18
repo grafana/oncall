@@ -1,17 +1,14 @@
 import React from 'react';
 
-import { Button, Icon, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Icon, Stack, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
 
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
-import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
+import { getIntegrationTemplateStyles } from 'containers/IntegrationTemplate/IntegrationTemplate.styles';
 import { TemplatePreview, TemplatePage } from 'containers/TemplatePreview/TemplatePreview';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-
-const cx = cn.bind(styles);
 
 interface ResultProps {
   alertReceiveChannelId?: ApiSchemas['AlertReceiveChannel']['id'];
@@ -41,14 +38,16 @@ export const TemplateResult = (props: ResultProps) => {
     templatePage = TemplatePage.Integrations,
   } = props;
 
+  const styles = useStyles2(getIntegrationTemplateStyles);
+
   return (
-    <div className={cx('template-block-result')}>
-      <div className={cx('template-block-title')}>
+    <div className={styles.templateBlockResult}>
+      <div className={styles.templateBlockTitle}>
         <Stack justifyContent="space-between">
           <Text>Result</Text>
         </Stack>
       </div>
-      <div className={cx('result')}>
+      <div className={styles.result}>
         {payload || error ? (
           <Stack direction="column" gap={StackSize.lg}>
             {error ? (
@@ -90,7 +89,7 @@ export const TemplateResult = (props: ResultProps) => {
           </Stack>
         ) : (
           <div>
-            <Block bordered fullWidth className={cx('block-style')} withBackground>
+            <Block bordered fullWidth withBackground>
               <Text>
                 ← Select {templatePage === TemplatePage.Webhooks ? 'event' : 'alert group'} or "Use custom payload"
               </Text>

@@ -1,8 +1,8 @@
 import React, { ReactElement, useEffect, useState } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Icon, Select, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
 import { openNotification } from 'helpers/helpers';
@@ -16,10 +16,6 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-
-import styles from './IntegrationHeartbeatForm.module.scss';
-
-const cx = cn.bind(styles);
 
 interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
@@ -56,7 +52,11 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
           </Text>
 
           <Stack direction="column" gap={StackSize.md}>
-            <div className={cx('u-width-100')}>
+            <div
+              className={css`
+                width: 100%;
+              `}
+            >
               <Field label={'Setup heartbeat interval'}>
                 <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                   <Select
@@ -73,7 +73,11 @@ const _IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: I
                 </WithPermissionControlTooltip>
               </Field>
             </div>
-            <div className={cx('u-width-100')}>
+            <div
+              className={css`
+                width: 100%;
+              `}
+            >
               <Field label="Endpoint" description="Use the following unique Grafana link to send GET and POST requests">
                 <IntegrationInputField value={heartbeat?.link} showEye={false} isMasked={false} />
               </Field>

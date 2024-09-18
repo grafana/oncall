@@ -31,7 +31,7 @@ interface ConnectedIntegrationsTableProps {
   tableProps: GTableProps<ConnectedIntegration>;
 }
 
-const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer(
+export const ConnectedIntegrationsTable: FC<ConnectedIntegrationsTableProps> = observer(
   ({ selectable, allowDelete, onChange, onBacksyncChange, tableProps, defaultBacksyncedIds = [], allowBacksync }) => {
     const { alertReceiveChannelStore } = useStore();
     const { colors } = useTheme2();
@@ -174,5 +174,3 @@ const ActionsColumn = ({
     </>
   );
 };
-
-export default ConnectedIntegrationsTable;

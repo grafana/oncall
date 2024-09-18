@@ -1,7 +1,8 @@
 import React, { FC } from 'react';
 
-import { Stack, Icon, Badge } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Stack, Icon, Badge, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
 import { StackSize } from 'helpers/consts';
@@ -20,16 +21,12 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
-import styles from './ScheduleUserDetails.module.css';
-
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
   user: ApiSchemas['User'];
   isOncall: boolean;
   scheduleId: string;
 }
-
-const cx = cn.bind(styles);
 
 export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props) => {
   const {
@@ -46,8 +43,10 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
   const slackWorkspaceName =
     organizationStore.currentOrganization?.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
 
+  const styles = useStyles2(getStyles);
+
   return (
-    <div className={cx('root')} data-testid="schedule-user-details">
+    <div className={styles.root} data-testid="schedule-user-details">
       <Stack direction="column" gap={StackSize.xs}>
         <ScheduleBorderedAvatar
           colors={colorSchemeList}
@@ -58,7 +57,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
         />
 
         <Stack direction="column" gap={StackSize.xs} width="100%">
-          <div className={cx('username')}>
+          <div className={styles.username}>
             <Text type="primary">{user.username}</Text>
           </div>
           <Stack gap={StackSize.xs}>
@@ -69,14 +68,14 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
               <Badge text="Outside working hours" color="orange" />
             )}
           </Stack>
-          <div className={cx('user-timezones')}>
-            <div className={cx('timezone-icon')}>
+          <div className={styles.userTimezones}>
+            <div className={styles.timezoneIcon}>
               <Text type="secondary">
                 <Icon name="clock-nine" />
               </Text>
             </div>
-            <div className={cx('timezone-wrapper')}>
-              <div className={cx('timezone-info')} data-testid="schedule-user-details_your-current-time">
+            <div className={styles.timezoneWrapper}>
+              <div className={styles.timezoneInfo} data-testid="schedule-user-details_your-current-time">
                 <Stack direction="column" gap={StackSize.none}>
                   <Text type="secondary">Your current time</Text>
                   <Text type="secondary">{getCurrentlyLoggedInUserDate().format('DD MMM, HH:mm')}</Text>
@@ -84,7 +83,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                 </Stack>
               </div>
 
-              <div className={cx('timezone-info')} data-testid="schedule-user-details_user-local-time">
+              <div className={styles.timezoneInfo} data-testid="schedule-user-details_user-local-time">
                 <Stack direction="column" gap={StackSize.none}>
                   <Text>User's local time</Text>
                   <Text>{`${getCurrentDateInTimezone(user.timezone).format('DD MMM, HH:mm')}`}</Text>
@@ -97,11 +96,11 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
 
         {isUserActionAllowed(UserActions.UserSettingsAdmin) && (
           <Stack direction="column" gap={StackSize.xs}>
-            <hr className={cx('line-break')} />
+            <hr className={styles.lineBreak} />
             <Stack direction="column" gap={StackSize.xs}>
               <Text>Contacts</Text>
 
-              <div className={cx('contact-details')}>
+              <div className={styles.contactDetails}>
                 <Text type="secondary">
                   <Icon name="envelope" className={cx('contact-icon')} />
                 </Text>
@@ -110,7 +109,7 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                 </a>
               </div>
               {user.slack_user_identity && (
-                <div className={cx('contact-details')}>
+                <div className={styles.contactDetails}>
                   <Text type="secondary">
                     <Icon name="slack" className={cx('contact-icon')} />
                   </Text>
@@ -124,9 +123,9 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                 </div>
               )}
               {user.telegram_configuration && (
-                <div className={cx('contact-details')}>
+                <div className={styles.contactDetails}>
                   <Text type="secondary">
-                    <Icon name="message" className={cx('contact-icon')} />
+                    <Icon name="message" className={styles.contactIcon} />
                   </Text>
                   <a
                     href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}
@@ -138,9 +137,9 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
                 </div>
               )}
               {!user.hide_phone_number && user.verified_phone_number && (
-                <div className={cx('contact-details')}>
+                <div className={styles.contactDetails}>
                   <Text type="secondary">
-                    <Icon name="document-info" className={cx('contact-icon')} />
+                    <Icon name="document-info" className={styles.contactIcon} />
                   </Text>
                   <Text type="secondary">{user.verified_phone_number}</Text>
                 </div>
@@ -152,3 +151,79 @@ export const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = observer((props
     </div>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    root: css`
+      width: 260px;
+      padding: 8px 4px;
+    `,
+
+    oncallBadge: css`
+      line-height: 16px;
+      color: ${theme.colors.background.primary};
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    `,
+
+    oncallBadgeNow: css`
+      background: #6ccf8e;
+    `,
+
+    oncallBadgeInside: css`
+      background: #ccccdc;
+    `,
+
+    oncallBadgeOutside: css`
+      background: rgba(204, 204, 220, 0.4);
+    `,
+
+    lineBreak: css`
+      width: 100vw;
+      margin: 8px -14px 8px -14px;
+    `,
+
+    icon: css`
+      color: #ccccdc;
+    `,
+
+    username: css`
+      word-break: break-all;
+    `,
+
+    timezoneWrapper: css`
+      display: flex;
+      flex-grow: 1;
+    `,
+
+    timezoneIcon: css`
+      margin-right: 8px;
+    `,
+
+    contactIcon: css`
+      margin-right: 8px;
+    `,
+
+    timezoneInfo: css`
+      width: 50%;
+      overflow-wrap: anywhere;
+      margin-right: 8px;
+    `,
+
+    contactDetails: css`
+      display: flex;
+
+      a {
+        text-decoration-line: none;
+        word-break: break-all;
+      }
+    `,
+
+    userTimezones: css`
+      margin-top: 4px;
+      display: flex;
+      width: 100%;
+    `,
+  };
+};

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, ConfirmModal, Icon, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, ConfirmModal, Icon, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { GENERIC_ERROR, INTEGRATION_SERVICENOW, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { INTEGRATION_SERVICENOW, StackSize, GENERIC_ERROR, PLUGIN_ROOT } from 'helpers/consts';
 import { openErrorNotification, openNotification } from 'helpers/helpers';
 import { useDrawer } from 'helpers/hooks';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -22,14 +21,12 @@ import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/Servic
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import styles from 'pages/integration/Integration.module.scss';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import { IntegrationDrawerKey } from './Integration';
 import { getIsBidirectionalIntegration } from './Integration.helper';
-
-const cx = cn.bind(styles);
+import { getIntegrationStyles } from './Integration.styles';
 
 interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
@@ -68,6 +65,8 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   const [maintenanceData, setMaintenanceData] = useState<{
     alert_receive_channel_id: ApiSchemas['AlertReceiveChannel']['id'];
   }>(undefined);
+
+  const styles = useStyles2(getIntegrationStyles);
 
   const { closeDrawer, openDrawer, getIsDrawerOpened } = drawerConfig;
 
@@ -151,7 +150,7 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      <div className={cx('integration__actions')}>
+      <div className={styles.integrationActions}>
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button
             variant="secondary"

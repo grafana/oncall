@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { Tab, TabContent, TabsBar } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Tab, TabContent, TabsBar, useStyles2 } from '@grafana/ui';
 import { isUseProfileExtensionPointEnabled } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 
@@ -20,10 +20,6 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-
-import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
-
-const cx = cn.bind(styles);
 
 interface TabsProps {
   activeTab: UserSettingsTab;
@@ -54,6 +50,8 @@ export const Tabs = ({
     },
     [onTabChange]
   );
+
+  const styles = useStyles2(getUserSettingsPartsStyles);
 
   return (
     <TabsBar>
@@ -138,20 +136,21 @@ interface TabsContentProps {
 
 export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLaptop }: TabsContentProps) => {
   const store = useStore();
+  const styles = useStyles2(getUserSettingsPartsStyles);
 
   useEffect(() => {
     store.updateFeatures();
   }, []);
 
   return (
-    <TabContent className={cx('content')}>
+    <TabContent className={styles.content}>
       {activeTab === UserSettingsTab.UserInfo &&
         (isDesktopOrLaptop ? (
-          <div className={cx('columns')}>
-            <Block shadowed bordered style={{ width: '40%' }} className={cx('col', 'left')}>
+          <div className={styles.columns}>
+            <Block shadowed bordered style={{ width: '40%' }} className={styles.col}>
               <UserInfoTab id={id} onTabChange={onTabChange} />
             </Block>
-            <Block shadowed bordered style={{ width: '60%' }} className={cx('col', 'right')}>
+            <Block shadowed bordered style={{ width: '60%' }} className={styles.col}>
               <NotificationSettingsTab id={id} />
             </Block>
           </div>
@@ -181,3 +180,56 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
     return <MobileAppConnectionTab userPk={id} />;
   }
 });
+
+export const getUserSettingsPartsStyles = () => {
+  return {
+    content: css`
+      margin-top: 20px;
+    `,
+
+    columns: css`
+      display: flex;
+      flex-direction: row;
+    `,
+
+    col: css`
+      display: flex;
+      flex-direction: column;
+    `,
+
+    right: css`
+      margin-left: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    `,
+
+    rightCentered: css`
+      text-align: center;
+      justify-content: center;
+    `,
+
+    tagContainer: css`
+      display: flex;
+      gap: 4px;
+      width: 100%;
+    `,
+
+    tag: css`
+      font-weight: 500;
+      font-size: 12px;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 8px;
+      width: 120px;
+    `,
+
+    tagLeft: css`
+      flex-basis: 120px;
+    `,
+
+    tagRight: css`
+      flex-basis: calc(100% - 120px);
+    `,
+  };
+};

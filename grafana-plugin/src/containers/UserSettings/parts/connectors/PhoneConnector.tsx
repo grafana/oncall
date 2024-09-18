@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 
+import { cx } from '@emotion/css';
 import { Alert, Button, InlineField, Input, Stack, useTheme2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
@@ -12,10 +12,6 @@ import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-
-import styles from 'containers/UserSettings/parts/UserSettingsParts.module.css';
-
-const cx = cn.bind(styles);
 
 interface PhoneConnectorProps {
   id: ApiSchemas['User']['pk'];

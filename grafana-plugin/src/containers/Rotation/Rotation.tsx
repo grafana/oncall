@@ -1,7 +1,7 @@
 import React, { FC, useMemo } from 'react';
 
-import { LoadingPlaceholder, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import hash from 'object-hash';
@@ -13,9 +13,7 @@ import { scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
 import { Event, ScheduleView, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
-import styles from './Rotation.module.css';
-
-const cx = cn.bind(styles);
+import { getRotationStyles } from './Rotation.styles';
 
 interface RotationProps {
   layerIndex?: number;
@@ -67,6 +65,8 @@ export const Rotation: FC<RotationProps> = observer((props) => {
   const startDate = propsStartDate || calendarStartDate;
 
   const days = scheduleViewToDaysInOneRow[scheduleView];
+
+  const styles = useStyles2(getRotationStyles);
 
   const handleRotationClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -147,12 +147,12 @@ export const Rotation: FC<RotationProps> = observer((props) => {
   }, [events, startDate, selectedTimezoneOffset]);
 
   return (
-    <div className={cx('root')} onClick={onClick && handleRotationClick}>
-      <div className={cx('timeline')}>
+    <div className={styles.root} onClick={onClick && handleRotationClick}>
+      <div className={styles.timeline}>
         {events ? (
           events.length ? (
             <div
-              className={cx('slots', { slots__transparent: transparent })}
+              className={cx(styles.slots, { [styles.slotsTransparent]: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
             >
               {events.map((event) => {
@@ -187,8 +187,9 @@ export const Rotation: FC<RotationProps> = observer((props) => {
 });
 
 const Empty = ({ text }: { text: string }) => {
+  const styles = useStyles2(getRotationStyles);
   return (
-    <div className={cx('empty')}>
+    <div className={styles.empty}>
       <Text type="secondary">{text}</Text>
     </div>
   );
