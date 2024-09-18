@@ -37,8 +37,8 @@ importers:
         specifier: ^1.4.2
         version: 1.9.1
       '@grafana/labels':
-        specifier: ~1.6.0
-        version: 1.6.0(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^1.6.4
+        version: 1.6.4(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@grafana/runtime':
         specifier: ^11.1.3
         version: 11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -746,8 +746,8 @@ packages:
   '@grafana/faro-web-tracing@1.9.1':
     resolution: {integrity: sha512-BuXMxUX6N8kDwOJO2wfCFOWfyEwfduEdJGT9HhgA3VPGmpgzpvZD6FOt1vsBMOZWsKsI20EcNM21moUy08dWAA==}
 
-  '@grafana/labels@1.6.0':
-    resolution: {integrity: sha512-WJdagWItjgK42brw7gODHEMUPQ1nmzCu00l2tw87qDmuPTEulTVt7HpWAkmSMXqU3ALHZkPGsPzmBzDKc1ROzw==}
+  '@grafana/labels@1.6.4':
+    resolution: {integrity: sha512-1r8Az7qIZ9UVjpEDdU2NfhlT2j+Q6/dpXbQMVXXZe+6/Lyf1KGJ6UWN/t6bK2rJ8PC8Xiyox2rsqgBOTZEk5FA==}
     peerDependencies:
       '@grafana/ui': ^11.0.0
       react: ^17.0.0 || ^18.0.0
@@ -6991,7 +6991,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@grafana/labels@1.6.0(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@grafana/labels@1.6.4(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@emotion/css': 11.13.0
       '@grafana/ui': 11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
