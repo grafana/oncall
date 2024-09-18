@@ -36,6 +36,13 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       word-break: break-all;
     `,
 
+    centeredAbsolute: css`
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    `,
+
     ...getCommonFlexStyles(),
     ...getCommonOverflowStyles(),
   };
@@ -131,4 +138,5 @@ export enum Colors {
   GREEN_5 = '#6ccf8e',
   GREEN_6 = '#73d13d',
   BORDER = 'rgba(204, 204, 220, 0.25)',
+  CYAN_1 = '#e6fffb',
 }

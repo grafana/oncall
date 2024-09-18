@@ -70,7 +70,6 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
   const { bgColor: successBgColor, textColor: successTextColor } = getLabelBackgroundTextColorObject('green', theme);
 
   return (
-    // @ts-ignore
     <SortableList useDragHandle axis="y" lockAxis="y" onSortEnd={handleSortEnd}>
       {addonBefore}
       {escalationPolicyIds ? (

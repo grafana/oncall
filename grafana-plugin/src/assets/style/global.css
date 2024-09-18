@@ -1,16 +1,9 @@
-:root {
-  --gray-9: #434343;
-  --cyan-1: #e6fffb;
-}
-
 .theme-light {
-  --highlighted-row-bg: var(--cyan-1);
   --working-hours-shades-color: rgba(17, 18, 23, 0.15);
   --working-hours-shades-color-light: rgba(17, 18, 23, 0.04);
 }
 
 .theme-dark:not(.theme-light) {
-  --highlighted-row-bg: var(--gray-9);
   --working-hours-shades-color: rgba(17, 18, 23, 0.15);
   --working-hours-shades-color-light: rgba(17, 18, 23, 0.1);
 }
