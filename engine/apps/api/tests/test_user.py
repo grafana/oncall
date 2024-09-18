@@ -1,5 +1,5 @@
 from unittest import mock
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from django.core.cache import cache
@@ -1775,17 +1775,10 @@ def test_invalid_working_hours(
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
-@patch(
-    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits",
-    return_value=(1, 10 * 60),
-)
-@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits", return_value=(1, 10 * 60))
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_user(
     mock_verification_start,
     mocked_verification_check,
-    mocked_get_phone_verification_code_get_throttle_limits,
-    mocked_get_phone_verify_phone_number_limits,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
@@ -1794,40 +1787,44 @@ def test_phone_number_verification_flow_ratelimit_per_user(
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
 
-    # first get_verification_code request is succesfull
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
+    with patch(
+        "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.rate",
+        new_callable=PropertyMock,
+    ) as mocked_rate:
+        mocked_rate.return_value = "1/10m"
+        # first get_verification_code request is succesfull
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_200_OK
 
-    # second get_verification_code request is ratelimited
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+        # second get_verification_code request is ratelimited
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
 
-    # first verify_number request is succesfull, because it uses different ratelimit scope
-    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
+    with patch(
+        "apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.rate",
+        new_callable=PropertyMock,
+    ) as mocked_rate:
+        mocked_rate.return_value = "1/10m"
 
-    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+        # first verify_number request is succesfull, because it uses different ratelimit scope
+        response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_200_OK
 
-    # second verify_number request is succesfull, because it ratelimited
-    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+        url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+
+        # second verify_number request is succesfull, because it ratelimited
+        response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
-@patch(
-    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits",
-    return_value=(1, 10 * 60),
-)
-@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits", return_value=(1, 10 * 60))
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_org(
     mock_verification_start,
     mocked_verification_check,
-    mocked_get_phone_verification_code_get_throttle_limits,
-    mocked_get_phone_verify_phone_number_limits,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_user_for_organization,
@@ -1841,21 +1838,33 @@ def test_phone_number_verification_flow_ratelimit_per_org(
 
     client = APIClient()
 
-    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
+    with patch(
+        "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.rate",
+        new_callable=PropertyMock,
+    ) as mocked_rate:
+        mocked_rate.return_value = "1/10m"
 
-    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": second_user.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+        url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_200_OK
 
-    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
-    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
+        url = reverse("api-internal:user-get-verification-code", kwargs={"pk": second_user.public_primary_key})
+        response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
-    url = reverse("api-internal:user-verify-number", kwargs={"pk": second_user.public_primary_key})
-    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+    with patch(
+        "apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.rate",
+        new_callable=PropertyMock,
+    ) as mocked_rate:
+        mocked_rate.return_value = "1/10m"
+
+        url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+        response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_200_OK
+
+        url = reverse("api-internal:user-verify-number", kwargs={"pk": second_user.public_primary_key})
+        response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(second_user, token))
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
