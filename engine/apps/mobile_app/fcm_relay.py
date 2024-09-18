@@ -6,19 +6,19 @@ from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.mobile_app.models import FCMDevice
 from apps.mobile_app.utils import send_message_to_fcm_device
+from common.api_helpers.custom_rate_scoped_throttler import CustomRateUserThrottler
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)
 task_logger.setLevel(logging.DEBUG)
 
 
-class FCMRelayThrottler(UserRateThrottle):
+class FCMRelayThrottler(CustomRateUserThrottler):
     scope = "fcm_relay"
     rate = "300/m"
 
