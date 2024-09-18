@@ -14,6 +14,7 @@ import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
+import { Colors } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { GTable } from 'components/GTable/GTable';
@@ -30,12 +31,10 @@ import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
+import { getUsersStyles } from 'pages/pages/users/Users.styles';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-
-import { getUsersStyles } from 'pages/pages/users/Users.styles';
-import { Colors } from 'styles/utils.styles';
 
 const DEBOUNCE_MS = 1000;
 
