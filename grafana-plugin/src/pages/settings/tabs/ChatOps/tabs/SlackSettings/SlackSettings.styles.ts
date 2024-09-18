@@ -1,4 +1,5 @@
 import { css } from '@emotion/css';
+import { Colors } from 'styles/utils.styles';
 
 export const getSlackSettingsStyles = () => ({
   title: css`
@@ -15,7 +16,7 @@ export const getSlackSettingsStyles = () => ({
   `,
 
   slackSettings: css`
-    border-bottom: 1px solid rgba(204, 204, 220, 0.25);
+    border-bottom: 1px solid ${Colors.BORDER};
   `,
 
   slackInfoblock: css`

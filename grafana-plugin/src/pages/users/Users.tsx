@@ -31,10 +31,11 @@ import { UserSettings } from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { getUsersStyles } from 'pages/pages/users/Users.styles';
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+
+import { getUsersStyles } from './Users.styles';
 
 const DEBOUNCE_MS = 1000;
 
@@ -206,7 +207,7 @@ class Users extends React.Component<UsersProps, UsersState> {
               rowKey="pk"
               data={results}
               columns={columns}
-              rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
+              rowClassName={this.getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
               pagination={{
                 page,
                 total: results ? Math.ceil((count || 0) / page_size) : 0,
