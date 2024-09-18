@@ -8,6 +8,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from common.api_helpers.custom_ratelimit import load_custom_ratelimits
+
 
 @pytest.mark.django_db
 def test_throttling(make_organization_and_user_with_token):
@@ -45,7 +47,7 @@ def test_custom_throttling(make_organization_and_user_with_token):
         + '": {"integration": "10/5m","organization": "15/5m","public_api": "1/m"}}'
     )
 
-    with override_settings(CUSTOM_RATELIMITS=json.loads(CUSTOM_RATELIMITS_STR)):
+    with override_settings(CUSTOM_RATELIMITS=load_custom_ratelimits(CUSTOM_RATELIMITS_STR)):
         client = APIClient()
 
         url = reverse("api-public:alert_groups-list")
