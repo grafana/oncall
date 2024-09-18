@@ -21,6 +21,7 @@ import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { LabelStore } from 'models/label/label';
 import { LoaderStore } from 'models/loader/loader';
 import { MattermostStore } from 'models/mattermost/mattermost';
+import { MattermostChannelStore } from 'models/mattermost/mattermost_channel';
 import { MSTeamsChannelStore } from 'models/msteams_channel/msteams_channel';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
@@ -84,6 +85,7 @@ export class RootBaseStore {
   slackStore = new SlackStore(this);
   slackChannelStore = new SlackChannelStore(this);
   mattermostStore = new MattermostStore(this);
+  mattermostChannelStore = new MattermostChannelStore(this);
   heartbeatStore = new HeartbeatStore(this);
   scheduleStore = new ScheduleStore(this);
   userGroupStore = new UserGroupStore(this);
