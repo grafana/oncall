@@ -1,3 +1,12 @@
+.root {
+  display: block;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
 .mattermost-infoblock {
   text-align: center;
   width: 725px;
