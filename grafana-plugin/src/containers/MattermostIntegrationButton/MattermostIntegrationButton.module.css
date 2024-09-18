@@ -1,0 +1,13 @@
+.channelFormField__inputContainer {
+  width: 100%;
+  display: flex;
+}
+
+.channelFormField__input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.field {
+  flex-grow: 1;
+}
