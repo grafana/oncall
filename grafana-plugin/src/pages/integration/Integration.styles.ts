@@ -30,7 +30,7 @@ export const getIntegrationStyles = (theme: GrafanaTheme2) => {
       flex-direction: row;
 
       &:hover {
-        background: ${theme.isDark ? Colors.GRAY_9 : 'rgba(244, 245, 245)'};
+        background: ${theme.isDark ? Colors.GRAY_9 : Colors.HOVER};
       }
     `,
     integrationDescriptionAlert: css`

@@ -59,7 +59,7 @@ export const getTemplatesAlertGroupsListStyles = (theme: GrafanaTheme2) => {
       height: calc(100% - 60px);
 
       div[aria-label='Code editor container'] {
-        background-color: ${theme.isLight ? 'rgba(244, 245, 245)' : Colors.GRAY_9};
+        background-color: ${theme.isLight ? Colors.HOVER : Colors.GRAY_9};
         border-bottom: none;
         border-right: none;
         padding-top: 52px;

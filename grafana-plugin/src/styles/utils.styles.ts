@@ -139,4 +139,5 @@ export enum Colors {
   GREEN_6 = '#73d13d',
   BORDER = 'rgba(204, 204, 220, 0.25)',
   CYAN_1 = '#e6fffb',
+  HOVER = 'rgba(244, 245, 245)',
 }
