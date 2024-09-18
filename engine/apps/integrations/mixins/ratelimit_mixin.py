@@ -47,11 +47,11 @@ def get_rate_limit(group, request):
 
     if group == RATELIMIT_INTEGRATION_GROUP_NAME:
         if organization_id in custom_ratelimits:
-            return custom_ratelimits[organization_id]["integration"]
+            return custom_ratelimits[organization_id].integration
         return RATELIMIT_INTEGRATION
     elif group == RATELIMIT_TEAM_GROUP_NAME:
         if organization_id in custom_ratelimits:
-            return custom_ratelimits[organization_id]["organization"]
+            return custom_ratelimits[organization_id].organization
         return RATELIMIT_TEAM
     else:
         raise Exception("Unknown group")

@@ -1,4 +1,3 @@
-import json
 from unittest import mock
 
 import pytest
@@ -10,6 +9,7 @@ from rest_framework import status
 from apps.alerts.models import AlertReceiveChannel
 from apps.integrations.mixins import IntegrationRateLimitMixin
 from apps.integrations.mixins.ratelimit_mixin import RATELIMIT_INTEGRATION
+from common.api_helpers.custom_ratelimit import load_custom_ratelimits
 
 
 @pytest.fixture(autouse=True)
@@ -197,7 +197,7 @@ def test_custom_throttling(make_organization, make_alert_receive_channel):
         + '": {"integration": "2/m","organization": "3/m","public_api": "1/m"}}'
     )
 
-    with override_settings(CUSTOM_RATELIMITS=json.loads(CUSTOM_RATELIMITS_STR)):
+    with override_settings(CUSTOM_RATELIMITS=load_custom_ratelimits(CUSTOM_RATELIMITS_STR)):
         client = Client()
 
         # Organization without custom ratelimit should use default ratelimit

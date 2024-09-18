@@ -15,7 +15,7 @@ class CustomRateUserThrottler(UserRateThrottle):
         custom_ratelimits = settings.CUSTOM_RATELIMITS
         organization_id = str(request.user.organization_id)
         if organization_id in custom_ratelimits:
-            self.rate = custom_ratelimits[organization_id]["public_api"]
+            self.rate = custom_ratelimits[organization_id].public_api
         self.num_requests, self.duration = self.parse_rate(self.rate)
 
         return super().allow_request(request, view)
