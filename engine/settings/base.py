@@ -348,6 +348,10 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/alertgroups",
     "/alert_receive_channels",
     "/webhooks",
+    "/channel_filters",
+    "/escalation_chains",
+    "/escalation_policies",
+    "/notification_policies",
     # current user endpoint 👇, without trailing slash we pick-up /user_group endpoints, which we don't want for now
     "/user/",
     "/users",

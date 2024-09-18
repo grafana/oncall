@@ -1,4 +1,6 @@
 from django.db.models import OuterRef, Subquery
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -8,12 +10,14 @@ from apps.alerts.models import ChannelFilter
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.channel_filter import (
     ChannelFilterCreateSerializer,
+    ChannelFilterRetrieveResponseSerializer,
     ChannelFilterSerializer,
     ChannelFilterUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
 from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.filters import ModelFieldFilterMixin, MultipleChoiceCharFilter, get_integration_queryset
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -24,6 +28,23 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
 
 
+class ChannelFilterFilter(ModelFieldFilterMixin, filters.FilterSet):
+    alert_receive_channel = MultipleChoiceCharFilter(
+        queryset=get_integration_queryset,
+        to_field_name="public_primary_key",
+        method=ModelFieldFilterMixin.filter_model_field.__name__,
+    )
+
+
+@extend_schema_view(
+    list=extend_schema(responses=ChannelFilterSerializer),
+    retrieve=extend_schema(responses=ChannelFilterRetrieveResponseSerializer),
+    create=extend_schema(request=ChannelFilterCreateSerializer, responses=ChannelFilterRetrieveResponseSerializer),
+    update=extend_schema(request=ChannelFilterUpdateSerializer, responses=ChannelFilterRetrieveResponseSerializer),
+    partial_update=extend_schema(
+        request=ChannelFilterUpdateSerializer, responses=ChannelFilterRetrieveResponseSerializer
+    ),
+)
 class ChannelFilterView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[ChannelFilter],
@@ -31,6 +52,10 @@ class ChannelFilterView(
     UpdateSerializerMixin,
     OrderedModelViewSet,
 ):
+    """
+    Internal API endpoints for channel filters (routes).
+    """
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
@@ -45,19 +70,19 @@ class ChannelFilterView(
         "convert_from_regex_to_jinja2": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
+    queryset = ChannelFilter.objects.none()  # needed for drf-spectacular introspection
+
     model = ChannelFilter
     serializer_class = ChannelFilterSerializer
     update_serializer_class = ChannelFilterUpdateSerializer
     create_serializer_class = ChannelFilterCreateSerializer
 
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ChannelFilterFilter
+
     TEAM_LOOKUP = "alert_receive_channel__team"
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
-        alert_receive_channel_id = self.request.query_params.get("alert_receive_channel", None)
-        lookup_kwargs = {}
-        if alert_receive_channel_id:
-            lookup_kwargs = {"alert_receive_channel__public_primary_key": alert_receive_channel_id}
-
         slack_channels_subq = SlackChannel.objects.filter(
             slack_id=OuterRef("slack_channel_id"),
             slack_team_identity=self.request.auth.organization.slack_team_identity,
@@ -66,7 +91,6 @@ class ChannelFilterView(
         queryset = ChannelFilter.objects.filter(
             alert_receive_channel__organization=self.request.auth.organization,
             alert_receive_channel__deleted_at=None,
-            **lookup_kwargs,
         ).annotate(
             slack_channel_name=Subquery(slack_channels_subq.values("name")[:1]),
             slack_channel_pk=Subquery(slack_channels_subq.values("public_primary_key")[:1]),
@@ -109,6 +133,7 @@ class ChannelFilterView(
             new_state=new_state,
         )
 
+    @extend_schema(request=None, responses={status.HTTP_200_OK: None})
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
         instance = self.get_object()
@@ -117,6 +142,7 @@ class ChannelFilterView(
 
         return super().move_to_position(request, pk)
 
+    @extend_schema(request=None, responses=ChannelFilterSerializer)
     @action(detail=True, methods=["post"])
     def convert_from_regex_to_jinja2(self, request, pk):
         instance = self.get_object()

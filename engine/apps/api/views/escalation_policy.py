@@ -1,10 +1,13 @@
 from django.conf import settings
 from django.db.models import Q
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.alerts.models import EscalationPolicy
+from apps.alerts.models import ChannelFilter, EscalationPolicy
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_policy import (
     EscalationPolicyCreateSerializer,
@@ -13,6 +16,12 @@ from apps.api.serializers.escalation_policy import (
 )
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from common.api_helpers.filters import (
+    ModelChoiceCharFilter,
+    ModelFieldFilterMixin,
+    get_escalation_chain_queryset,
+    get_user_queryset,
+)
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -23,6 +32,38 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
 
 
+def get_channel_filter_queryset(request):
+    if request is None:
+        return ChannelFilter.objects.none()
+
+    return ChannelFilter.objects.filter(alert_receive_channel__organization=request.user.organization)
+
+
+class EscalationPolicyFilter(ModelFieldFilterMixin, filters.FilterSet):
+    escalation_chain = ModelChoiceCharFilter(
+        queryset=get_escalation_chain_queryset,
+        to_field_name="public_primary_key",
+    )
+    channel_filter = ModelChoiceCharFilter(
+        field_name="escalation_chain__channel_filters",
+        queryset=get_channel_filter_queryset,
+        to_field_name="public_primary_key",
+    )
+    user = ModelChoiceCharFilter(
+        field_name="notify_to_users_queue",
+        queryset=get_user_queryset,
+        to_field_name="public_primary_key",
+    )
+    slack_channel = filters.CharFilter(
+        field_name="escalation_chain__channel_filters__slack_channel_id",
+    )
+
+
+@extend_schema_view(
+    list=extend_schema(responses=EscalationPolicySerializer),
+    update=extend_schema(responses=EscalationPolicyUpdateSerializer),
+    partial_update=extend_schema(responses=EscalationPolicyUpdateSerializer),
+)
 class EscalationPolicyView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[EscalationPolicy],
@@ -30,6 +71,10 @@ class EscalationPolicyView(
     UpdateSerializerMixin,
     OrderedModelViewSet,
 ):
+    """
+    Internal API endpoints for escalation policies.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -49,31 +94,20 @@ class EscalationPolicyView(
         "move_to_position": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
     }
 
+    queryset = EscalationPolicy.objects.none()  # needed for drf-spectacular introspection
+
     model = EscalationPolicy
     serializer_class = EscalationPolicySerializer
     update_serializer_class = EscalationPolicyUpdateSerializer
     create_serializer_class = EscalationPolicyCreateSerializer
 
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EscalationPolicyFilter
+
     TEAM_LOOKUP = "escalation_chain__team"
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
-        escalation_chain_id = self.request.query_params.get("escalation_chain")
-        user_id = self.request.query_params.get("user")
-        slack_channel_id = self.request.query_params.get("slack_channel")
-        channel_filter_id = self.request.query_params.get("channel_filter")
-
-        lookup_kwargs = {}
-        if escalation_chain_id is not None:
-            lookup_kwargs.update({"escalation_chain__public_primary_key": escalation_chain_id})
-        if user_id is not None:
-            lookup_kwargs.update({"notify_to_users_queue__public_primary_key": user_id})
-        if slack_channel_id is not None:
-            lookup_kwargs.update({"escalation_chain__channel_filters__slack_channel_id": slack_channel_id})
-        if channel_filter_id is not None:
-            lookup_kwargs.update({"escalation_chain__channel_filters__public_primary_key": channel_filter_id})
-
         queryset = EscalationPolicy.objects.filter(
-            Q(**lookup_kwargs),
             Q(escalation_chain__organization=self.request.auth.organization),
             Q(escalation_chain__channel_filters__alert_receive_channel__deleted_at=None),
             Q(step__in=EscalationPolicy.INTERNAL_DB_STEPS) | Q(step__isnull=True),
@@ -114,6 +148,19 @@ class EscalationPolicyView(
         )
         instance.delete()
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="EscalationPolicyOptions",
+            fields={
+                "value": serializers.IntegerField(),
+                "display_name": serializers.CharField(),
+                "create_display_name": serializers.CharField(),
+                "slack_integration_required": serializers.BooleanField(),
+                "can_change_importance": serializers.BooleanField(),
+            },
+            many=True,
+        )
+    )
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):
         choices = []

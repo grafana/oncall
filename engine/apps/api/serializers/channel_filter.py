@@ -14,7 +14,17 @@ from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.utils import is_regex_valid
 
 
+class SlackChannelDetails(typing.TypedDict):
+    display_name: str
+    slack_id: str
+    id: str
+
+
 class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+    class TelegramChannelDetailsSerializer(serializers.Serializer):
+        display_name = serializers.CharField(source="channel_name")
+        id = serializers.CharField(source="channel_chat_id")
+
     id = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = OrganizationFilteredPrimaryKeyRelatedField(queryset=AlertReceiveChannel.objects)
     escalation_chain = OrganizationFilteredPrimaryKeyRelatedField(
@@ -28,7 +38,9 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     telegram_channel = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=TelegramToOrganizationConnector.objects, filter_field="organization", allow_null=True, required=False
     )
-    telegram_channel_details = serializers.SerializerMethodField()
+    telegram_channel_details = TelegramChannelDetailsSerializer(
+        source="telegram_channel", read_only=True, allow_null=True
+    )
     filtering_term_as_jinja2 = serializers.SerializerMethodField()
     filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     filtering_labels = LabelPairSerializer(many=True, required=False)
@@ -86,7 +98,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             raise serializers.ValidationError(["Expression type is incorrect"])
         return data
 
-    def get_slack_channel(self, obj):
+    def get_slack_channel(self, obj) -> SlackChannelDetails | None:
         if obj.slack_channel_id is None:
             return None
         # display_name and id appears via annotate in ChannelFilterView.get_queryset()
@@ -95,18 +107,6 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_id": obj.slack_channel_id,
             "id": obj.slack_channel_pk,
         }
-
-    def get_telegram_channel_details(self, obj) -> dict[str, typing.Any] | None:
-        if obj.telegram_channel_id is None:
-            return None
-        try:
-            telegram_channel = TelegramToOrganizationConnector.objects.get(pk=obj.telegram_channel_id)
-            return {
-                "display_name": telegram_channel.channel_name,
-                "id": telegram_channel.channel_chat_id,
-            }
-        except TelegramToOrganizationConnector.DoesNotExist:
-            return None
 
     def validate_slack_channel(self, slack_channel_id):
         from apps.slack.models import SlackChannel
@@ -182,21 +182,24 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
         ]
         read_only_fields = ["created_at", "is_default"]
 
-    def to_representation(self, obj):
-        """add correct slack channel data to result after instance creation/update"""
-        result = super().to_representation(obj)
+    def _get_slack_channel(self, obj) -> SlackChannelDetails | None:
         if obj.slack_channel_id is None:
-            result["slack_channel"] = None
+            return None
         else:
             slack_team_identity = self.context["request"].auth.organization.slack_team_identity
             if slack_team_identity is not None:
                 slack_channel = slack_team_identity.get_cached_channels(slack_id=obj.slack_channel_id).first()
                 if slack_channel:
-                    result["slack_channel"] = {
+                    return {
                         "display_name": slack_channel.name,
-                        "slack_id": obj.slack_channel_id,
+                        "slack_id": slack_channel.slack_id,
                         "id": slack_channel.public_primary_key,
                     }
+
+    def to_representation(self, obj):
+        """add correct slack channel data to result after instance creation/update"""
+        result = super().to_representation(obj)
+        result["slack_channel"] = self._get_slack_channel(obj)
         return result
 
     def create(self, validated_data):
@@ -218,3 +221,15 @@ class ChannelFilterUpdateSerializer(ChannelFilterCreateSerializer):
             raise BadRequest(detail="Filtering term of default channel filter cannot be changed")
 
         return super().update(instance, validated_data)
+
+
+class ChannelFilterRetrieveResponseSerializer(ChannelFilterUpdateSerializer):
+    """
+    This serializer is used in OpenAPI schema to show proper response structure,
+    as `slack_channel` field expects string on create/update and returns dict on response
+    """
+
+    slack_channel = serializers.SerializerMethodField()
+
+    def get_slack_channel(self, obj) -> SlackChannelDetails | None:
+        return self._get_slack_channel(obj)

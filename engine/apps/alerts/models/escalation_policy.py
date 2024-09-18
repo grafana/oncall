@@ -345,7 +345,7 @@ class EscalationPolicy(OrderedModel):
         return sorted(self.notify_to_users_queue.all(), key=lambda user: (user.username or "", user.pk))
 
     @property
-    def slack_integration_required(self):
+    def slack_integration_required(self) -> bool:
         if self.step in self.SLACK_INTEGRATION_REQUIRED_STEPS:
             return True
         else:

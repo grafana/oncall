@@ -7,7 +7,8 @@ from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.user_management.models import Team
+from apps.alerts.models import AlertReceiveChannel, EscalationChain
+from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
 
 NO_TEAM_VALUE = "null"
@@ -66,6 +67,13 @@ class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
     pass
 
 
+@extend_schema_field(serializers.CharField)
+class ModelChoiceCharFilter(filters.ModelChoiceFilter):
+    """ModelChoiceCharFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema."""
+
+    pass
+
+
 class ModelFieldFilterMixin:
     def filter_model_field(self, queryset, name, value):
         if not value:
@@ -105,6 +113,27 @@ class ByTeamModelFieldFilterMixin:
             teams_lookup = teams_lookup | null_team_lookup if teams_lookup else null_team_lookup
 
         return queryset.filter(teams_lookup).distinct()
+
+
+def get_escalation_chain_queryset(request):
+    if request is None:
+        return EscalationChain.objects.none()
+
+    return EscalationChain.objects.filter(organization=request.user.organization)
+
+
+def get_integration_queryset(request):
+    if request is None:
+        return AlertReceiveChannel.objects.none()
+
+    return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
+
+
+def get_user_queryset(request):
+    if request is None:
+        return User.objects.none()
+
+    return User.objects.filter(organization=request.user.organization).distinct()
 
 
 def get_team_queryset(request):
