@@ -4,16 +4,16 @@ import { GrafanaTheme2 } from '@grafana/data';
 export const getAddRespondersPopupStyles = (theme: GrafanaTheme2) => {
   return {
     addRespondersDropdown: css`
-             max-height: 500px;
-        overflow: hidden;
-        border: 1px solid ${theme.colors.border.medium};
-        position: absolute;
-        right: 16px;
-        top: 55px;
-        background: ${theme.colors.background.primary}
-        width: 340px;
-        z-index: 10;
-        `,
+      max-height: 500px;
+      overflow: hidden;
+      border: 1px solid ${theme.colors.border.medium};
+      position: absolute;
+      right: 16px;
+      top: 55px;
+      background: ${theme.colors.background.primary};
+      width: 340px;
+      z-index: 10;
+    `,
 
     infoAlert: css`
       margin: 8px;

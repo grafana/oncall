@@ -16,7 +16,7 @@ export const getBlockStyles = (theme: GrafanaTheme2) => {
       }
 
       &--hover:hover {
-        background: ${theme.isLight ? '#f4f5f5' : 'rgba(204, 204, 220, 0.12)'};
+        background: ${theme.isLight ? theme.colors.background.canvas : theme.colors.action.selected};
       }
 
       &--bordered {
