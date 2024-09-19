@@ -57,8 +57,7 @@ interface MattermostCreationModalProps {
 }
 
 interface FormFields {
-  teamName: string;
-  channelName: string;
+  channelId: string;
 }
 
 const MattermostChannelForm = (props: MattermostCreationModalProps) => {
@@ -76,21 +75,19 @@ const MattermostChannelForm = (props: MattermostCreationModalProps) => {
     handleSubmit,
   } = formMethods;
 
-  const teamName = watch('teamName');
-  const channelName = watch('channelName');
+  const channelId = watch('channelId');
 
   return (
     <Modal title="Add Mattermost Channel" isOpen closeOnEscape={false} onDismiss={onUpdate}>
       <FormProvider {...formMethods}>
         <form onSubmit={handleSubmit(onCreateChannelCallback)}>
           <Stack direction="column">
-            {renderTeamNameInput()}
-            {renderChannelNameInput()}
+            {renderChannelIdInput()}
             <Stack justifyContent="flex-end">
               <Button variant="secondary" onClick={() => onHide()}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!teamName || !channelName} variant="primary">
+              <Button type="submit" disabled={!channelId} variant="primary">
                 Create
               </Button>
             </Stack>
@@ -100,50 +97,24 @@ const MattermostChannelForm = (props: MattermostCreationModalProps) => {
     </Modal>
   );
 
-  function renderTeamNameInput() {
+  function renderChannelIdInput() {
     return (
       <Controller
-        name="teamName"
+        name="channelId"
         control={control}
-        rules={{ required: 'Team Name is required' }}
+        rules={{ required: 'Channel Id is required' }}
         render={({ field }) => (
           <Field
-            label="Mattermost Team Name"
-            invalid={Boolean(errors['teamName'])}
-            error={errors['teamName']?.message}
+            label="Mattermost Channel ID"
+            invalid={Boolean(errors['channelId'])}
+            error={errors['channelId']?.message}
             className={cx('field')}
           >
             <Input
               {...field}
               className={cx('channelFormField__input')}
               maxLength={50}
-              placeholder="Enter Mattermost Team Name"
-              autoFocus
-            />
-          </Field>
-        )}
-      />
-    );
-  }
-
-  function renderChannelNameInput() {
-    return (
-      <Controller
-        name="channelName"
-        control={control}
-        rules={{ required: 'Channel Name is required' }}
-        render={({ field }) => (
-          <Field
-            label="Mattermost Channel Name"
-            invalid={Boolean(errors['channelName'])}
-            error={errors['teamName']?.message}
-            className={cx('field')}
-          >
-            <Input
-              {...field}
-              className={cx('channelFormField__input')}
-              maxLength={50}
-              placeholder="Enter Mattermost Channel Name"
+              placeholder="Enter Mattermost Channel ID"
               autoFocus
             />
           </Field>
@@ -154,13 +125,7 @@ const MattermostChannelForm = (props: MattermostCreationModalProps) => {
 
   async function onCreateChannelCallback() {
     try {
-      await store.mattermostChannelStore.create(
-        {
-          team_name: teamName,
-          channel_name: channelName,
-        },
-        true
-      );
+      await store.mattermostChannelStore.create({ channel_id: channelId }, true);
       onUpdate();
     } catch (error) {
       openErrorNotification(get(error, 'response.data.detail', 'error creating channel'));
