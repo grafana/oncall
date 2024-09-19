@@ -36,19 +36,13 @@ class MattermostChannelSerializer(serializers.ModelSerializer):
         return ret
 
     def to_internal_value(self, data):
-        team_name = data.get("team_name")
-        channel_name = data.get("channel_name")
+        channel_id = data.get("channel_id")
 
-        if not team_name:
-            raise serializers.ValidationError({"team_name": "This field is required."})
-
-        if not channel_name:
-            raise serializers.ValidationError({"channel_name": "This field is required."})
+        if not channel_id:
+            raise serializers.ValidationError({"channel_id": "This field is required."})
 
         try:
-            response = MattermostClient().get_channel_by_name_and_team_name(
-                team_name=team_name, channel_name=channel_name
-            )
+            response = MattermostClient().get_channel_by_id(channel_id=channel_id)
         except MattermostAPIException as ex:
             raise BadRequest(detail=ex.msg)
         except MattermostAPITokenInvalid:

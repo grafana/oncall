@@ -125,7 +125,7 @@ def test_delete_mattermost_channels_permissions(
 )
 def test_post_mattermost_channels_permissions(
     make_organization_and_user_with_plugin_token,
-    make_mattermost_get_channel_by_name_team_name_response,
+    make_mattermost_get_channel_response,
     make_user_auth_headers,
     role,
     expected_status,
@@ -133,7 +133,7 @@ def test_post_mattermost_channels_permissions(
     client = APIClient()
     _, user, token = make_organization_and_user_with_plugin_token(role)
 
-    data = make_mattermost_get_channel_by_name_team_name_response()
+    data = make_mattermost_get_channel_response()
     channel_response = requests.Response()
     channel_response.status_code = status.HTTP_200_OK
     channel_response._content = json.dumps(data).encode()
@@ -142,7 +142,7 @@ def test_post_mattermost_channels_permissions(
     with patch("apps.mattermost.client.requests.get", return_value=channel_response) as mock_request:
         response = client.post(
             url,
-            data={"team_name": "fuzzteam", "channel_name": "fuzzchannel"},
+            data={"channel_id": "fuzzchannel"},
             format="json",
             **make_user_auth_headers(user, token),
         )
@@ -160,14 +160,13 @@ def test_post_mattermost_channels_permissions(
 @pytest.mark.parametrize(
     "request_body,expected_status",
     [
-        ({"team_name": "fuzzteam", "channel_name": "fuzzchannel"}, status.HTTP_201_CREATED),
-        ({"team_name": "fuzzteam"}, status.HTTP_400_BAD_REQUEST),
-        ({"channel_name": "fuzzchannel"}, status.HTTP_400_BAD_REQUEST),
+        ({"channel_id": "fuzzchannel"}, status.HTTP_201_CREATED),
+        ({}, status.HTTP_400_BAD_REQUEST),
     ],
 )
 def test_post_mattermost_channels(
     make_organization_and_user_with_plugin_token,
-    make_mattermost_get_channel_by_name_team_name_response,
+    make_mattermost_get_channel_response,
     make_user_auth_headers,
     request_body,
     expected_status,
@@ -175,7 +174,7 @@ def test_post_mattermost_channels(
     client = APIClient()
     _, user, token = make_organization_and_user_with_plugin_token()
 
-    data = make_mattermost_get_channel_by_name_team_name_response()
+    data = make_mattermost_get_channel_response()
     channel_response = requests.Response()
     channel_response.status_code = status.HTTP_200_OK
     channel_response._content = json.dumps(data).encode()
@@ -212,7 +211,7 @@ def test_post_mattermost_channels_mattermost_api_call_failure(
     with patch("apps.mattermost.client.requests.get", return_value=mock_response) as mock_request:
         response = client.post(
             url,
-            data={"team_name": "fuzzteam", "channel_name": "fuzzchannel"},
+            data={"channel_id": "fuzzchannel"},
             format="json",
             **make_user_auth_headers(user, token),
         )
