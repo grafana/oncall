@@ -60,8 +60,8 @@ class MattermostClient:
                 method=ex.response.request.method,
             )
 
-    def get_channel_by_name_and_team_name(self, team_name: str, channel_name: str) -> MattermostChannel:
-        url = f"{self.base_url}/teams/name/{team_name}/channels/name/{channel_name}"
+    def get_channel_by_id(self, channel_id: str) -> MattermostChannel:
+        url = f"{self.base_url}/channels/{channel_id}"
         response = requests.get(url=url, timeout=self.timeout, auth=TokenAuth(self.token))
         self._check_response(response)
         data = response.json()
