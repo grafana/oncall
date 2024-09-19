@@ -14,6 +14,7 @@ dayjs.extend(isoWeek);
 
 test.use({ timezoneId: MOSCOW_TIMEZONE }); // GMT+3 the whole year
 
+// The test is skipped because using Clock API breaks several other tests that run in parallel
 test.skip('dates in schedule are correct according to selected current timezone', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
