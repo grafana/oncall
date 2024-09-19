@@ -47,7 +47,8 @@ class EscalationPolicy(OrderedModel):
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_TEAM_MEMBERS,
         STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
-    ) = range(19)
+        STEP_DECLARE_INCIDENT,
+    ) = range(20)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -70,6 +71,7 @@ class EscalationPolicy(OrderedModel):
         (STEP_TRIGGER_CUSTOM_WEBHOOK, "Trigger Webhook"),
         (STEP_NOTIFY_TEAM_MEMBERS, "Notify all users in a Team"),
         (STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT, "Notify all users in a Team (Important)"),
+        (STEP_DECLARE_INCIDENT, "Declare Incident"),
     )
 
     # Ordered step choices available for internal api.
@@ -90,6 +92,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     ]
     # Steps can be stored in db while interacting with internal api
     # Includes important versions of default steps
@@ -110,6 +113,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     ]
 
     # Maps internal api's steps choices to their verbal. First string in tuple is display name for existent step.
@@ -151,6 +155,7 @@ class EscalationPolicy(OrderedModel):
             "Repeat escalation from the beginning (5 times max)",
             "Repeat escalations from the beginning (5 times max)",
         ),
+        STEP_DECLARE_INCIDENT: ("Declare Incident with severity {{incident_severity}}", "Declare Incident"),
     }
 
     STEPS_WITH_NO_IMPORTANT_VERSION_SET = {
@@ -161,6 +166,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     }
 
     DEFAULT_TO_IMPORTANT_STEP_MAPPING = {
@@ -359,6 +365,10 @@ class EscalationPolicy(OrderedModel):
                 step_name = step_choice[1]
                 break
         return step_name
+
+    @staticmethod
+    def is_declare_incident_step_enabled(organization) -> bool:
+        return organization.is_grafana_incident_enabled and settings.FEATURE_DECLARE_INCIDENT_STEP_ENABLED
 
     # Insight logs
     @property

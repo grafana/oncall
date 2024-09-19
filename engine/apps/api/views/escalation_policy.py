@@ -116,6 +116,9 @@ class EscalationPolicyView(
 
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):
+        grafana_declare_incident_enabled = EscalationPolicy.is_declare_incident_step_enabled(
+            organization=self.request.auth.organization
+        )
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
@@ -124,6 +127,8 @@ class EscalationPolicyView(
             )
             slack_integration_required = step in EscalationPolicy.SLACK_INTEGRATION_REQUIRED_STEPS
             if slack_integration_required and not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
+                continue
+            if step == EscalationPolicy.STEP_DECLARE_INCIDENT and not grafana_declare_incident_enabled:
                 continue
             choices.append(
                 {
