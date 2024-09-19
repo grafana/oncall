@@ -12,6 +12,7 @@ from apps.alerts.models.alert_group_log_record import AlertGroupLogRecord
 from apps.alerts.models.escalation_policy import EscalationPolicy
 from apps.alerts.tasks import (
     custom_webhook_result,
+    declare_incident,
     notify_all_task,
     notify_group_task,
     notify_user_task,
@@ -133,6 +134,7 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: self._escalation_step_notify_if_num_alerts_in_time_window,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS: self._escalation_step_notify_multiple_users,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: self._escalation_step_notify_multiple_users,
+            EscalationPolicy.STEP_DECLARE_INCIDENT: self._escalation_step_declare_incident,
             None: self._escalation_step_not_configured,
         }
         result = action_map[self.step](alert_group, reason)
@@ -405,6 +407,29 @@ class EscalationPolicySnapshot:
                     escalation_policy_step=self.step,
                 )
 
+        self._execute_tasks(tasks)
+
+    def _escalation_step_declare_incident(self, alert_group: "AlertGroup", _reason: str) -> None:
+        grafana_declare_incident_enabled = EscalationPolicy.is_declare_incident_step_enabled(
+            organization=alert_group.channel.organization
+        )
+        if not grafana_declare_incident_enabled:
+            AlertGroupLogRecord(
+                type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
+                alert_group=alert_group,
+                reason="Declare Incident step is not enabled",
+                escalation_policy=self.escalation_policy,
+                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED,
+                escalation_policy_step=self.step,
+            ).save()
+            return
+        tasks = []
+        declare_incident_task = declare_incident.signature(
+            args=(alert_group.pk,),
+            kwargs={},
+            immutable=True,
+        )
+        tasks.append(declare_incident_task)
         self._execute_tasks(tasks)
 
     def _escalation_step_notify_if_time(self, alert_group: "AlertGroup", _reason: str) -> StepExecutionResultData:
