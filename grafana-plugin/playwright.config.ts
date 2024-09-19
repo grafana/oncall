@@ -53,7 +53,7 @@ export default defineConfig({
    * to flaky tests.. let's allow 1 retry per test
    */
   retries: 1,
-  workers: 2,
+  workers: 4,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
