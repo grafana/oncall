@@ -680,6 +680,7 @@ def test_alert_group_silence(
         assert alert_group.silenced is True
         assert alert_group.log_records.last().action_source == ActionSource.API
     else:
+        assert alert_group.silenced is False
         assert response.status_code == status_code
         assert response_msg == response.json()["detail"]
 
@@ -726,5 +727,6 @@ def test_alert_group_unsilence(
         assert alert_group.silenced is False
         assert alert_group.log_records.last().action_source == ActionSource.API
     else:
+        assert alert_group.silenced == silenced
         assert response.status_code == status_code
         assert response_msg == response.json()["detail"]
