@@ -2,8 +2,8 @@ import pytest
 
 
 @pytest.fixture()
-def make_mattermost_get_channel_by_name_team_name_response():
-    def _make_mattermost_get_channel_by_name_team_name_response():
+def make_mattermost_get_channel_response():
+    def _make_mattermost_get_channel_response():
         return {
             "id": "pbg5piuc5bgniftrserb88575h",
             "team_id": "oxfug4kgx3fx7jzow49cpxkmgo",
@@ -11,4 +11,4 @@ def make_mattermost_get_channel_by_name_team_name_response():
             "name": "town-square",
         }
 
-    return _make_mattermost_get_channel_by_name_team_name_response
+    return _make_mattermost_get_channel_response

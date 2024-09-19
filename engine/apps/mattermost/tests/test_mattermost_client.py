@@ -18,14 +18,14 @@ def test_mattermost_client_initialization():
 
 
 @pytest.mark.django_db
-def test_get_channel_by_name_and_team_name_ok(make_mattermost_get_channel_by_name_team_name_response):
+def test_get_channel_by_id_ok(make_mattermost_get_channel_response):
     client = MattermostClient("abcd")
-    data = make_mattermost_get_channel_by_name_team_name_response()
+    data = make_mattermost_get_channel_response()
     channel_response = requests.Response()
     channel_response.status_code = status.HTTP_200_OK
     channel_response._content = json.dumps(data).encode()
     with patch("apps.mattermost.client.requests.get", return_value=channel_response) as mock_request:
-        response = client.get_channel_by_name_and_team_name("test-team", "test-channel")
+        response = client.get_channel_by_id("fuzzz")
         mock_request.assert_called_once()
         assert response.channel_id == data["id"]
         assert response.team_id == data["team_id"]
@@ -34,7 +34,7 @@ def test_get_channel_by_name_and_team_name_ok(make_mattermost_get_channel_by_nam
 
 
 @pytest.mark.django_db
-def test_get_channel_by_name_and_team_name_failure():
+def test_get_channel_by_id_failure():
     client = MattermostClient("abcd")
     data = {
         "status_code": status.HTTP_400_BAD_REQUEST,
@@ -54,7 +54,7 @@ def test_get_channel_by_name_and_team_name_failure():
     mock_response.raise_for_status.side_effect = requests.HTTPError(response=mock_response)
     with patch("apps.mattermost.client.requests.get", return_value=mock_response) as mock_request:
         with pytest.raises(MattermostAPIException) as exc:
-            client.get_channel_by_name_and_team_name("test-team", "test-channel")
+            client.get_channel_by_id("fuzzz")
         mock_request.assert_called_once()
 
     # Timeout Error
@@ -67,7 +67,7 @@ def test_get_channel_by_name_and_team_name_failure():
     mock_response.raise_for_status.side_effect = requests.Timeout(response=mock_response)
     with patch("apps.mattermost.client.requests.get", return_value=mock_response) as mock_request:
         with pytest.raises(MattermostAPIException) as exc:
-            client.get_channel_by_name_and_team_name("test-team", "test-channel")
+            client.get_channel_by_id("fuzzz")
         assert exc.value.msg == "Mattermost api call gateway timedout"
         mock_request.assert_called_once()
 
@@ -81,6 +81,6 @@ def test_get_channel_by_name_and_team_name_failure():
     mock_response.raise_for_status.side_effect = requests.exceptions.RequestException(response=mock_response)
     with patch("apps.mattermost.client.requests.get", return_value=mock_response) as mock_request:
         with pytest.raises(MattermostAPIException) as exc:
-            client.get_channel_by_name_and_team_name("test-team", "test-channel")
+            client.get_channel_by_id("fuzzz")
         assert exc.value.msg == "Unexpected error from mattermost server"
         mock_request.assert_called_once()
