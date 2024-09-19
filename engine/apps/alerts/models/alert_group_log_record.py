@@ -161,7 +161,10 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR,
         ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED,
-    ) = range(20)
+        ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED,
+        ERROR_ESCALATION_INCIDENT_ALREADY_EXISTS,
+        ERROR_ESCALATION_INCIDENT_COULD_NOT_BE_DECLARED,
+    ) = range(23)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
 
@@ -382,6 +385,9 @@ class AlertGroupLogRecord(models.Model):
                 result += f'triggered step "Notify on-call from Schedule {schedule_name}{important_text}"'
             elif escalation_policy_step == EscalationPolicy.STEP_REPEAT_ESCALATION_N_TIMES:
                 result += "escalation started from the beginning"
+            elif escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT:
+                # incident_link = self.alert_group.declared_incident.incident_link
+                result += self.reason  # todo: link to incident
             else:
                 result += f'triggered step "{EscalationPolicy.get_step_display_name(escalation_policy_step)}"'
         elif self.type == AlertGroupLogRecord.TYPE_SILENCE:
@@ -594,6 +600,15 @@ class AlertGroupLogRecord(models.Model):
                     result += f"failed to notify User Group{usergroup_handle_text} in Slack"
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED:
                 result += 'skipped escalation step "Trigger Outgoing Webhook" because it is disabled'
+            elif (
+                self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED
+            ):
+                result += 'skipped escalation step "Declare Incident": step is not enabled'
+            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_INCIDENT_ALREADY_EXISTS:
+                # incident_link = self.alert_group.declared_incident.incident_link
+                result += 'skipped escalation step "Declare Incident": Incident already exists'  # todo: link
+            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_INCIDENT_COULD_NOT_BE_DECLARED:
+                result += "failed to declare an Incident"  # todo: reason
         return result
 
     def get_step_specific_info(self):
