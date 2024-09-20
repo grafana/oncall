@@ -12,9 +12,9 @@ export class MattermostStore extends BaseStore {
     makeObservable(this);
   }
 
-  async installMattermostIntegration() {
+  async mattermostLogin() {
     try {
-      const response = await makeRequestRaw('/login/mattermost-install/', {});
+      const response = await makeRequestRaw('/login/mattermost-login/', {});
 
       if (response.status === 201) {
         this.rootStore.organizationStore.loadCurrentOrganization();

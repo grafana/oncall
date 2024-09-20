@@ -1,0 +1,13 @@
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mattermost-infoblock {
+  text-align: center;
+}
+
+.external-link-style {
+  margin-right: 4px;
+  align-self: baseline;
+}

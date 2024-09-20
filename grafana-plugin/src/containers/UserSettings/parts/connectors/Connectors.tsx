@@ -10,6 +10,7 @@ import { useStore } from 'state/useStore';
 
 import { ICalConnector } from './ICalConnector';
 import { MSTeamsConnector } from './MSTeamsConnector';
+import { MattermostConnector } from './MattermostConnector';
 import { MobileAppConnector } from './MobileAppConnector';
 import { PhoneConnector } from './PhoneConnector';
 import { SlackConnector } from './SlackConnector';
@@ -29,6 +30,7 @@ export const Connectors: FC<ConnectorsProps> = observer((props) => {
       <SlackConnector {...props} />
       {store.hasFeature(AppFeature.Telegram) && <TelegramConnector {...props} />}
       {store.hasFeature(AppFeature.MsTeams) && <MSTeamsConnector {...props} />}
+      {store.hasFeature(AppFeature.Mattermost) && <MattermostConnector {...props} />}
       <Legend>Calendar export</Legend>
       <ICalConnector {...props} />
     </>
