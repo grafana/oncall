@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+from django.conf import settings
 from social_core.backends.google import GoogleOAuth2 as BaseGoogleOAuth2
 from social_core.backends.oauth import BaseOAuth2
 from social_core.backends.slack import SlackOAuth2
@@ -7,7 +8,10 @@ from social_core.utils import handle_http_errors
 
 from apps.auth_token.constants import MATTERMOST_AUTH_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from apps.auth_token.models import GoogleOAuth2Token, MattermostAuthToken, SlackAuthToken
-from apps.base.utils import live_settings
+from apps.mattermost.client import MattermostClient
+from apps.mattermost.exceptions import MattermostAPIException, MattermostAPITokenInvalid
+
+from .exceptions import UserLoginOAuth2MattermostException
 
 # Scopes for slack user token.
 # It is main purpose - retrieve user data in SlackOAuth2V2 but we are using it in legacy code or weird Slack api cases.
@@ -205,8 +209,11 @@ class InstallSlackOAuth2V2(SlackOAuth2V2):
         return {"user_scope": USER_SCOPE, "scope": BOT_SCOPE}
 
 
-class InstallMattermostOAuth2(BaseOAuth2):
-    name = "mattermost-install"
+MATTERMOST_LOGIN_BACKEND = "mattermost-login"
+
+
+class LoginMattermostOAuth2(BaseOAuth2):
+    name = MATTERMOST_LOGIN_BACKEND
 
     REDIRECT_STATE = False
     """
@@ -222,10 +229,10 @@ class InstallMattermostOAuth2(BaseOAuth2):
     AUTH_TOKEN_NAME = MATTERMOST_AUTH_TOKEN_NAME
 
     def authorization_url(self):
-        return f"{live_settings.MATTERMOST_HOST}/oauth/authorize"
+        return f"{settings.MATTERMOST_HOST}/oauth/authorize"
 
     def access_token_url(self):
-        return f"{live_settings.MATTERMOST_HOST}/oauth/access_token"
+        return f"{settings.MATTERMOST_HOST}/oauth/access_token"
 
     def get_user_details(self, response):
         """
@@ -242,7 +249,22 @@ class InstallMattermostOAuth2(BaseOAuth2):
         }
 
         """
-        return {}
+        return response
+
+    def user_data(self, access_token, *args, **kwargs):
+        try:
+            client = MattermostClient(token=access_token)
+            user = client.get_user()
+        except (MattermostAPITokenInvalid, MattermostAPIException) as ex:
+            raise UserLoginOAuth2MattermostException(
+                f"Error while trying to fetch mattermost user: {ex.msg} status: {ex.status}"
+            )
+        response = {}
+        response["user"] = {}
+        response["user"]["user_id"] = user.user_id
+        response["user"]["username"] = user.username
+        response["user"]["nickname"] = user.nickname
+        return response
 
     def auth_params(self, state=None):
         """

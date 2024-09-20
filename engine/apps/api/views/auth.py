@@ -25,7 +25,7 @@ from apps.chatops_proxy.utils import (
 )
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.slack.installation import install_slack_integration
-from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
+from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginMattermostOAuth2, LoginSlackOAuth2V2
 
 logger = logging.getLogger(__name__)
 

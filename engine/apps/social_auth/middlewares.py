@@ -8,7 +8,7 @@ from social_django.middleware import SocialAuthExceptionMiddleware
 
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.social_auth.backends import LoginSlackOAuth2V2
-from apps.social_auth.exceptions import InstallMultiRegionSlackException
+from apps.social_auth.exceptions import MATTERMOST_AUTH_FETCH_USER_ERROR, InstallMultiRegionSlackException, UserLoginOAuth2MattermostException
 from common.constants.slack_auth import REDIRECT_AFTER_SLACK_INSTALL, SLACK_AUTH_FAILED, SLACK_REGION_ERROR
 
 logger = logging.getLogger(__name__)
@@ -43,3 +43,5 @@ class SocialAuthAuthCanceledExceptionMiddleware(SocialAuthExceptionMiddleware):
                 return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
             elif isinstance(exception, InstallMultiRegionSlackException):
                 return redirect(url_builder_function(f"?tab=Slack&slack_error={SLACK_REGION_ERROR}"))
+            elif isinstance(exception, UserLoginOAuth2MattermostException):
+                return redirect(url_builder_function(f"?mattermost_error={MATTERMOST_AUTH_FETCH_USER_ERROR}"))
