@@ -13,18 +13,8 @@ def get_expire_date():
     return timezone.now() + timezone.timedelta(seconds=AUTH_TOKEN_TIMEOUT_SECONDS)
 
 
-class MattermostAuthTokenQuerySet(models.QuerySet):
-    def filter(self, *args, **kwargs):
-        now = timezone.now()
-        return super().filter(*args, **kwargs, revoked_at=None, expire_date__gte=now)
-
-    def delete(self):
-        self.update(revoked_at=timezone.now())
-
-
 class MattermostAuthToken(BaseAuthToken):
-    objects = MattermostAuthTokenQuerySet.as_manager()
-    user = models.ForeignKey("user_management.User", related_name="mattermost_auth_token_set", on_delete=models.CASCADE)
+    user = models.OneToOneField("user_management.User", related_name="mattermost_auth_token", on_delete=models.CASCADE)
     organization = models.ForeignKey(
         "user_management.Organization", related_name="mattermost_auth_token_set", on_delete=models.CASCADE
     )
@@ -32,6 +22,10 @@ class MattermostAuthToken(BaseAuthToken):
 
     @classmethod
     def create_auth_token(cls, user: User, organization: Organization) -> Tuple["MattermostAuthToken", str]:
+        old_token = cls.objects_with_deleted.filter(user=user)
+        if old_token.exists():
+            old_token.delete()
+
         token_string = crypto.generate_token_string()
         digest = crypto.hash_token_string(token_string)
 

@@ -20,6 +20,10 @@ enum GoogleError {
   MISSING_GRANTED_SCOPE = 'missing_granted_scope',
 }
 
+enum MattermostError {
+  MATTERMOST_AUTH_FETCH_USER_ERROR = 'failed_to_fetch_user',
+}
+
 interface UserFormProps {
   onHide: () => void;
   id: ApiSchemas['User']['pk'] | 'new';
@@ -41,9 +45,23 @@ function getGoogleMessage(googleError: GoogleError) {
   return <>Couldn't connect your Google account.</>;
 }
 
+function getMattermostErrorMessage(mattermostError: MattermostError) {
+  if (mattermostError == MattermostError.MATTERMOST_AUTH_FETCH_USER_ERROR) {
+    return (
+      <>
+        Couldn't connect your Mattermost account. Failed to fetch user information from your mattermost server. Please
+        check your mattermost ENV variable values and retry.
+      </>
+    );
+  }
+
+  return <>Couldn't connect your Mattermost account.</>;
+}
+
 const UserAlerts: React.FC = () => {
   const queryParams = useQueryParams();
   const [showGoogleConnectAlert, setShowGoogleConnectAlert] = useState<GoogleError | undefined>();
+  const [showMattermostConnectAlert, setshowMattermostConnectAlert] = useState<MattermostError | undefined>();
 
   const styles = useStyles2(getStyles);
 
@@ -51,16 +69,39 @@ const UserAlerts: React.FC = () => {
     setShowGoogleConnectAlert(undefined);
   }, []);
 
+  const handleCloseMattermostAlert = useCallback(() => {
+    setshowMattermostConnectAlert(undefined);
+  }, []);
+
   useEffect(() => {
     if (queryParams.get('google_error')) {
       setShowGoogleConnectAlert(queryParams.get('google_error') as GoogleError);
 
       LocationHelper.update({ google_error: undefined }, 'partial');
+    } else if (queryParams.get('mattermost_error')) {
+      setshowMattermostConnectAlert(queryParams.get('mattermost_error') as MattermostError);
+
+      LocationHelper.update({ mattermost_error: undefined }, 'partial');
     }
   }, []);
 
-  if (!showGoogleConnectAlert) {
+  if (!showGoogleConnectAlert && !showMattermostConnectAlert) {
     return null;
+  }
+
+  if (showMattermostConnectAlert) {
+    return (
+      <div className={cx('alerts-container')}>
+        <Alert
+          className={cx('alert')}
+          onRemove={handleCloseMattermostAlert}
+          severity="error"
+          title="Mattermost integration error"
+        >
+          {getMattermostErrorMessage(showMattermostConnectAlert)}
+        </Alert>
+      </div>
+    );
   }
 
   return (
@@ -110,6 +151,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     showMobileAppConnectionTab,
     showMsTeamsConnectionTab,
     showGoogleCalendarTab,
+    showMattermostConnectionTab,
   ] = [
     !isDesktopOrLaptop,
     isCurrent && organizationStore.currentOrganization?.slack_team_identity && !storeUser.slack_user_identity,
@@ -118,6 +160,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     isCurrent,
     store.hasFeature(AppFeature.MsTeams) && !storeUser.messaging_backends.MSTEAMS,
     isCurrent && store.hasFeature(AppFeature.GoogleOauth2),
+    isCurrent && store.hasFeature(AppFeature.Mattermost) && !storeUser.messaging_backends.MATTERMOST,
   ];
 
   const title = (
@@ -147,6 +190,7 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
             showMobileAppConnectionTab={showMobileAppConnectionTab}
             showMsTeamsConnectionTab={showMsTeamsConnectionTab}
             showGoogleCalendarTab={showGoogleCalendarTab}
+            showMattermostConnectionTab={showMattermostConnectionTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

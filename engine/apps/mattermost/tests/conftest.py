@@ -12,3 +12,15 @@ def make_mattermost_get_channel_response():
         }
 
     return _make_mattermost_get_channel_response
+
+
+@pytest.fixture()
+def make_mattermost_get_user_response():
+    def _make_mattermost_get_user_response():
+        return {
+            "id": "bew5wsjnctbt78mkq9z6ci9sme",
+            "username": "fuzz",
+            "nickname": "buzz",
+        }
+
+    return _make_mattermost_get_user_response

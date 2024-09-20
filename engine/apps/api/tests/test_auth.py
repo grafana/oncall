@@ -8,8 +8,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.auth_token.constants import SLACK_AUTH_TOKEN_NAME
-from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
+from apps.auth_token.constants import MATTERMOST_AUTH_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
+from apps.social_auth.backends import MATTERMOST_LOGIN_BACKEND, SLACK_INSTALLATION_BACKEND
 from common.constants.plugin_ids import PluginID
 from common.constants.slack_auth import SLACK_OAUTH_ACCESS_RESPONSE
 
@@ -97,6 +97,85 @@ def test_start_slack_ok(
         assert mock_do_auth.called
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == "https://slack_oauth_redirect.com"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "backend_name,expected_url",
+    ((MATTERMOST_LOGIN_BACKEND, "/a/grafana-oncall-app/users/me"),),
+)
+def test_complete_mattermost_auth_redirect_ok(
+    make_organization,
+    make_user_for_organization,
+    make_mattermost_token_for_user,
+    backend_name,
+    expected_url,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, mattermost_token = make_mattermost_token_for_user(admin)
+
+    client = APIClient()
+    url = (
+        reverse("api-internal:complete-social-auth", kwargs={"backend": backend_name})
+        + f"?{MATTERMOST_AUTH_TOKEN_NAME}={mattermost_token}"
+    )
+
+    with patch("apps.api.views.auth.do_complete") as mock_do_complete:
+        mock_do_complete.return_value = None
+        response = client.get(url)
+
+    assert response.status_code == status.HTTP_302_FOUND
+    assert response.url == expected_url
+
+
+@pytest.mark.django_db
+def test_complete_mattermost_auth_redirect_error(
+    make_organization,
+    make_user_for_organization,
+    make_mattermost_token_for_user,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, mattermost_token = make_mattermost_token_for_user(admin)
+
+    client = APIClient()
+    url = (
+        reverse("api-internal:complete-social-auth", kwargs={"backend": MATTERMOST_LOGIN_BACKEND})
+        + f"?{MATTERMOST_AUTH_TOKEN_NAME}={mattermost_token}"
+    )
+
+    def _custom_do_complete(backend, *args, **kwargs):
+        backend.strategy.session[REDIRECT_FIELD_NAME] = "some-url"
+        return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    with patch("apps.api.views.auth.do_complete", side_effect=_custom_do_complete):
+        response = client.get(url)
+
+    assert response.status_code == status.HTTP_302_FOUND
+    assert response.url == "some-url"
+
+
+@pytest.mark.django_db
+def test_start_mattermost_ok(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    """
+    Covers the case when user starts Mattermost integration installation via Grafana OnCall
+    """
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:social-auth", kwargs={"backend": MATTERMOST_LOGIN_BACKEND})
+
+    mock_do_auth_return = Mock()
+    mock_do_auth_return.url = "https://mattermost_oauth_redirect.com"
+    with patch("apps.api.views.auth.do_auth", return_value=mock_do_auth_return) as mock_do_auth:
+        response = client.get(url, **make_user_auth_headers(user, token))
+        assert mock_do_auth.called
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == "https://mattermost_oauth_redirect.com"
 
 
 @override_settings(UNIFIED_SLACK_APP_ENABLED=True)
