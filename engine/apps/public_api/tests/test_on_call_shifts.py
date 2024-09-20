@@ -492,7 +492,7 @@ def test_create_on_call_shift_invalid_rolling_users(make_organization_and_user_w
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"rolling_users": {"1": ["User does not exist fuzz"]}}
+    assert response.json() == {"rolling_users": {"1": ["User does not exist {'fuzz'}"]}}
 
 
 @pytest.mark.django_db

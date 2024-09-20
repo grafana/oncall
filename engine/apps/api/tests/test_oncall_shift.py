@@ -594,7 +594,7 @@ def test_update_on_call_shift_invalid_rolling_users(
     response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"rolling_users": {"0": ["User does not exist fuzz"]}}
+    assert response.json() == {"rolling_users": {"0": ["User does not exist {'fuzz'}"]}}
 
 
 @pytest.mark.django_db
@@ -1273,7 +1273,7 @@ def test_create_on_call_shift_invalid_rolling_users(on_call_shift_internal_api_s
     with patch("apps.schedules.models.CustomOnCallShift.refresh_schedule") as mock_refresh_schedule:
         response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
 
-    expected_payload = {"rolling_users": {"1": ["User does not exist fuzz"]}}
+    expected_payload = {"rolling_users": {"1": ["User does not exist {'fuzz'}"]}}
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == expected_payload
     mock_refresh_schedule.assert_not_called()

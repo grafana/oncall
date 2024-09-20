@@ -86,7 +86,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         allow_null=True,
         required=False,
         child=UsersFilteredByOrganizationField(
-            queryset=User.objects, db_verification=True, required=False, allow_null=True
+            queryset=User.objects, require_all_exist=True, required=False, allow_null=True
         ),
     )
     rotation_start = serializers.DateTimeField(required=False)
