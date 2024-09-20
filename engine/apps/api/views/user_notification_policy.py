@@ -17,7 +17,7 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, NotificationChannelAPIOptions
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from common.api_helpers.filters import ModelChoiceCharFilter, get_user_queryset
+from common.api_helpers.filters import ModelChoicePublicPrimaryKeyFilter, get_user_queryset
 from common.api_helpers.mixins import UpdateSerializerMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
@@ -25,9 +25,8 @@ from common.ordered_model.viewset import OrderedModelViewSet
 
 class UserNotificationPolicyFilter(filters.FilterSet):
     important = filters.BooleanFilter()
-    user = ModelChoiceCharFilter(
+    user = ModelChoicePublicPrimaryKeyFilter(
         queryset=get_user_queryset,
-        to_field_name="public_primary_key",
     )
 
 

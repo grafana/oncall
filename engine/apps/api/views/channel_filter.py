@@ -10,8 +10,8 @@ from apps.alerts.models import ChannelFilter
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.channel_filter import (
     ChannelFilterCreateSerializer,
-    ChannelFilterRetrieveResponseSerializer,
     ChannelFilterSerializer,
+    ChannelFilterUpdateResponseSerializer,
     ChannelFilterUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
@@ -38,11 +38,10 @@ class ChannelFilterFilter(ModelFieldFilterMixin, filters.FilterSet):
 
 @extend_schema_view(
     list=extend_schema(responses=ChannelFilterSerializer),
-    retrieve=extend_schema(responses=ChannelFilterRetrieveResponseSerializer),
-    create=extend_schema(request=ChannelFilterCreateSerializer, responses=ChannelFilterRetrieveResponseSerializer),
-    update=extend_schema(request=ChannelFilterUpdateSerializer, responses=ChannelFilterRetrieveResponseSerializer),
+    create=extend_schema(request=ChannelFilterCreateSerializer, responses=ChannelFilterUpdateResponseSerializer),
+    update=extend_schema(request=ChannelFilterUpdateSerializer, responses=ChannelFilterUpdateResponseSerializer),
     partial_update=extend_schema(
-        request=ChannelFilterUpdateSerializer, responses=ChannelFilterRetrieveResponseSerializer
+        request=ChannelFilterUpdateSerializer, responses=ChannelFilterUpdateResponseSerializer
     ),
 )
 class ChannelFilterView(

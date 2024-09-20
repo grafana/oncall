@@ -68,10 +68,14 @@ class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
 
 
 @extend_schema_field(serializers.CharField)
-class ModelChoiceCharFilter(filters.ModelChoiceFilter):
-    """ModelChoiceCharFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema."""
+class ModelChoicePublicPrimaryKeyFilter(filters.ModelChoiceFilter):
+    """
+    ModelChoicePublicPrimaryKeyFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema.
+    """
 
-    pass
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("to_field_name", "public_primary_key")
+        super().__init__(*args, **kwargs)
 
 
 class ModelFieldFilterMixin:

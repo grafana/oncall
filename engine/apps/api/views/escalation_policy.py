@@ -17,7 +17,7 @@ from apps.api.serializers.escalation_policy import (
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from common.api_helpers.filters import (
-    ModelChoiceCharFilter,
+    ModelChoicePublicPrimaryKeyFilter,
     ModelFieldFilterMixin,
     get_escalation_chain_queryset,
     get_user_queryset,
@@ -40,19 +40,16 @@ def get_channel_filter_queryset(request):
 
 
 class EscalationPolicyFilter(ModelFieldFilterMixin, filters.FilterSet):
-    escalation_chain = ModelChoiceCharFilter(
+    escalation_chain = ModelChoicePublicPrimaryKeyFilter(
         queryset=get_escalation_chain_queryset,
-        to_field_name="public_primary_key",
     )
-    channel_filter = ModelChoiceCharFilter(
+    channel_filter = ModelChoicePublicPrimaryKeyFilter(
         field_name="escalation_chain__channel_filters",
         queryset=get_channel_filter_queryset,
-        to_field_name="public_primary_key",
     )
-    user = ModelChoiceCharFilter(
+    user = ModelChoicePublicPrimaryKeyFilter(
         field_name="notify_to_users_queue",
         queryset=get_user_queryset,
-        to_field_name="public_primary_key",
     )
     slack_channel = filters.CharFilter(
         field_name="escalation_chain__channel_filters__slack_channel_id",

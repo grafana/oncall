@@ -183,16 +183,17 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
         read_only_fields = ["created_at", "is_default"]
 
     def _get_slack_channel(self, obj) -> SlackChannelDetails | None:
-        if obj.slack_channel_id is not None:
-            slack_team_identity = self.context["request"].auth.organization.slack_team_identity
-            if slack_team_identity is not None:
-                slack_channel = slack_team_identity.get_cached_channels(slack_id=obj.slack_channel_id).first()
-                if slack_channel:
-                    return {
-                        "display_name": slack_channel.name,
-                        "slack_id": slack_channel.slack_id,
-                        "id": slack_channel.public_primary_key,
-                    }
+        if obj.slack_channel_id is None:
+            return None
+        slack_team_identity = self.context["request"].auth.organization.slack_team_identity
+        if slack_team_identity is not None:
+            slack_channel = slack_team_identity.get_cached_channels(slack_id=obj.slack_channel_id).first()
+            if slack_channel:
+                return {
+                    "display_name": slack_channel.name,
+                    "slack_id": slack_channel.slack_id,
+                    "id": slack_channel.public_primary_key,
+                }
         return None
 
     def to_representation(self, obj):
@@ -222,7 +223,7 @@ class ChannelFilterUpdateSerializer(ChannelFilterCreateSerializer):
         return super().update(instance, validated_data)
 
 
-class ChannelFilterRetrieveResponseSerializer(ChannelFilterUpdateSerializer):
+class ChannelFilterUpdateResponseSerializer(ChannelFilterUpdateSerializer):
     """
     This serializer is used in OpenAPI schema to show proper response structure,
     as `slack_channel` field expects string on create/update and returns dict on response
