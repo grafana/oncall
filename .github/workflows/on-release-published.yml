@@ -36,15 +36,12 @@ jobs:
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
           repo_secrets: |
-            GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
             GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON=github_actions:gcs-plugin-publisher
       - name: Build, sign, and package plugin
         id: build-sign-and-package-plugin
         uses: ./.github/actions/build-sign-and-package-plugin
         with:
           plugin_version_number: ${{ github.ref_name }}
-          grafana_access_policy_token: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN }}
-          working_directory: grafana-plugin
       - name: Authenticate with GCS
         uses: google-github-actions/auth@v2
         with:
