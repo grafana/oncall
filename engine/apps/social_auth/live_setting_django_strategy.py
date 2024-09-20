@@ -37,6 +37,12 @@ class LiveSettingDjangoStrategy(DjangoStrategy):
         """
         Overridden DjangoStrategy's method to substitute and force the host value from ENV
         """
+        if (
+            settings.MATTERMOST_LOGIN_RETURN_REDIRECT_HOST is not None
+            and path is not None
+            and path == "/api/internal/v1/complete/mattermost-login/"
+        ):
+            return create_engine_url(path, override_base=settings.MATTERMOST_LOGIN_RETURN_REDIRECT_HOST)
         if live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
             return create_engine_url(path, override_base=live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
         if self.request:
