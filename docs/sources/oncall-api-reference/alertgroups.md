@@ -135,7 +135,11 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/unresolve" \
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/silence" \
   --request POST \
-  --header "Authorization: meowmeowmeow"
+  --header "Authorization: meowmeowmeow" \
+  --header "Content-Type: application/json" \
+  --data '{
+      "delay": 10800
+  }'
 ```
 
 **HTTP request**
