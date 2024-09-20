@@ -19,6 +19,13 @@ class TokenAuth(AuthBase):
 
 
 @dataclass
+class MattermostUser:
+    user_id: str
+    username: str
+    nickname: str
+
+
+@dataclass
 class MattermostChannel:
     channel_id: str
     team_id: str
@@ -68,3 +75,10 @@ class MattermostClient:
         return MattermostChannel(
             channel_id=data["id"], team_id=data["team_id"], channel_name=data["name"], display_name=data["display_name"]
         )
+
+    def get_user(self, user_id: str = "me"):
+        url = f"{self.base_url}/users/{user_id}"
+        response = requests.get(url=url, timeout=self.timeout, auth=TokenAuth(self.token))
+        self._check_response(response)
+        data = response.json()
+        return MattermostUser(user_id=data["id"], username=data["username"], nickname=data["nickname"])

@@ -7,8 +7,12 @@ from rest_framework import status
 from social_core import exceptions
 from social_django.middleware import SocialAuthExceptionMiddleware
 
-from apps.social_auth.backends import LoginSlackOAuth2V2
-from apps.social_auth.exceptions import InstallMultiRegionSlackException
+from apps.social_auth.backends import LoginMattermostOAuth2, LoginSlackOAuth2V2
+from apps.social_auth.exceptions import (
+    MATTERMOST_AUTH_FETCH_USER_ERROR,
+    InstallMultiRegionSlackException,
+    UserLoginOAuth2MattermostException,
+)
 from common.constants.slack_auth import REDIRECT_AFTER_SLACK_INSTALL, SLACK_AUTH_FAILED
 
 logger = logging.getLogger(__name__)
@@ -18,7 +22,9 @@ class SocialAuthAuthCanceledExceptionMiddleware(SocialAuthExceptionMiddleware):
     def process_exception(self, request, exception):
         backend = getattr(exception, "backend", None)
         redirect_to = "/a/grafana-oncall-app/chat-ops"
-        if backend is not None and isinstance(backend, LoginSlackOAuth2V2):
+        if backend is not None and (
+            isinstance(backend, LoginSlackOAuth2V2) or isinstance(backend, LoginMattermostOAuth2)
+        ):
             redirect_to = "/a/grafana-oncall-app/users/me"
         if exception:
             logger.warning(f"SocialAuthAuthCanceledExceptionMiddleware.process_exception: {exception}")
@@ -40,5 +46,12 @@ class SocialAuthAuthCanceledExceptionMiddleware(SocialAuthExceptionMiddleware):
             REGION_ERROR = "region_error"
             url_to_redirect = urljoin(
                 request.user.organization.grafana_url, f"{redirect_to}?tab=Slack&slack_error={REGION_ERROR}"
+            )
+            return redirect(url_to_redirect)
+        elif isinstance(exception, UserLoginOAuth2MattermostException):
+            redirect_to = "/a/grafana-oncall-app/users/me"
+            url_to_redirect = urljoin(
+                request.user.organization.grafana_url,
+                f"{redirect_to}?mattermost_error={MATTERMOST_AUTH_FETCH_USER_ERROR}",
             )
             return redirect(url_to_redirect)
