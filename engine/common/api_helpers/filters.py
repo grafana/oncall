@@ -62,7 +62,7 @@ class DateRangeFilterMixin:
 
 @extend_schema_field(serializers.CharField)
 class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
-    """MultipleChoiceCharFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema."""
+    """MultipleChoiceCharFilter with an explicit schema. Otherwise, drf-spectacular may generate a wrong schema."""
 
     pass
 
@@ -70,7 +70,7 @@ class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
 @extend_schema_field(serializers.CharField)
 class ModelChoicePublicPrimaryKeyFilter(filters.ModelChoiceFilter):
     """
-    ModelChoicePublicPrimaryKeyFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema.
+    ModelChoicePublicPrimaryKeyFilter with an explicit schema. Otherwise, drf-spectacular may generate a wrong schema.
     """
 
     def __init__(self, *args, **kwargs):
