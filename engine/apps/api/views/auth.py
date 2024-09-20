@@ -25,7 +25,7 @@ from apps.chatops_proxy.utils import (
     get_slack_oauth_response_from_chatops_proxy,
 )
 from apps.slack.installation import install_slack_integration
-from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
+from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginMattermostOAuth2, LoginSlackOAuth2V2
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
 @psa("social:complete")
 def overridden_complete_social_auth(request: Request, backend: str, *args, **kwargs) -> Response:
     """Authentication complete view"""
-    if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2)):
+    if isinstance(request.backend, (LoginMattermostOAuth2, LoginSlackOAuth2V2, GoogleOAuth2)):
         # if this was a user login/linking account, redirect to profile
         redirect_to = "/a/grafana-oncall-app/users/me"
     else:

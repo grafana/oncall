@@ -25,3 +25,7 @@ def set_user_and_organization_from_request(
         "user": user,
         "organization": organization,
     }
+
+
+def delete_auth_token(strategy, *args, **kwargs):
+    strategy.request.auth.delete()
