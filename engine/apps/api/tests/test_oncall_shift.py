@@ -556,6 +556,48 @@ def test_update_future_on_call_shift_removing_users(
 
 
 @pytest.mark.django_db
+def test_update_on_call_shift_invalid_rolling_users(
+    on_call_shift_internal_api_setup,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+
+    client = APIClient()
+    start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
+
+    name = "Test Shift Rotation"
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        name=name,
+        start=start_date,
+        duration=timezone.timedelta(hours=1),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}],
+    )
+    data_to_update = {
+        "name": name,
+        "priority_level": 2,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": None,
+        "interval": None,
+        "by_day": None,
+        "rolling_users": [["fuzz"]],
+    }
+
+    url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"rolling_users": {"0": ["User does not exist fuzz"]}}
+
+
+@pytest.mark.django_db
 def test_update_started_on_call_shift(
     on_call_shift_internal_api_setup,
     make_on_call_shift,
@@ -1200,6 +1242,41 @@ def test_create_on_call_shift_invalid_data_rolling_users(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["rolling_users"][0] == "Cannot set multiple user groups for non-recurrent shifts"
+
+
+@pytest.mark.django_db
+def test_create_on_call_shift_invalid_rolling_users(on_call_shift_internal_api_setup, make_user_auth_headers):
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:oncall_shifts-list")
+    start_date = timezone.now().replace(microsecond=0, tzinfo=None)
+
+    data = {
+        "name": "Test Shift",
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 1,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": 1,
+        "interval": 1,
+        "by_day": [
+            CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
+            CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
+        ],
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
+        "rolling_users": [[user1.public_primary_key], [user2.public_primary_key, "fuzz"]],
+    }
+
+    with patch("apps.schedules.models.CustomOnCallShift.refresh_schedule") as mock_refresh_schedule:
+        response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+
+    expected_payload = {"rolling_users": {"1": ["User does not exist fuzz"]}}
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == expected_payload
+    mock_refresh_schedule.assert_not_called()
 
 
 @pytest.mark.django_db

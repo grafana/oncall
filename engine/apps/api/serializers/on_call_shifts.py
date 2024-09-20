@@ -29,7 +29,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         allow_null=True,
         required=False,
         child=UsersFilteredByOrganizationField(
-            queryset=User.objects, required=False, allow_null=True
+            queryset=User.objects, db_verification=True, required=False, allow_null=True
         ),  # todo: filter by team?
     )
     updated_shift = serializers.CharField(read_only=True, allow_null=True, source="updated_shift.public_primary_key")

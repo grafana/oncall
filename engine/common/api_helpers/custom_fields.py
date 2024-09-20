@@ -90,6 +90,7 @@ class UsersFilteredByOrganizationField(serializers.Field):
 
     def __init__(self, **kwargs):
         self.queryset = kwargs.pop("queryset", None)
+        self.db_verification = kwargs.pop("db_verification", False)
         super().__init__(**kwargs)
 
     def to_representation(self, value):
@@ -102,7 +103,16 @@ class UsersFilteredByOrganizationField(serializers.Field):
         if not request or not queryset:
             return None
 
-        return queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct()
+        users = queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct()
+        users_ppk = [u.public_primary_key for u in users]
+
+        if not self.db_verification:
+            return users
+
+        for d in data:
+            if d not in users_ppk:
+                raise ValidationError(f"User does not exist {d}")
+        return users
 
 
 class IntegrationFilteredByOrganizationField(serializers.RelatedField):

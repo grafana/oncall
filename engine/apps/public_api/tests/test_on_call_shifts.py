@@ -464,6 +464,38 @@ def test_create_on_call_shift_invalid_time_zone(make_organization_and_user_with_
 
 
 @pytest.mark.django_db
+def test_create_on_call_shift_invalid_rolling_users(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "rolling_users",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "week_start": "MO",
+        "frequency": "weekly",
+        "interval": 2,
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+        "time_zone": None,
+        "rolling_users": [[user.public_primary_key], ["fuzz"]],
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"rolling_users": {"1": ["User does not exist fuzz"]}}
+
+
+@pytest.mark.django_db
 def test_update_on_call_shift(make_organization_and_user_with_token, make_on_call_shift, make_schedule):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
@@ -624,6 +656,35 @@ def test_update_on_call_shift_invalid_field(make_organization_and_user_with_toke
 
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+
+    url = reverse("api-public:on_call_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+
+    response = client.put(url, data=data_to_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_on_call_shift_invalid_rolling_users(make_organization_and_user_with_token, make_on_call_shift):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    start_date = timezone.now().replace(microsecond=0)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=7200),
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "interval": 2,
+        "by_day": ["MO", "FR"],
+        "rolling_users": [[user.public_primary_key]],
+    }
+
+    data_to_update = {"rolling_users": [[user.public_primary_key], ["fuzz"]]}
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
 
     url = reverse("api-public:on_call_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
