@@ -401,14 +401,24 @@ class ScheduleView(
 
         events = schedule.final_events(now, datetime_end)
 
-        # include user TZ information for every user
-        users = {u.public_primary_key: {"user_timezone": u.timezone} for u in schedule.related_users()}
+        related_users = {}
         added_users = set()
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and user not in added_users and user in users and e["end"] > now:
-                users[user].update(e)
+            if user is not None and user not in added_users and e["end"] > now:
+                if user not in related_users:
+                    related_users[user] = {}
+
+                related_users[user].update(e)
                 added_users.add(user)
+
+        users = {}
+        for u in schedule.related_users():
+            if u.public_primary_key in related_users:
+                users[u.public_primary_key] = {}
+                # include user TZ information for every user
+                users[u.public_primary_key]["user_timezone"] = u.timezone
+                users[u.public_primary_key].update(related_users[u.public_primary_key])
 
         result = {"users": users}
         return Response(result, status=status.HTTP_200_OK)
