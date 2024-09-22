@@ -72,6 +72,10 @@ The above command returns JSON structured in the following way:
       "message": null,
       "image_url": null
     },
+    "mobile_app": {
+      "title": null,
+      "message": null
+    },
     "email": {
       "title": null,
       "message": null
@@ -143,6 +147,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "mobile_app": {
+      "title": null,
+      "message": null
     },
     "email": {
       "title": null,
@@ -219,6 +227,10 @@ The above command returns JSON structured in the following way:
           "title": null,
           "message": null,
           "image_url": null
+        },
+        "mobile_app": {
+          "title": null,
+          "message": null
         },
         "email": {
           "title": null,
@@ -308,6 +320,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "mobile_app": {
+      "title": null,
+      "message": null
     }
   }
 }
