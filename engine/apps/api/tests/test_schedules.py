@@ -1518,6 +1518,7 @@ def test_next_shifts_per_user(
             tomorrow + timezone.timedelta(hours=18),
             user_c.timezone,
         ),
+        user_d.public_primary_key: (None, None, user_d.timezone),
     }
     returned_data = {
         u: (ev.get("start"), ev.get("end"), ev.get("user_timezone")) for u, ev in response.data["users"].items()
