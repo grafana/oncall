@@ -183,6 +183,6 @@ def test_related_shifts(shift_swap_request_setup, make_on_call_shift) -> None:
 def test_possible_benefactors(shift_swap_request_setup) -> None:
     ssr, beneficiary, benefactor = shift_swap_request_setup()
 
-    with patch.object(ssr.schedule, "related_users") as mock_related_users:
+    with patch.object(ssr.schedule, "users_in_future_schedule") as mock_related_users:
         mock_related_users.return_value = User.objects.filter(pk__in=[beneficiary.pk, benefactor.pk])
         assert list(ssr.possible_benefactors) == [benefactor]

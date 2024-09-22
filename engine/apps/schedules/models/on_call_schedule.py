@@ -350,6 +350,26 @@ class OnCallSchedule(PolymorphicModel):
             usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
         return self.organization.users.filter(username__in=usernames)
 
+    def future_events(self):
+        now = timezone.now()
+        datetime_end = now + datetime.timedelta(days=30)
+        events = self.final_events(now, datetime_end)
+        future_events = []
+        for e in events:
+            if e["end"] > now:
+                future_events.append(e)
+        return future_events
+
+    def users_in_future_schedule(self):
+        future_event_users_ppk = set()
+        for e in self.future_events():
+            user = e["users"][0]["pk"] if e["users"] else None
+            if user is None:
+                continue
+            future_event_users_ppk.add(user)
+
+        return self.related_users().filter(public_primary_key__in=future_event_users_ppk)
+
     def filter_events(
         self,
         datetime_start: datetime.datetime,

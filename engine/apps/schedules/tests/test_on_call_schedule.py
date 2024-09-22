@@ -1321,6 +1321,118 @@ def test_schedule_related_users_emails(make_organization, make_user_for_organiza
     assert set(schedule.related_users()) == {user}
 
 
+@pytest.mark.django_db
+def test_schedule_users_in_future_schedule(
+    make_organization, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    user_a, user_b, _, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+
+    shifts = (
+        # user, priority, past time (h), duration (hs)
+        (user_a, 1, 2, 4),  # r1-1: prev day 22 - next day 2 / A
+        (user_d, 2, 2, 1),  # r2-4: prev day 22 - prev day 23 / D
+        (user_e, 1, 2, 4),  # r2-4: prev day 22 - next day 2 / E
+    )
+
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": now - timezone.timedelta(hours=start_h),
+            "rotation_start": now - timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "until": now + timezone.timedelta(days=2),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    # override: prev day 22 - prev day 23 / B
+    past_shift = {
+        "start": now - timezone.timedelta(days=2),
+        "rotation_start": now - timezone.timedelta(days=2),
+        "duration": timezone.timedelta(hours=1),
+        "until": now - timezone.timedelta(days=1),
+        "schedule": schedule,
+    }
+    past_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **past_shift)
+    past_shift.add_rolling_users([[user_b]])
+
+    schedule.refresh_ical_file()
+    schedule.refresh_from_db()
+
+    users = schedule.users_in_future_schedule()
+    assert set(users) == set([user_a, user_d, user_e])
+
+
+@pytest.mark.django_db
+def test_schedule_future_events(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    user_a, user_b, _, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+
+    shifts = (
+        # user, priority, past time (h), duration (hs)
+        (user_a, 1, 2, 4),  # r1-1: prev day 22 - next day 2 / A
+        (user_d, 2, 2, 1),  # r2-4: prev day 22 - prev day 23 / D
+        (user_e, 1, 2, 4),  # r2-4: prev day 22 - next day 2 / E
+    )
+
+    expected_shift_ids = set()
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": now - timezone.timedelta(hours=start_h),
+            "rotation_start": now - timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "until": now + timezone.timedelta(days=2),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+        expected_shift_ids.add(on_call_shift.public_primary_key)
+
+    # override: prev day 22 - prev day 23 / B
+    past_shift = {
+        "start": now - timezone.timedelta(days=2),
+        "rotation_start": now - timezone.timedelta(days=2),
+        "duration": timezone.timedelta(hours=1),
+        "until": now - timezone.timedelta(days=1),
+        "schedule": schedule,
+    }
+    past_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **past_shift)
+    past_shift.add_rolling_users([[user_b]])
+
+    schedule.refresh_ical_file()
+    schedule.refresh_from_db()
+
+    events = schedule.future_events()
+    print(events)
+    actual_shift_ids = set(e["shift"]["pk"] for e in events if e["shift"]["pk"])
+    assert actual_shift_ids == expected_shift_ids
+
+
 @pytest.mark.django_db(transaction=True)
 def test_filter_events_none_cache_unchanged(
     make_organization, make_user_for_organization, make_schedule, make_on_call_shift

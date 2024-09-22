@@ -181,7 +181,7 @@ class ShiftSwapRequest(models.Model):
 
     @property
     def possible_benefactors(self) -> QuerySet["User"]:
-        return self.schedule.related_users().exclude(pk=self.beneficiary_id)
+        return self.schedule.users_in_future_schedule().exclude(pk=self.beneficiary_id)
 
     @property
     def web_link(self) -> str:

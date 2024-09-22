@@ -395,20 +395,26 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def next_shifts_per_user(self, request, pk):
         """Return next shift for users in schedule."""
-        now = timezone.now()
-        datetime_end = now + datetime.timedelta(days=30)
         schedule = self.get_object(annotate=False)
 
-        events = schedule.final_events(now, datetime_end)
-
-        # include user TZ information for every user
-        users = {u.public_primary_key: {"user_timezone": u.timezone} for u in schedule.related_users()}
+        future_events = schedule.future_events()
+        event_users = {}
         added_users = set()
-        for e in events:
+        for e in future_events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and user not in added_users and user in users and e["end"] > now:
-                users[user].update(e)
+            if user is not None and user not in added_users:
+                if user not in event_users:
+                    event_users[user] = {}
+
+                event_users[user].update(e)
                 added_users.add(user)
+
+        users = {}
+        related_users = schedule.related_users()
+        for u in related_users:
+            if u.public_primary_key in event_users:
+                users[u.public_primary_key] = {"user_timezone": u.timezone}
+                users[u.public_primary_key].update(event_users[u.public_primary_key])
 
         result = {"users": users}
         return Response(result, status=status.HTTP_200_OK)
