@@ -186,15 +186,16 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
         if obj.slack_channel_id is None:
             return None
         slack_team_identity = self.context["request"].auth.organization.slack_team_identity
-        if slack_team_identity is not None:
-            slack_channel = slack_team_identity.get_cached_channels(slack_id=obj.slack_channel_id).first()
-            if slack_channel:
-                return {
-                    "display_name": slack_channel.name,
-                    "slack_id": slack_channel.slack_id,
-                    "id": slack_channel.public_primary_key,
-                }
-        return None
+        if slack_team_identity is None:
+            return None
+        slack_channel = slack_team_identity.get_cached_channels(slack_id=obj.slack_channel_id).first()
+        if slack_channel is None:
+            return None
+        return {
+            "display_name": slack_channel.name,
+            "slack_id": slack_channel.slack_id,
+            "id": slack_channel.public_primary_key,
+        }
 
     def to_representation(self, obj):
         """add correct slack channel data to result after instance creation/update"""
