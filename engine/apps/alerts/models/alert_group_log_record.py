@@ -608,7 +608,7 @@ class AlertGroupLogRecord(models.Model):
                 # incident_link = self.alert_group.declared_incident.incident_link
                 result += 'skipped escalation step "Declare Incident": Incident already exists'  # todo: link
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_INCIDENT_COULD_NOT_BE_DECLARED:
-                result += "failed to declare an Incident"  # todo: reason
+                result += f"failed to declare an Incident: {self.reason}"
         return result
 
     def get_step_specific_info(self):
