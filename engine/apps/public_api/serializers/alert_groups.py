@@ -69,6 +69,6 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return None
         
     def get_latest_alert(self, obj):
-        latest_alert = obj.prefetched_last_alert.order_by("-created_at").last()
+        latest_alert = obj.prefetched_last_alert[0]
 
         return AlertSerializer(latest_alert).data if latest_alert else None
