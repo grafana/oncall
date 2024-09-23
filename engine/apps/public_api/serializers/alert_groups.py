@@ -1,7 +1,7 @@
+from django.db.models import Prefetch
 from rest_framework import serializers
 
-from django.db.models import Prefetch
-from apps.alerts.models import AlertGroup, Alert
+from apps.alerts.models import Alert, AlertGroup
 from apps.api.serializers.alert_group import AlertGroupLabelSerializer
 from apps.public_api.serializers.alerts import AlertSerializer
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UserIdField
@@ -22,7 +22,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
     latest_alert = serializers.SerializerMethodField()
 
-    SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization", "channel__team"]
+    SELECT_RELATED = ["channel", "channel_filter", "channel__organization", "channel__team"]
     PREFETCH_RELATED = ["labels"]
     PREFETCH_RELATED += [
         Prefetch(
@@ -67,7 +67,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return obj.channel_filter.public_primary_key
         else:
             return None
-        
+
     def get_latest_alert(self, obj):
         latest_alert = obj.prefetched_last_alert[0]
 

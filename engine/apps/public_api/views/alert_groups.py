@@ -71,6 +71,7 @@ class AlertGroupView(
         queryset = AlertGroup.objects.filter(
             channel__organization=self.request.auth.organization,
         ).order_by("-started_at")
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
 
         if route_id:
             queryset = queryset.filter(channel_filter__public_primary_key=route_id)
