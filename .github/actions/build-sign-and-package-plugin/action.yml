@@ -7,18 +7,15 @@ inputs:
       it as the official plugin version.
     required: true
 outputs:
+  authoritative_version_number:
+    description: "The version number of the plugin used for publishing artifacts"
+    value: ${{ steps.plugin-version.outputs.version }}
   artifact_filename:
     description: "The filename of the plugin artifact"
     value: ${{ steps.artifact-filename.outputs.filename }}
 runs:
   using: "composite"
   steps:
-    # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
-    - name: Get Vault secrets
-      uses: grafana/shared-workflows/actions/get-vault-secrets@main
-      with:
-        repo_secrets: |
-          GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
     - name: Determine official plugin version
       id: plugin-version
       shell: bash
