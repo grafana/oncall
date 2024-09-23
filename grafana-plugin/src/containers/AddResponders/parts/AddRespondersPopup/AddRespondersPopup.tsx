@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect, useRef, FC } from 'react';
 
-import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Alert, Icon, Input, LoadingPlaceholder, RadioButtonGroup, Stack, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
-import { useDebouncedCallback, useOnClickOutside } from 'helpers/hooks';
+import { useOnClickOutside, useDebouncedCallback } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { ColumnsType } from 'rc-table/lib/interface';
 
@@ -15,7 +15,7 @@ import { UserHelper } from 'models/user/user.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
-import styles from './AddRespondersPopup.module.scss';
+import { getAddRespondersPopupStyles } from './AddRespondersPopup.styles';
 
 type Props = {
   mode: 'create' | 'update';
@@ -27,8 +27,6 @@ type Props = {
 
   existingPagedUsers?: ApiSchemas['AlertGroup']['paged_users'];
 };
-
-const cx = cn.bind(styles);
 
 enum TabOptions {
   Teams = 'teams',
@@ -45,6 +43,7 @@ export const AddRespondersPopup = observer(
     setShowUserConfirmationModal,
   }: Props) => {
     const { directPagingStore, grafanaTeamStore } = useStore();
+    const styles = useStyles2(getAddRespondersPopupStyles);
     const { selectedTeamResponder, selectedUserResponders } = directPagingStore;
 
     const isCreateMode = mode === 'create';
@@ -205,7 +204,7 @@ export const AddRespondersPopup = observer(
           const { avatar_url, name, number_of_users_currently_oncall } = team;
 
           return (
-            <div onClick={() => addTeamResponder(team)} className={cx('responder-item')}>
+            <div onClick={() => addTeamResponder(team)} className={styles.responderItem}>
               <Stack justifyContent="space-between">
                 <Stack>
                   <Avatar size="small" src={avatar_url} />
@@ -233,17 +232,17 @@ export const AddRespondersPopup = observer(
           const disabled = userIsSelected(user);
 
           return (
-            <div onClick={() => (disabled ? undefined : onClickUser(user))} className={cx('responder-item')}>
+            <div onClick={() => (disabled ? undefined : onClickUser(user))} className={styles.responderItem}>
               <Stack justifyContent="space-between">
                 <Stack>
                   <Avatar size="small" src={avatar} />
-                  <Text type={disabled ? 'disabled' : undefined} className={cx('responder-name')}>
+                  <Text type={disabled ? 'disabled' : undefined} className={styles.responderName}>
                     {name || username}
                   </Text>
                 </Stack>
                 {/* TODO: we should add an elippsis and/or tooltip in the event that the user has a ton of teams */}
                 {teams?.length > 0 && (
-                  <Text type="secondary" className={cx('responder-team')}>
+                  <Text type="secondary" className={styles.responderTeam}>
                     {teams.map(({ name }) => name).join(', ')}
                   </Text>
                 )}
@@ -266,7 +265,7 @@ export const AddRespondersPopup = observer(
     }) =>
       users.length > 0 && (
         <>
-          <Text type="secondary" className={cx('user-results-section-header')}>
+          <Text type="secondary" className={styles.userResultsSectionHeader}>
             {header}
           </Text>
           <GTable<ApiSchemas['UserIsCurrentlyOnCall']>
@@ -274,7 +273,7 @@ export const AddRespondersPopup = observer(
             rowKey="pk"
             columns={userColumns}
             data={users}
-            className={cx('table')}
+            className={styles.table}
             showHeader={false}
           />
         </>
@@ -282,11 +281,11 @@ export const AddRespondersPopup = observer(
 
     return (
       visible && (
-        <div data-testid="add-responders-popup" ref={ref} className={cx('add-responders-dropdown')}>
+        <div data-testid="add-responders-popup" ref={ref} className={styles.addRespondersDropdown}>
           <Input
             suffix={<Icon name="search" />}
             key="search"
-            className={cx('responders-filters')}
+            className={styles.respondersFilters}
             data-testid="add-responders-search-input"
             value={search}
             placeholder="Search"
@@ -300,13 +299,20 @@ export const AddRespondersPopup = observer(
                 { value: TabOptions.Teams, label: 'Teams' },
                 { value: TabOptions.Users, label: 'Users' },
               ]}
-              className={cx('radio-buttons')}
+              className={styles.radioButtons}
               value={activeOption}
               onChange={onChangeTab}
               fullWidth
             />
           )}
-          {searchLoading && <LoadingPlaceholder className={cx('loading-placeholder')} text="Loading..." />}
+          {searchLoading && (
+            <LoadingPlaceholder
+              className={css`
+                margin-bottom: 0;
+              `}
+              text="Loading..."
+            />
+          )}
           {!searchLoading && activeOption === TabOptions.Teams && (
             <>
               {selectedTeamResponder ? (
@@ -317,14 +323,14 @@ export const AddRespondersPopup = observer(
               ) : (
                 <>
                   <Alert
-                    className={cx('info-alert')}
+                    className={styles.infoAlert}
                     severity="info"
                     title={
                       (
                         <Text type="primary">
                           You can only page teams which have a Direct Paging integration that is configured.{' '}
                           <a
-                            className={cx('learn-more-link')}
+                            className={styles.learnMoreLink}
                             href="https://grafana.com/docs/oncall/latest/integrations/manual/#set-up-direct-paging-for-a-team"
                             target="_blank"
                             rel="noreferrer"
@@ -345,7 +351,7 @@ export const AddRespondersPopup = observer(
                     rowKey="id"
                     columns={teamColumns}
                     data={teamSearchResults}
-                    className={cx('table')}
+                    className={styles.table}
                     showHeader={false}
                   />
                 </>
@@ -355,7 +361,7 @@ export const AddRespondersPopup = observer(
           {!searchLoading && activeOption === TabOptions.Users && (
             <>
               <Alert
-                className={cx('info-alert')}
+                className={styles.infoAlert}
                 severity="info"
                 title={
                   (

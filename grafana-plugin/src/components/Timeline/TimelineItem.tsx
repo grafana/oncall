@@ -1,10 +1,9 @@
 import React from 'react';
 
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 
-import styles from 'components/Timeline/Timeline.module.css';
-
-const cx = cn.bind(styles);
+import { getTimelineStyles } from './Timeline.styles';
 
 export interface TimelineItemProps {
   className?: string;
@@ -28,17 +27,19 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({
   textColor = '#ffffff',
   number,
 }) => {
+  const styles = useStyles2(getTimelineStyles);
+
   return (
-    <li className={cx('item', className)}>
+    <li className={cx(styles.item, className)}>
       {!isDisabled && (
         <div
-          className={cx('dot', backgroundClassName || '')}
+          className={cx(styles.dot, backgroundClassName || '')}
           style={{ backgroundColor: backgroundHexNumber || '', color: textColor }}
         >
           {number}
         </div>
       )}
-      <div className={cx('content', contentClassName, { 'content--noMargin': isDisabled })}>{children}</div>
+      <div className={cx(styles.content, contentClassName, { [styles.contentNoMargin]: isDisabled })}>{children}</div>
     </li>
   );
 };

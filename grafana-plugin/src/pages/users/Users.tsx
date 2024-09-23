@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Alert, Button, Stack, withTheme2 } from '@grafana/ui';
+import { Alert, Button, Stack, Themeable2, withTheme2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import {
   UserActions,
@@ -14,6 +14,7 @@ import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
+import { Colors } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { GTable } from 'components/GTable/GTable';
@@ -34,7 +35,6 @@ import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-import { getUserRowClassNameFn } from './Users.helpers';
 import { getUsersStyles } from './Users.styles';
 
 const DEBOUNCE_MS = 1000;
@@ -43,9 +43,7 @@ interface RouteProps {
   id: string;
 }
 
-interface UsersProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
-  theme: GrafanaTheme2;
-}
+interface UsersProps extends WithStoreProps, PageProps, Themeable2, PropsWithRouter<RouteProps> {}
 
 const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
@@ -209,7 +207,7 @@ class Users extends React.Component<UsersProps, UsersState> {
               rowKey="pk"
               data={results}
               columns={columns}
-              rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
+              rowClassName={this.getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
               pagination={{
                 page,
                 total: results ? Math.ceil((count || 0) / page_size) : 0,
@@ -252,6 +250,18 @@ class Users extends React.Component<UsersProps, UsersState> {
       </div>
     );
   }
+
+  getUserRowClassNameFn = (userPkToEdit?: ApiSchemas['User']['pk'], currentUserPk?: ApiSchemas['User']['pk']) => {
+    const styles = getStyles(this.props.theme);
+
+    return (user: ApiSchemas['User']) => {
+      if (user.pk === currentUserPk || user.pk === userPkToEdit) {
+        return styles.highlightedRow;
+      }
+
+      return '';
+    };
+  };
 
   handleFiltersChange = (filters: UsersState['filters'], _isOnMount: boolean) => {
     const { filtersStore } = this.props.store;
@@ -453,6 +463,14 @@ class Users extends React.Component<UsersProps, UsersState> {
     navigate(`${PLUGIN_ROOT}/users`);
   };
 }
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    highlightedRow: css`
+      background: ${theme.isLight ? Colors.GRAY_9 : Colors.CYAN_1};
+    `,
+  };
+};
 
 export const UsersPage = withRouter<RouteProps, Omit<UsersProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(Users))

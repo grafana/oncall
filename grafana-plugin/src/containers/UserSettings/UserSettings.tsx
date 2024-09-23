@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { Alert, Modal, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { Alert, Modal, Stack, useStyles2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { BREAKPOINT_TABS } from 'helpers/consts';
 import { useQueryParams } from 'helpers/hooks';
@@ -15,10 +15,6 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import { UserSettingsTab } from './UserSettings.types';
-
-import styles from './UserSettings.module.css';
-
-const cx = cn.bind(styles);
 
 enum GoogleError {
   MISSING_GRANTED_SCOPE = 'missing_granted_scope',
@@ -49,6 +45,8 @@ const UserAlerts: React.FC = () => {
   const queryParams = useQueryParams();
   const [showGoogleConnectAlert, setShowGoogleConnectAlert] = useState<GoogleError | undefined>();
 
+  const styles = useStyles2(getStyles);
+
   const handleCloseGoogleAlert = useCallback(() => {
     setShowGoogleConnectAlert(undefined);
   }, []);
@@ -66,9 +64,9 @@ const UserAlerts: React.FC = () => {
   }
 
   return (
-    <div className={cx('alerts-container')}>
+    <div className={styles.alertsContainer}>
       <Alert
-        className={cx('alert')}
+        className={styles.alert}
         onRemove={handleCloseGoogleAlert}
         severity="error"
         title="Google integration error"
@@ -87,6 +85,8 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
   const isCurrent = id === store.userStore.currentUserPk;
 
   const [activeTab, setActiveTab] = useState<UserSettingsTab>(tab);
+
+  const styles = useStyles2(getStyles);
 
   const isDesktopOrLaptop = useMediaQuery({
     query: `(min-width: ${BREAKPOINT_TABS}px)`,
@@ -120,15 +120,21 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
 
   const title = (
     <Stack>
-      <Avatar className={cx('user-avatar')} size="large" src={storeUser.avatar} /> <h2>{storeUser.username}</h2>
+      <Avatar size="large" src={storeUser.avatar} /> <h2>{storeUser.username}</h2>
     </Stack>
   );
 
   return (
     <>
-      <Modal title={title} className={cx('modal', 'modal-wide')} isOpen closeOnEscape={false} onDismiss={onHide}>
+      <Modal
+        title={title}
+        className={cx(styles.modal, styles.modalWide)}
+        isOpen
+        closeOnEscape={false}
+        onDismiss={onHide}
+      >
         <UserAlerts />
-        <div className={cx('root')}>
+        <div>
           <Tabs
             onTabChange={onTabChange}
             activeTab={activeTab}
@@ -145,3 +151,31 @@ export const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserIn
     </>
   );
 });
+
+const getStyles = () => {
+  return {
+    modal: css`
+      width: 860px; /* wide enough so that all tabs fit in */
+    `,
+
+    modalWide: css`
+      width: calc(100% - 20px); /* allow lateral spacing */
+      max-width: 1100px;
+    `,
+
+    alertsContainer: css`
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+      gap: 10px;
+
+      &:empty {
+        display: none;
+      }
+    `,
+
+    alert: css`
+      margin: 0;
+    `,
+  };
+};

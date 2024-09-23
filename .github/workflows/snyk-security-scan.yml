@@ -15,12 +15,19 @@ jobs:
       # only required for workflows in private repositories
       actions: read
       contents: read
+      # required for Vault secrets
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
         uses: ./.github/actions/setup-python
       - name: Install frontend dependencies
         uses: ./.github/actions/install-frontend-dependencies
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          common_secrets: |
+            SNYK_TOKEN=snyk_scan_github_action:token
       - name: Install Snyk
         uses: snyk/actions/setup@master
       # NOTE: on the snyk monitor and snyk test commands, we are excluding the dev and tools directories
@@ -31,15 +38,11 @@ jobs:
       - name: snyk monitor
         # https://docs.snyk.io/snyk-cli/commands/monitor
         run: snyk monitor --all-projects --severity-threshold=high --exclude=dev,tools
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: snyk test
         # https://docs.snyk.io/snyk-cli/commands/test
         # yamllint disable rule:line-length
         run: snyk test --all-projects --severity-threshold=high --exclude=dev,tools --fail-on=all --show-vulnerable-paths=all
         # yamllint enable rule:line-length
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       # TODO: setup snyk container monitor & snyk container test
       # will require building the docker image and storing it in the local docker registry..
       # will need to refactor .github/workflows/build-engine-docker-image-and-publish-to-dockerhub.yml

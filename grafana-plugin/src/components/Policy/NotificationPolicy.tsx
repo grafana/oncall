@@ -46,7 +46,7 @@ export interface NotificationPolicyProps {
   isDisabled: boolean;
 }
 
-export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
+export class _NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
   constructor(props: NotificationPolicyProps) {
     super(props);
   }
@@ -336,4 +336,4 @@ const getStyles = (_theme: GrafanaTheme2) => {
   };
 };
 
-export default SortableElement(withTheme2(NotificationPolicy));
+export const NotificationPolicy = SortableElement(withTheme2(_NotificationPolicy));

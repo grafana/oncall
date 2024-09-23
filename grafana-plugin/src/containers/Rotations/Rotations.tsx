@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { ValuePicker, Button, Tooltip, withTheme2, Stack } from '@grafana/ui';
 import dayjs from 'dayjs';
@@ -22,11 +22,10 @@ import { getCurrentTimeX, toDateWithTimezoneOffset } from 'pages/schedule/Schedu
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { getAnimationClasses } from './Animations.styles';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor, getCalendarStartDateInTimezone } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
-
-import animationStyles from './Rotations.module.css';
 
 interface RotationsProps extends WithStoreProps {
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
@@ -158,7 +157,11 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
           </div>
           <div className={styles.rotationsPlusTitle}>
             {layers && layers.length ? (
-              <TransitionGroup className={'u-position-relative'}>
+              <TransitionGroup
+                className={css`
+                  position: relative;
+                `}
+              >
                 <TimelineMarks />
                 {!currentTimeHidden && (
                   <div
@@ -172,7 +175,7 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                   <CSSTransition
                     key={layerIndex}
                     timeout={DEFAULT_TRANSITION_TIMEOUT}
-                    classNames={{ ...animationStyles }}
+                    classNames={{ ...getAnimationClasses() }}
                   >
                     <div
                       id={`layer${layer.priority}`}
@@ -183,13 +186,21 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                           Layer {layer.priority}
                         </Text>
                       </Tag>
-                      <div className={'u-position-relative'}>
-                        <TransitionGroup className={'u-position-relative'}>
+                      <div
+                        className={css`
+                          position: relative;
+                        `}
+                      >
+                        <TransitionGroup
+                          className={css`
+                            position: relative;
+                          `}
+                        >
                           {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                             <CSSTransition
                               key={rotationIndex}
                               timeout={DEFAULT_TRANSITION_TIMEOUT}
-                              classNames={{ ...animationStyles }}
+                              classNames={{ ...getAnimationClasses() }}
                             >
                               <Rotation
                                 onClick={(shiftStart, shiftEnd) => {
@@ -215,7 +226,11 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                 ))}
               </TransitionGroup>
             ) : (
-              <div className="u-position-relative">
+              <div
+                className={css`
+                  position: relative;
+                `}
+              >
                 <TimelineMarks />
                 <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />
                 <div id="layer1" className={cx(styles.layer, styles.layerFirst)}>
@@ -224,7 +239,11 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
                       Layer 1
                     </Text>
                   </Tag>
-                  <div className="u-position-relative">
+                  <div
+                    className={css`
+                      position: relative;
+                    `}
+                  >
                     <Rotation
                       onClick={(shiftStart, shiftEnd) => {
                         this.handleAddLayer(nextPriority, shiftStart, shiftEnd);

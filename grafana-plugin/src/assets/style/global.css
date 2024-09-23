@@ -1,3 +1,13 @@
+.theme-light {
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.04);
+}
+
+.theme-dark:not(.theme-light) {
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.1);
+}
+
 .configure-plugin {
   margin-top: 10px;
 }

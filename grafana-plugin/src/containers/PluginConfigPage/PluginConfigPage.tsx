@@ -42,7 +42,12 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
 
   return (
     <Stack direction="column">
-      <Text.Title level={3} className="u-margin-bottom-md">
+      <Text.Title
+        level={3}
+        className={css`
+          margin-bottom: 12px;
+        `}
+      >
         Configure Grafana OnCall
       </Text.Title>
       {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage {...props} />}
@@ -267,7 +272,13 @@ const PluginConfigAlert = observer(() => {
       shouldRender={showAlert}
       render={() => (
         <Alert severity="error" title="Plugin is not connected" onRemove={() => setShowAlert(false)}>
-          <ol className="u-margin-bottom-md">{errors}</ol>
+          <ol
+            className={css`
+              margin-bottom: 12px;
+            `}
+          >
+            {errors}
+          </ol>
           <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
             <Text type="link">Reload</Text>
           </a>

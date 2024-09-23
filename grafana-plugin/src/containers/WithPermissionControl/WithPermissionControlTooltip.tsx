@@ -1,13 +1,9 @@
 import React, { ReactElement, useCallback } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { isUserActionAllowed, UserAction } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
-
-import styles from './WithPermissionControlTooltip.module.css';
-
-const cx = cn.bind(styles);
 
 interface WithPermissionControlTooltipProps {
   userAction: UserAction;
@@ -36,7 +32,14 @@ export const WithPermissionControlTooltip = observer((props: WithPermissionContr
           content={'You do not have permission to perform this action. Ask an admin to upgrade your permissions.'}
           placement="top"
         >
-          <div className={cx('wrapper', className)}>
+          <div
+            className={cx(
+              css`
+                display: inline;
+              `,
+              className
+            )}
+          >
             {React.cloneElement(children, {
               disabled: children.props.disabled || disabledByPermissions,
               onClick: onClickCallback,

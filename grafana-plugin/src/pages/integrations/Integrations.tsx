@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Stack, Icon, ConfirmModal, Tooltip, Tab, TabsBar, TabContent, Alert, withTheme2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
@@ -369,10 +369,21 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       return (
         <Stack>
           <Tooltip placement="top" content={'This integration has been deprecated, consider migrating it.'}>
-            <Icon name="info-circle" className="u-opacity" />
+            <Icon
+              name="info-circle"
+              className={css`
+                opacity: 0.5;
+              `}
+            />
           </Tooltip>
           <Text type="secondary">
-            <span className="u-opacity">{integration?.display_name}</span>
+            <span
+              className={css`
+                opacity: 0.5;
+              `}
+            >
+              {integration?.display_name}
+            </span>
           </Text>
         </Stack>
       );
@@ -550,7 +561,9 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
                         },
                       });
                     }}
-                    className="u-width-100"
+                    className={css`
+                      width: 100%;
+                    `}
                   >
                     <Text type="danger">
                       <Stack gap={StackSize.xs}>
@@ -589,7 +602,6 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         key: 'name',
         render: this.renderName,
       },
-
       {
         width: '15%',
         title: 'Status',

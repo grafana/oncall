@@ -1,7 +1,0 @@
-.root {
-  border-radius: 2px;
-  background: var(--secondary-background);
-  padding: 2px 2px 2px 12px;
-  flex-wrap: wrap;
-  width: 100%;
-}

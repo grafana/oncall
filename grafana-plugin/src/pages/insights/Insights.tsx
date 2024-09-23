@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { css } from '@emotion/css';
 import {
   EmbeddedScene,
   SceneTimeRange,
@@ -14,8 +15,8 @@ import {
   SceneAppPage,
   useSceneApp,
 } from '@grafana/scenes';
-import { Alert, LoadingPlaceholder, Stack } from '@grafana/ui';
-import { DOCS_ROOT, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import { Alert, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
+import { DOCS_ROOT, StackSize, PLUGIN_ROOT } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -24,7 +25,6 @@ import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { useStore } from 'state/useStore';
 
 import { useAlertCreationChecker } from './Insights.hooks';
-import styles from './Insights.module.scss';
 import { InsightsConfig } from './Insights.types';
 import { getAlertGroupsByIntegrationScene } from './scenes/AlertGroupsByIntegration';
 import { getAlertGroupsByTeamScene } from './scenes/AlertGroupsByTeam';
@@ -61,6 +61,8 @@ export const Insights = observer(() => {
   const getAppScene = useCallback(() => getRootScene(config, variables), [config, variables]);
 
   const appScene = useSceneApp(getAppScene);
+
+  const styles = useStyles2(getStyles);
 
   useEffect(() => {
     if (!isAnyAlertCreatedMoreThan20SecsAgo) {
@@ -104,6 +106,8 @@ const InsightsGeneralInfo = () => {
 };
 
 const NoAlertCreatedTutorial = () => {
+  const styles = useStyles2(getStyles);
+
   return (
     <div className={styles.spaceTop}>
       <Tutorial
@@ -123,6 +127,7 @@ const NoAlertCreatedTutorial = () => {
 };
 
 const NoDatasourceWarning = () => {
+  const styles = useStyles2(getStyles);
   const [alertVisible, setAlertVisible] = useState(true);
   const docsLink = (
     <a href={`${DOCS_ROOT}/insights-and-metrics`} target="_blank" rel="noreferrer">
@@ -224,3 +229,25 @@ const getRootScene = (config: InsightsConfig, variables: ReturnType<typeof getVa
       }),
     ],
   });
+
+const getStyles = () => {
+  return {
+    // Required to remove inner page padding since grafana-scenes doesn't support its style modification
+    insights: css`
+      div[class*='page-inner'] {
+        padding-left: 0;
+        padding-right: 0;
+        border: none;
+        margin: 0;
+      }
+    `,
+
+    spaceTop: css`
+      margin-top: 16px;
+    `,
+
+    alertBox: css`
+      margin-top: 32px;
+    `,
+  };
+};

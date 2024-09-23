@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Stack, Tooltip, withTheme2 } from '@grafana/ui';
 import dayjs from 'dayjs';
@@ -28,11 +28,10 @@ import { getCurrentTimeX, toDateWithTimezoneOffset } from 'pages/schedule/Schedu
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { getAnimationClasses } from './Animations.styles';
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
 import { getRotationsStyles } from './Rotations.styles';
-
-import animationStyles from './Rotations.module.css';
 
 interface ScheduleOverridesProps extends WithStoreProps {
   shiftStartToShowOverrideForm: dayjs.Dayjs;
@@ -54,6 +53,8 @@ interface ScheduleOverridesState {
   shiftStartToShowOverrideForm?: dayjs.Dayjs;
   shiftEndToShowOverrideForm?: dayjs.Dayjs;
 }
+
+const animationStyles = getAnimationClasses();
 
 @observer
 class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
@@ -134,7 +135,11 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
               </Stack>
             </Stack>
           </div>
-          <div className="u-position-relative">
+          <div
+            className={css`
+              position: relative;
+            `}
+          >
             {!currentTimeHidden && <div className={styles.currentTime} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks />
             {shiftSwaps && shiftSwaps.length ? (

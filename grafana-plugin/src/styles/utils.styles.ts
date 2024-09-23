@@ -36,6 +36,13 @@ export const getUtilStyles = (theme: GrafanaTheme2) => {
       word-break: break-all;
     `,
 
+    centeredAbsolute: css`
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    `,
+
     ...getCommonFlexStyles(),
     ...getCommonOverflowStyles(),
   };
@@ -72,6 +79,14 @@ const getCommonFlexStyles = () => {
     // TODO: auto-generate these incrementally instead (XS, MD, LG etc, simillar to overflow)
     flexGapXS: css`
       gap: 4px;
+    `,
+
+    pullRight: css`
+      margin-left: auto;
+    `,
+
+    pullLeft: css`
+      margin-right: auto;
     `,
   };
 };
@@ -121,5 +136,8 @@ export enum Colors {
   GRAY_8 = '#595959',
   GRAY_9 = '#434343',
   GREEN_5 = '#6ccf8e',
+  GREEN_6 = '#73d13d',
   BORDER = 'rgba(204, 204, 220, 0.25)',
+  CYAN_1 = '#e6fffb',
+  HOVER = 'rgba(244, 245, 245)',
 }

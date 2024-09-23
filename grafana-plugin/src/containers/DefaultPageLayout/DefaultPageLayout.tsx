@@ -1,17 +1,13 @@
 import React, { FC, ReactElement } from 'react';
 
-import { NavModelItem } from '@grafana/data';
+import { css, cx } from '@emotion/css';
+import { AppRootProps, NavModelItem } from '@grafana/data';
+import { useStyles2 } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
-import { AppRootProps } from 'app-types';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Alerts } from 'containers/Alerts/Alerts';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-
-import styles from './DefaultPageLayout.module.scss';
-
-const cx = cn.bind(styles);
 
 interface DefaultPageLayoutProps extends AppRootProps {
   children?: any;
@@ -21,6 +17,7 @@ interface DefaultPageLayoutProps extends AppRootProps {
 
 export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   const { children, page, pageNav } = props;
+  const styles = useStyles2(getStyles);
 
   if (isTopNavbar()) {
     return renderTopNavbar();
@@ -31,7 +28,7 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
   function renderTopNavbar(): ReactElement {
     return (
       <PluginPage page={page} pageNav={pageNav as any}>
-        <div className={cx('root')}>{children}</div>
+        <div className={styles.root}>{children}</div>
       </PluginPage>
     );
   }
@@ -39,8 +36,15 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
   function renderLegacyNavbar(): ReactElement {
     return (
       <PluginPage page={page}>
-        <div className="page-container u-height-100">
-          <div className={cx('root', 'navbar-legacy')}>
+        <div
+          className={cx(
+            'page-container',
+            css`
+              height: 100%;
+            `
+          )}
+        >
+          <div className={cx(styles.root)}>
             <Alerts />
             {children}
           </div>
@@ -49,3 +53,20 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
     );
   }
 });
+
+const getStyles = () => {
+  return {
+    root: css`
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .filter-table td {
+        white-space: break-spaces;
+        line-height: 20px;
+        height: auto;
+      }
+    `,
+  };
+};

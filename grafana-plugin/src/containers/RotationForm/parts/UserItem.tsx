@@ -1,20 +1,17 @@
 import React, { useEffect } from 'react';
 
 import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { Colors } from 'styles/utils.styles';
 
 import NonExistentUserName from 'components/NonExistentUserName/NonExistentUserName';
 import { Text } from 'components/Text/Text';
 import { WorkingHours } from 'components/WorkingHours/WorkingHours';
+import { getRotationFormStyles } from 'containers/RotationForm/RotationForm.styles';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-
-import styles from 'containers/RotationForm/RotationForm.module.css';
-
-const cx = cn.bind(styles);
 
 interface UserItemProps {
   pk: ApiSchemas['User']['pk'];
@@ -48,30 +45,32 @@ export const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps
           workingHours={workingHours}
           startMoment={dayjs(shiftStart)}
           duration={duration}
-          className={cx('working-hours')}
+          className={styles.workingHours}
         />
       )}
-      <div className={cx('user-title')}>
+      <div className={styles.userTitle}>
         <Text strong>{name}</Text> <Text className={styles.gray}>({timezone})</Text>
       </div>
     </>
   ) : (
-    <div className={cx('user-title')}>
+    <div className={styles.userTitle}>
       <NonExistentUserName justify="flex-start" />
     </div>
   );
 
   return (
-    <div className={cx('user-item')} style={{ backgroundColor: shiftColor, width: '100%' }}>
+    <div className={styles.userItem} style={{ backgroundColor: shiftColor, width: '100%' }}>
       {slotContent}
     </div>
   );
 };
 
-const getStyles = () => {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     gray: css`
       color: ${Colors.ALWAYS_GREY};
     `,
+
+    ...getRotationFormStyles(theme),
   };
 };

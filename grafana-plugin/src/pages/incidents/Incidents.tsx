@@ -1,6 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, durationToMilliseconds, parseDuration, SelectableValue } from '@grafana/data';
 import { LabelTag } from '@grafana/labels';
 import { Button, Icon, RadioButtonGroup, RefreshPicker, Tooltip, Stack, withTheme2 } from '@grafana/ui';
@@ -868,7 +868,9 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
         title: 'Title',
         key: 'title',
         render: this.renderTitle,
-        className: 'u-max-width-1000',
+        className: css`
+          max-width: 1000px;
+        `,
         grow: 3.5,
       },
       Created: {

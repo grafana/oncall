@@ -1,28 +1,28 @@
 import React, { FC } from 'react';
 
-import { Button } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, useStyles2 } from '@grafana/ui';
+import { getUtilStyles } from 'styles/utils.styles';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
-
-import styles from './DisconnectButton.module.scss';
-
-const cx = cn.bind(styles);
 
 type Props = {
   onClick: () => void;
 };
 
-export const DisconnectButton: FC<Props> = ({ onClick }) => (
-  <WithConfirm title="Are you sure to disconnect your mobile application?" confirmText="Remove">
-    <Button
-      variant="destructive"
-      onClick={onClick}
-      size="md"
-      className={cx('disconnect-button')}
-      data-testid="test__disconnect"
-    >
-      Disconnect
-    </Button>
-  </WithConfirm>
-);
+export const DisconnectButton: FC<Props> = ({ onClick }) => {
+  const utilStyles = useStyles2(getUtilStyles);
+
+  return (
+    <WithConfirm title="Are you sure to disconnect your mobile application?" confirmText="Remove">
+      <Button
+        variant="destructive"
+        onClick={onClick}
+        size="md"
+        className={utilStyles.centeredAbsolute}
+        data-testid="test__disconnect"
+      >
+        Disconnect
+      </Button>
+    </WithConfirm>
+  );
+};
