@@ -23,3 +23,32 @@ jobs:
     name: Snyk security scan
     uses: ./.github/workflows/snyk-security-scan.yml
     secrets: inherit
+
+  joey-testing:
+    name: Joey testing
+    runs-on: ubuntu-latest
+    # These permissions are needed to assume roles from Github's OIDC.
+    # https://github.com/grafana/shared-workflows/tree/main/actions/get-vault-secrets
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+      - name: Get Vault secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
+            GCS_PLUGIN_PUBLISHER_SERVICE_ACCOUNT_JSON=github_actions:gcs-plugin-publisher
+      - name: Determine GCS artifact URL
+        shell: bash
+        id: gcs-artifact-url
+        # yamllint disable rule:line-length
+        run: |
+          echo url="https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-1.9.27.zip" >> $GITHUB_OUTPUT
+      - name: Publish plugin to grafana.com
+        run: |
+          curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer ${{ env.GRAFANA_ACCESS_POLICY_TOKEN }}" -d "download[any][url]=${{ steps.gcs-artifact-url.outputs.url }}" -d "download[any][md5]=$(curl -sL ${{ steps.gcs-artifact-url.outputs.url }} | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins
+        # yamllint enable rule:line-length
