@@ -426,7 +426,9 @@ class EscalationPolicySnapshot:
         tasks = []
         declare_incident_task = declare_incident.signature(
             args=(alert_group.pk,),
-            kwargs={},
+            kwargs={
+                "escalation_policy_pk": self.id,
+            },
             immutable=True,
         )
         tasks.append(declare_incident_task)
