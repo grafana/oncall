@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { css, cx } from '@emotion/css';
 import { Button, Icon, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { StackSize } from 'helpers/consts';
+import { IS_CURRENT_ENV_CLOUD, StackSize } from 'helpers/consts';
 import { isMobile, openNotification, openWarningNotification, openErrorNotification } from 'helpers/helpers';
 import { useInitializePlugin } from 'helpers/hooks';
 import { observer } from 'mobx-react';
@@ -140,7 +140,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
 
   // Show link to cloud page for OSS instances with no cloud connection
   if (
-    store.isOpenSource &&
+    !IS_CURRENT_ENV_CLOUD &&
     store.hasFeature(AppFeature.CloudConnection) &&
     !cloudStore.cloudConnectionStatus.cloud_connection_status
   ) {
@@ -191,7 +191,7 @@ export const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ [styles.qrCode]: true, [styles.blurry]: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
-        {store.isOpenSource && QRCodeDataParsed && (
+        {!IS_CURRENT_ENV_CLOUD && QRCodeDataParsed && (
           <Text type="secondary">
             Server URL embedded in this QR:
             <br />

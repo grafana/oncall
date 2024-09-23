@@ -22,6 +22,12 @@ jest.mock('@grafana/faro-web-tracing', () => ({
   TracingInstrumentation: jest.fn(),
 }));
 
+jest.mock('./consts', () => ({
+  __esModule: true,
+  ...jest.requireActual('./consts'),
+  IS_CURRENT_ENV_CLOUD: true,
+}));
+
 describe('Faro', () => {
   beforeEach(() => {
     jest.clearAllMocks();

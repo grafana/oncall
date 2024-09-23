@@ -64,7 +64,7 @@ export const PersonalNotificationSettings = observer((props: PersonalNotificatio
   const title = (
     <Text.Title level={5}>
       <Stack>
-        {isImportant ? 'Important Notifications' : 'Default Notifications'}
+        {isImportant ? 'Important notification rules' : 'Default notification rules'}
         <Tooltip
           placement="top"
           content={
@@ -154,7 +154,7 @@ export const PersonalNotificationSettings = observer((props: PersonalNotificatio
           <div className={styles.step}>
             <WithPermissionControlTooltip userAction={userAction}>
               <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()}>
-                Add Notification Step
+                Add notification step
               </Button>
             </WithPermissionControlTooltip>
           </div>

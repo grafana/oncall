@@ -1,8 +1,7 @@
 import { OnCallAppPluginMeta } from 'app-types';
 import { retryFailingPromises } from 'helpers/async';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'helpers/consts';
 import { loadJs } from 'helpers/loadJs';
-import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import qs from 'query-string';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
@@ -42,12 +41,6 @@ import { AppFeature } from 'state/features';
 export class RootBaseStore {
   @observable
   isBasicDataLoaded = false;
-
-  @observable
-  backendVersion = '';
-
-  @observable
-  backendLicense = '';
 
   @observable
   recaptchaSiteKey = '';
@@ -147,21 +140,6 @@ export class RootBaseStore {
 
   // todo use AppFeature only
   hasFeature = (feature: string | AppFeature) => this.features?.[feature];
-
-  get license() {
-    if (this.backendLicense) {
-      return this.backendLicense;
-    }
-    if (CLOUD_VERSION_REGEX.test(APP_VERSION)) {
-      return GRAFANA_LICENSE_CLOUD;
-    }
-    return GRAFANA_LICENSE_OSS;
-  }
-
-  @computed
-  get isOpenSource(): boolean {
-    return this.license === GRAFANA_LICENSE_OSS;
-  }
 
   @action.bound
   async updateFeatures() {

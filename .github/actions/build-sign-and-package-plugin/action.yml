@@ -2,18 +2,10 @@ name: Build, sign, and package plugin
 description: Build, sign, and package plugin
 inputs:
   plugin_version_number:
-    description: "The version number of the plugin"
+    description: |
+      The version number of the plugin. NOTE: this action will chop off the leading "v" to use
+      it as the official plugin version.
     required: true
-  grafana_access_policy_token:
-    description: "The Grafana access policy token used to sign the plugin"
-    required: true
-  working_directory:
-    description: "The working directory of the plugin"
-    required: true
-  is_enterprise:
-    description: "Whether the plugin is an enterprise build or not"
-    required: false
-    default: "false"
 outputs:
   artifact_filename:
     description: "The filename of the plugin artifact"
@@ -21,12 +13,24 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
+    - name: Get Vault secrets
+      uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      with:
+        repo_secrets: |
+          GRAFANA_ACCESS_POLICY_TOKEN=github_actions:cloud-access-policy-token
+    - name: Determine official plugin version
+      id: plugin-version
+      shell: bash
+      run: |
+        # VERY IMPORTANT: chop off the "v".. this tells the oncall plugin that this is an OSS build
+        PLUGIN_VERSION="$(echo ${{ inputs.plugin_version_number }} | sed 's/^v//')"
+        echo version="$PLUGIN_VERSION" >> $GITHUB_OUTPUT
     - name: Determine artifact filename
       shell: bash
       id: artifact-filename
-      # yamllint disable rule:line-length
       run: |
-        echo filename="grafana-oncall${{ inputs.is_enterprise == 'true' && '-ee' || '' }}-app-${{ inputs.plugin_version_number }}.zip" >> $GITHUB_OUTPUT
+        echo filename="grafana-oncall-app-${{ steps.plugin-version.outputs.version }}.zip" >> $GITHUB_OUTPUT
     - name: Install Go
       uses: actions/setup-go@v4
       with:
@@ -36,16 +40,18 @@ runs:
       run: go install github.com/magefile/mage@v1.15.0
     - name: Build, sign, and package plugin
       shell: bash
-      working-directory: ${{ inputs.working_directory }}
-      env:
-        GRAFANA_ACCESS_POLICY_TOKEN: ${{ inputs.grafana_access_policy_token }}
+      working-directory: grafana-plugin
       run: |
-        jq --arg v "${{ inputs.plugin_version_number }}" '.version=$v' package.json > package.new && mv package.new package.json && jq '.version' package.json;
+        jq --arg v "${{ steps.plugin-version.outputs.version }}" '.version=$v' package.json > package.new && \
+          mv package.new package.json && \
+          jq '.version' package.json;
+
         pnpm build
         mage buildAll || true
+
         pnpm sign
+
         if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
         mv dist grafana-oncall-app
         zip -r grafana-oncall-app.zip ./grafana-oncall-app
         cp grafana-oncall-app.zip ${{ steps.artifact-filename.outputs.filename }}
-      # yamllint enable rule:line-length

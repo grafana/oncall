@@ -19,8 +19,6 @@ import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
-import plugin from '../../../package.json'; // eslint-disable-line
-
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
   USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES = 'User Google OAuth2 token is missing scopes',
@@ -59,7 +57,6 @@ export const Alerts = observer(() => {
     organizationStore: { currentOrganization },
   } = store;
 
-  const versionMismatchLocalStorageId = `version_mismatch_${store.backendVersion}_${plugin?.version}`;
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
@@ -70,7 +67,6 @@ export const Alerts = observer(() => {
     !showSlackInstallAlert &&
     !showCurrentUserGoogleOAuth2TokenIsMissingScopes() &&
     !showBannerTeam() &&
-    !showMismatchWarning() &&
     !showChannelWarnings()
   ) {
     return null;
@@ -117,30 +113,6 @@ export const Alerts = observer(() => {
           />
         </Alert>
       )}
-      {showMismatchWarning() && (
-        <Alert
-          className={styles.alert}
-          severity="warning"
-          title={'Version mismatch!'}
-          onRemove={getRemoveAlertHandler(versionMismatchLocalStorageId)}
-        >
-          Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
-          otherwise there could be issues with your Grafana OnCall installation!
-          <br />
-          {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
-          <br />
-          Please see{' '}
-          <a
-            href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
-            target="_blank"
-            rel="noreferrer"
-            className={styles.instructionsLink}
-          >
-            the update instructions
-          </a>
-          .
-        </Alert>
-      )}
       {showChannelWarnings() && (
         <Alert
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
@@ -167,16 +139,6 @@ export const Alerts = observer(() => {
 
   function showBannerTeam(): boolean {
     return Boolean(currentOrganization?.banner?.title) && !getItem(currentOrganization?.banner?.title);
-  }
-
-  function showMismatchWarning(): boolean {
-    return (
-      store.isOpenSource &&
-      store.backendVersion &&
-      plugin?.version &&
-      store.backendVersion !== plugin?.version &&
-      !getItem(versionMismatchLocalStorageId)
-    );
   }
 
   function showChannelWarnings(): boolean {
