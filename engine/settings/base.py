@@ -42,7 +42,7 @@ MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV")
 MIRAGE_CIPHER_MODE = "CBC"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = getenv_boolean("DEBUG", default=False)
 
 DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
 
