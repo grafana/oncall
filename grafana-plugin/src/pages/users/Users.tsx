@@ -352,11 +352,11 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     // Show warnining if no notifications are set
     if (!this.renderNotificationsChain(user)) {
-      warnings.push('No Default Notifications');
+      warnings.push('No default notification rules');
     }
 
     if (!this.renderImportantNotificationsChain(user)) {
-      warnings.push('No Important Notifications');
+      warnings.push('No important notification rules');
     }
 
     let phone_verified = user.verified_phone_number !== null;
@@ -428,13 +428,13 @@ class Users extends React.Component<UsersProps, UsersState> {
       },
       {
         width: '20%',
-        title: 'Default Notifications',
+        title: 'Default notification rules',
         key: 'notifications-chain',
         render: this.renderNotificationsChain,
       },
       {
         width: '20%',
-        title: 'Important Notifications',
+        title: 'Important notification rules',
         key: 'important-notifications-chain',
         render: this.renderImportantNotificationsChain,
       },

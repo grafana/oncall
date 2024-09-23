@@ -22,7 +22,7 @@ test.skip('dates in schedule are correct according to selected current timezone'
    * Always set a fixed time of today's date but at 12:00:00 (noon)
    *
    * This solves the issue here https://github.com/grafana/oncall/issues/4991
-   * where we would occasionally see this test flake if it srtated and finished at a different hour
+   * where we would occasionally see this test flake if it started and finished at a different hour
    *
    * See playwright docs for more details
    * https://playwright.dev/docs/clock

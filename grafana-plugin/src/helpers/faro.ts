@@ -6,10 +6,10 @@ import {
   FARO_ENDPOINT_DEV,
   FARO_ENDPOINT_OPS,
   FARO_ENDPOINT_PROD,
+  IS_CURRENT_ENV_CLOUD,
   ONCALL_DEV,
   ONCALL_OPS,
   ONCALL_PROD,
-  getIsDevelopmentEnv,
   getPluginId,
 } from './consts';
 import { safeJSONStringify } from './string';
@@ -33,7 +33,7 @@ class BaseFaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    if (this.faro || getIsDevelopmentEnv()) {
+    if (this.faro || !IS_CURRENT_ENV_CLOUD) {
       return undefined;
     }
 

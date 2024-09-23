@@ -1,8 +1,7 @@
 import React, { FC } from 'react';
 
 import { Button, Stack, LoadingPlaceholder } from '@grafana/ui';
-import { REQUEST_HELP_URL, PLUGIN_CONFIG } from 'helpers/consts';
-import { getIsRunningOpenSourceVersion } from 'helpers/helpers';
+import { REQUEST_HELP_URL, PLUGIN_CONFIG, IS_CURRENT_ENV_CLOUD } from 'helpers/consts';
 import { useInitializePlugin } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -34,12 +33,11 @@ export const PluginInitializer: FC<PluginInitializerProps> = observer(({ childre
 });
 
 const PluginNotConnectedFullPageError = observer(() => {
-  const isOpenSource = getIsRunningOpenSourceVersion();
   const isCurrentUserAdmin = window.grafanaBootData.user.orgRole === 'Admin';
   const navigate = useNavigate();
 
   const getSubtitleExtension = () => {
-    if (!isOpenSource) {
+    if (IS_CURRENT_ENV_CLOUD) {
       return 'request help from our support team.';
     }
     return isCurrentUserAdmin
@@ -61,8 +59,8 @@ const PluginNotConnectedFullPageError = observer(() => {
         <Button variant="secondary" onClick={() => window.location.reload()}>
           Retry
         </Button>
-        {!isOpenSource && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
-        {isOpenSource && isCurrentUserAdmin && (
+        {IS_CURRENT_ENV_CLOUD && <Button onClick={() => window.open(REQUEST_HELP_URL, '_blank')}>Request help</Button>}
+        {!IS_CURRENT_ENV_CLOUD && isCurrentUserAdmin && (
           <Button onClick={() => navigate(PLUGIN_CONFIG)}>Open configuration</Button>
         )}
       </Stack>
