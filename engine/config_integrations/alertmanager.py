@@ -107,7 +107,7 @@ Annotations:
 # Slack
 slack_title = """\
 *<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title }}>* via {{ integration_name }}
-{% if source_link %}
+{% if source_link and (source_link[:8] == "https://" or source_link[:7] == "http://") %}
  (*<{{ source_link }}|source>*)
 {%- endif %}
 """
