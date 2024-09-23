@@ -651,8 +651,13 @@ def test_create_escalation_policy_with_no_important_version(
     make_escalation_chain,
     step,
     make_user_auth_headers,
+    settings,
 ):
     organization, user, _, _ = make_organization_and_user_with_slack_identities()
+    # make sure declare incident step is enabled
+    settings.FEATURE_DECLARE_INCIDENT_STEP_ENABLED = True
+    organization.is_grafana_incident_enabled = True
+    organization.save()
     _, token = make_token_for_organization(organization)
     escalation_chain = make_escalation_chain(organization)
 
