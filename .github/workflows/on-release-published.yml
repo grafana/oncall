@@ -43,8 +43,6 @@ jobs:
         uses: ./.github/actions/build-sign-and-package-plugin
         with:
           plugin_version_number: ${{ github.ref_name }}
-          grafana_access_policy_token: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN }}
-          working_directory: grafana-plugin
       - name: Authenticate with GCS
         uses: google-github-actions/auth@v2
         with:
@@ -60,7 +58,7 @@ jobs:
         id: gcs-artifact-url
         # yamllint disable rule:line-length
         run: |
-          echo url="https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${{ github.ref_name }}.zip" >> $GITHUB_OUTPUT
+          echo url="https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${{ steps.build-sign-and-package-plugin.outputs.authoritative_version_number }}.zip" >> $GITHUB_OUTPUT
       - name: Publish plugin to grafana.com
         run: |
           curl -f -w "status=%{http_code}" -s -H "Authorization: Bearer ${{ env.GRAFANA_ACCESS_POLICY_TOKEN }}" -d "download[any][url]=${{ steps.gcs-artifact-url.outputs.url }}" -d "download[any][md5]=$(curl -sL ${{ steps.gcs-artifact-url.outputs.url }} | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins

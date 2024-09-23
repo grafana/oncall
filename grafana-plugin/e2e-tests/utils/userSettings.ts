@@ -70,7 +70,7 @@ export const configureUserNotificationSettings = async (page: Page, notifyBy: No
   // select our notification type, first check if we have any already defined, if so, click the
   // "Add Notification Step" button
   const defaultNotificationSettingsSection = getDefaultNotificationSettingsSectionByTestId(page);
-  const addNotificationStepText = 'Add Notification Step';
+  const addNotificationStepText = 'Add notification step';
 
   if (!(await defaultNotificationSettingsSection.locator(`button >> text=${addNotificationStepText}`).isVisible())) {
     await clickButton({
