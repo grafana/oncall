@@ -30,6 +30,6 @@ class DeclaredIncident(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_opened = models.BooleanField(default=True)
 
-    @property
-    def incident_link(self) -> str:
-        return urljoin(self.organization.grafana_url, f"a/grafana-incident-app/incidents/{self.incident_id}")
+    @staticmethod
+    def get_incident_link(organization, incident_id) -> str:
+        return urljoin(organization.grafana_url, f"a/grafana-incident-app/incidents/{incident_id}")
