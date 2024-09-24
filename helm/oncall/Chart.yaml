@@ -22,7 +22,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: rabbitmq.enabled
   - name: redis
-    version: 20.0.5
+    version: 16.13.2
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
   - name: grafana
