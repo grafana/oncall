@@ -46,6 +46,31 @@ The above command returns JSON structured in the following way:
         "telegram": "https://t.me/c/5354/1234?thread=1234"
       },
       "silenced_at": "2020-05-19T13:37:01.429805Z",
+      "latest_alert": {
+        "id": "AA74DN7T4JQB6",
+        "alert_group_id": "I68T24C13IFW1",
+        "created_at": "2020-05-11T20:08:43Z",
+        "payload": {
+          "state": "alerting",
+          "title": "[Alerting] Test notification",
+          "ruleId": 0,
+          "message": "Someone is testing the alert notification within Grafana.",
+          "ruleUrl": "{{API_URL}}/",
+          "ruleName": "Test notification",
+          "evalMatches": [
+            {
+              "tags": null,
+              "value": 100,
+              "metric": "High value"
+            },
+            {
+              "tags": null,
+              "value": 200,
+              "metric": "Higher Value"
+            }
+          ]
+        }
+      },
     }
   ],
   "current_page_number": 1,
