@@ -213,3 +213,49 @@ class AlertGroupView(
 
         alert_group.un_resolve_by_user_or_backsync(self.request.user, action_source=ActionSource.API)
         return Response(status=status.HTTP_200_OK)
+
+    @action(methods=["post"], detail=True)
+    def silence(self, request, pk=None):
+        alert_group = self.get_object()
+
+        delay = request.data.get("delay")
+        if delay is None:
+            raise BadRequest(detail="delay is required")
+        try:
+            delay = int(delay)
+        except ValueError:
+            raise BadRequest(detail="invalid delay value")
+        if delay < -1:
+            raise BadRequest(detail="invalid delay value")
+
+        if alert_group.resolved:
+            raise BadRequest(detail="Can't silence a resolved alert group")
+
+        if alert_group.acknowledged:
+            raise BadRequest(detail="Can't silence an acknowledged alert group")
+
+        if alert_group.root_alert_group is not None:
+            raise BadRequest(detail="Can't silence an attached alert group")
+
+        alert_group.silence_by_user_or_backsync(request.user, silence_delay=delay, action_source=ActionSource.API)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(methods=["post"], detail=True)
+    def unsilence(self, request, pk=None):
+        alert_group = self.get_object()
+
+        if not alert_group.silenced:
+            raise BadRequest(detail="Can't unsilence an unsilenced alert group")
+
+        if alert_group.resolved:
+            raise BadRequest(detail="Can't unsilence a resolved alert group")
+
+        if alert_group.acknowledged:
+            raise BadRequest(detail="Can't unsilence an acknowledged alert group")
+
+        if alert_group.root_alert_group is not None:
+            raise BadRequest(detail="Can't unsilence an attached alert group")
+
+        alert_group.un_silence_by_user_or_backsync(request.user, action_source=ActionSource.API)
+
+        return Response(status=status.HTTP_200_OK)

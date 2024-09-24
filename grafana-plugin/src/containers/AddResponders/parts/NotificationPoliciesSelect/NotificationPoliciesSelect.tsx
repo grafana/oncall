@@ -24,12 +24,12 @@ export const NotificationPoliciesSelect: FC<Props> = ({ disabled = false, import
       {
         value: NotificationPolicyValue.Default,
         label: 'Default',
-        description: 'Use "Default notifications" from users personal settings',
+        description: 'Use "Default notification rules" from users personal settings',
       },
       {
         value: NotificationPolicyValue.Important,
         label: 'Important',
-        description: 'Use "Important notifications" from users personal settings',
+        description: 'Use "Important notification rules" from users personal settings',
       },
     ]}
     onChange={onChange}

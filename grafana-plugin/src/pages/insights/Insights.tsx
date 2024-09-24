@@ -16,7 +16,7 @@ import {
   useSceneApp,
 } from '@grafana/scenes';
 import { Alert, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
-import { DOCS_ROOT, StackSize, PLUGIN_ROOT } from 'helpers/consts';
+import { DOCS_ROOT, StackSize, PLUGIN_ROOT, IS_CURRENT_ENV_OSS } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { Text } from 'components/Text/Text';
@@ -40,7 +40,6 @@ import getVariables from './variables';
 
 export const Insights = observer(() => {
   const {
-    isOpenSource,
     insightsDatasource,
     organizationStore: { currentOrganization },
   } = useStore();
@@ -49,11 +48,11 @@ export const Insights = observer(() => {
 
   const config = useMemo(
     () => ({
-      isOpenSource,
-      datasource: { uid: isOpenSource ? '$datasource' : insightsDatasource },
+      isOpenSource: IS_CURRENT_ENV_OSS,
+      datasource: { uid: IS_CURRENT_ENV_OSS ? '$datasource' : insightsDatasource },
       stack: currentOrganization?.stack_slug,
     }),
-    [isOpenSource, currentOrganization?.stack_slug]
+    [currentOrganization?.stack_slug]
   );
 
   const variables = useMemo(() => getVariables(config), [config]);
@@ -69,7 +68,7 @@ export const Insights = observer(() => {
       return undefined;
     }
     const dataSourceListener =
-      isOpenSource &&
+      IS_CURRENT_ENV_OSS &&
       variables.datasource.subscribeToState(({ text }) => {
         setDatasource(`${text}`);
       });
@@ -86,7 +85,7 @@ export const Insights = observer(() => {
       <InsightsGeneralInfo />
       {isAnyAlertCreatedMoreThan20SecsAgo ? (
         <>
-          {isOpenSource && !datasource && <NoDatasourceWarning />}
+          {IS_CURRENT_ENV_OSS && !datasource && <NoDatasourceWarning />}
           <appScene.Component model={appScene} />
         </>
       ) : (

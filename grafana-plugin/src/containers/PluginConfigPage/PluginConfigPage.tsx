@@ -8,11 +8,12 @@ import {
   DEFAULT_PAGE,
   DOCS_ONCALL_OSS_INSTALL,
   DOCS_SERVICE_ACCOUNTS,
+  IS_CURRENT_ENV_CLOUD,
   PLUGIN_CONFIG,
   PLUGIN_ROOT,
   REQUEST_HELP_URL,
 } from 'helpers/consts';
-import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'helpers/helpers';
+import { getIsExternalServiceAccountFeatureAvailable } from 'helpers/helpers';
 import { useOnMount } from 'helpers/hooks';
 import { validateURL } from 'helpers/string';
 import { observer } from 'mobx-react';
@@ -50,7 +51,7 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
       >
         Configure Grafana OnCall
       </Text.Title>
-      {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage {...props} />}
+      {IS_CURRENT_ENV_CLOUD ? <CloudPluginConfigPage {...props} /> : <OSSPluginConfigPage {...props} />}
     </Stack>
   );
 });

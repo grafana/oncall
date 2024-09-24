@@ -129,7 +129,8 @@ class AlertGroupQuerySet(models.QuerySet):
             pass
 
         # If it's an "OK" alert, try to return the latest resolved group
-        if group_data.is_resolve_signal:
+        # (only if the channel allows source base resolving and the alert is a resolve signal)
+        if channel.allow_source_based_resolving and group_data.is_resolve_signal:
             try:
                 return self.filter(**search_params, resolved=True).latest(), False
             except self.model.DoesNotExist:

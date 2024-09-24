@@ -162,7 +162,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
   return (
     <Drawer
       title={
-        <div>
+        <div className={styles.titleContainer}>
           <Stack justifyContent="space-between" alignItems="flex-start">
             <Stack direction="column">
               <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
@@ -188,26 +188,28 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
       closeOnMaskClick={false}
       width={'95%'}
     >
-      <div>
-        <TemplatesAlertGroupsList
-          templatePage={TemplatePage.Integrations}
-          alertReceiveChannelId={id}
-          onEditPayload={onEditPayload}
-          onSelectAlertGroup={onSelectAlertGroup}
-          templates={templates}
-          onLoadAlertGroupsList={onLoadAlertGroupsList}
-        />
-        {renderCheatSheet()}
-        <TemplateResult
-          alertReceiveChannelId={id}
-          template={template}
-          templateBody={changedTemplateBody}
-          isAlertGroupExisting={isRecentAlertGroupExisting}
-          chatOpsPermalink={chatOpsPermalink}
-          payload={alertGroupPayload}
-          error={resultError}
-          onSaveAndFollowLink={onSaveAndFollowLink}
-        />
+      <div className={styles.containerWrapper}>
+        <div className={styles.container}>
+          <TemplatesAlertGroupsList
+            templatePage={TemplatePage.Integrations}
+            alertReceiveChannelId={id}
+            onEditPayload={onEditPayload}
+            onSelectAlertGroup={onSelectAlertGroup}
+            templates={templates}
+            onLoadAlertGroupsList={onLoadAlertGroupsList}
+          />
+          {renderCheatSheet()}
+          <TemplateResult
+            alertReceiveChannelId={id}
+            template={template}
+            templateBody={changedTemplateBody}
+            isAlertGroupExisting={isRecentAlertGroupExisting}
+            chatOpsPermalink={chatOpsPermalink}
+            payload={alertGroupPayload}
+            error={resultError}
+            onSaveAndFollowLink={onSaveAndFollowLink}
+          />
+        </div>
       </div>
     </Drawer>
   );
