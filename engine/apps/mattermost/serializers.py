@@ -30,11 +30,6 @@ class MattermostChannelSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return MattermostChannel.objects.create(**validated_data)
 
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret["display_name"] = instance.unique_display_name
-        return ret
-
     def to_internal_value(self, data):
         channel_id = data.get("channel_id")
 
