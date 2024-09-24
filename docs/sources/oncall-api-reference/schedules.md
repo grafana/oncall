@@ -150,6 +150,7 @@ The above command returns JSON structured in the following way:
 The following available filter parameter should be provided as a `GET` argument:
 
 - `name` (Exact match)
+- `team_id` (Exact match, team ID)
 
 **HTTP request**
 
