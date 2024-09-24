@@ -8,11 +8,35 @@ on:
       - helm/oncall/Chart.yaml
 
 jobs:
+  get-irm-app-token:
+    runs-on: ubuntu-latest
+    outputs:
+      token: ${{ steps.generate-token.outputs.token }}
+    steps:
+      - name: Get Vault secrets
+        id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            GH_APP_ID=github-app:app-id
+            GH_APP_PRIVATE_KEY=github-app:private-key
+
+      - name: Generate Github App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+          owner: grafana
+          repositories: "helm-charts"
+
   call-update-helm-repo:
     uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
+    needs:
+      - get-irm-app-token
     with:
       charts_dir: helm
       cr_configfile: helm/cr.yaml
       ct_configfile: helm/ct.yaml
     secrets:
-      helm_repo_token: ${{ secrets.GH_HELM_RELEASE }}
+      helm_repo_token: ${{ needs.get-irm-app-token.outputs.token }}
