@@ -61,12 +61,43 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
+FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF = 1000
+"""
+TODO: move this variable back to `AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF` once opscon "hack"
+is reverted
+"""
+
+def filter_by_involved_users(queryset, users: typing.List[User]):
+    """
+    TODO: move this method back to `AlertGroupFilter` once opscon "hack" is reverted
+    """
+    if not users:
+        return queryset
+
+    # This is expensive to filter all alert groups with involved users,
+    # so we limit the number of alert groups to filter by the last 1000 for the given user(s)
+    alert_group_notified_users_ids = list(
+        UserNotificationPolicyLogRecord.objects.filter(author__in=users)
+        .order_by("-alert_group_id")
+        .values_list("alert_group_id", flat=True)
+        .distinct()[: FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF]
+    )
+
+    return queryset.filter(
+        # user was notified
+        Q(id__in=alert_group_notified_users_ids)
+        |
+        # or interacted with the alert group
+        Q(acknowledged_by_user__in=users)
+        | Q(resolved_by_user__in=users)
+        | Q(silenced_by_user__in=users)
+    ).distinct()
+
+
 class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
-
-    FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF = 1000
 
     is_root = filters.BooleanFilter(field_name="root_alert_group", lookup_expr="isnull")
     status = filters.MultipleChoiceFilter(choices=AlertGroup.STATUS_CHOICES, method="filter_status")
@@ -155,35 +186,10 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         return queryset
 
     def filter_by_involved_users(self, queryset, name, value):
-        users = value
-
-        if not users:
-            return queryset
-
-        # This is expensive to filter all alert groups with involved users,
-        # so we limit the number of alert groups to filter by the last 1000 for the given user(s)
-        alert_group_notified_users_ids = list(
-            UserNotificationPolicyLogRecord.objects.filter(author__in=users)
-            .order_by("-alert_group_id")
-            .values_list("alert_group_id", flat=True)
-            .distinct()[: self.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF]
-        )
-
-        queryset = queryset.filter(
-            # user was notified
-            Q(id__in=alert_group_notified_users_ids)
-            |
-            # or interacted with the alert group
-            Q(acknowledged_by_user__in=users)
-            | Q(resolved_by_user__in=users)
-            | Q(silenced_by_user__in=users)
-        ).distinct()
-        return queryset
+        return filter_by_involved_users(queryset, value)
 
     def filter_mine(self, queryset, name, value):
-        if value:
-            return self.filter_by_involved_users(queryset, "users", [self.request.user])
-        return queryset
+        return filter_by_involved_users(queryset, [self.request.user])
 
     def filter_with_resolution_note(self, queryset, name, value):
         if value is True:
@@ -312,10 +318,11 @@ class AlertGroupView(
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        request_auth = self.request.auth
+        organization = request_auth.organization
+        user = request_auth.user
 
-        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
-            organization_id=self.request.auth.organization.id
-        )
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(organization_id=organization.id)
         if not ignore_filtering_by_available_teams:
             alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
 
@@ -332,6 +339,10 @@ class AlertGroupView(
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
+        # TODO: this is a hack for opscon, remove once a new mobile app version has been released to fix this
+        if isinstance(request_auth, MobileAppAuthTokenAuthentication):
+            queryset = filter_by_involved_users(queryset, [user])
+
         if self.action in ("list", "stats") and settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
             # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
             # read more: https://hackmysql.com/infamous-order-by-limit-query-optimizer-bug/
@@ -346,7 +357,7 @@ class AlertGroupView(
         for key, value in kv_pairs:
             # Utilize (organization, key_name, value_name, alert_group) index on AlertGroupAssociatedLabel
             queryset = queryset.filter(
-                labels__organization=self.request.auth.organization,
+                labels__organization=organization,
                 labels__key_name=key,
                 labels__value_name=value,
             )
@@ -804,7 +815,7 @@ class AlertGroupView(
                 "type": "options",
                 "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
                 "default": {"display_name": self.request.user.username, "value": self.request.user.public_primary_key},
-                "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups these users involved in.",
+                "description": f"This filter works only for last {FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups these users involved in.",
             },
             {
                 "name": "status",
@@ -835,7 +846,7 @@ class AlertGroupView(
                 "name": "mine",
                 "type": "boolean",
                 "default": "true",
-                "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
+                "description": f"This filter works only for last {FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
             },
         ]
 
