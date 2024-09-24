@@ -41,10 +41,6 @@ class MattermostChannel(models.Model):
     is_default_channel = models.BooleanField(null=True, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @property
-    def unique_display_name(self) -> str:
-        return f"{self.display_name}-{self.mattermost_team_id[:5]}"
-
     class Meta:
         unique_together = ("organization", "channel_id")
 
