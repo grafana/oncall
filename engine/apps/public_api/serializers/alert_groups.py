@@ -4,6 +4,8 @@ from rest_framework import serializers
 from apps.alerts.models import Alert, AlertGroup
 from apps.api.serializers.alert_group import AlertGroupLabelSerializer
 from apps.public_api.serializers.alerts import AlertSerializer
+from apps.slack.models import SlackMessage
+from apps.telegram.models import TelegramMessage
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UserIdField
 from common.api_helpers.mixins import EagerLoadingMixin
 
@@ -29,6 +31,18 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "alerts",
             queryset=Alert.objects.order_by("-created_at")[:1],
             to_attr="prefetched_last_alert",
+        ),
+        Prefetch(
+            "slack_messages",
+            queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
+            to_attr="prefetched_slack_messages",
+        ),
+        Prefetch(
+            "telegram_messages",
+            queryset=TelegramMessage.objects.filter(
+                chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE
+            ).order_by("id")[:1],
+            to_attr="prefetched_telegram_messages",
         ),
     ]
 
@@ -57,7 +71,9 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         return obj.web_title_cache
 
     def get_alerts_count(self, obj):
-        return obj.alerts.count()
+        if hasattr(obj, "alerts_count"):
+            return obj.alerts_count
+        return 0
 
     def get_state(self, obj):
         return obj.state

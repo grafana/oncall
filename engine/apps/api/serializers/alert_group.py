@@ -2,7 +2,6 @@ import datetime
 import logging
 import typing
 
-from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Prefetch
 from django.utils import timezone

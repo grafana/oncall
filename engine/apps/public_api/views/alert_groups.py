@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Count, Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -73,6 +73,8 @@ class AlertGroupView(
         ).order_by("-started_at")
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
 
+        queryset = self.serializer_class.setup_eager_loading(queryset)
+
         if route_id:
             queryset = queryset.filter(channel_filter__public_primary_key=route_id)
         if integration_id:
@@ -106,6 +108,8 @@ class AlertGroupView(
                 labels__key_name=key,
                 labels__value_name=value,
             )
+
+        queryset = queryset.annotate(alerts_count=Count("alerts"))
 
         return queryset
 
