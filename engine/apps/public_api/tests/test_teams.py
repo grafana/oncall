@@ -33,7 +33,7 @@ def test_get_teams_list(team_public_api_setup):
         "results": [
             {
                 "id": team.public_primary_key,
-                "grafana_team_id": team.team_id,
+                "grafana_id": team.team_id,
                 "name": team.name,
                 "email": team.email,
                 "avatar_url": team.avatar_url,
@@ -60,7 +60,7 @@ def test_get_team(team_public_api_setup):
 
     expected_payload = {
         "id": team.public_primary_key,
-        "grafana_team_id": team.team_id,
+        "grafana_id": team.team_id,
         "name": team.name,
         "email": team.email,
         "avatar_url": team.avatar_url,
