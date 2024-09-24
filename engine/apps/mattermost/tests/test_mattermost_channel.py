@@ -152,7 +152,7 @@ def test_post_mattermost_channels_permissions(
         mock_request.assert_called_once()
         assert res["channel_id"] == data["id"]
         assert res["channel_name"] == data["name"]
-        assert res["display_name"] == f"{data['display_name']}-{data['team_id'][:5]}"
+        assert res["display_name"] == data["display_name"]
         assert res["is_default_channel"] is False
 
 
@@ -264,14 +264,14 @@ def test_list_mattermost_channels(
             "id": first_mattermost_channel.public_primary_key,
             "channel_id": first_mattermost_channel.channel_id,
             "channel_name": first_mattermost_channel.channel_name,
-            "display_name": first_mattermost_channel.unique_display_name,
+            "display_name": first_mattermost_channel.display_name,
             "is_default_channel": first_mattermost_channel.is_default_channel,
         },
         {
             "id": second_mattermost_channel.public_primary_key,
             "channel_id": second_mattermost_channel.channel_id,
             "channel_name": second_mattermost_channel.channel_name,
-            "display_name": second_mattermost_channel.unique_display_name,
+            "display_name": second_mattermost_channel.display_name,
             "is_default_channel": second_mattermost_channel.is_default_channel,
         },
     ]
@@ -298,7 +298,7 @@ def test_get_mattermost_channel(
         "id": mattermost_channel.public_primary_key,
         "channel_id": mattermost_channel.channel_id,
         "channel_name": mattermost_channel.channel_name,
-        "display_name": mattermost_channel.unique_display_name,
+        "display_name": mattermost_channel.display_name,
         "is_default_channel": mattermost_channel.is_default_channel,
     }
 
