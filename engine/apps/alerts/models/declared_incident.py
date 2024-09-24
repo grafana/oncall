@@ -10,6 +10,10 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
 
 
+def get_incident_url(organization, incident_id) -> str:
+    return urljoin(organization.grafana_url, f"a/grafana-incident-app/incidents/{incident_id}")
+
+
 class DeclaredIncident(models.Model):
     attached_alert_groups: "RelatedManager['AlertGroup']"
     channel_filter: typing.Optional["ChannelFilter"]
@@ -30,6 +34,5 @@ class DeclaredIncident(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_opened = models.BooleanField(default=True)
 
-    @staticmethod
-    def get_incident_link(organization, incident_id) -> str:
-        return urljoin(organization.grafana_url, f"a/grafana-incident-app/incidents/{incident_id}")
+    def get_incident_link(self) -> str:
+        return get_incident_url(self.organization, self.incident_id)

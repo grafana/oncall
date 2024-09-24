@@ -661,6 +661,12 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               <Text underline>{entity.author?.username}</Text>
             </a>
           );
+        case 'related_incident':
+          return (
+            <a href={entity.incident?.incident_link} target="_blank" rel="noopener noreferrer">
+              <Text underline>{entity.incident?.incident_title}</Text>
+            </a>
+          );
         default:
           return '{{' + match + '}}';
       }

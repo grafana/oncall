@@ -25,6 +25,7 @@ export enum TimeLineRealm {
 export interface TimeLineItem {
   action: string;
   author: ApiSchemas['User'] | null;
+  incident: DeclaredIncident | null;
   created_at: string;
   realm: TimeLineRealm;
   time: string;
@@ -54,4 +55,9 @@ interface RenderForWeb {
   title: any;
   image_url: string;
   source_link: string;
+}
+
+interface DeclaredIncident {
+  incident_link: any;
+  incident_title: any;
 }

@@ -17,7 +17,7 @@ from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
 
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import AlertGroup, CustomButton, DeclaredIncident, EscalationPolicy, Invitation
+    from apps.alerts.models import AlertGroup, CustomButton, EscalationPolicy, Invitation
     from apps.user_management.models import Organization, User
 
 logger = logging.getLogger(__name__)
@@ -240,7 +240,7 @@ class AlertGroupLogRecord(models.Model):
         created_at = DateTimeField().to_representation(self.created_at)
         organization = self.alert_group.channel.organization
         author = self.author.short(organization) if self.author is not None else None
-        incident_data = self.render_incident_data_from_step_info(organization, self.get_step_specific_info()) or None
+        related_incident = self.render_incident_data_from_step_info(organization, self.get_step_specific_info()) or None
 
         sf = SlackFormatter(organization)
         action = sf.format(
@@ -255,7 +255,7 @@ class AlertGroupLogRecord(models.Model):
             "type": self.type,
             "created_at": created_at,
             "author": author,
-            "incident": incident_data,
+            "incident": related_incident,
         }
         return result
 
@@ -408,7 +408,7 @@ class AlertGroupLogRecord(models.Model):
                 elif for_slack:
                     result += f": <{incident_link}|{incident_title}>"
                 elif substitute_incident_with_tag:
-                    result += ": {{incident_link}}"
+                    result += ": {{related_incident}}"
                 else:
                     result += f": {incident_title}"
             else:
@@ -632,14 +632,15 @@ class AlertGroupLogRecord(models.Model):
         return result
 
     def render_incident_data_from_step_info(self, organization: "Organization", step_specific_info):
-        if "incident_id" not in step_specific_info and "incident_title" not in step_specific_info:
-            return {}
-        return {
-            "incident_link": DeclaredIncident.get_incident_link(
-                organization, step_specific_info.get("incident_id", "")
-            ),
-            "incident_title": step_specific_info.get("incident_title", DEFAULT_BACKUP_TITLE),
-        }
+        from apps.alerts.models.declared_incident import get_incident_url
+
+        incident_link = None
+        incident_title = DEFAULT_BACKUP_TITLE
+        if step_specific_info:
+            incident_title = step_specific_info.get("incident_title", DEFAULT_BACKUP_TITLE)
+            if "incident_id" in step_specific_info:
+                incident_link = get_incident_url(organization, step_specific_info["incident_id"])
+        return {"incident_link": incident_link, "incident_title": incident_title}
 
     def get_step_specific_info(self):
         step_specific_info = None
