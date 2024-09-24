@@ -310,6 +310,12 @@ class AlertGroupView(
 
         return super().get_serializer_class()
 
+    def _add_default_filter_started_at(self, queryset):
+        DEFAULT_STARTED_AT_TIMERANGE_DAYS = 30
+        end_time = timezone.now()
+        start_time = end_time - timedelta(days=DEFAULT_STARTED_AT_TIMERANGE_DAYS)
+        return queryset.filter(started_at__gte=start_time, started_at__lte=end_time)
+
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
 
@@ -331,6 +337,11 @@ class AlertGroupView(
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
+
+        # This is a quick fix to speed up requests from mobile app by adding default `started_at` filter value
+        # if there is no `started_at` value in query params, add default value
+        if not self.request.query_params.get("started_at"):
+            queryset = self._add_default_filter_started_at(queryset)
 
         if self.action in ("list", "stats") and settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
             # workaround related to MySQL "ORDER BY LIMIT Query Optimizer Bug"
