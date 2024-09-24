@@ -70,7 +70,7 @@ def test_declare_incident_ok(setup_alert_group_and_escalation_step):
     alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
 
     with patch("common.incident_api.client.IncidentAPIClient.create_incident") as mock_create_incident:
-        mock_create_incident.return_value = {"incidentID": "123"}, None
+        mock_create_incident.return_value = {"incidentID": "123", "title": "Incident"}, None
         declare_incident(alert_group.pk, declare_incident_step.pk)
 
     alert_group.refresh_from_db()
@@ -84,7 +84,7 @@ def test_declare_incident_ok(setup_alert_group_and_escalation_step):
     assert log_record.type == log_record.TYPE_ESCALATION_TRIGGERED
     assert log_record.escalation_policy == declare_incident_step
     assert log_record.escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert log_record.step_specific_info == {"incident_id": "123"}
+    assert log_record.step_specific_info == {"incident_id": "123", "incident_title": "Incident"}
     assert log_record.reason == "incident declared"
     assert log_record.escalation_error_code is None
 
@@ -99,7 +99,7 @@ def test_declare_incident_attach_alert_group(setup_alert_group_and_escalation_st
 
     with patch("common.incident_api.client.IncidentAPIClient.get_incident") as mock_get_incident:
         with patch("common.incident_api.client.IncidentAPIClient.add_activity") as mock_add_activity:
-            mock_get_incident.return_value = {"incidentID": incident_id, "status": "active"}, None
+            mock_get_incident.return_value = {"incidentID": incident_id, "title": "Incident", "status": "active"}, None
             mock_add_activity.return_value = {"activityItemID": "111"}, None
             declare_incident(alert_group.pk, declare_incident_step.pk)
 
@@ -111,7 +111,7 @@ def test_declare_incident_attach_alert_group(setup_alert_group_and_escalation_st
     assert log_record.type == log_record.TYPE_ESCALATION_TRIGGERED
     assert log_record.escalation_policy == declare_incident_step
     assert log_record.escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert log_record.step_specific_info == {"incident_id": incident_id}
+    assert log_record.step_specific_info == {"incident_id": incident_id, "incident_title": "Incident"}
     assert log_record.reason == "attached to existing incident"
     assert log_record.escalation_error_code is None
 
@@ -128,8 +128,12 @@ def test_declare_incident_resolved_update(setup_alert_group_and_escalation_step)
 
     with patch("common.incident_api.client.IncidentAPIClient.get_incident") as mock_get_incident:
         with patch("common.incident_api.client.IncidentAPIClient.create_incident") as mock_create_incident:
-            mock_get_incident.return_value = {"incidentID": incident_id, "status": "resolved"}, None
-            mock_create_incident.return_value = {"incidentID": new_incident_id}, None
+            mock_get_incident.return_value = {
+                "incidentID": incident_id,
+                "title": "Incident1",
+                "status": "resolved",
+            }, None
+            mock_create_incident.return_value = {"incidentID": new_incident_id, "title": "Incident2"}, None
             declare_incident(alert_group.pk, declare_incident_step.pk)
 
     alert_group.refresh_from_db()
@@ -143,7 +147,7 @@ def test_declare_incident_resolved_update(setup_alert_group_and_escalation_step)
     assert log_record.type == log_record.TYPE_ESCALATION_TRIGGERED
     assert log_record.escalation_policy == declare_incident_step
     assert log_record.escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert log_record.step_specific_info == {"incident_id": new_incident_id}
+    assert log_record.step_specific_info == {"incident_id": new_incident_id, "incident_title": "Incident2"}
     assert log_record.reason == "incident declared"
     assert log_record.escalation_error_code is None
 
@@ -168,7 +172,7 @@ def test_declare_incident_attach_alert_group_skip_incident_update(
 
     with patch("common.incident_api.client.IncidentAPIClient.get_incident") as mock_get_incident:
         with patch("common.incident_api.client.IncidentAPIClient.add_activity") as mock_add_activity:
-            mock_get_incident.return_value = {"incidentID": incident_id, "status": "active"}, None
+            mock_get_incident.return_value = {"incidentID": incident_id, "title": "Incident", "status": "active"}, None
             declare_incident(alert_group.pk, declare_incident_step.pk)
 
     assert not mock_add_activity.called
@@ -181,7 +185,7 @@ def test_declare_incident_attach_alert_group_skip_incident_update(
     assert log_record.type == log_record.TYPE_ESCALATION_TRIGGERED
     assert log_record.escalation_policy == declare_incident_step
     assert log_record.escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert log_record.step_specific_info == {"incident_id": incident_id}
+    assert log_record.step_specific_info == {"incident_id": incident_id, "incident_title": "Incident"}
     assert log_record.reason == "attached to existing incident"
     assert log_record.escalation_error_code is None
 
@@ -206,7 +210,7 @@ def test_get_existing_incident_error(setup_alert_group_and_escalation_step):
     with patch("common.incident_api.client.IncidentAPIClient.get_incident") as mock_get_incident:
         with patch("common.incident_api.client.IncidentAPIClient.create_incident") as mock_create_incident:
             mock_get_incident.side_effect = IncidentAPIException(status=404, url="some-url")
-            mock_create_incident.return_value = {"incidentID": new_incident_id}, None
+            mock_create_incident.return_value = {"incidentID": new_incident_id, "title": "Incident"}, None
             declare_incident(alert_group.pk, declare_incident_step.pk)
 
     alert_group.refresh_from_db()
@@ -228,7 +232,7 @@ def test_attach_alert_group_error(setup_alert_group_and_escalation_step):
 
     with patch("common.incident_api.client.IncidentAPIClient.get_incident") as mock_get_incident:
         with patch("common.incident_api.client.IncidentAPIClient.add_activity") as mock_add_activity:
-            mock_get_incident.return_value = {"incidentID": incident_id, "status": "active"}, None
+            mock_get_incident.return_value = {"incidentID": incident_id, "title": "Incident", "status": "active"}, None
             mock_add_activity.side_effect = IncidentAPIException(status=500, url="some-url")
             declare_incident(alert_group.pk, declare_incident_step.pk)
 
@@ -240,7 +244,7 @@ def test_attach_alert_group_error(setup_alert_group_and_escalation_step):
     assert log_record.type == log_record.TYPE_ESCALATION_TRIGGERED
     assert log_record.escalation_policy == declare_incident_step
     assert log_record.escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert log_record.step_specific_info == {"incident_id": incident_id}
+    assert log_record.step_specific_info == {"incident_id": incident_id, "incident_title": "Incident"}
     assert log_record.reason == "attached to existing incident"
     assert log_record.escalation_error_code is None
 
