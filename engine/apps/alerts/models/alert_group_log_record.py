@@ -11,13 +11,14 @@ from rest_framework.fields import DateTimeField
 
 from apps.alerts import tasks
 from apps.alerts.constants import ActionSource
+from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
 
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import AlertGroup, CustomButton, EscalationPolicy, Invitation
-    from apps.user_management.models import User
+    from apps.alerts.models import AlertGroup, CustomButton, DeclaredIncident, EscalationPolicy, Invitation
+    from apps.user_management.models import Organization, User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -162,9 +163,8 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_NOTIFY_TEAM_MEMBERS_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_TRIGGER_WEBHOOK_IS_DISABLED,
         ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED,
-        ERROR_ESCALATION_INCIDENT_ALREADY_EXISTS,
         ERROR_ESCALATION_INCIDENT_COULD_NOT_BE_DECLARED,
-    ) = range(23)
+    ) = range(22)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
 
@@ -228,16 +228,24 @@ class AlertGroupLogRecord(models.Model):
     escalation_policy_step = models.IntegerField(null=True, default=None)
     step_specific_info = JSONField(null=True, default=None)
 
-    STEP_SPECIFIC_INFO_KEYS = ["schedule_name", "custom_button_name", "usergroup_handle", "source_integration_name"]
+    STEP_SPECIFIC_INFO_KEYS = [
+        "schedule_name",
+        "custom_button_name",
+        "usergroup_handle",
+        "source_integration_name",
+    ]  # todo: incident
 
     def render_log_line_json(self):
         time = humanize.naturaldelta(self.alert_group.started_at - self.created_at)
         created_at = DateTimeField().to_representation(self.created_at)
         organization = self.alert_group.channel.organization
         author = self.author.short(organization) if self.author is not None else None
+        incident_data = self.render_incident_data_from_step_info(organization, self.get_step_specific_info()) or None
 
         sf = SlackFormatter(organization)
-        action = sf.format(self.rendered_log_line_action(substitute_author_with_tag=True))
+        action = sf.format(
+            self.rendered_log_line_action(substitute_author_with_tag=True, substitute_incident_with_tag=True)
+        )
         action = clean_markup(action)
 
         result = {
@@ -247,6 +255,7 @@ class AlertGroupLogRecord(models.Model):
             "type": self.type,
             "created_at": created_at,
             "author": author,
+            "incident": incident_data,
         }
         return result
 
@@ -261,7 +270,9 @@ class AlertGroupLogRecord(models.Model):
         result += self.rendered_log_line_action(for_slack=for_slack, html=html)
         return result
 
-    def rendered_log_line_action(self, for_slack=False, html=False, substitute_author_with_tag=False):
+    def rendered_log_line_action(
+        self, for_slack=False, html=False, substitute_author_with_tag=False, substitute_incident_with_tag=False
+    ):
         from apps.alerts.models import EscalationPolicy
 
         result = ""
@@ -386,8 +397,20 @@ class AlertGroupLogRecord(models.Model):
             elif escalation_policy_step == EscalationPolicy.STEP_REPEAT_ESCALATION_N_TIMES:
                 result += "escalation started from the beginning"
             elif escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT:
-                # incident_link = self.alert_group.declared_incident.incident_link
-                result += self.reason  # todo: link to incident
+                organization = self.alert_group.channel.organization
+                incident_data = self.render_incident_data_from_step_info(organization, step_specific_info)
+                incident_link = incident_data["incident_link"]
+                incident_title = incident_data["incident_title"]
+
+                result += self.reason
+                if html:
+                    result += f": <a href='{incident_link}'>{incident_title}</a>"
+                elif for_slack:
+                    result += f": <{incident_link}|{incident_title}>"
+                elif substitute_incident_with_tag:
+                    result += ": {{incident_link}}"
+                else:
+                    result += f": {incident_title}"
             else:
                 result += f'triggered step "{EscalationPolicy.get_step_display_name(escalation_policy_step)}"'
         elif self.type == AlertGroupLogRecord.TYPE_SILENCE:
@@ -604,12 +627,19 @@ class AlertGroupLogRecord(models.Model):
                 self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED
             ):
                 result += 'skipped escalation step "Declare Incident": step is not enabled'
-            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_INCIDENT_ALREADY_EXISTS:
-                # incident_link = self.alert_group.declared_incident.incident_link
-                result += 'skipped escalation step "Declare Incident": Incident already exists'  # todo: link
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_INCIDENT_COULD_NOT_BE_DECLARED:
                 result += f"failed to declare an Incident: {self.reason}"
         return result
+
+    def render_incident_data_from_step_info(self, organization: "Organization", step_specific_info):
+        if "incident_id" not in step_specific_info and "incident_title" not in step_specific_info:
+            return {}
+        return {
+            "incident_link": DeclaredIncident.get_incident_link(
+                organization, step_specific_info.get("incident_id", "")
+            ),
+            "incident_title": step_specific_info.get("incident_title", DEFAULT_BACKUP_TITLE),
+        }
 
     def get_step_specific_info(self):
         step_specific_info = None
