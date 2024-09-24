@@ -113,10 +113,15 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
 
     const columns = [
       {
-        width: '70%',
-        title: 'Channel',
+        width: '35%',
+        title: 'Channel Name',
         key: 'name',
         render: this.renderChannelName,
+      },
+      {
+        width: '35%',
+        title: 'Channel ID',
+        render: this.renderChannelId,
       },
       {
         width: '30%',
@@ -153,6 +158,10 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
         {record.display_name} {record.is_default_channel && <Badge text="Default" color="green" />}
       </>
     );
+  };
+
+  renderChannelId = (record: MattermostChannel) => {
+    return <>{record.channel_id}</>;
   };
 
   renderActionButtons = (record: MattermostChannel) => {
