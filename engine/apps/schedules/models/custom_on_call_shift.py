@@ -2,6 +2,7 @@ import copy
 import datetime
 import itertools
 import logging
+import math
 import typing
 from calendar import monthrange
 from uuid import uuid4
@@ -352,7 +353,7 @@ class CustomOnCallShift(models.Model):
         week_interval = 1
         if orig_start and last_start:
             # number of weeks used to cover all combinations
-            week_interval = ((last_start - orig_start).days // 7) or 1
+            week_interval = (math.ceil((last_start - orig_start).days / 7)) or 1
         counter = 1
         for (user_group_id, day, _), start in zip(combinations, starting_dates):
             users = users_queue[user_group_id]
