@@ -20,13 +20,21 @@ class SlackUserIdentitySerializer(serializers.ModelSerializer):
 
 class FastUserSerializer(serializers.ModelSerializer):
     id: str = serializers.ReadOnlyField(read_only=True, source="public_primary_key")
+    grafana_user_id: int = serializers.IntegerField(read_only=True, source="user_id")
     email: str = serializers.EmailField(read_only=True)
     role: str = serializers.SerializerMethodField()  # LEGACY, should be removed eventually
     is_phone_number_verified: bool = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "email", "username", "role", "is_phone_number_verified"]
+        fields = [
+            "id",
+            "grafana_user_id",
+            "email",
+            "username",
+            "role",
+            "is_phone_number_verified",
+        ]
 
     @staticmethod
     def get_role(obj: User) -> str:
@@ -41,6 +49,7 @@ class FastUserSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
     id: str = serializers.ReadOnlyField(read_only=True, source="public_primary_key")
+    grafana_user_id: int = serializers.IntegerField(read_only=True, source="user_id")
     email: str = serializers.EmailField(read_only=True)
     slack: SlackUserIdentity = SlackUserIdentitySerializer(read_only=True, source="slack_user_identity")
     role: str = serializers.SerializerMethodField()  # LEGACY, should be removed eventually
@@ -55,7 +64,17 @@ class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
 
     class Meta:
         model = User
-        fields = ["id", "email", "slack", "username", "role", "is_phone_number_verified", "timezone", "teams"]
+        fields = [
+            "id",
+            "grafana_user_id",
+            "email",
+            "slack",
+            "username",
+            "role",
+            "is_phone_number_verified",
+            "timezone",
+            "teams",
+        ]
         read_only_fields = ["timezone"]
 
     @staticmethod
