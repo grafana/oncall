@@ -8,11 +8,10 @@ on:
       - helm/oncall/Chart.yaml
 
 jobs:
-  get-irm-app-secrets:
+  get-irm-app-token:
     runs-on: ubuntu-latest
     outputs:
-      github_app_id: ${{ steps.secret-outputs.outputs.github_app_id }}
-      github_app_pem: ${{ steps.secret-outputs.outputs.github_app_pem }}
+      token: ${{ steps.generate-token.outputs.token }}
     permissions:
       contents: read
       id-token: write
@@ -25,23 +24,22 @@ jobs:
             GH_APP_ID=github-app:app-id
             GH_APP_PRIVATE_KEY=github-app:private-key
 
-      # NOTE: there's no need to call actions/create-github-app-token, this is done
-      # inside grafana/helm-charts/.github/workflows/update-helm-repo.yaml
-      # we just simply need to pass github_app_id and github_app_pem as inputs to that workflow
-      - name: Output env var secrets
-        id: secret-outputs
-        run: |
-          echo "github_app_id=$GH_APP_ID" >> $GITHUB_OUTPUT
-          echo "github_app_pem=$GH_APP_PRIVATE_KEY" >> $GITHUB_OUTPUT
+      - name: Generate Github App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+          owner: grafana
+          repositories: "helm-charts"
 
   call-update-helm-repo:
-    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@main
+    uses: grafana/helm-charts/.github/workflows/update-helm-repo.yaml@bda5b059ac617d46bbdacca0167e3b694d304519
     needs:
-      - get-irm-app-secrets
+      - get-irm-app-token
     with:
       charts_dir: helm
       cr_configfile: helm/cr.yaml
       ct_configfile: helm/ct.yaml
     secrets:
-      github_app_id: ${{ needs.get-irm-app-secrets.outputs.github_app_id }}
-      github_app_pem: ${{ needs.get-irm-app-secrets.outputs.github_app_pem }}
+      github_app_token: ${{ needs.get-irm-app-token.outputs.token }}
