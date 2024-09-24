@@ -339,7 +339,6 @@ class AlertGroupView(
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
         # This is a quick fix to speed up requests from mobile app by adding default `started_at` filter value
-        # if there is no `started_at` value in query params, add default value
         if not self.request.query_params.get("started_at"):
             queryset = self._add_default_filter_started_at(queryset)
 
