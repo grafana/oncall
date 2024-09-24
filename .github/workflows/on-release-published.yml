@@ -126,14 +126,22 @@ jobs:
       id-token: write
       contents: read
     steps:
-      # This will fetch the secret keys from vault and set them as environment variables for subsequent steps
       - name: Get Vault secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
           repo_secrets: |
-            GITHUB_API_KEY=github_actions:github-api-key
+            GH_APP_ID=github-app:app-id
+            GH_APP_PRIVATE_KEY=github-app:private-key
+
+      - name: Generate Github App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.GH_APP_ID }}
+          private-key: ${{ env.GH_APP_PRIVATE_KEY }}
+
       - name: Merge pull Request
         uses: juliangruber/merge-pull-request-action@v1
         with:
-          github-token: ${{ env.GITHUB_API_KEY }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           number: ${{ needs.create-helm-release-pr.outputs.helm_release_pr_number }}
