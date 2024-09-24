@@ -17,6 +17,10 @@ refs:
 
 # Integrations HTTP API
 
+{{< admonition type="note" >}}
+⚠️ `msteams` templates are only available on Grafana Cloud
+{{< /admonition >}}
+
 ## Create an integration
 
 ```shell
