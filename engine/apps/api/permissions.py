@@ -152,9 +152,7 @@ class RBACPermission(permissions.BasePermission):
         #
         # Example: Take a user with the basic role of None/Editor/Viewer but with the "OnCall Admin" role assigned.
         # Without this RBAC permission, we have no way of knowing that the user is ACTUALLY an "Admin".
-        ADMIN = LegacyAccessControlCompatiblePermission(
-            Resources.ADMIN, Actions.ADMIN, LegacyAccessControlRole.ADMIN
-        )
+        ADMIN = LegacyAccessControlCompatiblePermission(Resources.ADMIN, Actions.ADMIN, LegacyAccessControlRole.ADMIN)
 
         ALERT_GROUPS_READ = LegacyAccessControlCompatiblePermission(
             Resources.ALERT_GROUPS, Actions.READ, LegacyAccessControlRole.VIEWER

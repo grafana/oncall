@@ -233,9 +233,7 @@ class User(models.Model):
 
     def self_or_has_user_settings_admin_permission(self, user_to_check: "User", organization: "Organization") -> bool:
         has_permission = user_is_authorized(user_to_check, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
-        return user_to_check.pk == self.pk or (
-            has_permission and organization.pk == user_to_check.organization_id
-        )
+        return user_to_check.pk == self.pk or (has_permission and organization.pk == user_to_check.organization_id)
 
     def get_username_with_slack_verbal(self, mention=False) -> str:
         slack_verbal = None

@@ -49,13 +49,20 @@ def test_self_or_has_user_settings_admin_permission(make_organization, make_user
 
     # true because self
     assert user_with_perms.self_or_has_user_settings_admin_permission(user_with_perms, organization_with_rbac) is True
-    assert user_without_perms.self_or_has_user_settings_admin_permission(user_without_perms, organization_with_rbac) is True
+    assert (
+        user_without_perms.self_or_has_user_settings_admin_permission(user_without_perms, organization_with_rbac)
+        is True
+    )
 
     # true because user_with_perms has proper admin RBAC permission
-    assert user_without_perms.self_or_has_user_settings_admin_permission(user_with_perms, organization_with_rbac) is True
+    assert (
+        user_without_perms.self_or_has_user_settings_admin_permission(user_with_perms, organization_with_rbac) is True
+    )
 
     # false because user_without_perms does not have proper admin RBAC permission
-    assert user_with_perms.self_or_has_user_settings_admin_permission(user_without_perms, organization_with_rbac) is False
+    assert (
+        user_with_perms.self_or_has_user_settings_admin_permission(user_without_perms, organization_with_rbac) is False
+    )
 
 
 @pytest.mark.django_db
