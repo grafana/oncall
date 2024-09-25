@@ -13,6 +13,7 @@ from common.incident_api.client import (
 
 logger = logging.getLogger(__name__)
 
+MAX_RETRIES = 1 if settings.DEBUG else 10
 MAX_ATTACHED_ALERT_GROUPS_PER_INCIDENT = 5
 
 
@@ -39,7 +40,7 @@ def _attach_alert_group_to_incident(alert_group, incident_id, incident_title, es
     )
 
 
-def _create_error_log_record(alert_group, escalation_policy, reason):
+def _create_error_log_record(alert_group, escalation_policy, reason=""):
     from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 
     AlertGroupLogRecord.objects.create(
@@ -52,9 +53,7 @@ def _create_error_log_record(alert_group, escalation_policy, reason):
     )
 
 
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def declare_incident(alert_group_pk, escalation_policy_pk):
     from apps.alerts.models import AlertGroup, DeclaredIncident, EscalationPolicy
 
@@ -63,13 +62,17 @@ def declare_incident(alert_group_pk, escalation_policy_pk):
     escalation_policy = None
     if escalation_policy_pk:
         escalation_policy = EscalationPolicy.objects.filter(pk=escalation_policy_pk).first()
-    incident_client = IncidentAPIClient(organization.grafana_url, organization.api_token)
 
     if alert_group.channel_filter.is_default:
         _create_error_log_record(
             alert_group, escalation_policy, reason="Declare incident step is not enabled for default routes"
         )
         return
+    if declare_incident.request.retries == MAX_RETRIES:
+        _create_error_log_record(alert_group, escalation_policy)
+        return
+
+    incident_client = IncidentAPIClient(organization.grafana_url, organization.api_token)
 
     # check for currently active related incident in the same route (channel_filter)
     existing_incident = (
