@@ -13,6 +13,8 @@ from common.incident_api.client import (
 
 logger = logging.getLogger(__name__)
 
+ATTACHMENT_CAPTION = "OnCall Alert Group"
+ERROR_SEVERITY_NOT_FOUND = "Severity.FindOne: not found"
 MAX_RETRIES = 1 if settings.DEBUG else 10
 MAX_ATTACHED_ALERT_GROUPS_PER_INCIDENT = 5
 
@@ -54,7 +56,7 @@ def _create_error_log_record(alert_group, escalation_policy, reason=""):
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def declare_incident(alert_group_pk, escalation_policy_pk):
+def declare_incident(alert_group_pk, escalation_policy_pk, severity=None):
     from apps.alerts.models import AlertGroup, DeclaredIncident, EscalationPolicy
 
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
@@ -68,6 +70,7 @@ def declare_incident(alert_group_pk, escalation_policy_pk):
             alert_group, escalation_policy, reason="Declare incident step is not enabled for default routes"
         )
         return
+
     if declare_incident.request.retries == MAX_RETRIES:
         _create_error_log_record(alert_group, escalation_policy)
         return
@@ -118,18 +121,27 @@ def declare_incident(alert_group_pk, escalation_policy_pk):
 
     if existing_incident is None or not existing_incident.is_opened:
         # create new incident
-        # TODO: get severity from policy? alert group label?
+        if severity == EscalationPolicy.SEVERITY_SET_FROM_LABEL:
+            severity_label = alert_group.labels.filter(key_name="severity").first()
+            severity = severity_label.value_name if severity_label else None
+        severity = severity or DEFAULT_INCIDENT_SEVERITY
         try:
             incident_data, _ = incident_client.create_incident(
                 alert_group.web_title_cache if alert_group.web_title_cache else DEFAULT_BACKUP_TITLE,
-                severity=DEFAULT_INCIDENT_SEVERITY,
-                attachCaption="OnCall Alert Group",
+                severity=severity,
+                attachCaption=ATTACHMENT_CAPTION,
                 attachURL=alert_group.web_link,
             )
         except IncidentAPIException as e:
-            # TODO: check for invalid severity?
             logger.error(f"Error creating new incident: {e.msg}")
-            # raise (and retry)
+            if ERROR_SEVERITY_NOT_FOUND.lower() in e.msg.lower() and severity != DEFAULT_INCIDENT_SEVERITY:
+                # invalid severity, retry with default severity
+                declare_incident.apply_async(
+                    args=(alert_group_pk, escalation_policy_pk),
+                    kwargs={"severity": DEFAULT_INCIDENT_SEVERITY},
+                )
+                return
+            # else raise (and retry)
             raise
         else:
             _attach_alert_group_to_incident(

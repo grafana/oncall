@@ -45,6 +45,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   useEffect(() => {
     escalationPolicyStore.updateWebEscalationPolicyOptions();
+    escalationPolicyStore.updateSeverityOptions();
   }, []);
 
   const handleSortEnd = useCallback(
@@ -102,6 +103,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
               isDisabled={isDisabled}
+              severityChoices={escalationPolicyStore.severityChoices}
               {...extraProps}
             />
           );

@@ -30,7 +30,7 @@ import { Schedule } from 'models/schedule/schedule.types';
 import { UserHelper } from 'models/user/user.helpers';
 import { UserGroup } from 'models/user_group/user_group.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import { WithStoreProps } from 'state/types';
+import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { DragHandle } from './DragHandle';
@@ -53,6 +53,7 @@ interface EscalationPolicyBaseProps {
   backgroundClassName?: string;
   backgroundHexNumber?: string;
   isSlackInstalled: boolean;
+  severityChoices: any[];
 }
 
 // We export the base props class, the actual definition is wrapped by MobX
@@ -131,6 +132,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
         return this.renderNumMinutesInWindowOptions();
+      case 'severity':
+          return this.renderSeverities();
       default:
         console.warn('Unknown escalation step placeholder');
         return '';
@@ -247,6 +250,32 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
       </WithPermissionControlTooltip>
     );
   }
+
+
+  renderSeverities() {
+    const { data, isDisabled, theme, severityChoices = [] } = this.props;
+    const styles = getEscalationPolicyStyles(theme);
+    const { severity } = data;
+
+    return (
+      <WithPermissionControlTooltip key="" userAction={UserActions.EscalationChainsWrite}>
+        <Select
+          menuShouldPortal
+          disabled={isDisabled}
+          placeholder="Severity"
+          className={cx(styles.select, styles.control)}
+          // @ts-ignore
+          value={severity}
+          onChange={this.getOnSelectChangeHandler('severity')}
+          options={severityChoices.map((severity_choice: SelectOption) => ({
+            value: severity_choice.value,
+            label: severity_choice.display_name,
+          }))}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
 
   renderTimeRange() {
     const { data, isDisabled, theme } = this.props;

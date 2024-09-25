@@ -20,6 +20,9 @@ export class EscalationPolicyStore extends BaseStore {
   escalationChoices: any = [];
 
   @observable
+  severityChoices: any = [];
+
+  @observable
   webEscalationChoices: any = [];
 
   constructor(rootStore: RootStore) {
@@ -28,6 +31,15 @@ export class EscalationPolicyStore extends BaseStore {
     makeObservable(this);
 
     this.path = '/escalation_policies/';
+  }
+
+  @action.bound
+  async updateSeverityOptions() {
+    const response = await makeRequest('/escalation_policies/severity_options/', {});
+
+    runInAction(() => {
+      this.severityChoices = response;
+    });
   }
 
   @action.bound
