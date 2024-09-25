@@ -16,7 +16,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     team_id = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
     route_id = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="started_at")
-    alerts_count = serializers.IntegerField(read_only=True)
+    alerts_count = serializers.SerializerMethodField()
     title = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     acknowledged_by = UserIdField(read_only=True, source="acknowledged_by_user")
@@ -75,6 +75,17 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return None
 
     def get_latest_alert(self, obj):
-        if obj.last_alert:
+        if hasattr(obj, "last_alert") and obj.last_alert:
             return AlertSerializer(obj.last_alert).data
+        # Fall back to the latest alert in the group if the last_alert is not set by AlertGroupEnrichingMixin
+        if obj.alerts.exists():
+            return AlertSerializer(obj.alerts.latest("created_at")).data
         return None
+
+    def get_alerts_count(self, obj):
+        if hasattr(obj, "alerts_count") and obj.alerts_count is not None:
+            return obj.alerts_count
+        # Fall back to the count of alerts in the group if the alerts_count is not set by AlertGroupEnrichingMixin
+        if obj.alerts.exists():
+            return obj.alerts.count()
+        return 0

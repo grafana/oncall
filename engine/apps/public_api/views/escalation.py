@@ -8,9 +8,10 @@ from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import AlertGroupSerializer, EscalationSerializer
 from apps.public_api.throttlers import UserThrottle
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.mixins import AlertGroupEnrichingMixin
 
 
-class EscalationView(APIView):
+class EscalationView(AlertGroupEnrichingMixin, APIView):
     """
     aka "Direct Paging"
     """
