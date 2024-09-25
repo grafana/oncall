@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+class RelatedIncidentData(typing.TypedDict):
+    incident_link: typing.Optional[str]
+    incident_title: str
+
+
 class AlertGroupLogRecord(models.Model):
     alert_group: "AlertGroup"
     author: typing.Optional["User"]
@@ -242,7 +247,7 @@ class AlertGroupLogRecord(models.Model):
         created_at = DateTimeField().to_representation(self.created_at)
         organization = self.alert_group.channel.organization
         author = self.author.short(organization) if self.author is not None else None
-        related_incident = self.render_incident_data_from_step_info(organization, self.get_step_specific_info()) or None
+        related_incident = self.render_incident_data_from_step_info(organization, self.get_step_specific_info())
 
         sf = SlackFormatter(organization)
         action = sf.format(self.rendered_log_line_action(substitute_with_tag=True))
@@ -631,15 +636,20 @@ class AlertGroupLogRecord(models.Model):
                     result += f": {self.reason}"
         return result
 
-    def render_incident_data_from_step_info(self, organization: "Organization", step_specific_info):
+    def render_incident_data_from_step_info(
+        self, organization: "Organization", step_specific_info: dict
+    ) -> RelatedIncidentData | None:
         from apps.alerts.models.declared_incident import get_incident_url
 
-        incident_link = None
-        incident_title = DEFAULT_BACKUP_TITLE
-        if step_specific_info:
-            incident_title = step_specific_info.get("incident_title", DEFAULT_BACKUP_TITLE)
-            if "incident_id" in step_specific_info:
-                incident_link = get_incident_url(organization, step_specific_info["incident_id"])
+        if not step_specific_info or not all(key in step_specific_info for key in ["incident_title", "incident_id"]):
+            return None
+
+        incident_link = (
+            get_incident_url(organization, step_specific_info["incident_id"])
+            if step_specific_info["incident_id"]
+            else None
+        )
+        incident_title = step_specific_info["incident_title"] or DEFAULT_BACKUP_TITLE
         return {"incident_link": incident_link, "incident_title": incident_title}
 
     def get_step_specific_info(self):
