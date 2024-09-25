@@ -83,14 +83,12 @@ class UserNotificationPolicySerializer(UserNotificationPolicyBaseSerializer):
 
     def create(self, validated_data):
         user = validated_data.get("user") or self.context["request"].user
-        organization = self.context["request"].auth.organization
 
-        self_or_admin = user.self_or_admin(user_to_check=self.context["request"].user, organization=organization)
-        if not self_or_admin:
+        if not user.self_or_has_user_settings_admin_permission(
+            user_to_check=self.context["request"].user, organization=self.context["request"].auth.organization
+        ):
             raise Forbidden()
-
-        instance = UserNotificationPolicy.objects.create(**validated_data)
-        return instance
+        return UserNotificationPolicy.objects.create(**validated_data)
 
 
 class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerializer):
@@ -104,10 +102,9 @@ class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerialize
         read_only_fields = UserNotificationPolicyBaseSerializer.Meta.read_only_fields + ["user", "important"]
 
     def update(self, instance, validated_data):
-        self_or_admin = instance.user.self_or_admin(
+        if not instance.user.self_or_has_user_settings_admin_permission(
             user_to_check=self.context["request"].user, organization=self.context["request"].user.organization
-        )
-        if not self_or_admin:
+        ):
             raise Forbidden()
         if validated_data.get("step") == UserNotificationPolicy.Step.WAIT and not validated_data.get("wait_delay"):
             validated_data["wait_delay"] = UserNotificationPolicy.FIVE_MINUTES
