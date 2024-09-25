@@ -233,7 +233,9 @@ class AlertGroupLogRecord(models.Model):
         "custom_button_name",
         "usergroup_handle",
         "source_integration_name",
-    ]  # todo: incident
+        "incident_link",
+        "incident_title",
+    ]
 
     def render_log_line_json(self):
         time = humanize.naturaldelta(self.alert_group.started_at - self.created_at)
@@ -243,9 +245,7 @@ class AlertGroupLogRecord(models.Model):
         related_incident = self.render_incident_data_from_step_info(organization, self.get_step_specific_info()) or None
 
         sf = SlackFormatter(organization)
-        action = sf.format(
-            self.rendered_log_line_action(substitute_author_with_tag=True, substitute_incident_with_tag=True)
-        )
+        action = sf.format(self.rendered_log_line_action(substitute_with_tag=True))
         action = clean_markup(action)
 
         result = {
@@ -270,9 +270,7 @@ class AlertGroupLogRecord(models.Model):
         result += self.rendered_log_line_action(for_slack=for_slack, html=html)
         return result
 
-    def rendered_log_line_action(
-        self, for_slack=False, html=False, substitute_author_with_tag=False, substitute_incident_with_tag=False
-    ):
+    def rendered_log_line_action(self, for_slack=False, html=False, substitute_with_tag=False):
         from apps.alerts.models import EscalationPolicy
 
         result = ""
@@ -290,7 +288,7 @@ class AlertGroupLogRecord(models.Model):
         elif self.action_source == ActionSource.BACKSYNC:
             author_name = "source integration " + step_specific_info.get("source_integration_name", "")
         elif self.author:
-            if substitute_author_with_tag:
+            if substitute_with_tag:
                 author_name = "{{author}}"
             elif for_slack:
                 author_name = self.author.get_username_with_slack_verbal()
@@ -407,7 +405,7 @@ class AlertGroupLogRecord(models.Model):
                     result += f": <a href='{incident_link}'>{incident_title}</a>"
                 elif for_slack:
                     result += f": <{incident_link}|{incident_title}>"
-                elif substitute_incident_with_tag:
+                elif substitute_with_tag:
                     result += ": {{related_incident}}"
                 else:
                     result += f": {incident_title}"
@@ -628,7 +626,9 @@ class AlertGroupLogRecord(models.Model):
             ):
                 result += 'skipped escalation step "Declare Incident": step is not enabled'
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_INCIDENT_COULD_NOT_BE_DECLARED:
-                result += f"failed to declare an Incident: {self.reason}"
+                result += "failed to declare an Incident"
+                if self.reason:
+                    result += f": {self.reason}"
         return result
 
     def render_incident_data_from_step_info(self, organization: "Organization", step_specific_info):
