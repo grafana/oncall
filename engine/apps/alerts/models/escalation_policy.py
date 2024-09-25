@@ -155,7 +155,7 @@ class EscalationPolicy(OrderedModel):
             "Repeat escalation from the beginning (5 times max)",
             "Repeat escalations from the beginning (5 times max)",
         ),
-        STEP_DECLARE_INCIDENT: ("Declare Incident with severity {{incident_severity}}", "Declare Incident"),
+        STEP_DECLARE_INCIDENT: ("Declare Incident with severity {{severity}}", "Declare Incident"),
     }
 
     STEPS_WITH_NO_IMPORTANT_VERSION_SET = {
@@ -216,6 +216,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     ]
 
     PUBLIC_STEP_CHOICES_MAP = {
@@ -237,6 +238,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME: "notify_if_time_from_to",
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: "notify_if_num_alerts_in_window",
         STEP_REPEAT_ESCALATION_N_TIMES: "repeat_escalation",
+        STEP_DECLARE_INCIDENT: "declare_incident",
     }
 
     public_primary_key = models.CharField(
@@ -296,6 +298,10 @@ class EscalationPolicy(OrderedModel):
         default=None,
         null=True,
     )
+
+    # Incident severity for declare incident step
+    SEVERITY_SET_FROM_LABEL = "Set from severity label"
+    severity = models.CharField(max_length=512, null=True, default=None)
 
     ONE_MINUTE = datetime.timedelta(minutes=1)
     FIVE_MINUTES = datetime.timedelta(minutes=5)

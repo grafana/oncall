@@ -90,18 +90,15 @@ class IncidentAPIClient:
         return {"User-Agent": settings.GRAFANA_COM_USER_AGENT, "Authorization": f"Bearer {self.api_token}"}
 
     def _check_response(self, response: requests.models.Response):
-        message = None
+        message = ""
 
-        if 400 <= response.status_code < 500:
+        if response.status_code >= 400:
             try:
                 error_data = response.json()
                 message = error_data.get("error", response.reason)
             except JSONDecodeError:
                 message = response.reason
-        elif 500 <= response.status_code < 600:
-            message = response.reason
 
-        if message:
             raise IncidentAPIException(
                 status=response.status_code,
                 url=response.request.url,

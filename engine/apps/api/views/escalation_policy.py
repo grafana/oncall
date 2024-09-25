@@ -19,6 +19,7 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
+from common.incident_api.client import IncidentAPIClient
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
 
@@ -42,6 +43,7 @@ class EscalationPolicyView(
         "escalation_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
         "delay_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
         "num_minutes_in_window_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "severity_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
         "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "partial_update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
@@ -154,5 +156,23 @@ class EscalationPolicyView(
         # TODO: DEPRECATED, REMOVE IN A FUTURE RELEASE
         choices = [
             {"value": choice[0], "display_name": choice[1]} for choice in EscalationPolicy.WEB_DURATION_CHOICES_MINUTES
+        ]
+        return Response(choices)
+
+    @action(detail=False, methods=["get"])
+    def severity_options(self, request):
+        organization = self.request.auth.organization
+        choices = []
+        if organization.is_grafana_labels_enabled:
+            choices = [
+                {
+                    "value": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
+                    "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
+                }
+            ]
+        incident_client = IncidentAPIClient(organization.grafana_url, organization.api_token)
+        severities, _ = incident_client.get_severities()
+        choices += [
+            {"value": severity["displayLabel"], "display_name": severity["displayLabel"]} for severity in severities
         ]
         return Response(choices)

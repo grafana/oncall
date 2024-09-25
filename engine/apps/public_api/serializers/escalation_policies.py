@@ -72,6 +72,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         required=False,
         source="custom_webhook",
     )
+    severity = serializers.CharField(required=False)
     important = serializers.BooleanField(required=False)
 
     TIME_FORMAT = "%H:%M:%SZ"
@@ -101,6 +102,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_if_time_to",
             "num_alerts_in_window",
             "num_minutes_in_window",
+            "severity",
         ]
 
     PREFETCH_RELATED = ["notify_to_users_queue"]
@@ -119,6 +121,12 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
 
         if step_type == EscalationPolicy.STEP_FINAL_NOTIFYALL and organization.slack_team_identity is None:
             raise BadRequest(detail="Invalid escalation step type: step is Slack-specific")
+
+        if (
+            step_type == EscalationPolicy.STEP_DECLARE_INCIDENT
+            and not EscalationPolicy.is_declare_incident_step_enabled(organization)
+        ):
+            raise BadRequest("Invalid escalation step type: step is not enabled")
 
         return step_type
 
@@ -163,6 +171,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "notify_if_time_to",
             "num_alerts_in_window",
             "num_minutes_in_window",
+            "severity",
         ]
         if step == EscalationPolicy.STEP_WAIT:
             fields_to_remove.remove("duration")
@@ -190,6 +199,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         elif step == EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
             fields_to_remove.remove("num_alerts_in_window")
             fields_to_remove.remove("num_minutes_in_window")
+        elif step == EscalationPolicy.STEP_DECLARE_INCIDENT:
+            fields_to_remove.remove("severity")
 
         if (
             step in EscalationPolicy.DEFAULT_TO_IMPORTANT_STEP_MAPPING
@@ -213,6 +224,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "to_time",
             "num_alerts_in_window",
             "num_minutes_in_window",
+            "severity",
         ]
         step = validated_data.get("step")
         important = validated_data.pop("important", None)
@@ -243,6 +255,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         elif step == EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
             validated_data_fields_to_remove.remove("num_alerts_in_window")
             validated_data_fields_to_remove.remove("num_minutes_in_window")
+        elif step == EscalationPolicy.STEP_DECLARE_INCIDENT:
+            validated_data_fields_to_remove.remove("severity")
 
         for field in validated_data_fields_to_remove:
             validated_data.pop(field, None)
@@ -299,5 +313,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                 if step != EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
                     instance.num_alerts_in_window = None
                     instance.num_minutes_in_window = None
+                if step != EscalationPolicy.STEP_DECLARE_INCIDENT:
+                    instance.severity = None
 
         return super().update(instance, validated_data)

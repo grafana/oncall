@@ -4,7 +4,14 @@ import httpretty
 import pytest
 
 from apps.alerts.models import AlertGroupLogRecord, DeclaredIncident, EscalationPolicy
-from apps.alerts.tasks.declare_incident import MAX_ATTACHED_ALERT_GROUPS_PER_INCIDENT, declare_incident
+from apps.alerts.tasks.declare_incident import (
+    ATTACHMENT_CAPTION,
+    DEFAULT_BACKUP_TITLE,
+    DEFAULT_INCIDENT_SEVERITY,
+    ERROR_SEVERITY_NOT_FOUND,
+    MAX_ATTACHED_ALERT_GROUPS_PER_INCIDENT,
+    declare_incident,
+)
 from common.incident_api.client import IncidentAPIException
 
 
@@ -73,6 +80,13 @@ def test_declare_incident_ok(setup_alert_group_and_escalation_step):
         mock_create_incident.return_value = {"incidentID": "123", "title": "Incident"}, None
         declare_incident(alert_group.pk, declare_incident_step.pk)
 
+    mock_create_incident.assert_called_with(
+        DEFAULT_BACKUP_TITLE,
+        severity=DEFAULT_INCIDENT_SEVERITY,
+        attachCaption=ATTACHMENT_CAPTION,
+        attachURL=alert_group.web_link,
+    )
+
     alert_group.refresh_from_db()
 
     # check declared incident
@@ -87,6 +101,67 @@ def test_declare_incident_ok(setup_alert_group_and_escalation_step):
     assert log_record.step_specific_info == {"incident_id": "123", "incident_title": "Incident"}
     assert log_record.reason == "incident declared"
     assert log_record.escalation_error_code is None
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_declare_incident_set_severity(setup_alert_group_and_escalation_step):
+    alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
+    severity = "critical"
+
+    with patch("common.incident_api.client.IncidentAPIClient.create_incident") as mock_create_incident:
+        mock_create_incident.return_value = {"incidentID": "123", "title": "Incident"}, None
+        declare_incident(alert_group.pk, declare_incident_step.pk, severity=severity)
+
+    mock_create_incident.assert_called_with(
+        DEFAULT_BACKUP_TITLE, severity=severity, attachCaption=ATTACHMENT_CAPTION, attachURL=alert_group.web_link
+    )
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_declare_incident_set_severity_from_label(setup_alert_group_and_escalation_step):
+    alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
+    expected_severity = "minor"
+    # set alert group label
+    alert_group.labels.create(
+        organization=alert_group.channel.organization, key_name="severity", value_name=expected_severity
+    )
+    severity = EscalationPolicy.SEVERITY_SET_FROM_LABEL
+
+    with patch("common.incident_api.client.IncidentAPIClient.create_incident") as mock_create_incident:
+        mock_create_incident.return_value = {"incidentID": "123", "title": "Incident"}, None
+        declare_incident(alert_group.pk, declare_incident_step.pk, severity=severity)
+
+    mock_create_incident.assert_called_with(
+        DEFAULT_BACKUP_TITLE,
+        severity=expected_severity,
+        attachCaption=ATTACHMENT_CAPTION,
+        attachURL=alert_group.web_link,
+    )
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_declare_incident_invalid_severity_fallback(setup_alert_group_and_escalation_step):
+    alert_group, declare_incident_step, _ = setup_alert_group_and_escalation_step(already_declared_incident=False)
+    severity = "INVALID"
+
+    with patch("common.incident_api.client.IncidentAPIClient.create_incident") as mock_create_incident:
+        with patch.object(declare_incident, "apply_async") as mock_declare_incident_apply_async:
+            mock_create_incident.side_effect = IncidentAPIException(
+                status=500, url="some-url", msg=ERROR_SEVERITY_NOT_FOUND
+            )
+            declare_incident(alert_group.pk, declare_incident_step.pk, severity=severity)
+
+    # create call failing with invalid severity
+    mock_create_incident.assert_called_with(
+        DEFAULT_BACKUP_TITLE, severity=severity, attachCaption=ATTACHMENT_CAPTION, attachURL=alert_group.web_link
+    )
+    # new task is queued with default severity instead
+    mock_declare_incident_apply_async.assert_called_with(
+        args=(alert_group.pk, declare_incident_step.pk), kwargs={"severity": DEFAULT_INCIDENT_SEVERITY}
+    )
 
 
 @pytest.mark.django_db

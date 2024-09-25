@@ -24,6 +24,7 @@ TO_TIME = "to_time"
 NUM_ALERTS_IN_WINDOW = "num_alerts_in_window"
 NUM_MINUTES_IN_WINDOW = "num_minutes_in_window"
 CUSTOM_WEBHOOK_TRIGGER = "custom_webhook"
+SEVERITY = "severity"
 
 STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_WAIT: [WAIT_DELAY],
@@ -35,6 +36,7 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_IF_TIME: [FROM_TIME, TO_TIME],
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: [CUSTOM_WEBHOOK_TRIGGER],
+    EscalationPolicy.STEP_DECLARE_INCIDENT: [SEVERITY],
 }
 
 
@@ -81,6 +83,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         allow_null=True,
         filter_field="organization",
     )
+    severity = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = EscalationPolicy
@@ -99,6 +102,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "notify_schedule",
             "notify_to_group",
             "notify_to_team_members",
+            "severity",
             "important",
         ]
 
@@ -123,6 +127,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             NUM_ALERTS_IN_WINDOW,
             NUM_MINUTES_IN_WINDOW,
             CUSTOM_WEBHOOK_TRIGGER,
+            SEVERITY,
         ]
 
         step = data.get("step")
@@ -219,6 +224,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             NUM_ALERTS_IN_WINDOW,
             NUM_MINUTES_IN_WINDOW,
             CUSTOM_WEBHOOK_TRIGGER,
+            SEVERITY,
         ]
 
         for f in STEP_TYPE_TO_RELATED_FIELD_MAP.get(step, []):

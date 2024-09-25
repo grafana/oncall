@@ -41,6 +41,7 @@ class EscalationPolicySnapshot:
         "notify_schedule",
         "notify_to_group",
         "notify_to_team_members",
+        "severity",
         "escalation_counter",
         "passed_last_time",
         "pause_escalation",
@@ -72,6 +73,7 @@ class EscalationPolicySnapshot:
         passed_last_time,
         pause_escalation,
         notify_to_team_members=None,
+        severity=None,
     ):
         self.id = id
         self.order = order
@@ -87,6 +89,7 @@ class EscalationPolicySnapshot:
         self.notify_schedule = notify_schedule
         self.notify_to_group = notify_to_group
         self.notify_to_team_members = notify_to_team_members
+        self.severity = severity
         self.escalation_counter = escalation_counter  # used for STEP_REPEAT_ESCALATION_N_TIMES
         self.passed_last_time = passed_last_time  # used for building escalation plan
         self.pause_escalation = pause_escalation  # used for STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
@@ -428,6 +431,7 @@ class EscalationPolicySnapshot:
             args=(alert_group.pk,),
             kwargs={
                 "escalation_policy_pk": self.id,
+                "severity": self.severity,
             },
             immutable=True,
         )
