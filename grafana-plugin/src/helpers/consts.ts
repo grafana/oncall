@@ -9,13 +9,22 @@ export const PluginId = {
 } as const;
 export type PluginId = (typeof PluginId)[keyof typeof PluginId];
 
-export const getIsDevelopmentEnv = () => {
+// Determine current environment: cloud, oss or local
+const CLOUD_VERSION_REGEX = /^(v\d+\.\d+\.\d+|github-actions-[a-zA-Z0-9-]+)$/
+const determineCurrentEnv = (): 'oss' | 'cloud' | 'local' => {
+  if (CLOUD_VERSION_REGEX.test(plugin?.version)) {
+    return 'cloud';
+  }
   try {
-    return process.env.NODE_ENV === 'development';
+    return process.env.NODE_ENV === 'development' ? 'local' : 'oss';
   } catch (error) {
-    return false;
+    return 'cloud';
   }
 };
+const CURRENT_ENV = determineCurrentEnv();
+export const IS_CURRENT_ENV_CLOUD = CURRENT_ENV === 'cloud';
+export const IS_CURRENT_ENV_OSS = CURRENT_ENV === 'oss';
+export const IS_CURRENT_ENV_LOCAL = CURRENT_ENV === 'local';
 
 export const getPluginId = (): PluginId => {
   try {
@@ -27,17 +36,6 @@ export const getPluginId = (): PluginId => {
 
 // Navbar
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
-
-export const APP_VERSION = `${plugin?.version}`;
-
-export const CLOUD_VERSION_REGEX = new RegExp('^(r[\\d]+-v[\\d]+.[\\d]+.[\\d]+|github-actions-[\\d]+)$');
-
-// License
-export const GRAFANA_LICENSE_OSS = 'OpenSource';
-
-export const GRAFANA_LICENSE_CLOUD = 'Cloud';
-
-export const FALLBACK_LICENSE = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_LICENSE_CLOUD : GRAFANA_LICENSE_OSS;
 
 // height of new Grafana sticky header with breadcrumbs
 export const GRAFANA_HEADER_HEIGHT = 80;

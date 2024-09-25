@@ -64,20 +64,20 @@ repos:
           - "@grafana/eslint-config@^5.0.0"
           - eslint-plugin-promise@^6.1.1
 
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "v2.7.1"
-    hooks:
-      - id: prettier
-        name: prettier
-        types_or: [css, javascript, jsx, ts, tsx]
-        files: ^grafana-plugin/src
-        additional_dependencies:
-          - prettier@2.8.2
-      - id: prettier
-        name: prettier - json
-        types_or: [json]
-        additional_dependencies:
-          - prettier@2.8.2
+  # - repo: https://github.com/pre-commit/mirrors-prettier
+  #   rev: "v2.7.1"
+  #   hooks:
+  #     - id: prettier
+  #       name: prettier
+  #       types_or: [css, javascript, jsx, ts, tsx]
+  #       files: ^grafana-plugin/src
+  #       additional_dependencies:
+  #         - prettier@2.8.2
+  #     - id: prettier
+  #       name: prettier - json
+  #       types_or: [json]
+  #       additional_dependencies:
+  #         - prettier@2.8.2
 
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
     rev: v13.13.1

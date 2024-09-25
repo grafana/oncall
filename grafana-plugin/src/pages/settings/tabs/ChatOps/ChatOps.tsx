@@ -4,6 +4,7 @@ import { css } from '@emotion/css';
 import { AppRootProps, GrafanaTheme2 } from '@grafana/data';
 import { Alert, Icon, Stack, Themeable2, withTheme2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
+import { IS_CURRENT_ENV_OSS } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { VerticalTabsBar, VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
@@ -46,10 +47,10 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   render() {
     const { activeTab } = this.state;
-    const { store, theme } = this.props;
+    const { theme } = this.props;
     const styles = getStyles(theme);
 
-    if (!this.isChatOpsConfigured() && store.isOpenSource) {
+    if (!this.isChatOpsConfigured() && IS_CURRENT_ENV_OSS) {
       return this.renderNoChatOpsBannerInfo();
     }
 
