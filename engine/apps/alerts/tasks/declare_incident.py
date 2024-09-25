@@ -80,7 +80,7 @@ def declare_incident(alert_group_pk, escalation_policy_pk, severity=None):
     # check for currently active related incident in the same route (channel_filter)
     existing_incident = (
         DeclaredIncident.objects.filter(
-            organization=organization, channel_filter=alert_group.channel_filter, is_opened=True
+            organization=organization, channel_filter=alert_group.channel_filter, is_active=True
         )
         .order_by("-created_at")
         .first()
@@ -95,8 +95,8 @@ def declare_incident(alert_group_pk, escalation_policy_pk, severity=None):
             logger.error(f"Error getting incident details: {e.msg}")
             if e.status == 404:
                 # incident not found, mark as not opened
-                existing_incident.is_opened = False
-                existing_incident.save(update_fields=["is_opened"])
+                existing_incident.is_active = False
+                existing_incident.save(update_fields=["is_active"])
             else:
                 # raise (and retry)
                 raise
@@ -116,10 +116,10 @@ def declare_incident(alert_group_pk, escalation_policy_pk, severity=None):
                     alert_group, incident_id, incident_title, escalation_policy, attached=True
                 )
             else:
-                existing_incident.is_opened = False
-                existing_incident.save(update_fields=["is_opened"])
+                existing_incident.is_active = False
+                existing_incident.save(update_fields=["is_active"])
 
-    if existing_incident is None or not existing_incident.is_opened:
+    if existing_incident is None or not existing_incident.is_active:
         # create new incident
         if severity == EscalationPolicy.SEVERITY_SET_FROM_LABEL:
             severity_label = alert_group.labels.filter(key_name="severity").first()

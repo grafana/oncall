@@ -214,7 +214,7 @@ def test_declare_incident_resolved_update(setup_alert_group_and_escalation_step)
     alert_group.refresh_from_db()
     existing_open_incident.refresh_from_db()
 
-    assert existing_open_incident.is_opened is False
+    assert existing_open_incident.is_active is False
     # check declared incident
     assert alert_group.declared_incident != existing_open_incident
     assert alert_group.declared_incident.incident_id == new_incident_id
