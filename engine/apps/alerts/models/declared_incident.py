@@ -32,7 +32,7 @@ class DeclaredIncident(models.Model):
         related_name="declared_incidents",
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    is_opened = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
 
     def get_incident_link(self) -> str:
         return get_incident_url(self.organization, self.incident_id)
