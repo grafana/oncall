@@ -48,7 +48,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
 
 if settings.FEATURE_PROMETHEUS_EXPORTER_ENABLED:
     urlpatterns += [
-        path("metrics/", include("apps.metrics_exporter.urls")),
+        path("metrics", include("apps.metrics_exporter.urls")),
     ]
 
 if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
