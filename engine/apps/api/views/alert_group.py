@@ -1,9 +1,8 @@
-import typing
 from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count, Max, Q
+from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -15,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
+from apps.alerts.models import AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
 from apps.alerts.paging import unpage_user
 from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
 from apps.api.errors import AlertGroupAPIError
@@ -36,7 +35,12 @@ from common.api_helpers.filters import (
     ModelFieldFilterMixin,
     MultipleChoiceCharFilter,
 )
-from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.api_helpers.mixins import (
+    AlertGroupEnrichingMixin,
+    PreviewTemplateMixin,
+    PublicPrimaryKeyMixin,
+    TeamFilteringMixin,
+)
 from common.api_helpers.paginators import AlertGroupCursorPaginator
 
 
@@ -255,6 +259,7 @@ class AlertGroupSearchFilter(SearchFilter):
 
 
 class AlertGroupView(
+    AlertGroupEnrichingMixin,
     PreviewTemplateMixin,
     AlertGroupTeamFilteringMixin,
     PublicPrimaryKeyMixin[AlertGroup],
@@ -428,48 +433,6 @@ class AlertGroupView(
 
         """
         return super().retrieve(request, *args, **kwargs)
-
-    def enrich(self, alert_groups: typing.List[AlertGroup]) -> typing.List[AlertGroup]:
-        """
-        This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins
-        to add additional info like alert_count and last_alert for every alert group efficiently.
-        We need the last_alert because it's used by AlertGroupWebRenderer.
-        """
-
-        # enrich alert groups with select_related and prefetch_related
-        alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
-
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
-        alert_groups = list(queryset)
-
-        # get info on alerts count and last alert ID for every alert group
-        alerts_info = (
-            Alert.objects.values("group_id")
-            .filter(group_id__in=alert_group_pks)
-            .annotate(alerts_count=Count("group_id"), last_alert_id=Max("id"))
-        )
-        alerts_info_map = {info["group_id"]: info for info in alerts_info}
-
-        # fetch last alerts for every alert group
-        last_alert_ids = [info["last_alert_id"] for info in alerts_info_map.values()]
-        last_alerts = Alert.objects.filter(pk__in=last_alert_ids)
-        for alert in last_alerts:
-            # link group back to alert
-            alert.group = [alert_group for alert_group in alert_groups if alert_group.pk == alert.group_id][0]
-            alerts_info_map[alert.group_id].update({"last_alert": alert})
-
-        # add additional "alerts_count" and "last_alert" fields to every alert group
-        for alert_group in alert_groups:
-            try:
-                alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
-                alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
-            except KeyError:
-                # alert group has no alerts
-                alert_group.last_alert = None
-                alert_group.alerts_count = 0
-
-        return alert_groups
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

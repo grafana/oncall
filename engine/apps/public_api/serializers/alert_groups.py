@@ -1,7 +1,7 @@
 from django.db.models import Prefetch
 from rest_framework import serializers
 
-from apps.alerts.models import Alert, AlertGroup
+from apps.alerts.models import AlertGroup
 from apps.api.serializers.alert_group import AlertGroupLabelSerializer
 from apps.public_api.serializers.alerts import AlertSerializer
 from apps.slack.models import SlackMessage
@@ -16,7 +16,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     team_id = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
     route_id = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="started_at")
-    alerts_count = serializers.SerializerMethodField()
+    alerts_count = serializers.IntegerField(read_only=True)
     title = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     acknowledged_by = UserIdField(read_only=True, source="acknowledged_by_user")
@@ -27,11 +27,6 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     SELECT_RELATED = ["channel", "channel_filter", "channel__organization", "channel__team"]
     PREFETCH_RELATED = ["labels"]
     PREFETCH_RELATED += [
-        Prefetch(
-            "alerts",
-            queryset=Alert.objects.order_by("-created_at")[:1],
-            to_attr="prefetched_last_alert",
-        ),
         Prefetch(
             "slack_messages",
             queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
@@ -70,11 +65,6 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def get_title(self, obj):
         return obj.web_title_cache
 
-    def get_alerts_count(self, obj):
-        if hasattr(obj, "alerts_count"):
-            return obj.alerts_count
-        return 0
-
     def get_state(self, obj):
         return obj.state
 
@@ -85,6 +75,6 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return None
 
     def get_latest_alert(self, obj):
-        latest_alert = obj.prefetched_last_alert[0]
-
-        return AlertSerializer(latest_alert).data if latest_alert else None
+        if obj.last_alert:
+            return AlertSerializer(obj.last_alert).data
+        return None

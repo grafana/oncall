@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -23,7 +23,7 @@ from common.api_helpers.filters import (
     DateRangeFilterMixin,
     get_team_queryset,
 )
-from common.api_helpers.mixins import RateLimitHeadersMixin
+from common.api_helpers.mixins import AlertGroupEnrichingMixin, RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
@@ -49,7 +49,12 @@ class AlertGroupFilters(ByTeamModelFieldFilterMixin, DateRangeFilterMixin, filte
 
 
 class AlertGroupView(
-    RateLimitHeadersMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet
+    AlertGroupEnrichingMixin,
+    RateLimitHeadersMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -64,6 +69,8 @@ class AlertGroupView(
     filterset_class = AlertGroupFilters
 
     def get_queryset(self):
+        # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+
         route_id = self.request.query_params.get("route_id", None)
         integration_id = self.request.query_params.get("integration_id", None)
         state = self.request.query_params.get("state", None)
@@ -71,7 +78,6 @@ class AlertGroupView(
         queryset = AlertGroup.objects.filter(
             channel__organization=self.request.auth.organization,
         ).order_by("-started_at")
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
 
         if route_id:
             queryset = queryset.filter(channel_filter__public_primary_key=route_id)
@@ -107,17 +113,26 @@ class AlertGroupView(
                 labels__value_name=value,
             )
 
-        queryset = queryset.annotate(alerts_count=Count("alerts"))
-
         return queryset
+
+    def paginate_queryset(self, queryset):
+        """
+        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
+        for one page of alert groups, not the whole table.
+        """
+        alert_groups = super().paginate_queryset(queryset)
+        alert_groups = self.enrich(alert_groups)
+        return alert_groups
 
     def get_object(self):
         public_primary_key = self.kwargs["pk"]
 
         try:
-            return AlertGroup.objects.filter(
+            obj = AlertGroup.objects.filter(
                 channel__organization=self.request.auth.organization,
             ).get(public_primary_key=public_primary_key)
+            obj = self.enrich([obj])[0]
+            return obj
         except AlertGroup.DoesNotExist:
             raise NotFound
 
