@@ -73,7 +73,7 @@ def test_escalation_new_alert_group(
             "web": f"a/grafana-oncall-app/alert-groups/{ag.public_primary_key}",
         },
         "silenced_at": None,
-        "latest_alert": {
+        "last_alert": {
             "id": ag.alerts.last().public_primary_key,
             "alert_group_id": ag.public_primary_key,
             "created_at": ag.alerts.last().created_at.isoformat().replace("+00:00", "Z"),

@@ -22,10 +22,10 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     acknowledged_by = UserIdField(read_only=True, source="acknowledged_by_user")
     resolved_by = UserIdField(read_only=True, source="resolved_by_user")
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
-    latest_alert = serializers.SerializerMethodField()
+    last_alert = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["channel", "channel_filter", "channel__organization", "channel__team"]
-    PREFETCH_RELATED = ["labels"]
+    PREFETCH_RELATED: list[str | Prefetch] = ["labels"]
     PREFETCH_RELATED += [
         Prefetch(
             "slack_messages",
@@ -59,7 +59,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "title",
             "permalinks",
             "silenced_at",
-            "latest_alert",
+            "last_alert",
         ]
 
     def get_title(self, obj):
@@ -74,7 +74,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         else:
             return None
 
-    def get_latest_alert(self, obj):
+    def get_last_alert(self, obj):
         if hasattr(obj, "last_alert") and obj.last_alert:
             return AlertSerializer(obj.last_alert).data
         # Fall back to the latest alert in the group if the last_alert is not set by AlertGroupEnrichingMixin

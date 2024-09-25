@@ -46,7 +46,7 @@ The above command returns JSON structured in the following way:
         "telegram": "https://t.me/c/5354/1234?thread=1234"
       },
       "silenced_at": "2020-05-19T13:37:01.429805Z",
-      "latest_alert": {
+      "last_alert": {
         "id": "AA74DN7T4JQB6",
         "alert_group_id": "I68T24C13IFW1",
         "created_at": "2020-05-11T20:08:43Z",

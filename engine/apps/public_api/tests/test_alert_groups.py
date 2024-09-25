@@ -71,7 +71,7 @@ def construct_expected_response_from_alert_groups(alert_groups):
                     "web": alert_group.web_link,
                 },
                 "silenced_at": silenced_at,
-                "latest_alert": {
+                "last_alert": {
                     "id": alert_group.alerts.last().public_primary_key,
                     "alert_group_id": alert_group.public_primary_key,
                     "created_at": alert_group.alerts.last().created_at.isoformat().replace("+00:00", "Z"),
