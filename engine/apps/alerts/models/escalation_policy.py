@@ -155,7 +155,10 @@ class EscalationPolicy(OrderedModel):
             "Repeat escalation from the beginning (5 times max)",
             "Repeat escalations from the beginning (5 times max)",
         ),
-        STEP_DECLARE_INCIDENT: ("Declare Incident with severity {{severity}}", "Declare Incident"),
+        STEP_DECLARE_INCIDENT: (
+            "Declare Incident with severity {{severity}} (non-default routes only)",
+            "Declare Incident (non-default routes only)",
+        ),
     }
 
     STEPS_WITH_NO_IMPORTANT_VERSION_SET = {

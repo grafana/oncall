@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.db.models import Q
 from rest_framework.decorators import action
@@ -19,9 +21,11 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
-from common.incident_api.client import IncidentAPIClient
+from common.incident_api.client import DEFAULT_INCIDENT_SEVERITY, IncidentAPIClient, IncidentAPIException
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
+
+logger = logging.getLogger(__name__)
 
 
 class EscalationPolicyView(
@@ -171,8 +175,12 @@ class EscalationPolicyView(
                 }
             ]
         incident_client = IncidentAPIClient(organization.grafana_url, organization.api_token)
-        severities, _ = incident_client.get_severities()
-        choices += [
-            {"value": severity["displayLabel"], "display_name": severity["displayLabel"]} for severity in severities
-        ]
+        try:
+            severities, _ = incident_client.get_severities()
+            choices += [
+                {"value": severity["displayLabel"], "display_name": severity["displayLabel"]} for severity in severities
+            ]
+        except IncidentAPIException as e:
+            logger.error(f"Error getting severities: {e.msg}")
+            choices += [{"value": DEFAULT_INCIDENT_SEVERITY, "display_name": DEFAULT_INCIDENT_SEVERITY}]
         return Response(choices)
