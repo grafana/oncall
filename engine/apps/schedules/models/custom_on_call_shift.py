@@ -2,6 +2,7 @@ import copy
 import datetime
 import itertools
 import logging
+import math
 import typing
 from calendar import monthrange
 from uuid import uuid4
@@ -303,7 +304,7 @@ class CustomOnCallShift(models.Model):
         return is_finished
 
     def _calculate_week_interval(self, last_start, orig_start):
-        return ((last_start - orig_start).days // 7) or 1
+        return math.ceil((last_start - orig_start).days / 7) or 1
 
     def _daily_by_day_to_ical(self, time_zone, start, users_queue, override_week_interval=None):
         """Create ical weekly shifts to distribute user groups combining daily + by_day.
