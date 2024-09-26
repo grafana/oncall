@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from common.incident_api.client import DEFAULT_INCIDENT_SEVERITY, IncidentAPIException
 
 
 @pytest.fixture()
@@ -1031,6 +1032,14 @@ def test_escalation_policy_severity_options(
 
     expected_options = [{"value": s["displayLabel"], "display_name": s["displayLabel"]} for s in available_severities]
     assert response.json() == expected_options
+
+    # failing request does not break; fallback to default option only
+    with patch("common.incident_api.client.IncidentAPIClient.get_severities") as mock_get_severities:
+        mock_get_severities.side_effect = IncidentAPIException(status=404, url="some-url")
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    fallback_options = [{"value": DEFAULT_INCIDENT_SEVERITY, "display_name": DEFAULT_INCIDENT_SEVERITY}]
+    assert response.json() == fallback_options
 
     # labels enabled
     organization.is_grafana_labels_enabled = True
