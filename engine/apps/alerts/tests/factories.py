@@ -8,6 +8,7 @@ from apps.alerts.models import (
     AlertReceiveChannelConnection,
     ChannelFilter,
     CustomButton,
+    DeclaredIncident,
     EscalationChain,
     EscalationPolicy,
     Invitation,
@@ -91,3 +92,8 @@ class InvitationFactory(factory.DjangoModelFactory):
 class UserNotificationBundleFactory(factory.DjangoModelFactory):
     class Meta:
         model = UserNotificationBundle
+
+
+class DeclaredIncidentFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = DeclaredIncident
