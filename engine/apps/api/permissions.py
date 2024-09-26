@@ -66,6 +66,8 @@ class Resources(enum.Enum):
     USER_SETTINGS = "user-settings"
     OTHER_SETTINGS = "other-settings"
 
+    ADMIN = "admin"
+
 
 class Actions(enum.Enum):
     READ = "read"
@@ -144,6 +146,14 @@ def user_is_authorized(
 
 class RBACPermission(permissions.BasePermission):
     class Permissions:
+        # NOTE: this is a bit of a hack for now. See https://github.com/grafana/support-escalations/issues/12625
+        # Basically when it comes to filtering teams that are configured to share their resources with
+        # "Team members and admins", we have no way of knowing, when a user is ACTUALLY an Admin when RBAC is involed.
+        #
+        # Example: Take a user with the basic role of None/Editor/Viewer but with the "OnCall Admin" role assigned.
+        # Without this RBAC permission, we have no way of knowing that the user is ACTUALLY an "Admin".
+        ADMIN = LegacyAccessControlCompatiblePermission(Resources.ADMIN, Actions.ADMIN, LegacyAccessControlRole.ADMIN)
+
         ALERT_GROUPS_READ = LegacyAccessControlCompatiblePermission(
             Resources.ALERT_GROUPS, Actions.READ, LegacyAccessControlRole.VIEWER
         )

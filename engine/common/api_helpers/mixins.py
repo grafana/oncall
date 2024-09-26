@@ -21,7 +21,6 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
-from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
@@ -183,7 +182,7 @@ class TeamFilteringMixin:
         NOTE: use .distinct() after filtering by available teams as it may return duplicate instances.
         """
         available_teams_lookup_args = []
-        if not self.request.user.role == LegacyAccessControlRole.ADMIN:
+        if not self.request.user.is_admin:
             available_teams_lookup_args = [
                 Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
                 | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
