@@ -976,6 +976,38 @@ def test_get_filter_labels(
 
 
 @pytest.mark.django_db
+def test_get_filter_by_related_incident(
+    alert_group_internal_api_setup, make_declared_incident, make_alert_group, make_user_auth_headers
+):
+    user, token, alert_groups = alert_group_internal_api_setup
+
+    alert_group = alert_groups[0]
+    declared_incident = make_declared_incident("1", alert_group.channel.organization, alert_group.channel_filter)
+    alert_group.declared_incident = declared_incident
+    alert_group.save()
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(
+        url + "?has_related_incident=true",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 1
+
+    response = client.get(
+        url + "?has_related_incident=false",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 3
+
+
+@pytest.mark.django_db
 def test_get_title_search(
     settings,
     make_organization_and_user_with_plugin_token,
