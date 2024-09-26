@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import datetime
-import difflib
 import logging
-import math
 import re
 import typing
 from collections import namedtuple
@@ -964,16 +962,3 @@ def convert_windows_timezone_to_iana(tz_name: str) -> str | None:
     logger.debug("Converting the timezone from Windows to IANA. '{}' -> '{}'".format(tz_name, result))
 
     return result
-
-
-def compare_shift_events(ppk: str) -> str:
-    from apps.schedules.models import CustomOnCallShift
-
-    on_call_shift = CustomOnCallShift.objects.get(public_primary_key=ppk)
-    raw_events_1 = on_call_shift.convert_to_ical()
-    on_call_shift._calculate_week_interval = (
-        lambda last_start, orig_start: (math.ceil((last_start - orig_start).days / 7)) or 1
-    )
-    raw_events_2 = on_call_shift.convert_to_ical()
-    diff = difflib.unified_diff(raw_events_1.splitlines(), raw_events_2.splitlines(), lineterm="")
-    return "\n".join(diff)
