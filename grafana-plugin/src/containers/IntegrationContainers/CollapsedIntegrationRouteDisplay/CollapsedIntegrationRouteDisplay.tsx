@@ -1,23 +1,21 @@
 import React, { useMemo, useState } from 'react';
 
-import { ConfirmModal, Icon, IconName, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { ConfirmModal, Icon, IconName, Stack, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { IntegrationBlock } from 'components/Integrations/IntegrationBlock';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
-import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { RouteHeading } from 'containers/IntegrationContainers/RouteHeading';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { CommonIntegrationHelper } from 'pages/integration/CommonIntegration.helper';
 import { IntegrationHelper } from 'pages/integration/Integration.helper';
+import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
-
-const cx = cn.bind(styles);
 
 interface CollapsedIntegrationRouteDisplayProps {
   alertReceiveChannelId: ApiSchemas['AlertReceiveChannel']['id'];
@@ -42,6 +40,9 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
     onItemMove,
   }) => {
     const store = useStore();
+    const styles = useStyles2(getStyles);
+    const integrationStyles = useStyles2(getIntegrationStyles);
+
     const { escalationChainStore, alertReceiveChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
 
@@ -70,16 +71,16 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
           key={channelFilterId}
           toggle={toggle}
           heading={
-            <div className={cx('heading-container')}>
+            <div className={styles.headingContainer}>
               <RouteHeading
-                className={cx('heading-container__item', 'heading-container__item--large')}
+                className={cx(styles.headingContainerItem, styles.headingContainerItemLarge)}
                 routeWording={routeWording}
                 routeIndex={routeIndex}
                 channelFilter={channelFilter}
                 channelFilterIds={alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId]}
               />
 
-              <div className={cx('heading-container__item')}>
+              <div className={styles.headingContainerItem}>
                 <RouteButtonsDisplay
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
@@ -93,9 +94,9 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
           }
           content={
             <div>
-              <div className={cx('collapsedRoute__container')}>
+              <div className={styles.collapsedRouteContainer}>
                 {chatOpsAvailableChannels.length > 0 && (
-                  <div className={cx('collapsedRoute__item')}>
+                  <div className={styles.collapsedRouteItem}>
                     <Stack gap={StackSize.xs}>
                       <Text type="secondary">Publish to ChatOps</Text>
 
@@ -103,9 +104,15 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
                         (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
                           <div
                             key={`${chatOpsChannel.name}-${chatOpsIndex}`}
-                            className={cx({ 'u-margin-right-xs': chatOpsIndex !== chatOpsAvailableChannels.length })}
+                            className={
+                              chatOpsIndex === chatOpsAvailableChannels.length
+                                ? ''
+                                : css`
+                                    margin-right: 4px;
+                                  `
+                            }
                           >
-                            <Icon name={chatOpsChannel.icon} className={cx('icon')} />
+                            <Icon name={chatOpsChannel.icon} className={styles.icon} />
                             <Text type="primary">{chatOpsChannel.name}</Text>
                           </div>
                         )
@@ -114,27 +121,40 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
                   </div>
                 )}
 
-                <div className={cx('collapsedRoute__item')}>
-                  <div className={cx('u-flex', 'u-align-items-center', 'u-flex-gap-xs')}>
+                <div className={styles.collapsedRouteItem}>
+                  <div
+                    className={css`
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                    `}
+                  >
                     <Icon name="list-ui-alt" />
-                    <Text type="secondary" className={cx('u-margin-right-xs')}>
+                    <Text
+                      type="secondary"
+                      className={css`
+                        margin-right: 4px;
+                      `}
+                    >
                       Trigger escalation chain
                     </Text>
                   </div>
 
                   {escalationChain?.name && (
-                    <PluginLink
-                      className={cx('hover-button')}
-                      target="_blank"
-                      query={{ page: 'escalations', id: channelFilter.escalation_chain }}
-                    >
+                    <PluginLink target="_blank" query={{ page: 'escalations', id: channelFilter.escalation_chain }}>
                       <Text type="primary">{escalationChain?.name}</Text>
                     </PluginLink>
                   )}
 
                   {!escalationChain?.name && (
-                    <div className={cx('u-flex', 'u-align-items-center', 'u-flex-gap-xs')}>
-                      <div className={cx('icon-exclamation')}>
+                    <div
+                      className={css`
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                      `}
+                    >
+                      <div className={integrationStyles.iconExclamation}>
                         <Icon name="exclamation-triangle" />
                       </div>
                       <Text type="primary" data-testid="integration-escalation-chain-not-selected">
@@ -175,3 +195,50 @@ export const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRout
     }
   }
 );
+
+const getStyles = () => {
+  return {
+    headingContainer: css`
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow: hidden;
+      gap: 12px;
+    `,
+
+    headingContainerItem: css`
+      display: flex;
+      white-space: nowrap;
+      flex-direction: row;
+      gap: 8px;
+    `,
+
+    headingContainerItemLarge: css`
+      flex-grow: 1;
+      overflow: hidden;
+    `,
+
+    headingContainerText: css`
+      overflow: hidden;
+      max-width: calc(100% - 48px);
+      text-overflow: ellipsis;
+    `,
+
+    icon: css`
+      margin-right: 4px;
+    `,
+
+    collapsedRouteContainer: css`
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+    `,
+
+    collapsedRouteItem: css`
+      display: flex;
+      flex-direction: row;
+    `,
+  };
+};

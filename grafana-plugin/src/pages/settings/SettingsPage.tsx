@@ -16,7 +16,7 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import { CloudPage } from './tabs/Cloud/CloudPage';
-import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
+import { LiveSettings } from './tabs/LiveSettings/LiveSettingsPage';
 import { TeamsSettings } from './tabs/TeamsSettings/TeamsSettings';
 
 interface SettingsPageProps extends AppRootProps, WithStoreProps {}
@@ -151,7 +151,7 @@ const TabsContent = (props: TabsContentProps) => {
       )}
       {activeTab === SettingsPageTab.EnvVariables.key && (
         <div>
-          <LiveSettingsPage />
+          <LiveSettings />
         </div>
       )}
       {activeTab === SettingsPageTab.Cloud.key && (

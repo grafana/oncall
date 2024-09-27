@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, Icon, IconButton, Badge, LoadingPlaceholder, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Icon, IconButton, Badge, LoadingPlaceholder, Stack, useStyles2 } from '@grafana/ui';
 import { debounce } from 'lodash-es';
 
 import { MonacoEditor, MonacoLanguage } from 'components/MonacoEditor/MonacoEditor';
@@ -15,9 +14,7 @@ import { OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhoo
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
 
-import styles from './TemplatesAlertGroupsList.module.css';
-
-const cx = cn.bind(styles);
+import { getTemplatesAlertGroupsListStyles } from './TemplatesAlertGroupsList.styles';
 
 interface TemplatesAlertGroupsListProps {
   templatePage: TemplatePage;
@@ -33,6 +30,8 @@ interface TemplatesAlertGroupsListProps {
 }
 
 export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
+  const styles = useStyles2(getTemplatesAlertGroupsListStyles);
+
   const {
     templatePage,
     heading = 'Recent Alert groups',
@@ -112,17 +111,17 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
   if (selectedPayload) {
     // IF selected we either display it as ReadOnly or in EditMode
     return (
-      <div className={cx('template-block-list')} id="alerts-content-container-id">
+      <div className={styles.templateBlockList} id="alerts-content-container-id">
         {isEditMode ? renderSelectedPayloadInEditMode() : renderSelectedPayloadInReadOnlyMode()}
       </div>
     );
   }
 
   return (
-    <div className={cx('template-block-list')} id="alerts-content-container-id">
+    <div className={styles.templateBlockList} id="alerts-content-container-id">
       {isEditMode ? (
         <>
-          <div className={cx('template-block-title-edit-mode')}>
+          <div className={styles.templateBlockTitleEditMode}>
             <Stack justifyContent="space-between">
               <Text>Edit custom payload</Text>
 
@@ -131,7 +130,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
               </Stack>
             </Stack>
           </div>
-          <div className={cx('alert-groups-editor')}>
+          <div className={styles.alertGroupsEditor}>
             <MonacoEditor
               value={null}
               disabled={true}
@@ -149,7 +148,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
         </>
       ) : (
         <>
-          <div className={cx('template-block-title')}>
+          <div className={styles.templateBlockTitle}>
             <Stack justifyContent="space-between" wrap="wrap">
               <Stack>
                 <Text>{heading}</Text>
@@ -163,7 +162,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
               </Button>
             </Stack>
           </div>
-          <div className={cx('alert-groups-list')}>
+          <div className={styles.alertGroupsList}>
             {templatePage === TemplatePage.Webhooks ? renderOutgoingWebhookLastResponses() : renderAlertGroupList()}
           </div>
         </>
@@ -184,7 +183,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
             <div
               key={response.timestamp}
               onClick={() => handleOutgoingWebhookResponseSelect(response)}
-              className={cx('alert-groups-list-item')}
+              className={styles.alertGroupsListItem}
             >
               <Text type="link"> {response.timestamp}</Text>
             </div>
@@ -195,7 +194,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
         <Badge
           color="blue"
           text={
-            <div className={cx('no-alert-groups-badge')}>
+            <div className={styles.noAlertGroupsBadge}>
               <Icon name="info-circle" />
               <Text>
                 This outgoing webhook did not receive any events. Use custom payload example to preview results.
@@ -218,7 +217,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
           <div
             key={alertGroup.pk}
             onClick={() => getAlertGroupPayload(alertGroup.pk)}
-            className={cx('alert-groups-list-item')}
+            className={styles.alertGroupsListItem}
           >
             <Text type="link"> {getAlertGroupName(alertGroup)}</Text>
           </div>
@@ -229,7 +228,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
         <Badge
           color="blue"
           text={
-            <div className={cx('no-alert-groups-badge')}>
+            <div className={styles.noAlertGroupsBadge}>
               <Icon name="info-circle" />
               <Text>This integration did not receive any alerts. Use custom payload example to preview results.</Text>
             </div>
@@ -242,7 +241,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
   function renderSelectedPayloadInEditMode() {
     return (
       <>
-        <div className={cx('template-block-title-edit-mode')}>
+        <div className={styles.templateBlockTitleEditMode}>
           <Stack justifyContent="space-between">
             <Text>Edit custom payload</Text>
 
@@ -251,7 +250,7 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
             </Stack>
           </Stack>
         </div>
-        <div className={cx('alert-groups-editor')}>
+        <div className={styles.alertGroupsEditor}>
           <MonacoEditor
             value={JSON.stringify(selectedPayload, null, 4)}
             data={templates}
@@ -270,25 +269,25 @@ export const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) =
   function renderSelectedPayloadInReadOnlyMode() {
     return (
       <>
-        <div className={cx('template-block-title')}>
-          <div className={cx('selected-alert-name-container')}>
-            <div className={cx('selected-alert-name')}>
+        <div className={styles.templateBlockTitle}>
+          <div className={styles.selectedAlertNameContainer}>
+            <div className={styles.selectedAlertName}>
               <Text>{selectedTitle}</Text>
             </div>
-            <div className={cx('title-action-icons')}>
+            <div className={styles.titleActionIcons}>
               <IconButton aria-label="Edit" name="edit" onClick={() => setIsEditMode(true)} />
               <IconButton aria-label="List View" name="times" onClick={() => returnToListView()} />
             </div>
           </div>
         </div>
-        <div className={cx('alert-groups-editor')}>
+        <div className={styles.alertGroupsEditor}>
           <TooltipBadge
             borderType="primary"
             text="Payload"
             tooltipContent=""
-            className={cx('alert-groups-last-payload-badge')}
+            className={styles.alertGroupsLastPayloadBadge}
           />
-          <div className={cx('alert-groups-editor-withBadge')}>
+          <div className={styles.alertGroupsEditorWithBadge}>
             {/* Editor used for Editing Given Payload */}
             <MonacoEditor
               value={JSON.stringify(selectedPayload, null, 4)}

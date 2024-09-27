@@ -59,7 +59,16 @@ const config = async (env): Promise<Configuration> => {
     },
     plugins: [
       ...(baseConfig.plugins?.filter((plugin) => !(plugin instanceof LiveReloadPlugin)) || []),
-      ...(env.development ? [new LiveReloadPlugin({ appendScriptTag: true, useSourceHash: true })] : []),
+      ...(env.development
+        ? [
+            new LiveReloadPlugin({
+              appendScriptTag: true,
+              useSourceHash: true,
+              protocol: 'http',
+              hostname: 'localhost',
+            }),
+          ]
+        : []),
       new EnvironmentPlugin({
         NODE_ENV: 'development',
         PLUGIN_ID: 'grafana-oncall-app',

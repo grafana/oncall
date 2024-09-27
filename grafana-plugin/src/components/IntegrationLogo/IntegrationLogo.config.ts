@@ -1,4 +1,4 @@
-export const logoCoors: { [key: string]: { x: number; y: number } } = {
+export const logoColors: { [key: string]: { x: number; y: number } } = {
   grafana: { x: 9, y: 0 },
   grafana_alerting: { x: 9, y: 0 },
   legacy_grafana_alerting: { x: 9, y: 0 },

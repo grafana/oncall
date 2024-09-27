@@ -1,14 +1,10 @@
 import React, { FC } from 'react';
 
+import { css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Select, ActionMeta } from '@grafana/ui';
-import cn from 'classnames/bind';
 
 import { NotificationPolicyValue } from 'containers/AddResponders/AddResponders.types';
-
-import styles from './NotificationPoliciesSelect.module.scss';
-
-const cx = cn.bind(styles);
 
 type Props = {
   disabled?: boolean;
@@ -18,7 +14,9 @@ type Props = {
 
 export const NotificationPoliciesSelect: FC<Props> = ({ disabled = false, important, onChange }) => (
   <Select
-    className={cx('select')}
+    className={css`
+      width: 150px !important;
+    `}
     width="auto"
     isSearchable={false}
     value={Number(important)}
@@ -26,12 +24,12 @@ export const NotificationPoliciesSelect: FC<Props> = ({ disabled = false, import
       {
         value: NotificationPolicyValue.Default,
         label: 'Default',
-        description: 'Use "Default notifications" from users personal settings',
+        description: 'Use "Default notification rules" from users personal settings',
       },
       {
         value: NotificationPolicyValue.Important,
         label: 'Important',
-        description: 'Use "Important notifications" from users personal settings',
+        description: 'Use "Important notification rules" from users personal settings',
       },
     ]}
     onChange={onChange}

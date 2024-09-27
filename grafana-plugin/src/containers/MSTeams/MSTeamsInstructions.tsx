@@ -1,9 +1,10 @@
 import React, { FC } from 'react';
 
-import { Button, Icon, Stack, Field, Input } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Button, Icon, Stack, Field, Input, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
-import { openNotification, openWarningNotification } from 'helpers/helpers';
+import { openWarningNotification, openNotification } from 'helpers/helpers';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -13,8 +14,6 @@ import { Text } from 'components/Text/Text';
 import MSTeamsLogo from 'icons/MSTeamsLogo';
 import { useStore } from 'state/useStore';
 
-import styles from './MSTeamsInstructions.module.css';
-
 interface MSTeamsInstructionsProps {
   onCallisAdded?: boolean;
   showInfoBox?: boolean;
@@ -23,9 +22,9 @@ interface MSTeamsInstructionsProps {
   onHide?: () => void;
 }
 
-const cx = cn.bind(styles);
-
 export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props) => {
+  const styles = useStyles2(getStyles);
+
   const { onCallisAdded, showInfoBox, personalSettings, onHide = () => {}, verificationCode } = props;
   const { msteamsChannelStore } = useStore();
 
@@ -44,7 +43,7 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
     <Stack direction="column" alignItems="flex-start" gap={StackSize.lg}>
       {!personalSettings && <Text.Title level={2}>Connect MS Teams workspace</Text.Title>}
       {showInfoBox && (
-        <Block bordered withBackground className={cx('info-block')}>
+        <Block bordered withBackground className={styles.infoBlock}>
           <Stack direction="column" alignItems="center">
             <div style={{ width: '60px', marginTop: '24px' }}>
               <MSTeamsLogo />
@@ -55,7 +54,7 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
               <Stack direction="column" alignItems="center">
                 <Text>This setup is for direct profile connection with bot. </Text>
                 <br />
-                <Text className={cx('infoblock-text')}>
+                <Text className={styles.infoblockText}>
                   To manage alert groups in Team channel, setup{' '}
                   <PluginLink query={{ page: 'chat-ops', tab: 'MSTeams' }}>Team ChatOps</PluginLink>
                 </Text>
@@ -64,7 +63,7 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
               <Stack direction="column" alignItems="center">
                 <Text>This setup is for Team channel connection with bot. </Text>
                 <br />
-                <Text className={cx('infoblock-text')}>
+                <Text className={styles.infoblockText}>
                   To manage alert groups in Direct Messages and verify users who are allowed to operate with MS Teams,
                   setup <PluginLink query={{ page: 'users', id: 'me' }}>personal MS Teams connection</PluginLink>
                 </Text>
@@ -96,7 +95,7 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
             command
           </Text>
         )}
-        <Field className={cx('field-command')}>
+        <Field className={styles.fieldCommand}>
           <Input
             id="msTeamsCommand"
             value={verificationCode}
@@ -113,7 +112,7 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
           />
         </Field>
       </Text>
-      <Block bordered withBackground className={cx('info-block')}>
+      <Block bordered withBackground className={styles.infoBlock}>
         <Text type="secondary">
           For more information please read{' '}
           <a href="https://grafana.com/docs/oncall/latest/notify/ms-teams/" target="_blank" rel="noreferrer">
@@ -123,10 +122,45 @@ export const MSTeamsInstructions: FC<MSTeamsInstructionsProps> = observer((props
         </Text>
       </Block>
       {!personalSettings && (
-        <div className={cx('done-button')}>
+        <div className={styles.doneButton}>
           <Button onClick={handleMSTeamsGetChannels}>Done</Button>
         </div>
       )}
     </Stack>
   );
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    infoBlock: css`
+      width: 752px;
+      text-align: center;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 20px;
+    `,
+
+    fieldCommand: css`
+      margin-top: 8px;
+      width: 752px;
+
+      input {
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 20px;
+        color: ${theme.colors.primary.text};
+      }
+    `,
+
+    infoblockText: css`
+      margin-left: 48px;
+      margin-right: 48px;
+    `,
+
+    doneButton: css`
+      width: 752px;
+      direction: rtl;
+    `,
+  };
+};

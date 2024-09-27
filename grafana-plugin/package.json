@@ -1,6 +1,6 @@
 {
   "name": "grafana-oncall-app",
-  "version": "1.0.0",
+  "version": "1.9.23",
   "description": "Grafana OnCall Plugin",
   "scripts": {
     "lint": "eslint --ext .js,.jsx,.ts,.tsx --max-warnings=20 ./src ./e2e-tests",
@@ -11,9 +11,8 @@
     "build:dev": "NODE_ENV=development webpack -c ./webpack.config.ts --env development",
     "labels:link": "pnpm --dir ../../gops-labels/frontend link && pnpm link \"@grafana/labels\" && pnpm --dir ../../gops-labels/frontend watch",
     "labels:unlink": "pnpm --dir ../../gops-labels/frontend unlink",
-    "mage:build-dev": "go mod download && mage -v build:debug",
-    "mage:watch": "go mod download && mage -v watch",
-    "mod:download": "go mod download",
+    "mage:build-dev": "mage -v build:debug",
+    "mage:watch": "mage -v watch",
     "test-utc": "TZ=UTC jest --verbose --testNamePattern '^((?!@london-tz).)*$'",
     "test-london-tz": "TZ=Europe/London jest --verbose --testNamePattern '@london-tz'",
     "test": "PLUGIN_ID=grafana-oncall-app pnpm test-utc && pnpm test-london-tz",
@@ -139,7 +138,7 @@
     "@grafana/data": "^11.1.3",
     "@grafana/faro-web-sdk": "^1.4.2",
     "@grafana/faro-web-tracing": "^1.4.2",
-    "@grafana/labels": "~1.6.0",
+    "@grafana/labels": "^1.6.5",
     "@grafana/runtime": "^11.1.3",
     "@grafana/scenes": "^1.28.0",
     "@grafana/schema": "^11.1.3",

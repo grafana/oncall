@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, Drawer, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Drawer, Stack, useStyles2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { UserActions } from 'helpers/authorization/authorization';
 import { debounce } from 'lodash-es';
@@ -29,9 +28,7 @@ import { ApiSchemas } from 'network/oncall-api/api.types';
 import { IntegrationTemplateOptions, LabelTemplateOptions } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 
-import styles from './IntegrationTemplate.module.scss';
-
-const cx = cn.bind(styles);
+import { getIntegrationTemplateStyles } from './IntegrationTemplate.styles';
 
 interface IntegrationTemplateProps {
   id: ApiSchemas['AlertReceiveChannel']['id'];
@@ -54,6 +51,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
   const [resultError, setResultError] = useState<string>(undefined);
   const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
+  const styles = useStyles2(getIntegrationTemplateStyles);
   const store = useStore();
 
   useEffect(() => {
@@ -164,7 +162,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
   return (
     <Drawer
       title={
-        <div className={cx('title-container')}>
+        <div className={styles.titleContainer}>
           <Stack justifyContent="space-between" alignItems="flex-start">
             <Stack direction="column">
               <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
@@ -190,8 +188,8 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
       closeOnMaskClick={false}
       width={'95%'}
     >
-      <div className={cx('container-wrapper')}>
-        <div className={cx('container')}>
+      <div className={styles.containerWrapper}>
+        <div className={styles.container}>
           <TemplatesAlertGroupsList
             templatePage={TemplatePage.Integrations}
             alertReceiveChannelId={id}
@@ -229,8 +227,8 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
 
     return (
       <>
-        <div className={cx('template-block-codeeditor')}>
-          <div className={cx('template-editor-block-title')}>
+        <div className={styles.templateBlockCodeEditor}>
+          <div className={styles.templateEditorBlockTitle}>
             <Stack justifyContent="space-between" alignItems="center" wrap="wrap">
               <Text>Template editor</Text>
 
@@ -239,7 +237,7 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
               </Button>
             </Stack>
           </div>
-          <div className={cx('template-editor-block-content')}>
+          <div className={styles.templateEditorBlockContent}>
             <MonacoEditor
               value={changedTemplateBody}
               data={templates}

@@ -1,18 +1,14 @@
 import React, { useCallback } from 'react';
 
-import { Button, InlineField, Input, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, InlineField, Input, Stack, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
+import { getConnectorsStyles } from 'containers/AlertRules/parts/connectors/Connectors.styles';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-
-import styles from 'containers/UserSettings/parts/connectors/Connectors.module.css';
-
-const cx = cn.bind(styles);
 
 interface MSTeamsConnectorProps {
   id: ApiSchemas['User']['pk'];
@@ -33,12 +29,14 @@ export const MSTeamsConnector = observer((props: MSTeamsConnectorProps) => {
     onTabChange(UserSettingsTab.MSTeamsInfo);
   }, []);
 
+  const styles = useStyles2(getConnectorsStyles);
+
   const handleUnlinkMSTeamsAccount = useCallback(() => {
     userStore.unlinkBackend(id, 'MSTEAMS');
   }, []);
 
   return (
-    <div className={cx('user-item')}>
+    <div className={styles.userItem}>
       {storeUser.messaging_backends.MSTEAMS ? (
         <InlineField label="MS Teams" labelWidth={12}>
           <Stack gap={StackSize.xs}>

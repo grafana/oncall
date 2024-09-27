@@ -1,14 +1,10 @@
 import React from 'react';
 
+import { css } from '@emotion/css';
 import { IconName, Tab, TabsBar } from '@grafana/ui';
-import cn from 'classnames/bind';
 
 import { pages } from 'pages/pages';
 import { useStore } from 'state/useStore';
-
-import styles from './LegacyNavTabsBar.module.scss';
-
-const cx = cn.bind(styles);
 
 export const LegacyNavTabsBar = function ({ currentPage }: { currentPage: string }): JSX.Element {
   const store = useStore();
@@ -18,7 +14,12 @@ export const LegacyNavTabsBar = function ({ currentPage }: { currentPage: string
     .filter((page) => (page.hideFromTabsFn ? !page.hideFromTabsFn(store) : !page.hideFromTabs));
 
   return (
-    <div className={cx('root')}>
+    <div
+      className={css`
+        overflow-x: auto;
+        white-space: nowrap;
+      `}
+    >
       <TabsBar>
         {navigationPages.map((page, index) => (
           <Tab

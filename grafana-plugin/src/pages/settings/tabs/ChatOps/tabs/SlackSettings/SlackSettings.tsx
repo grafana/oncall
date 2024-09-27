@@ -1,9 +1,21 @@
 import React, { Component } from 'react';
 
-import { Alert, LoadingPlaceholder, Icon, Button, InlineField, Input, Legend, ConfirmModal, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import {
+  Alert,
+  LoadingPlaceholder,
+  Icon,
+  Button,
+  InlineField,
+  Input,
+  Legend,
+  ConfirmModal,
+  Stack,
+  Themeable2,
+  withTheme2,
+} from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'helpers/consts';
+import { StackSize, DOCS_SLACK_SETUP, getPluginId } from 'helpers/consts';
 import { showApiError } from 'helpers/helpers';
 import { useConfirmModal } from 'helpers/hooks';
 import { observer } from 'mobx-react';
@@ -24,11 +36,9 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 
-import styles from './SlackSettings.module.css';
+import { getSlackSettingsStyles } from './SlackSettings.styles';
 
-const cx = cn.bind(styles);
-
-interface SlackProps extends WithStoreProps {}
+interface SlackProps extends WithStoreProps, Themeable2 {}
 
 interface SlackState {
   showENVVariablesButton: boolean;
@@ -110,6 +120,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     } = store;
 
     const isUnifiedSlackInstalled = !currentOrganization.slack_team_identity.needs_reinstall;
+    const styles = getSlackSettingsStyles();
 
     const uninstallSlackButton = (
       <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
@@ -174,7 +185,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     );
 
     return (
-      <div className={cx('root')}>
+      <div className={styles.root}>
         <Stack>
           <Legend>Slack OnCall settings</Legend>
           {uninstallSlackButton}
@@ -283,6 +294,7 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
     const { showENVVariablesButton } = this.state;
     const isLiveSettingAvailable = store.hasFeature(AppFeature.LiveSettings) && showENVVariablesButton;
     const isUnifiedSlackEnabled = store.hasFeature(AppFeature.UnifiedSlack);
+    const styles = getSlackSettingsStyles();
 
     return (
       <Stack gap={4} direction="column">
@@ -303,22 +315,22 @@ class _SlackSettings extends Component<SlackProps, SlackState> {
             </Stack>
           )}
         </Stack>
-        <Block bordered withBackground className={cx('slack-infoblock')}>
+        <Block bordered withBackground className={styles.slackInfoblock}>
           <Stack direction="column" alignItems="center" gap={0}>
-            <div className={cx('marginTop')}>
+            <div className={styles.marginTop}>
               <SlackNewIcon />
             </div>
-            <Text className={cx(['infoblock-text', 'marginTop'])}>
+            <Text className={cx([styles.infoblockText, styles.marginTop])}>
               {isUnifiedSlackEnabled
                 ? 'Connecting Slack App will allow you to manage alert groups and incidents in your team Slack workspace.'
                 : 'Connecting Slack App will allow you to manage alert groups in your team Slack workspace.'}
             </Text>
-            <Text className={cx('infoblock-text')}>
+            <Text className={cx(styles.infoblockText)}>
               Once the workspace is connected, team members need to link their Slack accounts to their IRM users to
               start using the app.
             </Text>
             {isLiveSettingAvailable && (
-              <Text type="secondary" className={cx('infoblock-text', 'marginTop')}>
+              <Text type="secondary" className={cx(styles.infoblockText, styles.marginTop)}>
                 For bot creating instructions and additional information please read{' '}
                 <a href={DOCS_SLACK_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
@@ -341,11 +353,12 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
     slackStore: { installSlackIntegration },
   } = useStore();
   const { modalProps, openModal } = useConfirmModal();
+  const styles = getSlackSettingsStyles();
 
   const SLACK_MIGRATION_DOCS =
     'https://grafana.com/docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/slack/#migrate-to-the-grafana-irm-slack-integration';
   return (
-    <>
+    <div>
       <ConfirmModal {...modalProps} />
       <Alert severity="warning" title="This integration is outdated" buttonContent="Migrate">
         <div className={styles.upgradeSlackAlertText}>
@@ -383,7 +396,13 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
                   <a href={`${SLACK_MIGRATION_DOCS}`} target="_blank" rel="noreferrer" className={styles.marginTop}>
                     <Text type="link">
                       <span>Learn more in the docs</span>
-                      <Icon name="external-link-alt" className="u-margin-left-xs u-margin-bottom-xxs" />
+                      <Icon
+                        name="external-link-alt"
+                        className={css`
+                          margin-left: 4px;
+                          margin-bottom: 2px;
+                        `}
+                      />
                     </Text>
                   </a>
                 </div>
@@ -395,8 +414,8 @@ const UpgradeToUnifiedSlackBanner = observer(() => {
           Migrate
         </Button>
       </Alert>
-    </>
+    </div>
   );
 });
 
-export const SlackSettings = withMobXProviderContext(_SlackSettings);
+export const SlackSettings = withMobXProviderContext(withTheme2(_SlackSettings));

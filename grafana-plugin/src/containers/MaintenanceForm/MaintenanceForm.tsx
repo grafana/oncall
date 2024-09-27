@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 
+import { css } from '@emotion/css';
 import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, Select, Stack, useStyles2 } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { UserActions } from 'helpers/authorization/authorization';
 import { openNotification, showApiError } from 'helpers/helpers';
 import { observer } from 'mobx-react';
@@ -16,10 +16,6 @@ import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_re
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
 import { useStore } from 'state/useStore';
-
-import styles from './MaintenanceForm.module.css';
-
-const cx = cn.bind(styles);
 
 interface MaintenanceFormProps {
   initialData: {
@@ -69,11 +65,12 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     formState: { errors },
   } = formMethods;
 
+  const styles = useStyles2(getStyles);
   const utils = useStyles2(getUtilStyles);
 
   return (
     <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
-      <div className={cx('content')} data-testid="maintenance-mode-drawer">
+      <div className={styles.content} data-testid="maintenance-mode-drawer">
         <Stack direction="column">
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
           trigger false alarms.
@@ -199,3 +196,11 @@ export const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     </Drawer>
   );
 });
+
+const getStyles = () => {
+  return {
+    content: css`
+      margin: 4px 4px 400px 4px;
+    `,
+  };
+};

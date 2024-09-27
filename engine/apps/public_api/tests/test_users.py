@@ -29,6 +29,7 @@ def test_get_user(
 
     expected_response = {
         "id": user.public_primary_key,
+        "grafana_id": user.user_id,
         "email": user.email,
         "slack": {"user_id": slack_user_identity.slack_id, "team_id": slack_team_identity.slack_id},
         "username": user.username,
@@ -72,6 +73,7 @@ def test_get_users_list(
         "results": [
             {
                 "id": user_1.public_primary_key,
+                "grafana_id": user_1.user_id,
                 "email": user_1.email,
                 "slack": {"user_id": slack_user_identity.slack_id, "team_id": slack_team_identity.slack_id},
                 "username": user_1.username,
@@ -82,6 +84,7 @@ def test_get_users_list(
             },
             {
                 "id": user_2.public_primary_key,
+                "grafana_id": user_2.user_id,
                 "email": user_2.email,
                 "slack": None,
                 "username": user_2.username,
@@ -120,6 +123,7 @@ def test_get_users_list_short(
         "results": [
             {
                 "id": user_1.public_primary_key,
+                "grafana_id": user_1.user_id,
                 "email": user_1.email,
                 "username": user_1.username,
                 "role": "admin",
@@ -127,6 +131,7 @@ def test_get_users_list_short(
             },
             {
                 "id": user_2.public_primary_key,
+                "grafana_id": user_2.user_id,
                 "email": user_2.email,
                 "username": user_2.username,
                 "role": "admin",
@@ -178,6 +183,7 @@ def test_get_users_list_all_role_users(user_public_api_setup, make_user_for_orga
         "results": [
             {
                 "id": user.public_primary_key,
+                "grafana_id": user.user_id,
                 "email": user.email,
                 "username": user.username,
                 "role": role,

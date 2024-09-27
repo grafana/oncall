@@ -8,11 +8,12 @@ import {
   DEFAULT_PAGE,
   DOCS_ONCALL_OSS_INSTALL,
   DOCS_SERVICE_ACCOUNTS,
+  IS_CURRENT_ENV_CLOUD,
   PLUGIN_CONFIG,
   PLUGIN_ROOT,
   REQUEST_HELP_URL,
 } from 'helpers/consts';
-import { getIsExternalServiceAccountFeatureAvailable, getIsRunningOpenSourceVersion } from 'helpers/helpers';
+import { getIsExternalServiceAccountFeatureAvailable } from 'helpers/helpers';
 import { useOnMount } from 'helpers/hooks';
 import { validateURL } from 'helpers/string';
 import { observer } from 'mobx-react';
@@ -42,10 +43,15 @@ export const PluginConfigPage = observer((props: PluginConfigPageProps<PluginMet
 
   return (
     <Stack direction="column">
-      <Text.Title level={3} className="u-margin-bottom-md">
+      <Text.Title
+        level={3}
+        className={css`
+          margin-bottom: 12px;
+        `}
+      >
         Configure Grafana OnCall
       </Text.Title>
-      {getIsRunningOpenSourceVersion() ? <OSSPluginConfigPage {...props} /> : <CloudPluginConfigPage {...props} />}
+      {IS_CURRENT_ENV_CLOUD ? <CloudPluginConfigPage {...props} /> : <OSSPluginConfigPage {...props} />}
     </Stack>
   );
 });
@@ -267,7 +273,13 @@ const PluginConfigAlert = observer(() => {
       shouldRender={showAlert}
       render={() => (
         <Alert severity="error" title="Plugin is not connected" onRemove={() => setShowAlert(false)}>
-          <ol className="u-margin-bottom-md">{errors}</ol>
+          <ol
+            className={css`
+              margin-bottom: 12px;
+            `}
+          >
+            {errors}
+          </ol>
           <a href={PLUGIN_CONFIG} rel="noreferrer" onClick={() => window.location.reload()}>
             <Text type="link">Reload</Text>
           </a>

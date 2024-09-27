@@ -1,5 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
+import { css } from '@emotion/css';
 import { ServiceLabelsProps, ServiceLabels } from '@grafana/labels';
 import { Field, Label } from '@grafana/ui';
 import { GENERIC_ERROR } from 'helpers/consts';
@@ -88,7 +89,23 @@ const _Labels = observer(
 
     return (
       <div>
-        <Field label={<Label description={<div className="u-padding-vertical-xs">{description}</div>}>Labels</Label>}>
+        <Field
+          label={
+            <Label
+              description={
+                <div
+                  className={css`
+                    padding: 4px 0;
+                  `}
+                >
+                  {description}
+                </div>
+              }
+            >
+              Labels
+            </Label>
+          }
+        >
           <ServiceLabels
             loadById
             value={value}

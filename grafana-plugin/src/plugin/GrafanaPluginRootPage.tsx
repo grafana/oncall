@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 
+import { css, cx } from '@emotion/css';
 import { ErrorBoundary, LoadingPlaceholder } from '@grafana/ui';
 import { AppRootProps } from 'app-types';
-import classnames from 'classnames';
 import { isUserActionAllowed } from 'helpers/authorization/authorization';
 import { DEFAULT_PAGE, getOnCallApiUrl } from 'helpers/consts';
 import { FaroHelper } from 'helpers/faro';
@@ -30,13 +30,11 @@ import { SchedulesPage } from 'pages/schedules/Schedules';
 import { SettingsPage } from 'pages/settings/SettingsPage';
 import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { CloudPage } from 'pages/settings/tabs/Cloud/CloudPage';
-import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
+import { LiveSettings } from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import 'assets/style/vars.css';
 import 'assets/style/global.css';
-import 'assets/style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
@@ -79,11 +77,12 @@ export const Root = observer((props: AppRootProps) => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line deprecation/deprecation
     let link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
 
-    // create a style element
+    // eslint-disable-next-line deprecation/deprecation
     const styleEl = document.createElement('style');
     const head = document.head || document.getElementsByTagName('head')[0];
     styleEl.appendChild(document.createTextNode(grafanaGlobalStyle));
@@ -120,10 +119,16 @@ export const Root = observer((props: AppRootProps) => {
         </>
       )}
       <div
-        className={classnames('u-position-relative', 'u-flex-grow-1', {
-          'u-overflow-x-auto': !isTopNavbar(),
-          'page-body': !isTopNavbar(),
-        })}
+        className={cx(
+          css`
+            position: relative;
+            flex-grow: 1;
+          `,
+          {
+            'u-overflow-x-auto': !isTopNavbar(),
+            'page-body': !isTopNavbar(),
+          }
+        )}
       >
         <RenderConditionally
           shouldRender={userHasAccess}

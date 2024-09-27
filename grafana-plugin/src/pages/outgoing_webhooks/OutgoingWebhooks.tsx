@@ -132,7 +132,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         ),
       },
       {
-        width: '10%',
+        width: '15%',
         title: 'Trigger type',
         dataIndex: 'trigger_type_name',
       },
