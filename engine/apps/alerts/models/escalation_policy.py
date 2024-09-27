@@ -375,10 +375,6 @@ class EscalationPolicy(OrderedModel):
                 break
         return step_name
 
-    @staticmethod
-    def is_declare_incident_step_enabled(organization) -> bool:
-        return organization.is_grafana_incident_enabled and settings.FEATURE_DECLARE_INCIDENT_STEP_ENABLED
-
     # Insight logs
     @property
     def insight_logs_type_verbal(self):

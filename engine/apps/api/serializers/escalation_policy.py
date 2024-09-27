@@ -3,6 +3,7 @@ from datetime import timedelta
 from rest_framework import serializers
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
+from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
@@ -156,10 +157,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             raise serializers.ValidationError("Invalid step value")
         if step_type in EscalationPolicy.SLACK_INTEGRATION_REQUIRED_STEPS and organization.slack_team_identity is None:
             raise serializers.ValidationError("Invalid escalation step type: step is Slack-specific")
-        if (
-            step_type == EscalationPolicy.STEP_DECLARE_INCIDENT
-            and not EscalationPolicy.is_declare_incident_step_enabled(organization)
-        ):
+        if step_type == EscalationPolicy.STEP_DECLARE_INCIDENT and not is_declare_incident_step_enabled(organization):
             raise serializers.ValidationError("Invalid escalation step type: step is not enabled")
         return step_type
 
