@@ -1,13 +1,11 @@
-import React, { FC, ReactElement } from 'react';
+import React, { FC } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { AppRootProps, NavModelItem } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import { observer } from 'mobx-react';
 
-import { Alerts } from 'containers/Alerts/Alerts';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
 interface DefaultPageLayoutProps extends AppRootProps {
   children?: any;
@@ -19,39 +17,11 @@ export const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) =>
   const { children, page, pageNav } = props;
   const styles = useStyles2(getStyles);
 
-  if (isTopNavbar()) {
-    return renderTopNavbar();
-  }
-
-  return renderLegacyNavbar();
-
-  function renderTopNavbar(): ReactElement {
-    return (
-      <PluginPage page={page} pageNav={pageNav as any}>
-        <div className={styles.root}>{children}</div>
-      </PluginPage>
-    );
-  }
-
-  function renderLegacyNavbar(): ReactElement {
-    return (
-      <PluginPage page={page}>
-        <div
-          className={cx(
-            'page-container',
-            css`
-              height: 100%;
-            `
-          )}
-        >
-          <div className={cx(styles.root)}>
-            <Alerts />
-            {children}
-          </div>
-        </div>
-      </PluginPage>
-    );
-  }
+  return (
+    <PluginPage page={page} pageNav={pageNav as any}>
+      <div className={styles.root}>{children}</div>
+    </PluginPage>
+  );
 });
 
 const getStyles = () => {
