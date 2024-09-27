@@ -110,11 +110,14 @@ the third alert group notifies C. Note: users are sorted alphabetically by their
 To notify multiple users **within the same alert group** until someone acknowledges, instead use `Notify users` policies with
 `Wait` policies between them in the escalation chain.
 * `Continue escalation if current time is in range` - continue escalation only if current
-time is in specified range. It will wait for the specfied time to continue escalation.
+time is in specified range. It will wait for the specified time to continue escalation.
 Useful when you want to get escalation only during working hours
 * `Continue escalation if >X alerts per Y minutes (beta)` - continue escalation only if it
 passes some threshold
 * `Repeat escalation from beginning (5 times max)` - loop the escalation chain
+* `Declare Incident (non-default routes only)` - declare a new Incident with chosen severity if it was triggered in
+non-default route. There is can be only one active incident per route. Further alert groups assigned to this route will
+be attached to the active incident (5 alert groups max). The step is available only in cloud.
 
 > **Note:** Both "**Escalate to all Slack channel members**" and "**Notify Slack User Group**" will filter OnCall registered users
 matching the users in the Slack channel or Slack User Group with their profiles linked to their Slack accounts (ie. users
