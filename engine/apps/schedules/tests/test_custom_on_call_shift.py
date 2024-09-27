@@ -11,6 +11,7 @@ from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.tests.custom_shift_test_cases import CUSTOM_SHIFT_TEST_CASES
 
 
 @pytest.mark.django_db
@@ -1833,77 +1834,8 @@ def test_refresh_schedule(make_organization_and_user, make_schedule, make_on_cal
 
 
 @pytest.mark.parametrize(
-    "users_per_group, shift_start, day_mask, total_days, duration_hours, frequency, interval, expected_result",
-    [
-        (
-            [1, 1, 1],
-            "2024-08-01",
-            ["FR"],
-            21,
-            10,
-            CustomOnCallShift.FREQUENCY_DAILY,
-            1,
-            {
-                "2024-08-02": "A",
-                "2024-08-09": "B",
-                "2024-08-16": "C",
-            },
-        ),
-        (
-            [1, 1],
-            "2024-08-01",
-            ["FR"],
-            21,
-            10,
-            CustomOnCallShift.FREQUENCY_DAILY,
-            1,
-            {
-                "2024-08-02": "A",
-                "2024-08-09": "B",
-                "2024-08-16": "A",
-            },
-        ),
-        (
-            [1, 1],
-            "2024-08-01",
-            None,
-            7,
-            24,
-            CustomOnCallShift.FREQUENCY_DAILY,
-            1,
-            {
-                "2024-08-01": "A",
-                "2024-08-02": "B",
-                "2024-08-03": "A",
-                "2024-08-04": "B",
-                "2024-08-05": "A",
-                "2024-08-06": "B",
-                "2024-08-07": "A",
-            },
-        ),
-        (
-            [1, 1],
-            "2024-08-01",
-            ["MO", "TU", "WE", "TH", "FR"],
-            14,
-            24,
-            CustomOnCallShift.FREQUENCY_WEEKLY,
-            1,
-            {
-                "2024-08-01": "A",
-                "2024-08-02": "A",
-                "2024-08-05": "B",
-                "2024-08-06": "B",
-                "2024-08-07": "B",
-                "2024-08-08": "B",
-                "2024-08-09": "B",
-                "2024-08-12": "A",
-                "2024-08-13": "A",
-                "2024-08-14": "A",
-            },
-        ),
-    ],
-)
+    "users_per_group, shift_start, day_mask, total_days, frequency, interval, expected_result",
+    CUSTOM_SHIFT_TEST_CASES)
 @pytest.mark.django_db
 def test_ical_shift_generation(
     make_organization,
@@ -1914,7 +1846,6 @@ def test_ical_shift_generation(
     shift_start,
     day_mask,
     total_days,
-    duration_hours,
     frequency,
     interval,
     expected_result,
@@ -1933,7 +1864,7 @@ def test_ical_shift_generation(
         "start": start,
         "rotation_start": start,
         "until": start + timezone.timedelta(days=total_days),
-        "duration": timezone.timedelta(hours=duration_hours),
+        "duration": timezone.timedelta(hours=12),
         "frequency": frequency,
         "by_day": day_mask,
         "schedule": schedule,
