@@ -73,7 +73,7 @@ class IncidentAPIException(Exception):
 
 
 TIMEOUT = 5
-DEFAULT_INCIDENT_SEVERITY = "pending"
+DEFAULT_INCIDENT_SEVERITY = "Pending"
 DEFAULT_INCIDENT_STATUS = "active"
 DEFAULT_ACTIVITY_KIND = "userNote"
 

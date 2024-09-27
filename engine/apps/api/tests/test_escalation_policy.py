@@ -1050,7 +1050,10 @@ def test_escalation_policy_severity_options(
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
     # include set from label option
     expected_options = [
-        {"value": EscalationPolicy.SEVERITY_SET_FROM_LABEL, "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL}
+        {
+            "value": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
+            "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL_DISPLAY_VALUE,
+        }
     ] + expected_options
     assert response.json() == expected_options
 
