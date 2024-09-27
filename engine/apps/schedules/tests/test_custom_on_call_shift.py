@@ -1834,8 +1834,8 @@ def test_refresh_schedule(make_organization_and_user, make_schedule, make_on_cal
 
 
 @pytest.mark.parametrize(
-    "users_per_group, shift_start, day_mask, total_days, frequency, interval, expected_result",
-    CUSTOM_SHIFT_TEST_CASES)
+    "users_per_group, shift_start, day_mask, total_days, frequency, interval, expected_result", CUSTOM_SHIFT_TEST_CASES
+)
 @pytest.mark.django_db
 def test_ical_shift_generation(
     make_organization,
