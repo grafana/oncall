@@ -706,7 +706,10 @@ def test_escalation_step_declare_incident(
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(declare_incident_step)
     expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
     with patch.object(EscalationPolicySnapshot, "_execute_tasks") as mocked_execute_tasks:
-        with patch.object(EscalationPolicy, "is_declare_incident_step_enabled", return_value=True):
+        with patch(
+            "apps.alerts.escalation_snapshot.snapshot_classes.escalation_policy_snapshot.is_declare_incident_step_enabled",
+            return_value=True,
+        ):
             result = escalation_policy_snapshot.execute(alert_group, reason)
             expected_result = EscalationPolicySnapshot.StepExecutionResultData(
                 eta=result.eta,
@@ -723,7 +726,10 @@ def test_escalation_step_declare_incident(
             assert not alert_group.log_records.exists()
             mocked_execute_tasks.assert_called_once()
     with patch.object(EscalationPolicySnapshot, "_execute_tasks") as mocked_execute_tasks:
-        with patch.object(EscalationPolicy, "is_declare_incident_step_enabled", return_value=False):
+        with patch(
+            "apps.alerts.escalation_snapshot.snapshot_classes.escalation_policy_snapshot.is_declare_incident_step_enabled",
+            return_value=False,
+        ):
             escalation_policy_snapshot.execute(alert_group, reason)
             mocked_execute_tasks.assert_not_called()
             assert alert_group.log_records.exists()
