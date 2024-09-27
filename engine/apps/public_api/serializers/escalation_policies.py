@@ -5,6 +5,7 @@ from django.utils.functional import cached_property
 from rest_framework import fields, serializers
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
+from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
@@ -122,10 +123,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         if step_type == EscalationPolicy.STEP_FINAL_NOTIFYALL and organization.slack_team_identity is None:
             raise BadRequest(detail="Invalid escalation step type: step is Slack-specific")
 
-        if (
-            step_type == EscalationPolicy.STEP_DECLARE_INCIDENT
-            and not EscalationPolicy.is_declare_incident_step_enabled(organization)
-        ):
+        if step_type == EscalationPolicy.STEP_DECLARE_INCIDENT and not is_declare_incident_step_enabled(organization):
             raise BadRequest("Invalid escalation step type: step is not enabled")
 
         return step_type

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.models import EscalationPolicy
+from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_policy import (
     EscalationPolicyCreateSerializer,
@@ -122,9 +123,7 @@ class EscalationPolicyView(
 
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):
-        grafana_declare_incident_enabled = EscalationPolicy.is_declare_incident_step_enabled(
-            organization=self.request.auth.organization
-        )
+        grafana_declare_incident_enabled = is_declare_incident_step_enabled(organization=self.request.auth.organization)
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]

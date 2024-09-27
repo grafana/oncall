@@ -18,6 +18,7 @@ from apps.alerts.tasks import (
     notify_user_task,
     resolve_by_last_step_task,
 )
+from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.user_management.models import User
 
@@ -413,7 +414,7 @@ class EscalationPolicySnapshot:
         self._execute_tasks(tasks)
 
     def _escalation_step_declare_incident(self, alert_group: "AlertGroup", _reason: str) -> None:
-        grafana_declare_incident_enabled = EscalationPolicy.is_declare_incident_step_enabled(
+        grafana_declare_incident_enabled = is_declare_incident_step_enabled(
             organization=alert_group.channel.organization
         )
         if not grafana_declare_incident_enabled:
