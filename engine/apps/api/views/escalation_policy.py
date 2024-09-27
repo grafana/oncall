@@ -170,7 +170,7 @@ class EscalationPolicyView(
             choices = [
                 {
                     "value": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
-                    "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
+                    "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL_DISPLAY_VALUE,
                 }
             ]
         incident_client = IncidentAPIClient(organization.grafana_url, organization.api_token)

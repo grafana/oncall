@@ -303,7 +303,7 @@ class EscalationPolicy(OrderedModel):
     )
 
     # Incident severity for declare incident step
-    SEVERITY_SET_FROM_LABEL = "Set from severity label"
+    SEVERITY_SET_FROM_LABEL, SEVERITY_SET_FROM_LABEL_DISPLAY_VALUE = ("set-from-label", "from 'severity' label")
     severity = models.CharField(max_length=512, null=True, default=None)
 
     ONE_MINUTE = datetime.timedelta(minutes=1)
