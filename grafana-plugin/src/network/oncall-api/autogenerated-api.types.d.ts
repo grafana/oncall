@@ -849,6 +849,78 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/channel_filters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for channel filters (routes). */
+    get: operations['channel_filters_list'];
+    put?: never;
+    /** @description Internal API endpoints for channel filters (routes). */
+    post: operations['channel_filters_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/channel_filters/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for channel filters (routes). */
+    get: operations['channel_filters_retrieve'];
+    /** @description Internal API endpoints for channel filters (routes). */
+    put: operations['channel_filters_update'];
+    post?: never;
+    /** @description Internal API endpoints for channel filters (routes). */
+    delete: operations['channel_filters_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Internal API endpoints for channel filters (routes). */
+    patch: operations['channel_filters_partial_update'];
+    trace?: never;
+  };
+  '/channel_filters/{id}/convert_from_regex_to_jinja2/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for channel filters (routes). */
+    post: operations['channel_filters_convert_from_regex_to_jinja2_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/channel_filters/{id}/move_to_position/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** @description Internal API endpoints for channel filters (routes). */
+    put: operations['channel_filters_move_to_position_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/complete/{backend}/': {
     parameters: {
       query?: never;
@@ -874,6 +946,201 @@ export interface paths {
       cookie?: never;
     };
     get: operations['disconnect_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_chains/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation chains. */
+    get: operations['escalation_chains_list'];
+    put?: never;
+    /** @description Internal API endpoints for escalation chains. */
+    post: operations['escalation_chains_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_chains/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation chains. */
+    get: operations['escalation_chains_retrieve'];
+    /** @description Internal API endpoints for escalation chains. */
+    put: operations['escalation_chains_update'];
+    post?: never;
+    /** @description Internal API endpoints for escalation chains. */
+    delete: operations['escalation_chains_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Internal API endpoints for escalation chains. */
+    patch: operations['escalation_chains_partial_update'];
+    trace?: never;
+  };
+  '/escalation_chains/{id}/copy/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Internal API endpoints for escalation chains. */
+    post: operations['escalation_chains_copy_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_chains/{id}/details/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation chains. */
+    get: operations['escalation_chains_details_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_chains/filters/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation chains. */
+    get: operations['escalation_chains_filters_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_policies/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation policies. */
+    get: operations['escalation_policies_list'];
+    put?: never;
+    /** @description Internal API endpoints for escalation policies. */
+    post: operations['escalation_policies_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_policies/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation policies. */
+    get: operations['escalation_policies_retrieve'];
+    /** @description Internal API endpoints for escalation policies. */
+    put: operations['escalation_policies_update'];
+    post?: never;
+    /** @description Internal API endpoints for escalation policies. */
+    delete: operations['escalation_policies_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Internal API endpoints for escalation policies. */
+    patch: operations['escalation_policies_partial_update'];
+    trace?: never;
+  };
+  '/escalation_policies/{id}/move_to_position/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** @description Internal API endpoints for escalation policies. */
+    put: operations['escalation_policies_move_to_position_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_policies/delay_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation policies. */
+    get: operations['escalation_policies_delay_options_retrieve'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_policies/escalation_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation policies. */
+    get: operations['escalation_policies_escalation_options_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/escalation_policies/num_minutes_in_window_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for escalation policies. */
+    get: operations['escalation_policies_num_minutes_in_window_options_retrieve'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1013,6 +1280,95 @@ export interface paths {
     };
     /** @description overridden_login_social_auth starts the installation of integration which uses OAuth flow. */
     get: operations['login_retrieve_2'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/notification_policies/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for user notification policies. */
+    get: operations['notification_policies_list'];
+    put?: never;
+    /** @description Internal API endpoints for user notification policies. */
+    post: operations['notification_policies_create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/notification_policies/{id}/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for user notification policies. */
+    get: operations['notification_policies_retrieve'];
+    /** @description Internal API endpoints for user notification policies. */
+    put: operations['notification_policies_update'];
+    post?: never;
+    /** @description Internal API endpoints for user notification policies. */
+    delete: operations['notification_policies_destroy'];
+    options?: never;
+    head?: never;
+    /** @description Internal API endpoints for user notification policies. */
+    patch: operations['notification_policies_partial_update'];
+    trace?: never;
+  };
+  '/notification_policies/{id}/move_to_position/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** @description Internal API endpoints for user notification policies. */
+    put: operations['notification_policies_move_to_position_update'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/notification_policies/delay_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Internal API endpoints for user notification policies. */
+    get: operations['notification_policies_delay_options_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/notification_policies/notify_by_options/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Returns list of options for user notification policies dropping options that requires disabled features. */
+    get: operations['notification_policies_notify_by_options_list'];
     put?: never;
     post?: never;
     delete?: never;
@@ -1489,7 +1845,7 @@ export interface components {
      * @enum {string}
      */
     ActionEnum: 'acknowledge' | 'resolve' | 'silence' | 'restart';
-    AdditionalSettingsField: components['schemas']['Settings'];
+    AdditionalSettingsField: unknown;
     Alert: {
       readonly id: string;
       /** Format: uri */
@@ -1595,6 +1951,12 @@ export interface components {
       action: components['schemas']['ActionEnum'];
       /** @description only applicable for silence */
       delay?: number | null;
+    };
+    /** @description Serializes AlertGroup escalation snapshot for API endpoint */
+    AlertGroupEscalationSnapshotAPI: {
+      readonly escalation_chain: components['schemas']['EscalationChainSnapshotAPI'];
+      readonly channel_filter: components['schemas']['ChannelFilterSnapshotAPI'];
+      readonly escalation_policies: components['schemas']['EscalationPolicySnapshotAPI'][];
     };
     AlertGroupFilters: {
       name: string;
@@ -1739,9 +2101,7 @@ export interface components {
       readonly is_able_to_autoresolve: boolean;
       readonly default_channel_filter: string | null;
       readonly demo_alert_enabled: boolean;
-      readonly maintenance_mode:
-        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
-        | null;
+      readonly maintenance_mode: (components['schemas']['Step923Enum'] | components['schemas']['NullEnum']) | null;
       readonly maintenance_till: number | null;
       readonly heartbeat: components['schemas']['IntegrationHeartBeat'] | null;
       readonly is_available_for_integration_heartbeat: boolean;
@@ -1806,9 +2166,7 @@ export interface components {
       readonly is_able_to_autoresolve: boolean;
       readonly default_channel_filter: string | null;
       readonly demo_alert_enabled: boolean;
-      readonly maintenance_mode:
-        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
-        | null;
+      readonly maintenance_mode: (components['schemas']['Step923Enum'] | components['schemas']['NullEnum']) | null;
       readonly maintenance_till: number | null;
       readonly heartbeat: components['schemas']['IntegrationHeartBeat'] | null;
       readonly is_available_for_integration_heartbeat: boolean;
@@ -1868,7 +2226,7 @@ export interface components {
       backsync: boolean;
     };
     AlertReceiveChannelStartMaintenance: {
-      mode: components['schemas']['ModeEnum'];
+      mode: components['schemas']['Step923Enum'];
       duration: components['schemas']['DurationEnum'];
     };
     AlertReceiveChannelUpdate: {
@@ -1891,9 +2249,7 @@ export interface components {
       readonly is_able_to_autoresolve: boolean;
       readonly default_channel_filter: string | null;
       readonly demo_alert_enabled: boolean;
-      readonly maintenance_mode:
-        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
-        | null;
+      readonly maintenance_mode: (components['schemas']['Step923Enum'] | components['schemas']['NullEnum']) | null;
       readonly maintenance_till: number | null;
       readonly heartbeat: components['schemas']['IntegrationHeartBeat'] | null;
       readonly is_available_for_integration_heartbeat: boolean;
@@ -1911,6 +2267,93 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
+    };
+    ChannelFilter: {
+      readonly id: string;
+      alert_receive_channel: string;
+      escalation_chain?: string | null;
+      readonly slack_channel: {
+        display_name: string;
+        slack_id: string;
+        id: string;
+      } | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      filtering_labels?: components['schemas']['LabelPair'][];
+      filtering_term?: string | null;
+      filtering_term_type?: components['schemas']['FilteringTermTypeEnum'];
+      telegram_channel?: string | null;
+      readonly is_default: boolean;
+      notify_in_slack?: boolean | null;
+      notify_in_telegram?: boolean | null;
+      notification_backends?: {
+        [key: string]: unknown;
+      } | null;
+      readonly filtering_term_as_jinja2: string;
+      readonly telegram_channel_details: components['schemas']['TelegramChannelDetails'] | null;
+    };
+    ChannelFilterCreate: {
+      readonly id: string;
+      alert_receive_channel: string;
+      escalation_chain?: string | null;
+      slack_channel?: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      filtering_labels?: components['schemas']['LabelPair'][];
+      filtering_term?: string | null;
+      filtering_term_type?: components['schemas']['FilteringTermTypeEnum'];
+      telegram_channel?: string | null;
+      readonly is_default: boolean;
+      notify_in_slack?: boolean | null;
+      notify_in_telegram?: boolean | null;
+      notification_backends?: {
+        [key: string]: unknown;
+      } | null;
+    };
+    ChannelFilterSnapshotAPI: {
+      name: string;
+    };
+    ChannelFilterUpdate: {
+      readonly id: string;
+      readonly alert_receive_channel: string;
+      escalation_chain?: string | null;
+      slack_channel?: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      filtering_labels?: components['schemas']['LabelPair'][];
+      filtering_term?: string | null;
+      filtering_term_type?: components['schemas']['FilteringTermTypeEnum'];
+      telegram_channel?: string | null;
+      readonly is_default: boolean;
+      notify_in_slack?: boolean | null;
+      notify_in_telegram?: boolean | null;
+      notification_backends?: {
+        [key: string]: unknown;
+      } | null;
+    };
+    /** @description This serializer is used in OpenAPI schema to show proper response structure,
+     *     as `slack_channel` field expects string on create/update and returns dict on response */
+    ChannelFilterUpdateResponse: {
+      readonly id: string;
+      readonly alert_receive_channel: string;
+      escalation_chain?: string | null;
+      readonly slack_channel: {
+        display_name: string;
+        slack_id: string;
+        id: string;
+      } | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      filtering_labels?: components['schemas']['LabelPair'][];
+      filtering_term?: string | null;
+      filtering_term_type?: components['schemas']['FilteringTermTypeEnum'];
+      telegram_channel?: string | null;
+      readonly is_default: boolean;
+      notify_in_slack?: boolean | null;
+      notify_in_telegram?: boolean | null;
+      notification_backends?: {
+        [key: string]: unknown;
+      } | null;
     };
     /** @enum {integer} */
     CloudConnectionStatusEnum: 0 | 1 | 2 | 3;
@@ -1934,9 +2377,11 @@ export interface components {
       readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
       readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
       readonly messaging_backends: {
-        [key: string]: {
-          [key: string]: unknown;
-        };
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
       };
       readonly notification_chain_verbal: {
         default: string;
@@ -1976,6 +2421,127 @@ export interface components {
      * @enum {integer}
      */
     DurationEnum: 3600 | 10800 | 21600 | 43200 | 86400;
+    EscalationChain: {
+      readonly id: string;
+      name: string;
+      team?: string | null;
+    };
+    EscalationChainDetails: {
+      id: string;
+      display_name: string;
+      channel_filters: components['schemas']['EscalationChainDetailsChannelFilter'][];
+    };
+    EscalationChainDetailsChannelFilter: {
+      id: string;
+      display_name: string;
+    };
+    EscalationChainFilters: {
+      name: string;
+      type: string;
+      href?: string;
+      global?: boolean;
+    };
+    EscalationChainList: {
+      readonly id: string;
+      name: string;
+      team?: string | null;
+      readonly number_of_integrations: number;
+      readonly number_of_routes: number;
+    };
+    EscalationChainPolymorphic:
+      | components['schemas']['EscalationChainList']
+      | components['schemas']['FilterEscalationChain'];
+    EscalationChainSnapshotAPI: {
+      name: string;
+    };
+    EscalationPolicy: {
+      readonly id: string;
+      step?: (components['schemas']['Step267Enum'] | components['schemas']['NullEnum']) | null;
+      /** Format: double */
+      wait_delay?: number | null;
+      escalation_chain: string;
+      notify_to_users_queue?: string[];
+      /** Format: time */
+      from_time?: string | null;
+      /** Format: time */
+      to_time?: string | null;
+      /** Format: int64 */
+      num_alerts_in_window?: number | null;
+      num_minutes_in_window?: number | null;
+      readonly slack_integration_required: boolean;
+      custom_webhook?: string | null;
+      notify_schedule?: string | null;
+      notify_to_group?: string | null;
+      notify_to_team_members?: string | null;
+      important?: boolean;
+    };
+    EscalationPolicyCreate: {
+      readonly id: string;
+      step?: (components['schemas']['Step267Enum'] | components['schemas']['NullEnum']) | null;
+      /** Format: double */
+      wait_delay?: number | null;
+      escalation_chain: string;
+      notify_to_users_queue?: string[];
+      /** Format: time */
+      from_time?: string | null;
+      /** Format: time */
+      to_time?: string | null;
+      /** Format: int64 */
+      num_alerts_in_window?: number | null;
+      num_minutes_in_window?: number | null;
+      readonly slack_integration_required: boolean;
+      custom_webhook?: string | null;
+      notify_schedule?: string | null;
+      notify_to_group?: string | null;
+      notify_to_team_members?: string | null;
+      important?: boolean;
+    };
+    EscalationPolicyOptions: {
+      value: number;
+      display_name: string;
+      create_display_name: string;
+      slack_integration_required: boolean;
+      can_change_importance: boolean;
+    };
+    /** @description Serializes AlertGroup escalation policies snapshots for API endpoint */
+    EscalationPolicySnapshotAPI: {
+      readonly step: (components['schemas']['Step267Enum'] | components['schemas']['NullEnum']) | null;
+      /** Format: double */
+      wait_delay?: number | null;
+      readonly notify_to_users_queue: components['schemas']['FastUser'][];
+      /** Format: time */
+      readonly from_time: string | null;
+      /** Format: time */
+      readonly to_time: string | null;
+      readonly num_alerts_in_window: number | null;
+      num_minutes_in_window?: number | null;
+      readonly slack_integration_required: boolean;
+      readonly custom_webhook: components['schemas']['WebhookFast'];
+      readonly notify_schedule: components['schemas']['ScheduleFast'];
+      readonly notify_to_group: components['schemas']['UserGroup'];
+      important?: boolean;
+    };
+    EscalationPolicyUpdate: {
+      readonly id: string;
+      step?: (components['schemas']['Step267Enum'] | components['schemas']['NullEnum']) | null;
+      /** Format: double */
+      wait_delay?: number | null;
+      readonly escalation_chain: string;
+      notify_to_users_queue?: string[];
+      /** Format: time */
+      from_time?: string | null;
+      /** Format: time */
+      to_time?: string | null;
+      /** Format: int64 */
+      num_alerts_in_window?: number | null;
+      num_minutes_in_window?: number | null;
+      readonly slack_integration_required: boolean;
+      custom_webhook?: string | null;
+      notify_schedule?: string | null;
+      notify_to_group?: string | null;
+      notify_to_team_members?: string | null;
+      important?: boolean;
+    };
     FastAlertReceiveChannel: {
       readonly id: string;
       readonly integration: string;
@@ -2002,17 +2568,28 @@ export interface components {
       readonly display_name: string;
       readonly integration_url: string | null;
     };
+    FilterEscalationChain: {
+      value: string;
+      display_name: string;
+    };
     FilterUser: {
       value: string;
       display_name: string;
     };
+    /**
+     * @description * `0` - regex
+     *     * `1` - jinja2
+     *     * `2` - labels
+     * @enum {integer}
+     */
+    FilteringTermTypeEnum: 0 | 1 | 2;
     GoogleCalendarSettings: {
       oncall_schedules_to_consider_for_shift_swaps?: string[] | null;
     };
     /** @description Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details. */
     IntegrationAlertGroupLabels: {
       inheritable: {
-        [key: string]: boolean;
+        [key: string]: boolean | undefined;
       };
       custom: components['schemas']['CustomLabel'][];
       template: string | null;
@@ -2034,22 +2611,6 @@ export interface components {
      *     * `grafana` - Grafana Legacy Alerting
      *     * `legacy_alertmanager` - (Legacy) AlertManager
      *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
-     *     * `servicenow` - ServiceNow
-     *     * `amazon_sns` - Amazon SNS
-     *     * `stackdriver` - Stackdriver
-     *     * `curler` - Curler
-     *     * `datadog` - Datadog
-     *     * `demo` - Demo
-     *     * `fabric` - Fabric
-     *     * `newrelic` - New Relic
-     *     * `pagerduty` - Pagerduty
-     *     * `pingdom` - Pingdom
-     *     * `prtg` - PRTG
-     *     * `sentry` - Sentry
-     *     * `uptimerobot` - UptimeRobot
-     *     * `jira` - Jira
-     *     * `zendesk` - Zendesk
-     *     * `appdynamics` - AppDynamics
      * @enum {string}
      */
     IntegrationEnum:
@@ -2068,23 +2629,7 @@ export interface components {
       | 'direct_paging'
       | 'grafana'
       | 'legacy_alertmanager'
-      | 'legacy_grafana_alerting'
-      | 'servicenow'
-      | 'amazon_sns'
-      | 'stackdriver'
-      | 'curler'
-      | 'datadog'
-      | 'demo'
-      | 'fabric'
-      | 'newrelic'
-      | 'pagerduty'
-      | 'pingdom'
-      | 'prtg'
-      | 'sentry'
-      | 'uptimerobot'
-      | 'jira'
-      | 'zendesk'
-      | 'appdynamics';
+      | 'legacy_grafana_alerting';
     IntegrationHeartBeat: {
       readonly id: string;
       timeout_seconds: components['schemas']['TimeoutSecondsEnum'];
@@ -2152,9 +2697,11 @@ export interface components {
       readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
       readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
       readonly messaging_backends: {
-        [key: string]: {
-          [key: string]: unknown;
-        };
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
       };
       readonly notification_chain_verbal: {
         default: string;
@@ -2165,17 +2712,16 @@ export interface components {
       readonly has_google_oauth2_connected: boolean;
     };
     /**
-     * @description * `0` - Debug
-     *     * `1` - Maintenance
+     * @description * `0` - 0
+     *     * `1` - 1
+     *     * `2` - 2
+     *     * `3` - 3
+     *     * `5` - 5
+     *     * `6` - 6
+     *     * `8` - 8
      * @enum {integer}
      */
-    MaintenanceModeEnum: 0 | 1;
-    /**
-     * @description * `0` - Debug
-     *     * `1` - Maintenance
-     * @enum {integer}
-     */
-    ModeEnum: 0 | 1;
+    NotifyByEnum: 0 | 1 | 2 | 3 | 5 | 6 | 8;
     /** @enum {unknown} */
     NullEnum: null;
     PaginatedAlertGroupListList: {
@@ -2248,9 +2794,7 @@ export interface components {
       readonly is_able_to_autoresolve?: boolean;
       readonly default_channel_filter?: string | null;
       readonly demo_alert_enabled?: boolean;
-      readonly maintenance_mode?:
-        | (components['schemas']['MaintenanceModeEnum'] | components['schemas']['NullEnum'])
-        | null;
+      readonly maintenance_mode?: (components['schemas']['Step923Enum'] | components['schemas']['NullEnum']) | null;
       readonly maintenance_till?: number | null;
       readonly heartbeat?: components['schemas']['IntegrationHeartBeat'] | null;
       readonly is_available_for_integration_heartbeat?: boolean;
@@ -2268,6 +2812,50 @@ export interface components {
       /** Format: date-time */
       readonly alertmanager_v2_migrated_at?: string | null;
       additional_settings?: components['schemas']['AdditionalSettingsField'] | null;
+    };
+    PatchedChannelFilterUpdate: {
+      readonly id?: string;
+      readonly alert_receive_channel?: string;
+      escalation_chain?: string | null;
+      slack_channel?: string | null;
+      /** Format: date-time */
+      readonly created_at?: string;
+      filtering_labels?: components['schemas']['LabelPair'][];
+      filtering_term?: string | null;
+      filtering_term_type?: components['schemas']['FilteringTermTypeEnum'];
+      telegram_channel?: string | null;
+      readonly is_default?: boolean;
+      notify_in_slack?: boolean | null;
+      notify_in_telegram?: boolean | null;
+      notification_backends?: {
+        [key: string]: unknown;
+      } | null;
+    };
+    PatchedEscalationChain: {
+      readonly id?: string;
+      name?: string;
+      team?: string | null;
+    };
+    PatchedEscalationPolicyUpdate: {
+      readonly id?: string;
+      step?: (components['schemas']['Step267Enum'] | components['schemas']['NullEnum']) | null;
+      /** Format: double */
+      wait_delay?: number | null;
+      readonly escalation_chain?: string;
+      notify_to_users_queue?: string[];
+      /** Format: time */
+      from_time?: string | null;
+      /** Format: time */
+      to_time?: string | null;
+      /** Format: int64 */
+      num_alerts_in_window?: number | null;
+      num_minutes_in_window?: number | null;
+      readonly slack_integration_required?: boolean;
+      custom_webhook?: string | null;
+      notify_schedule?: string | null;
+      notify_to_group?: string | null;
+      notify_to_team_members?: string | null;
+      important?: boolean;
     };
     PatchedUser: {
       readonly pk?: string;
@@ -2289,9 +2877,11 @@ export interface components {
       readonly slack_user_identity?: components['schemas']['SlackUserIdentity'];
       readonly telegram_configuration?: components['schemas']['TelegramToUserConnector'];
       readonly messaging_backends?: {
-        [key: string]: {
-          [key: string]: unknown;
-        };
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
       };
       readonly notification_chain_verbal?: {
         default: string;
@@ -2302,6 +2892,18 @@ export interface components {
       readonly has_google_oauth2_connected?: boolean;
       readonly is_currently_oncall?: boolean;
       google_calendar_settings?: components['schemas']['GoogleCalendarSettings'];
+    };
+    PatchedUserNotificationPolicyUpdate: {
+      readonly id?: string;
+      /** @default 1 */
+      step: components['schemas']['Step923Enum'];
+      /** @default 0 */
+      notify_by: components['schemas']['NotifyByEnum'];
+      /** Format: double */
+      wait_delay?: number | null;
+      readonly important?: boolean;
+      readonly user?: string;
+      readonly order?: number | null;
     };
     PatchedWebhook: {
       readonly id?: string;
@@ -2356,19 +2958,9 @@ export interface components {
      * @enum {integer}
      */
     RoleEnum: 0 | 1 | 2 | 3;
-    Settings: {
-      instance_url: string;
-      username: string;
-      password: string;
-      /** @default {
-       *       "firing": null,
-       *       "acknowledged": null,
-       *       "resolved": null,
-       *       "silenced": null
-       *     } */
-      state_mapping: components['schemas']['StateMapping'];
-      /** @default false */
-      is_configured: boolean;
+    ScheduleFast: {
+      readonly id: string;
+      name: string;
     };
     ShortAlertGroup: {
       readonly pk: string;
@@ -2390,11 +2982,38 @@ export interface components {
       readonly name: string;
       readonly display_name: string | null;
     };
-    StateMapping: {
-      firing: unknown[] | null;
-      acknowledged: unknown[] | null;
-      resolved: unknown[] | null;
-      silenced: unknown[] | null;
+    /**
+     * @description * `0` - Wait
+     *     * `1` - Notify User
+     *     * `2` - Notify Whole Channel
+     *     * `3` - Repeat Escalation (5 times max)
+     *     * `4` - Resolve
+     *     * `5` - Notify Group
+     *     * `6` - Notify Schedule
+     *     * `7` - Notify User (Important)
+     *     * `8` - Notify Group (Important)
+     *     * `9` - Notify Schedule (Important)
+     *     * `10` - Trigger Outgoing Webhook
+     *     * `11` - Notify User (next each time)
+     *     * `12` - Continue escalation only if time is from
+     *     * `13` - Notify multiple Users
+     *     * `14` - Notify multiple Users (Important)
+     *     * `15` - Continue escalation if >X alerts per Y minutes
+     *     * `16` - Trigger Webhook
+     *     * `17` - Notify all users in a Team
+     *     * `18` - Notify all users in a Team (Important)
+     * @enum {integer}
+     */
+    Step267Enum: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
+    /**
+     * @description * `0` - Debug
+     *     * `1` - Maintenance
+     * @enum {integer}
+     */
+    Step923Enum: 0 | 1;
+    TelegramChannelDetails: {
+      display_name: string;
+      id: string;
     };
     TelegramToUserConnector: {
       telegram_nick_name?: string | null;
@@ -2435,9 +3054,11 @@ export interface components {
       readonly slack_user_identity: components['schemas']['SlackUserIdentity'];
       readonly telegram_configuration: components['schemas']['TelegramToUserConnector'];
       readonly messaging_backends: {
-        [key: string]: {
-          [key: string]: unknown;
-        };
+        [key: string]:
+          | {
+              [key: string]: unknown;
+            }
+          | undefined;
       };
       readonly notification_chain_verbal: {
         default: string;
@@ -2481,6 +3102,11 @@ export interface components {
       telegram_code: string;
       bot_link: string;
     };
+    UserGroup: {
+      readonly id: string;
+      name: string;
+      handle: string;
+    };
     UserIsCurrentlyOnCall: {
       username: string;
       pk: string;
@@ -2490,6 +3116,41 @@ export interface components {
       readonly timezone: string | null;
       readonly teams: components['schemas']['FastTeam'][];
       readonly is_currently_oncall: boolean;
+    };
+    UserNotificationPolicy: {
+      readonly id: string;
+      /** @default 1 */
+      step: components['schemas']['Step923Enum'];
+      /** @default 0 */
+      notify_by: components['schemas']['NotifyByEnum'];
+      /** Format: double */
+      wait_delay?: number | null;
+      important?: boolean;
+      user?: string | null;
+      readonly order: number | null;
+    };
+    UserNotificationPolicyDelayOptions: {
+      value: string;
+      sec_value: number;
+      display_name: string;
+    };
+    UserNotificationPolicyNotifyByOptions: {
+      value: number;
+      display_name: string;
+      slack_integration_required: boolean;
+      telegram_integration_required: boolean;
+    };
+    UserNotificationPolicyUpdate: {
+      readonly id: string;
+      /** @default 1 */
+      step: components['schemas']['Step923Enum'];
+      /** @default 0 */
+      notify_by: components['schemas']['NotifyByEnum'];
+      /** Format: double */
+      wait_delay?: number | null;
+      readonly important: boolean;
+      readonly user: string;
+      readonly order: number | null;
     };
     UserPermission: {
       readonly action: string;
@@ -2529,6 +3190,10 @@ export interface components {
       integration_filter?: string[];
       preset?: string | null;
       labels?: components['schemas']['LabelPair'][];
+    };
+    WebhookFast: {
+      readonly id: string;
+      name?: string | null;
     };
     WebhookFilters: {
       name: string;
@@ -2609,56 +3274,24 @@ export interface operations {
          *     * `direct_paging` - Direct paging
          *     * `grafana` - Grafana Legacy Alerting
          *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
-         *     * `servicenow` - ServiceNow
-         *     * `amazon_sns` - Amazon SNS
-         *     * `stackdriver` - Stackdriver
-         *     * `curler` - Curler
-         *     * `datadog` - Datadog
-         *     * `demo` - Demo
-         *     * `fabric` - Fabric
-         *     * `newrelic` - New Relic
-         *     * `pagerduty` - Pagerduty
-         *     * `pingdom` - Pingdom
-         *     * `prtg` - PRTG
-         *     * `sentry` - Sentry
-         *     * `uptimerobot` - UptimeRobot
-         *     * `jira` - Jira
-         *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics */
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting */
         integration?: (
           | 'alertmanager'
-          | 'amazon_sns'
-          | 'appdynamics'
-          | 'curler'
-          | 'datadog'
-          | 'demo'
           | 'direct_paging'
           | 'elastalert'
-          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
-          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
-          | 'newrelic'
-          | 'pagerduty'
-          | 'pingdom'
-          | 'prtg'
-          | 'sentry'
-          | 'servicenow'
           | 'slack_channel'
-          | 'stackdriver'
-          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
-          | 'zendesk'
         )[];
         /** @description * `grafana_alerting` - Grafana Alerting
          *     * `webhook` - Webhook
@@ -2675,60 +3308,28 @@ export interface operations {
          *     * `direct_paging` - Direct paging
          *     * `grafana` - Grafana Legacy Alerting
          *     * `legacy_alertmanager` - (Legacy) AlertManager
-         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting
-         *     * `servicenow` - ServiceNow
-         *     * `amazon_sns` - Amazon SNS
-         *     * `stackdriver` - Stackdriver
-         *     * `curler` - Curler
-         *     * `datadog` - Datadog
-         *     * `demo` - Demo
-         *     * `fabric` - Fabric
-         *     * `newrelic` - New Relic
-         *     * `pagerduty` - Pagerduty
-         *     * `pingdom` - Pingdom
-         *     * `prtg` - PRTG
-         *     * `sentry` - Sentry
-         *     * `uptimerobot` - UptimeRobot
-         *     * `jira` - Jira
-         *     * `zendesk` - Zendesk
-         *     * `appdynamics` - AppDynamics */
+         *     * `legacy_grafana_alerting` - (Deprecated) Grafana Alerting */
         integration_ne?: (
           | 'alertmanager'
-          | 'amazon_sns'
-          | 'appdynamics'
-          | 'curler'
-          | 'datadog'
-          | 'demo'
           | 'direct_paging'
           | 'elastalert'
-          | 'fabric'
           | 'formatted_webhook'
           | 'grafana'
           | 'grafana_alerting'
           | 'heartbeat'
           | 'inbound_email'
-          | 'jira'
           | 'kapacitor'
           | 'legacy_alertmanager'
           | 'legacy_grafana_alerting'
           | 'maintenance'
           | 'manual'
-          | 'newrelic'
-          | 'pagerduty'
-          | 'pingdom'
-          | 'prtg'
-          | 'sentry'
-          | 'servicenow'
           | 'slack_channel'
-          | 'stackdriver'
-          | 'uptimerobot'
           | 'webhook'
           | 'zabbix'
-          | 'zendesk'
         )[];
         /** @description * `0` - Debug
          *     * `1` - Maintenance */
-        maintenance_mode?: (0 | 1 | null)[];
+        maintenance_mode?: (0 | 1)[];
         /** @description A page number within the paginated result set. */
         page?: number;
         /** @description Number of results to return per page. */
@@ -3111,10 +3712,12 @@ export interface operations {
         };
         content: {
           'application/json': {
-            [key: string]: {
-              alerts_count: number;
-              alert_groups_count: number;
-            };
+            [key: string]:
+              | {
+                  alerts_count: number;
+                  alert_groups_count: number;
+                }
+              | undefined;
           };
         };
       };
@@ -3482,10 +4085,12 @@ export interface operations {
         };
         content: {
           'application/json': {
-            [key: string]: {
-              alerts_count: number;
-              alert_groups_count: number;
-            };
+            [key: string]:
+              | {
+                  alerts_count: number;
+                  alert_groups_count: number;
+                }
+              | undefined;
           };
         };
       };
@@ -3728,12 +4333,13 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description No response body */
       200: {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': components['schemas']['AlertGroupEscalationSnapshotAPI'];
+        };
       };
     };
   };
@@ -4097,6 +4703,194 @@ export interface operations {
       };
     };
   };
+  channel_filters_list: {
+    parameters: {
+      query?: {
+        alert_receive_channel?: string[];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChannelFilter'][];
+        };
+      };
+    };
+  };
+  channel_filters_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChannelFilterCreate'];
+        'application/x-www-form-urlencoded': components['schemas']['ChannelFilterCreate'];
+        'multipart/form-data': components['schemas']['ChannelFilterCreate'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChannelFilterUpdateResponse'];
+        };
+      };
+    };
+  };
+  channel_filters_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this channel filter. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChannelFilter'];
+        };
+      };
+    };
+  };
+  channel_filters_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this channel filter. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['ChannelFilterUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['ChannelFilterUpdate'];
+        'multipart/form-data': components['schemas']['ChannelFilterUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChannelFilterUpdateResponse'];
+        };
+      };
+    };
+  };
+  channel_filters_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this channel filter. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  channel_filters_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this channel filter. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedChannelFilterUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedChannelFilterUpdate'];
+        'multipart/form-data': components['schemas']['PatchedChannelFilterUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChannelFilterUpdateResponse'];
+        };
+      };
+    };
+  };
+  channel_filters_convert_from_regex_to_jinja2_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this channel filter. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChannelFilter'];
+        };
+      };
+    };
+  };
+  channel_filters_move_to_position_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this channel filter. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   complete_retrieve: {
     parameters: {
       query?: never;
@@ -4124,6 +4918,440 @@ export interface operations {
       path: {
         backend: string;
       };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  escalation_chains_list: {
+    parameters: {
+      query?: {
+        /** @description A search term. */
+        search?: string;
+        team?: string[];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChainPolymorphic'][];
+        };
+      };
+    };
+  };
+  escalation_chains_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EscalationChain'];
+        'application/x-www-form-urlencoded': components['schemas']['EscalationChain'];
+        'multipart/form-data': components['schemas']['EscalationChain'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChain'];
+        };
+      };
+    };
+  };
+  escalation_chains_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation chain. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChainList'];
+        };
+      };
+    };
+  };
+  escalation_chains_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation chain. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EscalationChain'];
+        'application/x-www-form-urlencoded': components['schemas']['EscalationChain'];
+        'multipart/form-data': components['schemas']['EscalationChain'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChain'];
+        };
+      };
+    };
+  };
+  escalation_chains_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation chain. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  escalation_chains_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation chain. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedEscalationChain'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedEscalationChain'];
+        'multipart/form-data': components['schemas']['PatchedEscalationChain'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChain'];
+        };
+      };
+    };
+  };
+  escalation_chains_copy_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation chain. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChain'];
+        };
+      };
+    };
+  };
+  escalation_chains_details_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation chain. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChainDetails'][];
+        };
+      };
+    };
+  };
+  escalation_chains_filters_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationChainFilters'][];
+        };
+      };
+    };
+  };
+  escalation_policies_list: {
+    parameters: {
+      query?: {
+        channel_filter?: string;
+        escalation_chain?: string;
+        slack_channel?: string;
+        user?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationPolicy'][];
+        };
+      };
+    };
+  };
+  escalation_policies_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EscalationPolicyCreate'];
+        'application/x-www-form-urlencoded': components['schemas']['EscalationPolicyCreate'];
+        'multipart/form-data': components['schemas']['EscalationPolicyCreate'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationPolicyCreate'];
+        };
+      };
+    };
+  };
+  escalation_policies_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation policy. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationPolicy'];
+        };
+      };
+    };
+  };
+  escalation_policies_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation policy. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['EscalationPolicyUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['EscalationPolicyUpdate'];
+        'multipart/form-data': components['schemas']['EscalationPolicyUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationPolicyUpdate'];
+        };
+      };
+    };
+  };
+  escalation_policies_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation policy. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  escalation_policies_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation policy. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedEscalationPolicyUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedEscalationPolicyUpdate'];
+        'multipart/form-data': components['schemas']['PatchedEscalationPolicyUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationPolicyUpdate'];
+        };
+      };
+    };
+  };
+  escalation_policies_move_to_position_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A string identifying this escalation policy. */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  escalation_policies_delay_options_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  escalation_policies_escalation_options_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EscalationPolicyOptions'][];
+        };
+      };
+    };
+  };
+  escalation_policies_num_minutes_in_window_options_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
       cookie?: never;
     };
     requestBody?: never;
@@ -4373,6 +5601,211 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  notification_policies_list: {
+    parameters: {
+      query?: {
+        important?: boolean;
+        user?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicy'][];
+        };
+      };
+    };
+  };
+  notification_policies_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['UserNotificationPolicy'];
+        'application/x-www-form-urlencoded': components['schemas']['UserNotificationPolicy'];
+        'multipart/form-data': components['schemas']['UserNotificationPolicy'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicy'];
+        };
+      };
+    };
+  };
+  notification_policies_retrieve: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this user notification policy. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicy'];
+        };
+      };
+    };
+  };
+  notification_policies_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this user notification policy. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['UserNotificationPolicyUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['UserNotificationPolicyUpdate'];
+        'multipart/form-data': components['schemas']['UserNotificationPolicyUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicyUpdate'];
+        };
+      };
+    };
+  };
+  notification_policies_destroy: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this user notification policy. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  notification_policies_partial_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this user notification policy. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['PatchedUserNotificationPolicyUpdate'];
+        'application/x-www-form-urlencoded': components['schemas']['PatchedUserNotificationPolicyUpdate'];
+        'multipart/form-data': components['schemas']['PatchedUserNotificationPolicyUpdate'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicyUpdate'];
+        };
+      };
+    };
+  };
+  notification_policies_move_to_position_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description A unique integer value identifying this user notification policy. */
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No response body */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  notification_policies_delay_options_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicyDelayOptions'][];
+        };
+      };
+    };
+  };
+  notification_policies_notify_by_options_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserNotificationPolicyNotifyByOptions'][];
+        };
       };
     };
   };
