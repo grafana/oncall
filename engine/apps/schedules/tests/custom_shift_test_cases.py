@@ -17,7 +17,7 @@ expected_result - Dict where each day displays the users that should be schedule
 """
 CUSTOM_SHIFT_TEST_CASES = [
     (
-        # Original Test Case
+        # 0 - Original Test Case
         [1, 1, 1],
         "2024-08-01",
         ["FR"],
@@ -31,7 +31,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Monday Daily
+        # 1 - Weekdays Start Monday Daily
         [1, 1, 1, 1, 1],
         "2024-08-05",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -52,7 +52,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Monday Daily Interval 2
+        # 2 - Weekdays Start Monday Daily Interval 2
         [1, 1, 1, 1],
         "2024-08-05",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -73,7 +73,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Monday Weekly
+        # 3 - Weekdays Start Monday Weekly
         [1, 1, 1, 1, 1],
         "2024-08-05",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -94,7 +94,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Monday Monthly
+        # 4 - Weekdays Start Monday Monthly
         [1, 1, 1, 1, 1],
         "2024-08-26",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -115,7 +115,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Thursday Daily
+        # 5 - Weekdays Start Thursday Daily
         [1, 1, 1, 1, 1],
         "2024-08-08",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -136,7 +136,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Thursday Weekly
+        # 6 - Weekdays Start Thursday Weekly
         [1, 1, 1, 1, 1],
         "2024-08-08",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -157,7 +157,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekdays Start Thursday Monthly
+        # 7 - Weekdays Start Thursday Monthly
         [1, 1, 1, 1, 1],
         "2024-08-29",
         ["MO", "TU", "WE", "TH", "FR"],
@@ -178,7 +178,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # All Days uneven groups
+        # 8 - All Days uneven groups
         [2, 1],
         "2024-08-14",
         None,
@@ -198,7 +198,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Saturday
+        # 9 - Weekends Start Saturday
         [1, 1, 1],
         "2024-08-03",
         ["SA", "SU"],
@@ -214,7 +214,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Saturday Users > Shifts
+        # 10 - Weekends Start Saturday Users > Shifts
         [1, 1, 1, 1, 1],
         "2024-08-03",
         ["SA", "SU"],
@@ -229,7 +229,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Saturday Users > Shifts
+        # 11 - Weekends Start Saturday Users > Shifts
         [1, 1, 1, 1, 1],
         "2024-08-03",
         ["SA", "SU"],
@@ -244,7 +244,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Thursday
+        # 12 - Weekends Start Thursday
         [1],
         "2024-08-01",
         ["SA", "SU"],
@@ -257,7 +257,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Thursday
+        # 13 - Weekends Start Thursday
         [1, 1, 1],
         "2024-08-01",
         ["SA", "SU"],
@@ -273,7 +273,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Thursday Users > Shifts
+        # 14 - Weekends Start Thursday Users > Shifts
         [1, 1, 1, 1, 1, 1],
         "2024-08-01",
         ["SA", "SU"],
@@ -289,7 +289,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Thursday Interval 2
+        # 15 - Weekends Start Thursday Interval 2
         [1, 1, 1],
         "2024-08-01",
         ["SA", "SU"],
@@ -305,7 +305,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Saturday Weekly
+        # 16 - Weekends Start Saturday Weekly
         [1, 1, 1],
         "2024-08-01",
         ["SA", "SU"],
@@ -322,7 +322,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Saturday Weekly Interval 2
+        # 17 - Weekends Start Saturday Weekly Interval 2
         [1, 1, 1],
         "2024-08-01",
         ["SA", "SU"],
@@ -337,7 +337,7 @@ CUSTOM_SHIFT_TEST_CASES = [
         },
     ),
     (
-        # Weekends Start Thursday Monthly
+        # 18 - Weekends Start Thursday Monthly
         [1, 1, 1],
         "2024-08-29",
         ["SA", "SU"],

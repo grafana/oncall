@@ -1,6 +1,6 @@
+import datetime
 from calendar import monthrange
 from collections import defaultdict
-from datetime import datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
@@ -1859,7 +1859,7 @@ def test_ical_shift_generation(
     total_users = sum(users_per_group)
     users = [make_user_for_organization(organization, username=chr(i + 64)) for i in range(1, total_users + 1)]
 
-    start = datetime.strptime(shift_start, "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
+    start = datetime.datetime.strptime(shift_start, "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
     data = {
         "start": start,
         "rotation_start": start,
