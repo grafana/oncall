@@ -1870,6 +1870,7 @@ def test_ical_shift_generation(
         "schedule": schedule,
         "interval": interval,
         "priority_level": 1,
+        "week_start": CustomOnCallShift.MONDAY,
     }
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
