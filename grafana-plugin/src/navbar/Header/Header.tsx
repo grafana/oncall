@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 import gitHubStarSVG from 'assets/img/github_star.svg';
 import logo from 'assets/img/logo.svg';
 import { Alerts } from 'containers/Alerts/Alerts';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import { getHeaderStyles } from './Header.styles';
 
@@ -18,7 +17,7 @@ export const Header = observer(() => {
   return (
     <>
       <div>
-        <div className={cx('page-header__inner', { [styles.headerTopNavbar]: isTopNavbar() })}>
+        <div className={cx('page-header__inner', styles.headerTopNavbar)}>
           <div className={styles.navbarLeft}>
             <span className={cx('page-header__logo', styles.logoContainer)}>
               <img className={styles.pageHeaderImage} src={logo} alt="Grafana OnCall" />
