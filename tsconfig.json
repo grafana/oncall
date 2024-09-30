@@ -1,0 +1,18 @@
+{
+  "extends": "./.config/tsconfig.json",
+  "include": ["src", "e2e-tests", "playwright.config.ts"],
+  "types": ["node", "@emotion/core"],
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "rootDir": "",
+    "typeRoots": ["./node_modules/@types"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "strict": false,
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "useDefineForClassFields": true
+  }
+}
