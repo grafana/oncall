@@ -103,7 +103,6 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
               isDisabled={isDisabled}
-              severityChoices={escalationPolicyStore.severityChoices}
               {...extraProps}
             />
           );
