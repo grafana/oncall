@@ -215,6 +215,7 @@ REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 REDIS_DATABASE = os.getenv("REDIS_DATABASE", 1)
 REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
+REDIS_KEY_PREFIX = os.getenv("REDIS_KEY_PREFIX", None)
 
 REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:
@@ -248,6 +249,7 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URI,
+        "KEY_PREFIX": REDIS_KEY_PREFIX,
         "OPTIONS": {
             "DB": REDIS_DATABASE,
             "PARSER_CLASS": "redis.connection._HiredisParser",
@@ -262,6 +264,41 @@ CACHES = {
         },
     },
 }
+
+REDIS_SENTINELS = os.getenv("REDIS_SENTINELS", None)
+
+if REDIS_SENTINELS:
+    REDIS_SENTINEL_MASTER_NAME = os.getenv("REDIS_SENTINEL_MASTER_NAME", None)
+    REDIS_SENTINEL_USERNAME = os.getenv("REDIS_SENTINEL_USERNAME", None)
+    REDIS_SENTINEL_PASSWORD = os.getenv("REDIS_SENTINEL_PASSWORD", None)
+    REDIS_SENTINEL_KWARGS = {"password": REDIS_SENTINEL_PASSWORD, "username": REDIS_SENTINEL_USERNAME}
+
+    DJANGO_SENTINELS = [tuple(sentinel.split(":")) for sentinel in REDIS_SENTINELS.split(",")]
+    DJANGO_SENTINELS = [(host, int(port)) for host, port in DJANGO_SENTINELS]
+
+    DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
+
+    CACHES["default"] = {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_USERNAME}@{REDIS_SENTINEL_MASTER_NAME}/{REDIS_DATABASE}",
+        "KEY_PREFIX": REDIS_KEY_PREFIX,
+        "OPTIONS": {
+            "PARSER_CLASS": "redis.connection._HiredisParser",
+            "CLIENT_CLASS": "django_redis.client.SentinelClient",
+            "CONNECTION_POOL_CLASS": "redis.sentinel.SentinelConnectionPool",
+            "SENTINELS": DJANGO_SENTINELS,
+            "MASTER_NAME": REDIS_SENTINEL_MASTER_NAME,
+            "PASSWORD": REDIS_PASSWORD,
+            "SENTINEL_KWARGS": REDIS_SENTINEL_KWARGS,
+            "CONNECTION_POOL_CLASS_KWARGS": REDIS_SSL_CONFIG
+            | {
+                "max_connections": 50,
+                "timeout": 20,
+            },
+            "MAX_CONNECTIONS": 1000,
+            "PICKLE_VERSION": -1,
+        },
+    }
 
 # Application definition
 
@@ -498,6 +535,11 @@ class BrokerTypes:
     RABBITMQ = "rabbitmq"
     REDIS = "redis"
 
+# By default, apply_async will just hang indefinitely trying to reach to RabbitMQ even if RabbitMQ is down.
+# This makes apply_async retry 3 times trying to reach to RabbitMQ, with some extra info on periods between retries.
+# https://docs.celeryproject.org/en/stable/userguide/configuration.html#std-setting-broker_transport_options
+# Note that max_retries is not related to task retries, but to rabbitmq specific kombu settings.
+CELERY_BROKER_TRANSPORT_OPTIONS = {"max_retries": 3, "interval_start": 0, "interval_step": 0.2, "interval_max": 0.5}
 
 BROKER_TYPE = os.getenv("BROKER_TYPE", BrokerTypes.RABBITMQ).lower()
 assert BROKER_TYPE in {BrokerTypes.RABBITMQ, BrokerTypes.REDIS}
@@ -506,16 +548,20 @@ if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = RABBITMQ_URI
 elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
+    if REDIS_KEY_PREFIX:
+        CELERY_BROKER_TRANSPORT_OPTIONS["global_keyprefix"] = REDIS_KEY_PREFIX
     if REDIS_USE_SSL:
         CELERY_BROKER_USE_SSL = REDIS_SSL_CONFIG
+    if REDIS_SENTINELS:
+        CELERY_BROKER_URL = ";".join([f"sentinel://{REDIS_USERNAME}:{REDIS_PASSWORD}@{sentinel}/{REDIS_DATABASE}" for sentinel in REDIS_SENTINELS.split(",")])
+        if REDIS_SENTINEL_MASTER_NAME:
+            CELERY_BROKER_TRANSPORT_OPTIONS["master_name"] = REDIS_SENTINEL_MASTER_NAME
+        if REDIS_SENTINEL_KWARGS:
+            CELERY_BROKER_TRANSPORT_OPTIONS["sentinel_kwargs"] = REDIS_SENTINEL_KWARGS
 else:
     raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
 
-# By default, apply_async will just hang indefinitely trying to reach to RabbitMQ even if RabbitMQ is down.
-# This makes apply_async retry 3 times trying to reach to RabbitMQ, with some extra info on periods between retries.
-# https://docs.celeryproject.org/en/stable/userguide/configuration.html#std-setting-broker_transport_options
-# Note that max_retries is not related to task retries, but to rabbitmq specific kombu settings.
-CELERY_BROKER_TRANSPORT_OPTIONS = {"max_retries": 3, "interval_start": 0, "interval_step": 0.2, "interval_max": 0.5}
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_IGNORE_RESULT = True
 CELERY_ACKS_LATE = True
