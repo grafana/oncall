@@ -180,5 +180,9 @@
     "throttle-debounce": "^2.1.0",
     "tinycolor2": "^1.6.0",
     "tslib": "2.5.3"
+  },
+  "resolutions": {
+    "braces": "3.0.3",
+    "micromatch": "4.0.8"
   }
 }
