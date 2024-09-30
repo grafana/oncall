@@ -48,6 +48,7 @@ def test_user_is_oncall(make_organization, make_user_for_organization, make_sche
     )
     on_call_shift.add_rolling_users([[oncall_user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     assert user_is_oncall(not_oncall_user) is False
     assert user_is_oncall(oncall_user) is True

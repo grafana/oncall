@@ -11,7 +11,6 @@ import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -158,10 +157,7 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def related_to_user(self, user):
         username_regex = RE_ICAL_SEARCH_USERNAME.format(user.username)
         return self.filter(
-            Q(cached_ical_file_primary__regex=username_regex)
-            | Q(cached_ical_file_primary__contains=user.email)
-            | Q(cached_ical_file_overrides__regex=username_regex)
-            | Q(cached_ical_file_overrides__contains=user.email),
+            cached_ical_final_schedule__regex=username_regex,
             organization=user.organization,
         )
 
@@ -344,10 +340,8 @@ class OnCallSchedule(PolymorphicModel):
     def related_users(self):
         """Return users referenced in the schedule."""
         usernames = []
-        if self.cached_ical_file_primary:
-            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_primary)
-        if self.cached_ical_file_overrides:
-            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
+        if self.cached_ical_final_schedule:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_final_schedule)
         return self.organization.users.filter(username__in=usernames)
 
     def filter_events(
@@ -1127,16 +1121,6 @@ class OnCallScheduleICal(OnCallSchedule):
                 self.ical_url_overrides,
             )
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
-
-    def related_users(self):
-        """Return users referenced in the schedule."""
-        # combine users based on usernames and users via email (allowed in iCal based schedules)
-        usernames = []
-        if self.cached_ical_file_primary:
-            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_primary)
-        if self.cached_ical_file_overrides:
-            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
-        return self.organization.users.filter(Q(username__in=usernames) | Q(email__in=usernames))
 
     # Insight logs
     @property
