@@ -8,7 +8,8 @@ import requests
 from django.conf import settings
 from rest_framework import status
 
-from apps.api.permissions import ACTION_PREFIX, GrafanaAPIPermission
+from apps.api.permissions import GrafanaAPIPermission
+from common.constants.plugin_ids import PluginID
 
 logger = logging.getLogger(__name__)
 
@@ -160,11 +161,9 @@ class APIClient:
 
 
 class GrafanaAPIClient(APIClient):
-    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
     GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY = "backendUrl"
-    GRAFANA_LABELS_PLUGIN = "grafana-labels-app"
 
-    USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
+    USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={PluginID.ONCALL}"
 
     MIN_GRAFANA_TOKEN_LENGTH = 16
 
@@ -305,10 +304,10 @@ class GrafanaAPIClient(APIClient):
         return self.api_get(f"api/plugins/{recipient}/settings")
 
     def get_grafana_incident_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
-        return self.get_grafana_plugin_settings(self.GRAFANA_INCIDENT_PLUGIN)
+        return self.get_grafana_plugin_settings(PluginID.INCIDENT)
 
     def get_grafana_labels_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
-        return self.get_grafana_plugin_settings(self.GRAFANA_LABELS_PLUGIN)
+        return self.get_grafana_plugin_settings(PluginID.LABELS)
 
     def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
         return self.api_get(f"api/serviceaccounts/search?query={login}")

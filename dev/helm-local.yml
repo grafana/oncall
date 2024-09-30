@@ -16,6 +16,8 @@ env:
   # enabled to be able to test docker.host.internal in the webhook e2e tests
   - name: DANGEROUS_WEBHOOKS_ENABLED
     value: "True"
+  - name: "FEATURE_LABELS_ENABLED_FOR_ALL"
+    value: "True"
 image:
   repository: localhost:63628/oncall/engine
   tag: dev

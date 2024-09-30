@@ -40,7 +40,6 @@ from apps.alerts.tests.factories import (
     UserNotificationBundleFactory,
 )
 from apps.api.permissions import (
-    ACTION_PREFIX,
     GrafanaAPIPermission,
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
@@ -111,6 +110,7 @@ from apps.webhooks.tests.test_webhook_presets import (
     TestAdvancedWebhookPreset,
     TestWebhookPreset,
 )
+from common.constants.plugin_ids import PluginID
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -377,7 +377,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
                 action = permission["action"]
                 permission_class = None
 
-                if action.startswith(ACTION_PREFIX):
+                if action.startswith(PluginID.ONCALL):
                     permission_class = all_permission_classes[action]
 
                 if permission_class:

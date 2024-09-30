@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
+from common.constants.plugin_ids import PluginID
+
 
 class IncidentDetails(typing.TypedDict):
     # https://grafana.com/docs/grafana-cloud/alerting-and-irm/irm/incident/api/reference/#getincidentresponse
@@ -79,7 +81,7 @@ DEFAULT_ACTIVITY_KIND = "userNote"
 
 
 class IncidentAPIClient:
-    INCIDENT_BASE_PATH = "/api/plugins/grafana-incident-app/resources/"
+    INCIDENT_BASE_PATH = f"/api/plugins/{PluginID.INCIDENT}/resources/"
 
     def __init__(self, api_url: str, api_token: str) -> None:
         self.api_token = api_token
