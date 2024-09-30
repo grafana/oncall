@@ -6,6 +6,7 @@ import { EscalationPolicy } from 'models/escalation_policy/escalation_policy.typ
 import { makeRequest } from 'network/network';
 import { move } from 'state/helpers';
 import { RootStore } from 'state/rootStore';
+import { SelectOption } from 'state/types';
 
 export class EscalationPolicyStore extends BaseStore {
   @observable.shallow
@@ -20,7 +21,7 @@ export class EscalationPolicyStore extends BaseStore {
   escalationChoices: any = [];
 
   @observable
-  severityChoices: any = [];
+  severityChoices: SelectOption[] = [];
 
   @observable
   webEscalationChoices: any = [];
@@ -35,7 +36,7 @@ export class EscalationPolicyStore extends BaseStore {
 
   @action.bound
   async updateSeverityOptions() {
-    const response = await makeRequest('/escalation_policies/severity_options/', {});
+    const response = await makeRequest<SelectOption[]>('/escalation_policies/severity_options/', {});
 
     runInAction(() => {
       this.severityChoices = response;
