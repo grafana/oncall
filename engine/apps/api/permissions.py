@@ -93,11 +93,13 @@ class LegacyAccessControlRole(enum.IntEnum):
 
 
 class LegacyAccessControlCompatiblePermission:
-    def __init__(self,
-                 resource: Resources,
-                 action: Actions,
-                 fallback_role: LegacyAccessControlRole,
-                 prefix: str = PluginID.ONCALL) -> None:
+    def __init__(
+        self,
+        resource: Resources,
+        action: Actions,
+        fallback_role: LegacyAccessControlRole,
+        prefix: str = PluginID.ONCALL,
+    ) -> None:
         self.value = f"{prefix}.{resource.value}:{action.value}"
         self.fallback_role = fallback_role
 
