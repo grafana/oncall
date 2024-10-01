@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
+import { css } from '@emotion/css';
 import { Badge, Button, LoadingPlaceholder, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { DOCS_MATTERMOST_SETUP, StackSize } from 'helpers/consts';
 import { observer } from 'mobx-react';
 
@@ -15,10 +15,6 @@ import { MattermostChannel } from 'models/mattermost/mattermost.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-
-import styles from './MattermostSettings.module.css';
-
-const cx = cn.bind(styles);
 
 interface MattermostProps extends WithStoreProps {}
 
@@ -42,23 +38,25 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
     const { store } = this.props;
     const { mattermostChannelStore, organizationStore } = store;
     const connectedChannels = mattermostChannelStore.getSearchResult();
+    const styles = getStyles();
+
     const mattermostConfigured = organizationStore.currentOrganization?.env_status.mattermost_configured;
 
     if (!mattermostConfigured && store.hasFeature(AppFeature.LiveSettings)) {
       return (
         <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Mattermost workspace</Text.Title>
-          <Block bordered withBackground className={cx('mattermost-infoblock')}>
+          <Block bordered withBackground className={styles.mattermostInfoBlock}>
             <Stack direction="column" alignItems="center">
-              <Text className={cx('infoblock-text')}>
+              <Text className={styles.infoBlockText}>
                 Connecting Mattermost App will allow you to manage alert groups in your team Mattermost workspace.
               </Text>
 
-              <Text className={cx('infoblock-text')}>
+              <Text className={styles.infoBlockText}>
                 After a basic workspace connection your team members need to connect their personal Mattermost accounts
                 in order to be allowed to manage alert groups.
               </Text>
-              <Text type="secondary" className={cx('infoblock-text')}>
+              <Text type="secondary" className={styles.infoBlockText}>
                 More details in{' '}
                 <a href={DOCS_MATTERMOST_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
@@ -81,17 +79,17 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
       return (
         <Stack direction="column" gap={StackSize.lg}>
           <Text.Title level={2}>Connect Mattermost workspace</Text.Title>
-          <Block bordered withBackground className={cx('mattermost-infoblock')}>
+          <Block bordered withBackground className={styles.mattermostInfoBlock}>
             <Stack direction="column" alignItems="center">
-              <Text className={cx('infoblock-text')}>
+              <Text className={styles.infoBlockText}>
                 Connecting Mattermost App will allow you to manage alert groups in your team Mattermost workspace.
               </Text>
 
-              <Text className={cx('infoblock-text')}>
+              <Text className={styles.infoBlockText}>
                 After a basic workspace connection your team members need to connect their personal Mattermost accounts
                 in order to be allowed to manage alert groups.
               </Text>
-              <Text type="secondary" className={cx('infoblock-text')}>
+              <Text type="secondary" className={styles.infoBlockText}>
                 More details in{' '}
                 <a href={DOCS_MATTERMOST_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
@@ -133,10 +131,10 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
     return (
       <div>
         {connectedChannels && (
-          <div className={cx('root')}>
+          <div className={styles.root}>
             <GTable
               title={() => (
-                <div className={cx('header')}>
+                <div className={styles.header}>
                   <Text.Title level={3}>Mattermost Channels</Text.Title>
                   <MattermostIntegrationButton onUpdate={this.update} />
                 </div>
@@ -201,3 +199,25 @@ class _MattermostSettings extends Component<MattermostProps, MattermostState> {
 }
 
 export const MattermostSettings = withMobXProviderContext(_MattermostSettings);
+
+const getStyles = () => {
+  return {
+    root: css`
+      display: block;
+    `,
+    header: css`
+      display: flex;
+      justify-content: space-between;
+    `,
+    mattermostInfoBlock: css`
+      text-align: center;
+      width: 725px;
+    `,
+
+    infoBlockText: css`
+      margin-left: 48px;
+      margin-right: 48px;
+      margin-top: 24px;
+    `,
+  };
+};
