@@ -115,9 +115,10 @@ Useful when you want to get escalation only during working hours
 * `Continue escalation if >X alerts per Y minutes (beta)` - continue escalation only if it
 passes some threshold
 * `Repeat escalation from beginning (5 times max)` - loop the escalation chain
-* `Declare Incident (non-default routes only)` - declare a new Incident with chosen severity if it was triggered in
-non-default route. There can be only one active incident per route. Further alert groups assigned to this route will
-be attached to the active incident (5 alert groups max). The step is available only in cloud.
+* `Declare Incident (non-default routes only)` - declare a new Incident with the given severity. This step will be
+skipped if triggered in a default route. There can only be one active incident per route. Further alert groups
+assigned to a route with an active incident will be attached to it (and up to 5 will be listed as incident context).
+This step is only available in cloud.
 
 > **Note:** Both "**Escalate to all Slack channel members**" and "**Notify Slack User Group**" will filter OnCall registered users
 matching the users in the Slack channel or Slack User Group with their profiles linked to their Slack accounts (ie. users
