@@ -247,6 +247,7 @@ class RBACPermission(permissions.BasePermission):
             Resources.OTHER_SETTINGS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
 
+        # NOTE: we don't currently add the label delete permission here because we don't currently use this in OnCall
         LABEL_CREATE = LegacyAccessControlCompatiblePermission(
             Resources.LABEL, Actions.CREATE, LegacyAccessControlRole.EDITOR, prefix=PluginID.LABELS
         )
