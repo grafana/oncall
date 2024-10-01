@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 
-import { Button, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Button, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
 import { DOCS_MATTERMOST_SETUP, StackSize } from 'helpers/consts';
 
@@ -10,11 +10,9 @@ import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { useStore } from 'state/useStore';
 
-import styles from './MattermostInfo.module.css';
-
-const cx = cn.bind(styles);
-
 export const MattermostInfo = () => {
+  const styles = useStyles2(getStyles);
+
   const { mattermostStore } = useStore();
 
   const handleClickConnectMattermostAccount = useCallback(() => {
@@ -24,7 +22,7 @@ export const MattermostInfo = () => {
   return (
     <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
       <Stack direction="column" gap={StackSize.lg}>
-        <Block bordered withBackground className={cx('mattermost-infoblock', 'u-width-100')}>
+        <Block bordered withBackground className={styles.mattermostInfoblock}>
           <Stack direction="column" alignItems="center" gap={StackSize.lg}>
             <Text>
               Personal Mattermost connection will allow you to manage alert group in your connected mattermost channel
@@ -47,4 +45,12 @@ export const MattermostInfo = () => {
       </Stack>
     </WithPermissionControlDisplay>
   );
+};
+
+const getStyles = () => {
+  return {
+    mattermostInfoblock: css`
+      text-align: center;
+    `,
+  };
 };
