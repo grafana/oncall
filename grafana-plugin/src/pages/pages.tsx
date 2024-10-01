@@ -3,7 +3,6 @@ import { UserActions, UserAction, isUserActionAllowed } from 'helpers/authorizat
 import { PLUGIN_ROOT } from 'helpers/consts';
 import { matchPath } from 'react-router-dom-v5-compat';
 
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 
@@ -109,7 +108,7 @@ export const pages: { [id: string]: PageDefinition } = [
     text: 'ChatOps',
     path: getPath('chat-ops'),
     hideFromBreadcrumbs: true,
-    hideFromTabs: isTopNavbar(),
+    hideFromTabs: true,
     action: UserActions.ChatOpsRead,
   },
   {
@@ -126,7 +125,7 @@ export const pages: { [id: string]: PageDefinition } = [
     text: 'Env Variables',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
-      return isTopNavbar() || !hasLiveSettings;
+      return !hasLiveSettings;
     },
     path: getPath('live-settings'),
     action: UserActions.OtherSettingsRead,
@@ -137,7 +136,7 @@ export const pages: { [id: string]: PageDefinition } = [
     text: 'Cloud',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasCloudFeature = store.hasFeature(AppFeature.CloudConnection);
-      return isTopNavbar() || !hasCloudFeature;
+      return !hasCloudFeature;
     },
     path: getPath('cloud'),
     action: UserActions.OtherSettingsWrite,
@@ -161,7 +160,7 @@ export const pages: { [id: string]: PageDefinition } = [
       ...current,
       getPageNav: (pageTitle: string) =>
         ({
-          text: isTopNavbar() ? '' : current.text,
+          text: '',
           parentItem: current.getParentItem ? current.getParentItem(pageTitle) : undefined,
           hideFromBreadcrumbs: current.hideFromBreadcrumbs,
           hideFromTabs: current.hideFromTabs,

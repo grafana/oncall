@@ -77,10 +77,12 @@ export const sendDemoAlert = async (page: Page): Promise<void> => {
 export const createIntegrationAndSendDemoAlert = async (
   page: Page,
   integrationName: string,
-  escalationChainName: string
+  escalationChainName?: string
 ): Promise<void> => {
   await createIntegration({ page, integrationName });
-  await assignEscalationChainToIntegration(page, escalationChainName);
+  if (escalationChainName) {
+    await assignEscalationChainToIntegration(page, escalationChainName);
+  }
   await sendDemoAlert(page);
 };
 

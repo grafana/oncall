@@ -186,6 +186,7 @@ def test_add_user_no_warning(make_organization_and_user_with_slack_identities, m
     )
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     payload = make_paging_view_slack_payload(selected_org=organization, user=user)
 
@@ -221,6 +222,7 @@ def test_add_user_maximum_exceeded(make_organization_and_user_with_slack_identit
     )
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     payload = make_paging_view_slack_payload(selected_org=organization, user=user)
 

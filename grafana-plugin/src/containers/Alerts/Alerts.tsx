@@ -15,7 +15,6 @@ import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.
 import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { UserHelper } from 'models/user/user.helpers';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
@@ -72,7 +71,7 @@ export const Alerts = observer(() => {
     return null;
   }
   return (
-    <div className={cx(styles.alertsContainer, { [styles.alertsContainerLegacy]: !isTopNavbar() })}>
+    <div className={styles.alertsContainer}>
       {showSlackInstallAlert && (
         <Alert
           className={styles.alert}
@@ -191,14 +190,6 @@ const getStyles = (theme: GrafanaTheme2) => {
 
     instructionsLink: css`
       color: ${theme.colors.primary.text};
-    `,
-
-    alertsContainerLegacy: css`
-      paddingtop: '10px';
-
-      @media (max-width: 768px) {
-        padding-top: 50px;
-      }
     `,
   };
 };
