@@ -8,7 +8,7 @@ from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
 from common.api_helpers.custom_ratelimit import getenv_custom_ratelimit
-from common.utils import getenv_boolean, getenv_integer, getenv_list, getenv_float
+from common.utils import getenv_boolean, getenv_float, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
