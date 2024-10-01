@@ -494,10 +494,14 @@
 
 {{- define "snippet.redis.host" -}}
 {{ if not .Values.redis.enabled -}}
-  {{ required "externalRedis.host is required if not redis.enabled" .Values.externalRedis.host | quote }}
+    {{ required "externalRedis.host is required if not redis.enabled" .Values.externalRedis.host | quote }}
 {{- else -}}
   {{ include "oncall.redis.fullname" . }}-master
 {{- end }}
+{{- end }}
+
+{{- define "snippet.redis.sentinel.master" -}}
+{{ default "mymaster" .Values.externalRedis.sentinel.master }}
 {{- end }}
 
 {{- define "snippet.redis.port" -}}
@@ -540,13 +544,70 @@
 {{- end }}
 {{- end }}
 
+{{- define "snippet.redis.sentinel.password.secret.name" -}}
+  {{ if .Values.externalRedis.sentinel.existingSecret -}}
+    {{ .Values.externalRedis.sentinel.existingSecret }}
+  {{- else -}}
+    {{ include "oncall.fullname" . }}-redis-sentinel-external
+  {{- end }}
+{{- end }}
+
+{{- define "snippet.redis.key_prefix" -}}
+{{ default "" .Values.externalRedis.key_prefix | quote }}
+{{- end }}
+
+{{- define "snippet.redis.sentinel.password.secret.key" -}}
+  {{ if .Values.externalRedis.sentinel.existingSecret -}}
+    {{ required "externalRedis.sentinel.passwordKey is required if externalRedis.sentinel.existingSecret is non-empty" .Values.externalRedis.sentinel.passwordKey }}
+  {{- else -}}
+    redis-sentinel-password
+  {{- end }}
+{{- end }}
+
+{{- define "snippet.redis.sentinel.hosts" -}}
+{{- if .Values.externalRedis.sentinel -}}
+{{- $hosts := .Values.externalRedis.sentinel.hosts -}}
+{{- if $hosts -}}
+  {{- range $index, $host := $hosts -}}
+    {{- if $host.host -}}
+      {{ if $index -}},{{- end }}{{ $host.host }}:{{ default 26379 $host.port }}
+    {{- else -}}
+      {{ required (printf "Host at index %d is required and cannot be empty." $index) $host.host }}
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{ required "At least one host must be provided." .Values.externalRedis.sentinel.hosts }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "snippet.redis.sentinel" -}}
+- name: REDIS_SENTINELS
+  value: {{ include "snippet.redis.sentinel.hosts" . }}
+- name: REDIS_SENTINEL_MASTER_NAME
+  value: {{ include "snippet.redis.sentinel.master" . }}
+- name: REDIS_SENTINEL_USERNAME
+  value: {{ default "" .Values.externalRedis.sentinel.username | quote }}
+- name: REDIS_SENTINEL_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.redis.sentinel.password.secret.name" . }}
+      key: {{ include "snippet.redis.sentinel.password.secret.key" . | quote}}
+{{- end }}
+
 {{- define "snippet.redis.env" -}}
+{{- if and (.Values.externalRedis.sentinel) (not .Values.redis.enabled) }}
+{{- include "snippet.redis.sentinel" . }}
+{{- else -}}
 - name: REDIS_PROTOCOL
   value: {{ include "snippet.redis.protocol" . }}
 - name: REDIS_HOST
   value: {{ include "snippet.redis.host" . }}
 - name: REDIS_PORT
   value: {{ include "snippet.redis.port" . }}
+{{- end }}
+- name: REDIS_KEY_PREFIX
+  value: {{ include "snippet.redis.key_prefix" . }}
 - name: REDIS_DATABASE
   value: {{ include "snippet.redis.database" . }}
 - name: REDIS_USERNAME

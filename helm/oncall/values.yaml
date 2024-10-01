@@ -616,6 +616,16 @@ externalRedis:
   existingSecret:
   # The key in the secret containing the redis password
   passwordKey:
+  key_prefix:
+  sentinel:
+    hosts:
+     - host:
+       port:
+    master:
+    username:
+    password:
+    passwordKey:
+    existingSecret:
 
   # SSL options
   ssl_options:
