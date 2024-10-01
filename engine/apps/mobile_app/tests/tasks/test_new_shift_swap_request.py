@@ -229,6 +229,7 @@ def test_notify_shift_swap_request_success(
         on_call_shift.add_rolling_users([[user]])
 
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
     schedule.refresh_from_db()
 
     swap_start = now + timezone.timedelta(days=100)

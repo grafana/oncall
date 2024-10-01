@@ -1206,7 +1206,7 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
 
-    user_a, _, _, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+    user_a, user_b, _, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -1239,7 +1239,20 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     )
     override.add_rolling_users([[user_e]])
 
+    # override: 22-23, a month ago / B (won't be considered a related user)
+    override_data = {
+        "start": start_date - timezone.timedelta(hours=22, days=30),
+        "rotation_start": start_date - timezone.timedelta(hours=22, days=30),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_b]])
+
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
     schedule.refresh_from_db()
 
     users = schedule.related_users()
@@ -1282,6 +1295,7 @@ def test_schedule_related_users_usernames(
         on_call_shift.add_rolling_users([[user]])
 
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
     schedule.refresh_from_db()
 
     assert set(schedule.related_users()) == set(users)
@@ -1304,7 +1318,7 @@ def test_schedule_related_users_emails(make_organization, make_user_for_organiza
         DTSTAMP:20230127T151619Z
         UID:something
         SUMMARY:testing@testing.com
-        RRULE:FREQ=WEEKLY;UNTIL=20221231T010101
+        RRULE:FREQ=WEEKLY
         DTSTART;TZID=Europe/Madrid:20220309T130000
         DTEND;TZID=Europe/Madrid:20220309T133000
         SEQUENCE:4
@@ -1317,6 +1331,8 @@ def test_schedule_related_users_emails(make_organization, make_user_for_organiza
         schedule_class=OnCallScheduleICal,
         cached_ical_file_primary=cached_ical_primary_schedule,
     )
+    schedule.refresh_ical_final_schedule()
+    schedule.refresh_from_db()
 
     assert set(schedule.related_users()) == {user}
 
@@ -1604,6 +1620,7 @@ def test_user_related_schedules(
         )
         on_call_shift.add_rolling_users([[user]])
     schedule1.refresh_ical_file()
+    schedule1.refresh_ical_final_schedule()
 
     schedule2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     override_data = {
@@ -1617,9 +1634,26 @@ def test_user_related_schedules(
     )
     override.add_rolling_users([[admin]])
     schedule2.refresh_ical_file()
+    schedule2.refresh_ical_final_schedule()
 
     # schedule3
     make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    # schedule4
+    schedule4 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    # user was part of the schedule some time ago (outside of the final schedule window)
+    override_data = {
+        "start": today - timezone.timedelta(days=21),
+        "rotation_start": today - timezone.timedelta(days=21),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule4,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[admin]])
+    schedule4.refresh_ical_file()
+    schedule4.refresh_ical_final_schedule()
 
     schedules = OnCallSchedule.objects.related_to_user(admin)
     assert set(schedules) == {schedule1, schedule2}
@@ -1658,6 +1692,7 @@ def test_user_related_schedules_only_username(
         )
         on_call_shift.add_rolling_users([[user]])
     schedule1.refresh_ical_file()
+    schedule1.refresh_ical_final_schedule()
 
     schedule2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     override_data = {
@@ -1671,6 +1706,7 @@ def test_user_related_schedules_only_username(
     )
     override.add_rolling_users([[user]])
     schedule2.refresh_ical_file()
+    schedule2.refresh_ical_final_schedule()
 
     # schedule3
     schedule3 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -1685,6 +1721,7 @@ def test_user_related_schedules_only_username(
     )
     override.add_rolling_users([[other_user]])
     schedule3.refresh_ical_file()
+    schedule3.refresh_ical_final_schedule()
 
     schedules = OnCallSchedule.objects.related_to_user(user)
     assert set(schedules) == {schedule1, schedule2}
