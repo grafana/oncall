@@ -1,7 +1,7 @@
 import { ComponentClass } from 'react';
 
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
-import { IRM_TAB } from 'helpers/consts';
+import { getIsIrmPluginPresent, IRM_TAB } from 'helpers/consts';
 import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'helpers/helpers';
 
 import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
@@ -45,7 +45,8 @@ function isUseProfileExtensionPointEnabled(): boolean {
     isCurrentGrafanaVersionEqualOrGreaterThan({ minMajor: 10, minMinor: 3 }) &&
     'configureExtensionComponent' in plugin &&
     PluginExtensionPoints != null &&
-    'UserProfileTab' in PluginExtensionPoints
+    'UserProfileTab' in PluginExtensionPoints &&
+    !getIsIrmPluginPresent()
   );
 }
 

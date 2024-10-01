@@ -114,6 +114,7 @@ def test_add_user_no_warning(manage_responders_setup, make_schedule, make_on_cal
     )
     on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
     # setup notification policy
     make_user_notification_policy(
         user=user,
@@ -199,6 +200,7 @@ def test_get_users_select(make_organization, make_user, make_schedule, make_on_c
     )
     on_call_shift.add_rolling_users([[oncall_user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     select_input = _get_users_select(
         organization=organization, input_id_prefix="test", action_id="test", max_options_per_group=2

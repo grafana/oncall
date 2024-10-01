@@ -9,8 +9,6 @@ import { LegacyNavHeading } from 'navbar/LegacyNavHeading';
 import { Text } from 'components/Text/Text';
 import { ApiTokenSettings } from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { TeamsSettings } from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 
 export const MainSettings = observer(() => {
@@ -50,14 +48,6 @@ export const MainSettings = observer(() => {
           </WithPermissionControlTooltip>
         </Field>
       </div>
-      {!isTopNavbar() && (
-        <div style={{ marginBottom: '20px' }}>
-          <Text.Title level={3} className={styles.title}>
-            Teams and Access Settings
-          </Text.Title>
-          <TeamsSettings />
-        </div>
-      )}
       <Text.Title level={3} className={styles.title}>
         API URL
       </Text.Title>

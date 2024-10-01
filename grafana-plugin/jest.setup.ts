@@ -11,9 +11,7 @@ import { TextEncoder, TextDecoder } from 'util';
 jest.mock('@grafana/runtime', () => ({
   __esModule: true,
   config: {
-    featureToggles: {
-      topNav: false,
-    },
+    featureToggles: {},
     bootData: {
       user: {
         timezone: 'UTC',

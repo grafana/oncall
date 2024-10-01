@@ -1,11 +1,9 @@
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-
 interface LegacyNavHeadingProps {
   children: JSX.Element;
   show?: boolean;
 }
 
 export const LegacyNavHeading = function (props: LegacyNavHeadingProps): JSX.Element {
-  const { show = !isTopNavbar(), children } = props;
+  const { show = false, children } = props;
   return show ? children : null;
 };

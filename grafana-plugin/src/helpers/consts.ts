@@ -1,3 +1,4 @@
+import { GrafanaBootConfig } from '@grafana/runtime';
 import { OnCallAppPluginMeta } from 'app-types';
 
 //@ts-ignore
@@ -9,8 +10,10 @@ export const PluginId = {
 } as const;
 export type PluginId = (typeof PluginId)[keyof typeof PluginId];
 
+export const getIsIrmPluginPresent = () => PluginId.Irm in (window.grafanaBootData?.settings as GrafanaBootConfig).apps;
+
 // Determine current environment: cloud, oss or local
-const CLOUD_VERSION_REGEX = /^(v\d+\.\d+\.\d+|github-actions-[a-zA-Z0-9-]+)$/
+const CLOUD_VERSION_REGEX = /^(v\d+\.\d+\.\d+|github-actions-[a-zA-Z0-9-]+)$/;
 const determineCurrentEnv = (): 'oss' | 'cloud' | 'local' => {
   if (CLOUD_VERSION_REGEX.test(plugin?.version)) {
     return 'cloud';
