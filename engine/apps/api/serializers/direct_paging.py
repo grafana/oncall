@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup
 from apps.user_management.models import Organization
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import SanitizedCharField, TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentTeamDefault
 
 
@@ -43,8 +43,8 @@ class BasePagingSerializer(serializers.Serializer):
     alert_group_id = serializers.CharField(required=False, default=None)
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
 
-    title = serializers.CharField(required=False, default=None)
-    message = serializers.CharField(required=False, default=None, allow_null=True)
+    title = SanitizedCharField(required=False, default=None)
+    message = SanitizedCharField(required=False, default=None, allow_null=True)
     source_url = serializers.URLField(required=False, default=None, allow_null=True)
 
     def validate(self, attrs):

@@ -13,11 +13,21 @@ message = "Testing escalation with new alert group"
 source_url = "https://www.example.com"
 
 
+@pytest.mark.parametrize(
+    "title,message",
+    [
+        (title, message),
+        # test that input is sanitized
+        ("<script>alert('hacked');</script>", "<script>alert('hacked');</script>"),
+    ],
+)
 @pytest.mark.django_db
 def test_escalation_new_alert_group(
     make_organization_and_user_with_token,
     make_user,
     make_user_auth_headers,
+    title,
+    message,
 ):
     organization, user, token = make_organization_and_user_with_token()
 

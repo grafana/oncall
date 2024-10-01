@@ -13,11 +13,21 @@ source_url = "https://www.example.com"
 grafana_incident_id = "abcd1234"
 
 
+@pytest.mark.parametrize(
+    "title,message",
+    [
+        (title, message),
+        # test that input is sanitized
+        ("<script>alert('hacked');</script>", "<script>alert('hacked');</script>"),
+    ],
+)
 @pytest.mark.django_db
 def test_direct_paging_new_alert_group(
     make_organization_and_user_with_plugin_token,
     make_user,
     make_user_auth_headers,
+    title,
+    message,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
 

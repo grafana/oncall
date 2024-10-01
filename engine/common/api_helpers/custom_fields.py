@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+import bleach
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import fields, serializers
@@ -227,3 +228,8 @@ class DurationSecondsField(serializers.FloatField):
 
     def to_representation(self, value):
         return str(value.total_seconds())
+
+
+class SanitizedCharField(serializers.CharField):
+    def to_internal_value(self, data: str):
+        return super().to_internal_value(bleach.clean(data))
