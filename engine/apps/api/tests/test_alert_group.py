@@ -2344,3 +2344,41 @@ def test_alert_group_external_urls(
         "url": "https://some-url",
     }
     assert response.json()["external_urls"] == [expected]
+
+
+@pytest.mark.django_db
+def test_filter_default_started_at(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    old_alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    old_alert_group.started_at = timezone.now() - timezone.timedelta(days=31)
+    old_alert_group.save(update_fields=["started_at"])
+    make_alert(alert_group=old_alert_group, raw_request_data=alert_raw_request_data)
+
+    new_alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=new_alert_group, raw_request_data=alert_raw_request_data)
+
+    client = APIClient()
+
+    # by default, no alert groups older than 30 days should be listed
+    response = client.get(reverse("api-internal:alertgroup-list"), **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 1
+    assert response.json()["results"][0]["pk"] == new_alert_group.public_primary_key
+
+    # but it should still be possible to retrieve an old alert group by its ID
+    response = client.get(
+        reverse("api-internal:alertgroup-detail", kwargs={"pk": old_alert_group.public_primary_key}),
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["pk"] == old_alert_group.public_primary_key
