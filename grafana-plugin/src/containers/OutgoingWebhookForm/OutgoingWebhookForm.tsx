@@ -100,7 +100,11 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
     defaultValues: data,
   });
 
-  const { setValue, reset, setError } = formMethods;
+  const {
+    setValue,
+    reset,
+    setError,
+  } = formMethods;
 
   const onSubmit = useCallback(
     async (rawData: Partial<ApiSchemas['Webhook']>) => {
@@ -115,8 +119,11 @@ export const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) =>
         onHide();
         onUpdate();
       } catch (error) {
+        const values = formMethods.getValues();
         Object.keys(error.response.data).forEach((key) => {
-          setError(key as WebhookFormFieldName, { message: error.response.data[key][0] });
+          if (key in values) {
+            setError(key as WebhookFormFieldName, { message: error.response.data[key][0] });
+          }
         });
       }
     },

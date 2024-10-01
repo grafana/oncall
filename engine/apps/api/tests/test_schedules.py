@@ -435,6 +435,7 @@ def test_get_list_schedules_by_mine(
     )
     override.add_rolling_users([[user]])
     web_schedule.refresh_ical_file()
+    web_schedule.refresh_ical_final_schedule()
 
     url = reverse("api-internal:schedule-list") + query_param
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -1497,6 +1498,7 @@ def test_next_shifts_per_user(
     override.add_rolling_users([[user_c]])
 
     # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
+    schedule.refresh_ical_final_schedule()
 
     url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
@@ -1569,6 +1571,7 @@ def test_next_shifts_per_user_ical_schedule_using_emails(
         schedule_class=OnCallScheduleICal,
         cached_ical_file_primary=cached_ical_primary_schedule,
     )
+    schedule.refresh_ical_final_schedule()
 
     url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
@@ -1628,6 +1631,7 @@ def test_related_users(
     )
     override.add_rolling_users([[user_c]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     url = reverse("api-internal:schedule-related-users", kwargs={"pk": schedule.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))

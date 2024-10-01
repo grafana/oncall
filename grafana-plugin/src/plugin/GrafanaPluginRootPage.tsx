@@ -32,10 +32,10 @@ import { LiveSettings } from 'pages/settings/tabs/LiveSettings/LiveSettingsPage'
 import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
-import 'assets/style/global.css';
 
 import { getQueryParams } from './GrafanaPluginRootPage.helpers';
 
+import globalStyles from '!raw-loader!assets/style/global.css';
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = observer((props: AppRootProps) => {
@@ -84,6 +84,7 @@ export const Root = observer((props: AppRootProps) => {
     const styleEl = document.createElement('style');
     const head = document.head || document.getElementsByTagName('head')[0];
     styleEl.appendChild(document.createTextNode(grafanaGlobalStyle));
+    styleEl.appendChild(document.createTextNode(globalStyles));
 
     // append grafana overriding styles to head
     head.appendChild(styleEl);

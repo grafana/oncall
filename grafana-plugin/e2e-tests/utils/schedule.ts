@@ -15,7 +15,7 @@ export const createOnCallSchedule = async (
 
   // create an oncall-rotation schedule
   await clickButton({ page, buttonText: 'New Schedule' });
-  (await page.waitForSelector('button >> text=Create >> nth=0')).click();
+  await page.getByRole('button', { name: 'Create' }).first().click();
 
   // fill in the name input
   await page.getByTestId('schedule-form').locator('input[name="name"]').fill(scheduleName);
