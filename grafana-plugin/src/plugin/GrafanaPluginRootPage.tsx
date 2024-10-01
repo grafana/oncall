@@ -8,8 +8,6 @@ import { DEFAULT_PAGE, getOnCallApiUrl } from 'helpers/consts';
 import { FaroHelper } from 'helpers/faro';
 import { useOnMount } from 'helpers/hooks';
 import { observer, Provider } from 'mobx-react';
-import { Header } from 'navbar/Header/Header';
-import { LegacyNavTabsBar } from 'navbar/LegacyNavTabsBar';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom-v5-compat';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
@@ -35,7 +33,7 @@ import { UsersPage } from 'pages/users/Users';
 import { rootStore } from 'state/rootStore';
 import { useStore } from 'state/useStore';
 
-import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
+import { getQueryParams } from './GrafanaPluginRootPage.helpers';
 
 import globalStyles from '!raw-loader!assets/style/global.css';
 import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
@@ -113,22 +111,12 @@ export const Root = observer((props: AppRootProps) => {
 
   return (
     <DefaultPageLayout {...props} page={page} pageNav={getPageNav()}>
-      {!isTopNavbar() && (
-        <>
-          <Header />
-          <LegacyNavTabsBar currentPage={page} />
-        </>
-      )}
       <div
         className={cx(
           css`
             position: relative;
             flex-grow: 1;
           `,
-          {
-            'u-overflow-x-auto': !isTopNavbar(),
-            'page-body': !isTopNavbar(),
-          }
         )}
       >
         <RenderConditionally
