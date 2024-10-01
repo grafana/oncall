@@ -51,6 +51,8 @@ export const getIncidentStyles = (theme: GrafanaTheme2) => {
 
       a {
         word-break: break-all;
+        color: ${theme.colors.text.link};
+        text-decoration: underline;
       }
 
       ul {

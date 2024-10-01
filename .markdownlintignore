@@ -6,3 +6,5 @@ venv
 .idea
 .DS_Store
 .env
+
+CHANGELOG.md

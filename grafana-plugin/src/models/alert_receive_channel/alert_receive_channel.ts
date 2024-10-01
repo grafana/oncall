@@ -44,7 +44,6 @@ export class AlertReceiveChannelStore {
     this.rootStore = rootStore;
   }
 
-  @WithGlobalNotification({ failure: 'There was an issue creating Integration. Please try again.' })
   async create({
     data,
     skipErrorHandling,
