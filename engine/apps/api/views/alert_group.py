@@ -332,8 +332,7 @@ class AlertGroupView(
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
         queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids)
 
-        # This is a quick fix to speed up requests from mobile app by adding default `started_at` filter value
-        if not self.request.query_params.get("started_at"):
+        if self.action in ("list", "stats") and not self.request.query_params.get("started_at"):
             queryset = queryset.filter(started_at__gte=timezone.now() - timezone.timedelta(days=30))
 
         if self.action in ("list", "stats") and settings.ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX:
