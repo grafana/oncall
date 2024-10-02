@@ -25,8 +25,8 @@ export enum TimeLineRealm {
 export interface TimeLineItem {
   action: string;
   author: ApiSchemas['User'] | null;
-  incident: DeclaredIncident | null;
   escalation_chain: TimelineLink | null;
+  incident: DeclaredIncident | null;
   schedule: TimelineLink | null;
   webhook: TimelineLink | null;
   created_at: string;
