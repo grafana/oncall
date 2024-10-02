@@ -71,6 +71,12 @@ def construct_expected_response_from_alert_groups(alert_groups):
                     "web": alert_group.web_link,
                 },
                 "silenced_at": silenced_at,
+                "last_alert": {
+                    "id": alert_group.alerts.last().public_primary_key,
+                    "alert_group_id": alert_group.public_primary_key,
+                    "created_at": alert_group.alerts.last().created_at.isoformat().replace("+00:00", "Z"),
+                    "payload": alert_group.channel.config.example_payload,
+                },
             }
         )
     return {
@@ -110,7 +116,7 @@ def alert_group_public_api_setup(
 
     make_alert(alert_group=grafana_alert_group_default_route, raw_request_data=grafana.config.example_payload)
     make_alert(alert_group=grafana_alert_group_non_default_route, raw_request_data=grafana.config.example_payload)
-    make_alert(alert_group=formatted_webhook_alert_group, raw_request_data=grafana.config.example_payload)
+    make_alert(alert_group=formatted_webhook_alert_group, raw_request_data=formatted_webhook.config.example_payload)
 
     integrations = grafana, formatted_webhook
     alert_groups = (
