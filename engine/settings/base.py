@@ -8,7 +8,7 @@ from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
 from common.api_helpers.custom_ratelimit import getenv_custom_ratelimit
-from common.utils import getenv_boolean, getenv_integer, getenv_list
+from common.utils import getenv_boolean, getenv_float, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -835,7 +835,7 @@ JINJA_RESULT_TITLE_MAX_LENGTH = os.getenv("JINJA_RESULT_TITLE_MAX_LENGTH", 500)
 JINJA_RESULT_MAX_LENGTH = os.getenv("JINJA_RESULT_MAX_LENGTH", 50000)
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
-SLOW_THRESHOLD_SECONDS = 2.0
+SLOW_THRESHOLD_SECONDS = getenv_float("SLOW_THRESHOLD_SECONDS", 2.0)
 
 # Email messaging backend
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
