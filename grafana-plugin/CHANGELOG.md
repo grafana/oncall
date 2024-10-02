@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.28](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.9.27...grafana-oncall-app-v1.9.28) (2024-10-01)
+
+
+### Bug Fixes
+
+* disallow oncall schedule rotation layer/overrides CUD form submissions more than once ([#193](https://github.com/grafana/irm/issues/193)) ([73ae1c7](https://github.com/grafana/irm/commit/73ae1c7d78474b42b9eb4305416828afeb04fa3a))
+
+
+### Miscellaneous Chores
+
+* implement merged IRM module.tsx ([#182](https://github.com/grafana/irm/issues/182)) ([995b573](https://github.com/grafana/irm/commit/995b5732493aabc226cd62b9ca52a1e582ef5878))
+
 ## [1.9.27](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.9.26...grafana-oncall-app-v1.9.27) (2024-09-26)
 
 

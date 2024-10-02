@@ -4,7 +4,7 @@ import { cx } from '@emotion/css';
 import { IconButton, Stack, Field, Button, useTheme2, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { StackSize } from 'helpers/consts';
-import { useDebouncedCallback, useResize } from 'helpers/hooks';
+import { useDebouncedCallback, useIsLoading, useResize } from 'helpers/hooks';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { Modal } from 'components/Modal/Modal';
@@ -13,6 +13,7 @@ import { Text } from 'components/Text/Text';
 import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
+import { ActionKey } from 'models/loader/action-keys';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -63,6 +64,11 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || propsShiftStart.add(24, 'hours'));
 
   const [offsetTop, setOffsetTop] = useState<number>(0);
+
+  const isCreating = useIsLoading(ActionKey.CREATE_ONCALL_SHIFT);
+  const isUpdating = useIsLoading(ActionKey.UPDATE_ONCALL_SHIFT);
+  const isDeleting = useIsLoading(ActionKey.DELETE_ONCALL_SHIFT);
+  const isSubmitting = isCreating || isUpdating || isDeleting;
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -197,7 +203,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
-  const disabled = ended;
+  const disabled = ended || isSubmitting;
 
   return (
     <Modal
@@ -230,7 +236,13 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           <Stack>
             {shiftId !== 'new' && (
               <WithConfirm title="Are you sure you want to delete override?">
-                <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
+                <IconButton
+                  variant="secondary"
+                  tooltip="Delete"
+                  name="trash-alt"
+                  onClick={handleDeleteClick}
+                  disabled={isSubmitting}
+                />
               </WithConfirm>
             )}
             <IconButton aria-label="Drag" variant="secondary" className="drag-handler" name="draggabledots" />
