@@ -242,48 +242,12 @@ class AlertGroupLogRecord(models.Model):
         "incident_title",
     ]
 
-    def _make_log_line_link(self, url, title, html=False, for_slack=False, substitute_with_tag=False):
-        if html and url:
-            return f"<a href='{url}'>{title}</a>"
-        elif for_slack and url:
-            return f"<{url}|{title}>"
-        elif substitute_with_tag:
-            return f"{{{{{substitute_with_tag}}}}}"
-        else:
-            return title
-
     def render_log_line_json(self):
         time = humanize.naturaldelta(self.alert_group.started_at - self.created_at)
         created_at = DateTimeField().to_representation(self.created_at)
         organization = self.alert_group.channel.organization
         author = self.author.short(organization) if self.author is not None else None
-        escalation_chain = self.alert_group.channel_filter.escalation_chain if self.alert_group.channel_filter else None
-        step_info = self.get_step_specific_info()
-        related_incident = self.render_incident_data_from_step_info(organization, step_info)
-        escalation_chain_data = (
-            {
-                "pk": escalation_chain.public_primary_key,
-                "title": escalation_chain.name,
-            }
-            if escalation_chain
-            else None
-        )
-        schedule = (
-            {
-                "pk": self.escalation_policy.notify_schedule.public_primary_key,
-                "title": self.escalation_policy.notify_schedule.name,
-            }
-            if self.escalation_policy and self.escalation_policy.notify_schedule
-            else None
-        )
-        webhook = (
-            {
-                "pk": step_info["webhook_id"],
-                "title": step_info.get("webhook_name", "webhook"),
-            }
-            if step_info and "webhook_id" in step_info
-            else None
-        )
+        related_incident = self.render_incident_data_from_step_info(organization, self.get_step_specific_info())
 
         sf = SlackFormatter(organization)
         action = sf.format(self.rendered_log_line_action(substitute_with_tag=True))
@@ -297,9 +261,6 @@ class AlertGroupLogRecord(models.Model):
             "created_at": created_at,
             "author": author,
             "incident": related_incident,
-            "escalation_chain": escalation_chain_data,
-            "schedule": schedule,
-            "webhook": webhook,
         }
         return result
 
@@ -359,9 +320,7 @@ class AlertGroupLogRecord(models.Model):
                 result += f'alert group assigned to route "{channel_filter.str_for_clients}"'
 
                 if escalation_chain is not None:
-                    tag = "escalation_chain" if substitute_with_tag else False
-                    escalation_chain_text = self._make_log_line_link(None, escalation_chain.name, html, for_slack, tag)
-                    result += f' with escalation chain "{escalation_chain_text}"'
+                    result += f' with escalation chain "{escalation_chain.name}"'
                 else:
                     result += " with no escalation chain, skipping escalation"
             else:
@@ -437,9 +396,7 @@ class AlertGroupLogRecord(models.Model):
                 important_text = ""
                 if escalation_policy_step == EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT:
                     important_text = " (Important)"
-                tag = "schedule" if substitute_with_tag else False
-                schedule_text = self._make_log_line_link(None, schedule_name, html, for_slack, tag)
-                result += f'triggered step "Notify on-call from Schedule {schedule_text}{important_text}"'
+                result += f'triggered step "Notify on-call from Schedule {schedule_name}{important_text}"'
             elif escalation_policy_step == EscalationPolicy.STEP_REPEAT_ESCALATION_N_TIMES:
                 result += "escalation started from the beginning"
             elif escalation_policy_step == EscalationPolicy.STEP_DECLARE_INCIDENT:
@@ -447,9 +404,16 @@ class AlertGroupLogRecord(models.Model):
                 incident_data = self.render_incident_data_from_step_info(organization, step_specific_info)
                 incident_link = incident_data["incident_link"]
                 incident_title = incident_data["incident_title"]
-                tag = "related_incident" if substitute_with_tag else False
-                incident_text = self._make_log_line_link(incident_link, incident_title, html, for_slack, tag)
-                result += self.reason + f": {incident_text}"
+
+                result += self.reason
+                if html:
+                    result += f": <a href='{incident_link}'>{incident_title}</a>"
+                elif for_slack:
+                    result += f": <{incident_link}|{incident_title}>"
+                elif substitute_with_tag:
+                    result += ": {{related_incident}}"
+                else:
+                    result += f": {incident_title}"
             else:
                 result += f'triggered step "{EscalationPolicy.get_step_display_name(escalation_policy_step)}"'
         elif self.type == AlertGroupLogRecord.TYPE_SILENCE:
@@ -553,10 +517,7 @@ class AlertGroupLogRecord(models.Model):
                 trigger = f"{author_name}"
             else:
                 trigger = trigger or "escalation chain"
-            tag = "webhook" if substitute_with_tag else False
-            webhook_text = self._make_log_line_link(None, webhook_name, html, for_slack, tag)
-            result += f"outgoing webhook `{webhook_text}` triggered by {trigger}"
-
+            result += f"outgoing webhook `{webhook_name}` triggered by {trigger}"
         elif self.type == AlertGroupLogRecord.TYPE_FAILED_ATTACHMENT:
             if self.alert_group.slack_message is not None:
                 result += (
