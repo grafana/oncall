@@ -312,3 +312,25 @@ def test_construct_title(make_organization, make_team, make_user_for_organizatio
     assert _construct_title(from_user, team, multiple_users) == _title(
         f"{team.name}, {user1.username}, {user2.username} and {user3.username}"
     )
+
+
+@pytest.mark.django_db
+def test_direct_paging_title_and_message_are_html_escaped(make_organization, make_user_for_organization):
+    dirty_input = "<script>alert('hacked');</script>"
+    clean_input = "&lt;script&gt;alert('hacked');&lt;/script&gt;"
+
+    organization = make_organization()
+    from_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    direct_paging(organization, from_user, dirty_input, dirty_input, users=[(other_user, False)])
+
+    # alert group created
+    alert_groups = AlertGroup.objects.all()
+    assert alert_groups.count() == 1
+    ag = alert_groups.get()
+    alert = ag.alerts.get()
+
+    assert ag.web_title_cache == clean_input
+    assert alert.title == clean_input
+    assert alert.message == clean_input
