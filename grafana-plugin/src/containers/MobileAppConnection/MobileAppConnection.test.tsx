@@ -9,10 +9,6 @@ import { rootStore } from 'state/rootStore';
 
 import { MobileAppConnection } from './MobileAppConnection';
 
-jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
-  isTopNavbar: () => false,
-}));
-
 jest.mock('helpers/authorization/authorization', () => ({
   ...jest.requireActual('helpers/authorization/authorization'),
   isUserActionAllowed: jest.fn().mockReturnValue(true),

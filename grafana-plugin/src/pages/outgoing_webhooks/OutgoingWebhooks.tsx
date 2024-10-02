@@ -196,17 +196,19 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 }
               />
             )}
-            <div className={styles.newWebhookButton}>
-              <PluginLink
-                query={{ page: 'outgoing_webhooks', id: 'new' }}
-                disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
-              >
-                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                  <Button variant="primary" icon="plus">
-                    New Outgoing Webhook
-                  </Button>
-                </WithPermissionControlTooltip>
-              </PluginLink>
+            <div className={styles.relative}>
+              <div className={styles.newWebhookButton}>
+                <PluginLink
+                  query={{ page: 'outgoing_webhooks', id: 'new' }}
+                  disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
+                >
+                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                    <Button variant="primary" icon="plus">
+                      New Outgoing Webhook
+                    </Button>
+                  </WithPermissionControlTooltip>
+                </PluginLink>
+              </div>
             </div>
 
             <div data-testid="outgoing-webhooks-table">
@@ -464,10 +466,15 @@ const getStyles = () => {
       align-items: baseline;
     `,
 
+    relative: css`
+      position: relative;
+      padding-top: 16px;
+    `,
+
     newWebhookButton: css`
       position: absolute;
       right: 0;
-      top: -48px;
+      top: -40px;
     `,
   };
 };
