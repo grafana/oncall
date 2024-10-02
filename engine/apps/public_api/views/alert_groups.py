@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup
+from apps.alerts.models import AlertGroup, AlertReceiveChannel
 from apps.alerts.tasks import delete_alert_group, wipe
 from apps.api.label_filtering import parse_label_query
 from apps.auth_token.auth import ApiTokenAuthentication
@@ -75,14 +75,17 @@ class AlertGroupView(
         integration_id = self.request.query_params.get("integration_id", None)
         state = self.request.query_params.get("state", None)
 
-        queryset = AlertGroup.objects.filter(
-            channel__organization=self.request.auth.organization,
-        ).order_by("-started_at")
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
+            organization_id=self.request.auth.organization.id
+        )
+        if integration_id:
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(public_primary_key=integration_id)
+
+        alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
+        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids).order_by("-started_at")
 
         if route_id:
             queryset = queryset.filter(channel_filter__public_primary_key=route_id)
-        if integration_id:
-            queryset = queryset.filter(channel__public_primary_key=integration_id)
         if state:
             choices = dict(AlertGroup.STATUS_CHOICES)
             try:
@@ -114,15 +117,6 @@ class AlertGroupView(
             )
 
         return queryset
-
-    def paginate_queryset(self, queryset):
-        """
-        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
-        for one page of alert groups, not the whole table.
-        """
-        alert_groups = super().paginate_queryset(queryset)
-        alert_groups = self.enrich(alert_groups)
-        return alert_groups
 
     def get_object(self):
         public_primary_key = self.kwargs["pk"]

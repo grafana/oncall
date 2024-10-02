@@ -415,6 +415,15 @@ class GrafanaHeadersMixin:
 
 
 class AlertGroupEnrichingMixin:
+    def paginate_queryset(self, queryset):
+        """
+        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
+        for one page of alert groups, not the whole table.
+        """
+        alert_groups = super().paginate_queryset(queryset.only("id"))
+        alert_groups = self.enrich(alert_groups)
+        return alert_groups
+
     def enrich(self, alert_groups: typing.List[AlertGroup]) -> typing.List[AlertGroup]:
         """
         This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins

@@ -24,9 +24,16 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
     last_alert = serializers.SerializerMethodField()
 
-    SELECT_RELATED = ["channel", "channel_filter", "channel__organization", "channel__team"]
-    PREFETCH_RELATED: list[str | Prefetch] = ["labels"]
-    PREFETCH_RELATED += [
+    SELECT_RELATED = [
+        "channel",
+        "channel_filter",
+        "channel__organization",
+        "channel__team",
+        "acknowledged_by_user",
+        "resolved_by_user",
+    ]
+    PREFETCH_RELATED = [
+        "labels",
         Prefetch(
             "slack_messages",
             queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],
@@ -75,17 +82,18 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return None
 
     def get_last_alert(self, obj):
-        if hasattr(obj, "last_alert") and obj.last_alert:
-            return AlertSerializer(obj.last_alert).data
-        # Fall back to the latest alert in the group if the last_alert is not set by AlertGroupEnrichingMixin
-        if obj.alerts.exists():
-            return AlertSerializer(obj.alerts.latest("created_at")).data
-        return None
+        if hasattr(obj, "last_alert"):  # could be set by AlertGroupEnrichingMixin.enrich
+            last_alert = obj.last_alert
+        else:
+            last_alert = obj.alerts.order_by("-created_at").first()
+
+        if last_alert is None:
+            return None
+
+        return AlertSerializer(last_alert).data
 
     def get_alerts_count(self, obj):
-        if hasattr(obj, "alerts_count") and obj.alerts_count is not None:
+        if hasattr(obj, "alerts_count"):  # could be set by AlertGroupEnrichingMixin.enrich
             return obj.alerts_count
-        # Fall back to the count of alerts in the group if the alerts_count is not set by AlertGroupEnrichingMixin
-        if obj.alerts.exists():
-            return obj.alerts.count()
-        return 0
+
+        return obj.alerts.count()

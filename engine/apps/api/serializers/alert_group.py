@@ -132,12 +132,10 @@ class AlertGroupListSerializer(
 
     labels = AlertGroupLabelSerializer(many=True, read_only=True)
 
-    PREFETCH_RELATED: list[str | Prefetch] = [
+    PREFETCH_RELATED = [
         "dependent_alert_groups",
         "log_records__author",
         "labels",
-    ]
-    PREFETCH_RELATED += [
         Prefetch(
             "slack_messages",
             queryset=SlackMessage.objects.select_related("_slack_team_identity").order_by("created_at")[:1],

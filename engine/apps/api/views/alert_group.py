@@ -361,18 +361,7 @@ class AlertGroupView(
                 labels__value_name=value,
             )
 
-        queryset = queryset.only("id")
-
         return queryset
-
-    def paginate_queryset(self, queryset):
-        """
-        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
-        for 25 alert groups, not the whole table.
-        """
-        alert_groups = super().paginate_queryset(queryset)
-        alert_groups = self.enrich(alert_groups)
-        return alert_groups
 
     def get_object(self):
         obj = super().get_object()
