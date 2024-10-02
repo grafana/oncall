@@ -2,7 +2,6 @@ import copy
 import datetime
 import itertools
 import logging
-import math
 import typing
 from calendar import monthrange
 from uuid import uuid4
@@ -303,10 +302,7 @@ class CustomOnCallShift(models.Model):
 
         return is_finished
 
-    def _calculate_week_interval(self, last_start, orig_start):
-        return math.ceil((last_start - orig_start).days / 7) or 1
-
-    def _daily_by_day_to_ical(self, time_zone, start, users_queue, override_week_interval=None):
+    def _daily_by_day_to_ical(self, time_zone, start, users_queue):
         """Create ical weekly shifts to distribute user groups combining daily + by_day.
 
         e.g.
@@ -327,38 +323,53 @@ class CustomOnCallShift(models.Model):
         # we may need to iterate several times over users until we get a seen combination
         # use the group index as reference since user groups could repeat in the queue
         cycle_user_groups = itertools.cycle(range(len(users_queue)))
-        orig_start = last_start = start
+        previous_day = None
         all_rotations_checked = False
         # we need to go through each individual day
         day_by_day_rrule = copy.deepcopy(self.event_ical_rules)
         day_by_day_rrule["interval"] = 1
         for user_group_id in cycle_user_groups:
             for i in range(self.interval):
-                if not start:  # means that rotation ends before next event starts
-                    all_rotations_checked = True
-                    break
-                last_start = start
-                day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
-                # double-check day is valid (when until is set, we may get unexpected days)
-                if day in self.by_day:
+                if not start:
+                    # means that rotation ended before next event starts
+                    # keep iterating to track missing combinations and get the right week_interval
+                    if previous_day is None:
+                        day = self.by_day[0]
+                    else:
+                        previous_index = self.by_day.index(previous_day)
+                        day = self.by_day[(previous_index + 1) % len(self.by_day)]
+
                     if (user_group_id, day, i) in combinations:
                         all_rotations_checked = True
                         break
-
-                    starting_dates.append(start)
                     combinations.append((user_group_id, day, i))
-                # get next event date following the original rule
-                event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
-                start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
+                    previous_day = day
+                else:
+                    day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
+                    # double-check day is valid (when until is set, we may get unexpected days)
+                    if day in self.by_day:
+                        if (user_group_id, day, i) in combinations:
+                            all_rotations_checked = True
+                            break
+
+                        starting_dates.append(start)
+                        combinations.append((user_group_id, day, i))
+                        previous_day = day
+                    # get next event date following the original rule
+                    event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
+                    start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
+
             if all_rotations_checked:
                 break
 
-        week_interval = 1
-        if orig_start and last_start:
-            # number of weeks used to cover all combinations
-            week_interval = self._calculate_week_interval(last_start, orig_start)
+        # interval is given by the number of weeks required to cover all combinations
+        week_interval = (len(combinations) // len(self.by_day)) or 1
+
         counter = 1
-        for (user_group_id, day, _), start in zip(combinations, starting_dates):
+        for (user_group_id, day, _), start in itertools.zip_longest(combinations, starting_dates, fillvalue=None):
+            if not start:
+                # means that rotation ended before next event starts, no more events to generate
+                break
             users = users_queue[user_group_id]
             for user_counter, user in enumerate(users, start=1):
                 # setup weekly events, for each user group/day combinations,
