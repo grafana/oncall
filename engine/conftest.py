@@ -424,7 +424,6 @@ def make_user():
         if permissions is None:
             permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
             permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
-        print("YOOOO", permissions, role)
         return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user
