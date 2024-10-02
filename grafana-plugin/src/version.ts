@@ -2,4 +2,4 @@
 export const GIT_COMMIT = 'dev';
 
 // Declare a constant that will be updated by release-please action
-export const CURRENT_VERSION = '1.9.23' as string; // x-release-please-version
+export const CURRENT_VERSION = '1.9.28' as string; // x-release-please-version

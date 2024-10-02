@@ -16,7 +16,7 @@ import {
 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { GRAFANA_HEADER_HEIGHT, StackSize } from 'helpers/consts';
-import { useDebouncedCallback, useResize } from 'helpers/hooks';
+import { useDebouncedCallback, useIsLoading, useResize } from 'helpers/hooks';
 import { observer } from 'mobx-react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
@@ -51,6 +51,7 @@ import { DeletionModal } from 'containers/RotationForm/parts/DeletionModal';
 import { TimeUnitSelector } from 'containers/RotationForm/parts/TimeUnitSelector';
 import { UserItem } from 'containers/RotationForm/parts/UserItem';
 import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
+import { ActionKey } from 'models/loader/action-keys';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -113,6 +114,10 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const styles = useStyles2(getRotationFormStyles);
 
   const [startRotationFromUserIndex, setStartRotationFromUserIndex] = useState(0);
+
+  const isCreating = useIsLoading(ActionKey.CREATE_ONCALL_SHIFT);
+  const isUpdating = useIsLoading(ActionKey.UPDATE_ONCALL_SHIFT);
+  const isSubmitting = isCreating || isUpdating;
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
   const [bounds, setDraggableBounds] = useState<{ left: number; right: number; top: number; bottom: number }>(
@@ -526,7 +531,7 @@ export const RotationForm = observer((props: RotationFormProps) => {
   const hasUpdatedShift = shift && shift.updated_shift;
   const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
 
-  const disabled = hasUpdatedShift || ended;
+  const disabled = hasUpdatedShift || ended || isSubmitting;
 
   return (
     <>

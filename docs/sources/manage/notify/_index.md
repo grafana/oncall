@@ -34,21 +34,21 @@ To configure supported messaging apps, refer to the following topics:
 
 {{< section >}}
 
-## Configure user notification policies
+## Configure user notification rules
 
-Notification policies are a configurable set of notification steps that determine how you're notified of alert in OnCall. Users with the Admin or Editor role are
+Notification rules are a configurable set of notification steps that determine how you're notified of alert in OnCall. Users with the Admin or Editor role are
 able to receive notifications.
 Users can verify phone numbers and email addresses in the **Users** tab of Grafana OnCall.
 
-- **Default Notifications** dictate how a user is notified for most escalation thresholds.
+- **Default notification rules** dictate how a user is notified for most escalation thresholds.
 
-- **Important Notifications** are labeled in escalation chains. If an escalation event is marked as an important notification,
-it will bypass **Default Notification** settings and notify the user by the method specified.
+- **Important notification rules** are labeled in escalation chains. If an escalation event is marked as an important notification,
+it will bypass **Default notification rules** settings and notify the user by the method specified.
 
 > **NOTE**: You cannot add users or manage permissions in Grafana OnCall. User settings are found on the
 > organizational level of your Grafana instance in **Configuration > Users**.
 
-To configure a users notification policy:
+To configure a users notification rules:
 
 1. Navigate to the **Users** tab of Grafana OnCall and search for or select a user.
 

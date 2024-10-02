@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.db.models import Q
 from rest_framework.decorators import action
@@ -5,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.models import EscalationPolicy
+from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_policy import (
     EscalationPolicyCreateSerializer,
@@ -19,8 +22,11 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
+from common.incident_api.client import DEFAULT_INCIDENT_SEVERITY, IncidentAPIClient, IncidentAPIException
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
+
+logger = logging.getLogger(__name__)
 
 
 class EscalationPolicyView(
@@ -42,6 +48,7 @@ class EscalationPolicyView(
         "escalation_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
         "delay_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
         "num_minutes_in_window_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "severity_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
         "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "partial_update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
@@ -116,6 +123,7 @@ class EscalationPolicyView(
 
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):
+        grafana_declare_incident_enabled = is_declare_incident_step_enabled(organization=self.request.auth.organization)
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
@@ -124,6 +132,8 @@ class EscalationPolicyView(
             )
             slack_integration_required = step in EscalationPolicy.SLACK_INTEGRATION_REQUIRED_STEPS
             if slack_integration_required and not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
+                continue
+            if step == EscalationPolicy.STEP_DECLARE_INCIDENT and not grafana_declare_incident_enabled:
                 continue
             choices.append(
                 {
@@ -150,4 +160,26 @@ class EscalationPolicyView(
         choices = [
             {"value": choice[0], "display_name": choice[1]} for choice in EscalationPolicy.WEB_DURATION_CHOICES_MINUTES
         ]
+        return Response(choices)
+
+    @action(detail=False, methods=["get"])
+    def severity_options(self, request):
+        organization = self.request.auth.organization
+        choices = []
+        if organization.is_grafana_labels_enabled:
+            choices = [
+                {
+                    "value": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
+                    "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL_DISPLAY_VALUE,
+                }
+            ]
+        incident_client = IncidentAPIClient(organization.grafana_url, organization.api_token)
+        try:
+            severities, _ = incident_client.get_severities()
+            choices += [
+                {"value": severity["displayLabel"], "display_name": severity["displayLabel"]} for severity in severities
+            ]
+        except IncidentAPIException as e:
+            logger.error(f"Error getting severities: {e.msg}")
+            choices += [{"value": DEFAULT_INCIDENT_SEVERITY, "display_name": DEFAULT_INCIDENT_SEVERITY}]
         return Response(choices)
