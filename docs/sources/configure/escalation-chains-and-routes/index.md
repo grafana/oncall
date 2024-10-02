@@ -84,7 +84,7 @@ This provides additional flexibility in routing alerts based on both labels and 
 
 ## Escalation Chains
 
-Escalation chains define the series of actions takem when an alert is triggered.
+Escalation chains define the series of actions taken when an alert is triggered.
 The chain continues until a user intervenes by acknowledging, resolving, or silencing the alert.
 
 You can configure different escalation chains for different workflows.
@@ -120,7 +120,7 @@ Changes to the escalation chain impact all associated integrations and routes.
 - `Time-based escalation`: Continue escalation only if the current time falls within a specific range (e.g., during working hours)
 - `Threshold-based escalation`: Escalate only if a certain number of alerts occur within a specific time frame.
 - `Repeat escalation`: Loop the escalation chain up to five times.
-- `Declare incident (non-default routes)`:**Available in Grafana Cloud** Declares an incident with a specified severity.
+- `Declare incident (non-default routes)`: **Available only in Grafana Cloud**. Declares an incident with a specified severity.
 Limited to one incident per route at a time.
 Additional alerts are grouped into the active incident, and up to five are listed as incident context.
 
