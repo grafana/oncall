@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
-from apps.api.permissions import BasicRolePermission, LegacyAccessControlRole
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.labels import (
     LabelKeySerializer,
     LabelOptionSerializer,
@@ -35,16 +35,16 @@ class LabelsViewSet(LabelsFeatureFlagViewSet):
     Proxy requests to labels-app to create/update labels
     """
 
-    permission_classes = (IsAuthenticated, BasicRolePermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = (PluginAuthentication,)
-    basic_role_permissions = {
-        "get_keys": LegacyAccessControlRole.VIEWER,
-        "get_key": LegacyAccessControlRole.VIEWER,
-        "get_value": LegacyAccessControlRole.VIEWER,
-        "rename_key": LegacyAccessControlRole.EDITOR,
-        "create_label": LegacyAccessControlRole.EDITOR,
-        "add_value": LegacyAccessControlRole.EDITOR,
-        "rename_value": LegacyAccessControlRole.EDITOR,
+    rbac_permissions = {
+        "create_label": [RBACPermission.Permissions.LABEL_CREATE],
+        "rename_key": [RBACPermission.Permissions.LABEL_WRITE],
+        "add_value": [RBACPermission.Permissions.LABEL_WRITE],
+        "rename_value": [RBACPermission.Permissions.LABEL_WRITE],
+        "get_keys": [RBACPermission.Permissions.LABEL_READ],
+        "get_key": [RBACPermission.Permissions.LABEL_READ],
+        "get_value": [RBACPermission.Permissions.LABEL_READ],
     }
 
     @extend_schema(responses=LabelKeySerializer(many=True))
@@ -160,11 +160,11 @@ class AlertGroupLabelsViewSet(LabelsFeatureFlagViewSet):
     Alert group labels are stored in the database, not in the label repo.
     """
 
-    permission_classes = (IsAuthenticated, BasicRolePermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = (PluginAuthentication,)
-    basic_role_permissions = {
-        "get_keys": LegacyAccessControlRole.VIEWER,
-        "get_key": LegacyAccessControlRole.VIEWER,
+    rbac_permissions = {
+        "get_keys": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "get_key": [RBACPermission.Permissions.ALERT_GROUPS_READ],
     }
 
     @extend_schema(responses=LabelKeySerializer(many=True))

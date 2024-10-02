@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup
+from apps.alerts.models import AlertGroup, AlertReceiveChannel
 from apps.alerts.tasks import delete_alert_group, wipe
 from apps.api.label_filtering import parse_label_query
 from apps.auth_token.auth import ApiTokenAuthentication
@@ -23,7 +23,7 @@ from common.api_helpers.filters import (
     DateRangeFilterMixin,
     get_team_queryset,
 )
-from common.api_helpers.mixins import RateLimitHeadersMixin
+from common.api_helpers.mixins import AlertGroupEnrichingMixin, RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
@@ -49,7 +49,12 @@ class AlertGroupFilters(ByTeamModelFieldFilterMixin, DateRangeFilterMixin, filte
 
 
 class AlertGroupView(
-    RateLimitHeadersMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet
+    AlertGroupEnrichingMixin,
+    RateLimitHeadersMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -64,18 +69,23 @@ class AlertGroupView(
     filterset_class = AlertGroupFilters
 
     def get_queryset(self):
+        # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+
         route_id = self.request.query_params.get("route_id", None)
         integration_id = self.request.query_params.get("integration_id", None)
         state = self.request.query_params.get("state", None)
 
-        queryset = AlertGroup.objects.filter(
-            channel__organization=self.request.auth.organization,
-        ).order_by("-started_at")
+        alert_receive_channels_qs = AlertReceiveChannel.objects_with_deleted.filter(
+            organization_id=self.request.auth.organization.id
+        )
+        if integration_id:
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(public_primary_key=integration_id)
+
+        alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
+        queryset = AlertGroup.objects.filter(channel__in=alert_receive_channels_ids).order_by("-started_at")
 
         if route_id:
             queryset = queryset.filter(channel_filter__public_primary_key=route_id)
-        if integration_id:
-            queryset = queryset.filter(channel__public_primary_key=integration_id)
         if state:
             choices = dict(AlertGroup.STATUS_CHOICES)
             try:
@@ -112,9 +122,11 @@ class AlertGroupView(
         public_primary_key = self.kwargs["pk"]
 
         try:
-            return AlertGroup.objects.filter(
+            obj = AlertGroup.objects.filter(
                 channel__organization=self.request.auth.organization,
             ).get(public_primary_key=public_primary_key)
+            obj = self.enrich([obj])[0]
+            return obj
         except AlertGroup.DoesNotExist:
             raise NotFound
 

@@ -8,6 +8,7 @@ from .alert_receive_channel_connection import AlertGroupExternalID  # noqa: F401
 from .alert_receive_channel_connection import AlertReceiveChannelConnection  # noqa: F401
 from .channel_filter import ChannelFilter  # noqa: F401
 from .custom_button import CustomButton  # noqa: F401
+from .declared_incident import DeclaredIncident  # noqa: F401
 from .escalation_chain import EscalationChain  # noqa: F401
 from .escalation_policy import EscalationPolicy  # noqa: F401
 from .grafana_alerting_contact_point import GrafanaAlertingContactPoint  # noqa: F401

@@ -32,6 +32,7 @@ from apps.alerts.tests.factories import (
     AlertReceiveChannelFactory,
     ChannelFilterFactory,
     CustomActionFactory,
+    DeclaredIncidentFactory,
     EscalationChainFactory,
     EscalationPolicyFactory,
     InvitationFactory,
@@ -40,7 +41,6 @@ from apps.alerts.tests.factories import (
     UserNotificationBundleFactory,
 )
 from apps.api.permissions import (
-    ACTION_PREFIX,
     GrafanaAPIPermission,
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
@@ -111,6 +111,7 @@ from apps.webhooks.tests.test_webhook_presets import (
     TestAdvancedWebhookPreset,
     TestWebhookPreset,
 )
+from common.constants.plugin_ids import PluginID
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -355,11 +356,30 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
     with open("../grafana-plugin/src/plugin.json") as fp:
         plugin_json: PluginJSON = json.load(fp)
 
+    # NOTE: we need to manually add grafana-labels-app permissions here since these
+    # are granted to basic roles via the grafana-labels-app itself, and not
+    # ../grafana-plugin/src/plugin.json
+    #
+    # However, we do sync these permissions into our backend. See
+    # https://github.com/grafana/irm/pull/200 for more details
+    #
+    # We don't currently add the label delete permission here because we don't currently
+    # use this in OnCall
     role_mapping: RoleMapping = {
         LegacyAccessControlRole.NONE: [],
-        LegacyAccessControlRole.VIEWER: [],
-        LegacyAccessControlRole.EDITOR: [],
-        LegacyAccessControlRole.ADMIN: [],
+        LegacyAccessControlRole.VIEWER: [
+            RBACPermission.Permissions.LABEL_READ,
+        ],
+        LegacyAccessControlRole.EDITOR: [
+            RBACPermission.Permissions.LABEL_READ,
+            RBACPermission.Permissions.LABEL_WRITE,
+            RBACPermission.Permissions.LABEL_CREATE,
+        ],
+        LegacyAccessControlRole.ADMIN: [
+            RBACPermission.Permissions.LABEL_READ,
+            RBACPermission.Permissions.LABEL_WRITE,
+            RBACPermission.Permissions.LABEL_CREATE,
+        ],
     }
 
     all_permission_classes: typing.Dict[str, LegacyAccessControlCompatiblePermission] = {
@@ -377,7 +397,7 @@ def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
                 action = permission["action"]
                 permission_class = None
 
-                if action.startswith(ACTION_PREFIX):
+                if action.startswith(PluginID.ONCALL):
                     permission_class = all_permission_classes[action]
 
                 if permission_class:
@@ -1093,3 +1113,13 @@ def make_user_notification_bundle():
         )
 
     return _make_user_notification_bundle
+
+
+@pytest.fixture
+def make_declared_incident():
+    def _make_declared_incident(incident_id, organization, channel_filter):
+        return DeclaredIncidentFactory(
+            incident_id=incident_id, organization=organization, channel_filter=channel_filter
+        )
+
+    return _make_declared_incident
