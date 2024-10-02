@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "rulesdir/no-relative-import-paths": "off",
+    "no-console": "off"
+  }
+}
