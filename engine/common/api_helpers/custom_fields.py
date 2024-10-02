@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import bleach
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import fields, serializers
@@ -11,6 +10,7 @@ from apps.alerts.models import ChannelFilter
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
+from common.utils import escape_html
 
 
 @extend_schema_field(serializers.CharField)
@@ -230,6 +230,6 @@ class DurationSecondsField(serializers.FloatField):
         return str(value.total_seconds())
 
 
-class SanitizedCharField(serializers.CharField):
-    def to_internal_value(self, data: str):
-        return super().to_internal_value(bleach.clean(data))
+class HTMLEscapedCharField(serializers.CharField):
+    def to_internal_value(self, value: str):
+        return super().to_internal_value(escape_html(value) if value else value)
