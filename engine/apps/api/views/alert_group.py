@@ -18,6 +18,7 @@ from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
 from apps.alerts.paging import unpage_user
 from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
+from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.api.errors import AlertGroupAPIError
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
@@ -116,6 +117,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
+    has_related_incident = filters.BooleanFilter(field_name="declared_incident", lookup_expr="isnull", exclude=True)
 
     def filter_status(self, queryset, name, value):
         if not value:
@@ -767,6 +769,7 @@ class AlertGroupView(
         """
         Retrieve a list of valid filter options that can be used to filter alert groups
         """
+        organization = self.request.auth.organization
         api_root = "/api/internal/v1/"
         default_day_range = 30
 
@@ -852,12 +855,21 @@ class AlertGroupView(
 
             filter_options = [{"name": "search", "type": "search", "description": description}] + filter_options
 
-        if is_labels_feature_enabled(self.request.auth.organization):
+        if is_labels_feature_enabled(organization):
             filter_options.append(
                 {
                     "name": "label",
                     "display_name": "Label",
                     "type": "alert_group_labels",
+                }
+            )
+
+        if is_declare_incident_step_enabled(organization):
+            filter_options.append(
+                {
+                    "name": "has_related_incident",
+                    "type": "boolean",
+                    "default": "true",
                 }
             )
 

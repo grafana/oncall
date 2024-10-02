@@ -43,6 +43,7 @@ if typing.TYPE_CHECKING:
         AlertGroupLogRecord,
         AlertReceiveChannel,
         BundledNotification,
+        DeclaredIncident,
         ResolutionNote,
         ResolutionNoteSlackMessage,
     )
@@ -205,6 +206,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
     labels: "RelatedManager['AlertGroupAssociatedLabel']"
+    declared_incident: typing.Optional["DeclaredIncident"]
 
     objects: models.Manager["AlertGroup"] = AlertGroupQuerySet.as_manager()
 
@@ -420,7 +422,16 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
+    # todo: rework using this field to use DeclaredIncident model field instead
     grafana_incident_id = models.CharField(max_length=100, null=True, default=None)
+
+    declared_incident = models.ForeignKey(
+        "alerts.DeclaredIncident",
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        related_name="attached_alert_groups",
+    )
 
     @staticmethod
     def get_silenced_state_filter():
