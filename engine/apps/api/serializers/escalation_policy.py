@@ -3,7 +3,6 @@ from datetime import timedelta
 from rest_framework import serializers
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
-from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
@@ -25,7 +24,6 @@ TO_TIME = "to_time"
 NUM_ALERTS_IN_WINDOW = "num_alerts_in_window"
 NUM_MINUTES_IN_WINDOW = "num_minutes_in_window"
 CUSTOM_WEBHOOK_TRIGGER = "custom_webhook"
-SEVERITY = "severity"
 
 STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_WAIT: [WAIT_DELAY],
@@ -37,7 +35,6 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_IF_TIME: [FROM_TIME, TO_TIME],
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: [CUSTOM_WEBHOOK_TRIGGER],
-    EscalationPolicy.STEP_DECLARE_INCIDENT: [SEVERITY],
 }
 
 
@@ -84,7 +81,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         allow_null=True,
         filter_field="organization",
     )
-    severity = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = EscalationPolicy
@@ -103,7 +99,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "notify_schedule",
             "notify_to_group",
             "notify_to_team_members",
-            "severity",
             "important",
         ]
 
@@ -128,7 +123,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             NUM_ALERTS_IN_WINDOW,
             NUM_MINUTES_IN_WINDOW,
             CUSTOM_WEBHOOK_TRIGGER,
-            SEVERITY,
         ]
 
         step = data.get("step")
@@ -157,8 +151,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             raise serializers.ValidationError("Invalid step value")
         if step_type in EscalationPolicy.SLACK_INTEGRATION_REQUIRED_STEPS and organization.slack_team_identity is None:
             raise serializers.ValidationError("Invalid escalation step type: step is Slack-specific")
-        if step_type == EscalationPolicy.STEP_DECLARE_INCIDENT and not is_declare_incident_step_enabled(organization):
-            raise serializers.ValidationError("Invalid escalation step type: step is not enabled")
         return step_type
 
     def to_representation(self, instance):
@@ -222,7 +214,6 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             NUM_ALERTS_IN_WINDOW,
             NUM_MINUTES_IN_WINDOW,
             CUSTOM_WEBHOOK_TRIGGER,
-            SEVERITY,
         ]
 
         for f in STEP_TYPE_TO_RELATED_FIELD_MAP.get(step, []):

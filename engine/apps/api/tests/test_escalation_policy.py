@@ -10,7 +10,6 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
-from common.incident_api.client import DEFAULT_INCIDENT_SEVERITY, IncidentAPIException
 
 
 @pytest.fixture()
@@ -652,13 +651,8 @@ def test_create_escalation_policy_with_no_important_version(
     make_escalation_chain,
     step,
     make_user_auth_headers,
-    settings,
 ):
     organization, user, _, _ = make_organization_and_user_with_slack_identities()
-    # make sure declare incident step is enabled
-    settings.FEATURE_DECLARE_INCIDENT_STEP_ENABLED = True
-    organization.is_grafana_incident_enabled = True
-    organization.save()
     _, token = make_token_for_organization(organization)
     escalation_chain = make_escalation_chain(organization)
 
@@ -834,7 +828,6 @@ def test_escalation_policy_switch_importance(
         "notify_schedule": None,
         "notify_to_group": None,
         "notify_to_team_members": None,
-        "severity": None,
         "important": True,
         "wait_delay": None,
     }
@@ -892,7 +885,6 @@ def test_escalation_policy_filter_by_user(
             "notify_schedule": None,
             "notify_to_group": None,
             "notify_to_team_members": None,
-            "severity": None,
             "important": False,
         },
         {
@@ -910,7 +902,6 @@ def test_escalation_policy_filter_by_user(
             "notify_schedule": None,
             "notify_to_group": None,
             "notify_to_team_members": None,
-            "severity": None,
             "important": False,
         },
     ]
@@ -976,7 +967,6 @@ def test_escalation_policy_filter_by_slack_channel(
             "notify_schedule": None,
             "notify_to_group": None,
             "notify_to_team_members": None,
-            "severity": None,
             "important": False,
         },
     ]
@@ -1007,88 +997,3 @@ def test_escalation_policy_escalation_options_webhooks(
     returned_options = [option["value"] for option in response.json()]
 
     assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK in returned_options
-
-
-@pytest.mark.django_db
-def test_escalation_policy_severity_options(
-    make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    organization.is_grafana_labels_enabled = False
-    organization.save()
-
-    client = APIClient()
-    url = reverse("api-internal:escalation_policy-severity-options")
-
-    # without labels enabled
-    available_severities = [
-        {"severityID": "abc", "orgID": "1", "displayLabel": "Pending", "level": -1},
-        {"severityID": "def", "orgID": "1", "displayLabel": "Critical", "level": 1},
-    ]
-    with patch("common.incident_api.client.IncidentAPIClient.get_severities") as mock_get_severities:
-        mock_get_severities.return_value = available_severities, None
-        response = client.get(url, format="json", **make_user_auth_headers(user, token))
-
-    expected_options = [{"value": s["displayLabel"], "display_name": s["displayLabel"]} for s in available_severities]
-    assert response.json() == expected_options
-
-    # failing request does not break; fallback to default option only
-    with patch("common.incident_api.client.IncidentAPIClient.get_severities") as mock_get_severities:
-        mock_get_severities.side_effect = IncidentAPIException(status=404, url="some-url")
-        response = client.get(url, format="json", **make_user_auth_headers(user, token))
-
-    fallback_options = [{"value": DEFAULT_INCIDENT_SEVERITY, "display_name": DEFAULT_INCIDENT_SEVERITY}]
-    assert response.json() == fallback_options
-
-    # labels enabled
-    organization.is_grafana_labels_enabled = True
-    organization.save()
-
-    with patch("common.incident_api.client.IncidentAPIClient.get_severities") as mock_get_severities:
-        mock_get_severities.return_value = available_severities, None
-        response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    # include set from label option
-    expected_options = [
-        {
-            "value": EscalationPolicy.SEVERITY_SET_FROM_LABEL,
-            "display_name": EscalationPolicy.SEVERITY_SET_FROM_LABEL_DISPLAY_VALUE,
-        }
-    ] + expected_options
-    assert response.json() == expected_options
-
-
-@pytest.mark.django_db
-def test_create_escalation_policy_declare_incident(
-    escalation_policy_internal_api_setup, make_user_auth_headers, settings
-):
-    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
-    organization = escalation_chain.organization
-    client = APIClient()
-    url = reverse("api-internal:escalation_policy-list")
-
-    data = {
-        "step": EscalationPolicy.STEP_DECLARE_INCIDENT,
-        "severity": "critical",
-        "escalation_chain": escalation_chain.public_primary_key,
-    }
-
-    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    # make sure declare incident step is enabled
-    settings.FEATURE_DECLARE_INCIDENT_STEP_ENABLED = True
-    organization.is_grafana_incident_enabled = True
-    organization.save()
-
-    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_201_CREATED
-    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
-    assert escalation_policy.step == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert escalation_policy.severity == "critical"
-
-    url = reverse("api-internal:escalation_policy-detail", kwargs={"pk": escalation_policy.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    response_data = response.json()
-    assert response_data["step"] == EscalationPolicy.STEP_DECLARE_INCIDENT
-    assert response_data["severity"] == "critical"

@@ -77,7 +77,6 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
             "to_time",
             "num_alerts_in_window",
             "num_minutes_in_window",
-            "severity",
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",

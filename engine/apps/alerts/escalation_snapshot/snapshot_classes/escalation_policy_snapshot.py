@@ -12,13 +12,11 @@ from apps.alerts.models.alert_group_log_record import AlertGroupLogRecord
 from apps.alerts.models.escalation_policy import EscalationPolicy
 from apps.alerts.tasks import (
     custom_webhook_result,
-    declare_incident,
     notify_all_task,
     notify_group_task,
     notify_user_task,
     resolve_by_last_step_task,
 )
-from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.user_management.models import User
 
@@ -42,7 +40,6 @@ class EscalationPolicySnapshot:
         "notify_schedule",
         "notify_to_group",
         "notify_to_team_members",
-        "severity",
         "escalation_counter",
         "passed_last_time",
         "pause_escalation",
@@ -74,7 +71,6 @@ class EscalationPolicySnapshot:
         passed_last_time,
         pause_escalation,
         notify_to_team_members=None,
-        severity=None,
     ):
         self.id = id
         self.order = order
@@ -90,7 +86,6 @@ class EscalationPolicySnapshot:
         self.notify_schedule = notify_schedule
         self.notify_to_group = notify_to_group
         self.notify_to_team_members = notify_to_team_members
-        self.severity = severity
         self.escalation_counter = escalation_counter  # used for STEP_REPEAT_ESCALATION_N_TIMES
         self.passed_last_time = passed_last_time  # used for building escalation plan
         self.pause_escalation = pause_escalation  # used for STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
@@ -138,7 +133,6 @@ class EscalationPolicySnapshot:
             EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: self._escalation_step_notify_if_num_alerts_in_time_window,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS: self._escalation_step_notify_multiple_users,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: self._escalation_step_notify_multiple_users,
-            EscalationPolicy.STEP_DECLARE_INCIDENT: self._escalation_step_declare_incident,
             None: self._escalation_step_not_configured,
         }
         result = action_map[self.step](alert_group, reason)
@@ -411,32 +405,6 @@ class EscalationPolicySnapshot:
                     escalation_policy_step=self.step,
                 )
 
-        self._execute_tasks(tasks)
-
-    def _escalation_step_declare_incident(self, alert_group: "AlertGroup", _reason: str) -> None:
-        grafana_declare_incident_enabled = is_declare_incident_step_enabled(
-            organization=alert_group.channel.organization
-        )
-        if not grafana_declare_incident_enabled:
-            AlertGroupLogRecord(
-                type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
-                alert_group=alert_group,
-                reason="Declare Incident step is not enabled",
-                escalation_policy=self.escalation_policy,
-                escalation_error_code=AlertGroupLogRecord.ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED,
-                escalation_policy_step=self.step,
-            ).save()
-            return
-        tasks = []
-        declare_incident_task = declare_incident.signature(
-            args=(alert_group.pk,),
-            kwargs={
-                "escalation_policy_pk": self.id,
-                "severity": self.severity,
-            },
-            immutable=True,
-        )
-        tasks.append(declare_incident_task)
         self._execute_tasks(tasks)
 
     def _escalation_step_notify_if_time(self, alert_group: "AlertGroup", _reason: str) -> StepExecutionResultData:
