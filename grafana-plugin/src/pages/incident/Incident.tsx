@@ -661,10 +661,28 @@ class _IncidentPage extends React.Component<IncidentPageProps, IncidentPageState
               <Text underline>{entity.author?.username}</Text>
             </a>
           );
+        case 'escalation_chain':
+          return (
+            <a href={`${PLUGIN_ROOT}/escalations/${entity.escalation_chain?.pk}`} target="_blank" rel="noopener noreferrer">
+              <Text underline>{entity.escalation_chain?.title}</Text>
+            </a>
+          );
         case 'related_incident':
           return (
             <a href={entity.incident?.incident_link} target="_blank" rel="noopener noreferrer">
               <Text underline>{entity.incident?.incident_title}</Text>
+            </a>
+          );
+        case 'schedule':
+          return (
+            <a href={`${PLUGIN_ROOT}/schedules/${entity.schedule?.pk}`} target="_blank" rel="noopener noreferrer">
+              <Text underline>{entity.schedule?.title}</Text>
+            </a>
+          );
+        case 'webhook':
+          return (
+            <a href={`${PLUGIN_ROOT}/outgoing_webhooks/${entity.webhook?.pk}`} target="_blank" rel="noopener noreferrer">
+              <Text underline>{entity.webhook?.title}</Text>
             </a>
           );
         default:

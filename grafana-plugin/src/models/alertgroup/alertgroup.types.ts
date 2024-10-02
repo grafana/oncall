@@ -26,6 +26,9 @@ export interface TimeLineItem {
   action: string;
   author: ApiSchemas['User'] | null;
   incident: DeclaredIncident | null;
+  escalation_chain: TimelineLink | null;
+  schedule: TimelineLink | null;
+  webhook: TimelineLink | null;
   created_at: string;
   realm: TimeLineRealm;
   time: string;
@@ -58,6 +61,11 @@ interface RenderForWeb {
 }
 
 interface DeclaredIncident {
-  incident_link: any;
-  incident_title: any;
+  incident_link: string;
+  incident_title: string;
+}
+
+interface TimelineLink {
+  pk: string;
+  title: string;
 }
