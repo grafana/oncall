@@ -92,7 +92,6 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
-        STEP_DECLARE_INCIDENT,
     ]
     # Steps can be stored in db while interacting with internal api
     # Includes important versions of default steps
@@ -219,7 +218,6 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
-        STEP_DECLARE_INCIDENT,
     ]
 
     PUBLIC_STEP_CHOICES_MAP = {
@@ -241,7 +239,6 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME: "notify_if_time_from_to",
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: "notify_if_num_alerts_in_window",
         STEP_REPEAT_ESCALATION_N_TIMES: "repeat_escalation",
-        STEP_DECLARE_INCIDENT: "declare_incident",
     }
 
     public_primary_key = models.CharField(
