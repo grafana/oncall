@@ -467,9 +467,6 @@ CUSTOM_SHIFT_TEST_CASES = [
         14,
         CustomOnCallShift.FREQUENCY_DAILY,
         1,
-        {
-            '2024-08-05': 'A',
-            '2024-08-12': 'A'
-        },
+        {"2024-08-05": "A", "2024-08-12": "A"},
     ),
 ]
