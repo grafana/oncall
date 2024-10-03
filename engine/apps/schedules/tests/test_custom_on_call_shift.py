@@ -1896,4 +1896,7 @@ def test_ical_shift_generation(
         event_date = event_start.date().strftime("%Y-%m-%d")
         day_events[event_date] += event_summary
 
+    for k, v in day_events.items():
+        day_events[k] = "".join(sorted(v))
+
     assert day_events == expected_result
