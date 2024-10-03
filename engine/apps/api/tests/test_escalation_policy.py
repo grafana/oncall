@@ -656,6 +656,10 @@ def test_create_escalation_policy_with_no_important_version(
     _, token = make_token_for_organization(organization)
     escalation_chain = make_escalation_chain(organization)
 
+    if step == EscalationPolicy.STEP_DECLARE_INCIDENT:
+        # declare incident step is disabled
+        return
+
     client = APIClient()
     data_for_creation = {
         "escalation_chain": escalation_chain.public_primary_key,
