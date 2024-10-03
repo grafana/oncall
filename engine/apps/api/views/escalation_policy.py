@@ -125,6 +125,10 @@ class EscalationPolicyView(
             slack_integration_required = step in EscalationPolicy.SLACK_INTEGRATION_REQUIRED_STEPS
             if slack_integration_required and not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
                 continue
+
+            if step == EscalationPolicy.STEP_DECLARE_INCIDENT:
+                continue
+
             choices.append(
                 {
                     "value": step,
