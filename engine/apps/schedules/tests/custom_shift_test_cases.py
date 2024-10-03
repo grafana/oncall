@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 from apps.schedules.models import CustomOnCallShift
 
 """
@@ -15,7 +17,7 @@ frequency - Recurrence frequency
 interval - Recurrence interval
 expected_result - Dict where each day displays the users that should be scheduled
 """
-CUSTOM_SHIFT_TEST_CASES = [
+CUSTOM_SHIFT_TEST_CASES: List[Tuple] = [
     (
         # 0 - Original Test Case
         [1, 1, 1],
