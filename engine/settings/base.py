@@ -121,6 +121,11 @@ METRICS_ALL = [
 # List of metrics to collect. Collect all available application metrics by default
 METRICS_TO_COLLECT = getenv_list("METRICS_TO_COLLECT", METRICS_ALL)
 
+# Total number of exporters collecting the same set of metrics
+METRICS_EXPORTER_TOTAL_ORGANIZATION_GROUPS = getenv_integer("METRICS_EXPORTER_TOTAL_ORGANIZATION_GROUPS", 1)
+# ID of this exporter, used to filter which orgs to collect for
+METRICS_EXPORTER_ORGANIZATION_GROUP_ID = getenv_integer("METRICS_EXPORTER_ORGANIZATION_GROUP_ID", 0)
+
 
 # Database
 class DatabaseTypes:
