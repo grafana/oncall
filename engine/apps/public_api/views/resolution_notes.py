@@ -56,20 +56,16 @@ class ResolutionNoteView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelView
         except ResolutionNote.DoesNotExist:
             raise NotFound
 
-    def dispatch(self, request, *args, **kwargs):
-        result = super().dispatch(request, *args, **kwargs)
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        send_update_resolution_note_signal.apply_async((serializer.instance.alert_group.pk, serializer.instance.pk))
 
-        # send signal to update alert group and resolution_note
-        method = request.method.lower()
-        if method in ["post", "put", "patch", "delete"]:
-            instance_id = self.kwargs.get("pk") or result.data.get("id")
-            if instance_id:
-                instance = ResolutionNote.objects_with_deleted.filter(public_primary_key=instance_id).first()
-                if instance is not None:
-                    send_update_resolution_note_signal.apply_async(
-                        kwargs={
-                            "alert_group_pk": instance.alert_group.pk,
-                            "resolution_note_pk": instance.pk,
-                        }
-                    )
-        return result
+    def perform_update(self, serializer):
+        is_text_updated = serializer.instance.message_text != serializer.validated_data["message_text"]
+        super().perform_update(serializer)
+        if is_text_updated:
+            send_update_resolution_note_signal.apply_async((serializer.instance.alert_group.pk, serializer.instance.pk))
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        send_update_resolution_note_signal.apply_async((instance.alert_group.pk, instance.pk))

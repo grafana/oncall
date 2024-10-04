@@ -1,3 +1,4 @@
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -106,8 +107,14 @@ def test_get_resolution_note(
     assert response.data == result
 
 
+@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
-def test_create_resolution_note(make_organization_and_user_with_token, make_alert_receive_channel, make_alert_group):
+def test_create_resolution_note(
+    mock_send_update_resolution_note_signal,
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -137,6 +144,8 @@ def test_create_resolution_note(make_organization_and_user_with_token, make_aler
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == result
 
+    mock_send_update_resolution_note_signal.assert_called_once()
+
 
 @pytest.mark.django_db
 def test_create_resolution_note_invalid_text(
@@ -163,8 +172,10 @@ def test_create_resolution_note_invalid_text(
     assert response.data["text"][0] == "This field may not be blank."
 
 
+@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
 def test_update_resolution_note(
+    mock_send_update_resolution_note_signal,
     make_organization_and_user_with_token,
     make_alert_receive_channel,
     make_alert_group,
@@ -206,6 +217,39 @@ def test_update_resolution_note(
     assert resolution_note.text == result["text"]
     assert response.data == result
 
+    mock_send_update_resolution_note_signal.assert_called_once()
+
+
+@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
+@pytest.mark.django_db
+def test_update_resolution_note_same_text(
+    mock_send_update_resolution_note_signal,
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_resolution_note,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    resolution_note = make_resolution_note(
+        alert_group=alert_group,
+        source=ResolutionNote.Source.WEB,
+        author=user,
+    )
+
+    url = reverse("api-public:resolution_notes-detail", kwargs={"pk": resolution_note.public_primary_key})
+    response = client.put(
+        url, data={"text": resolution_note.message_text}, format="json", HTTP_AUTHORIZATION=f"{token}"
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+    # update signal shouldn't be sent when text doesn't change
+    mock_send_update_resolution_note_signal.assert_not_called()
+
 
 @pytest.mark.django_db
 def test_update_resolution_note_invalid_source(
@@ -242,8 +286,10 @@ def test_update_resolution_note_invalid_source(
     assert response.data["detail"] == "Cannot update message with this source type"
 
 
+@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
 def test_delete_resolution_note(
+    mock_send_update_resolution_note_signal,
     make_organization_and_user_with_token,
     make_alert_receive_channel,
     make_alert_group,
@@ -272,6 +318,7 @@ def test_delete_resolution_note(
     resolution_note.refresh_from_db()
 
     assert resolution_note.deleted_at is not None
+    mock_send_update_resolution_note_signal.assert_called_once()
 
     response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
 
