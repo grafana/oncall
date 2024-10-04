@@ -1,4 +1,3 @@
-from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -107,7 +106,7 @@ def test_get_resolution_note(
     assert response.data == result
 
 
-@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
+@patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
 def test_create_resolution_note(
     mock_send_update_resolution_note_signal,
@@ -172,7 +171,7 @@ def test_create_resolution_note_invalid_text(
     assert response.data["text"][0] == "This field may not be blank."
 
 
-@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
+@patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
 def test_update_resolution_note(
     mock_send_update_resolution_note_signal,
@@ -220,7 +219,7 @@ def test_update_resolution_note(
     mock_send_update_resolution_note_signal.assert_called_once()
 
 
-@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
+@patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
 def test_update_resolution_note_same_text(
     mock_send_update_resolution_note_signal,
@@ -286,7 +285,7 @@ def test_update_resolution_note_invalid_source(
     assert response.data["detail"] == "Cannot update message with this source type"
 
 
-@mock.patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
+@patch("apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async")
 @pytest.mark.django_db
 def test_delete_resolution_note(
     mock_send_update_resolution_note_signal,
