@@ -6,6 +6,7 @@ import uuid
 from django.db import models
 
 from apps.slack.client import SlackClient
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.errors import (
     SlackAPIChannelArchivedError,
     SlackAPIError,
@@ -126,6 +127,8 @@ class SlackMessage(models.Model):
             ).save()
         else:
             text = "{}\nInviting {} to look at the alert group.".format(alert_group.long_verbose_name, user_verbal)
+
+        text = text[:BLOCK_SECTION_TEXT_MAX_SIZE]
 
         blocks = [
             {
