@@ -7,6 +7,3 @@ class MattermostUser(models.Model):
     username = models.CharField(max_length=100)
     nickname = models.CharField(max_length=100, null=True, blank=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("user", "mattermost_user_id")
