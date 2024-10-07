@@ -32,10 +32,10 @@ from apps.alerts.tests.factories import (
     AlertReceiveChannelFactory,
     ChannelFilterFactory,
     CustomActionFactory,
-    DeclaredIncidentFactory,
     EscalationChainFactory,
     EscalationPolicyFactory,
     InvitationFactory,
+    RelatedIncidentFactory,
     ResolutionNoteFactory,
     ResolutionNoteSlackMessageFactory,
     UserNotificationBundleFactory,
@@ -1116,10 +1116,8 @@ def make_user_notification_bundle():
 
 
 @pytest.fixture
-def make_declared_incident():
-    def _make_declared_incident(incident_id, organization, channel_filter):
-        return DeclaredIncidentFactory(
-            incident_id=incident_id, organization=organization, channel_filter=channel_filter
-        )
+def make_related_incident():
+    def _make_related_incident(incident_id, organization, channel_filter):
+        return RelatedIncidentFactory(incident_id=incident_id, organization=organization, channel_filter=channel_filter)
 
-    return _make_declared_incident
+    return _make_related_incident

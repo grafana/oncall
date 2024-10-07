@@ -94,6 +94,6 @@ class UserNotificationBundleFactory(factory.DjangoModelFactory):
         model = UserNotificationBundle
 
 
-class DeclaredIncidentFactory(factory.DjangoModelFactory):
+class RelatedIncidentFactory(factory.DjangoModelFactory):
     class Meta:
         model = RelatedIncident
