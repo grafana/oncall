@@ -238,7 +238,7 @@ class AlertGroupLogRecord(models.Model):
         "custom_button_name",
         "usergroup_handle",
         "source_integration_name",
-        "incident_link",
+        "incident_id",
         "incident_title",
     ]
 
