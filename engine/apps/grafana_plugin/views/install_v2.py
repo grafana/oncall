@@ -1,5 +1,5 @@
 import logging
-from dataclasses import asdict
+from dataclasses import asdict, is_dataclass
 
 from django.conf import settings
 from rest_framework import status
@@ -23,7 +23,10 @@ class InstallV2View(SyncV2View):
         try:
             organization = self.do_sync(request)
         except SyncException as e:
-            return Response(data=e.error_data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data=asdict(e.error_data) if is_dataclass(e.error_data) else e.error_data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         organization.revoke_plugin()
         provisioned_data = organization.provision_plugin()
