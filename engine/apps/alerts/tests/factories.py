@@ -11,6 +11,7 @@ from apps.alerts.models import (
     EscalationChain,
     EscalationPolicy,
     Invitation,
+    RelatedIncident,
     ResolutionNote,
     ResolutionNoteSlackMessage,
     UserNotificationBundle,
@@ -91,3 +92,8 @@ class InvitationFactory(factory.DjangoModelFactory):
 class UserNotificationBundleFactory(factory.DjangoModelFactory):
     class Meta:
         model = UserNotificationBundle
+
+
+class RelatedIncidentFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = RelatedIncident
