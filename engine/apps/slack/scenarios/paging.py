@@ -147,10 +147,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
                 organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
                 if len(organizations) == 1:
                     # Provide a link to web if user has access only to one organization
-                    link = UIURLBuilder(organizations[0]).build_url(
-                        UIURLBuilder.OnCallPage.SETTINGS,
-                        path_extra="?tab=ChatOps&chatOpsTab=Slack",
-                    )
+                    link = UIURLBuilder(organizations[0]).settings("?tab=ChatOps&chatOpsTab=Slack")
                 else:
                     # Otherwise, provide a link to the documentation
                     link = (

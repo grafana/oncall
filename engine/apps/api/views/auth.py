@@ -92,14 +92,15 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
         return_to = request.backend.strategy.session.get(REDIRECT_FIELD_NAME)
 
     if return_to is None:
+        url_builder = UIURLBuilder(request.user.organization)
+
         # if this was a user login/linking account, redirect to profile (ie. users/me)
         # otherwise it pertains to the InstallSlackOAuth2V2 backend, and we should redirect to the chat-ops page
-        redirect_to = (
-            UIURLBuilder.OnCallPage.USER_PROFILE
+        return_to = (
+            url_builder.user_profile()
             if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2))
-            else UIURLBuilder.OnCallPage.CHATOPS
+            else url_builder.chatops()
         )
-        return_to = UIURLBuilder(request.user.organization).build_url(redirect_to)
 
     return HttpResponseRedirect(return_to)
 

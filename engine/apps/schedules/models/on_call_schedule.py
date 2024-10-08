@@ -248,14 +248,11 @@ class OnCallSchedule(PolymorphicModel):
 
     @property
     def web_page_link(self) -> str:
-        return UIURLBuilder(self.organization).build_url(UIURLBuilder.OnCallPage.SCHEDULES)
+        return UIURLBuilder(self.organization).schedules()
 
     @property
     def web_detail_page_link(self) -> str:
-        return UIURLBuilder(self.organization).build_url(
-            UIURLBuilder.OnCallPage.SCHEDULE_DETAIL,
-            id=self.public_primary_key,
-        )
+        return UIURLBuilder(self.organization).schedule_detail(self.public_primary_key)
 
     @property
     def slack_url(self) -> str:

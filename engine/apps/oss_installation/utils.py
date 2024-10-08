@@ -84,7 +84,5 @@ def cloud_user_identity_status(org: "Organization", connector, identity):
         else:
             status = CloudSyncStatus.SYNCED_PHONE_NOT_VERIFIED
 
-        link = UIURLBuilder(org, base_url=connector.cloud_url).build_url(
-            UIURLBuilder.OnCallPage.USERS, path_extra=f"?p=1&id={identity.cloud_id}"
-        )
+        link = UIURLBuilder(org, base_url=connector.cloud_url).users(f"?p=1&id={identity.cloud_id}")
     return status, link

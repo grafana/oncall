@@ -422,9 +422,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def new_incidents_web_link(self):
-        return UIURLBuilder(self.organization).build_url(
-            UIURLBuilder.OnCallPage.ALERT_GROUPS,
-            path_extra=f"?integration={self.public_primary_key}&status={AlertGroup.NEW}",
+        return UIURLBuilder(self.organization).alert_groups(
+            f"?integration={self.public_primary_key}&status={AlertGroup.NEW}",
         )
 
     @property
@@ -533,10 +532,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def web_link(self) -> str:
-        return UIURLBuilder(self.organization).build_url(
-            UIURLBuilder.OnCallPage.INTEGRATION_DETAIL,
-            id=self.public_primary_key,
-        )
+        return UIURLBuilder(self.organization).integration_detail(self.public_primary_key)
 
     @property
     def integration_url(self) -> str | None:
