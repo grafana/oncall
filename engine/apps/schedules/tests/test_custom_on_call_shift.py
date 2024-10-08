@@ -1,12 +1,17 @@
 import datetime
 from calendar import monthrange
+from collections import defaultdict
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
+import icalendar
 import pytest
 from django.utils import timezone
+from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.tests.custom_shift_test_cases import CUSTOM_SHIFT_TEST_CASES
 
 
 @pytest.mark.django_db
@@ -1826,3 +1831,72 @@ def test_refresh_schedule(make_organization_and_user, make_schedule, make_on_cal
     assert mock_refresh_final.apply_async.called
     assert schedule.cached_ical_file_primary is not None
     assert schedule.cached_ical_file_overrides is not None
+
+
+@pytest.mark.parametrize(
+    "users_per_group, shift_start, day_mask, total_days, frequency, interval, expected_result", CUSTOM_SHIFT_TEST_CASES
+)
+@pytest.mark.django_db
+def test_ical_shift_generation(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    users_per_group,
+    shift_start,
+    day_mask,
+    total_days,
+    frequency,
+    interval,
+    expected_result,
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    total_users = sum(users_per_group)
+    users = [make_user_for_organization(organization, username=chr(i + 64)) for i in range(1, total_users + 1)]
+
+    start = datetime.datetime.strptime(shift_start, "%Y-%m-%d").replace(tzinfo=ZoneInfo("UTC"))
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "until": start + timezone.timedelta(days=total_days),
+        "duration": timezone.timedelta(hours=12),
+        "frequency": frequency,
+        "by_day": day_mask,
+        "schedule": schedule,
+        "interval": interval,
+        "priority_level": 1,
+        "week_start": CustomOnCallShift.MONDAY,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = []
+    start_user = 0
+    for count in users_per_group:
+        end = start_user + count
+        rolling_users.append(users[start_user:end])
+        start_user = end
+    on_call_shift.add_rolling_users(rolling_users)
+
+    query_start = start
+    query_end = data["until"]
+
+    calendar = icalendar.Calendar.from_ical(schedule._ical_file_primary)
+    events = UnfoldableCalendar(calendar).between(query_start, query_end)
+
+    day_events = defaultdict(str)
+    for event in events:
+        event_start = event["DTSTART"].dt
+        event_summary = event["SUMMARY"].strip()[-1]
+        event_date = event_start.date().strftime("%Y-%m-%d")
+        day_events[event_date] += event_summary
+
+    for k, v in day_events.items():
+        day_events[k] = "".join(sorted(v))
+
+    assert day_events == expected_result
