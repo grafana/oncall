@@ -352,7 +352,7 @@ class Organization(MaintainableObject):
         """
         return UIURLBuilder(self).build_absolute_plugin_ui_url(
             UIURLBuilder.OnCallPage.HOME,
-            path_extra=f"?org_uuid={self.uuid}",
+            path_extra=f"?oncall-uuid={self.uuid}",
         )
 
     @classmethod
