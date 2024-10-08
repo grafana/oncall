@@ -182,9 +182,6 @@ def test_error_handling(endpoint, client_method_name, args):
             client_method = getattr(client, client_method_name)
             client_method(*args)
         assert excinfo.value.status == error_code
-        expected_error = (
-            response_data["error"] if error_code == status.HTTP_400_BAD_REQUEST else "Internal Server Error"
-        )
-        assert excinfo.value.msg == expected_error
+        assert excinfo.value.msg == response_data["error"]
         assert excinfo.value.url == url
         assert excinfo.value.method == "POST"
