@@ -293,7 +293,7 @@ class SlackEventApiEndpointView(APIView):
         elif organization:
             user = slack_user_identity.get_user(organization)
             if not user:  # SlackUserIdentity exists but not connected to any user in this organization
-                user_settings_url = urljoin(organization.grafana_url, "/a/grafana-oncall-app/users/me/")
+                user_settings_url = organization.build_absolute_plugin_ui_url("users/me/")
                 self._open_warning_window_if_needed(
                     payload,
                     slack_team_identity,

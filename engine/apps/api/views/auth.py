@@ -73,13 +73,6 @@ def overridden_login_social_auth(request: Request, backend: str) -> Response:
 @psa("social:complete")
 def overridden_complete_social_auth(request: Request, backend: str, *args, **kwargs) -> Response:
     """Authentication complete view"""
-    if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2)):
-        # if this was a user login/linking account, redirect to profile
-        redirect_to = "/a/grafana-oncall-app/users/me"
-    else:
-        # InstallSlackOAuth2V2 backend
-        redirect_to = "/a/grafana-oncall-app/chat-ops"
-
     kwargs.update(
         user=request.user,
         redirect_name=REDIRECT_FIELD_NAME,
@@ -99,8 +92,13 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
         return_to = request.backend.strategy.session.get(REDIRECT_FIELD_NAME)
 
     if return_to is None:
+        # if this was a user login/linking account, redirect to profile (ie. users/me)
+        # otherwise it pertains to the InstallSlackOAuth2V2 backend, and we should redirect to the chat-ops page
+        redirect_to = "users/me" if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2)) else "chat-ops"
+
         # We build the frontend url using org url since multiple stacks could be connected to one backend.
-        return_to = urljoin(request.user.organization.grafana_url, redirect_to)
+        return_to = request.user.organization.build_absolute_plugin_ui_url(redirect_to)
+
     return HttpResponseRedirect(return_to)
 
 

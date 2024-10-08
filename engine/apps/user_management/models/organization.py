@@ -18,6 +18,7 @@ from apps.chatops_proxy.utils import (
 )
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.types import AlertGroupTableColumn
+from common.constants.plugin_ids import PluginID
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -253,6 +254,7 @@ class Organization(MaintainableObject):
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
     is_grafana_labels_enabled = models.BooleanField(default=False, null=True)
+    is_grafana_irm_enabled = models.BooleanField(default=False)
 
     alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
     grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
@@ -345,13 +347,23 @@ class Organization(MaintainableObject):
         )
 
     @property
+    def active_plugin_ui_id(self) -> str:
+        return PluginID.IRM if self.is_grafana_irm_enabled else PluginID.ONCALL
+
+    def build_relative_plugin_ui_url(self, path: str) -> str:
+        return f"a/{self.active_plugin_ui_id}/{path}"
+
+    def build_absolute_plugin_ui_url(self, path: str) -> str:
+        return urljoin(self.grafana_url, self.build_plugin_ui_url(path))
+
+    @property
     def web_link(self):
-        return urljoin(self.grafana_url, "a/grafana-oncall-app/")
+        return self.build_absolute_plugin_ui_url("")
 
     @property
     def web_link_with_uuid(self):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
+        return self.build_absolute_plugin_ui_url(f"?oncall-uuid={self.uuid}")
 
     @classmethod
     def __str__(self):

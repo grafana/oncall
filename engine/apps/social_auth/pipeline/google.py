@@ -32,7 +32,7 @@ def connect_user_to_google(
             f"granted_scopes={granted_scopes}"
         )
 
-        base_url_to_redirect = urljoin(organization.grafana_url, "/a/grafana-oncall-app/users/me")
+        base_url_to_redirect = organization.build_absolute_plugin_ui_url("users/me")
         strategy.session[
             REDIRECT_FIELD_NAME
         ] = f"{base_url_to_redirect}?google_error={GOOGLE_AUTH_MISSING_GRANTED_SCOPE_ERROR}"

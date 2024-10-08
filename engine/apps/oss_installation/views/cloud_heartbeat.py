@@ -24,7 +24,7 @@ class CloudHeartbeatView(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": "Cloud heartbeat already exists"})
             except CloudHeartbeat.DoesNotExist:
                 heartbeat = setup_heartbeat_integration()
-                link = get_heartbeat_link(connector, heartbeat)
+                link = get_heartbeat_link(self.request.auth.organization, connector, heartbeat)
                 return Response(status=status.HTTP_200_OK, data={"link": link})
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": "Grafana Cloud is not connected"})

@@ -11,6 +11,7 @@ from apps.slack.scenarios.paging import OnPagingTeamChange, StartDirectPaging
 from apps.slack.scenarios.schedules import EditScheduleShiftNotifyStep
 from apps.slack.scenarios.shift_swap_requests import AcceptShiftSwapRequestStep
 from apps.slack.types import PayloadType
+from common.constants.plugin_ids import PluginID
 
 EVENT_TRIGGER_ID = "5333959822612.4122782784722.4734ff484b2ac4d36a185bb242ee9932"
 WARNING_TEXT = (
@@ -83,7 +84,7 @@ def test_no_user_in_organization_for_slack_team_identity(
     mock_open_warning_window_if_needed.assert_called_once_with(
         event_payload,
         slack_team_identity,
-        "Permission denied. Please connect your Slack account to OnCall: https://test.com/a/grafana-oncall-app/users/me/",
+        f"Permission denied. Please connect your Slack account to OnCall: https://test.com/a/{PluginID.ONCALL}/users/me/",
     )
 
 

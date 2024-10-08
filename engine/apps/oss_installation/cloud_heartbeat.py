@@ -1,5 +1,6 @@
 import logging
 import random
+import typing
 from urllib.parse import urljoin
 
 import requests
@@ -8,6 +9,10 @@ from rest_framework import status
 
 from apps.base.utils import live_settings
 from common.api_helpers.utils import create_engine_url
+
+if typing.TYPE_CHECKING:
+    from apps.oss_installation.models import CloudConnector, CloudHeartbeat
+    from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 
@@ -102,9 +107,14 @@ def send_cloud_heartbeat():
     logger.info("Finish send cloud heartbeat")
 
 
-def get_heartbeat_link(connector, heartbeat):
+def get_heartbeat_link(
+    organization: "Organization",
+    connector: typing.Optional["CloudConnector"],
+    heartbeat: typing.Optional["CloudHeartbeat"],
+) -> typing.Optional[str]:
     if connector is None:
         return None
     if heartbeat is None:
         return None
-    return urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=integrations&id={heartbeat.integration_id}")
+    return urljoin(connector.cloud_url,
+                   organization.build_relative_plugin_ui_url(f"?page=integrations&id={heartbeat.integration_id}"))

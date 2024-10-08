@@ -422,8 +422,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def new_incidents_web_link(self):
-        return urljoin(
-            self.organization.web_link, f"?page=incidents&integration={self.public_primary_key}&status=0&p=1"
+        return self.organization.build_absolute_plugin_ui_url(
+            "alert-groups?integration={self.public_primary_key}&status=0"
         )
 
     @property

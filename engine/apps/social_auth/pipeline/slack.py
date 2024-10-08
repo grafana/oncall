@@ -26,8 +26,7 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     slack_team_identity = organization.slack_team_identity
     slack_user_id = response["authed_user"]["id"]
 
-    redirect_to = "/a/grafana-oncall-app/users/me/"
-    base_url_to_redirect = urljoin(organization.grafana_url, redirect_to)
+    base_url_to_redirect = organization.build_absolute_plugin_ui_url("users/me/")
 
     if slack_team_identity is None:
         # means that organization doesn't have slack integration, so user cannot connect their account to slack
