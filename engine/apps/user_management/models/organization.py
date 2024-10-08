@@ -346,13 +346,14 @@ class Organization(MaintainableObject):
         )
 
     @property
-    def web_link(self):
-        return UIURLBuilder(self).build_absolute_plugin_ui_url(UIURLBuilder.OnCallPage.HOME)
-
-    @property
     def web_link_with_uuid(self):
-        # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
-        return f"{self.web_link}?oncall-uuid={self.uuid}"
+        """
+        It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
+        """
+        return UIURLBuilder(self).build_absolute_plugin_ui_url(
+            UIURLBuilder.OnCallPage.HOME,
+            path_extra=f"?org_uuid={self.uuid}",
+        )
 
     @classmethod
     def __str__(self):
