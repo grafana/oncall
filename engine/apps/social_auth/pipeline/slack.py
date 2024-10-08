@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -7,6 +6,7 @@ from django.http import HttpResponse
 from rest_framework import status
 
 from apps.chatops_proxy.utils import can_link_slack_team, link_slack_team
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.slack.installation import SlackInstallationExc, install_slack_integration
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
 from apps.social_auth.exceptions import InstallMultiRegionSlackException
@@ -26,7 +26,8 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     slack_team_identity = organization.slack_team_identity
     slack_user_id = response["authed_user"]["id"]
 
-    base_url_to_redirect = organization.build_absolute_plugin_ui_url("users/me/")
+    url_builder = UIURLBuilder(organization)
+    page_to_redirect_to = UIURLBuilder.OnCallPage.USER_PROFILE
 
     if slack_team_identity is None:
         # means that organization doesn't have slack integration, so user cannot connect their account to slack
@@ -35,14 +36,18 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     if slack_team_identity.slack_id != response["team"]["id"]:
         # means that user authed in another slack workspace that is not connected to their organization
         # change redirect url to show user error message and save it in session param
-        url = base_url_to_redirect + f"?slack_error={SLACK_AUTH_WRONG_WORKSPACE_ERROR}"
-        strategy.session[REDIRECT_FIELD_NAME] = url
+        strategy.session[REDIRECT_FIELD_NAME] = url_builder.build_absolute_plugin_ui_url(
+            page_to_redirect_to,
+            path_extra=f"?slack_error={SLACK_AUTH_WRONG_WORKSPACE_ERROR}",
+        )
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     if organization.users.filter(slack_user_identity__slack_id=slack_user_id).exists():
         # means that slack user has already been connected to another user in current organization
-        url = base_url_to_redirect + f"?slack_error={SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR}"
-        strategy.session[REDIRECT_FIELD_NAME] = url
+        strategy.session[REDIRECT_FIELD_NAME] = url_builder.build_absolute_plugin_ui_url(
+            page_to_redirect_to,
+            path_extra=f"?slack_error={SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR}",
+        )
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     # at this point everything is correct and we can create the SlackUserIdentity

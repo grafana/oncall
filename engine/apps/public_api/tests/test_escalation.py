@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroup
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPagingUserTeamValidationError
+from common.constants.plugin_ids import PluginID
 
 title = "Custom title"
 message = "Testing escalation with new alert group"
@@ -70,7 +71,7 @@ def test_escalation_new_alert_group(
             "slack": None,
             "slack_app": None,
             "telegram": None,
-            "web": organization.build_relative_plugin_ui_url(f"alert-groups/{ag.public_primary_key}"),
+            "web": f"a/{PluginID.ONCALL}/alert-groups/{ag.public_primary_key}",
         },
         "silenced_at": None,
         "last_alert": {

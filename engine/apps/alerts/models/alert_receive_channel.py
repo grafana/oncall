@@ -1,7 +1,6 @@
 import logging
 import typing
 from functools import cached_property
-from urllib.parse import urljoin
 
 import emoji
 from celery import uuid as celery_uuid
@@ -21,6 +20,7 @@ from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, disconnect_integration_from_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
@@ -422,8 +422,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def new_incidents_web_link(self):
-        return self.organization.build_absolute_plugin_ui_url(
-            "alert-groups?integration={self.public_primary_key}&status=0"
+        return UIURLBuilder(self.organization).build_absolute_plugin_ui_url(
+            UIURLBuilder.OnCallPage.ALERT_GROUPS,
+            path_extra=f"?integration={self.public_primary_key}&status={AlertGroup.NEW}",
         )
 
     @property
@@ -531,8 +532,11 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return f"{self.get_integration_display()} {self.smile_code}"
 
     @property
-    def web_link(self):
-        return urljoin(self.organization.web_link, f"integrations/{self.public_primary_key}")
+    def web_link(self) -> str:
+        return UIURLBuilder(self.organization).build_absolute_plugin_ui_url(
+            UIURLBuilder.OnCallPage.INTEGRATION_DETAIL,
+            id=self.public_primary_key,
+        )
 
     @property
     def integration_url(self) -> str | None:

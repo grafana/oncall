@@ -3,7 +3,6 @@ import hmac
 import json
 import logging
 from contextlib import suppress
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -17,6 +16,7 @@ from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.chatops_proxy.utils import uninstall_slack as uninstall_slack_from_chatops_proxy
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIError
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
@@ -293,7 +293,9 @@ class SlackEventApiEndpointView(APIView):
         elif organization:
             user = slack_user_identity.get_user(organization)
             if not user:  # SlackUserIdentity exists but not connected to any user in this organization
-                user_settings_url = organization.build_absolute_plugin_ui_url("users/me/")
+                user_settings_url = UIURLBuilder(organization).build_absolute_plugin_ui_url(
+                    UIURLBuilder.OnCallPage.USER_PROFILE
+                )
                 self._open_warning_window_if_needed(
                     payload,
                     slack_team_identity,

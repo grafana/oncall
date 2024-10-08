@@ -46,7 +46,6 @@ class PluginAuthToken(BaseAuthToken):
     @classmethod
     def validate_token_string(cls, token: str, *args, **kwargs) -> "PluginAuthToken":
         context = kwargs["context"]
-        print(f"VALIDATING TOKEN STRING: {token[: constants.TOKEN_KEY_LENGTH]}")
         for auth_token in cls.objects.filter(token_key=token[: constants.TOKEN_KEY_LENGTH]):
             try:
                 stack_id = int(context["stack_id"])

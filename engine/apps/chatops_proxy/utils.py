@@ -3,9 +3,10 @@ Set of utils to handle oncall and chatops-proxy interaction.
 """
 import logging
 import typing
-from urllib.parse import urljoin
 
 from django.conf import settings
+
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 
 from .client import APP_TYPE_ONCALL, PROVIDER_TYPE_SLACK, ChatopsProxyAPIClient, ChatopsProxyAPIException
 from .register_oncall_tenant import register_oncall_tenant
@@ -16,10 +17,13 @@ from .tasks import (
     unregister_oncall_tenant_async,
 )
 
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization, User
+
 logger = logging.getLogger(__name__)
 
 
-def get_installation_link_from_chatops_proxy(user) -> typing.Optional[str]:
+def get_installation_link_from_chatops_proxy(user: "User") -> typing.Optional[str]:
     """
     get_installation_link_from_chatops_proxy fetches slack installation link from chatops proxy.
     If there is no existing slack installation - if returns link, If slack already installed, it returns None.
@@ -30,7 +34,10 @@ def get_installation_link_from_chatops_proxy(user) -> typing.Optional[str]:
         link, _ = client.get_slack_oauth_link(
             org.stack_id,
             user.user_id,
-            urljoin(org.web_link, "settings?tab=ChatOps&chatOpsTab=Slack"),
+            UIURLBuilder(org).build_absolute_plugin_ui_url(
+                UIURLBuilder.OnCallPage.SETTINGS,
+                path_extra="?tab=ChatOps&chatOpsTab=Slack",
+            ),
             APP_TYPE_ONCALL,
         )
         return link
@@ -44,13 +51,13 @@ def get_installation_link_from_chatops_proxy(user) -> typing.Optional[str]:
         raise api_exc
 
 
-def get_slack_oauth_response_from_chatops_proxy(stack_id) -> dict:
+def get_slack_oauth_response_from_chatops_proxy(stack_id: int) -> dict:
     client = ChatopsProxyAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     slack_installation, _ = client.get_oauth_installation(stack_id, PROVIDER_TYPE_SLACK)
     return slack_installation.oauth_response
 
 
-def register_oncall_tenant_with_async_fallback(org):
+def register_oncall_tenant_with_async_fallback(org: "Organization") -> None:
     """
     register_oncall_tenant tries to register oncall tenant synchronously and fall back to task in case of any exceptions
     to make sure that tenant is registered.

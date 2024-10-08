@@ -1,9 +1,9 @@
 import logging
 import typing
-from urllib.parse import urljoin
 
 from django.utils import timezone
 
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.oss_installation.constants import CloudSyncStatus
 from apps.schedules.ical_utils import list_users_to_notify_from_ical_for_period
 
@@ -84,5 +84,7 @@ def cloud_user_identity_status(org: "Organization", connector, identity):
         else:
             status = CloudSyncStatus.SYNCED_PHONE_NOT_VERIFIED
 
-        link = urljoin(connector.cloud_url, org.build_relative_plugin_ui_url("?page=users&p=1&id={identity.cloud_id}"))
+        link = UIURLBuilder(org, base_url=connector.cloud_url).build_absolute_plugin_ui_url(
+            UIURLBuilder.OnCallPage.USERS, path_extra=f"?p=1&id={identity.cloud_id}"
+        )
     return status, link

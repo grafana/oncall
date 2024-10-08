@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -19,6 +18,7 @@ from apps.chatops_proxy.utils import (
     get_installation_link_from_chatops_proxy,
     get_slack_oauth_response_from_chatops_proxy,
 )
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.slack.installation import install_slack_integration
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND, LoginSlackOAuth2V2
 
@@ -94,10 +94,12 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
     if return_to is None:
         # if this was a user login/linking account, redirect to profile (ie. users/me)
         # otherwise it pertains to the InstallSlackOAuth2V2 backend, and we should redirect to the chat-ops page
-        redirect_to = "users/me" if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2)) else "chat-ops"
-
-        # We build the frontend url using org url since multiple stacks could be connected to one backend.
-        return_to = request.user.organization.build_absolute_plugin_ui_url(redirect_to)
+        redirect_to = (
+            UIURLBuilder.OnCallPage.USER_PROFILE
+            if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2))
+            else UIURLBuilder.OnCallPage.CHATOPS
+        )
+        return_to = UIURLBuilder(request.user.organization).build_absolute_plugin_ui_url(redirect_to)
 
     return HttpResponseRedirect(return_to)
 

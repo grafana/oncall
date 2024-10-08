@@ -42,7 +42,7 @@ class TestBaseShiftSwapRequestStep:
         blocks = step._generate_blocks(ssr)
 
         assert blocks[0]["text"]["text"] == (
-            f"*New shift swap request for <{ssr.schedule.web_detail_page_link}|{ssr.schedule.name}>*\n"
+            f"*New shift swap request for {ssr.schedule.slack_url}*\n"
             f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
         )
 

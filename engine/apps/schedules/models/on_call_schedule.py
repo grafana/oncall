@@ -18,6 +18,7 @@ from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from polymorphic.query import PolymorphicQuerySet
 
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.schedules.constants import (
     EXPORT_WINDOW_DAYS_AFTER,
     EXPORT_WINDOW_DAYS_BEFORE,
@@ -247,11 +248,18 @@ class OnCallSchedule(PolymorphicModel):
 
     @property
     def web_page_link(self) -> str:
-        return f"{self.organization.web_link}schedules"
+        return UIURLBuilder(self.organization).build_absolute_plugin_ui_url(UIURLBuilder.OnCallPage.SCHEDULES)
 
     @property
     def web_detail_page_link(self) -> str:
-        return f"{self.web_page_link}/{self.public_primary_key}"
+        return UIURLBuilder(self.organization).build_absolute_plugin_ui_url(
+            UIURLBuilder.OnCallPage.SCHEDULE_DETAIL,
+            id=self.public_primary_key,
+        )
+
+    @property
+    def slack_url(self) -> str:
+        return f"<{self.web_detail_page_link}|{self.name}>"
 
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""

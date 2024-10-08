@@ -2,7 +2,6 @@ import enum
 import json
 import logging
 import typing
-from urllib.parse import urljoin
 from uuid import uuid4
 
 from django.conf import settings
@@ -12,6 +11,7 @@ from rest_framework.response import Response
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.paging import DirectPagingUserTeamValidationError, UserNotifications, direct_paging, user_is_oncall
 from apps.api.permissions import RBACPermission, user_is_authorized
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.slack.chatops_proxy_routing import make_private_metadata, make_value
 from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
@@ -146,8 +146,11 @@ class StartDirectPaging(scenario_step.ScenarioStep):
             if slack_team_identity.needs_reinstall:
                 organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
                 if len(organizations) == 1:
-                    # Provide a link  to web if user has access only to one organization
-                    link = urljoin(organizations[0].web_link, "settings?tab=ChatOps&chatOpsTab=Slack")
+                    # Provide a link to web if user has access only to one organization
+                    link = UIURLBuilder(organizations[0]).build_absolute_plugin_ui_url(
+                        UIURLBuilder.OnCallPage.SETTINGS,
+                        path_extra="?tab=ChatOps&chatOpsTab=Slack",
+                    )
                 else:
                     # Otherwise, provide a link to the documentation
                     link = (

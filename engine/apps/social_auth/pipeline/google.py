@@ -1,6 +1,5 @@
 import logging
 import typing
-from urllib.parse import urljoin
 
 import requests
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -9,6 +8,7 @@ from rest_framework import status
 from social_core.backends.base import BaseAuth
 
 from apps.google.utils import user_granted_all_required_scopes
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.social_auth.exceptions import GOOGLE_AUTH_MISSING_GRANTED_SCOPE_ERROR
 from apps.social_auth.types import GoogleOauth2Response
 from apps.user_management.models import Organization, User
@@ -32,10 +32,9 @@ def connect_user_to_google(
             f"granted_scopes={granted_scopes}"
         )
 
-        base_url_to_redirect = organization.build_absolute_plugin_ui_url("users/me")
-        strategy.session[
-            REDIRECT_FIELD_NAME
-        ] = f"{base_url_to_redirect}?google_error={GOOGLE_AUTH_MISSING_GRANTED_SCOPE_ERROR}"
+        strategy.session[REDIRECT_FIELD_NAME] = UIURLBuilder(organization).build_absolute_plugin_ui_url(
+            UIURLBuilder.OnCallPage.USER_PROFILE, path_extra=f"?google_error={GOOGLE_AUTH_MISSING_GRANTED_SCOPE_ERROR}"
+        )
 
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 

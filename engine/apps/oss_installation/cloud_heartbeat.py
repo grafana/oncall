@@ -1,13 +1,13 @@
 import logging
 import random
 import typing
-from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
 from rest_framework import status
 
 from apps.base.utils import live_settings
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from common.api_helpers.utils import create_engine_url
 
 if typing.TYPE_CHECKING:
@@ -116,5 +116,7 @@ def get_heartbeat_link(
         return None
     if heartbeat is None:
         return None
-    return urljoin(connector.cloud_url,
-                   organization.build_relative_plugin_ui_url(f"?page=integrations&id={heartbeat.integration_id}"))
+    return UIURLBuilder(organization, base_url=connector.cloud_url).build_absolute_plugin_ui_url(
+        UIURLBuilder.OnCallPage.INTEGRATION_DETAIL,
+        id=heartbeat.integration_id,
+    )
