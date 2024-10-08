@@ -208,6 +208,16 @@ class EscalationPolicyView(
         ]
         return Response(choices)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="SeverityOptions",
+            fields={
+                "value": serializers.CharField(),
+                "display_name": serializers.CharField(),
+            },
+            many=True,
+        )
+    )
     @action(detail=False, methods=["get"])
     def severity_options(self, request):
         organization = self.request.auth.organization
