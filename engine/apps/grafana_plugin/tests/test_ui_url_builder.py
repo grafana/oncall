@@ -11,8 +11,9 @@ SCHEDULE_ID = "lasdfasdf"
 
 @pytest.fixture
 def org_setup(make_organization):
-    def _org_setup(is_grafana_irm_enabled = False):
+    def _org_setup(is_grafana_irm_enabled=False):
         return make_organization(grafana_url=GRAFANA_URL, is_grafana_irm_enabled=is_grafana_irm_enabled)
+
     return _org_setup
 
 
@@ -70,7 +71,6 @@ def org_setup(make_organization):
             {},
             f"{GRAFANA_URL}/a/{PluginID.ONCALL}/settings",
         ),
-
         # incident pages
         (
             UIURLBuilder.IncidentPage.DECLARE_INCIDENT,
@@ -103,7 +103,10 @@ def test_build_absolute_plugin_ui_url_overriden_base_url(org_setup):
 @pytest.mark.django_db
 def test_build_absolute_plugin_ui_url_works_for_irm_and_oncall_plugins(org_setup, is_grafana_irm_enabled, expected_url):
     builder = UIURLBuilder(org_setup(is_grafana_irm_enabled))
-    assert builder.build_absolute_plugin_ui_url(UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL, id=ALERT_GROUP_ID) == expected_url
+    assert (
+        builder.build_absolute_plugin_ui_url(UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL, id=ALERT_GROUP_ID)
+        == expected_url
+    )
 
 
 @pytest.mark.django_db
@@ -111,4 +114,3 @@ def test_build_relative_plugin_ui_url(org_setup):
     builder = UIURLBuilder(org_setup())
     url = builder.build_relative_plugin_ui_url(UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL, id=ALERT_GROUP_ID)
     assert url == f"a/{PluginID.ONCALL}/alert-groups/1234"
-
