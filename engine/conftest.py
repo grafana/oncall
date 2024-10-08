@@ -35,6 +35,7 @@ from apps.alerts.tests.factories import (
     EscalationChainFactory,
     EscalationPolicyFactory,
     InvitationFactory,
+    RelatedIncidentFactory,
     ResolutionNoteFactory,
     ResolutionNoteSlackMessageFactory,
     UserNotificationBundleFactory,
@@ -1112,3 +1113,11 @@ def make_user_notification_bundle():
         )
 
     return _make_user_notification_bundle
+
+
+@pytest.fixture
+def make_related_incident():
+    def _make_related_incident(incident_id, organization, channel_filter):
+        return RelatedIncidentFactory(incident_id=incident_id, organization=organization, channel_filter=channel_filter)
+
+    return _make_related_incident

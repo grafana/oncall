@@ -690,3 +690,52 @@ def test_notify_team_members(
         (user_2.pk, alert_group.pk), expected_kwargs, immutable=True
     )
     assert mock_execute.signature.call_count == 2
+
+
+@pytest.mark.django_db
+def test_escalation_step_declare_incident(
+    escalation_step_test_setup,
+    make_escalation_policy,
+):
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+
+    declare_incident_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_DECLARE_INCIDENT,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(declare_incident_step)
+    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    with patch.object(EscalationPolicySnapshot, "_execute_tasks") as mocked_execute_tasks:
+        with patch(
+            "apps.alerts.escalation_snapshot.snapshot_classes.escalation_policy_snapshot.is_declare_incident_step_enabled",
+            return_value=True,
+        ):
+            result = escalation_policy_snapshot.execute(alert_group, reason)
+            expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+                eta=result.eta,
+                stop_escalation=False,
+                pause_escalation=False,
+                start_from_beginning=False,
+            )
+            assert (
+                expected_eta + timezone.timedelta(seconds=15)
+                > result.eta
+                > expected_eta - timezone.timedelta(seconds=15)
+            )
+            assert result == expected_result
+            assert not alert_group.log_records.exists()
+            mocked_execute_tasks.assert_called_once()
+    with patch.object(EscalationPolicySnapshot, "_execute_tasks") as mocked_execute_tasks:
+        with patch(
+            "apps.alerts.escalation_snapshot.snapshot_classes.escalation_policy_snapshot.is_declare_incident_step_enabled",
+            return_value=False,
+        ):
+            escalation_policy_snapshot.execute(alert_group, reason)
+            mocked_execute_tasks.assert_not_called()
+            assert alert_group.log_records.exists()
+            log_record = alert_group.log_records.get()
+            assert log_record.type == AlertGroupLogRecord.TYPE_ESCALATION_FAILED
+            assert (
+                log_record.escalation_error_code
+                == AlertGroupLogRecord.ERROR_ESCALATION_DECLARE_INCIDENT_STEP_IS_NOT_ENABLED
+            )
