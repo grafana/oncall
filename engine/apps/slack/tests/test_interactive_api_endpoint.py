@@ -84,7 +84,7 @@ def test_no_user_in_organization_for_slack_team_identity(
     mock_open_warning_window_if_needed.assert_called_once_with(
         event_payload,
         slack_team_identity,
-        f"Permission denied. Please connect your Slack account to OnCall: https://test.com/a/{PluginID.ONCALL}/users/me/",
+        f"Permission denied. Please connect your Slack account to OnCall: https://test.com/a/{PluginID.ONCALL}/users/me",
     )
 
 
