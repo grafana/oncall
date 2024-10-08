@@ -542,7 +542,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def web_link(self) -> str:
-        return UIURLBuilder(self.channel.organization).build_absolute_plugin_ui_url(
+        return UIURLBuilder(self.channel.organization).build_url(
             UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL,
             id=self.public_primary_key,
         )
@@ -557,7 +557,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
 
-        return UIURLBuilder(self.channel.organization).build_absolute_plugin_ui_url(
+        return UIURLBuilder(self.channel.organization).build_url(
             UIURLBuilder.IncidentPage.DECLARE_INCIDENT, path_extra=f"?caption={caption}&url={link}&title={title}"
         )
 

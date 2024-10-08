@@ -350,10 +350,7 @@ class Organization(MaintainableObject):
         """
         It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
         """
-        return UIURLBuilder(self).build_absolute_plugin_ui_url(
-            UIURLBuilder.OnCallPage.HOME,
-            path_extra=f"?oncall-uuid={self.uuid}",
-        )
+        return UIURLBuilder(self).build_url(UIURLBuilder.OnCallPage.HOME, path_extra=f"?oncall-uuid={self.uuid}")
 
     @classmethod
     def __str__(self):

@@ -80,17 +80,16 @@ def org_setup(make_organization):
     ],
 )
 @pytest.mark.django_db
-def test_build_absolute_plugin_ui_url(org_setup, page, call_kwargs, expected_url):
+def test_build_url(org_setup, page, call_kwargs, expected_url):
     builder = UIURLBuilder(org_setup())
-    assert builder.build_absolute_plugin_ui_url(page, **call_kwargs) == expected_url
+    assert builder.build_url(page, **call_kwargs) == expected_url
 
 
 @pytest.mark.django_db
-def test_build_absolute_plugin_ui_url_overriden_base_url(org_setup):
+def test_build_url_overriden_base_url(org_setup):
     overriden_base_url = "http://overriden.com"
     builder = UIURLBuilder(org_setup(), base_url=overriden_base_url)
-    url = builder.build_absolute_plugin_ui_url(UIURLBuilder.OnCallPage.CHATOPS)
-    assert url == f"{overriden_base_url}/a/{PluginID.ONCALL}/chat-ops"
+    assert builder.build_url(UIURLBuilder.OnCallPage.CHATOPS) == f"{overriden_base_url}/a/{PluginID.ONCALL}/chat-ops"
 
 
 @pytest.mark.parametrize(
@@ -101,16 +100,6 @@ def test_build_absolute_plugin_ui_url_overriden_base_url(org_setup):
     ],
 )
 @pytest.mark.django_db
-def test_build_absolute_plugin_ui_url_works_for_irm_and_oncall_plugins(org_setup, is_grafana_irm_enabled, expected_url):
+def test_build__url_works_for_irm_and_oncall_plugins(org_setup, is_grafana_irm_enabled, expected_url):
     builder = UIURLBuilder(org_setup(is_grafana_irm_enabled))
-    assert (
-        builder.build_absolute_plugin_ui_url(UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL, id=ALERT_GROUP_ID)
-        == expected_url
-    )
-
-
-@pytest.mark.django_db
-def test_build_relative_plugin_ui_url(org_setup):
-    builder = UIURLBuilder(org_setup())
-    url = builder.build_relative_plugin_ui_url(UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL, id=ALERT_GROUP_ID)
-    assert url == f"a/{PluginID.ONCALL}/alert-groups/1234"
+    assert builder.build_url(UIURLBuilder.OnCallPage.ALERT_GROUP_DETAIL, id=ALERT_GROUP_ID) == expected_url

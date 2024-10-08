@@ -34,10 +34,7 @@ def get_installation_link_from_chatops_proxy(user: "User") -> typing.Optional[st
         link, _ = client.get_slack_oauth_link(
             org.stack_id,
             user.user_id,
-            UIURLBuilder(org).build_absolute_plugin_ui_url(
-                UIURLBuilder.OnCallPage.SETTINGS,
-                path_extra="?tab=ChatOps&chatOpsTab=Slack",
-            ),
+            UIURLBuilder(org).build_url(UIURLBuilder.OnCallPage.SETTINGS, path_extra="?tab=ChatOps&chatOpsTab=Slack"),
             APP_TYPE_ONCALL,
         )
         return link

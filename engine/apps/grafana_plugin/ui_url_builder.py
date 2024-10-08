@@ -33,23 +33,18 @@ class UIURLBuilder:
     class IncidentPage(enum.StrEnum):
         DECLARE_INCIDENT = "incidents/declare"
 
-    PageType = typing.Union[OnCallPage, IncidentPage]
-
     def __init__(self, organization: "Organization", base_url: typing.Optional[str] = None) -> None:
         self.base_url = base_url if base_url else organization.grafana_url
         self.is_grafana_irm_enabled = organization.is_grafana_irm_enabled
 
-    @property
-    def active_plugin_ui_id(self) -> str:
-        return PluginID.IRM if self.is_grafana_irm_enabled else PluginID.ONCALL
+    def build_url(self, page: typing.Union[OnCallPage, IncidentPage], path_extra: str = "", **kwargs) -> str:
+        """
+        Constructs an absolute URL to a Grafana plugin page.
+        """
 
-    def build_relative_plugin_ui_url(self, page: PageType, path_extra: str = "", **kwargs) -> str:
         if isinstance(page, self.IncidentPage):
             plugin_id = PluginID.INCIDENT
         else:
-            plugin_id = self.active_plugin_ui_id
+            plugin_id = PluginID.IRM if self.is_grafana_irm_enabled else PluginID.ONCALL
 
-        return f"a/{plugin_id}/{page.value.format(**kwargs)}{path_extra}"
-
-    def build_absolute_plugin_ui_url(self, page: PageType, path_extra: str = "", **kwargs) -> str:
-        return urljoin(self.base_url, self.build_relative_plugin_ui_url(page, path_extra, **kwargs))
+        return urljoin(self.base_url, f"a/{plugin_id}/{page.value.format(**kwargs)}{path_extra}")

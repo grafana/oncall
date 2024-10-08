@@ -99,7 +99,7 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
             if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2))
             else UIURLBuilder.OnCallPage.CHATOPS
         )
-        return_to = UIURLBuilder(request.user.organization).build_absolute_plugin_ui_url(redirect_to)
+        return_to = UIURLBuilder(request.user.organization).build_url(redirect_to)
 
     return HttpResponseRedirect(return_to)
 

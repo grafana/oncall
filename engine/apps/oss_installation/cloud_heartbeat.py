@@ -116,7 +116,7 @@ def get_heartbeat_link(
         return None
     if heartbeat is None:
         return None
-    return UIURLBuilder(organization, base_url=connector.cloud_url).build_absolute_plugin_ui_url(
+    return UIURLBuilder(organization, base_url=connector.cloud_url).build_url(
         UIURLBuilder.OnCallPage.INTEGRATION_DETAIL,
         id=heartbeat.integration_id,
     )

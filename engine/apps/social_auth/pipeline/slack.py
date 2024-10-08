@@ -36,7 +36,7 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     if slack_team_identity.slack_id != response["team"]["id"]:
         # means that user authed in another slack workspace that is not connected to their organization
         # change redirect url to show user error message and save it in session param
-        strategy.session[REDIRECT_FIELD_NAME] = url_builder.build_absolute_plugin_ui_url(
+        strategy.session[REDIRECT_FIELD_NAME] = url_builder.build_url(
             page_to_redirect_to,
             path_extra=f"?slack_error={SLACK_AUTH_WRONG_WORKSPACE_ERROR}",
         )
@@ -44,7 +44,7 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
 
     if organization.users.filter(slack_user_identity__slack_id=slack_user_id).exists():
         # means that slack user has already been connected to another user in current organization
-        strategy.session[REDIRECT_FIELD_NAME] = url_builder.build_absolute_plugin_ui_url(
+        strategy.session[REDIRECT_FIELD_NAME] = url_builder.build_url(
             page_to_redirect_to,
             path_extra=f"?slack_error={SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR}",
         )

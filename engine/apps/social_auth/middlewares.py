@@ -29,18 +29,14 @@ class SocialAuthAuthCanceledExceptionMiddleware(SocialAuthExceptionMiddleware):
         if isinstance(exception, exceptions.AuthCanceled):
             # if user canceled authentication, redirect them to the previous page using the same link
             # as we used to redirect after auth/install
-            return redirect(url_builder.build_absolute_plugin_ui_url(redirect_to))
+            return redirect(url_builder.build_url(redirect_to))
         elif isinstance(exception, exceptions.AuthFailed):
             # if authentication was failed, redirect user to the plugin page using the same link
             # as we used to redirect after auth/install with error flag
-            return redirect(
-                url_builder.build_absolute_plugin_ui_url(redirect_to, path_extra=f"?slack_error={SLACK_AUTH_FAILED}")
-            )
+            return redirect(url_builder.build_url(redirect_to, path_extra=f"?slack_error={SLACK_AUTH_FAILED}"))
         elif isinstance(exception, KeyError) and REDIRECT_AFTER_SLACK_INSTALL in exception.args:
             return HttpResponse(status=status.HTTP_401_UNAUTHORIZED)
         elif isinstance(exception, InstallMultiRegionSlackException):
             return redirect(
-                url_builder.build_absolute_plugin_ui_url(
-                    redirect_to, path_extra=f"?tab=Slack&slack_error={SLACK_REGION_ERROR}"
-                )
+                url_builder.build_url(redirect_to, path_extra=f"?tab=Slack&slack_error={SLACK_REGION_ERROR}")
             )

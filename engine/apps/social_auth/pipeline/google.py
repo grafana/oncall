@@ -32,7 +32,7 @@ def connect_user_to_google(
             f"granted_scopes={granted_scopes}"
         )
 
-        strategy.session[REDIRECT_FIELD_NAME] = UIURLBuilder(organization).build_absolute_plugin_ui_url(
+        strategy.session[REDIRECT_FIELD_NAME] = UIURLBuilder(organization).build_url(
             UIURLBuilder.OnCallPage.USER_PROFILE, path_extra=f"?google_error={GOOGLE_AUTH_MISSING_GRANTED_SCOPE_ERROR}"
         )
 
