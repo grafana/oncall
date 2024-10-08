@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.alerts.models import ChannelFilter, EscalationPolicy
+from apps.alerts.models import EscalationPolicy
 from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_policy import (
@@ -23,7 +23,6 @@ from common.api_helpers.filters import (
     ModelChoicePublicPrimaryKeyFilter,
     ModelFieldFilterMixin,
     get_escalation_chain_queryset,
-    get_user_queryset,
 )
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
@@ -38,27 +37,9 @@ from common.ordered_model.viewset import OrderedModelViewSet
 logger = logging.getLogger(__name__)
 
 
-def get_channel_filter_queryset(request):
-    if request is None:
-        return ChannelFilter.objects.none()
-
-    return ChannelFilter.objects.filter(alert_receive_channel__organization=request.user.organization)
-
-
 class EscalationPolicyFilter(ModelFieldFilterMixin, filters.FilterSet):
     escalation_chain = ModelChoicePublicPrimaryKeyFilter(
         queryset=get_escalation_chain_queryset,
-    )
-    channel_filter = ModelChoicePublicPrimaryKeyFilter(
-        field_name="escalation_chain__channel_filters",
-        queryset=get_channel_filter_queryset,
-    )
-    user = ModelChoicePublicPrimaryKeyFilter(
-        field_name="notify_to_users_queue",
-        queryset=get_user_queryset,
-    )
-    slack_channel = filters.CharFilter(
-        field_name="escalation_chain__channel_filters__slack_channel_id",
     )
 
 
