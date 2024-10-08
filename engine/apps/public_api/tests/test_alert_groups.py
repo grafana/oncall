@@ -71,6 +71,12 @@ def construct_expected_response_from_alert_groups(alert_groups):
                     "web": alert_group.web_link,
                 },
                 "silenced_at": silenced_at,
+                "last_alert": {
+                    "id": alert_group.alerts.last().public_primary_key,
+                    "alert_group_id": alert_group.public_primary_key,
+                    "created_at": alert_group.alerts.last().created_at.isoformat().replace("+00:00", "Z"),
+                    "payload": alert_group.channel.config.example_payload,
+                },
             }
         )
     return {
@@ -110,7 +116,7 @@ def alert_group_public_api_setup(
 
     make_alert(alert_group=grafana_alert_group_default_route, raw_request_data=grafana.config.example_payload)
     make_alert(alert_group=grafana_alert_group_non_default_route, raw_request_data=grafana.config.example_payload)
-    make_alert(alert_group=formatted_webhook_alert_group, raw_request_data=grafana.config.example_payload)
+    make_alert(alert_group=formatted_webhook_alert_group, raw_request_data=formatted_webhook.config.example_payload)
 
     integrations = grafana, formatted_webhook
     alert_groups = (
@@ -635,3 +641,98 @@ def test_alert_group_unresolve(
         alert_group.refresh_from_db()
         assert alert_group.resolved is False
         assert alert_group.log_records.last().action_source == ActionSource.API
+
+
+@pytest.mark.parametrize(
+    "acknowledged,resolved,attached,status_code,data,response_msg",
+    [
+        (False, False, False, status.HTTP_200_OK, {"delay": 60}, None),
+        (False, False, False, status.HTTP_400_BAD_REQUEST, {"delay": -2}, "invalid delay value"),
+        (False, False, False, status.HTTP_400_BAD_REQUEST, {"delay": "fuzz"}, "invalid delay value"),
+        (False, False, False, status.HTTP_400_BAD_REQUEST, {}, "delay is required"),
+        (True, False, False, status.HTTP_400_BAD_REQUEST, {"delay": 60}, "Can't silence an acknowledged alert group"),
+        (False, True, False, status.HTTP_400_BAD_REQUEST, {"delay": 60}, "Can't silence a resolved alert group"),
+        (False, False, True, status.HTTP_400_BAD_REQUEST, {"delay": 60}, "Can't silence an attached alert group"),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_silence(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    acknowledged,
+    resolved,
+    attached,
+    status_code,
+    data,
+    response_msg,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    root_alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        acknowledged=acknowledged,
+        resolved=resolved,
+        root_alert_group=root_alert_group if attached else None,
+    )
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-silence", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, data=data, HTTP_AUTHORIZATION=token)
+
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.silenced is True
+        assert alert_group.log_records.last().action_source == ActionSource.API
+    else:
+        assert alert_group.silenced is False
+        assert response.status_code == status_code
+        assert response_msg == response.json()["detail"]
+
+
+@pytest.mark.parametrize(
+    "silenced,resolved,acknowledged,attached,status_code,response_msg",
+    [
+        (True, False, False, False, status.HTTP_200_OK, None),
+        (False, False, False, False, status.HTTP_400_BAD_REQUEST, "Can't unsilence an unsilenced alert group"),
+        (True, True, False, False, status.HTTP_400_BAD_REQUEST, "Can't unsilence a resolved alert group"),
+        (True, False, True, False, status.HTTP_400_BAD_REQUEST, "Can't unsilence an acknowledged alert group"),
+        (True, False, False, True, status.HTTP_400_BAD_REQUEST, "Can't unsilence an attached alert group"),
+    ],
+)
+@pytest.mark.django_db
+def test_alert_group_unsilence(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    silenced,
+    resolved,
+    acknowledged,
+    attached,
+    status_code,
+    response_msg,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    root_alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(
+        alert_receive_channel,
+        acknowledged=acknowledged,
+        resolved=resolved,
+        silenced=silenced,
+        root_alert_group=root_alert_group if attached else None,
+    )
+
+    client = APIClient()
+    url = reverse("api-public:alert_groups-unsilence", kwargs={"pk": alert_group.public_primary_key})
+    response = client.post(url, HTTP_AUTHORIZATION=token)
+
+    if status_code == status.HTTP_200_OK:
+        alert_group.refresh_from_db()
+        assert alert_group.silenced is False
+        assert alert_group.log_records.last().action_source == ActionSource.API
+    else:
+        assert alert_group.silenced == silenced
+        assert response.status_code == status_code
+        assert response_msg == response.json()["detail"]

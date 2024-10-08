@@ -263,6 +263,7 @@ export class ScheduleStore extends BaseStore {
   // ------- NEW SCHEDULES API ENDPOINTS ---------
 
   @action.bound
+  @AutoLoadingState(ActionKey.CREATE_ONCALL_SHIFT)
   async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params: Partial<Shift>) {
     const type = isOverride ? 3 : 2;
 
@@ -364,6 +365,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
+  @AutoLoadingState(ActionKey.UPDATE_ONCALL_SHIFT)
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       params: { force: true },
@@ -382,6 +384,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action.bound
+  @AutoLoadingState(ActionKey.UPDATE_ONCALL_SHIFT)
   async updateRotationAsNew(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       data: { ...params },
@@ -489,6 +492,7 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  @AutoLoadingState(ActionKey.DELETE_ONCALL_SHIFT)
   async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
     try {
       return await makeRequest(`/oncall_shifts/${shiftId}`, {

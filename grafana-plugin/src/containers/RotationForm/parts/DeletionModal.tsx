@@ -1,14 +1,12 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
-import { Stack, Modal as GrafanaModal, Button, InlineSwitch } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Stack, Modal as GrafanaModal, Button, InlineSwitch, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
+import { useIsLoading } from 'helpers/hooks';
 
 import { Text } from 'components/Text/Text';
-
-import styles from 'containers/RotationForm/RotationForm.module.css';
-
-const cx = cn.bind(styles);
+import { getRotationFormStyles } from 'containers/RotationForm/RotationForm.styles';
+import { ActionKey } from 'models/loader/action-keys';
 
 interface DeletionModalProps {
   onHide: () => void;
@@ -17,6 +15,9 @@ interface DeletionModalProps {
 
 export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
   const [isForceDelete, setIsForceDelete] = useState<boolean>(false);
+  const isDeleting = useIsLoading(ActionKey.DELETE_ONCALL_SHIFT);
+
+  const styles = useStyles2(getRotationFormStyles);
 
   const handleIsForceDeleteChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setIsForceDelete(event.target.checked);
@@ -27,7 +28,7 @@ export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
   }, [isForceDelete]);
 
   return (
-    <GrafanaModal isOpen onDismiss={onHide} title="Delete rotation" className={cx('confirmation-modal')}>
+    <GrafanaModal isOpen onDismiss={onHide} title="Delete rotation" className={styles.confirmationModal}>
       <Stack direction="column" gap={StackSize.lg}>
         <Stack direction="column">
           <Text type="secondary">
@@ -48,7 +49,7 @@ export const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleConfirmClick}>
+          <Button variant="destructive" onClick={handleConfirmClick} disabled={isDeleting}>
             Delete
           </Button>
         </Stack>

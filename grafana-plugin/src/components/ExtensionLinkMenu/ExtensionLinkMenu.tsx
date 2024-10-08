@@ -2,7 +2,7 @@ import React, { ReactElement, useMemo } from 'react';
 
 import { locationUtil, PluginExtensionLink, PluginExtensionTypes } from '@grafana/data';
 import { IconName, Menu } from '@grafana/ui';
-import { getPluginId } from 'helpers/consts';
+import { getPluginId, PLUGIN_ROOT } from 'helpers/consts';
 import { truncateTitle } from 'helpers/string';
 
 import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
@@ -58,14 +58,23 @@ const IRMActionSection: React.FC<Props> = ({ webhookModal, extensions, declareIn
   return (
     <Menu.Group key={'IRM'} label={'IRM'}>
       <Menu.Item icon={'upload'} key={'triggerWebhook'} label={'Trigger webhook'} onClick={webhookModal.onOpenModal} />
-
-      {extensions.length > 0 && (
-        <DeclareIncidentMenuItem
-          extensions={extensions}
-          declareIncidentLink={declareIncidentLink}
-          grafanaIncidentId={grafanaIncidentId}
+      <RenderConditionally
+        shouldRender={getPluginId() === 'grafana-irm-app'}
+        backupChildren={
+          <DeclareIncidentMenuItem
+            extensions={extensions}
+            declareIncidentLink={declareIncidentLink}
+            grafanaIncidentId={grafanaIncidentId}
+          />
+        }
+      >
+        <Menu.Item
+          label="Declare incident"
+          icon="fire"
+          // TODO: At some point we should update link on the backend so it points to IRM plugin and use it directly
+          url={`${PLUGIN_ROOT}/incidents?declare=new&${declareIncidentLink.split('?')[1].replace('oncall', 'irm')}`}
         />
-      )}
+      </RenderConditionally>
     </Menu.Group>
   );
 };

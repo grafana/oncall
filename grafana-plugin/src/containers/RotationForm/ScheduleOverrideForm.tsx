@@ -1,10 +1,10 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { IconButton, Stack, Field, Button, useTheme2 } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { IconButton, Stack, Field, Button, useTheme2, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { StackSize } from 'helpers/consts';
-import { useDebouncedCallback, useResize } from 'helpers/hooks';
+import { useDebouncedCallback, useIsLoading, useResize } from 'helpers/hooks';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
 import { Modal } from 'components/Modal/Modal';
@@ -13,6 +13,7 @@ import { Text } from 'components/Text/Text';
 import { UserGroups } from 'components/UserGroups/UserGroups';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { calculateScheduleFormOffset } from 'containers/Rotations/Rotations.helpers';
+import { ActionKey } from 'models/loader/action-keys';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -20,10 +21,9 @@ import { getDateTime, getUTCString, toDateWithTimezoneOffset } from 'pages/sched
 import { useStore } from 'state/useStore';
 
 import { getDraggableModalCoordinatesOnInit } from './RotationForm.helpers';
+import { getRotationFormStyles } from './RotationForm.styles';
 import { DateTimePicker } from './parts/DateTimePicker';
 import { UserItem } from './parts/UserItem';
-
-import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
   onHide: () => void;
@@ -36,8 +36,6 @@ interface RotationFormProps {
   onUpdate: () => void;
   onDelete: () => void;
 }
-
-const cx = cn.bind(styles);
 
 export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const store = useStore();
@@ -67,10 +65,17 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
+  const isCreating = useIsLoading(ActionKey.CREATE_ONCALL_SHIFT);
+  const isUpdating = useIsLoading(ActionKey.UPDATE_ONCALL_SHIFT);
+  const isDeleting = useIsLoading(ActionKey.DELETE_ONCALL_SHIFT);
+  const isSubmitting = isCreating || isUpdating || isDeleting;
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
   const shiftColor = shiftColorProp || theme.colors.warning.main;
+
+  const styles = useStyles2(getRotationFormStyles);
 
   const debouncedOnResize = useDebouncedCallback(onResize, 250);
 
@@ -198,7 +203,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
-  const disabled = ended;
+  const disabled = ended || isSubmitting;
 
   return (
     <Modal
@@ -209,7 +214,7 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       contentElement={(props, children) => (
         <Draggable
           handle=".drag-handler"
-          defaultClassName={cx('draggable')}
+          defaultClassName="draggable"
           positionOffset={{ x: 0, y: offsetTop }}
           position={draggablePosition}
           bounds={{ ...bounds } || 'body'}
@@ -231,10 +236,16 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           <Stack>
             {shiftId !== 'new' && (
               <WithConfirm title="Are you sure you want to delete override?">
-                <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
+                <IconButton
+                  variant="secondary"
+                  tooltip="Delete"
+                  name="trash-alt"
+                  onClick={handleDeleteClick}
+                  disabled={isSubmitting}
+                />
               </WithConfirm>
             )}
-            <IconButton aria-label="Drag" variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+            <IconButton aria-label="Drag" variant="secondary" className="drag-handler" name="draggabledots" />
             <IconButton
               name="times"
               variant="secondary"
@@ -244,12 +255,11 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           </Stack>
         </Stack>
 
-        <div className={cx('container')}>
-          <div className={cx('override-form-content')} data-testid="override-inputs">
+        <div className={styles.container}>
+          <div className={styles.overrideFormContent} data-testid="override-inputs">
             <Stack direction="column">
               <Stack alignItems="flex-start">
                 <Field
-                  className={cx('date-time-picker')}
                   data-testid="override-start"
                   label={
                     <Text type="primary" size="small">
@@ -267,7 +277,6 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 </Field>
 
                 <Field
-                  className={cx('date-time-picker')}
                   data-testid="override-end"
                   label={
                     <Text type="primary" size="small">

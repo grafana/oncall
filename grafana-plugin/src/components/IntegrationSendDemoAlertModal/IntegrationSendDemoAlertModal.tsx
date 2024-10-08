@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, Icon, Modal, Tooltip, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, Icon, Modal, Tooltip, Stack, useStyles2 } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
 import { openNotification } from 'helpers/helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -14,10 +13,8 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
-import styles from 'pages/integration/Integration.module.scss';
+import { getIntegrationStyles } from 'pages/integration/Integration.styles';
 import { useStore } from 'state/useStore';
-
-const cx = cn.bind(styles);
 
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
@@ -31,6 +28,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
   onHideOrCancel,
 }) => {
   const store = useStore();
+  const styles = useStyles2(getIntegrationStyles);
   const { alertReceiveChannelStore } = store;
   const initialDemoJSON = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
   const [demoPayload, setDemoPayload] = useState<string>(initialDemoJSON);
@@ -69,7 +67,7 @@ export const IntegrationSendDemoAlertModal: React.FC<IntegrationSendDemoPayloadM
           </Tooltip>
         </Stack>
 
-        <div className={cx('integration__payloadInput')}>
+        <div className={styles.integrationPayloadInput}>
           <MonacoEditor
             value={initialDemoJSON}
             disabled={true}

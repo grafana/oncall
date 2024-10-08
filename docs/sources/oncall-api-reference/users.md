@@ -28,6 +28,7 @@ The above command returns JSON structured in the following way:
 ```json
 {
   "id": "U4DNY931HHJS5",
+  "grafana_id": 456,
   "email": "public-api-demo-user-1@grafana.com",
   "slack": [
     {
@@ -48,15 +49,16 @@ The above command returns JSON structured in the following way:
 
 Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 
-| Parameter  | Unique  | Description                                                        |
-| ---------- | :-----: | :----------------------------------------------------------------- |
-| `id`       | Yes/org | User ID                                                            |
-| `email`    | Yes/org | User e-mail                                                        |
-| `slack`    | Yes/org | List of user IDs from connected Slack. User linking key is e-mail. |
-| `username` | Yes/org | User username                                                      |
-| `role`     |   No    | One of: `user`, `observer`, `admin`.                               |
-| `timezone` |   No    | timezone of the user one of [time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                               |
-| `teams`    |   No    | List of team IDs the user belongs to                               |
+| Parameter         | Unique  | Description                                                        |
+| ----------------- | :-----: | :----------------------------------------------------------------- |
+| `id`              | Yes/org | OnCall user ID                                                     |
+| `grafana_id`      | Yes/org | Grafana user ID                                                    |
+| `email`           | Yes/org | User e-mail                                                        |
+| `slack`           | Yes/org | List of user IDs from connected Slack. User linking key is e-mail. |
+| `username`        | Yes/org | User username                                                      |
+| `role`            |   No    | One of: `user`, `observer`, `admin`.                               |
+| `timezone`        |   No    | timezone of the user one of [time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).                               |
+| `teams`           |   No    | List of team IDs the user belongs to                               |
 
 ## List Users
 
@@ -77,6 +79,7 @@ The above command returns JSON structured in the following way:
   "results": [
     {
       "id": "U4DNY931HHJS5",
+      "grafana_id": 456,
       "email": "public-api-demo-user-1@grafana.com",
       "slack": [
         {

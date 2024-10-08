@@ -3,26 +3,97 @@ import datetime
 import pytest
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
 from apps.google import constants as google_constants
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
 
 
 @pytest.mark.django_db
-def test_self_or_admin(make_organization, make_user_for_organization):
-    organization = make_organization()
+def test_self_or_has_user_settings_admin_permission(make_organization, make_user_for_organization):
+    # RBAC not enabled for org
+    organization = make_organization(is_rbac_permissions_enabled=False)
     admin = make_user_for_organization(organization)
     second_admin = make_user_for_organization(organization)
     editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
 
-    another_organization = make_organization()
+    another_organization = make_organization(is_rbac_permissions_enabled=False)
     admin_from_another_organization = make_user_for_organization(another_organization)
 
-    assert admin.self_or_admin(admin, organization) is True
-    assert admin.self_or_admin(editor, organization) is False
-    assert admin.self_or_admin(second_admin, organization) is True
-    assert admin.self_or_admin(admin_from_another_organization, organization) is False
+    assert organization.is_rbac_permissions_enabled is False
+    assert another_organization.is_rbac_permissions_enabled is False
+
+    assert admin.self_or_has_user_settings_admin_permission(admin, organization) is True
+    assert admin.self_or_has_user_settings_admin_permission(editor, organization) is False
+    assert admin.self_or_has_user_settings_admin_permission(second_admin, organization) is True
+
+    assert admin.self_or_has_user_settings_admin_permission(admin_from_another_organization, organization) is False
+
+    assert editor.self_or_has_user_settings_admin_permission(editor, organization) is True
+    assert editor.self_or_has_user_settings_admin_permission(admin, organization) is True
+
+    # RBAC enabled org
+    organization_with_rbac = make_organization(is_rbac_permissions_enabled=True)
+    user_with_perms = make_user_for_organization(
+        organization_with_rbac,
+        role=LegacyAccessControlRole.NONE,
+        permissions=[GrafanaAPIPermission(action=RBACPermission.Permissions.USER_SETTINGS_ADMIN.value)],
+    )
+    user_without_perms = make_user_for_organization(
+        organization_with_rbac,
+        role=LegacyAccessControlRole.NONE,
+        permissions=[],
+    )
+
+    assert organization_with_rbac.is_rbac_permissions_enabled is True
+
+    # true because self
+    assert user_with_perms.self_or_has_user_settings_admin_permission(user_with_perms, organization_with_rbac) is True
+    assert (
+        user_without_perms.self_or_has_user_settings_admin_permission(user_without_perms, organization_with_rbac)
+        is True
+    )
+
+    # true because user_with_perms has proper admin RBAC permission
+    assert (
+        user_without_perms.self_or_has_user_settings_admin_permission(user_with_perms, organization_with_rbac) is True
+    )
+
+    # false because user_without_perms does not have proper admin RBAC permission
+    assert (
+        user_with_perms.self_or_has_user_settings_admin_permission(user_without_perms, organization_with_rbac) is False
+    )
+
+
+@pytest.mark.django_db
+def test_is_admin(make_organization, make_user_for_organization):
+    # RBAC not enabled for org
+    organization = make_organization(is_rbac_permissions_enabled=False)
+    admin = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+
+    assert organization.is_rbac_permissions_enabled is False
+
+    assert admin.is_admin is True
+    assert editor.is_admin is False
+
+    # RBAC enabled org
+    organization_with_rbac = make_organization(is_rbac_permissions_enabled=True)
+    user_with_perms = make_user_for_organization(
+        organization_with_rbac,
+        role=LegacyAccessControlRole.NONE,
+        permissions=[GrafanaAPIPermission(action=RBACPermission.Permissions.ADMIN.value)],
+    )
+    user_without_perms = make_user_for_organization(
+        organization_with_rbac,
+        role=LegacyAccessControlRole.NONE,
+        permissions=[],
+    )
+
+    assert organization_with_rbac.is_rbac_permissions_enabled is True
+
+    assert user_with_perms.is_admin is True
+    assert user_without_perms.is_admin is False
 
 
 @pytest.mark.django_db

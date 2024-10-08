@@ -456,7 +456,7 @@ export const IntegrationForm = observer(
       onHide();
 
       async function createNewIntegration(): Promise<void | ApiSchemas['AlertReceiveChannelCreate']> {
-        const response = await alertReceiveChannelStore.create({ data, skipErrorHandling: true });
+        const response = await alertReceiveChannelStore.create({ data });
         const pushHistory = (id: ApiSchemas['AlertReceiveChannel']['id']) =>
           navigate(`${PLUGIN_ROOT}/integrations/${id}`);
 

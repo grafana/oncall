@@ -9,14 +9,13 @@ import { observer } from 'mobx-react';
 
 import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
 import { MainSettings } from 'pages/settings/tabs/MainSettings/MainSettings';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import { CloudPage } from './tabs/Cloud/CloudPage';
-import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
+import { LiveSettings } from './tabs/LiveSettings/LiveSettingsPage';
 import { TeamsSettings } from './tabs/TeamsSettings/TeamsSettings';
 
 interface SettingsPageProps extends AppRootProps, WithStoreProps {}
@@ -54,52 +53,48 @@ class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
     const showCloudPage = hasCloudPage && isUserActionAllowed(UserActions.OtherSettingsWrite);
     const showLiveSettings = hasLiveSettings && isUserActionAllowed(UserActions.OtherSettingsRead);
 
-    if (isTopNavbar()) {
-      return (
-        <>
-          <TabsBar>
+    return (
+      <>
+        <TabsBar>
+          <Tab
+            key={SettingsPageTab.MainSettings.key}
+            onChangeTab={() => onTabChange(SettingsPageTab.MainSettings.key)}
+            active={activeTab === SettingsPageTab.MainSettings.key}
+            label={SettingsPageTab.MainSettings.value}
+          />
+          <Tab
+            key={SettingsPageTab.ChatOps.key}
+            onChangeTab={() => onTabChange(SettingsPageTab.ChatOps.key)}
+            active={activeTab === SettingsPageTab.ChatOps.key}
+            label={SettingsPageTab.ChatOps.value}
+          />
+          <Tab
+            key={SettingsPageTab.TeamsSettings.key}
+            onChangeTab={() => onTabChange(SettingsPageTab.TeamsSettings.key)}
+            active={activeTab === SettingsPageTab.TeamsSettings.key}
+            label={SettingsPageTab.TeamsSettings.value}
+          />
+          {showLiveSettings && (
             <Tab
-              key={SettingsPageTab.MainSettings.key}
-              onChangeTab={() => onTabChange(SettingsPageTab.MainSettings.key)}
-              active={activeTab === SettingsPageTab.MainSettings.key}
-              label={SettingsPageTab.MainSettings.value}
+              key={SettingsPageTab.EnvVariables.key}
+              onChangeTab={() => onTabChange(SettingsPageTab.EnvVariables.key)}
+              active={activeTab === SettingsPageTab.EnvVariables.key}
+              label={SettingsPageTab.EnvVariables.value}
             />
+          )}
+          {showCloudPage && (
             <Tab
-              key={SettingsPageTab.ChatOps.key}
-              onChangeTab={() => onTabChange(SettingsPageTab.ChatOps.key)}
-              active={activeTab === SettingsPageTab.ChatOps.key}
-              label={SettingsPageTab.ChatOps.value}
+              key={SettingsPageTab.Cloud.key}
+              onChangeTab={() => onTabChange(SettingsPageTab.Cloud.key)}
+              active={activeTab === SettingsPageTab.Cloud.key}
+              label={SettingsPageTab.Cloud.value}
             />
-            <Tab
-              key={SettingsPageTab.TeamsSettings.key}
-              onChangeTab={() => onTabChange(SettingsPageTab.TeamsSettings.key)}
-              active={activeTab === SettingsPageTab.TeamsSettings.key}
-              label={SettingsPageTab.TeamsSettings.value}
-            />
-            {showLiveSettings && (
-              <Tab
-                key={SettingsPageTab.EnvVariables.key}
-                onChangeTab={() => onTabChange(SettingsPageTab.EnvVariables.key)}
-                active={activeTab === SettingsPageTab.EnvVariables.key}
-                label={SettingsPageTab.EnvVariables.value}
-              />
-            )}
-            {showCloudPage && (
-              <Tab
-                key={SettingsPageTab.Cloud.key}
-                onChangeTab={() => onTabChange(SettingsPageTab.Cloud.key)}
-                active={activeTab === SettingsPageTab.Cloud.key}
-                label={SettingsPageTab.Cloud.value}
-              />
-            )}
-          </TabsBar>
+          )}
+        </TabsBar>
 
-          <TabsContent activeTab={activeTab} />
-        </>
-      );
-    }
-
-    return <MainSettings />;
+        <TabsContent activeTab={activeTab} />
+      </>
+    );
   }
 
   getMatchingPageNav() {
@@ -151,7 +146,7 @@ const TabsContent = (props: TabsContentProps) => {
       )}
       {activeTab === SettingsPageTab.EnvVariables.key && (
         <div>
-          <LiveSettingsPage />
+          <LiveSettings />
         </div>
       )}
       {activeTab === SettingsPageTab.Cloud.key && (

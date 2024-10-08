@@ -14,14 +14,15 @@ dayjs.extend(isoWeek);
 
 test.use({ timezoneId: MOSCOW_TIMEZONE }); // GMT+3 the whole year
 
-test('dates in schedule are correct according to selected current timezone', async ({ adminRolePage }) => {
+// The test is skipped because using Clock API breaks several other tests that run in parallel
+test.skip('dates in schedule are correct according to selected current timezone', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
 
   /**
    * Always set a fixed time of today's date but at 12:00:00 (noon)
    *
    * This solves the issue here https://github.com/grafana/oncall/issues/4991
-   * where we would occasionally see this test flake if it srtated and finished at a different hour
+   * where we would occasionally see this test flake if it started and finished at a different hour
    *
    * See playwright docs for more details
    * https://playwright.dev/docs/clock

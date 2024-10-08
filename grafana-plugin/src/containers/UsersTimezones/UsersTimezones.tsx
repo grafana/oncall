@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 
-import { Icon, Stack, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { cx } from '@emotion/css';
+import { Icon, Stack, Tooltip, useStyles2 } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { sortBy } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -18,17 +18,14 @@ import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
 import { ScheduleUserDetails } from './ScheduleUserDetails/ScheduleUserDetails';
+import { getUserTimezonesStyles } from './UserTimezones.styles';
 import { calculateTimePassedInDayPercentage } from './UsersTimezones.helpers';
-
-import styles from './UsersTimezones.module.css';
 
 interface UsersTimezonesProps {
   userIds: Array<ApiSchemas['User']['pk']>;
   onCallNow: Array<Partial<ApiSchemas['User']>>;
   scheduleId: Schedule['id'];
 }
-
-const cx = cn.bind(styles);
 
 const hoursToSplit = 3;
 
@@ -42,6 +39,7 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   } = store;
 
   const { userIds, onCallNow, scheduleId } = props;
+  const styles = useStyles2(getUserTimezonesStyles);
 
   useEffect(() => {
     userIds.forEach((userId) => {
@@ -69,33 +67,33 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
   }, []);
 
   return (
-    <div className={cx('root')}>
+    <div className={styles.root}>
       <WorkingHours
         light
         startMoment={currentDateInSelectedTimezone.startOf('day')}
         duration={24 * 60 * 60}
         timezone={userStore.currentUser?.timezone}
         workingHours={userStore.currentUser?.working_hours}
-        className={cx('working-hours')}
+        className={styles.workingHours}
       />
-      <div className={cx('content')}>
-        <div className={cx('header')}>
+      <div className={styles.content}>
+        <div className={styles.header}>
           <Stack justifyContent="space-between">
             <Stack>
-              <div className={cx('title')}>
+              <div className={styles.title}>
                 <Text.Title level={5} type="primary">
                   Schedule team and timezones
                 </Text.Title>
               </div>
             </Stack>
-            <div className={cx('timezone-select')}>
+            <div>
               <Text type="secondary">
                 Current timezone: {selectedTimezoneLabel}, local time: {currentDateInSelectedTimezone.format('HH:mm')}
               </Text>
             </div>
           </Stack>
         </div>
-        <div className={cx('users')}>
+        <div className={styles.users}>
           <CurrentTimeLineIndicator />
           {users?.length ? (
             <UserAvatars
@@ -107,19 +105,19 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
           ) : (
             <Stack justifyContent="center" alignItems="flex-start">
               <Stack>
-                <Icon className={cx('icon')} name="users-alt" />
+                <Icon className={styles.icon} name="users-alt" />
                 <Text type="secondary">Add rotation to see users</Text>
               </Stack>
             </Stack>
           )}
         </div>
-        <div className={cx('time-marks-wrapper')}>
-          <div className={cx('time-marks')}>
+        <div className={styles.timeMarksWrapper}>
+          <div className={styles.timeMarks}>
             {momentsToRender.map((mm, index) => (
-              <div key={index} className={cx('time-mark')} style={{ width: `${100 / jLimit}%` }}>
+              <div key={index} className={styles.timeMark} style={{ width: `${100 / jLimit}%` }}>
                 <span
-                  className={cx('time-mark-text', {
-                    'time-mark-text__translated': index > 0,
+                  className={cx(styles.timeMarkText, {
+                    [styles.timeMarkTextTranslated]: index > 0,
                   })}
                 >
                   <Text type="secondary" size="small">
@@ -128,8 +126,8 @@ export const UsersTimezones: FC<UsersTimezonesProps> = observer((props) => {
                 </span>
               </div>
             ))}
-            <div key={jLimit} className={cx('time-mark')}>
-              <span className={cx('time-mark-text')}>
+            <div key={jLimit} className={styles.timeMark}>
+              <span className={styles.timeMarkText}>
                 <Text type="secondary" size="small">
                   24:00
                 </Text>
@@ -146,10 +144,11 @@ const CurrentTimeLineIndicator = observer(() => {
   const {
     timezoneStore: { currentDateInSelectedTimezone },
   } = useStore();
+  const styles = useStyles2(getUserTimezonesStyles);
 
   return (
     <div
-      className={cx('current-time')}
+      className={styles.currentTime}
       style={{ left: `${calculateTimePassedInDayPercentage(currentDateInSelectedTimezone)}%` }}
     />
   );
@@ -186,7 +185,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
   const [activeUtcOffset, setActiveUtcOffset] = useState<number | undefined>(undefined);
 
   return (
-    <div className={cx('user-avatars')}>
+    <div>
       {userGroups.map((group, idx) => (
         <AvatarGroup
           key={idx}
@@ -253,13 +252,14 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
     });
   }, [propsUsers, onCallNow]);
 
+  const styles = useStyles2(getUserTimezonesStyles);
   const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, store.timezoneStore.calendarStartDate);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
     <div
-      className={cx('avatar-group', {
-        [`avatar-group_inactive`]: !isNaN(activeUtcOffset) && activeUtcOffset !== utcOffset,
+      className={cx(styles.avatarGroup, {
+        [styles.avatarGroupInactive]: !isNaN(activeUtcOffset) && activeUtcOffset !== utcOffset,
       })}
       style={{ width: `${width}px`, left: `${xPos}%`, transform: `translate(${translateLeft}px, 0)` }}
       onMouseEnter={() => onSetActiveUtcOffset(utcOffset)}
@@ -284,7 +284,7 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
             }
           >
             <div
-              className={cx('avatar')}
+              className={styles.avatar}
               data-testid="user-avatar-in-schedule"
               style={{
                 left: active ? `${index * (AVATAR_WIDTH + AVATAR_GAP)}px` : `${index * 10}px`,
@@ -299,7 +299,7 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
                 height={35}
                 renderAvatar={() => <Avatar src={user.avatar} size="large" />}
                 renderIcon={() =>
-                  isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} width={14} height={13} /> : null
+                  isOncall ? <IsOncallIcon className={styles.isOncallIcon} width={14} height={13} /> : null
                 }
               />
             </div>
@@ -312,7 +312,7 @@ const AvatarGroup = observer((props: AvatarGroupProps) => {
           zIndex: users.length,
           left: active ? `${users.length * (AVATAR_WIDTH + AVATAR_GAP)}px` : `${LIMIT * 10}px`,
         }}
-        className={cx('user-more')}
+        className={styles.userMore}
       >
         +{users.length - LIMIT}
       </div>

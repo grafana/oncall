@@ -23,9 +23,8 @@ def test_labels_get_keys(
     mocked_get_labels_keys,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:get_keys")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -49,7 +48,7 @@ def test_get_update_key_get(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -73,7 +72,7 @@ def test_get_update_key_put(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})
     data = {"name": "team"}
@@ -98,7 +97,7 @@ def test_add_value(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:add_value", kwargs={"key_id": "keyid123"})
     data = {"name": "yolo"}
@@ -123,7 +122,7 @@ def test_rename_value(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
     data = {"name": "yolo"}
@@ -148,7 +147,7 @@ def test_get_value(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:get_update_value", kwargs={"key_id": "keyid123", "value_id": "valueid123"})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -172,7 +171,7 @@ def test_labels_create_label(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
     url = reverse("api-internal:create_label")
     data = {"key": {"name": "team"}, "values": [{"name": "yolo"}]}
@@ -192,7 +191,7 @@ def test_labels_feature_false(
 ):
     settings.FEATURE_LABELS_ENABLED_FOR_ALL = False
 
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     url = reverse("api-internal:get_keys")
@@ -240,7 +239,7 @@ def test_labels_permissions_get_actions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
     with patch("apps.api.views.labels.LabelsViewSet.get_keys", return_value=Response(status=status.HTTP_200_OK)):
         url = reverse("api-internal:get_keys")
@@ -274,7 +273,7 @@ def test_labels_permissions_create_update_actions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
     with patch("apps.api.views.labels.LabelsViewSet.rename_key", return_value=Response(status=status.HTTP_200_OK)):
         url = reverse("api-internal:get_update_key", kwargs={"key_id": "keyid123"})

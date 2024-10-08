@@ -6,13 +6,12 @@ import { Header } from 'navbar/Header/Header';
 
 import { RenderConditionally } from 'components/RenderConditionally/RenderConditionally';
 import { pages } from 'pages/pages';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
 interface AppPluginPageProps extends PluginPageProps {
   page?: string;
 }
 
-export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as React.ComponentType<AppPluginPageProps>;
+export const PluginPage = RealPlugin as React.ComponentType<AppPluginPageProps>;
 
 function RealPlugin(props: AppPluginPageProps): React.ReactNode {
   const { page } = props;
@@ -32,8 +31,4 @@ function RealPlugin(props: AppPluginPageProps): React.ReactNode {
       {props.children}
     </RealPluginPage>
   );
-}
-
-export function PluginPageFallback(props: PluginPageProps): React.ReactNode {
-  return props.children;
 }

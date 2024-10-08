@@ -131,6 +131,8 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
         return this.renderNumMinutesInWindowOptions();
+      case 'severity':
+        return this.renderSeverities();
       default:
         console.warn('Unknown escalation step placeholder');
         return '';
@@ -243,6 +245,34 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
             },
           ]}
           width={'auto'}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
+  renderSeverities() {
+    const {
+      data,
+      isDisabled,
+      theme,
+      store: { escalationPolicyStore },
+    } = this.props;
+    const styles = getEscalationPolicyStyles(theme);
+    const { severity } = data;
+
+    return (
+      <WithPermissionControlTooltip key="" userAction={UserActions.EscalationChainsWrite}>
+        <Select
+          menuShouldPortal
+          disabled={isDisabled}
+          placeholder="Severity"
+          className={cx(styles.select, styles.control)}
+          value={severity}
+          onChange={this.getOnSelectChangeHandler('severity')}
+          options={escalationPolicyStore.severityChoices.map((severity_choice) => ({
+            value: severity_choice.value,
+            label: severity_choice.display_name,
+          }))}
         />
       </WithPermissionControlTooltip>
     );

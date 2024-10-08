@@ -28,6 +28,7 @@ The above command returns JSON structured in the following way:
 ```json
 {
   "id": "TI73TDU19W48J",
+  "grafana_id": 123,
   "name": "my test team",
   "email": "",
   "avatar_url": "/avatar/3f49c15916554246daa714b9bd0ee398"
@@ -38,12 +39,13 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/teams/<TEAM_ID>/`
 
-| Parameter  | Unique  | Description                                                        |
-| ---------- | :-----: | :----------------------------------------------------------------- |
-| `id`       | Yes/org | Team ID                                                            |
-| `name`    | Yes/org | Team name                                                        |
-| `email`    | Yes/org | Team e-mail                                                        |
-| `avatar_url`    | Yes | Avatar URL of the Grafana team  |
+| Parameter         | Unique  | Description                    |
+| ----------------- | :-----: | :----------------------------- |
+| `id`              | Yes/org | OnCall team ID                 |
+| `grafana_id`      | Yes/org | Grafana team ID                |
+| `name`            | Yes/org | Team name                      |
+| `email`           | Yes/org | Team e-mail                    |
+| `avatar_url`      | Yes     | Avatar URL of the Grafana team |
 
 ## List Teams
 
@@ -64,6 +66,7 @@ The above command returns JSON structured in the following way:
   "results": [
     {
       "id": "TI73TDU19W48J",
+      "grafana_id": 123,
       "name": "my test team",
       "email": "",
       "avatar_url": "/avatar/3f49c15916554246daa714b9bd0ee398"

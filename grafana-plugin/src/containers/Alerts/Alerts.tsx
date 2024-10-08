@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Alert } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Alert, useStyles2 } from '@grafana/ui';
 import { sanitize } from 'dompurify';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
@@ -14,15 +15,8 @@ import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.
 import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { UserHelper } from 'models/user/user.helpers';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-
-import styles from './Alerts.module.scss';
-
-import plugin from '../../../package.json'; // eslint-disable-line
-
-const cx = cn.bind(styles);
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
@@ -32,6 +26,7 @@ enum AlertID {
 export const Alerts = observer(() => {
   const queryParams = useQueryParams();
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
+  const styles = useStyles2(getStyles);
 
   const forceUpdate = useForceUpdate();
 
@@ -61,7 +56,6 @@ export const Alerts = observer(() => {
     organizationStore: { currentOrganization },
   } = store;
 
-  const versionMismatchLocalStorageId = `version_mismatch_${store.backendVersion}_${plugin?.version}`;
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
@@ -72,16 +66,15 @@ export const Alerts = observer(() => {
     !showSlackInstallAlert &&
     !showCurrentUserGoogleOAuth2TokenIsMissingScopes() &&
     !showBannerTeam() &&
-    !showMismatchWarning() &&
     !showChannelWarnings()
   ) {
     return null;
   }
   return (
-    <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
+    <div className={styles.alertsContainer}>
       {showSlackInstallAlert && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           onRemove={handleCloseInstallSlackAlert}
           severity="error"
           title="Slack integration error"
@@ -91,7 +84,7 @@ export const Alerts = observer(() => {
       )}
       {showCurrentUserGoogleOAuth2TokenIsMissingScopes() && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           severity="warning"
           title="User Google OAuth2 token is missing scopes"
           onRemove={getRemoveAlertHandler(AlertID.USER_GOOGLE_OAUTH2_TOKEN_MISSING_SCOPES)}
@@ -107,7 +100,7 @@ export const Alerts = observer(() => {
       )}
       {showBannerTeam() && (
         <Alert
-          className={cx('alert')}
+          className={styles.alert}
           severity="success"
           title={currentOrganization.banner.title}
           onRemove={getRemoveAlertHandler(currentOrganization?.banner.title)}
@@ -119,34 +112,10 @@ export const Alerts = observer(() => {
           />
         </Alert>
       )}
-      {showMismatchWarning() && (
-        <Alert
-          className={cx('alert')}
-          severity="warning"
-          title={'Version mismatch!'}
-          onRemove={getRemoveAlertHandler(versionMismatchLocalStorageId)}
-        >
-          Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
-          otherwise there could be issues with your Grafana OnCall installation!
-          <br />
-          {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
-          <br />
-          Please see{' '}
-          <a
-            href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
-            target="_blank"
-            rel="noreferrer"
-            className={cx('instructions-link')}
-          >
-            the update instructions
-          </a>
-          .
-        </Alert>
-      )}
       {showChannelWarnings() && (
         <Alert
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
-          className={cx('alert')}
+          className={styles.alert}
           severity="warning"
           title="Notification Warning! Possible notification miss."
         >
@@ -169,16 +138,6 @@ export const Alerts = observer(() => {
 
   function showBannerTeam(): boolean {
     return Boolean(currentOrganization?.banner?.title) && !getItem(currentOrganization?.banner?.title);
-  }
-
-  function showMismatchWarning(): boolean {
-    return (
-      store.isOpenSource &&
-      store.backendVersion &&
-      plugin?.version &&
-      store.backendVersion !== plugin?.version &&
-      !getItem(versionMismatchLocalStorageId)
-    );
   }
 
   function showChannelWarnings(): boolean {
@@ -211,3 +170,26 @@ export const Alerts = observer(() => {
     );
   }
 });
+
+const getStyles = (theme: GrafanaTheme2) => {
+  return {
+    alertsContainer: css`
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+      gap: 10px;
+
+      '&:empty': {
+        display: none;
+      }
+    `,
+
+    alert: css`
+      margin: 0;
+    `,
+
+    instructionsLink: css`
+      color: ${theme.colors.primary.text};
+    `,
+  };
+};

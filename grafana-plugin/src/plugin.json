@@ -174,9 +174,10 @@
           { "action": "grafana-oncall-app.user-settings:admin" },
 
           { "action": "grafana-oncall-app.other-settings:read" },
-          { "action": "grafana-oncall-app.other-settings:write" }
-        ],
-        "hidden": true
+          { "action": "grafana-oncall-app.other-settings:write" },
+
+          { "action": "grafana-oncall-app.admin:admin" }
+        ]
       },
       "grants": ["Grafana Admin", "Admin"]
     },

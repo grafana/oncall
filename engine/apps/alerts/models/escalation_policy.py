@@ -47,7 +47,8 @@ class EscalationPolicy(OrderedModel):
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_TEAM_MEMBERS,
         STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT,
-    ) = range(19)
+        STEP_DECLARE_INCIDENT,
+    ) = range(20)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -70,6 +71,7 @@ class EscalationPolicy(OrderedModel):
         (STEP_TRIGGER_CUSTOM_WEBHOOK, "Trigger Webhook"),
         (STEP_NOTIFY_TEAM_MEMBERS, "Notify all users in a Team"),
         (STEP_NOTIFY_TEAM_MEMBERS_IMPORTANT, "Notify all users in a Team (Important)"),
+        (STEP_DECLARE_INCIDENT, "Declare Incident"),
     )
 
     # Ordered step choices available for internal api.
@@ -90,6 +92,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     ]
     # Steps can be stored in db while interacting with internal api
     # Includes important versions of default steps
@@ -110,6 +113,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     ]
 
     # Maps internal api's steps choices to their verbal. First string in tuple is display name for existent step.
@@ -151,6 +155,10 @@ class EscalationPolicy(OrderedModel):
             "Repeat escalation from the beginning (5 times max)",
             "Repeat escalations from the beginning (5 times max)",
         ),
+        STEP_DECLARE_INCIDENT: (
+            "Declare Incident with severity {{severity}} (non-default routes only)",
+            "Declare Incident (non-default routes only)",
+        ),
     }
 
     STEPS_WITH_NO_IMPORTANT_VERSION_SET = {
@@ -161,6 +169,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     }
 
     DEFAULT_TO_IMPORTANT_STEP_MAPPING = {
@@ -210,6 +219,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_DECLARE_INCIDENT,
     ]
 
     PUBLIC_STEP_CHOICES_MAP = {
@@ -231,6 +241,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME: "notify_if_time_from_to",
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: "notify_if_num_alerts_in_window",
         STEP_REPEAT_ESCALATION_N_TIMES: "repeat_escalation",
+        STEP_DECLARE_INCIDENT: "declare_incident",
     }
 
     public_primary_key = models.CharField(
@@ -290,6 +301,10 @@ class EscalationPolicy(OrderedModel):
         default=None,
         null=True,
     )
+
+    # Incident severity for declare incident step
+    SEVERITY_SET_FROM_LABEL, SEVERITY_SET_FROM_LABEL_DISPLAY_VALUE = ("set-from-label", "from 'severity' label")
+    severity = models.CharField(max_length=512, null=True, default=None)
 
     ONE_MINUTE = datetime.timedelta(minutes=1)
     FIVE_MINUTES = datetime.timedelta(minutes=5)

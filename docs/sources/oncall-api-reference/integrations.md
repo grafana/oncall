@@ -17,6 +17,10 @@ refs:
 
 # Integrations HTTP API
 
+{{< admonition type="note" >}}
+⚠️ `msteams` templates are only available on Grafana Cloud
+{{< /admonition >}}
+
 ## Create an integration
 
 ```shell
@@ -71,6 +75,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "mobile_app": {
+      "title": null,
+      "message": null
     },
     "email": {
       "title": null,
@@ -143,6 +151,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "mobile_app": {
+      "title": null,
+      "message": null
     },
     "email": {
       "title": null,
@@ -219,6 +231,10 @@ The above command returns JSON structured in the following way:
           "title": null,
           "message": null,
           "image_url": null
+        },
+        "mobile_app": {
+          "title": null,
+          "message": null
         },
         "email": {
           "title": null,
@@ -308,6 +324,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "mobile_app": {
+      "title": null,
+      "message": null
     }
   }
 }

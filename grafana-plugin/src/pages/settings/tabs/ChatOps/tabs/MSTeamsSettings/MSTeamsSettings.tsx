@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
+import { css } from '@emotion/css';
 import { Button, LoadingPlaceholder, Badge, Stack } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { GTable } from 'components/GTable/GTable';
@@ -13,10 +13,6 @@ import { MSTeamsChannel } from 'models/msteams_channel/msteams_channel.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-import styles from 'pages/settings/tabs/ChatOps/tabs/MSTeamsSettings/MSTeamsSettings.module.css';
-
-const cx = cn.bind(styles);
-
 interface MSTeamsProps extends WithStoreProps {}
 
 interface MSTeamsState {
@@ -24,7 +20,7 @@ interface MSTeamsState {
 }
 
 @observer
-class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
+class _MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
   state: MSTeamsState = {
     verificationCode: '',
   };
@@ -76,13 +72,16 @@ class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
         render: this.renderActionButtons,
       },
     ];
+
+    const styles = getStyles();
+
     return (
       <div>
         {connectedChannels && (
-          <div className={cx('root')}>
+          <div className={styles.root}>
             <GTable
               title={() => (
-                <div className={cx('header')}>
+                <div className={styles.header}>
                   <Text.Title level={3}>Microsoft Teams Channels</Text.Title>
                   <MSTeamsIntegrationButton onUpdate={this.update} />
                 </div>
@@ -143,4 +142,17 @@ class MSTeamsSettings extends Component<MSTeamsProps, MSTeamsState> {
   };
 }
 
-export default withMobXProviderContext(MSTeamsSettings);
+export const MSTeamsSettings = withMobXProviderContext(_MSTeamsSettings);
+
+const getStyles = () => {
+  return {
+    root: css`
+      display: block;
+    `,
+
+    header: css`
+      display: flex;
+      justify-content: space-between;
+    `,
+  };
+};

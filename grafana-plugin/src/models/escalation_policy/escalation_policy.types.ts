@@ -24,6 +24,7 @@ export interface EscalationPolicy {
   important: boolean | null;
   num_alerts_in_window: number;
   num_minutes_in_window: number;
+  severity: string | null;
 }
 
 export interface EscalationPolicyOption {

@@ -1,19 +1,15 @@
 import React, { useCallback } from 'react';
 
-import { Button, Stack, Icon } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { css } from '@emotion/css';
+import { Button, Stack, Icon, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { DOCS_SLACK_SETUP, getPluginId, StackSize } from 'helpers/consts';
+import { StackSize, DOCS_SLACK_SETUP, getPluginId } from 'helpers/consts';
 
 import { Block } from 'components/GBlock/Block';
 import { Text } from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { SlackNewIcon } from 'icons/Icons';
 import { useStore } from 'state/useStore';
-
-import styles from './SlackTab.module.css';
-
-const cx = cn.bind(styles);
 
 export const SlackTab = () => {
   const { slackStore } = useStore();
@@ -22,10 +18,12 @@ export const SlackTab = () => {
     slackStore.slackLogin();
   }, [slackStore]);
 
+  const styles = useStyles2(getStyles);
+
   return (
     <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
       <Stack direction="column" gap={StackSize.lg}>
-        <Block bordered withBackground className={cx('slack-infoblock', 'personal-slack-infoblock')}>
+        <Block bordered withBackground className={styles.slackInfoblock}>
           <Stack direction="column" alignItems="center" gap={StackSize.lg}>
             <SlackNewIcon />
             <Text>
@@ -49,10 +47,29 @@ export const SlackTab = () => {
         </Block>
         <Button onClick={handleClickConnectSlackAccount}>
           <Stack gap={StackSize.xs} alignItems="center">
-            <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+            <Icon name="external-link-alt" className={styles.externalLinkStyle} /> Open Slack connection page
           </Stack>
         </Button>
       </Stack>
     </WithPermissionControlDisplay>
   );
+};
+
+const getStyles = () => {
+  return {
+    footer: css`
+      display: flex;
+      justify-content: flex-end;
+    `,
+
+    slackInfoblock: css`
+      text-align: center;
+      width: 725px;
+    `,
+
+    externalLinkStyle: css`
+      margin-right: 4px;
+      align-self: baseline;
+    `,
+  };
 };

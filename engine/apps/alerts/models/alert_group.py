@@ -30,6 +30,7 @@ from apps.alerts.tasks import (
 from apps.metrics_exporter.tasks import update_metrics_for_alert_group
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
+from common.constants.plugin_ids import PluginID
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 from common.utils import clean_markup, str_or_backup
 
@@ -43,6 +44,7 @@ if typing.TYPE_CHECKING:
         AlertGroupLogRecord,
         AlertReceiveChannel,
         BundledNotification,
+        RelatedIncident,
         ResolutionNote,
         ResolutionNoteSlackMessage,
     )
@@ -129,7 +131,8 @@ class AlertGroupQuerySet(models.QuerySet):
             pass
 
         # If it's an "OK" alert, try to return the latest resolved group
-        if group_data.is_resolve_signal:
+        # (only if the channel allows source base resolving and the alert is a resolve signal)
+        if channel.allow_source_based_resolving and group_data.is_resolve_signal:
             try:
                 return self.filter(**search_params, resolved=True).latest(), False
             except self.model.DoesNotExist:
@@ -191,6 +194,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     acknowledged_by_user: typing.Optional["User"]
     alerts: "RelatedManager['Alert']"
     bundled_notifications: "RelatedManager['BundledNotification']"
+    related_incidents: "RelatedManager['RelatedIncident']"
     dependent_alert_groups: "RelatedManager['AlertGroup']"
     channel: "AlertReceiveChannel"
     log_records: "RelatedManager['AlertGroupLogRecord']"
@@ -544,7 +548,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def declare_incident_link(self) -> str:
         """Generate a link for AlertGroup to declare Grafana Incident by click"""
-        incident_link = urljoin(self.channel.organization.grafana_url, "a/grafana-incident-app/incidents/declare/")
+        incident_link = urljoin(self.channel.organization.grafana_url, f"a/{PluginID.INCIDENT}/incidents/declare/")
         caption = urllib.parse.quote_plus("OnCall Alert Group")
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link

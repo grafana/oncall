@@ -4,7 +4,7 @@ import typing
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Max, Q
 from django.utils.functional import cached_property
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
@@ -21,7 +21,7 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
-from apps.api.permissions import LegacyAccessControlRole
+from apps.alerts.models import Alert, AlertGroup
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
@@ -183,7 +183,7 @@ class TeamFilteringMixin:
         NOTE: use .distinct() after filtering by available teams as it may return duplicate instances.
         """
         available_teams_lookup_args = []
-        if not self.request.user.role == LegacyAccessControlRole.ADMIN:
+        if not self.request.user.is_admin:
             available_teams_lookup_args = [
                 Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
                 | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
@@ -412,3 +412,56 @@ class GrafanaHeadersMixin:
         else:
             instance_context = None
         return instance_context
+
+
+class AlertGroupEnrichingMixin:
+    def paginate_queryset(self, queryset):
+        """
+        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
+        for one page of alert groups, not the whole table.
+        """
+        alert_groups = super().paginate_queryset(queryset.only("id"))
+        alert_groups = self.enrich(alert_groups)
+        return alert_groups
+
+    def enrich(self, alert_groups: typing.List[AlertGroup]) -> typing.List[AlertGroup]:
+        """
+        This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins
+        to add additional info like alert_count and last_alert for every alert group efficiently.
+        We need the last_alert because it's used by AlertGroupWebRenderer.
+        """
+
+        # enrich alert groups with select_related and prefetch_related
+        alert_group_pks = [alert_group.pk for alert_group in alert_groups]
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-started_at")
+
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        alert_groups = list(queryset)
+
+        # get info on alerts count and last alert ID for every alert group
+        alerts_info = (
+            Alert.objects.values("group_id")
+            .filter(group_id__in=alert_group_pks)
+            .annotate(alerts_count=Count("group_id"), last_alert_id=Max("id"))
+        )
+        alerts_info_map = {info["group_id"]: info for info in alerts_info}
+
+        # fetch last alerts for every alert group
+        last_alert_ids = [info["last_alert_id"] for info in alerts_info_map.values()]
+        last_alerts = Alert.objects.filter(pk__in=last_alert_ids)
+        for alert in last_alerts:
+            # link group back to alert
+            alert.group = [alert_group for alert_group in alert_groups if alert_group.pk == alert.group_id][0]
+            alerts_info_map[alert.group_id].update({"last_alert": alert})
+
+        # add additional "alerts_count" and "last_alert" fields to every alert group
+        for alert_group in alert_groups:
+            try:
+                alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
+                alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+            except KeyError:
+                # alert group has no alerts
+                alert_group.last_alert = None
+                alert_group.alerts_count = 0
+
+        return alert_groups
