@@ -92,6 +92,8 @@ Grafana OnCall enhances Jinja with additional functions:
 - `datetimeformat_as_timezone`: Converts datetime to string with timezone conversion (`UTC` by default)
   - Usage example: `{{ payload.alerts.startsAt | iso8601_to_time | datetimeformat_as_timezone('%Y-%m-%dT%H:%M:%S%z', 'America/Chicago') }}`
 - `datetimeparse`: Converts string to datetime according to strftime format codes (`%H:%M / %d-%m-%Y` by default)
+- `timedeltaparse`: Converts a time range (e.g., `5s`, `2m`, `6h`, `3d`) to a timedelta that can be added to or subtracted from a datetime
+  - Usage example: `{% set delta = alert.window | timedeltaparse %}{{ alert.startsAt | iso8601_to_time - delta | datetimeformat }}`
 - `regex_replace`: Performs a regex find and replace
 - `regex_match`: Performs a regex match, returns `True` or `False`
   - Usage example: `{{ payload.ruleName | regex_match(".*") }}`

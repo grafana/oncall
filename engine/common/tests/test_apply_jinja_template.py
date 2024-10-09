@@ -1,6 +1,6 @@
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -138,6 +138,47 @@ def test_apply_jinja_template_datetimeparse():
         "{{ payload.naive | datetimeparse('%Y-%m-%dT%H:%M:%S') }}",
         payload,
     ) == str(datetime.strptime(payload["naive"], "%Y-%m-%dT%H:%M:%S"))
+
+
+def test_apply_jinja_template_timedeltaparse():
+    payload = {"seconds": "-100s", "hours": "12h", "days": "-5d", "weeks": "52w"}
+
+    assert apply_jinja_template(
+        "{{ payload.seconds | timedeltaparse }}",
+        payload,
+    ) == str(timedelta(seconds=-100))
+    assert apply_jinja_template(
+        "{{ payload.hours | timedeltaparse }}",
+        payload,
+    ) == str(timedelta(hours=12))
+    assert apply_jinja_template(
+        "{{ payload.days | timedeltaparse }}",
+        payload,
+    ) == str(timedelta(days=-5))
+    assert apply_jinja_template(
+        "{{ payload.weeks | timedeltaparse }}",
+        payload,
+    ) == str(timedelta(weeks=52))
+
+
+def test_apply_jinja_template_timedelta_arithmetic():
+    payload = {
+        "dt": "2023-11-22T15:30:00.000000000Z",
+        "delta": "1h",
+        "before": "2023-11-22T14:30:00.000000000Z",
+        "after": "2023-11-22T16:30:00.000000000Z",
+    }
+
+    result = apply_jinja_template(
+        "{% set delta = payload.delta | timedeltaparse -%}{{ payload.dt | iso8601_to_time - delta }}",
+        payload,
+    )
+    assert result == str(parse_datetime(payload["before"]))
+    result = apply_jinja_template(
+        "{% set delta = payload.delta | timedeltaparse -%}{{ payload.dt | iso8601_to_time + delta }}",
+        payload,
+    )
+    assert result == str(parse_datetime(payload["after"]))
 
 
 def test_apply_jinja_template_b64decode():

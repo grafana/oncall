@@ -84,7 +84,7 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
         { listItemName: 'labels - labels assigned to the last alert in the group' },
         { listItemName: 'web_title, web_mesage, web_image_url - templates from Web' },
         { listItemName: 'payload, grafana_oncall_link, grafana_oncall_incident_id, integration_name, source_link' },
-        { listItemName: 'time(), datetimeformat, datetimeformat_as_timezone, datetimeparse, iso8601_to_time' },
+        { listItemName: 'time(), datetimeformat, datetimeformat_as_timezone, datetimeparse, iso8601_to_time, timedeltaparse' },
         { listItemName: 'to_pretty_json' },
         { listItemName: 'regex_replace, regex_match, regex_search' },
         { listItemName: 'b64decode' },
