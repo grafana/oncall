@@ -419,6 +419,20 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
         ).save()
         return
 
+    if alert_group.resolved:
+        # skip notification if alert group was resolved
+        UserNotificationPolicyLogRecord(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            notification_policy=notification_policy,
+            reason="Skipped notification because alert group is resolved",
+            alert_group=alert_group,
+            notification_step=notification_policy.step if notification_policy else None,
+            notification_channel=notification_channel,
+            notification_error_code=None,
+        ).save()
+        return
+
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
         phone_backend = PhoneBackend()
         phone_backend.notify_by_sms(user, alert_group, notification_policy)
