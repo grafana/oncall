@@ -160,8 +160,14 @@ def test_apply_jinja_template_timedeltaparse():
         payload,
     ) == str(timedelta(weeks=52))
 
+
 def test_apply_jinja_template_timedelta_arithmetic():
-    payload = {"dt": "2023-11-22T15:30:00.000000000Z", "delta": "1h", "before": "2023-11-22T14:30:00.000000000Z", "after": "2023-11-22T16:30:00.000000000Z"}
+    payload = {
+        "dt": "2023-11-22T15:30:00.000000000Z",
+        "delta": "1h",
+        "before": "2023-11-22T14:30:00.000000000Z",
+        "after": "2023-11-22T16:30:00.000000000Z",
+    }
 
     result = apply_jinja_template(
         "{% set delta = payload.delta | timedeltaparse -%}{{ payload.dt | iso8601_to_time - delta }}",

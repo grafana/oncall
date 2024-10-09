@@ -39,23 +39,24 @@ def iso8601_to_time(value):
 
 range_duration_re = regex.compile("^(?P<sign>[-+]?)(?P<amount>\\d+)(?P<unit>[smhdwMQy])$")
 
+
 def timedeltaparse(value):
     try:
         match = range_duration_re.match(value)
         if match:
             kw = match.groupdict()
             amount = int(kw["amount"])
-            if kw["sign"] == '-':
+            if kw["sign"] == "-":
                 amount = -amount
-            if kw["unit"] == 's':
+            if kw["unit"] == "s":
                 return timedelta(seconds=amount)
-            elif kw["unit"] == 'm':
+            elif kw["unit"] == "m":
                 return timedelta(minutes=amount)
-            elif kw["unit"] == 'h':
+            elif kw["unit"] == "h":
                 return timedelta(hours=amount)
-            elif kw["unit"] == 'd':
+            elif kw["unit"] == "d":
                 return timedelta(days=amount)
-            elif kw["unit"] == 'w':
+            elif kw["unit"] == "w":
                 return timedelta(weeks=amount)
             # The remaining units (MQy) are not supported by timedelta
             else:
