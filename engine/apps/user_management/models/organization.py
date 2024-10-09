@@ -1,7 +1,6 @@
 import logging
 import typing
 import uuid
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -16,6 +15,7 @@ from apps.chatops_proxy.utils import (
     unlink_slack_team,
     unregister_oncall_tenant,
 )
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.types import AlertGroupTableColumn
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
@@ -253,6 +253,7 @@ class Organization(MaintainableObject):
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
     is_grafana_labels_enabled = models.BooleanField(default=False, null=True)
+    is_grafana_irm_enabled = models.BooleanField(default=False, null=True)
 
     alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
     grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
@@ -345,13 +346,11 @@ class Organization(MaintainableObject):
         )
 
     @property
-    def web_link(self):
-        return urljoin(self.grafana_url, "a/grafana-oncall-app/")
-
-    @property
     def web_link_with_uuid(self):
-        # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
+        """
+        It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
+        """
+        return UIURLBuilder(self).home(f"?oncall-uuid={self.uuid}")
 
     @classmethod
     def __str__(self):

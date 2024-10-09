@@ -1,10 +1,14 @@
 import logging
-from urllib.parse import urljoin
+import typing
 
 from django.utils import timezone
 
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.oss_installation.constants import CloudSyncStatus
 from apps.schedules.ical_utils import list_users_to_notify_from_ical_for_period
+
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +71,7 @@ def active_oss_users_count():
     return len(unique_active_users)
 
 
-def cloud_user_identity_status(connector, identity):
+def cloud_user_identity_status(org: "Organization", connector, identity):
     link = None
     if connector is None:
         status = CloudSyncStatus.NOT_SYNCED
@@ -80,5 +84,5 @@ def cloud_user_identity_status(connector, identity):
         else:
             status = CloudSyncStatus.SYNCED_PHONE_NOT_VERIFIED
 
-        link = urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={identity.cloud_id}")
+        link = UIURLBuilder(org, base_url=connector.cloud_url).users(f"?p=1&id={identity.cloud_id}")
     return status, link

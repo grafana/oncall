@@ -3,6 +3,7 @@ REDIRECT_AFTER_SLACK_INSTALL = "redirect_after_slack_install"
 SLACK_AUTH_WRONG_WORKSPACE_ERROR = "wrong_workspace"
 SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR = "user_already_connected"
 SLACK_AUTH_FAILED = "auth_failed"
+SLACK_REGION_ERROR = "region_error"
 
 
 # Example of a slack oauth response to be used in tests.

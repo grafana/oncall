@@ -57,7 +57,7 @@ class CloudUsersView(CloudUsersPagination, APIView):
 
         for user in results:
             cloud_identity = cloud_identities.get(user.email, None)
-            status, link = cloud_user_identity_status(connector, cloud_identity)
+            status, link = cloud_user_identity_status(organization, connector, cloud_identity)
             data.append(
                 {
                     "id": user.public_primary_key,

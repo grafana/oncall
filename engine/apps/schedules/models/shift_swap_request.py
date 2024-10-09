@@ -172,21 +172,12 @@ class ShiftSwapRequest(models.Model):
         return self.schedule.channel
 
     @property
-    def schedule_slack_url(self) -> str:
-        return f"<{self.schedule.web_detail_page_link}|{self.schedule.name}>"
-
-    @property
     def organization(self) -> "Organization":
         return self.schedule.organization
 
     @property
     def possible_benefactors(self) -> QuerySet["User"]:
         return self.schedule.related_users().exclude(pk=self.beneficiary_id)
-
-    @property
-    def web_link(self) -> str:
-        # TODO: finish this once we know the proper URL we'll need
-        return f"{self.schedule.web_detail_page_link}"
 
     def delete(self):
         self.deleted_at = timezone.now()

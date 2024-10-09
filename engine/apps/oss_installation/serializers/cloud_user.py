@@ -12,9 +12,9 @@ class CloudUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["cloud_data"]
 
-    def get_cloud_data(self, obj):
+    def get_cloud_data(self, obj: User):
         connector = CloudConnector.objects.filter().first()
         cloud_user_identity = CloudUserIdentity.objects.filter(email=obj.email).first()
-        status, link = cloud_user_identity_status(connector, cloud_user_identity)
+        status, link = cloud_user_identity_status(obj.organization, connector, cloud_user_identity)
         cloud_data = {"status": status, "link": link}
         return cloud_data

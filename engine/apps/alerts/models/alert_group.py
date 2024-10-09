@@ -4,7 +4,6 @@ import typing
 import urllib
 from collections import namedtuple
 from functools import partial
-from urllib.parse import urljoin
 
 from celery import uuid as celery_uuid
 from django.conf import settings
@@ -27,10 +26,10 @@ from apps.alerts.tasks import (
     send_alert_group_signal_for_delete,
     unsilence_task,
 )
+from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.metrics_exporter.tasks import update_metrics_for_alert_group
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
-from common.constants.plugin_ids import PluginID
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 from common.utils import clean_markup, str_or_backup
 
@@ -543,17 +542,19 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def web_link(self) -> str:
-        return urljoin(self.channel.organization.web_link, f"alert-groups/{self.public_primary_key}")
+        return UIURLBuilder(self.channel.organization).alert_group_detail(self.public_primary_key)
 
     @property
     def declare_incident_link(self) -> str:
-        """Generate a link for AlertGroup to declare Grafana Incident by click"""
-        incident_link = urljoin(self.channel.organization.grafana_url, f"a/{PluginID.INCIDENT}/incidents/declare/")
+        """
+        Generate a link for AlertGroup to declare Grafana Incident by click
+        """
         caption = urllib.parse.quote_plus("OnCall Alert Group")
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
         title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
-        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
+
+        return UIURLBuilder(self.channel.organization).declare_incident(f"?caption={caption}&url={link}&title={title}")
 
     @property
     def happened_while_maintenance(self):

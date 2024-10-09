@@ -215,7 +215,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"On-call shifts update for schedule *<{schedule.web_detail_page_link}|{schedule.name}>*",
+                        "text": f"On-call shifts update for schedule *{schedule.slack_url}*",
                         "verbatim": True,
                     },
                 },

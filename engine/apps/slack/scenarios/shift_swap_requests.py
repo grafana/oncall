@@ -30,7 +30,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         pk = shift_swap_request.pk
 
         main_message_text = (
-            f"*New shift swap request for {shift_swap_request.schedule_slack_url}*\n"
+            f"*New shift swap request for {shift_swap_request.schedule.slack_url}*\n"
             f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal(True)} has submitted "
             "a shift swap request."
         )
@@ -262,7 +262,7 @@ class ShiftSwapRequestFollowUp(BaseShiftSwapRequestStep):
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            f"⚠️ This shift swap request for {shift_swap_request.schedule_slack_url} is "
+                            f"⚠️ This shift swap request for {shift_swap_request.schedule.slack_url} is "
                             f"still open and will start in {delta}. Jump back into the thread and accept it if "
                             "you're available!"
                         ),
