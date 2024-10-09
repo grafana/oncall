@@ -288,6 +288,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="resolved_alert_groups",
     )
 
+    # NOTE: see https://raintank-corp.slack.com/archives/C07RGREUH4Z/p1728494111646319
+    # This field should eventually be dropped as it's no longer being set/read anywhere
     resolved_by_alert = deprecate_field(
         models.ForeignKey(
             "alerts.Alert",
