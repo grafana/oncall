@@ -15,9 +15,9 @@ attrs==23.2.0
 autopep8==2.0.4
     # via django-silk
 babel==2.12.1
-    # via -r engine/requirements.in
+    # via -r requirements.in
 beautifulsoup4==4.12.2
-    # via -r engine/requirements.in
+    # via -r requirements.in
 billiard==4.2.0
     # via celery
 blinker==1.7.0
@@ -34,8 +34,8 @@ cachetools==4.2.2
     # via
     #   google-auth
     #   python-telegram-bot
-celery==5.3.1
-    # via -r engine/requirements.in
+celery[redis]==5.3.1
+    # via -r requirements.in
 certifi==2024.7.4
     # via
     #   python-telegram-bot
@@ -62,7 +62,7 @@ click-repl==0.3.0
     # via celery
 cryptography==43.0.1
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   django-mirage-field
     #   pyopenssl
     #   social-auth-core
@@ -75,9 +75,9 @@ deprecated==1.2.14
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-semantic-conventions
-django==4.2.15
+django==4.2.16
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   django-add-default-value
     #   django-amazon-ses
     #   django-anymail
@@ -98,67 +98,67 @@ django==4.2.15
     #   fcm-django
     #   social-auth-app-django
 django-add-default-value==0.10.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-amazon-ses==4.0.1
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-anymail==11.1
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-cors-headers==3.7.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-dbconn-retry==0.1.7
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-debug-toolbar==4.1.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-deprecate-fields==0.1.1
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-filter==2.4.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-ipware==4.0.2
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-log-request-id==1.6.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-migration-linter==4.1.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-mirage-field==1.3.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-mysql==4.6.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-polymorphic==3.1.0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   django-rest-polymorphic
 django-ratelimit==2.0.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-redis==5.4.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-rest-polymorphic==0.1.10
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-silk==5.0.3
-    # via -r engine/requirements.in
+    # via -r requirements.in
 django-sns-view==0.1.2
-    # via -r engine/requirements.in
+    # via -r requirements.in
 djangorestframework==3.15.2
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   django-rest-polymorphic
     #   drf-spectacular
 drf-spectacular==0.26.5
-    # via -r engine/requirements.in
+    # via -r requirements.in
 emoji==2.4.0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   slack-export-viewer
 factory-boy==2.12.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 faker==23.1.0
     # via factory-boy
 fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.tar.gz#sha256=7ec7cd9d353fc9edf19a4acd4fa14090a31d83d02ac986c5e5e081dea29f564f
-    # via -r engine/requirements.in
+    # via -r requirements.in
 firebase-admin==5.4.0
     # via fcm-django
 flask==3.0.2
     # via slack-export-viewer
-google-api-core==2.17.0
+google-api-core[grpc]==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -167,7 +167,7 @@ google-api-core==2.17.0
     #   google-cloud-storage
 google-api-python-client==2.122.0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   firebase-admin
 google-auth==2.27.0
     # via
@@ -179,10 +179,10 @@ google-auth==2.27.0
     #   google-cloud-storage
 google-auth-httplib2==0.2.0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   google-api-python-client
 google-auth-oauthlib==1.2.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 google-cloud-core==2.4.1
     # via
     #   google-cloud-firestore
@@ -206,28 +206,28 @@ gprof2dot==2022.7.29
     # via django-silk
 grpcio==1.64.1
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   google-api-core
     #   grpcio-status
     #   opentelemetry-exporter-otlp-proto-grpc
 grpcio-status==1.57.0
     # via google-api-core
 hiredis==2.2.3
-    # via -r engine/requirements.in
+    # via -r requirements.in
 httplib2==0.22.0
     # via
     #   google-api-python-client
     #   google-auth-httplib2
 humanize==4.10.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 icalendar==5.0.10
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   recurring-ical-events
     #   x-wr-timezone
 idna==3.7
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   requests
 importlib-metadata==6.11.0
     # via opentelemetry-api
@@ -248,12 +248,12 @@ jsonschema-specifications==2023.12.1
 kombu==5.3.5
     # via celery
 lxml==5.2.2
-    # via -r engine/requirements.in
+    # via -r requirements.in
 markdown==3.5.2
     # via pymdown-extensions
 markdown2==2.4.10
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   slack-export-viewer
 markupsafe==2.1.5
     # via
@@ -267,7 +267,7 @@ oauthlib==3.2.2
     #   social-auth-core
 opentelemetry-api==1.26.0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-instrumentation
     #   opentelemetry-instrumentation-django
@@ -279,7 +279,7 @@ opentelemetry-api==1.26.0
 opentelemetry-exporter-otlp-proto-common==1.26.0
     # via opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-exporter-otlp-proto-grpc==1.26.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 opentelemetry-instrumentation==0.47b0
     # via
     #   opentelemetry-instrumentation-django
@@ -287,14 +287,14 @@ opentelemetry-instrumentation==0.47b0
     #   opentelemetry-instrumentation-requests
     #   opentelemetry-instrumentation-wsgi
 opentelemetry-instrumentation-django==0.47b0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 opentelemetry-instrumentation-logging==0.47b0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 opentelemetry-instrumentation-requests==0.47b0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 opentelemetry-instrumentation-wsgi==0.47b0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   opentelemetry-instrumentation-django
 opentelemetry-proto==1.26.0
     # via
@@ -302,7 +302,7 @@ opentelemetry-proto==1.26.0
     #   opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-sdk==1.26.0
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
 opentelemetry-semantic-conventions==0.47b0
     # via
@@ -318,9 +318,9 @@ opentelemetry-util-http==0.47b0
 pem==23.1.0
     # via django-sns-view
 phonenumbers==8.10.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 prometheus-client==0.16.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 prompt-toolkit==3.0.43
     # via click-repl
 proto-plus==1.23.0
@@ -334,9 +334,9 @@ protobuf==4.25.2
     #   opentelemetry-proto
     #   proto-plus
 psutil==5.9.4
-    # via -r engine/requirements.in
+    # via -r requirements.in
 psycopg2==2.9.3
-    # via -r engine/requirements.in
+    # via -r requirements.in
 pyasn1==0.5.1
     # via
     #   pyasn1-modules
@@ -352,9 +352,9 @@ pyjwt==2.8.0
     #   social-auth-core
     #   twilio
 pymdown-extensions==10.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 pymysql==1.1.1
-    # via -r engine/requirements.in
+    # via -r requirements.in
 pyopenssl==24.2.1
     # via django-sns-view
 pyparsing==3.1.1
@@ -367,7 +367,7 @@ python-dateutil==2.8.2
     #   icalendar
     #   recurring-ical-events
 python-telegram-bot==13.13
-    # via -r engine/requirements.in
+    # via -r requirements.in
 python3-openid==3.2.0
     # via social-auth-core
 pytz==2024.1
@@ -383,10 +383,10 @@ pyyaml==6.0.1
     #   drf-spectacular
     #   pymdown-extensions
 recurring-ical-events==2.1.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 redis==5.0.1
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   celery
     #   django-redis
 referencing==0.33.0
@@ -394,10 +394,10 @@ referencing==0.33.0
     #   jsonschema
     #   jsonschema-specifications
 regex==2024.7.24
-    # via -r engine/requirements.in
+    # via -r requirements.in
 requests==2.32.3
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   cachecontrol
     #   django-anymail
     #   django-sns-view
@@ -418,10 +418,6 @@ rsa==4.9
     # via google-auth
 s3transfer==0.10.0
     # via boto3
-setuptools==73.0.0
-    # via
-    #   apscheduler
-    #   opentelemetry-instrumentation
 six==1.16.0
     # via
     #   apscheduler
@@ -429,11 +425,11 @@ six==1.16.0
     #   python-dateutil
     #   twilio
 slack-export-viewer==1.1.4
-    # via -r engine/requirements.in
+    # via -r requirements.in
 slack-sdk==3.21.3
-    # via -r engine/requirements.in
+    # via -r requirements.in
 social-auth-app-django==5.4.1
-    # via -r engine/requirements.in
+    # via -r requirements.in
 social-auth-core==4.5.2
     # via social-auth-app-django
 soupsieve==2.5
@@ -450,7 +446,7 @@ tornado==6.4.1
 tqdm==4.66.3
     # via django-mirage-field
 twilio==6.37.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 typing-extensions==4.9.0
     # via opentelemetry-sdk
 tzdata==2024.1
@@ -463,12 +459,12 @@ uritemplate==4.1.1
     #   google-api-python-client
 urllib3==1.26.19
     # via
-    #   -r engine/requirements.in
+    #   -r requirements.in
     #   botocore
     #   django-anymail
     #   requests
 uwsgi==2.0.26
-    # via -r engine/requirements.in
+    # via -r requirements.in
 vine==5.1.0
     # via
     #   amqp
@@ -479,7 +475,7 @@ wcwidth==0.2.13
 werkzeug==3.0.3
     # via flask
 whitenoise==5.3.0
-    # via -r engine/requirements.in
+    # via -r requirements.in
 wrapt==1.16.0
     # via
     #   deprecated
