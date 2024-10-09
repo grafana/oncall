@@ -45,6 +45,7 @@ export const EscalationChainSteps = observer((props: EscalationChainStepsProps) 
 
   useEffect(() => {
     escalationPolicyStore.updateWebEscalationPolicyOptions();
+    escalationPolicyStore.updateSeverityOptions();
   }, []);
 
   const handleSortEnd = useCallback(

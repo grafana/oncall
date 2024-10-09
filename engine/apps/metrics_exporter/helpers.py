@@ -2,6 +2,7 @@ import datetime
 import random
 import typing
 
+from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -50,7 +51,10 @@ def get_organization_ids():
     if not organizations_ids:
         organizations_ids = get_organization_ids_from_db()
         cache.set(organizations_ids, METRICS_ORGANIZATIONS_IDS, METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT)
-    return organizations_ids
+
+    group_id = settings.METRICS_EXPORTER_ORGANIZATION_GROUP_ID
+    group_count = settings.METRICS_EXPORTER_TOTAL_ORGANIZATION_GROUPS
+    return [i for i in organizations_ids if i % group_count == group_id]
 
 
 def is_allowed_to_start_metrics_calculation(organization_id, force=False) -> bool:

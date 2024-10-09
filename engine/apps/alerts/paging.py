@@ -16,6 +16,7 @@ from apps.alerts.tasks.notify_user import notify_user_task
 from apps.schedules.ical_utils import get_cached_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, Team, User
+from common.utils import escape_html
 
 UserNotifications = list[tuple[User, bool]]
 
@@ -144,6 +145,10 @@ def direct_paging(
     # Cannot add responders to a resolved alert group
     if alert_group and alert_group.resolved:
         raise DirectPagingAlertGroupResolvedError
+
+    # https://github.com/grafana/oncall-private/issues/2760
+    title = escape_html(title)
+    message = escape_html(message)
 
     if title is None:
         title = _construct_title(from_user, team, users)

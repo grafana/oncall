@@ -1,8 +1,6 @@
 import { Dayjs, ManipulateType } from 'dayjs';
-import { GRAFANA_HEADER_HEIGHT, GRAFANA_LEGACY_SIDEBAR_WIDTH } from 'helpers/consts';
+import { GRAFANA_HEADER_HEIGHT } from 'helpers/consts';
 import { DraggableData } from 'react-draggable';
-
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 
@@ -195,20 +193,13 @@ export function getDraggableModalCoordinatesOnInit(
   const baseReferenceElRect = body.getBoundingClientRect();
   const { innerHeight } = window;
 
-  const { right, bottom } = baseReferenceElRect;
+  const { right } = baseReferenceElRect;
 
-  return isTopNavbar()
-    ? {
-        // values are adjusted by any padding/margin differences
-        left: -data.node.offsetLeft + 12,
-        right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-        top: -offsetTop + GRAFANA_HEADER_HEIGHT + 12,
-        bottom: innerHeight - data.node.offsetHeight - offsetTop - 12,
-      }
-    : {
-        left: -data.node.offsetLeft + 12 + GRAFANA_LEGACY_SIDEBAR_WIDTH,
-        right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
-        top: -offsetTop + 12,
-        bottom: bottom - data.node.offsetHeight - offsetTop - 12,
-      };
+  return {
+    // values are adjusted by any padding/margin differences
+    left: -data.node.offsetLeft + 12,
+    right: right - (data.node.offsetLeft + data.node.offsetWidth) - 12,
+    top: -offsetTop + GRAFANA_HEADER_HEIGHT + 12,
+    bottom: innerHeight - data.node.offsetHeight - offsetTop - 12,
+  };
 }

@@ -8,7 +8,7 @@ from celery.schedules import crontab
 from firebase_admin import credentials, initialize_app
 
 from common.api_helpers.custom_ratelimit import getenv_custom_ratelimit
-from common.utils import getenv_boolean, getenv_integer, getenv_list
+from common.utils import getenv_boolean, getenv_float, getenv_integer, getenv_list
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
@@ -75,6 +75,7 @@ FEATURE_LABELS_ENABLED_PER_ORG = getenv_list("FEATURE_LABELS_ENABLED_PER_ORG", d
 FEATURE_ALERT_GROUP_SEARCH_ENABLED = getenv_boolean("FEATURE_ALERT_GROUP_SEARCH_ENABLED", default=True)
 FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS = getenv_integer("FEATURE_ALERT_GROUP_SEARCH_CUTOFF_DAYS", default=None)
 FEATURE_NOTIFICATION_BUNDLE_ENABLED = getenv_boolean("FEATURE_NOTIFICATION_BUNDLE_ENABLED", default=True)
+FEATURE_DECLARE_INCIDENT_STEP_ENABLED = getenv_boolean("FEATURE_DECLARE_INCIDENT_STEP_ENABLED", default=False)
 
 TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
 TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
@@ -119,6 +120,11 @@ METRICS_ALL = [
 ]
 # List of metrics to collect. Collect all available application metrics by default
 METRICS_TO_COLLECT = getenv_list("METRICS_TO_COLLECT", METRICS_ALL)
+
+# Total number of exporters collecting the same set of metrics
+METRICS_EXPORTER_TOTAL_ORGANIZATION_GROUPS = getenv_integer("METRICS_EXPORTER_TOTAL_ORGANIZATION_GROUPS", 1)
+# ID of this exporter, used to filter which orgs to collect for
+METRICS_EXPORTER_ORGANIZATION_GROUP_ID = getenv_integer("METRICS_EXPORTER_ORGANIZATION_GROUP_ID", 0)
 
 
 # Database
@@ -206,7 +212,6 @@ DJANGO_MYSQL_REWRITE_QUERIES = True
 ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX = DATABASE_TYPE == DatabaseTypes.MYSQL and getenv_boolean(
     "ALERT_GROUPS_DISABLE_PREFER_ORDERING_INDEX", default=False
 )
-ALERT_GROUP_LIST_TRY_PREFETCH = getenv_boolean("ALERT_GROUP_LIST_TRY_PREFETCH", default=False)
 
 # Redis
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
@@ -830,12 +835,12 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-JINJA_TEMPLATE_MAX_LENGTH = os.getenv("JINJA_TEMPLATE_MAX_LENGTH", 50000)
-JINJA_RESULT_TITLE_MAX_LENGTH = os.getenv("JINJA_RESULT_TITLE_MAX_LENGTH", 500)
-JINJA_RESULT_MAX_LENGTH = os.getenv("JINJA_RESULT_MAX_LENGTH", 50000)
+JINJA_TEMPLATE_MAX_LENGTH = getenv_integer("JINJA_TEMPLATE_MAX_LENGTH", 50000)
+JINJA_RESULT_TITLE_MAX_LENGTH = getenv_integer("JINJA_RESULT_TITLE_MAX_LENGTH", 500)
+JINJA_RESULT_MAX_LENGTH = getenv_integer("JINJA_RESULT_MAX_LENGTH", 50000)
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
-SLOW_THRESHOLD_SECONDS = 2.0
+SLOW_THRESHOLD_SECONDS = getenv_float("SLOW_THRESHOLD_SECONDS", 2.0)
 
 # Email messaging backend
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

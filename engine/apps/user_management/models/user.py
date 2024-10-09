@@ -172,10 +172,18 @@ class User(models.Model):
         return f"{self.pk}: {self.username}"
 
     @property
-    def available_teams(self):
-        if self.role == LegacyAccessControlRole.ADMIN:
+    def is_admin(self) -> bool:
+        return user_is_authorized(self, [RBACPermission.Permissions.ADMIN])
+
+    @property
+    def available_teams(self) -> "RelatedManager['Team']":
+        if self.is_admin:
             return self.organization.teams.all()
         return self.organization.teams.filter(Q(is_sharing_resources_to_all=True) | Q(users=self)).distinct()
+
+    @property
+    def is_notification_allowed(self) -> bool:
+        return user_is_authorized(self, [RBACPermission.Permissions.NOTIFICATIONS_READ])
 
     @property
     def is_authenticated(self):
@@ -223,15 +231,9 @@ class User(models.Model):
     def is_telegram_connected(self):
         return hasattr(self, "telegram_connection")
 
-    def self_or_admin(self, user_to_check, organization) -> bool:
-        has_admin_permission = user_is_authorized(user_to_check, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
-        return user_to_check.pk == self.pk or (
-            has_admin_permission and organization.pk == user_to_check.organization_id
-        )
-
-    @property
-    def is_notification_allowed(self):
-        return user_is_authorized(self, [RBACPermission.Permissions.NOTIFICATIONS_READ])
+    def self_or_has_user_settings_admin_permission(self, user_to_check: "User", organization: "Organization") -> bool:
+        has_permission = user_is_authorized(user_to_check, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+        return user_to_check.pk == self.pk or (has_permission and organization.pk == user_to_check.organization_id)
 
     def get_username_with_slack_verbal(self, mention=False) -> str:
         slack_verbal = None

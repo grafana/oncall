@@ -6,7 +6,7 @@ settings:
 
 overrides:
   braces: 3.0.3
-  micromatch: 4.0.6
+  micromatch: 4.0.8
 
 importers:
 
@@ -37,8 +37,8 @@ importers:
         specifier: ^1.4.2
         version: 1.9.1
       '@grafana/labels':
-        specifier: ^1.6.5
-        version: 1.6.5(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^1.6.6
+        version: 1.6.6(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@grafana/runtime':
         specifier: ^11.1.3
         version: 11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -746,8 +746,8 @@ packages:
   '@grafana/faro-web-tracing@1.9.1':
     resolution: {integrity: sha512-BuXMxUX6N8kDwOJO2wfCFOWfyEwfduEdJGT9HhgA3VPGmpgzpvZD6FOt1vsBMOZWsKsI20EcNM21moUy08dWAA==}
 
-  '@grafana/labels@1.6.5':
-    resolution: {integrity: sha512-Z0Ho69My9evZkTYtgmYEIWuPGRfsHeM77pbExdPLvA8ZOB8LqoEEdRWJW7tyY3xPr1lGj//aSA2j697JoiXVrg==}
+  '@grafana/labels@1.6.6':
+    resolution: {integrity: sha512-jDmiCNpv9wXEQyB16Ptj2msQjykUecUtRicNpNowOG6eQ6GPktLiDSvbj+z5Ce8ieJ0pRuDcF7n3w1mf8ias6w==}
     peerDependencies:
       '@grafana/ui': ^11.0.0
       react: ^17.0.0 || ^18.0.0
@@ -4286,8 +4286,8 @@ packages:
   micro-memoize@4.1.2:
     resolution: {integrity: sha512-+HzcV2H+rbSJzApgkj0NdTakkC+bnyeiUxgT6/m7mjcz1CmM22KYFKp+EVj1sWe4UYcnriJr5uqHQD/gMHLD+g==}
 
-  micromatch@4.0.6:
-    resolution: {integrity: sha512-Y4Ypn3oujJYxJcMacVgcs92wofTHxp9FzfDpQON4msDefoC0lb3ETvQLOdLcbhSwU1bz8HrL/1sygfBIHudrkQ==}
+  micromatch@4.0.8:
+    resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
 
   mime-db@1.33.0:
@@ -6991,7 +6991,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@grafana/labels@1.6.5(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@grafana/labels@1.6.6(@grafana/ui@11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@emotion/css': 11.13.0
       '@grafana/ui': 11.2.0(@types/react-dom@18.2.0)(@types/react@18.2.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -7219,7 +7219,7 @@ snapshots:
       jest-util: 29.7.0
       jest-validate: 29.7.0
       jest-watcher: 29.7.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-ansi: 6.0.1
@@ -7356,7 +7356,7 @@ snapshots:
       jest-haste-map: 29.7.0
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       pirates: 4.0.6
       slash: 3.0.0
       write-file-atomic: 4.0.2
@@ -9873,7 +9873,7 @@ snapshots:
       '@types/eslint': 8.56.12
       eslint: 8.57.0
       jest-worker: 29.7.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       normalize-path: 3.0.0
       schema-utils: 4.2.0
       webpack: 5.94.0(@swc/core@1.7.22(@swc/helpers@0.5.12))(webpack-cli@5.1.4)
@@ -10084,7 +10084,7 @@ snapshots:
       '@nodelib/fs.walk': 1.2.8
       glob-parent: 5.1.2
       merge2: 1.4.1
-      micromatch: 4.0.6
+      micromatch: 4.0.8
 
   fast-json-stable-stringify@2.1.0: {}
 
@@ -10839,7 +10839,7 @@ snapshots:
       jest-runner: 29.7.0
       jest-util: 29.7.0
       jest-validate: 29.7.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       parse-json: 5.2.0
       pretty-format: 29.7.0
       slash: 3.0.0
@@ -10916,7 +10916,7 @@ snapshots:
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
       jest-worker: 29.7.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       walker: 1.0.8
     optionalDependencies:
       fsevents: 2.3.3
@@ -10952,7 +10952,7 @@ snapshots:
       '@types/stack-utils': 2.0.3
       chalk: 4.1.2
       graceful-fs: 4.2.11
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       pretty-format: 27.5.1
       slash: 3.0.0
       stack-utils: 2.0.6
@@ -10964,7 +10964,7 @@ snapshots:
       '@types/stack-utils': 2.0.3
       chalk: 4.1.2
       graceful-fs: 4.2.11
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       pretty-format: 29.7.0
       slash: 3.0.0
       stack-utils: 2.0.6
@@ -11298,7 +11298,7 @@ snapshots:
       execa: 4.1.0
       listr2: 3.14.0(enquirer@2.4.1)
       log-symbols: 4.1.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       normalize-path: 3.0.0
       please-upgrade-node: 3.2.0
       string-argv: 0.3.1
@@ -11471,10 +11471,10 @@ snapshots:
 
   micro-memoize@4.1.2: {}
 
-  micromatch@4.0.6:
+  micromatch@4.0.8:
     dependencies:
       braces: 3.0.3
-      picomatch: 4.0.2
+      picomatch: 2.3.1
 
   mime-db@1.33.0: {}
 
@@ -13197,7 +13197,7 @@ snapshots:
       known-css-properties: 0.26.0
       mathml-tag-names: 2.1.3
       meow: 9.0.0
-      micromatch: 4.0.6
+      micromatch: 4.0.8
       normalize-path: 3.0.0
       picocolors: 1.0.1
       postcss: 8.4.43
