@@ -40,6 +40,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import (
+        Alert,
         AlertGroupLogRecord,
         AlertReceiveChannel,
         BundledNotification,
