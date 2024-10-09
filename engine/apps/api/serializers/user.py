@@ -181,7 +181,7 @@ class ListUserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
             identity = identities.get(obj.email, None)
-            status, _ = cloud_user_identity_status(connector, identity)
+            status, _ = cloud_user_identity_status(obj.organization, connector, identity)
             return status
         return None
 

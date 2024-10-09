@@ -10,15 +10,18 @@ from rest_framework.test import APIClient
 
 from apps.auth_token.constants import SLACK_AUTH_TOKEN_NAME
 from apps.social_auth.backends import SLACK_INSTALLATION_BACKEND
+from common.constants.plugin_ids import PluginID
 from common.constants.slack_auth import SLACK_OAUTH_ACCESS_RESPONSE
+
+GRAFANA_URL = "http://example.com"
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "backend_name,expected_url",
     (
-        ("slack-login", "/a/grafana-oncall-app/users/me"),
-        (SLACK_INSTALLATION_BACKEND, "/a/grafana-oncall-app/chat-ops"),
+        ("slack-login", f"{GRAFANA_URL}/a/{PluginID.ONCALL}/users/me"),
+        (SLACK_INSTALLATION_BACKEND, f"{GRAFANA_URL}/a/{PluginID.ONCALL}/chat-ops"),
     ),
 )
 def test_complete_slack_auth_redirect_ok(
@@ -28,7 +31,7 @@ def test_complete_slack_auth_redirect_ok(
     backend_name,
     expected_url,
 ):
-    organization = make_organization()
+    organization = make_organization(grafana_url=GRAFANA_URL)
     admin = make_user_for_organization(organization)
     _, slack_token = make_slack_token_for_user(admin)
 
@@ -181,7 +184,7 @@ def test_google_complete_auth_redirect_ok(
     make_user_for_organization,
     make_google_oauth2_token_for_user,
 ):
-    organization = make_organization()
+    organization = make_organization(grafana_url=GRAFANA_URL)
     admin = make_user_for_organization(organization)
     _, google_oauth2_token = make_google_oauth2_token_for_user(admin)
 
@@ -194,7 +197,7 @@ def test_google_complete_auth_redirect_ok(
     response = client.get(url)
 
     assert response.status_code == status.HTTP_302_FOUND
-    assert response.url == "/a/grafana-oncall-app/users/me"
+    assert response.url == f"{GRAFANA_URL}/a/{PluginID.ONCALL}/users/me"
 
 
 @pytest.mark.django_db
