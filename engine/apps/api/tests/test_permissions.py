@@ -16,14 +16,18 @@ from apps.api.permissions import (
     RBACPermission,
     RBACPermissionsAttribute,
     get_most_authorized_role,
+    get_permission_from_permission_string,
+    get_required_permission_values,
     get_view_action,
     user_is_authorized,
 )
+from common.constants.plugin_ids import PluginID
 
 
 class MockedOrg:
-    def __init__(self, org_has_rbac_enabled: bool) -> None:
+    def __init__(self, org_has_rbac_enabled: bool, is_grafana_irm_enabled=False) -> None:
         self.is_rbac_permissions_enabled = org_has_rbac_enabled
+        self.is_grafana_irm_enabled = is_grafana_irm_enabled
 
 
 class MockedUser:
@@ -451,3 +455,76 @@ class TestIsOwnerOrHasRBACPermissions:
 
         assert PermClass.has_object_permission(request, None, thingy) is True
         assert PermClass.has_object_permission(MockedRequest(MockedUser([])), None, thingy) is False
+
+    @pytest.mark.parametrize(
+        "is_grafana_irm_enabled,required_permissions,expected_permission_values",
+        [
+            (
+                False,
+                [
+                    RBACPermission.Permissions.ALERT_GROUPS_READ,
+                    RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                ],
+                [
+                    RBACPermission.Permissions.ALERT_GROUPS_READ.value,
+                    RBACPermission.Permissions.ALERT_GROUPS_WRITE.value,
+                ],
+            ),
+            (
+                True,
+                [
+                    RBACPermission.Permissions.ALERT_GROUPS_READ,
+                    RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+                ],
+                [
+                    RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
+                    RBACPermission.Permissions.ALERT_GROUPS_WRITE.value.replace(PluginID.ONCALL, PluginID.IRM),
+                ],
+            ),
+            (
+                True,
+                [
+                    RBACPermission.Permissions.LABEL_CREATE,
+                    RBACPermission.Permissions.LABEL_WRITE,
+                    RBACPermission.Permissions.LABEL_READ,
+                ],
+                [
+                    RBACPermission.Permissions.LABEL_CREATE.value,
+                    RBACPermission.Permissions.LABEL_WRITE.value,
+                    RBACPermission.Permissions.LABEL_READ.value,
+                ],
+            ),
+        ],
+    )
+    def test_get_required_permission_values(
+        self,
+        is_grafana_irm_enabled,
+        required_permissions,
+        expected_permission_values,
+    ) -> None:
+        organization = MockedOrg(org_has_rbac_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
+        assert get_required_permission_values(organization, required_permissions) == expected_permission_values
+
+    @pytest.mark.parametrize(
+        "is_grafana_irm_enabled,perm,expected_permission",
+        [
+            (
+                False,
+                RBACPermission.Permissions.ALERT_GROUPS_READ.value,
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+            ),
+            (
+                False,
+                "non.existent.permission",
+                None,
+            ),
+            (
+                True,
+                RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
+                RBACPermission.Permissions.ALERT_GROUPS_READ,
+            ),
+        ],
+    )
+    def test_get_permission_from_permission_string(self, is_grafana_irm_enabled, perm, expected_permission) -> None:
+        organization = MockedOrg(org_has_rbac_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
+        assert get_permission_from_permission_string(organization, perm) == expected_permission

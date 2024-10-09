@@ -1,4 +1,5 @@
 import datetime
+import re
 
 import pytest
 from django.utils import timezone
@@ -288,3 +289,40 @@ def test_reset_google_oauth2_settings(make_organization_and_user):
 
     assert GoogleOAuth2User.objects.filter(user=user).exists() is False
     assert user.google_calendar_settings is None
+
+
+@pytest.mark.django_db
+def test_build_permissions_query_rbac_disabled(mocker, make_organization):
+    organization = make_organization(is_rbac_permissions_enabled=False)
+    permission = RBACPermission.Permissions.ADMIN
+
+    query = User.build_permissions_query(permission, organization)
+    assert query == {"role__in": [permission.fallback_role.value]}
+
+
+@pytest.mark.django_db
+def test_build_permissions_query_rbac_enabled(mocker, make_organization):
+    organization = make_organization(is_rbac_permissions_enabled=True)
+    permission = RBACPermission.Permissions.ADMIN
+
+    query = User.build_permissions_query(permission, organization)
+    assert query == {"permissions__contains": [{"action": permission.value}]}
+
+
+@pytest.mark.django_db
+def test_build_permissions_query_sqlite(make_organization, settings):
+    settings.DATABASE_TYPE = settings.DATABASE_TYPES.SQLITE3
+    organization = make_organization(is_rbac_permissions_enabled=True)
+    permission = RBACPermission.Permissions.ADMIN
+
+    query = User.build_permissions_query(permission, organization)
+    assert query == {"permissions__regex": re.escape(permission.value)}
+
+
+@pytest.mark.django_db
+def test_build_permissions_query_grafana_irm_enabled(make_organization):
+    organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=True)
+    permission = RBACPermission.Permissions.ADMIN
+
+    query = User.build_permissions_query(permission, organization)
+    assert query == {"permissions__contains": [{"action": permission.value}]}

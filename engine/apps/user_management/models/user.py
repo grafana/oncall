@@ -18,6 +18,7 @@ from apps.api.permissions import (
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACPermission,
+    convert_oncall_permission_to_irm,
     user_is_authorized,
 )
 from apps.google import utils as google_utils
@@ -343,7 +344,7 @@ class User(models.Model):
 
     @staticmethod
     def build_permissions_query(
-        permission: LegacyAccessControlCompatiblePermission, organization
+        permission: LegacyAccessControlCompatiblePermission, organization: "Organization"
     ) -> typing.Union[PermissionsQuery, PermissionsRegexQuery, RoleInQuery]:
         """
         This method returns a django query filter that is compatible with RBAC
@@ -355,11 +356,17 @@ class User(models.Model):
         the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
         """
         if organization.is_rbac_permissions_enabled:
+            permission_value = (
+                convert_oncall_permission_to_irm(permission)
+                if organization.is_grafana_irm_enabled
+                else permission.value
+            )
+
             # https://stackoverflow.com/a/50251879
             if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
                 # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
-                return PermissionsRegexQuery(permissions__regex=re.escape(permission.value))
-            required_permission = {"action": permission.value}
+                return PermissionsRegexQuery(permissions__regex=re.escape(permission_value))
+            required_permission = {"action": permission_value}
             return PermissionsQuery(permissions__contains=[required_permission])
         return RoleInQuery(role__lte=permission.fallback_role.value)
 

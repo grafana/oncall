@@ -18,6 +18,7 @@ from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
+from common.constants.plugin_ids import PluginID
 
 
 @pytest.fixture(autouse=True)
@@ -316,17 +317,22 @@ def test_list_users(
     assert response.json() == expected_payload
 
 
+@pytest.mark.parametrize("is_grafana_irm_enabled", [False, True])
 @pytest.mark.django_db
 def test_list_users_filtered_by_granted_permission(
+    is_grafana_irm_enabled,
     make_organization,
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
 ):
     perm_to_filter_on = RBACPermission.Permissions.NOTIFICATIONS_READ.value
+    if is_grafana_irm_enabled:
+        perm_to_filter_on = perm_to_filter_on.replace(PluginID.ONCALL, PluginID.IRM)
+
     perms_to_grant = [GrafanaAPIPermission(action=perm_to_filter_on)]
 
-    organization = make_organization()
+    organization = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
     admin_user = make_user_for_organization(organization)
     user1 = make_user_for_organization(organization, permissions=perms_to_grant)
     user2 = make_user_for_organization(organization, permissions=perms_to_grant)

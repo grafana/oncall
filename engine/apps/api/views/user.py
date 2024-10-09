@@ -185,14 +185,13 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         fields = ["email", "roles", "permission"]
 
     def filter_by_permission(self, queryset, name, value):
-        rbac_permission = get_permission_from_permission_string(value)
+        organization = self.request.user.organization
+        rbac_permission = get_permission_from_permission_string(organization, value)
         if not rbac_permission:
             # TODO: maybe raise a 400 here?
             return queryset
 
-        return queryset.filter(
-            **User.build_permissions_query(rbac_permission, self.request.user.organization),
-        )
+        return queryset.filter(**User.build_permissions_query(rbac_permission, organization))
 
 
 class UserView(

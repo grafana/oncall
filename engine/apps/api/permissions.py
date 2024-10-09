@@ -13,7 +13,7 @@ from common.constants.plugin_ids import PluginID
 from common.utils import getattrd
 
 if typing.TYPE_CHECKING:
-    from apps.user_management.models import User
+    from apps.user_management.models import Organization, User
 
 RBAC_PERMISSIONS_ATTR = "rbac_permissions"
 RBAC_OBJECT_PERMISSIONS_ATTR = "rbac_object_permissions"
@@ -126,6 +126,32 @@ def get_most_authorized_role(permissions: LegacyAccessControlCompatiblePermissio
     return min({p.fallback_role for p in permissions}, key=lambda r: r.value)
 
 
+def convert_oncall_permission_to_irm(permission: LegacyAccessControlCompatiblePermission) -> str:
+    return permission.value.replace(PluginID.ONCALL, PluginID.IRM)
+
+
+def get_required_permission_values(
+    organization: "Organization", required_permissions: LegacyAccessControlCompatiblePermissions
+) -> typing.List[str]:
+    """
+    This function returns a list of required permission values, taking into account whether or not the organization
+    is using the IRM plugin.
+
+    If the IRM plugin is being used, we substitue `grafana-oncall-app` with `grafana-irm-app`
+    as the RBAC permission prefix.
+    """
+    permission_values = []
+
+    for permission in required_permissions:
+        permission_value = permission.value
+        if permission_value.startswith(PluginID.ONCALL) and organization.is_grafana_irm_enabled:
+            permission_values.append(convert_oncall_permission_to_irm(permission))
+        else:
+            permission_values.append(permission_value)
+
+    return permission_values
+
+
 def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCompatiblePermissions) -> bool:
     """
     This function checks whether `user` has all necessary permissions specified in `required_permissions`.
@@ -134,9 +160,10 @@ def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCo
     `user` - The user to check permissions for
     `required_permissions` - A list of permissions that a user must have to be considered authorized
     """
-    if user.organization.is_rbac_permissions_enabled:
+    organization = user.organization
+    if organization.is_rbac_permissions_enabled:
         user_permissions = [u["action"] for u in user.permissions]
-        required_permission_values = [p.value for p in required_permissions]
+        required_permission_values = get_required_permission_values(organization, required_permissions)
         return all(permission in user_permissions for permission in required_permission_values)
     return user.role <= get_most_authorized_role(required_permissions).value
 
@@ -310,18 +337,23 @@ class RBACPermission(permissions.BasePermission):
 
 
 ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]
-ALL_PERMISSION_CLASSES = [
+ALL_PERMISSION_CLASSES: LegacyAccessControlCompatiblePermissions = [
     getattr(RBACPermission.Permissions, permission_name) for permission_name in ALL_PERMISSION_NAMES
 ]
-ALL_PERMISSION_CHOICES = [
+ALL_PERMISSION_CHOICES: typing.List[typing.Tuple[str, str]] = [
     (permission_class.value, permission_name)
     for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES)
 ]
 
 
-def get_permission_from_permission_string(perm: str) -> typing.Optional[LegacyAccessControlCompatiblePermission]:
+def get_permission_from_permission_string(
+    organization: "Organization", perm: str
+) -> typing.Optional[LegacyAccessControlCompatiblePermission]:
     for permission_class in ALL_PERMISSION_CLASSES:
-        if permission_class.value == perm:
+        permission_class_value = permission_class.value
+        irm_permission_value = convert_oncall_permission_to_irm(permission_class)
+
+        if permission_class_value == perm or organization.is_grafana_irm_enabled and irm_permission_value == perm:
             return permission_class
     return None
 
