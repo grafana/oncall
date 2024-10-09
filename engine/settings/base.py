@@ -384,7 +384,8 @@ MIDDLEWARE = [
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
-if OTEL_TRACING_ENABLED:
+LOG_REQUEST_HEADERS = getenv_boolean("LOG_REQUEST_HEADERS", default=False)
+if LOG_REQUEST_HEADERS:
     MIDDLEWARE.insert(0, "engine.middlewares.LogRequestHeadersMiddleware")
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
