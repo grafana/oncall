@@ -116,8 +116,6 @@ def test_organization_hard_delete(
     )
 
     alert = make_alert(alert_group=alert_group, raw_request_data={})
-    alert_group.resolved_by_alert = alert
-    alert_group.save(update_fields=["resolved_by_alert"])
 
     user_notification_policy_log_record = make_user_notification_policy_log_record(
         author=user_1,

@@ -49,7 +49,6 @@ def generate_public_primary_key_for_alert():
 
 class Alert(models.Model):
     group: typing.Optional["AlertGroup"]
-    resolved_alert_groups: "RelatedManager['AlertGroup']"
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -162,11 +161,6 @@ class Alert(models.Model):
         )
         if not group.resolved and mark_as_resolved:
             group.resolve_by_source()
-
-        # Store exact alert which resolved group.
-        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
-            group.resolved_by_alert = alert
-            group.save(update_fields=["resolved_by_alert"])
 
         if group_created:
             # all code below related to maintenance mode

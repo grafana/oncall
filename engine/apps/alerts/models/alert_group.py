@@ -12,6 +12,7 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django_deprecate_fields import deprecate_field
 
 from apps.alerts.constants import ActionSource, AlertGroupState
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
@@ -39,7 +40,6 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import (
-        Alert,
         AlertGroupLogRecord,
         AlertReceiveChannel,
         BundledNotification,
@@ -200,7 +200,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
     resolution_notes: "RelatedManager['ResolutionNote']"
     resolution_note_slack_messages: "RelatedManager['ResolutionNoteSlackMessage']"
-    resolved_by_alert: typing.Optional["Alert"]
     resolved_by_user: typing.Optional["User"]
     root_alert_group: typing.Optional["AlertGroup"]
     silenced_by_user: typing.Optional["User"]
@@ -288,13 +287,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="resolved_alert_groups",
     )
 
-    resolved_by_alert = models.ForeignKey(
+    resolved_by_alert = deprecate_field(models.ForeignKey(
         "alerts.Alert",
         on_delete=models.SET_NULL,
         null=True,
         default=None,
         related_name="resolved_alert_groups",
-    )
+    ))
 
     resolved_at = models.DateTimeField(blank=True, null=True)
     acknowledged = models.BooleanField(default=False)
