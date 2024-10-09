@@ -187,6 +187,38 @@ def test_notify_user_error_if_viewer(
 
 
 @pytest.mark.django_db
+def test_notify_user_perform_notification_skip_if_resolved(
+    make_organization,
+    make_user,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+):
+    organization = make_organization()
+    user_1 = make_user(organization=organization, _verified_phone_number="1234567890")
+    user_notification_policy = make_user_notification_policy(
+        user=user_1,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel, resolved=True)
+    log_record = make_user_notification_policy_log_record(
+        author=user_1,
+        alert_group=alert_group,
+        notification_policy=user_notification_policy,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+    )
+
+    perform_notification(log_record.pk, False)
+
+    error_log_record = UserNotificationPolicyLogRecord.objects.last()
+    assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+    assert error_log_record.reason == "Skipped notification because alert group is resolved"
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "reason_to_skip_escalation,error_code",
     [
