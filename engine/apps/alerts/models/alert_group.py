@@ -287,13 +287,15 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="resolved_alert_groups",
     )
 
-    resolved_by_alert = deprecate_field(models.ForeignKey(
-        "alerts.Alert",
-        on_delete=models.SET_NULL,
-        null=True,
-        default=None,
-        related_name="resolved_alert_groups",
-    ))
+    resolved_by_alert = deprecate_field(
+        models.ForeignKey(
+            "alerts.Alert",
+            on_delete=models.SET_NULL,
+            null=True,
+            default=None,
+            related_name="resolved_alert_groups",
+        )
+    )
 
     resolved_at = models.DateTimeField(blank=True, null=True)
     acknowledged = models.BooleanField(default=False)
