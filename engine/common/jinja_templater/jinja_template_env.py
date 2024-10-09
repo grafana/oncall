@@ -9,6 +9,7 @@ from .filters import (
     datetimeformat_as_timezone,
     datetimeparse,
     iso8601_to_time,
+    timedeltaparse,
     json_dumps,
     parse_json,
     regex_match,
@@ -28,6 +29,7 @@ jinja_template_env.filters["datetimeformat"] = datetimeformat
 jinja_template_env.filters["datetimeformat_as_timezone"] = datetimeformat_as_timezone
 jinja_template_env.filters["datetimeparse"] = datetimeparse
 jinja_template_env.filters["iso8601_to_time"] = iso8601_to_time
+jinja_template_env.filters["timedeltaparse"] = timedeltaparse
 jinja_template_env.filters["tojson_pretty"] = to_pretty_json
 jinja_template_env.globals["time"] = timezone.now
 jinja_template_env.globals["range"] = lambda *args: raise_security_exception("range")
