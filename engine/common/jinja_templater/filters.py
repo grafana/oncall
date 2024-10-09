@@ -1,6 +1,6 @@
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import regex
 from django.utils.dateparse import parse_datetime
@@ -35,6 +35,35 @@ def iso8601_to_time(value):
         return parse_datetime(value)
     except (ValueError, AttributeError, TypeError):
         return None
+
+
+range_duration_re = regex.compile("^(?P<sign>[-+]?)(?P<amount>\\d+)(?P<unit>[smhdwMQy])$")
+
+
+def timedeltaparse(value):
+    try:
+        match = range_duration_re.match(value)
+        if match:
+            kw = match.groupdict()
+            amount = int(kw["amount"])
+            if kw["sign"] == "-":
+                amount = -amount
+            if kw["unit"] == "s":
+                return timedelta(seconds=amount)
+            elif kw["unit"] == "m":
+                return timedelta(minutes=amount)
+            elif kw["unit"] == "h":
+                return timedelta(hours=amount)
+            elif kw["unit"] == "d":
+                return timedelta(days=amount)
+            elif kw["unit"] == "w":
+                return timedelta(weeks=amount)
+            # The remaining units (MQy) are not supported by timedelta
+            else:
+                return None
+    except (ValueError, AttributeError, TypeError):
+        return None
+    return None
 
 
 def to_pretty_json(value):
