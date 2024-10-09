@@ -234,31 +234,6 @@ def test_slack_renderer_unattach_button(make_organization, make_alert_receive_ch
         )
     )
 
-
-@pytest.mark.django_db
-def test_slack_renderer_format_alert_button(
-    make_organization, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group=alert_group, raw_request_data={})
-
-    elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
-
-    button = elements[5]
-    assert button["text"]["text"] == ":mag: Format Alert"
-    assert json.loads(button["value"]) == json.loads(
-        make_value(
-            {
-                "organization_id": organization.pk,
-                "alert_group_ppk": alert_group.public_primary_key,
-            },
-            organization,
-        )
-    )
-
-
 @pytest.mark.django_db
 def test_slack_renderer_resolution_notes_button(
     make_organization, make_alert_receive_channel, make_alert_group, make_alert
