@@ -15,6 +15,7 @@ from django.dispatch import receiver
 from emoji import demojize
 
 from apps.api.permissions import (
+    GrafanaAPIPermissions,
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACPermission,
@@ -38,18 +39,6 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
-
-
-class PermissionsQuery(typing.TypedDict):
-    permissions__contains: typing.Dict
-
-
-class PermissionsRegexQuery(typing.TypedDict):
-    permissions__regex: str
-
-
-class RoleInQuery(typing.TypedDict):
-    role__in: typing.List[int]
 
 
 def generate_public_primary_key_for_user():
@@ -86,6 +75,44 @@ class UserQuerySet(models.QuerySet):
 
     def filter_with_deleted(self, *args, **kwargs):
         return super().filter(*args, **kwargs)
+
+    def filter_by_permission(
+        self, permission: LegacyAccessControlCompatiblePermission, organization: "Organization", *args, **kwargs
+    ):
+        """
+        This method builds a filter query that is compatible with RBAC as well as legacy "basic" role based
+        authorization. If a permission is provided we simply do a regex search where the permission column
+        contains the permission value (need to use regex because the JSON contains method is not supported by sqlite).
+
+        Additionally, if `organization.is_grafana_irm_enabled` is True, we convert the permission to the IRM version
+        when filtering.
+
+        Lastly, if RBAC is not supported for the org, we make the assumption that we are looking for any users with AT
+        LEAST the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
+        """
+        if organization.is_rbac_permissions_enabled:
+            permission_value = (
+                convert_oncall_permission_to_irm(permission)
+                if organization.is_grafana_irm_enabled
+                else permission.value
+            )
+
+            # https://stackoverflow.com/a/50251879
+            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
+                # contains is not supported on sqlite
+                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
+                query = Q(permissions__regex=re.escape(permission_value))
+            else:
+                query = Q(permissions__contains=GrafanaAPIPermissions.construct_permissions([permission_value]))
+        else:
+            query = Q(role__lte=permission.fallback_role.value)
+
+        return self.filter(
+            query,
+            *args,
+            **kwargs,
+            organization=organization,
+        )
 
     def delete(self):
         # is_active = None is used to be able to have multiple deleted users with the same user_id
@@ -341,34 +368,6 @@ class User(models.Model):
     @property
     def insight_logs_metadata(self):
         return {}
-
-    @staticmethod
-    def build_permissions_query(
-        permission: LegacyAccessControlCompatiblePermission, organization: "Organization"
-    ) -> typing.Union[PermissionsQuery, PermissionsRegexQuery, RoleInQuery]:
-        """
-        This method returns a django query filter that is compatible with RBAC
-        as well as legacy "basic" role based authorization. If a permission is provided we simply do
-        a regex search where the permission column contains the permission value (need to use regex because
-        the JSON contains method is not supported by sqlite)
-
-        If RBAC is not supported for the org, we make the assumption that we are looking for any users with AT LEAST
-        the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
-        """
-        if organization.is_rbac_permissions_enabled:
-            permission_value = (
-                convert_oncall_permission_to_irm(permission)
-                if organization.is_grafana_irm_enabled
-                else permission.value
-            )
-
-            # https://stackoverflow.com/a/50251879
-            if settings.DATABASE_TYPE == settings.DATABASE_TYPES.SQLITE3:
-                # https://docs.djangoproject.com/en/4.2/topics/db/queries/#contains
-                return PermissionsRegexQuery(permissions__regex=re.escape(permission_value))
-            required_permission = {"action": permission_value}
-            return PermissionsQuery(permissions__contains=[required_permission])
-        return RoleInQuery(role__lte=permission.fallback_role.value)
 
     def get_default_fallback_notification_policy(self) -> "UserNotificationPolicy":
         from apps.base.models import UserNotificationPolicy

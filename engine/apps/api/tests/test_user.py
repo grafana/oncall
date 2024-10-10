@@ -11,14 +11,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
+from apps.api import permissions
 from apps.api.serializers.user import UserHiddenFieldsSerializer
 from apps.api.views.user import UPCOMING_SHIFTS_DEFAULT_DAYS
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
-from common.constants.plugin_ids import PluginID
 
 
 @pytest.fixture(autouse=True)
@@ -232,7 +231,7 @@ def test_list_users(
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization, _verified_phone_number="1234567890")
-    editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    editor = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -326,17 +325,18 @@ def test_list_users_filtered_by_granted_permission(
     make_token_for_organization,
     make_user_auth_headers,
 ):
-    perm_to_filter_on = RBACPermission.Permissions.NOTIFICATIONS_READ.value
-    if is_grafana_irm_enabled:
-        perm_to_filter_on = perm_to_filter_on.replace(PluginID.ONCALL, PluginID.IRM)
+    permission = permissions.RBACPermission.Permissions.NOTIFICATIONS_READ
+    perm_to_filter_on = (
+        permissions.convert_oncall_permission_to_irm(permission) if is_grafana_irm_enabled else permission.value
+    )
 
-    perms_to_grant = [GrafanaAPIPermission(action=perm_to_filter_on)]
+    perms_to_grant = permissions.GrafanaAPIPermissions.construct_permissions([perm_to_filter_on])
 
     organization = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
     admin_user = make_user_for_organization(organization)
     user1 = make_user_for_organization(organization, permissions=perms_to_grant)
     user2 = make_user_for_organization(organization, permissions=perms_to_grant)
-    user3 = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    user3 = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -487,10 +487,10 @@ def test_notification_chain_verbal(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_self_permissions(
@@ -517,10 +517,10 @@ def test_user_update_self_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_other_permissions(
@@ -546,10 +546,10 @@ def test_user_update_other_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_list_permissions(
@@ -577,10 +577,10 @@ def test_user_list_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_self_permissions(
@@ -608,10 +608,10 @@ def test_user_detail_self_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_other_permissions(
@@ -631,7 +631,7 @@ def test_user_detail_other_permissions(
     assert response.status_code == expected_status
     # hidden information for editor/viewer
     available_fields = UserHiddenFieldsSerializer.fields_available_for_all_users + ["hidden_fields"]
-    if role in (LegacyAccessControlRole.EDITOR, LegacyAccessControlRole.VIEWER):
+    if role in (permissions.LegacyAccessControlRole.EDITOR, permissions.LegacyAccessControlRole.VIEWER):
         user_details = response.json()
         for f_name in user_details:
             if f_name not in available_fields:
@@ -642,10 +642,10 @@ def test_user_detail_other_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_verification_code(
@@ -673,10 +673,10 @@ def test_user_get_own_verification_code(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_other_verification_code(
@@ -746,10 +746,10 @@ def test_verification_code_provider_exception(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_own_phone(
@@ -777,10 +777,10 @@ def test_user_verify_own_phone(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_400_BAD_REQUEST),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_400_BAD_REQUEST),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_400_BAD_REQUEST),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_400_BAD_REQUEST),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_telegram_verification_code_with_telegram_connected(
@@ -808,10 +808,10 @@ Tests below are outdated
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_another_phone(
@@ -822,7 +822,7 @@ def test_user_verify_another_phone(
     expected_status,
 ):
     organization, tester, token = make_organization_and_user_with_plugin_token(role)
-    other_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    other_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": other_user.public_primary_key})
@@ -837,10 +837,10 @@ def test_user_verify_another_phone(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_telegram_verification_code(
@@ -862,10 +862,10 @@ def test_user_get_own_telegram_verification_code(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-        (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+        (permissions.LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_another_telegram_verification_code(
@@ -876,7 +876,7 @@ def test_user_get_another_telegram_verification_code(
     expected_status,
 ):
     organization, tester, token = make_organization_and_user_with_plugin_token(role)
-    other_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    other_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": other_user.public_primary_key})
@@ -892,7 +892,7 @@ def test_admin_can_update_user(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     data = {
@@ -909,7 +909,7 @@ def test_admin_can_update_user(
 
 @pytest.mark.django_db
 def test_admin_can_update_himself(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     data = {
@@ -927,7 +927,7 @@ def test_admin_can_update_himself(make_organization_and_user_with_plugin_token, 
 
 @pytest.mark.django_db
 def test_admin_can_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
 
@@ -944,7 +944,7 @@ def test_admin_can_detail_users(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
 
@@ -961,7 +961,7 @@ def test_admin_can_get_own_verification_code(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
@@ -979,7 +979,7 @@ def test_admin_can_get_another_user_verification_code(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": first_user.public_primary_key})
@@ -994,7 +994,7 @@ def test_admin_can_verify_own_phone(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.ADMIN)
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
 
@@ -1011,7 +1011,7 @@ def test_admin_can_verify_another_user_phone(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": first_user.public_primary_key})
@@ -1024,7 +1024,7 @@ def test_admin_can_verify_another_user_phone(
 def test_admin_can_get_own_telegram_verification_code(
     make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": user.public_primary_key})
@@ -1040,7 +1040,7 @@ def test_admin_can_get_another_user_telegram_verification_code(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": first_user.public_primary_key})
@@ -1056,7 +1056,7 @@ def test_admin_can_get_another_user_backend_verification_code(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = (
@@ -1075,7 +1075,7 @@ def test_admin_can_unlink_another_user_backend_account(
     make_user_auth_headers,
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
 
     client = APIClient()
     url = (
@@ -1098,7 +1098,7 @@ def test_admin_can_unlink_another_user_slack_account(
     _, token = make_token_for_organization(organization)
 
     user, _ = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_2", role=LegacyAccessControlRole.ADMIN
+        slack_team_identity, organization, slack_id="user_2", role=permissions.LegacyAccessControlRole.ADMIN
     )
     other_user = make_user_for_organization(organization)
 
@@ -1120,8 +1120,10 @@ def test_user_cant_update_user(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     data = {
@@ -1138,7 +1140,7 @@ def test_user_cant_update_user(
 
 @pytest.mark.django_db
 def test_user_can_update_themself(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     data = {
@@ -1156,7 +1158,7 @@ def test_user_can_update_themself(make_organization_and_user_with_plugin_token, 
 
 @pytest.mark.django_db
 def test_user_can_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
 
@@ -1170,8 +1172,10 @@ def test_user_can_list_users(make_organization_and_user_with_plugin_token, make_
 def test_user_can_detail_users(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": first_user.public_primary_key})
@@ -1191,7 +1195,7 @@ def test_user_can_detail_users(
 def test_user_can_get_own_verification_code(
     mock_verification_start, make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
@@ -1208,8 +1212,10 @@ def test_user_cant_get_another_user_verification_code(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": first_user.public_primary_key})
@@ -1223,7 +1229,7 @@ def test_user_cant_get_another_user_verification_code(
 def test_user_can_verify_own_phone(
     mocked_verification_check, make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
@@ -1240,8 +1246,10 @@ def test_user_cant_verify_another_user_phone(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": first_user.public_primary_key})
@@ -1254,7 +1262,7 @@ def test_user_cant_verify_another_user_phone(
 def test_user_can_get_own_telegram_verification_code(
     make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": user.public_primary_key})
@@ -1269,8 +1277,10 @@ def test_user_cant_get_another_user_telegram_verification_code(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": first_user.public_primary_key})
@@ -1283,7 +1293,7 @@ def test_user_cant_get_another_user_telegram_verification_code(
 def test_user_can_get_own_backend_verification_code(
     make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = (
@@ -1308,8 +1318,10 @@ def test_user_cant_get_another_user_backend_verification_code(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = (
@@ -1330,7 +1342,7 @@ def test_user_can_unlink_own_slack_account(
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     user, _ = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_2", role=LegacyAccessControlRole.EDITOR
+        slack_team_identity, organization, slack_id="user_2", role=permissions.LegacyAccessControlRole.EDITOR
     )
 
     _, token = make_token_for_organization(organization)
@@ -1345,7 +1357,7 @@ def test_user_can_unlink_own_slack_account(
 
 @pytest.mark.django_db
 def test_user_can_unlink_backend_own_account(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-unlink-backend", kwargs={"pk": user.public_primary_key}) + "?backend=TESTONLY"
@@ -1357,7 +1369,7 @@ def test_user_can_unlink_backend_own_account(make_organization_and_user_with_plu
 
 @pytest.mark.django_db
 def test_user_unlink_backend_invalid_backend_id(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-unlink-backend", kwargs={"pk": user.public_primary_key}) + "?backend=INVALID"
@@ -1371,7 +1383,7 @@ def test_user_unlink_backend_invalid_backend_id(make_organization_and_user_with_
 def test_user_unlink_backend_backend_account_not_found(
     make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-unlink-backend", kwargs={"pk": user.public_primary_key}) + "?backend=TESTONLY"
@@ -1391,10 +1403,10 @@ def test_user_cant_unlink_slack_another_user(
     organization, slack_team_identity = make_organization_with_slack_team_identity()
 
     first_user, _ = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_1", role=LegacyAccessControlRole.EDITOR
+        slack_team_identity, organization, slack_id="user_1", role=permissions.LegacyAccessControlRole.EDITOR
     )
     second_user, _ = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_2", role=LegacyAccessControlRole.EDITOR
+        slack_team_identity, organization, slack_id="user_2", role=permissions.LegacyAccessControlRole.EDITOR
     )
 
     _, token = make_token_for_organization(organization)
@@ -1411,8 +1423,10 @@ def test_user_cant_unlink_slack_another_user(
 def test_user_cant_unlink_backend_another_user(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = (
@@ -1430,12 +1444,14 @@ def test_user_cant_unlink_backend_another_user(
 def test_viewer_cant_update_user(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.VIEWER
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
 
     data = {
         "email": "test@amixr.io",
-        "role": LegacyAccessControlRole.EDITOR,
+        "role": permissions.LegacyAccessControlRole.EDITOR,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -1450,11 +1466,11 @@ def test_viewer_cant_update_user(
 
 @pytest.mark.django_db
 def test_viewer_cant_update_himself(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.VIEWER)
 
     data = {
         "email": "test@amixr.io",
-        "role": LegacyAccessControlRole.VIEWER,
+        "role": permissions.LegacyAccessControlRole.VIEWER,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -1469,7 +1485,7 @@ def test_viewer_cant_update_himself(make_organization_and_user_with_plugin_token
 
 @pytest.mark.django_db
 def test_viewer_can_list_users(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-list")
@@ -1483,7 +1499,7 @@ def test_viewer_can_list_users(make_organization_and_user_with_plugin_token, mak
 def test_viewer_cant_get_own_verification_code(
     mock_verification_start, make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
@@ -1500,8 +1516,10 @@ def test_viewer_cant_get_another_user_verification_code(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": first_user.public_primary_key})
@@ -1515,7 +1533,7 @@ def test_viewer_cant_get_another_user_verification_code(
 def test_viewer_cant_verify_own_phone(
     mocked_verification_check, make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
@@ -1532,8 +1550,10 @@ def test_viewer_cant_verify_another_user_phone(
     make_user_for_organization,
     make_user_auth_headers,
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": first_user.public_primary_key})
@@ -1546,7 +1566,7 @@ def test_viewer_cant_verify_another_user_phone(
 def test_viewer_cant_get_own_telegram_verification_code(
     make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": user.public_primary_key})
@@ -1559,8 +1579,10 @@ def test_viewer_cant_get_own_telegram_verification_code(
 def test_viewer_cant_get_another_user_telegram_verification_code(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = reverse("api-internal:user-get-telegram-verification-code", kwargs={"pk": first_user.public_primary_key})
@@ -1573,12 +1595,12 @@ def test_viewer_cant_get_another_user_telegram_verification_code(
 @pytest.mark.parametrize(
     "role,expected_status,initial_unverified_number,initial_verified_number",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, "+1234567890", None),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK, "+1234567890", None),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, "+1234567890", None),
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, None, "+1234567890"),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK, None, "+1234567890"),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, "+1234567890", None),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK, "+1234567890", None),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, None, "+1234567890"),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_200_OK, None, "+1234567890"),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
     ],
 )
 def test_forget_own_number(
@@ -1619,12 +1641,12 @@ def test_forget_own_number(
 @pytest.mark.parametrize(
     "role,expected_status,initial_unverified_number,initial_verified_number",
     [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, "+1234567890", None),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN, "+1234567890", None),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, "+1234567890", None),
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, None, "+1234567890"),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, "+1234567890", None),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        (permissions.LegacyAccessControlRole.ADMIN, status.HTTP_200_OK, None, "+1234567890"),
+        (permissions.LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        (permissions.LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
     ],
 )
 def test_forget_other_number(
@@ -1668,8 +1690,10 @@ def test_forget_other_number(
 def test_viewer_cant_get_another_user_backend_verification_code(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = (
@@ -1685,8 +1709,10 @@ def test_viewer_cant_get_another_user_backend_verification_code(
 def test_viewer_cant_unlink_backend_another_user(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
-    organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
-    second_user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    organization, first_user, token = make_organization_and_user_with_plugin_token(
+        role=permissions.LegacyAccessControlRole.EDITOR
+    )
+    second_user = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
     url = (
@@ -1699,7 +1725,7 @@ def test_viewer_cant_unlink_backend_another_user(
 
 @pytest.mark.django_db
 def test_change_timezone(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
@@ -1715,7 +1741,7 @@ def test_change_timezone(make_organization_and_user_with_plugin_token, make_user
 @pytest.mark.django_db
 @pytest.mark.parametrize("timezone", ["", 1, "NotATimezone"])
 def test_invalid_timezone(make_organization_and_user_with_plugin_token, make_user_auth_headers, timezone):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
@@ -1728,7 +1754,7 @@ def test_invalid_timezone(make_organization_and_user_with_plugin_token, make_use
 
 @pytest.mark.django_db
 def test_change_working_hours(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
@@ -1764,7 +1790,7 @@ def test_change_working_hours(make_organization_and_user_with_plugin_token, make
 def test_invalid_working_hours(
     make_organization_and_user_with_plugin_token, make_user_auth_headers, working_hours_extra
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    _, user, token = make_organization_and_user_with_plugin_token(role=permissions.LegacyAccessControlRole.EDITOR)
 
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})

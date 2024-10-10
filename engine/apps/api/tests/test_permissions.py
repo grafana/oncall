@@ -719,94 +719,101 @@ class TestIsOwnerOrHasRBACPermissions:
         assert PermClass.has_object_permission(request, None, thingy) is True
         assert PermClass.has_object_permission(request_user3, None, thingy) is False
 
-    @pytest.mark.parametrize(
-        "is_grafana_irm_enabled,required_permissions,expected_permission_values",
-        [
-            (
-                False,
-                [
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
-                ],
-                [
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value,
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value,
-                ],
-            ),
-            (
-                True,
-                [
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
-                ],
-                [
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(
-                        PluginID.ONCALL, PluginID.IRM
-                    ),
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value.replace(
-                        PluginID.ONCALL, PluginID.IRM
-                    ),
-                ],
-            ),
-            (
-                True,
-                [
-                    permissions.RBACPermission.Permissions.LABEL_CREATE,
-                    permissions.RBACPermission.Permissions.LABEL_WRITE,
-                    permissions.RBACPermission.Permissions.LABEL_READ,
-                ],
-                [
-                    permissions.RBACPermission.Permissions.LABEL_CREATE.value,
-                    permissions.RBACPermission.Permissions.LABEL_WRITE.value,
-                    permissions.RBACPermission.Permissions.LABEL_READ.value,
-                ],
-            ),
-        ],
-    )
-    @pytest.mark.django_db
-    def test_get_required_permission_values(
-        self,
-        make_organization,
-        is_grafana_irm_enabled,
-        required_permissions,
-        expected_permission_values,
-    ) -> None:
-        organization = make_organization(
-            is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled
-        )
-        assert (
-            permissions.get_required_permission_values(organization, required_permissions) == expected_permission_values
-        )
 
-    @pytest.mark.parametrize(
-        "is_grafana_irm_enabled,perm,expected_permission",
-        [
-            (
-                False,
+@pytest.mark.parametrize(
+    "permission,expected",
+    [
+        (
+            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+            f"{PluginID.IRM}.alert-groups:read",
+        ),
+        (
+            permissions.RBACPermission.Permissions.LABEL_READ,
+            permissions.RBACPermission.Permissions.LABEL_READ.value,
+        ),
+    ],
+)
+def test_convert_oncall_permission_to_irm(permission, expected) -> None:
+    assert permissions.convert_oncall_permission_to_irm(permission) == expected
+
+
+@pytest.mark.parametrize(
+    "is_grafana_irm_enabled,required_permissions,expected_permission_values",
+    [
+        (
+            False,
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
+            [
                 permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value,
+            ],
+        ),
+        (
+            True,
+            [
                 permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-            ),
-            (
-                False,
-                "non.existent.permission",
-                None,
-            ),
-            (
-                True,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
+            [
                 permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
-                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
-            ),
-        ],
-    )
-    @pytest.mark.django_db
-    def test_get_permission_from_permission_string(
-        self,
-        make_organization,
-        is_grafana_irm_enabled,
-        perm,
-        expected_permission,
-    ) -> None:
-        organization = make_organization(
-            is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled
-        )
-        assert permissions.get_permission_from_permission_string(organization, perm) == expected_permission
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value.replace(PluginID.ONCALL, PluginID.IRM),
+            ],
+        ),
+        (
+            True,
+            [
+                permissions.RBACPermission.Permissions.LABEL_CREATE,
+                permissions.RBACPermission.Permissions.LABEL_WRITE,
+                permissions.RBACPermission.Permissions.LABEL_READ,
+            ],
+            [
+                permissions.RBACPermission.Permissions.LABEL_CREATE.value,
+                permissions.RBACPermission.Permissions.LABEL_WRITE.value,
+                permissions.RBACPermission.Permissions.LABEL_READ.value,
+            ],
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_get_required_permission_values(
+    make_organization,
+    is_grafana_irm_enabled,
+    required_permissions,
+    expected_permission_values,
+) -> None:
+    organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
+    assert permissions.get_required_permission_values(organization, required_permissions) == expected_permission_values
+
+
+@pytest.mark.parametrize(
+    "is_grafana_irm_enabled,perm,expected_permission",
+    [
+        (
+            False,
+            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value,
+            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+        ),
+        (
+            False,
+            "non.existent.permission",
+            None,
+        ),
+        (
+            True,
+            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
+            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+        ),
+    ],
+)
+@pytest.mark.django_db
+def test_get_permission_from_permission_string(
+    make_organization,
+    is_grafana_irm_enabled,
+    perm,
+    expected_permission,
+) -> None:
+    organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
+    assert permissions.get_permission_from_permission_string(organization, perm) == expected_permission

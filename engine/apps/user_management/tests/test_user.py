@@ -1,10 +1,9 @@
 import datetime
-import re
 
 import pytest
 from django.utils import timezone
 
-from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
+from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole, RBACPermission
 from apps.google import constants as google_constants
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
@@ -38,7 +37,7 @@ def test_self_or_has_user_settings_admin_permission(make_organization, make_user
     user_with_perms = make_user_for_organization(
         organization_with_rbac,
         role=LegacyAccessControlRole.NONE,
-        permissions=[GrafanaAPIPermission(action=RBACPermission.Permissions.USER_SETTINGS_ADMIN.value)],
+        permissions=GrafanaAPIPermissions.construct_permissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN]),
     )
     user_without_perms = make_user_for_organization(
         organization_with_rbac,
@@ -83,7 +82,7 @@ def test_is_admin(make_organization, make_user_for_organization):
     user_with_perms = make_user_for_organization(
         organization_with_rbac,
         role=LegacyAccessControlRole.NONE,
-        permissions=[GrafanaAPIPermission(action=RBACPermission.Permissions.ADMIN.value)],
+        permissions=GrafanaAPIPermissions.construct_permissions([RBACPermission.Permissions.ADMIN]),
     )
     user_without_perms = make_user_for_organization(
         organization_with_rbac,
@@ -292,37 +291,47 @@ def test_reset_google_oauth2_settings(make_organization_and_user):
 
 
 @pytest.mark.django_db
-def test_build_permissions_query_rbac_disabled(mocker, make_organization):
-    organization = make_organization(is_rbac_permissions_enabled=False)
-    permission = RBACPermission.Permissions.ADMIN
+def test_filter_by_permission(make_organization, make_user_for_organization):
+    """
+    Note that there are some conditions in `UserQuerySet.filter_by_permission` that're
+    specific to which database engine is being used. These cases are tested on CI where
+    we run the test against sqlite, mysql, and postgresql
+    """
+    permission_to_test = RBACPermission.Permissions.ALERT_GROUPS_READ
+    permissions = GrafanaAPIPermissions.construct_permissions([permission_to_test])
 
-    query = User.build_permissions_query(permission, organization)
-    assert query == {"role__in": [permission.fallback_role.value]}
+    org1_rbac = make_organization(is_rbac_permissions_enabled=True)
+    user1 = make_user_for_organization(org1_rbac, permissions=permissions)
+    user2 = make_user_for_organization(org1_rbac, permissions=permissions)
+    _ = make_user_for_organization(org1_rbac, permissions=[])
 
+    org2_rbac_irm = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=True)
+    user4 = make_user_for_organization(org2_rbac_irm, permissions=permissions)
+    user5 = make_user_for_organization(org2_rbac_irm, permissions=permissions)
+    _ = make_user_for_organization(org2_rbac_irm, permissions=[])
 
-@pytest.mark.django_db
-def test_build_permissions_query_rbac_enabled(mocker, make_organization):
-    organization = make_organization(is_rbac_permissions_enabled=True)
-    permission = RBACPermission.Permissions.ADMIN
+    org3_no_rbac = make_organization(is_rbac_permissions_enabled=False)
+    user7 = make_user_for_organization(org3_no_rbac, role=permission_to_test.fallback_role)
+    user8 = make_user_for_organization(org3_no_rbac, role=permission_to_test.fallback_role)
+    _ = make_user_for_organization(org3_no_rbac, role=LegacyAccessControlRole.NONE)
 
-    query = User.build_permissions_query(permission, organization)
-    assert query == {"permissions__contains": [{"action": permission.value}]}
+    # rbac permissions enabled
+    users = User.objects.filter_by_permission(permission_to_test, org1_rbac)
 
+    assert len(users) == 2
+    assert user1 in users
+    assert user2 in users
 
-@pytest.mark.django_db
-def test_build_permissions_query_sqlite(make_organization, settings):
-    settings.DATABASE_TYPE = settings.DATABASE_TYPES.SQLITE3
-    organization = make_organization(is_rbac_permissions_enabled=True)
-    permission = RBACPermission.Permissions.ADMIN
+    # rbac permissions + IRM enabled
+    users = User.objects.filter_by_permission(permission_to_test, org2_rbac_irm)
 
-    query = User.build_permissions_query(permission, organization)
-    assert query == {"permissions__regex": re.escape(permission.value)}
+    assert len(users) == 2
+    assert user4 in users
+    assert user5 in users
 
+    # rbac permissions disabled
+    users = User.objects.filter_by_permission(permission_to_test, org3_no_rbac)
 
-@pytest.mark.django_db
-def test_build_permissions_query_grafana_irm_enabled(make_organization):
-    organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=True)
-    permission = RBACPermission.Permissions.ADMIN
-
-    query = User.build_permissions_query(permission, organization)
-    assert query == {"permissions__contains": [{"action": permission.value}]}
+    assert len(users) == 2
+    assert user7 in users
+    assert user8 in users
