@@ -287,13 +287,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="resolved_alert_groups",
     )
 
-    resolved_by_alert = models.ForeignKey(
-        "alerts.Alert",
-        on_delete=models.SET_NULL,
-        null=True,
-        default=None,
-        related_name="resolved_alert_groups",
-    )
+    # resolved_by_alert = models.ForeignKey(
+    #     "alerts.Alert",
+    #     on_delete=models.DO_NOTHING,
+    #     null=True,
+    #     default=None,
+    #     related_name="resolved_alert_groups",
+    # )
     """
     ⚠️ This field is no longer being set/read anywhere, DON'T USE IT! ⚠️
 
