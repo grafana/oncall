@@ -4,7 +4,7 @@ import pytest
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSetMixin
 
-import apps.api.permissions as permissions
+from apps.api import permissions
 from apps.user_management.models import User
 from common.constants.plugin_ids import PluginID
 
@@ -130,13 +130,19 @@ class TestLegacyAccessControlCompatiblePermission:
     ):
         user_permission = permissions.RBACPermission.Permissions.ALERT_GROUPS_READ
 
-        org = make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled, is_grafana_irm_enabled=is_grafana_irm_enabled)
+        org = make_organization(
+            is_rbac_permissions_enabled=is_rbac_permissions_enabled, is_grafana_irm_enabled=is_grafana_irm_enabled
+        )
         user = make_user_for_organization(
             org,
             role=user_basic_role,
-            permissions=permissions.GrafanaAPIPermissions.construct_permissions([
-                permissions.convert_oncall_permission_to_irm(user_permission) if is_grafana_irm_enabled else user_permission.value
-            ])
+            permissions=permissions.GrafanaAPIPermissions.construct_permissions(
+                [
+                    permissions.convert_oncall_permission_to_irm(user_permission)
+                    if is_grafana_irm_enabled
+                    else user_permission.value
+                ]
+            ),
         )
 
         assert permission_to_test.user_has_permission(user) == expected_result
@@ -149,22 +155,19 @@ class TestLegacyAccessControlCompatiblePermission:
         (permissions.LegacyAccessControlRole.NONE, permissions.LegacyAccessControlRole.VIEWER, False),
         (permissions.LegacyAccessControlRole.NONE, permissions.LegacyAccessControlRole.EDITOR, False),
         (permissions.LegacyAccessControlRole.NONE, permissions.LegacyAccessControlRole.ADMIN, False),
-
         (permissions.LegacyAccessControlRole.VIEWER, permissions.LegacyAccessControlRole.NONE, True),
         (permissions.LegacyAccessControlRole.VIEWER, permissions.LegacyAccessControlRole.VIEWER, True),
         (permissions.LegacyAccessControlRole.VIEWER, permissions.LegacyAccessControlRole.EDITOR, False),
         (permissions.LegacyAccessControlRole.VIEWER, permissions.LegacyAccessControlRole.ADMIN, False),
-
         (permissions.LegacyAccessControlRole.EDITOR, permissions.LegacyAccessControlRole.NONE, True),
         (permissions.LegacyAccessControlRole.EDITOR, permissions.LegacyAccessControlRole.VIEWER, True),
         (permissions.LegacyAccessControlRole.EDITOR, permissions.LegacyAccessControlRole.EDITOR, True),
         (permissions.LegacyAccessControlRole.EDITOR, permissions.LegacyAccessControlRole.ADMIN, False),
-
         (permissions.LegacyAccessControlRole.ADMIN, permissions.LegacyAccessControlRole.NONE, True),
         (permissions.LegacyAccessControlRole.ADMIN, permissions.LegacyAccessControlRole.VIEWER, True),
         (permissions.LegacyAccessControlRole.ADMIN, permissions.LegacyAccessControlRole.EDITOR, True),
         (permissions.LegacyAccessControlRole.ADMIN, permissions.LegacyAccessControlRole.ADMIN, True),
-    ]
+    ],
 )
 @pytest.mark.django_db
 def test_user_has_minimum_required_basic_role(
@@ -196,14 +199,26 @@ def test_user_has_minimum_required_basic_role(
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             True,
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             False,
             True,
         ),
@@ -221,13 +236,19 @@ def test_user_has_minimum_required_basic_role(
         ),
         (
             [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             False,
             False,
         ),
         (
             [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             True,
             False,
         ),
@@ -245,13 +266,18 @@ def test_user_is_authorized(
 ) -> None:
     basic_role = permissions.get_most_authorized_role(user_permissions)
 
-    org = make_organization(is_rbac_permissions_enabled=is_rbac_permissions_enabled, is_grafana_irm_enabled=is_grafana_irm_enabled)
+    org = make_organization(
+        is_rbac_permissions_enabled=is_rbac_permissions_enabled, is_grafana_irm_enabled=is_grafana_irm_enabled
+    )
     user = make_user_for_organization(
         org,
         role=basic_role,
-        permissions=permissions.GrafanaAPIPermissions.construct_permissions([
-            permissions.convert_oncall_permission_to_irm(perm) if is_grafana_irm_enabled else perm.value for perm in user_permissions
-        ]),
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions(
+            [
+                permissions.convert_oncall_permission_to_irm(perm) if is_grafana_irm_enabled else perm.value
+                for perm in user_permissions
+            ]
+        ),
     )
 
     assert permissions.user_is_authorized(user, required_permissions) == expected_result
@@ -260,9 +286,15 @@ def test_user_is_authorized(
 @pytest.mark.parametrize(
     "user_permissions,expected_role",
     [
-        ([permissions.RBACPermission.Permissions.ALERT_GROUPS_READ], permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.fallback_role),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
+            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.fallback_role,
+        ),
+        (
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.fallback_role,
         ),
         (
@@ -397,9 +429,7 @@ class TestRBACPermission:
 
     def test_has_permission_throws_assertion_error_if_developer_forgets_to_specify_rbac_permissions(self) -> None:
         action_slash_method = "hello"
-        error_msg = (
-            f"Must define a {permissions.RBAC_PERMISSIONS_ATTR} dict on the ViewSet that is consuming the RBACPermission class"
-        )
+        error_msg = f"Must define a {permissions.RBAC_PERMISSIONS_ATTR} dict on the ViewSet that is consuming the RBACPermission class"
 
         viewset = MockedViewSet(action_slash_method)
         apiview = MockedAPIView()
@@ -474,8 +504,14 @@ class TestRBACPermission:
         apiview = MockedAPIView(rbac_object_permissions=rbac_object_permissions)
         viewset = MockedViewSet(action, rbac_object_permissions=rbac_object_permissions)
 
-        assert permissions.RBACPermission().has_object_permission(request, apiview, None) == mocked_permission_class_response
-        assert permissions.RBACPermission().has_object_permission(request, viewset, None) == mocked_permission_class_response
+        assert (
+            permissions.RBACPermission().has_object_permission(request, apiview, None)
+            == mocked_permission_class_response
+        )
+        assert (
+            permissions.RBACPermission().has_object_permission(request, viewset, None)
+            == mocked_permission_class_response
+        )
 
 
 class TestIsOwner:
@@ -542,8 +578,14 @@ class TestIsOwner:
             True,
         ),
         (
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             True,
         ),
         (
@@ -553,7 +595,10 @@ class TestIsOwner:
         ),
         (
             [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ],
-            [permissions.RBACPermission.Permissions.ALERT_GROUPS_READ, permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+            [
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
+                permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
+            ],
             False,
         ),
     ],
@@ -574,7 +619,10 @@ def test_HasRBACPermission(
     )
 
     request = MockedRequest(user)
-    assert permissions.HasRBACPermissions(required_permissions).has_object_permission(request, None, None) == expected_result
+    assert (
+        permissions.HasRBACPermissions(required_permissions).has_object_permission(request, None, None)
+        == expected_result
+    )
 
 
 class TestIsOwnerOrHasRBACPermissions:
@@ -608,7 +656,9 @@ class TestIsOwnerOrHasRBACPermissions:
         make_user_for_organization,
     ) -> None:
         org = make_organization(is_rbac_permissions_enabled=True)
-        user1 = make_user_for_organization(org, role=permissions.LegacyAccessControlRole.NONE, permissions=self.user_permissions)
+        user1 = make_user_for_organization(
+            org, role=permissions.LegacyAccessControlRole.NONE, permissions=self.user_permissions
+        )
         schedule = MockedSchedule(user1)
         request = MockedRequest(user1)
 
@@ -644,7 +694,9 @@ class TestIsOwnerOrHasRBACPermissions:
     ) -> None:
         org = make_organization(is_rbac_permissions_enabled=True)
         user1 = make_user_for_organization(org, role=permissions.LegacyAccessControlRole.NONE, permissions=[])
-        user2 = make_user_for_organization(org, role=permissions.LegacyAccessControlRole.NONE, permissions=self.user_permissions)
+        user2 = make_user_for_organization(
+            org, role=permissions.LegacyAccessControlRole.NONE, permissions=self.user_permissions
+        )
         user3 = make_user_for_organization(org, role=permissions.LegacyAccessControlRole.NONE, permissions=[])
 
         schedule = MockedSchedule(user1)
@@ -688,8 +740,12 @@ class TestIsOwnerOrHasRBACPermissions:
                     permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE,
                 ],
                 [
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
-                    permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value.replace(PluginID.ONCALL, PluginID.IRM),
+                    permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(
+                        PluginID.ONCALL, PluginID.IRM
+                    ),
+                    permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value.replace(
+                        PluginID.ONCALL, PluginID.IRM
+                    ),
                 ],
             ),
             (
@@ -715,8 +771,12 @@ class TestIsOwnerOrHasRBACPermissions:
         required_permissions,
         expected_permission_values,
     ) -> None:
-        organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
-        assert permissions.get_required_permission_values(organization, required_permissions) == expected_permission_values
+        organization = make_organization(
+            is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled
+        )
+        assert (
+            permissions.get_required_permission_values(organization, required_permissions) == expected_permission_values
+        )
 
     @pytest.mark.parametrize(
         "is_grafana_irm_enabled,perm,expected_permission",
@@ -746,5 +806,7 @@ class TestIsOwnerOrHasRBACPermissions:
         perm,
         expected_permission,
     ) -> None:
-        organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
+        organization = make_organization(
+            is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled
+        )
         assert permissions.get_permission_from_permission_string(organization, perm) == expected_permission
