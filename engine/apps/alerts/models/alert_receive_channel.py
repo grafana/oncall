@@ -422,6 +422,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def new_incidents_web_link(self):
+        from apps.alerts.models import AlertGroup
+
         return UIURLBuilder(self.organization).alert_groups(
             f"?integration={self.public_primary_key}&status={AlertGroup.NEW}",
         )
