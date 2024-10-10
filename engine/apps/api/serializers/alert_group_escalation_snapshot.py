@@ -36,17 +36,17 @@ class EscalationPolicySnapshotAPISerializer(EscalationPolicySerializer):
 class AlertGroupEscalationSnapshotAPISerializer(serializers.Serializer):
     """Serializes AlertGroup escalation snapshot for API endpoint"""
 
-    escalation_chain = serializers.SerializerMethodField()
-    channel_filter = serializers.SerializerMethodField()
+    class EscalationChainSnapshotAPISerializer(serializers.Serializer):
+        name = serializers.CharField()
+
+    class ChannelFilterSnapshotAPISerializer(serializers.Serializer):
+        name = serializers.CharField(source="str_for_clients")
+
+    escalation_chain = EscalationChainSnapshotAPISerializer(read_only=True, source="escalation_chain_snapshot")
+    channel_filter = ChannelFilterSnapshotAPISerializer(read_only=True, source="channel_filter_snapshot")
     escalation_policies = EscalationPolicySnapshotAPISerializer(
         source="escalation_policies_snapshots", many=True, read_only=True
     )
 
     class Meta:
         fields = ["escalation_chain", "channel_filter", "escalation_policies"]
-
-    def get_escalation_chain(self, obj):
-        return {"name": obj.escalation_chain_snapshot.name}
-
-    def get_channel_filter(self, obj):
-        return {"name": obj.channel_filter_snapshot.str_for_clients}

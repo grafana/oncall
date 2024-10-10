@@ -1,7 +1,8 @@
 from django.db.models import Count, Q
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, extend_schema_view, inline_serializer
 from emoji import emojize
-from rest_framework import status, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
@@ -37,6 +38,17 @@ class EscalationChainFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, 
     team = TeamModelMultipleChoiceFilter()
 
 
+@extend_schema_view(
+    list=extend_schema(
+        responses=PolymorphicProxySerializer(
+            component_name="EscalationChainPolymorphic",
+            serializers=[EscalationChainListSerializer, FilterEscalationChainSerializer],
+            resource_type_field_name=None,
+        )
+    ),
+    update=extend_schema(responses=EscalationChainSerializer),
+    partial_update=extend_schema(responses=EscalationChainSerializer),
+)
 class EscalationChainViewSet(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[EscalationChain],
@@ -44,6 +56,10 @@ class EscalationChainViewSet(
     ListSerializerMixin,
     viewsets.ModelViewSet,
 ):
+    """
+    Internal API endpoints for escalation chains.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -61,6 +77,8 @@ class EscalationChainViewSet(
         "copy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "filters": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
     }
+
+    queryset = EscalationChain.objects.none()  # needed for drf-spectacular introspection
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ("name",)
@@ -127,6 +145,7 @@ class EscalationChainViewSet(
             new_state=new_state,
         )
 
+    @extend_schema(responses=EscalationChainSerializer)
     @action(methods=["post"], detail=True)
     def copy(self, request, pk):
         obj = self.get_object()
@@ -155,6 +174,24 @@ class EscalationChainViewSet(
         )
         return Response(serializer.data)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="EscalationChainDetails",
+            fields={
+                "id": serializers.CharField(),
+                "display_name": serializers.CharField(),
+                "channel_filters": inline_serializer(
+                    name="EscalationChainDetailsChannelFilter",
+                    fields={
+                        "id": serializers.CharField(),
+                        "display_name": serializers.CharField(),
+                    },
+                    many=True,
+                ),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=True)
     def details(self, request, pk):
         obj = self.get_object()
@@ -181,6 +218,18 @@ class EscalationChainViewSet(
             )["channel_filters"].append(channel_filter_data)
         return Response(data.values())
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="EscalationChainFilters",
+            fields={
+                "name": serializers.CharField(),
+                "type": serializers.CharField(),
+                "href": serializers.CharField(required=False),
+                "global": serializers.BooleanField(required=False),
+            },
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def filters(self, request):
         api_root = "/api/internal/v1/"

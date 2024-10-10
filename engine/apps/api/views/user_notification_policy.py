@@ -1,5 +1,8 @@
 from django.conf import settings
 from django.http import Http404
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,14 +17,29 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, NotificationChannelAPIOptions
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from apps.user_management.models import User
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.filters import ModelChoicePublicPrimaryKeyFilter, get_user_queryset
 from common.api_helpers.mixins import UpdateSerializerMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.ordered_model.viewset import OrderedModelViewSet
 
 
+class UserNotificationPolicyFilter(filters.FilterSet):
+    important = filters.BooleanFilter()
+    user = ModelChoicePublicPrimaryKeyFilter(
+        queryset=get_user_queryset,
+    )
+
+
+@extend_schema_view(
+    list=extend_schema(responses=UserNotificationPolicySerializer),
+    update=extend_schema(responses=UserNotificationPolicyUpdateSerializer),
+    partial_update=extend_schema(responses=UserNotificationPolicyUpdateSerializer),
+)
 class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
+    """
+    Internal API endpoints for user notification policies.
+    """
+
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -54,25 +72,27 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
             "move_to_position",
         ],
     }
+    queryset = UserNotificationPolicy.objects.none()  # needed for drf-spectacular introspection
 
     model = UserNotificationPolicy
     serializer_class = UserNotificationPolicySerializer
     update_serializer_class = UserNotificationPolicyUpdateSerializer
 
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UserNotificationPolicyFilter
+
     def get_queryset(self):
-        important = self.request.query_params.get("important", None) == "true"
-        try:
-            user_id = self.request.query_params.get("user", None)
-        except ValueError:
-            raise BadRequest(detail="Invalid user param")
-        if user_id is None or user_id == self.request.user.public_primary_key:
-            target_user = self.request.user
-        else:
-            try:
-                target_user = User.objects.get(public_primary_key=user_id)
-            except User.DoesNotExist:
-                raise BadRequest(detail="User does not exist")
-        queryset = UserNotificationPolicy.objects.filter(user=target_user, important=important)
+        # if there are no query params, set default value
+        lookup_kwargs = {}
+        important = self.request.query_params.get("important", None)
+        user_id = self.request.query_params.get("user", None)
+        if important is None:
+            lookup_kwargs.update({"important": False})
+        if user_id is None:
+            lookup_kwargs.update({"user": self.request.user})
+        queryset = UserNotificationPolicy.objects.filter(
+            **lookup_kwargs, user__organization=self.request.auth.organization
+        )
         return self.serializer_class.setup_eager_loading(queryset)
 
     def get_object(self):
@@ -128,6 +148,17 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
             new_state=new_state,
         )
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="UserNotificationPolicyDelayOptions",
+            fields={
+                "value": serializers.CharField(),
+                "sec_value": serializers.IntegerField(),
+                "display_name": serializers.CharField(),
+            },
+            many=True,
+        )
+    )
     @action(detail=False, methods=["get"])
     def delay_options(self, request):
         choices = []
@@ -135,6 +166,18 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
             choices.append({"value": str(item[0]), "sec_value": item[0], "display_name": item[1]})
         return Response(choices)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="UserNotificationPolicyNotifyByOptions",
+            fields={
+                "value": serializers.IntegerField(),
+                "display_name": serializers.CharField(),
+                "slack_integration_required": serializers.BooleanField(),
+                "telegram_integration_required": serializers.BooleanField(),
+            },
+            many=True,
+        )
+    )
     @action(detail=False, methods=["get"])
     def notify_by_options(self, request):
         """
