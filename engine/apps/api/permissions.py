@@ -360,11 +360,11 @@ for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISS
         (convert_oncall_permission_to_irm(permission_class), permission_name),
     ]
 ALL_PERMISSION_NAME_TO_CLASS_MAP: typing.Dict[str, LegacyAccessControlCompatiblePermission] = {}
-for permission_name, permission_class in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES):
+for permission_class in ALL_PERMISSION_CLASSES:
     ALL_PERMISSION_NAME_TO_CLASS_MAP.update(
         {
-            permission_name: permission_class,
-            convert_oncall_permission_to_irm(permission_name): permission_class,
+            permission_class.value: permission_class,
+            convert_oncall_permission_to_irm(permission_class): permission_class,
         }
     )
 
