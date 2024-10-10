@@ -193,7 +193,7 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       redis_test:
-        image: redis:7.0.5
+        image: redis:7.0.15
         ports:
           - 6379:6379
         options: >-
