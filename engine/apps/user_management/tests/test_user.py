@@ -37,7 +37,9 @@ def test_self_or_has_user_settings_admin_permission(make_organization, make_user
     user_with_perms = make_user_for_organization(
         organization_with_rbac,
         role=permissions.LegacyAccessControlRole.NONE,
-        permissions=permissions.GrafanaAPIPermissions.construct_permissions([permissions.RBACPermission.Permissions.USER_SETTINGS_ADMIN.value]),
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions(
+            [permissions.RBACPermission.Permissions.USER_SETTINGS_ADMIN.value]
+        ),
     )
     user_without_perms = make_user_for_organization(
         organization_with_rbac,
@@ -82,7 +84,9 @@ def test_is_admin(make_organization, make_user_for_organization):
     user_with_perms = make_user_for_organization(
         organization_with_rbac,
         role=permissions.LegacyAccessControlRole.NONE,
-        permissions=permissions.GrafanaAPIPermissions.construct_permissions([permissions.RBACPermission.Permissions.ADMIN.value]),
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions(
+            [permissions.RBACPermission.Permissions.ADMIN.value]
+        ),
     )
     user_without_perms = make_user_for_organization(
         organization_with_rbac,
@@ -299,7 +303,9 @@ def test_filter_by_permission(make_organization, make_user_for_organization):
     """
     permission_to_test = permissions.RBACPermission.Permissions.ALERT_GROUPS_READ
     user_permissions = permissions.GrafanaAPIPermissions.construct_permissions([permission_to_test.value])
-    irm_permissions = permissions.GrafanaAPIPermissions.construct_permissions([permissions.convert_oncall_permission_to_irm(permission_to_test)])
+    irm_permissions = permissions.GrafanaAPIPermissions.construct_permissions(
+        [permissions.convert_oncall_permission_to_irm(permission_to_test)]
+    )
 
     org1_rbac = make_organization(is_rbac_permissions_enabled=True)
     user1 = make_user_for_organization(org1_rbac, permissions=user_permissions)

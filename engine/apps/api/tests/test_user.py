@@ -338,9 +338,13 @@ def test_list_users_filtered_by_granted_permission(
         organization,
         # NOTE: need to explicitly grant this permission here because otherwise the permissions granted by the
         # make_user_for_organization fixture will only grant the oncall flavour of the permission
-        permissions=permissions.GrafanaAPIPermissions.construct_permissions([
-            permissions.convert_oncall_permission_to_irm(admin_perm_required_to_call_endpoint) if is_grafana_irm_enabled else admin_perm_required_to_call_endpoint.value
-        ])
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions(
+            [
+                permissions.convert_oncall_permission_to_irm(admin_perm_required_to_call_endpoint)
+                if is_grafana_irm_enabled
+                else admin_perm_required_to_call_endpoint.value
+            ]
+        ),
     )
     user1 = make_user_for_organization(organization, permissions=perms_to_grant)
     user2 = make_user_for_organization(organization, permissions=perms_to_grant)
