@@ -56,6 +56,37 @@ def test_render_web_alert_links(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        ("https://example.com", "https://example.com"),
+        ('https://some-url"<script>hey</script>', None),
+        ("https://example.com?something=foo&else=bar", "https://example.com?something=foo&else=bar"),
+    ],
+)
+def test_render_web_image_url(
+    make_organization_and_user_with_slack_identities,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    url,
+    expected,
+):
+    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        web_image_url_template="{{ payload.image_url }}",
+    )
+    alert_group = make_alert_group(alert_receive_channel)
+
+    alert = make_alert(alert_group=alert_group, raw_request_data={"image_url": url})
+
+    templater = AlertWebTemplater(alert)
+    templated_alert = templater.render()
+    assert templated_alert.image_url == expected
+
+
+@pytest.mark.django_db
 def test_getattr_template(
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,

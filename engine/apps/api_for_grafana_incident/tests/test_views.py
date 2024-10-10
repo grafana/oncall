@@ -23,7 +23,7 @@ def test_alert_group_details(
         slack_title_template=None,
         web_title_template="title: {{ payload.field2 }}",
         web_message_template="Something {{ payload.field1 }} + {{ payload.field3 }}",
-        web_image_url_template="http://{{ payload.field1 }}",
+        web_image_url_template="http://{{ payload.field1 }}.com",
     )
     alert_group = make_alert_group(alert_receive_channel)
     alert_payload = {"field1": "foo", "field2": "bar", "field3": "baz"}
@@ -48,7 +48,7 @@ def test_alert_group_details(
         "render_for_web": {
             "title": "title: bar",
             "message": "<p>Something foo + baz</p>",
-            "image_url": "http://foo",
+            "image_url": "http://foo.com",
             "source_link": None,
         },
     }
@@ -85,7 +85,7 @@ def test_alert_group_details(
         "render_for_web": {
             "title": "title: bar",
             "message": "<p>Something foo + baz</p>",
-            "image_url": "http://foo",
+            "image_url": "http://foo.com",
             "source_link": None,
         },
     }
