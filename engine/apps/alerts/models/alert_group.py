@@ -1316,18 +1316,15 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.un_attach_by_delete()
 
     def hard_delete(self):
-        from apps.alerts.models import ResolutionNote
-
-        alerts = self.alerts.all()
-        alerts.delete()
-
-        self.slack_messages.all().delete()
-        self.personal_log_records.all().delete()
-        self.log_records.all().delete()
-        self.invitations.all().delete()
-        resolution_notes = ResolutionNote.objects_with_deleted.filter(alert_group=self)
-        resolution_notes.delete()
-        self.resolution_note_slack_messages.all().delete()
+        # alerts = self.alerts.all() # cascade
+        # alerts.delete()
+        # self.slack_messages.all().delete() # Deleted by cascade
+        # self.personal_log_records.all().delete() # Cascade
+        # self.log_records.all().delete() # Cascade
+        # self.invitations.all().delete() # Cascade
+        # resolution_notes = ResolutionNote.objects_with_deleted.filter(alert_group=self) # Cascade
+        # resolution_notes.delete()
+        # self.resolution_note_slack_messages.all().delete() # Cascade
         self.delete()
 
     @staticmethod
