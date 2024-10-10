@@ -42,7 +42,6 @@ from apps.alerts.tests.factories import (
 )
 from apps.api.permissions import (
     GrafanaAPIPermission,
-    GrafanaAPIPermissions,
     LegacyAccessControlCompatiblePermission,
     LegacyAccessControlRole,
     RBACPermission,
@@ -425,7 +424,7 @@ def make_user():
         permissions = kwargs.pop("permissions", None)
         if permissions is None:
             permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
-            permissions = GrafanaAPIPermissions.construct_permissions(permissions_to_grant)
+            permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
         return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user
