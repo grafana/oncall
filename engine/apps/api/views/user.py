@@ -191,7 +191,7 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
             # TODO: maybe raise a 400 here?
             return queryset
 
-        return queryset.filter(**User.build_permissions_query(rbac_permission, organization))
+        return queryset.filter_by_permission(rbac_permission, organization)
 
 
 class UserView(

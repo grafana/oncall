@@ -19,7 +19,7 @@ from apps.slack.errors import (
     SlackAPIUsergroupPaidTeamOnlyError,
 )
 from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
-from apps.user_management.models import User
+from apps.user_management.models import Organization, User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -140,10 +140,11 @@ class SlackUserGroup(models.Model):
             self.save(update_fields=("members",))
             logger.info(f"Saved cached memberlist for slack user group {self.slack_id}, members {slack_ids}")
 
-    def get_users_from_members_for_organization(self, organization):
-        return organization.users.filter(
+    def get_users_from_members_for_organization(self, organization: Organization):
+        return User.objects.filter_by_permission(
+            RBACPermission.Permissions.CHATOPS_WRITE,
+            organization,
             slack_user_identity__slack_id__in=self.members,
-            **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
     @classmethod
