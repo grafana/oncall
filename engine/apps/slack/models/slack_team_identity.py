@@ -14,7 +14,7 @@ from apps.slack.errors import (
     SlackAPIInvalidAuthError,
     SlackAPITokenError,
 )
-from apps.user_management.models.user import Organization, User
+from apps.user_management.models import Organization, User
 
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
