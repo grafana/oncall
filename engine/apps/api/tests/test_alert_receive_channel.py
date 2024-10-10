@@ -786,7 +786,7 @@ def test_alert_receive_channel_preview_template_require_notification_channel(
         "api-internal:alert_receive_channel-preview-template", kwargs={"pk": alert_receive_channel.public_primary_key}
     )
     data = {
-        "template_body": "Template",
+        "template_body": "Template" if template_name != "image_url" else "http://example.com/image.jpg",
         "template_name": template_name,
     }
 
@@ -795,7 +795,7 @@ def test_alert_receive_channel_preview_template_require_notification_channel(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     data = {
-        "template_body": "Template",
+        "template_body": "Template" if template_name != "image_url" else "http://example.com/image.jpg",
         "template_name": f"{notification_channel}_{template_name}",
     }
 
@@ -830,7 +830,7 @@ def test_alert_receive_channel_preview_template_dynamic_payload(
     data = {
         "template_body": "{{ payload.foo }}",
         "template_name": f"{notification_channel}_{template_name}",
-        "payload": {"foo": "bar"},
+        "payload": {"foo": "bar" if template_name != "image_url" else "http://example.com/image.jpg"},
     }
 
     response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
@@ -839,7 +839,7 @@ def test_alert_receive_channel_preview_template_dynamic_payload(
     if notification_channel == "web" and template_name == "message":
         assert response.data["preview"] == "<p>bar</p>"
     else:
-        assert response.data["preview"] == "bar"
+        assert response.data["preview"] == data["payload"]["foo"]
 
 
 @pytest.mark.django_db

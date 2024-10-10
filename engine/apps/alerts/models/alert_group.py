@@ -12,7 +12,6 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
-from django_deprecate_fields import deprecate_field
 
 from apps.alerts.constants import ActionSource, AlertGroupState
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
@@ -288,17 +287,21 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="resolved_alert_groups",
     )
 
-    # NOTE: see https://raintank-corp.slack.com/archives/C07RGREUH4Z/p1728494111646319
-    # This field should eventually be dropped as it's no longer being set/read anywhere
-    resolved_by_alert = deprecate_field(
-        models.ForeignKey(
-            "alerts.Alert",
-            on_delete=models.SET_NULL,
-            null=True,
-            default=None,
-            related_name="resolved_alert_groups",
-        )
+    resolved_by_alert = models.ForeignKey(
+        "alerts.Alert",
+        on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        null=True,
+        default=None,
+        related_name="resolved_alert_groups",
     )
+    """
+    ⚠️ This field is no longer being set/read anywhere, DON'T USE IT! ⚠️
+
+    TODO: We still need to figure out how to remove it safely.
+
+    See [this conversation](https://raintank-corp.slack.com/archives/C07RGREUH4Z/p1728494111646319) for more context
+    """
 
     resolved_at = models.DateTimeField(blank=True, null=True)
     acknowledged = models.BooleanField(default=False)
