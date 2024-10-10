@@ -50,6 +50,12 @@ class GrafanaAPIPermission(typing.TypedDict):
     action: str
 
 
+class GrafanaAPIPermissions:
+    @classmethod
+    def construct_permissions(cls, actions: typing.List[str]) -> typing.List[GrafanaAPIPermission]:
+        return [GrafanaAPIPermission(action=action) for action in actions]
+
+
 class Resources(enum.Enum):
     ALERT_GROUPS = "alert-groups"
     INTEGRATIONS = "integrations"
@@ -103,6 +109,9 @@ class LegacyAccessControlCompatiblePermission:
         self.value = f"{prefix}.{resource.value}:{action.value}"
         self.fallback_role = fallback_role
 
+    def user_has_permission(self, user: "User") -> bool:
+        return user_is_authorized(user, [self])
+
 
 LegacyAccessControlCompatiblePermissions = typing.List[LegacyAccessControlCompatiblePermission]
 RBACPermissionsAttribute = typing.Dict[str, LegacyAccessControlCompatiblePermissions]
@@ -152,6 +161,10 @@ def get_required_permission_values(
     return permission_values
 
 
+def user_has_minimum_required_basic_role(user: "User", required_basic_role: LegacyAccessControlRole) -> bool:
+    return user.role <= required_basic_role.value
+
+
 def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCompatiblePermissions) -> bool:
     """
     This function checks whether `user` has all necessary permissions specified in `required_permissions`.
@@ -165,7 +178,7 @@ def user_is_authorized(user: "User", required_permissions: LegacyAccessControlCo
         user_permissions = [u["action"] for u in user.permissions]
         required_permission_values = get_required_permission_values(organization, required_permissions)
         return all(permission in user_permissions for permission in required_permission_values)
-    return user.role <= get_most_authorized_role(required_permissions).value
+    return user_has_minimum_required_basic_role(user, get_most_authorized_role(required_permissions))
 
 
 class RBACPermission(permissions.BasePermission):
