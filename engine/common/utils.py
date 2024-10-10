@@ -23,6 +23,14 @@ logger = get_task_logger(__name__)
 
 # Faker that always returns unique values
 class UniqueFaker(factory.Faker):
+    def __init__(self, provider, **kwargs):
+        if provider == "pyint":
+            # https://faker.readthedocs.io/en/master/providers/faker.providers.python.html#faker.providers.python.Provider.pyint
+            # https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1728589562495709?thread_ts=1728586969.283779&cid=C06K1MQ07GS
+            kwargs["max_value"] = 9_999_999
+
+        super().__init__(provider, **kwargs)
+
     @classmethod
     def _get_faker(cls, locale=None):
         return super()._get_faker(locale).unique
