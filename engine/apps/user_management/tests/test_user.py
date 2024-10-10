@@ -3,7 +3,7 @@ import datetime
 import pytest
 from django.utils import timezone
 
-from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole, RBACPermission
+from apps.api import permissions
 from apps.google import constants as google_constants
 from apps.google.models import GoogleOAuth2User
 from apps.user_management.models import User
@@ -15,7 +15,7 @@ def test_self_or_has_user_settings_admin_permission(make_organization, make_user
     organization = make_organization(is_rbac_permissions_enabled=False)
     admin = make_user_for_organization(organization)
     second_admin = make_user_for_organization(organization)
-    editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    editor = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     another_organization = make_organization(is_rbac_permissions_enabled=False)
     admin_from_another_organization = make_user_for_organization(another_organization)
@@ -36,12 +36,12 @@ def test_self_or_has_user_settings_admin_permission(make_organization, make_user
     organization_with_rbac = make_organization(is_rbac_permissions_enabled=True)
     user_with_perms = make_user_for_organization(
         organization_with_rbac,
-        role=LegacyAccessControlRole.NONE,
-        permissions=GrafanaAPIPermissions.construct_permissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN]),
+        role=permissions.LegacyAccessControlRole.NONE,
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions([permissions.RBACPermission.Permissions.USER_SETTINGS_ADMIN.value]),
     )
     user_without_perms = make_user_for_organization(
         organization_with_rbac,
-        role=LegacyAccessControlRole.NONE,
+        role=permissions.LegacyAccessControlRole.NONE,
         permissions=[],
     )
 
@@ -69,8 +69,8 @@ def test_self_or_has_user_settings_admin_permission(make_organization, make_user
 def test_is_admin(make_organization, make_user_for_organization):
     # RBAC not enabled for org
     organization = make_organization(is_rbac_permissions_enabled=False)
-    admin = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
-    editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    admin = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.ADMIN)
+    editor = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.EDITOR)
 
     assert organization.is_rbac_permissions_enabled is False
 
@@ -81,12 +81,12 @@ def test_is_admin(make_organization, make_user_for_organization):
     organization_with_rbac = make_organization(is_rbac_permissions_enabled=True)
     user_with_perms = make_user_for_organization(
         organization_with_rbac,
-        role=LegacyAccessControlRole.NONE,
-        permissions=GrafanaAPIPermissions.construct_permissions([RBACPermission.Permissions.ADMIN]),
+        role=permissions.LegacyAccessControlRole.NONE,
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions([permissions.RBACPermission.Permissions.ADMIN.value]),
     )
     user_without_perms = make_user_for_organization(
         organization_with_rbac,
-        role=LegacyAccessControlRole.NONE,
+        role=permissions.LegacyAccessControlRole.NONE,
         permissions=[],
     )
 
@@ -193,7 +193,7 @@ def test_has_google_oauth2_connected(make_organization_and_user, make_google_oau
 
 
 @pytest.mark.django_db
-def test_google_oauth2_token_is_missing_scopes(make_organization_and_user, make_google_oauth2_user_for_user):
+def test_google_oauth2_token_is_missing_scopes(make_organization_and_user):
     initial_granted_scope = "foo bar baz"
     initial_oauth_response = {
         "access_token": "access",
@@ -297,23 +297,24 @@ def test_filter_by_permission(make_organization, make_user_for_organization):
     specific to which database engine is being used. These cases are tested on CI where
     we run the test against sqlite, mysql, and postgresql
     """
-    permission_to_test = RBACPermission.Permissions.ALERT_GROUPS_READ
-    permissions = GrafanaAPIPermissions.construct_permissions([permission_to_test])
+    permission_to_test = permissions.RBACPermission.Permissions.ALERT_GROUPS_READ
+    user_permissions = permissions.GrafanaAPIPermissions.construct_permissions([permission_to_test.value])
+    irm_permissions = permissions.GrafanaAPIPermissions.construct_permissions([permissions.convert_oncall_permission_to_irm(permission_to_test)])
 
     org1_rbac = make_organization(is_rbac_permissions_enabled=True)
-    user1 = make_user_for_organization(org1_rbac, permissions=permissions)
-    user2 = make_user_for_organization(org1_rbac, permissions=permissions)
+    user1 = make_user_for_organization(org1_rbac, permissions=user_permissions)
+    user2 = make_user_for_organization(org1_rbac, permissions=user_permissions)
     _ = make_user_for_organization(org1_rbac, permissions=[])
 
     org2_rbac_irm = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=True)
-    user4 = make_user_for_organization(org2_rbac_irm, permissions=permissions)
-    user5 = make_user_for_organization(org2_rbac_irm, permissions=permissions)
+    user4 = make_user_for_organization(org2_rbac_irm, permissions=irm_permissions)
+    user5 = make_user_for_organization(org2_rbac_irm, permissions=irm_permissions)
     _ = make_user_for_organization(org2_rbac_irm, permissions=[])
 
     org3_no_rbac = make_organization(is_rbac_permissions_enabled=False)
     user7 = make_user_for_organization(org3_no_rbac, role=permission_to_test.fallback_role)
     user8 = make_user_for_organization(org3_no_rbac, role=permission_to_test.fallback_role)
-    _ = make_user_for_organization(org3_no_rbac, role=LegacyAccessControlRole.NONE)
+    _ = make_user_for_organization(org3_no_rbac, role=permissions.LegacyAccessControlRole.NONE)
 
     # rbac permissions enabled
     users = User.objects.filter_by_permission(permission_to_test, org1_rbac)

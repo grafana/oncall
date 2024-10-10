@@ -326,14 +326,22 @@ def test_list_users_filtered_by_granted_permission(
     make_user_auth_headers,
 ):
     permission = permissions.RBACPermission.Permissions.NOTIFICATIONS_READ
+    admin_perm_required_to_call_endpoint = permissions.RBACPermission.Permissions.USER_SETTINGS_READ
     perm_to_filter_on = (
         permissions.convert_oncall_permission_to_irm(permission) if is_grafana_irm_enabled else permission.value
     )
 
     perms_to_grant = permissions.GrafanaAPIPermissions.construct_permissions([perm_to_filter_on])
 
-    organization = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
-    admin_user = make_user_for_organization(organization)
+    organization = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled, is_rbac_permissions_enabled=True)
+    admin_user = make_user_for_organization(
+        organization,
+        # NOTE: need to explicitly grant this permission here because otherwise the permissions granted by the
+        # make_user_for_organization fixture will only grant the oncall flavour of the permission
+        permissions=permissions.GrafanaAPIPermissions.construct_permissions([
+            permissions.convert_oncall_permission_to_irm(admin_perm_required_to_call_endpoint) if is_grafana_irm_enabled else admin_perm_required_to_call_endpoint.value
+        ])
+    )
     user1 = make_user_for_organization(organization, permissions=perms_to_grant)
     user2 = make_user_for_organization(organization, permissions=perms_to_grant)
     user3 = make_user_for_organization(organization, role=permissions.LegacyAccessControlRole.VIEWER)
@@ -349,7 +357,8 @@ def test_list_users_filtered_by_granted_permission(
     assert response.status_code == status.HTTP_200_OK
     returned_user_pks = [u["pk"] for u in response.json()["results"]]
 
-    assert admin_user.public_primary_key in returned_user_pks
+    assert len(returned_user_pks) == 2
+
     assert user1.public_primary_key in returned_user_pks
     assert user2.public_primary_key in returned_user_pks
     assert user3.public_primary_key not in returned_user_pks

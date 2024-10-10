@@ -353,22 +353,18 @@ ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not 
 ALL_PERMISSION_CLASSES: LegacyAccessControlCompatiblePermissions = [
     getattr(RBACPermission.Permissions, permission_name) for permission_name in ALL_PERMISSION_NAMES
 ]
-ALL_PERMISSION_CHOICES: typing.List[typing.Tuple[str, str]] = [
-    (permission_class.value, permission_name)
-    for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES)
-]
-
-
-def get_permission_from_permission_string(
-    organization: "Organization", perm: str
-) -> typing.Optional[LegacyAccessControlCompatiblePermission]:
-    for permission_class in ALL_PERMISSION_CLASSES:
-        permission_class_value = permission_class.value
-        irm_permission_value = convert_oncall_permission_to_irm(permission_class)
-
-        if permission_class_value == perm or organization.is_grafana_irm_enabled and irm_permission_value == perm:
-            return permission_class
-    return None
+ALL_PERMISSION_CHOICES: typing.List[typing.Tuple[str, str]] = []
+for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES):
+    ALL_PERMISSION_CHOICES += [
+        (permission_class.value, permission_name),
+        (convert_oncall_permission_to_irm(permission_class), permission_name),
+    ]
+ALL_PERMISSION_NAME_TO_CLASS_MAP: typing.Dict[str, LegacyAccessControlCompatiblePermission] = {}
+for permission_name, permission_class in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES):
+    ALL_PERMISSION_NAME_TO_CLASS_MAP.update({
+        permission_name: permission_class,
+        convert_oncall_permission_to_irm(permission_name): permission_class,
+    })
 
 
 class IsOwner(permissions.BasePermission):

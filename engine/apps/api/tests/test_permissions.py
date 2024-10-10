@@ -789,31 +789,21 @@ def test_get_required_permission_values(
 
 
 @pytest.mark.parametrize(
-    "is_grafana_irm_enabled,perm,expected_permission",
+    "perm,expected_permission",
     [
         (
-            False,
             permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value,
             permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
         ),
         (
-            False,
             "non.existent.permission",
             None,
         ),
         (
-            True,
-            permissions.RBACPermission.Permissions.ALERT_GROUPS_READ.value.replace(PluginID.ONCALL, PluginID.IRM),
+            permissions.convert_oncall_permission_to_irm(permissions.RBACPermission.Permissions.ALERT_GROUPS_READ),
             permissions.RBACPermission.Permissions.ALERT_GROUPS_READ,
         ),
     ],
 )
-@pytest.mark.django_db
-def test_get_permission_from_permission_string(
-    make_organization,
-    is_grafana_irm_enabled,
-    perm,
-    expected_permission,
-) -> None:
-    organization = make_organization(is_rbac_permissions_enabled=True, is_grafana_irm_enabled=is_grafana_irm_enabled)
-    assert permissions.get_permission_from_permission_string(organization, perm) == expected_permission
+def test_all_permission_name_to_class_map(perm, expected_permission) -> None:
+    assert permissions.ALL_PERMISSION_NAME_TO_CLASS_MAP.get(perm, None) == expected_permission
