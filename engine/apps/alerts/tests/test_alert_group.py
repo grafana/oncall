@@ -191,6 +191,124 @@ def test_delete(
     )
 
 
+# It's a copy of test_delete, but with resolved alert group and set resolved_by_alert.
+# it tests if cascade delete works correctly when alert group has a fk on resolved_by_alert
+@patch.object(SlackClient, "reactions_remove")
+@patch.object(SlackClient, "chat_delete")
+@pytest.mark.django_db
+def test_delete_resolved_ag_with_resolved_by_alert(
+    mock_chat_delete,
+    mock_reactions_remove,
+    make_organization_with_slack_team_identity,
+    make_user,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_slack_message,
+    make_resolution_note_slack_message,
+    make_resolution_note,
+    make_invitation,
+    make_user_notification_policy_log_record,
+    make_user_notification_policy,
+    make_alert_group_log_record,
+    django_capture_on_commit_callbacks,
+):
+    """test alert group deleting"""
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user = make_user(organization=organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    alert_group = make_alert_group(alert_receive_channel)
+    alert = make_alert(alert_group, raw_request_data={})
+    alert_group.resolve(resolved_by=AlertGroup.SOURCE)
+    alert_group.resolved_by_alert = alert
+    alert_group.save()
+
+    # Create Slack messages
+    slack_message = make_slack_message(alert_group=alert_group, channel_id="test_channel_id", slack_id="test_slack_id")
+    resolution_note_1 = make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        posted_by_bot=True,
+        slack_channel_id="test1_channel_id",
+        ts="test1_ts",
+    )
+    resolution_note_2 = make_resolution_note_slack_message(
+        alert_group=alert_group,
+        user=user,
+        added_by_user=user,
+        added_to_resolution_note=True,
+        slack_channel_id="test2_channel_id",
+        ts="test2_ts",
+    )
+
+    user_notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TESTONLY,
+    )
+    make_resolution_note(
+        alert_group=alert_group,
+        source=ResolutionNote.Source.WEB,
+        author=user,
+    )
+    make_invitation(alert_group, user, user)
+    make_user_notification_policy_log_record(
+        author=user,
+        alert_group=alert_group,
+        notification_policy=user_notification_policy,
+        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MESSAGING_BACKEND_ERROR,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+    )
+    make_alert_group_log_record(alert_group, type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, author=None)
+
+    assert alert_group.alerts.count() == 1
+    assert alert_group.slack_messages.count() == 1
+    assert alert_group.resolution_note_slack_messages.count() == 2
+    assert alert_group.invitations.count() == 1
+    assert alert_group.personal_log_records.count() == 1
+    assert alert_group.log_records.count() == 1
+    assert alert_group.resolution_notes.count() == 1
+
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete.delay", return_value=None
+    ) as mock_send_alert_group_signal:
+        with django_capture_on_commit_callbacks(execute=True):
+            delete_alert_group(alert_group.pk, user.pk)
+    assert mock_send_alert_group_signal.call_count == 1
+
+    with patch(
+        "apps.alerts.tasks.delete_alert_group.finish_delete_alert_group.apply_async", return_value=None
+    ) as mock_finish_delete_alert_group:
+        send_alert_group_signal_for_delete(*mock_send_alert_group_signal.call_args.args)
+    assert mock_finish_delete_alert_group.call_count == 1
+
+    finish_delete_alert_group(alert_group.pk)
+
+    assert not alert_group.alerts.exists()
+    assert not alert_group.slack_messages.exists()
+    assert not alert_group.resolution_note_slack_messages.exists()
+    assert not alert_group.invitations.exists()
+    assert not alert_group.personal_log_records.exists()
+    assert not alert_group.log_records.exists()
+    assert not alert_group.resolution_notes.exists()
+
+    with pytest.raises(AlertGroup.DoesNotExist):
+        alert_group.refresh_from_db()
+
+    # Check that appropriate Slack API calls are made
+    assert mock_chat_delete.call_count == 2
+    assert mock_chat_delete.call_args_list[0] == call(
+        channel=resolution_note_1.slack_channel_id, ts=resolution_note_1.ts
+    )
+    assert mock_chat_delete.call_args_list[1] == call(channel=slack_message.channel_id, ts=slack_message.slack_id)
+    mock_reactions_remove.assert_called_once_with(
+        channel=resolution_note_2.slack_channel_id, name="memo", timestamp=resolution_note_2.ts
+    )
+
+
 @pytest.mark.parametrize("api_method", ["reactions_remove", "chat_delete"])
 @patch.object(send_alert_group_signal_for_delete, "apply_async")
 @pytest.mark.django_db
