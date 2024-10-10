@@ -89,9 +89,11 @@ def users_in_ical(
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 
+    # NOTE: doing a select_related for organization here, since we will be accessing u.organization for each user
+    # in the required_permission.user_has_permission calls below
     users_found_in_ical = organization.users.filter(
         (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
-    ).distinct()
+    ).distinct().select_related("organization")
 
     # it is more efficient to check permissions on the subset of users filtered above
     # than performing a regex query for the required permission
