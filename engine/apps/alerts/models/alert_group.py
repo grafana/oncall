@@ -289,7 +289,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     resolved_by_alert = models.ForeignKey(
         "alerts.Alert",
-        on_delete=models.SET_NULL,
+        on_delete=models.DO_NOTHING,
+        db_constraint=False,
         null=True,
         default=None,
         related_name="resolved_alert_groups",
