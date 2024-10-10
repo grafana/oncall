@@ -21,10 +21,10 @@ from rest_framework.views import APIView
 
 from apps.api.permissions import (
     ALL_PERMISSION_CHOICES,
+    ALL_PERMISSION_NAME_TO_CLASS_MAP,
     IsOwnerOrHasRBACPermissions,
     LegacyAccessControlRole,
     RBACPermission,
-    get_permission_from_permission_string,
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
@@ -185,14 +185,12 @@ class UserFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         fields = ["email", "roles", "permission"]
 
     def filter_by_permission(self, queryset, name, value):
-        rbac_permission = get_permission_from_permission_string(value)
+        rbac_permission = ALL_PERMISSION_NAME_TO_CLASS_MAP.get(value, None)
         if not rbac_permission:
             # TODO: maybe raise a 400 here?
             return queryset
 
-        return queryset.filter(
-            **User.build_permissions_query(rbac_permission, self.request.user.organization),
-        )
+        return queryset.filter_by_permission(rbac_permission, self.request.user.organization)
 
 
 class UserView(

@@ -9,7 +9,7 @@ import pytz
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.api.permissions import LegacyAccessControlRole, RBACPermission
+from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole, RBACPermission
 from apps.schedules.ical_utils import (
     get_cached_oncall_users_for_multiple_schedules,
     get_icalendar_tz_or_utc,
@@ -138,7 +138,7 @@ def test_users_in_ical_rbac(make_organization_and_user, make_user_for_organizati
     # viewer doesn't yet have the required permission, they shouldn't be included
     assert len(users_in_ical(usernames, organization)) == 0
 
-    viewer.permissions = [{"action": permission.value}] if permission else []
+    viewer.permissions = GrafanaAPIPermissions.construct_permissions([permission.value]) if permission else []
     viewer.save()
 
     assert users_in_ical(usernames, organization) == ([viewer] if included else [])

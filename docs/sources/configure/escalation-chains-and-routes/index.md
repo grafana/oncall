@@ -36,118 +36,107 @@ refs:
 
 # Escalation Chains and Routes
 
-Often alerts from monitoring systems need to be sent to different escalation chains and messaging channels, based on their severity, or other alert content.
+In Grafana OnCall, configuring proper alert routing and escalation ensures that alerts are directed to the right teams and handled promptly.
+
+Alerts often need to be sent to different teams or channels depending on their severity or specific alert details.
+Set up routes and escalation chains to customize and automate escalation according to each teams workflows.
 
 ## Routes
 
-Routes are used to determine which escalation chain should be used for a specific alert
-group. A route's _[Routing Templates]_
-are evaluated for each alert and **the first matching route** is used to determine the
-escalation chain and chatops channels.
+Routes determine which escalation chain should be triggered for a specific alert group based on the details of the alert.
+A route uses [Routing Templates](ref:routing-templates) to determine the escalation chain and notification channels.
 
-> **Example:**
->
->
-> * trigger escalation chain called `Database Critical` for alerts with `{{ payload.severity == "critical" and payload.service == "database" }}` in the payload
-> * create a different route for alerts with the payload `{{ "synthetic-monitoring-dev-" in payload.namespace }}` and select a escalation chain called `Security`.
+When an alert is received, its details are evaluated against the route's routing template, and **the first matching route** determines how the alert will be handled.
 
-### Manage routes
+**Example:**
 
-1. Open Integration page
-1. Click **Add route** button to create a new route
-1. Click **Edit** button to edit `Routing Template`. The routing template must evaluate to `True` for it to apply
-1. Select channels in **Publish to Chatops** section
-   > **Note:** If the **Publish to Chatops** section doesn't exist, connect Chatops integrations first.
-   > For more information, refer to [Notify people].
-1. Select **Escalation Chain** from the list
-1. If **Escalation Chain** does not exist, click **Add new escalation chain** button to create a new one, it will open in a new tab.
-1. Once created, **Reload list**, and select the new escalation chain
-1. Click **Arrow Up** and **Arrow Down** on the right to change the order of routes
-1. Click **Three dots** and **Delete Route** to delete the route
+- Trigger the `Database Critical` escalation chain for alerts with `{{ payload.severity == "critical" and payload.service == "database" }}`
+- Use a different route for alerts with the payload `{{ "synthetic-monitoring-dev-" in payload.namespace }}`, selecting the `Security` escalation chain.
 
-### Routing based on labels
+### Create and manage routes
 
-> **Note:** Labels are currently available only in cloud.
+To create or manage a route:
 
-In addition, there is a `labels` variable available to your routing templates, which contains all of the labels assigned
-to the Alert Group, as a `dict`. This allows you to route based on labels (or a mix of labels and/or payload based data):
+1. Navigate to the **Integrations** page.
+1. Click **Add route** to create a new route, or **Edit** to modify an existing one.
+1. In the **Routing Template** section, define conditions that will determine which alerts this route applies to.
+The template must evaluate to `True` for the route to be selected.
+1. Select the appropriate escalation chain from the **Escalation Chain** dropdown.
+If an escalation chain doesn’t exist, click **Add new escalation chain**, which will open a new tab for chain creation.
+After creating the chain, return to the routes page and click **Reload list** to update the available options.
+1. In the **Publish to ChatOps** section, select the relevant communication channels for this route (Slack, Teams, etc.).
+Ensure ChatOps integrations are configured before using this feature.
+1. Arrange the routes by clicking the up/down arrows to prioritize the routes as needed. The order determines which route is evaluated first.
+1. To delete a route, click the three dots on the route and select **Delete Route**.
 
-> **Example:**
->
-> * `{{ labels.foo == "bar" or "hello" in labels.keys() or payload.severity == "critical" }}`
+### Label-based routing
+
+{{< admonition type="note" >}}
+This feature is available exclusively on Grafana Cloud.
+{{< /admonition >}}
+
+You can use the labels variable in your routing templates to evaluate based on alert group labels.
+This provides additional flexibility in routing alerts based on both labels and payload data.
+
+**Example:**
+
+`{{ labels.foo == "bar" or "hello" in labels.keys() or payload.severity == "critical" }}`
 
 ## Escalation Chains
 
-Once an alert group is created and assigned to the route with escalation chain, the
-escalation chain will be executed. Until user performs an action, which stops the escalation
-chain (e.g. acknowledge, resolve, silence etc), the escalation chain will continue to
-execute.
+Escalation chains define the series of actions taken when an alert is triggered.
+The chain continues until a user intervenes by acknowledging, resolving, or silencing the alert.
 
-Users can create escalation chains to configure different type of escalation workflows.
-For example, you can create a chain that will notify on-call users with high priority, and
-another chain that will only send a message into a Slack channel.
+You can configure different escalation chains for different workflows.
+For example, one chain might notify on-call users immediately, while another sends a low-priority message to a Slack channel.
 
-Escalation chains determine Who and When to notify. How to notify is set by the user, based on their own preferences.
+### Create and manage escalation chains
+
+1. Navigate to the **Escalation Chains** page.
+1. Click **New escalation chain** to create a new chain.
+1. Enter a unique name and assign the chain to a team.
+1. Click **Add escalation step** to define the steps for this chain (e.g., notifying users, waiting, escalating).
+1. To edit an existing chain, click **Edit**. To remove a chain, click **Delete**.
+
+{{< admonition type="note" >}}
+
+- The name must be unique across the organization.
+Alert groups inherit the team from the integration, not the escalation chain.
+- Linked integrations and routes are shown in the right panel.
+Changes to the escalation chain impact all associated integrations and routes.
+{{< /admonition >}}
 
 ### Types of escalation steps
 
-* `Wait` - wait for a specified amount of time before proceeding to the next step. If you
-need a larger time interval, use multiple wait steps in a row.
-* `Notify users` - send a notification to a user or a group of users.
-* `Notify users from on-call schedule` - send a notification to a user or a group of users
-from an on-call schedule.
-* `Notify all users from a team` - send a notification to all users in a team.
-* `Resolve incident automatically` - resolve the alert group right now with status
-`Resolved automatically`.
-* `Escalate to all Slack channel members` - send a notification to the users in the slack channel. These users will be notified
-via the method configured in their user profile.
-* `Notify Slack User Group` - send a notification to each member of a slack user group. These users will be notified
-via the method configured in their user profile.
-* `Trigger outgoing webhook` - trigger an [outgoing webhook].
-* `Notify users one by one (round robin)` - notify users sequentially, cycling through users for **different alert groups**.
-Example: if users A, B, and C are in the list, the first alert group notifies A, the second alert group notifies B, and
-the third alert group notifies C. Note: users are sorted alphabetically by their username.
-To notify multiple users **within the same alert group** until someone acknowledges, instead use `Notify users` policies with
-`Wait` policies between them in the escalation chain.
-* `Continue escalation if current time is in range` - continue escalation only if current
-time is in specified range. It will wait for the specfied time to continue escalation.
-Useful when you want to get escalation only during working hours
-* `Continue escalation if >X alerts per Y minutes (beta)` - continue escalation only if it
-passes some threshold
-* `Repeat escalation from beginning (5 times max)` - loop the escalation chain
+- `Wait`: Pause for a specified time before moving to the next step. You can add multiple wait steps for longer intervals.
+- `Notify users`: Notify individual users or groups.
+- `Notify users from on-call schedule`: Send notifications to users from a defined on-call schedule.
+- `Notify all team members`: Notify all users in a team.
+- `Resolve incident automatically`: Immediately resolve the alert group with the status `Resolved automatically`.
+- `Notify Slack channel members`: Notify users in a Slack channel based on their OnCall profile preferences.
+- `Notify Slack user group`: Notify all members of a Slack user group.
+- `Trigger outgoing webhook`: Activate an [outgoing webhook](ref:outgoing-webhooks).
+- `Round robin notifications`: Notify users sequentially, with each user receiving different alert groups.
+- `Time-based escalation`: Continue escalation only if the current time falls within a specific range (e.g., during working hours)
+- `Threshold-based escalation`: Escalate only if a certain number of alerts occur within a specific time frame.
+- `Repeat escalation`: Loop the escalation chain up to five times.
+- `Declare incident (non-default routes)`: **Available only in Grafana Cloud**. Declares an incident with a specified severity.
+Limited to one incident per route at a time.
+Additional alerts are grouped into the active incident, and up to five are listed as incident context.
 
-> **Note:** Both "**Escalate to all Slack channel members**" and "**Notify Slack User Group**" will filter OnCall registered users
-matching the users in the Slack channel or Slack User Group with their profiles linked to their Slack accounts (ie. users
-should have linked their Slack and OnCall users). In both cases, the filtered users satisfying the criteria above are
-notified following their respective notification policies. However, to avoid **spamming** the Slack channel/thread,
-users **won't be notified** in the alert group Slack **thread** (this is how the feature is currently implemented)
-but instead notify them using their **other defined** options in
-their respective policies.
+{{< admonition type="note" >}}
+The **Notify Slack channel members** and **Notify Slack user group** steps are designed to notify OnCall-registered users via their configured notification rules.
+To avoid spamming a Slack channel with alert group notifications, notifications are not sent in the alert group Slack thread.
+{{< /admonition >}}
 
 ### Notification types
 
-Each escalation step that notifies a user, does so by triggering their personal notification steps. These are configured in the Grafana
- OnCall users page (by clicking "View my profile").
-It will be executed for each user in the escalation step
-User can configure two types of personal notification chains:
+When an escalation step notifies a user, it follows their personal notification settings, which are configured in their user profile.
 
-* **Default Notifications**
+Each user can have two sets of notification rules:
 
-* **Important Notifications**
+- **Default Notifications**: For standard alerts.
+- **Important Notifications**: For high-priority alerts.
 
-In the escalation step, user can select which type of notification to use.
-For more information, refer to [Notify people].
-
-### Manage Escalation Chains
-
-1. Open **Escalation Chains** page
-2. Click **New escalation chain** button to create a new escalation chain
-
-3. Enter a name and assign it to a team
-   > **Note:** Name must be unique across organization
-   > **Note:** Alert Groups inherit the team from the Integration, not the Escalation Chain
-4. Click **Add escalation step** button to add a new step
-5. Click **Delete** to delete the Escalation Chain, and **Edit** to edit the name or the team.
-
-> **Important:** Linked Integrations and Routes are displayed in the right panel. Any change in the Escalation Chain will
-affect all linked Integrations and Routes.
+Each escalation step allows you to select which set of notification rules to use.
+For more information about user notification rules, refer to the [Notifications](ref:notify-people) section.

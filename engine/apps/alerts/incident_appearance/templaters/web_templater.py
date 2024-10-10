@@ -1,7 +1,7 @@
 import re
 
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
-from common.utils import convert_md_to_html, escape_html, url_re, urlize_with_respect_to_a
+from common.utils import convert_md_to_html, escape_html, url_re, urlize_with_respect_to_a, validate_url
 
 
 class AlertWebTemplater(AlertTemplater):
@@ -26,7 +26,7 @@ class AlertWebTemplater(AlertTemplater):
                 message = message.replace(substitution, original_link)
             templated_alert.message = urlize_with_respect_to_a(message)
         if templated_alert.image_url:
-            templated_alert.image_url = escape_html(templated_alert.image_url)
+            templated_alert.image_url = validate_url(templated_alert.image_url)
 
         return templated_alert
 

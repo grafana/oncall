@@ -400,7 +400,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            notification_policy=notification_policy,
+            notification_policy=notification_policy if not use_default_notification_policy_fallback else None,
             reason="Expected data is missing",
             alert_group=alert_group,
             notification_step=notification_policy.step if notification_policy else None,
@@ -424,7 +424,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            notification_policy=notification_policy,
+            notification_policy=notification_policy if not use_default_notification_policy_fallback else None,
             reason="Skipped notification because alert group is resolved",
             alert_group=alert_group,
             notification_step=notification_policy.step if notification_policy else None,
