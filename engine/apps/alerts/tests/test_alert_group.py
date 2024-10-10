@@ -5,13 +5,14 @@ import pytest
 
 from apps.alerts.constants import ActionSource, AlertGroupState
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
-from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord
+from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, ResolutionNote
 from apps.alerts.tasks import wipe
 from apps.alerts.tasks.delete_alert_group import (
     delete_alert_group,
     finish_delete_alert_group,
     send_alert_group_signal_for_delete,
 )
+from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.slack.client import SlackClient
 from apps.slack.errors import SlackAPIMessageNotFoundError, SlackAPIRatelimitError
 from apps.slack.models import SlackMessage
@@ -90,6 +91,11 @@ def test_delete(
     make_alert,
     make_slack_message,
     make_resolution_note_slack_message,
+    make_resolution_note,
+    make_invitation,
+    make_user_notification_policy_log_record,
+    make_user_notification_policy,
+    make_alert_group_log_record,
     django_capture_on_commit_callbacks,
 ):
     """test alert group deleting"""
@@ -120,9 +126,33 @@ def test_delete(
         ts="test2_ts",
     )
 
+    user_notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.TESTONLY,
+    )
+    make_resolution_note(
+        alert_group=alert_group,
+        source=ResolutionNote.Source.WEB,
+        author=user,
+    )
+    make_invitation(alert_group, user, user)
+    make_user_notification_policy_log_record(
+        author=user,
+        alert_group=alert_group,
+        notification_policy=user_notification_policy,
+        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MESSAGING_BACKEND_ERROR,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+    )
+    make_alert_group_log_record(alert_group, type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, author=None)
+
     assert alert_group.alerts.count() == 1
     assert alert_group.slack_messages.count() == 1
     assert alert_group.resolution_note_slack_messages.count() == 2
+    assert alert_group.invitations.count() == 1
+    assert alert_group.personal_log_records.count() == 1
+    assert alert_group.log_records.count() == 1
+    assert alert_group.resolution_notes.count() == 1
 
     with patch(
         "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete.delay", return_value=None
@@ -142,6 +172,10 @@ def test_delete(
     assert not alert_group.alerts.exists()
     assert not alert_group.slack_messages.exists()
     assert not alert_group.resolution_note_slack_messages.exists()
+    assert not alert_group.invitations.exists()
+    assert not alert_group.personal_log_records.exists()
+    assert not alert_group.log_records.exists()
+    assert not alert_group.resolution_notes.exists()
 
     with pytest.raises(AlertGroup.DoesNotExist):
         alert_group.refresh_from_db()
