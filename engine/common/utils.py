@@ -4,7 +4,6 @@ import json
 import os
 import random
 import re
-import sys
 import time
 from contextlib import contextmanager
 from functools import reduce
@@ -28,7 +27,7 @@ class UniqueFaker(factory.Faker):
         if provider == "pyint":
             # https://faker.readthedocs.io/en/master/providers/faker.providers.python.html#faker.providers.python.Provider.pyint
             # https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1728589562495709?thread_ts=1728586969.283779&cid=C06K1MQ07GS
-            kwargs["max_value"] = sys.maxsize
+            kwargs["max_value"] = 9_999_999
 
         super().__init__(provider, **kwargs)
 
