@@ -9,6 +9,7 @@ from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRe
 from apps.schedules.models import OnCallScheduleICal, OnCallScheduleWeb
 from apps.telegram.models import TelegramMessage
 from apps.user_management.models import Organization
+from common.constants.plugin_ids import PluginID
 
 
 @pytest.mark.django_db
@@ -276,3 +277,15 @@ def test_get_notifiable_direct_paging_integrations(
     make_channel_filter(arc, is_default=False)
     notifiable_direct_paging_integrations = _assert(org, arc)
     assert notifiable_direct_paging_integrations.count() == 1
+
+
+@pytest.mark.parametrize(
+    "is_grafana_irm_enabled,expected", [
+        (True, PluginID.GRAFANA_IRM),
+        (False, PluginID.ONCALL),
+    ]
+)
+@pytest.mark.django_db
+def test_active_ui_plugin_id(make_organization, is_grafana_irm_enabled, expected):
+    org = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
+    assert org.active_ui_plugin_id == expected

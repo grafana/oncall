@@ -11,6 +11,9 @@ from rest_framework import status
 from apps.api.permissions import GrafanaAPIPermission, GrafanaAPIPermissions
 from common.constants.plugin_ids import PluginID
 
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization
+
 logger = logging.getLogger(__name__)
 
 
@@ -328,8 +331,8 @@ class GrafanaAPIClient(APIClient):
     def get_service_account_token_permissions(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
         return self.api_get("api/access-control/user/permissions")
 
-    def sync(self) -> APIClientResponse:
-        return self.api_post("api/plugins/grafana-oncall-app/resources/plugin/sync")
+    def sync(self, organization: "Organization") -> APIClientResponse:
+        return self.api_post(f"api/plugins/{organization.active_ui_plugin_id}/resources/plugin/sync")
 
     @staticmethod
     def validate_grafana_token_format(grafana_token: str) -> bool:
