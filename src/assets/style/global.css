@@ -1,0 +1,66 @@
+.theme-light {
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.04);
+}
+
+.theme-dark:not(.theme-light) {
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.1);
+}
+
+.configure-plugin {
+  margin-top: 10px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Spinner */
+
+.spin {
+  width: 100%;
+  margin-top: 200px;
+  margin-bottom: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.spin-text {
+  margin-top: 20px;
+}
+
+/* Tables */
+
+.disabled-row {
+  background: #f0f0f0;
+}
+
+.highlighted-row {
+  background: var(--highlighted-row-bg);
+}
+
+/* Navigation */
+
+.navbarRootFallback {
+  margin-top: 24px;
+}
+
+.page-title {
+  margin-bottom: 16px;
+}
+
+td.rc-table-cell {
+  height: 44px !important;
+
+  /* works better than break-all, especially for table headers */
+  word-break: break-word;
+}
+
+.grecaptcha-badge {
+  visibility: hidden;
+}
