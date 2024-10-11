@@ -1,0 +1,27 @@
+/node_modules
+.eslintcache
+
+# testing
+/coverage
+
+# production
+/dist
+
+npm-debug.log*
+pnpm-debug.log*
+pnpm-error.log*
+
+# This file is generated
+grafana-plugin.yml
+
+# playwright
+/playwright-report*
+/playwright/.cache/
+/e2e-tests/storageState.json
+
+# Jest test report
+jest_html_reporters.html
+jest-html-reporters*
+
+.turbo
+tsconfig.tsbuildinfo
