@@ -69,6 +69,12 @@ def _sync_organization(organization: Organization) -> None:
     if grafana_labels_plugin_settings is not None:
         is_grafana_labels_enabled = grafana_labels_plugin_settings["enabled"]
 
+    # get IRM plugin settings
+    is_grafana_irm_enabled = False
+    grafana_irm_plugin_settings, _ = grafana_api_client.get_grafana_labels_plugin_settings()
+    if grafana_irm_plugin_settings is not None:
+        is_grafana_irm_enabled = grafana_irm_plugin_settings["enabled"]
+
     oncall_api_url = settings.BASE_URL
     if settings.LICENSE == CLOUD_LICENSE_NAME:
         oncall_api_url = settings.GRAFANA_CLOUD_ONCALL_API_URL
@@ -85,6 +91,7 @@ def _sync_organization(organization: Organization) -> None:
         incident_enabled=is_grafana_incident_enabled,
         incident_backend_url=grafana_incident_backend_url,
         labels_enabled=is_grafana_labels_enabled,
+        irm_enabled=is_grafana_irm_enabled,
     )
     _sync_organization_data(organization, sync_settings)
     if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
@@ -288,6 +295,7 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
     organization.is_rbac_permissions_enabled = sync_settings.rbac_enabled
     logger.info(f"RBAC status org={organization.pk} rbac_enabled={organization.is_rbac_permissions_enabled}")
 
+    organization.is_grafana_irm_enabled = sync_settings.irm_enabled
     organization.is_grafana_labels_enabled = sync_settings.labels_enabled
     organization.is_grafana_incident_enabled = sync_settings.incident_enabled
     organization.grafana_incident_backend_url = sync_settings.incident_backend_url
@@ -321,6 +329,7 @@ def _sync_organization_data(organization: Organization, sync_settings: SyncSetti
             "is_rbac_permissions_enabled",
             "is_grafana_incident_enabled",
             "is_grafana_labels_enabled",
+            "is_grafana_irm_enabled",
             "grafana_incident_backend_url",
         ]
     )
