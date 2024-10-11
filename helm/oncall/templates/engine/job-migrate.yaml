@@ -27,10 +27,15 @@ spec:
   template:
     metadata:
       name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
-      {{- with .Values.podAnnotations }}
+      {{- if or (.Values.podAnnotations ) (.Values.migrate.annotations) }}
       annotations:
         random-annotation: {{ randAlphaNum 10 | lower }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.migrate.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       labels:
         {{- include "oncall.engine.selectorLabels" . | nindent 8 }}
