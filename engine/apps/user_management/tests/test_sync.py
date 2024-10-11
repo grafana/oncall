@@ -587,6 +587,7 @@ def test_apply_sync_data_none_values(make_organization):
             grafana_token=organization.api_token,
             oncall_token=organization.gcom_token,
             grafana_url=organization.grafana_url,
+            irm_enabled=False,
         ),
     )
 

@@ -121,6 +121,7 @@ def test_sync_v2_content_encoding(
             incident_enabled=False,
             incident_backend_url="",
             labels_enabled=False,
+            irm_enabled=False,
         ),
     )
 
@@ -145,7 +146,6 @@ def test_sync_v2_content_encoding(
     [
         (True, True),
         (False, False),
-        (None, False),
     ],
 )
 @pytest.mark.django_db
@@ -169,7 +169,20 @@ def test_sync_v2_irm_enabled(
         users=[],
         teams=[],
         team_members={},
-        settings=SyncSettings(irm_enabled=irm_enabled) if irm_enabled is not None else SyncSettings(),
+        settings=SyncSettings(
+            stack_id=organization.stack_id,
+            org_id=organization.org_id,
+            license=settings.CLOUD_LICENSE_NAME,
+            oncall_api_url="http://localhost",
+            oncall_token="",
+            grafana_url="http://localhost",
+            grafana_token="fake_token",
+            rbac_enabled=False,
+            incident_enabled=False,
+            incident_backend_url="",
+            labels_enabled=False,
+            irm_enabled=irm_enabled,
+        ),
     )
 
     response = client.post(url, format=format, data=asdict(data), **headers)
