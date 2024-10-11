@@ -71,7 +71,7 @@ class SyncOnCallSettingsSerializer(serializers.Serializer):
     incident_enabled = serializers.BooleanField()
     incident_backend_url = serializers.CharField(allow_blank=True)
     labels_enabled = serializers.BooleanField()
-    irm_enabled = serializers.BooleanField()
+    irm_enabled = serializers.BooleanField(default=False)
 
     def create(self, validated_data):
         return SyncSettings(**validated_data)
