@@ -13,6 +13,7 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.grafana_plugin.serializers.sync_data import SyncTeamSerializer
 from apps.grafana_plugin.sync_data import SyncData, SyncSettings, SyncUser
 from apps.grafana_plugin.tasks.sync_v2 import start_sync_organizations_v2, sync_organizations_v2
+from common.constants.plugin_ids import PluginID
 
 
 @pytest.mark.django_db
@@ -185,7 +186,7 @@ def test_sync_v2_irm_enabled(
         ),
     )
 
-    response = client.post(url, format=format, data=asdict(data), **headers)
+    response = client.post(url, format="json", data=asdict(data), **headers)
     assert response.status_code == status.HTTP_200_OK
 
     organization.refresh_from_db()
@@ -245,10 +246,17 @@ def test_sync_batch_tasks(make_organization, settings):
 
 
 @patch("apps.grafana_plugin.tasks.sync_v2.GrafanaAPIClient.return_value.api_post")
+@pytest.mark.parametrize(
+    "is_grafana_irm_enabled,expected",
+    [
+        (True, PluginID.IRM),
+        (False, PluginID.ONCALL),
+    ],
+)
 @pytest.mark.django_db
 def test_sync_organizations_v2_calls_right_backend_plugin_sync_endpoint(
-    mocked_grafana_api_sync, make_organization, is_grafana_irm_enabled
+    mocked_grafana_api_sync, make_organization, is_grafana_irm_enabled, expected
 ):
     org = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
     sync_organizations_v2(org_ids=[org.pk])
-    mocked_grafana_api_sync.assert_called_once_with(f"api/plugins/{org.active_ui_plugin_id}/resources/plugin/sync")
+    mocked_grafana_api_sync.assert_called_once_with(f"api/plugins/{expected}/resources/plugin/sync")
