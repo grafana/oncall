@@ -23,7 +23,9 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_on_call_now(self, obj):
-        users_on_call = list_users_to_notify_from_ical(obj, datetime.datetime.now(datetime.timezone.utc))
+        users_on_call = list_users_to_notify_from_ical(
+            obj, datetime.datetime.now(datetime.timezone.utc), from_cached_final=True
+        )
         if users_on_call is not None:
             return [user.public_primary_key for user in users_on_call]
         else:
