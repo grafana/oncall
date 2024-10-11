@@ -280,10 +280,11 @@ def test_get_notifiable_direct_paging_integrations(
 
 
 @pytest.mark.parametrize(
-    "is_grafana_irm_enabled,expected", [
+    "is_grafana_irm_enabled,expected",
+    [
         (True, PluginID.GRAFANA_IRM),
         (False, PluginID.ONCALL),
-    ]
+    ],
 )
 @pytest.mark.django_db
 def test_active_ui_plugin_id(make_organization, is_grafana_irm_enabled, expected):

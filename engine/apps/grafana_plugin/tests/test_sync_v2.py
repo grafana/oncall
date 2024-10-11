@@ -146,7 +146,7 @@ def test_sync_v2_content_encoding(
         (True, True),
         (False, False),
         (None, False),
-    ]
+    ],
 )
 @pytest.mark.django_db
 def test_sync_v2_irm_enabled(
@@ -234,9 +234,7 @@ def test_sync_batch_tasks(make_organization, settings):
 @patch("apps.grafana_plugin.tasks.sync_v2.GrafanaAPIClient.return_value.api_post")
 @pytest.mark.django_db
 def test_sync_organizations_v2_calls_right_backend_plugin_sync_endpoint(
-    mocked_grafana_api_sync,
-    make_organization,
-    is_grafana_irm_enabled
+    mocked_grafana_api_sync, make_organization, is_grafana_irm_enabled
 ):
     org = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
     sync_organizations_v2(org_ids=[org.pk])
