@@ -122,7 +122,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             "source": {"required": False, "write_only": True},
         }
 
-    SELECT_RELATED = ["schedule"]
+    SELECT_RELATED = ["organization", "team", "schedule"]
     PREFETCH_RELATED = ["schedules", "users"]
 
     def create(self, validated_data):

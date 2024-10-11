@@ -85,7 +85,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
 
     PREFETCH_RELATED = ["channel_filters"]
-    SELECT_RELATED = ["organization", "integration_heartbeat"]
+    SELECT_RELATED = ["organization", "integration_heartbeat", "team"]
 
     class Meta:
         model = AlertReceiveChannel
