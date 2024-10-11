@@ -37,6 +37,7 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
         queryset = ChannelFilter.objects.filter(
             alert_receive_channel__organization=self.request.auth.organization, alert_receive_channel__deleted_at=None
         )
+        queryset = self.serializer_class.setup_eager_loading(queryset)
 
         if integration_id:
             queryset = queryset.filter(alert_receive_channel__public_primary_key=integration_id)

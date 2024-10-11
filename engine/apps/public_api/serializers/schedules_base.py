@@ -6,13 +6,16 @@ from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.slack.models import SlackUserGroup
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.mixins import EagerLoadingMixin
 
 
-class ScheduleBaseSerializer(serializers.ModelSerializer):
+class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     on_call_now = serializers.SerializerMethodField()
     slack = serializers.DictField(required=False)
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
+
+    SELECT_RELATED = ["team"]
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
@@ -20,7 +23,9 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_on_call_now(self, obj):
-        users_on_call = list_users_to_notify_from_ical(obj, datetime.datetime.now(datetime.timezone.utc))
+        users_on_call = list_users_to_notify_from_ical(
+            obj, datetime.datetime.now(datetime.timezone.utc), from_cached_final=True
+        )
         if users_on_call is not None:
             return [user.public_primary_key for user in users_on_call]
         else:

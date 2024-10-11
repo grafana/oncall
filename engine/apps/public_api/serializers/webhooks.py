@@ -8,6 +8,7 @@ from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FI
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from common.api_helpers.custom_fields import IntegrationFilteredByOrganizationField, TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -48,7 +49,7 @@ class WebhookResponseSerializer(serializers.ModelSerializer):
         ]
 
 
-class WebhookCreateSerializer(serializers.ModelSerializer):
+class WebhookCreateSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
@@ -57,6 +58,8 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
     integration_filter = IntegrationFilteredByOrganizationField(
         source="filtered_integrations", many=True, required=False
     )
+
+    SELECT_RELATED = ["organization", "team"]
 
     class Meta:
         model = Webhook

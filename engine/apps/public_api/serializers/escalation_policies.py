@@ -107,7 +107,13 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         ]
 
     PREFETCH_RELATED = ["notify_to_users_queue"]
-    SELECT_RELATED = ["escalation_chain"]
+    SELECT_RELATED = [
+        "custom_webhook",
+        "escalation_chain",
+        "notify_schedule",
+        "notify_to_group",
+        "notify_to_team_members",
+    ]
 
     @cached_property
     def escalation_chain(self):

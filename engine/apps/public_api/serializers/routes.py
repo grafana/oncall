@@ -4,6 +4,7 @@ from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationCha
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import valid_jinja_template_for_serializer_method_field
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.ordered_model.serializer import OrderedModelSerializer
@@ -129,7 +130,7 @@ class RoutingTypeField(fields.CharField):
         raise BadRequest(detail="Invalid route type")
 
 
-class ChannelFilterSerializer(BaseChannelFilterSerializer):
+class ChannelFilterSerializer(EagerLoadingMixin, BaseChannelFilterSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     slack = serializers.DictField(required=False)
     telegram = serializers.DictField(required=False)
@@ -145,6 +146,8 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     )
 
     is_the_last_route = serializers.BooleanField(read_only=True, source="is_default")
+
+    SELECT_RELATED = ["alert_receive_channel", "escalation_chain"]
 
     class Meta:
         model = ChannelFilter
