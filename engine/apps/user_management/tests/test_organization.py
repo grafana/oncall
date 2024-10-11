@@ -282,7 +282,7 @@ def test_get_notifiable_direct_paging_integrations(
 @pytest.mark.parametrize(
     "is_grafana_irm_enabled,expected",
     [
-        (True, PluginID.GRAFANA_IRM),
+        (True, PluginID.IRM),
         (False, PluginID.ONCALL),
     ],
 )

@@ -245,7 +245,10 @@ def test_sync_batch_tasks(make_organization, settings):
         assert mock_sync.call_count == len(expected_calls)
 
 
-@patch("apps.grafana_plugin.tasks.sync_v2.GrafanaAPIClient.return_value.api_post")
+@patch(
+    "apps.grafana_plugin.tasks.sync_v2.GrafanaAPIClient.api_post",
+    return_value=(None, {"status_code": status.HTTP_200_OK}),
+)
 @pytest.mark.parametrize(
     "is_grafana_irm_enabled,expected",
     [
@@ -255,8 +258,8 @@ def test_sync_batch_tasks(make_organization, settings):
 )
 @pytest.mark.django_db
 def test_sync_organizations_v2_calls_right_backend_plugin_sync_endpoint(
-    mocked_grafana_api_sync, make_organization, is_grafana_irm_enabled, expected
+    mocked_grafana_api_client_api_post, make_organization, is_grafana_irm_enabled, expected
 ):
     org = make_organization(is_grafana_irm_enabled=is_grafana_irm_enabled)
     sync_organizations_v2(org_ids=[org.pk])
-    mocked_grafana_api_sync.assert_called_once_with(f"api/plugins/{expected}/resources/plugin/sync")
+    mocked_grafana_api_client_api_post.assert_called_once_with(f"api/plugins/{expected}/resources/plugin/sync")
