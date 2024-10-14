@@ -68,6 +68,10 @@ def patched_grafana_api_client(organization, is_rbac_enabled_for_organization=(F
             ],
             None,
         )
+        mock_client_instance.get_grafana_irm_plugin_settings.return_value = (
+            {"enabled": False, "jsonData": {}},
+            None,
+        )
         mock_client_instance.get_grafana_incident_plugin_settings.return_value = (
             {"enabled": True, "jsonData": {GRAFANA_INCIDENT_PLUGIN_BACKEND_URL_KEY: MOCK_GRAFANA_INCIDENT_BACKEND_URL}},
             None,
