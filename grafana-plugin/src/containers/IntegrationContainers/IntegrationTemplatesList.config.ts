@@ -1,3 +1,5 @@
+import { clone } from 'lodash-es'
+
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 import { AppFeature } from 'state/features';
 
@@ -24,11 +26,35 @@ const additionalTemplatesToRender: TemplateBlock[] = [
       },
     ],
   },
+  {
+    name: 'Mattermost',
+    contents: [
+      {
+        name: 'mattermost_title_template',
+        label: 'Title',
+        height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+      {
+        name: 'mattermost_message_template',
+        label: 'Message',
+        height: MONACO_INPUT_HEIGHT_TALL,
+      },
+      {
+        name: 'mattermost_image_url_template',
+        label: 'Image',
+        height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+    ],
+  }
 ];
 
 export const getTemplatesToRender = (features?: Record<string, boolean>) => {
+  const templatesToRender = clone(commonTemplatesToRender)
   if (features?.[AppFeature.MsTeams]) {
-    return commonTemplatesToRender.concat(additionalTemplatesToRender);
+    templatesToRender.push(additionalTemplatesToRender[0]);
   }
-  return commonTemplatesToRender;
+  if (features?.[AppFeature.Mattermost]) {
+    templatesToRender.push(additionalTemplatesToRender[1])
+  }
+  return templatesToRender;
 };

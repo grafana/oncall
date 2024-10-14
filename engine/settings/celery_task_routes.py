@@ -189,4 +189,7 @@ CELERY_TASK_ROUTES = {
     "apps.webhooks.tasks.alert_group_status.alert_group_created": {"queue": "webhook"},
     "apps.webhooks.tasks.alert_group_status.alert_group_status_change": {"queue": "webhook"},
     "apps.webhooks.tasks.notify_user.notify_user_async": {"queue": "webhook"},
+    # MATTERMOST
+    "apps.mattermost.tasks.on_create_alert_async": {"queue": "mattermost"},
+    "apps.mattermost.tasks.on_alert_group_action_triggered_async": {"queue": "mattermost"},
 }
