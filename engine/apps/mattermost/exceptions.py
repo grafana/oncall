@@ -11,3 +11,11 @@ class MattermostAPIException(Exception):
 
     def __str__(self) -> str:
         return f"MattermostAPIException: status={self.status} url={self.url} method={self.method} error={self.msg}"
+
+
+class MattermostEventTokenInvalid(Exception):
+    def __init__(self, msg=""):
+        self.msg = msg
+
+    def __str__(self):
+        return f"MattermostEventTokenInvalid message={self.msg}"
