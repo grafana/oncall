@@ -313,6 +313,7 @@ class AlertReceiveChannelSerializer(
             "labels",
             "alert_group_labels",
             "alertmanager_v2_migrated_at",
+            "rate_limit"
             "additional_settings",
         ]
         read_only_fields = [

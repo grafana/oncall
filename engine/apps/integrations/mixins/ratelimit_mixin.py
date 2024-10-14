@@ -41,6 +41,10 @@ def get_rate_limit_per_organization_key(_, request):
 
 
 def get_rate_limit(group, request):
+    # Return the configured rate limit for the alert receiver channel
+    if request.alert_receive_channel.rate_limit:
+        return request.alert_receive_channel.rate_limit
+
     custom_ratelimits = settings.CUSTOM_RATELIMITS
 
     organization_id = str(request.alert_receive_channel.organization_id)

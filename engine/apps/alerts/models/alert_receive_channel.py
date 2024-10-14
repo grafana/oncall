@@ -291,6 +291,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     alertmanager_v2_backup_templates: AlertmanagerV2LegacyTemplates | None = models.JSONField(null=True, default=None)
     """Backing up templates before the Alertmanager V2 migration, so that they can be restored if needed."""
 
+    rate_limit = models.CharField(max_length=100, null=True, default=None)
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
