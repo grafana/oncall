@@ -71,7 +71,7 @@ def _sync_organization(organization: Organization) -> None:
 
     # get IRM plugin settings
     is_grafana_irm_enabled = False
-    grafana_irm_plugin_settings, _ = grafana_api_client.get_grafana_labels_plugin_settings()
+    grafana_irm_plugin_settings, _ = grafana_api_client.get_grafana_irm_plugin_settings()
     if grafana_irm_plugin_settings is not None:
         is_grafana_irm_enabled = grafana_irm_plugin_settings["enabled"]
 
