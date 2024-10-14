@@ -234,6 +234,7 @@ def test_slack_renderer_unattach_button(make_organization, make_alert_receive_ch
         )
     )
 
+
 @pytest.mark.django_db
 def test_slack_renderer_resolution_notes_button(
     make_organization, make_alert_receive_channel, make_alert_group, make_alert
@@ -245,7 +246,7 @@ def test_slack_renderer_resolution_notes_button(
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    button = elements[6]
+    button = elements[5]
     assert button["text"]["text"] == "Add Resolution notes"
     assert json.loads(button["value"]) == json.loads(
         make_value(
