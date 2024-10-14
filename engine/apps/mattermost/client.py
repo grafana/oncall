@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Optional
 
@@ -31,6 +32,13 @@ class MattermostChannel:
     team_id: str
     channel_name: str
     display_name: str
+
+
+@dataclass
+class MattermostPost:
+    post_id: str
+    channel_id: str
+    user_id: str
 
 
 class MattermostClient:
@@ -82,3 +90,19 @@ class MattermostClient:
         self._check_response(response)
         data = response.json()
         return MattermostUser(user_id=data["id"], username=data["username"], nickname=data["nickname"])
+
+    def create_post(self, channel_id: str, data: dict):
+        url = f"{self.base_url}/posts"
+        data.update({"channel_id": channel_id})
+        response = requests.post(url=url, data=json.dumps(data), timeout=self.timeout, auth=TokenAuth(self.token))
+        self._check_response(response)
+        data = response.json()
+        return MattermostPost(post_id=data["id"], channel_id=data["channel_id"], user_id=data["user_id"])
+
+    def update_post(self, post_id: str, data: dict):
+        url = f"{self.base_url}/posts/{post_id}"
+        data.update({"id": post_id})
+        response = requests.put(url=url, data=json.dumps(data), timeout=self.timeout, auth=TokenAuth(self.token))
+        self._check_response(response)
+        data = response.json()
+        return MattermostPost(post_id=data["id"], channel_id=data["channel_id"], user_id=data["user_id"])

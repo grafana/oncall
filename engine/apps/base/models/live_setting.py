@@ -85,6 +85,7 @@ class LiveSetting(models.Model):
         "MATTERMOST_HOST",
         "MATTERMOST_BOT_TOKEN",
         "MATTERMOST_LOGIN_RETURN_REDIRECT_HOST",
+        "MATTERMOST_SIGNING_SECRET",
     )
 
     DESCRIPTIONS = {
@@ -213,6 +214,11 @@ class LiveSetting(models.Model):
             "' target='_blank'>instruction</a> for details how to set up Mattermost. "
         ),
         "MATTERMOST_LOGIN_RETURN_REDIRECT_HOST": (
+            "Check <a href='"
+            "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
+            "' target='_blank'>instruction</a> for details how to set up Mattermost. "
+        ),
+        "MATTERMOST_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/oncall/latest/open-source/#mattermost-setup"
             "' target='_blank'>instruction</a> for details how to set up Mattermost. "
