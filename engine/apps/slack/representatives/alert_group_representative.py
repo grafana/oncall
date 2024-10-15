@@ -284,4 +284,6 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
                 log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
             except AlertGroupLogRecord.DoesNotExist:
                 logger.warning(f"log record {log_record_id} never created or has been deleted")
+        else:
+            log_record = log_record_id
         return log_record
