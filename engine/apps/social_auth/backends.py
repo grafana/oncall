@@ -9,7 +9,7 @@ from apps.auth_token.models import GoogleOAuth2Token, SlackAuthToken
 
 # Scopes for slack user token.
 # It is main purpose - retrieve user data in SlackOAuth2V2 but we are using it in legacy code or weird Slack api cases.
-USER_SCOPE = ["channels:read", "identify", "chat:write", "users.profile:read", "users:read", "users:read.email"]
+USER_SCOPE = ["channels:read", "identify", "users.profile:read", "users:read", "users:read.email"]
 
 # Scopes for slack bot token.
 # It is prime token we are using for most requests to Slack api.
