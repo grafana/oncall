@@ -72,8 +72,11 @@ def users_in_ical(
     organization: "Organization",
 ) -> typing.List["User"]:
     """
-    This method returns a sequence of `User` objects, filtered by users whose username, or case-insensitive e-mail,
+    This method returns a list of `User` objects, filtered by users whose username, or case-insensitive e-mail,
     is present in `usernames_from_ical`.
+
+    Additionally, it filters the users by the organization they belong to and checks if they have the required
+    permission to receive notifications.
 
     Parameters
     ----------
@@ -86,18 +89,17 @@ def users_in_ical(
 
     emails_from_ical = [username.lower() for username in usernames_from_ical]
 
-    users_found_in_ical = organization.users.filter(
-        (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
-    ).distinct()
+    # NOTE: doing a select_related for organization here, since we will be accessing u.organization for each user
+    # in the required_permission.user_has_permission calls below
+    users_found_in_ical = (
+        organization.users.filter((Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical)))
+        .distinct()
+        .select_related("organization")
+    )
 
-    if organization.is_rbac_permissions_enabled:
-        # it is more efficient to check permissions on the subset of users filtered above
-        # than performing a regex query for the required permission
-        users_found_in_ical = [u for u in users_found_in_ical if {"action": required_permission.value} in u.permissions]
-    else:
-        users_found_in_ical = users_found_in_ical.filter(role__lte=required_permission.fallback_role.value)
-
-    return list(users_found_in_ical)
+    # it is more efficient to check permissions on the subset of users filtered above
+    # than performing a regex query for the required permission
+    return [u for u in users_found_in_ical if required_permission.user_has_permission(u)]
 
 
 @timed_lru_cache(timeout=100)
@@ -342,6 +344,7 @@ def list_of_empty_shifts_in_schedule(
 def list_users_to_notify_from_ical(
     schedule: "OnCallSchedule",
     events_datetime: typing.Optional[datetime.datetime] = None,
+    from_cached_final: bool = False,
 ) -> typing.Sequence["User"]:
     """
     Retrieve on-call users for the current time
@@ -351,6 +354,7 @@ def list_users_to_notify_from_ical(
         schedule,
         events_datetime,
         events_datetime,
+        from_cached_final=from_cached_final,
     )
 
 
@@ -358,8 +362,12 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
+    from_cached_final: bool = False,
 ) -> typing.Sequence["User"]:
-    events = schedule.final_events(start_datetime, end_datetime)
+    if from_cached_final and schedule.cached_ical_final_schedule:
+        events = schedule.filter_events(start_datetime, end_datetime, from_cached_final=True)
+    else:
+        events = schedule.final_events(start_datetime, end_datetime)
     usernames: typing.List[str] = []
     for event in events:
         usernames += [u["email"] for u in event.get("users", [])]

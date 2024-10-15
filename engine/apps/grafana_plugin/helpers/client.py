@@ -8,8 +8,11 @@ import requests
 from django.conf import settings
 from rest_framework import status
 
-from apps.api.permissions import GrafanaAPIPermission
+from apps.api.permissions import GrafanaAPIPermission, GrafanaAPIPermissions
 from common.constants.plugin_ids import PluginID
+
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import Organization
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +241,7 @@ class GrafanaAPIClient(APIClient):
 
         all_users_permissions: UserPermissionsDict = {}
         for user_id, user_permissions in data.items():
-            all_users_permissions[user_id] = [GrafanaAPIPermission(action=key) for key, _ in user_permissions.items()]
+            all_users_permissions[user_id] = GrafanaAPIPermissions.construct_permissions(user_permissions.keys())
 
         return all_users_permissions
 
@@ -309,6 +312,9 @@ class GrafanaAPIClient(APIClient):
     def get_grafana_labels_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
         return self.get_grafana_plugin_settings(PluginID.LABELS)
 
+    def get_grafana_irm_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
+        return self.get_grafana_plugin_settings(PluginID.IRM)
+
     def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
         return self.api_get(f"api/serviceaccounts/search?query={login}")
 
@@ -328,8 +334,8 @@ class GrafanaAPIClient(APIClient):
     def get_service_account_token_permissions(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
         return self.api_get("api/access-control/user/permissions")
 
-    def sync(self) -> APIClientResponse:
-        return self.api_post("api/plugins/grafana-oncall-app/resources/plugin/sync")
+    def sync(self, organization: "Organization") -> APIClientResponse:
+        return self.api_post(f"api/plugins/{organization.active_ui_plugin_id}/resources/plugin/sync")
 
     @staticmethod
     def validate_grafana_token_format(grafana_token: str) -> bool:

@@ -34,6 +34,7 @@ class EscalationChainView(RateLimitHeadersMixin, ModelViewSet):
         if name is not None:
             queryset = queryset.filter(name=name)
 
+        queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset.order_by("id")
 
     def get_object(self):

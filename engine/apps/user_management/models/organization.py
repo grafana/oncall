@@ -18,6 +18,7 @@ from apps.chatops_proxy.utils import (
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from apps.user_management.types import AlertGroupTableColumn
+from common.constants.plugin_ids import PluginID
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -351,6 +352,13 @@ class Organization(MaintainableObject):
         It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
         """
         return UIURLBuilder(self).home(f"?oncall-uuid={self.uuid}")
+
+    @property
+    def active_ui_plugin_id(self) -> str:
+        """
+        If `is_grafana_irm_enabled` is True, this will be IRM, otherwise OnCall
+        """
+        return PluginID.IRM if self.is_grafana_irm_enabled else PluginID.ONCALL
 
     @classmethod
     def __str__(self):

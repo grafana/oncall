@@ -5,11 +5,10 @@ from apps.schedules.tasks import (
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField, UsersFilteredByOrganizationField
+from common.api_helpers.custom_fields import TimeZoneField, UsersFilteredByOrganizationField
 
 
 class ScheduleWebSerializer(ScheduleBaseSerializer):
-    team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,

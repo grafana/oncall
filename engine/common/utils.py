@@ -14,6 +14,8 @@ from bs4 import BeautifulSoup
 from celery.utils.log import get_task_logger
 from celery.utils.time import get_exponential_backoff_interval
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.utils.html import urlize
 
 logger = get_task_logger(__name__)
@@ -21,6 +23,14 @@ logger = get_task_logger(__name__)
 
 # Faker that always returns unique values
 class UniqueFaker(factory.Faker):
+    def __init__(self, provider, **kwargs):
+        if provider == "pyint":
+            # https://faker.readthedocs.io/en/master/providers/faker.providers.python.html#faker.providers.python.Provider.pyint
+            # https://raintank-corp.slack.com/archives/C06K1MQ07GS/p1728589562495709?thread_ts=1728586969.283779&cid=C06K1MQ07GS
+            kwargs["max_value"] = 9_999_999
+
+        super().__init__(provider, **kwargs)
+
     @classmethod
     def _get_faker(cls, locale=None):
         return super()._get_faker(locale).unique
@@ -196,6 +206,15 @@ def str_or_backup(string, backup):
 def clean_html(text):
     text = "".join(BeautifulSoup(text, features="html.parser").find_all(string=True))
     return text
+
+
+def validate_url(url: str):
+    validate_url = URLValidator()
+    try:
+        validate_url(url)
+    except ValidationError:
+        return None
+    return url
 
 
 def convert_slack_md_to_html(text):

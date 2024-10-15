@@ -9,7 +9,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission, user_is_authorized
+from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole, RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
@@ -385,7 +385,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             name="Grafana Service Account",
             username="grafana_service_account",
             role=role,
-            permissions=[GrafanaAPIPermission(action=key) for key, _ in permissions.items()],
+            permissions=GrafanaAPIPermissions.construct_permissions(permissions.keys()),
         )
 
         auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")
