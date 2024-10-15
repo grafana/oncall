@@ -381,7 +381,7 @@ def test_perform_notification_telegram_retryafter_error(
     assert last_log_record.reason == "Telegram rate limit exceeded"
     assert (
         last_log_record.notification_error_code
-        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED
+        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_TELEGRAM_RATELIMIT
     )
 
 

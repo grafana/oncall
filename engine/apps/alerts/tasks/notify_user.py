@@ -468,7 +468,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
                     alert_group=alert_group,
                     notification_step=notification_policy.step,
                     notification_channel=notification_channel,
-                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_TELEGRAM_RATELIMIT,
                 ).save()
             return
 
