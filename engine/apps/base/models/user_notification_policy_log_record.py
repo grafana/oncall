@@ -106,7 +106,8 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
         ERROR_NOTIFICATION_MOBILE_USER_HAS_NO_ACTIVE_DEVICE,
         ERROR_NOTIFICATION_FORMATTING_ERROR,
-    ) = range(29)
+        ERROR_NOTIFICATION_IN_TELEGRAM_RATELIMIT,
+    ) = range(30)
 
     # for this errors we want to send message to general log channel
     ERRORS_TO_SEND_IN_SLACK_CHANNEL = [
@@ -304,6 +305,10 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"failed to notify {user_verbal} in Slack, because channel is archived"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT:
                 result += f"failed to notify {user_verbal} in Slack due to Slack rate limit"
+            elif (
+                self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_TELEGRAM_RATELIMIT
+            ):
+                result += f"failed to notify {user_verbal} in Telegram due to Telegram rate limit"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN:
                 result += f"failed to notify {user_verbal}, not allowed"
             elif (
