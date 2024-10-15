@@ -49,7 +49,7 @@ def sync_organizations_v2(org_ids=None):
     organization_qs = Organization.objects.filter(id__in=org_ids)
     for org in organization_qs:
         client = GrafanaAPIClient(api_url=org.grafana_url, api_token=org.api_token)
-        _, status = client.sync()
+        _, status = client.sync(org)
         if status["status_code"] != 200:
             logger.error(
                 f"Failed to request sync org_id={org.pk} stack_slug={org.stack_slug} status_code={status['status_code']} url={status['url']} message={status['message']}"

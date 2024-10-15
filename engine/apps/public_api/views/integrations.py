@@ -1,4 +1,3 @@
-from django.db.models import Count
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -47,7 +46,6 @@ class IntegrationView(
             queryset = queryset.filter(verbal_name=name)
         queryset = self.filter_queryset(queryset)
         queryset = self.serializer_class.setup_eager_loading(queryset)
-        queryset = queryset.annotate(alert_groups_count_annotated=Count("alert_groups", distinct=True))
 
         return queryset
 

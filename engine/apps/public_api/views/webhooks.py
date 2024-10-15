@@ -42,6 +42,7 @@ class WebhooksView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
         if webhook_name:
             queryset = queryset.filter(name=webhook_name)
 
+        queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset.order_by("id")
 
     def get_object(self):

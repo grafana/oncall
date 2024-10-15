@@ -202,9 +202,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         unsilence_button = _make_button("Unsilence", "UnSilenceGroupStep")
         responders_button = _make_button("Responders", "StartManageResponders", "manage_responders")
         attach_button = _make_button("Attach to ...", "SelectAttachGroupStep")
-        format_alert_button = _make_button(
-            ":mag: Format Alert", "OpenAlertAppearanceDialogStep", "alertgroup_appearance"
-        )
 
         resolution_notes_count = alert_group.resolution_notes.count()
         resolution_notes_button = {
@@ -274,9 +271,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 )
             else:
                 buttons.append(unresolve_button)
-
-            if integration.is_available_for_custom_templates:
-                buttons.append(format_alert_button)
 
             buttons.append(resolution_notes_button)
 

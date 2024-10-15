@@ -360,11 +360,29 @@ def test_perform_notification_telegram_retryafter_error(
     countdown = 15
     exc = RetryAfter(countdown)
     with patch.object(TelegramToUserConnector, "notify_user", side_effect=exc) as mock_notify_user:
-        with pytest.raises(RetryAfter):
+        with patch.object(perform_notification, "apply_async") as mock_apply_async:
             perform_notification(log_record.pk, False)
 
     mock_notify_user.assert_called_once_with(user, alert_group, user_notification_policy)
+    # task is rescheduled using the countdown value from the exception
+    mock_apply_async.assert_called_once_with((log_record.pk, False), countdown=countdown)
     assert alert_group.personal_log_records.last() == log_record
+
+    # but if the log was too old, skip and create a failed log record
+    log_record.created_at = timezone.now() - timezone.timedelta(minutes=90)
+    log_record.save()
+    with patch.object(TelegramToUserConnector, "notify_user", side_effect=exc) as mock_notify_user:
+        with patch.object(perform_notification, "apply_async") as mock_apply_async:
+            perform_notification(log_record.pk, False)
+    mock_notify_user.assert_called_once_with(user, alert_group, user_notification_policy)
+    assert not mock_apply_async.called
+    last_log_record = UserNotificationPolicyLogRecord.objects.last()
+    assert last_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+    assert last_log_record.reason == "Telegram rate limit exceeded"
+    assert (
+        last_log_record.notification_error_code
+        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_TELEGRAM_RATELIMIT
+    )
 
 
 @patch("apps.base.models.UserNotificationPolicy.get_default_fallback_policy")

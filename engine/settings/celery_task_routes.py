@@ -7,7 +7,6 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.delete_alert_group.send_alert_group_signal_for_delete": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.finish_delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {"queue": "default"},
-    "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
     "common.oncall_gateway.tasks.create_oncall_connector_async": {"queue": "default"},
     "common.oncall_gateway.tasks.delete_oncall_connector_async": {"queue": "default"},
@@ -134,6 +133,7 @@ CELERY_TASK_ROUTES = {
     "apps.phone_notifications.phone_backend.notify_by_sms_bundle_async_task": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
+    "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "critical"},
     # GRAFANA
     "apps.grafana_plugin.tasks.sync.plugin_sync_organization_async": {"queue": "grafana"},
     # LONG
