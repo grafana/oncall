@@ -1,4 +1,5 @@
 import logging
+import typing
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -8,6 +9,9 @@ from apps.alerts.constants import ActionSource
 from apps.alerts.representative import AlertGroupAbstractRepresentative
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroupLogRecord
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -130,29 +134,17 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
     @classmethod
     def on_alert_group_action_triggered(cls, **kwargs):
         logger.debug("Received alert_group_action_triggered signal in SLACK representative")
-        from apps.alerts.models import AlertGroupLogRecord
-
-        log_record = kwargs["log_record"]
-        force_sync = kwargs.get("force_sync", False)
-        if isinstance(log_record, AlertGroupLogRecord):
-            log_record_id = log_record.pk
-        else:
-            log_record_id = log_record
-
-        try:
-            log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
-        except AlertGroupLogRecord.DoesNotExist:
-            logger.warning(
-                f"on_alert_group_action_triggered: log record {log_record_id} never created or has been deleted"
-            )
+        log_record = cls.get_log_record_from_kwargs(**kwargs)
+        if not log_record:
             return
+        force_sync = kwargs.get("force_sync", False)
 
         if log_record.action_source == ActionSource.SLACK or force_sync:
-            logger.debug(f"SLACK on_alert_group_action_triggered: sync {log_record_id} {force_sync}")
-            on_alert_group_action_triggered_async(log_record_id)
+            logger.debug(f"SLACK on_alert_group_action_triggered: sync {log_record.id} {force_sync}")
+            on_alert_group_action_triggered_async(log_record.id)
         else:
-            logger.debug(f"SLACK on_alert_group_action_triggered: async {log_record_id} {force_sync}")
-            on_alert_group_action_triggered_async.apply_async((log_record_id,))
+            logger.debug(f"SLACK on_alert_group_action_triggered: async {log_record.id} {force_sync}")
+            on_alert_group_action_triggered_async.apply_async((log_record.id,))
 
     @classmethod
     def on_alert_group_update_resolution_note(cls, **kwargs):
@@ -166,6 +158,26 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
             UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
             step = UpdateResolutionNoteStep(organization.slack_team_identity, organization)
             step.process_signal(alert_group, resolution_note)
+
+    @classmethod
+    def on_alert_group_post_acknowledge_reminder_message(cls, **kwargs):
+        log_record = cls.get_log_record_from_kwargs(**kwargs)
+        if not log_record:
+            return
+        slack_team_identity = log_record.alert_group.channel.organization.slack_team_identity
+        alert_group = log_record.alert_group
+        logger.debug(
+            f"Received post_ack_reminder_message_signal signal in SLACK representative for alert_group {alert_group.id}"
+        )
+        if not (log_record.alert_group.slack_message and slack_team_identity):
+            logger.debug(
+                f"SLACK representative is NOT applicable for alert_group {alert_group.id}, log record {log_record.id}"
+            )
+            return
+
+        AcknowledgeConfirmationStep = ScenarioStep.get_step("distribute_alerts", "AcknowledgeConfirmationStep")
+        step = AcknowledgeConfirmationStep(slack_team_identity)
+        step.process_signal(log_record)
 
     def on_acknowledge(self):
         AcknowledgeGroupStep = ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep")
@@ -229,6 +241,7 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
         self.on_un_acknowledge()
 
     def on_ack_reminder_triggered(self):
+        # deprecated, remove this handler after release
         AcknowledgeConfirmationStep = ScenarioStep.get_step("distribute_alerts", "AcknowledgeConfirmationStep")
         step = AcknowledgeConfirmationStep(self.log_record.alert_group.channel.organization.slack_team_identity)
         step.process_signal(self.log_record)
@@ -258,3 +271,17 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
     @classmethod
     def on_handler_not_found(cls):
         pass
+
+    @classmethod
+    def get_log_record_from_kwargs(cls, **kwargs) -> typing.Optional["AlertGroupLogRecord"]:
+        from apps.alerts.models import AlertGroupLogRecord
+
+        log_record = None
+        log_record_id = kwargs["log_record"]
+
+        if not isinstance(log_record_id, AlertGroupLogRecord):
+            try:
+                log_record = AlertGroupLogRecord.objects.get(pk=log_record_id)
+            except AlertGroupLogRecord.DoesNotExist:
+                logger.warning(f"log record {log_record_id} never created or has been deleted")
+        return log_record

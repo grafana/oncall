@@ -24,6 +24,9 @@ alert_group_update_log_report_signal = django.dispatch.Signal()
 # Signal to rerender alert group's resolution note in all connected integrations (Slack)
 alert_group_update_resolution_note_signal = django.dispatch.Signal()
 
+# Signal to post acknowledge reminder message (Slack)
+post_ack_reminder_message_signal = django.dispatch.Signal()
+
 # Currently only writes error in Slack thread while notify user. Maybe it is worth to delete it?
 user_notification_action_triggered_signal = django.dispatch.Signal()
 
@@ -38,6 +41,10 @@ alert_group_action_triggered_signal.connect(
 
 alert_group_update_resolution_note_signal.connect(
     AlertGroupSlackRepresentative.on_alert_group_update_resolution_note,
+)
+
+post_ack_reminder_message_signal.connect(
+    AlertGroupSlackRepresentative.on_alert_group_post_acknowledge_reminder_message,
 )
 
 user_notification_action_triggered_signal.connect(

@@ -2,15 +2,25 @@ from datetime import timedelta
 from functools import partial
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
+from apps.alerts.signals import post_ack_reminder_message_signal
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .send_alert_group_signal import send_alert_group_signal
 from .task_logger import task_logger
 
-MAX_RETRIES = 1 if settings.DEBUG else None
+MAX_RETRIES = 1 if settings.DEBUG else 10
+
+
+def is_allowed_to_send_acknowledge_reminder(alert_group_id, process_id):
+    lock_id = f"acknowledge-reminder-lock-{alert_group_id}"
+    lock_period = 60 * 10  # 10 min
+    # cache.add returns False if the key already exists
+    status = cache.add(lock_id, process_id, lock_period)
+    return status
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -27,6 +37,11 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
 
         if unacknowledge_process_id != alert_group.last_unique_unacknowledge_process_id:
             return
+
+    #  Don't proceed if acknowledge reminder for this alert group has already been sent recently
+    if not is_allowed_to_send_acknowledge_reminder(alert_group.id, unacknowledge_process_id):
+        task_logger.info(f"Acknowledge reminder for alert_group {alert_group_pk} has already been sent recently.")
+        return
 
     organization = alert_group.channel.organization
 
@@ -55,8 +70,9 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
 
     # unacknowledge_timeout_task uses acknowledged_by_confirmed to check if acknowledgement reminder has been confirmed
     # by the user. Setting to None here to indicate that the user has not confirmed the acknowledgement reminder
-    alert_group.acknowledged_by_confirmed = None
-    alert_group.save(update_fields=["acknowledged_by_confirmed"])
+    if alert_group.acknowledged_by_confirmed is not None:
+        alert_group.acknowledged_by_confirmed = None
+        alert_group.save(update_fields=["acknowledged_by_confirmed"])
 
     if unacknowledge_timeout:  # "unack in N minutes if no response" is enabled
         unacknowledge_timeout_task.apply_async(
@@ -77,7 +93,7 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
             type=AlertGroupLogRecord.TYPE_ACK_REMINDER_TRIGGERED, author=alert_group.acknowledged_by_user
         )
         task_logger.info(f"created log record {log_record.pk}, sending signal...")
-        transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
+        transaction.on_commit(partial(send_post_ack_reminder_message_signal.delay, log_record.pk))
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -138,3 +154,13 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
     transaction.on_commit(partial(send_alert_group_signal.delay, log_record.pk))
     alert_group.unacknowledge()
     alert_group.start_escalation_if_needed()
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def send_post_ack_reminder_message_signal(log_record_id):
+    """
+    Sends signal to post acknowledge reminder message to Slack thread.
+    The signal is connected to AlertGroupSlackRepresentative.
+    """
+    task_logger.info(f"sending signal for posting ack reminder message, log record {log_record_id}")
+    post_ack_reminder_message_signal.send(sender=send_post_ack_reminder_message_signal, log_record=log_record_id)
