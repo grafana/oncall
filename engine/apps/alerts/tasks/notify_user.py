@@ -445,10 +445,12 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
         try:
             TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
         except RetryAfter as e:
+            task_logger.exception(f"Telegram API rate limit exceeded. Retry after {e.retry_after} seconds.")
             countdown = getattr(e, "retry_after", 3)
-            raise perform_notification.retry(
-                (log_record_pk, use_default_notification_policy_fallback), countdown=countdown, exc=e
+            perform_notification.apply_async(
+                (log_record_pk, use_default_notification_policy_fallback), countdown=countdown
             )
+            return
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack
