@@ -26,6 +26,9 @@ if typing.TYPE_CHECKING:
     from apps.user_management.models import User
 
 
+RETRY_TIMEOUT_HOURS = 1
+
+
 def schedule_send_bundled_notification_task(
     user_notification_bundle: "UserNotificationBundle", alert_group: "AlertGroup"
 ):
@@ -446,10 +449,27 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
             TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
         except RetryAfter as e:
             task_logger.exception(f"Telegram API rate limit exceeded. Retry after {e.retry_after} seconds.")
-            countdown = getattr(e, "retry_after", 3)
-            perform_notification.apply_async(
-                (log_record_pk, use_default_notification_policy_fallback), countdown=countdown
-            )
+            # check how much time has passed since log record was created
+            # to prevent eternal loop of restarting perform_notification task
+            if timezone.now() < log_record.created_at + timezone.timedelta(hours=RETRY_TIMEOUT_HOURS):
+                countdown = getattr(e, "retry_after", 3)
+                perform_notification.apply_async(
+                    (log_record_pk, use_default_notification_policy_fallback), countdown=countdown
+                )
+            else:
+                task_logger.debug(
+                    f"telegram notification for alert_group {alert_group.pk} failed because of rate limit"
+                )
+                UserNotificationPolicyLogRecord(
+                    author=user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    notification_policy=notification_policy,
+                    reason="Telegram rate limit exceeded",
+                    alert_group=alert_group,
+                    notification_step=notification_policy.step,
+                    notification_channel=notification_channel,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,
+                ).save()
             return
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
@@ -518,13 +538,12 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
                 ).save()
                 return
 
-            retry_timeout_hours = 1
             if alert_group.slack_message:
                 alert_group.slack_message.send_slack_notification(user, alert_group, notification_policy)
                 task_logger.debug(f"Finished send_slack_notification for alert_group {alert_group.pk}.")
             # check how much time has passed since log record was created
             # to prevent eternal loop of restarting perform_notification task
-            elif timezone.now() < log_record.created_at + timezone.timedelta(hours=retry_timeout_hours):
+            elif timezone.now() < log_record.created_at + timezone.timedelta(hours=RETRY_TIMEOUT_HOURS):
                 task_logger.debug(
                     f"send_slack_notification for alert_group {alert_group.pk} failed because slack message "
                     f"does not exist. Restarting perform_notification."
@@ -536,7 +555,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
             else:
                 task_logger.debug(
                     f"send_slack_notification for alert_group {alert_group.pk} failed because slack message "
-                    f"after {retry_timeout_hours} hours still does not exist"
+                    f"after {RETRY_TIMEOUT_HOURS} hours still does not exist"
                 )
                 UserNotificationPolicyLogRecord(
                     author=user,
