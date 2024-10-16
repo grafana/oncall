@@ -18,6 +18,7 @@ from apps.slack.errors import (
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackChannel
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,11 +26,23 @@ logger.setLevel(logging.DEBUG)
 
 class SlackMessage(models.Model):
     alert_group: typing.Optional["AlertGroup"]
+    channel: "SlackChannel"
 
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
 
     slack_id = models.CharField(max_length=100)
+
+    # TODO: remove this column in future release
     channel_id = models.CharField(max_length=100, null=True, default=None)
+
+    channel = models.ForeignKey(
+        "slack.SlackChannel",
+        on_delete=models.CASCADE,
+        # TODO: change these to not nullable once we've migrated channel_id to this column
+        null=True,
+        default=None,
+        related_name="slack_messages"
+    )
 
     organization = models.ForeignKey(
         "user_management.Organization", on_delete=models.CASCADE, null=True, default=None, related_name="slack_message"
@@ -65,7 +78,7 @@ class SlackMessage(models.Model):
     class Meta:
         # slack_id is unique within the context of a channel or conversation
         constraints = [
-            models.UniqueConstraint(fields=["slack_id", "channel_id", "_slack_team_identity"], name="unique slack_id")
+            models.UniqueConstraint(fields=["slack_id", "channel", "_slack_team_identity"], name="unique slack_id")
         ]
 
     @property
