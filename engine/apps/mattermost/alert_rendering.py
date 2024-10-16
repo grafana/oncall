@@ -104,7 +104,7 @@ class AlertGroupMattermostRenderer(AlertGroupBaseRenderer):
             if self.alert_group.acknowledged:
                 actions.append(_make_actions("unacknowledge", "Unacknowledge", token))
             else:
-                actions.append(_make_actions("acknowledge", "Acknonwledge", token))
+                actions.append(_make_actions("acknowledge", "Acknowledge", token))
 
         if self.alert_group.resolved:
             actions.append(_make_actions("unresolve", "Unresolve", token))
