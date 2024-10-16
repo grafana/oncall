@@ -3,7 +3,6 @@ import typing
 from functools import cached_property
 
 import emoji
-from celery import uuid as celery_uuid
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -29,8 +28,6 @@ from apps.metrics_exporter.helpers import (
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
-from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
@@ -291,6 +288,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     alertmanager_v2_backup_templates: AlertmanagerV2LegacyTemplates | None = models.JSONField(null=True, default=None)
     """Backing up templates before the Alertmanager V2 migration, so that they can be restored if needed."""
 
+    # TODO: drop the following two columns in a subsequent release
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
@@ -427,20 +425,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return UIURLBuilder(self.organization).alert_groups(
             f"?integration={self.public_primary_key}&status={AlertGroup.NEW}",
         )
-
-    @property
-    def is_rate_limited_in_slack(self):
-        return (
-            self.rate_limited_in_slack_at is not None
-            and self.rate_limited_in_slack_at + SLACK_RATE_LIMIT_TIMEOUT > timezone.now()
-        )
-
-    def start_send_rate_limit_message_task(self, delay=SLACK_RATE_LIMIT_DELAY):
-        task_id = celery_uuid()
-        self.rate_limit_message_task_id = task_id
-        self.rate_limited_in_slack_at = timezone.now()
-        self.save(update_fields=["rate_limit_message_task_id", "rate_limited_in_slack_at"])
-        post_slack_rate_limit_message.apply_async((self.pk,), countdown=delay, task_id=task_id)
 
     @property
     def alert_groups_count(self):
