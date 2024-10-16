@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
+from requests.exceptions import RequestException
 
 from common.constants.plugin_ids import PluginID
 
@@ -91,6 +92,18 @@ class IncidentAPIClient:
     def _request_headers(self):
         return {"User-Agent": settings.GRAFANA_COM_USER_AGENT, "Authorization": f"Bearer {self.api_token}"}
 
+    def _make_request(self, url, *args, **kwargs):
+        try:
+            response = requests.post(url, *args, **kwargs)
+        except RequestException as e:
+            raise IncidentAPIException(
+                status=e.response.status_code if e.response else 500,
+                url=e.response.request.url if e.response else url,
+                msg=e.response.text if e.response else "Unexpected error",
+                method=e.response.request.method if e.response else "POST",
+            )
+        return response
+
     def _check_response(self, response: requests.models.Response):
         message = ""
 
@@ -119,7 +132,7 @@ class IncidentAPIClient:
         endpoint = "api/v1/IncidentsService.CreateIncident"
         url = self.api_url + endpoint
         # NOTE: invalid severity will raise a 500 error
-        response = requests.post(
+        response = self._make_request(
             url,
             json={
                 "title": title,
@@ -137,7 +150,9 @@ class IncidentAPIClient:
     def get_incident(self, incident_id: str) -> typing.Tuple[IncidentDetails, requests.models.Response]:
         endpoint = "api/v1/IncidentsService.GetIncident"
         url = self.api_url + endpoint
-        response = requests.post(url, json={"incidentID": incident_id}, timeout=TIMEOUT, headers=self._request_headers)
+        response = self._make_request(
+            url, json={"incidentID": incident_id}, timeout=TIMEOUT, headers=self._request_headers
+        )
         self._check_response(response)
         return response.json().get("incident"), response
 
@@ -146,7 +161,7 @@ class IncidentAPIClient:
         endpoint = "api/SeveritiesService.GetOrgSeverities"
         url = self.api_url + endpoint
         # pass empty json payload otherwise it will return a 500 response
-        response = requests.post(url, timeout=TIMEOUT, headers=self._request_headers, json={})
+        response = self._make_request(url, timeout=TIMEOUT, headers=self._request_headers, json={})
         self._check_response(response)
         return response.json().get("severities"), response
 
@@ -155,7 +170,7 @@ class IncidentAPIClient:
     ) -> typing.Tuple[ActivityItemDetails, requests.models.Response]:
         endpoint = "api/v1/ActivityService.AddActivity"
         url = self.api_url + endpoint
-        response = requests.post(
+        response = self._make_request(
             url,
             json={"incidentID": incident_id, "activityKind": kind, "body": body},
             timeout=TIMEOUT,
