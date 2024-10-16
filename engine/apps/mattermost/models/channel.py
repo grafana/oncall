@@ -1,7 +1,10 @@
+import typing
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
 
+from apps.alerts.models import AlertGroup
 from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -43,6 +46,14 @@ class MattermostChannel(models.Model):
 
     class Meta:
         unique_together = ("organization", "channel_id")
+
+    @classmethod
+    def get_channel_for_alert_group(cls, alert_group: AlertGroup) -> typing.Optional["MattermostChannel"]:
+        default_channel = cls.objects.filter(
+            organization=alert_group.channel.organization, is_default_channel=True
+        ).first()
+
+        return default_channel
 
     def make_channel_default(self, author):
         try:
