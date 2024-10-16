@@ -1,7 +1,9 @@
 import json
+from unittest.mock import patch
 
 import httpretty
 import pytest
+from requests.exceptions import RequestException
 from rest_framework import status
 
 from common.incident_api.client import (
@@ -183,5 +185,30 @@ def test_error_handling(endpoint, client_method_name, args):
             client_method(*args)
         assert excinfo.value.status == error_code
         assert excinfo.value.msg == response_data["error"]
+        assert excinfo.value.url == url
+        assert excinfo.value.method == "POST"
+
+
+@pytest.mark.parametrize(
+    "endpoint, client_method_name, args",
+    [
+        ("api/v1/IncidentsService.CreateIncident", "create_incident", ("title",)),
+        ("api/v1/IncidentsService.GetIncident", "get_incident", ("incident-id",)),
+        ("api/SeveritiesService.GetOrgSeverities", "get_severities", ()),
+        ("api/v1/ActivityService.AddActivity", "add_activity", ("incident-id", "content")),
+    ],
+)
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_unexpected_error_handling(endpoint, client_method_name, args):
+    stack_url = "https://foobar.grafana.net"
+    api_token = "asdfasdfasdfasdf"
+    client = IncidentAPIClient(stack_url, api_token)
+    url = f"{stack_url}{client.INCIDENT_BASE_PATH}{endpoint}"
+    with patch("common.incident_api.client.requests.post", side_effect=RequestException):
+        with pytest.raises(IncidentAPIException) as excinfo:
+            client_method = getattr(client, client_method_name)
+            client_method(*args)
+        assert excinfo.value.status == 500
+        assert excinfo.value.msg == "Unexpected error"
         assert excinfo.value.url == url
         assert excinfo.value.method == "POST"
