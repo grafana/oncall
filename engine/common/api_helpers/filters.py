@@ -7,7 +7,8 @@ from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.user_management.models import Team
+from apps.alerts.models import AlertReceiveChannel, EscalationChain
+from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
 
 NO_TEAM_VALUE = "null"
@@ -61,9 +62,20 @@ class DateRangeFilterMixin:
 
 @extend_schema_field(serializers.CharField)
 class MultipleChoiceCharFilter(filters.ModelMultipleChoiceFilter):
-    """MultipleChoiceCharFilter with an explicit schema. Otherwise, drf-specacular may generate a wrong schema."""
+    """MultipleChoiceCharFilter with an explicit schema. Otherwise, drf-spectacular may generate a wrong schema."""
 
     pass
+
+
+@extend_schema_field(serializers.CharField)
+class ModelChoicePublicPrimaryKeyFilter(filters.ModelChoiceFilter):
+    """
+    ModelChoicePublicPrimaryKeyFilter with an explicit schema. Otherwise, drf-spectacular may generate a wrong schema.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("to_field_name", "public_primary_key")
+        super().__init__(*args, **kwargs)
 
 
 class ModelFieldFilterMixin:
@@ -105,6 +117,27 @@ class ByTeamModelFieldFilterMixin:
             teams_lookup = teams_lookup | null_team_lookup if teams_lookup else null_team_lookup
 
         return queryset.filter(teams_lookup).distinct()
+
+
+def get_escalation_chain_queryset(request):
+    if request is None:
+        return EscalationChain.objects.none()
+
+    return EscalationChain.objects.filter(organization=request.user.organization)
+
+
+def get_integration_queryset(request):
+    if request is None:
+        return AlertReceiveChannel.objects.none()
+
+    return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
+
+
+def get_user_queryset(request):
+    if request is None:
+        return User.objects.none()
+
+    return User.objects.filter(organization=request.user.organization).distinct()
 
 
 def get_team_queryset(request):
