@@ -172,7 +172,7 @@ services:
   redis:
     container_name: redis
     labels: *oncall-labels
-    image: redis:7.0.5
+    image: redis:7.0.15
     restart: always
     ports:
       - "6379:6379"
