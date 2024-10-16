@@ -340,3 +340,5 @@ export const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     setDraggableBounds(getDraggableModalCoordinatesOnInit(data, offsetTop));
   }
 };
+
+export default ScheduleOverrideForm;

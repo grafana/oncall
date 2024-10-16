@@ -9,10 +9,11 @@ import { useStore } from 'state/useStore';
 
 interface UserTooltipProps {
   id: ApiSchemas['User']['pk'];
+  className?: string;
 }
 
 export const UserTooltip = observer((props: UserTooltipProps) => {
-  const { id } = props;
+  const { id, className } = props;
 
   const store = useStore();
 
@@ -22,7 +23,7 @@ export const UserTooltip = observer((props: UserTooltipProps) => {
 
   return (
     <Tooltip content={UserHelper.getUserNotificationsSummary(user)}>
-      <span>{user?.username}</span>
+      <span className={className}>{user?.username}</span>
     </Tooltip>
   );
 });

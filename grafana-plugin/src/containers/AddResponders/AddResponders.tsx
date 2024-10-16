@@ -39,7 +39,7 @@ const LearnMoreAboutNotificationPoliciesLink: React.FC = () => {
       rel="noreferrer"
     >
       <Text type="link">
-        <Stack gap={StackSize.xs}>
+        <Stack gap={StackSize.xs} alignItems="center">
           Learn more
           <Icon name="external-link-alt" />
         </Stack>

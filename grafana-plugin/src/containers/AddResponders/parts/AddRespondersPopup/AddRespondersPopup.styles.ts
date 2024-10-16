@@ -50,8 +50,9 @@ export const getAddRespondersPopupStyles = (theme: GrafanaTheme2) => {
     `,
 
     table: css`
-      max-height: 150px;
-      overflow: auto;
+      max-height: 180px;
+      overflow-x: hidden;
+      overflow-y: auto;
       padding: 4px 0;
 
       & tr:hover {

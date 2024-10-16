@@ -148,3 +148,5 @@ const VerticalBlock: React.FC<{ children: any[] }> = ({ children }) => {
   const styles = useStyles2(getIntegrationStyles);
   return <div className={styles.verticalBlock}>{children}</div>;
 };
+
+export default IntegrationTemplateList;

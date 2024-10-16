@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -41,11 +41,8 @@ import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Tabs } from 'components/Tabs/Tabs';
 import { Text } from 'components/Text/Text';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
-import { EditRegexpRouteTemplateModal } from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import { CollapsedIntegrationRouteDisplay } from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import { ExpandedIntegrationRouteDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import { IntegrationTemplateList } from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import { IntegrationTemplate } from 'containers/IntegrationTemplate/IntegrationTemplate';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserDisplayWithAvatar } from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -79,6 +76,12 @@ interface IntegrationProps
     Themeable2 {
   theme: GrafanaTheme2;
 }
+
+const LazyIntegrationTemplate = lazy(() => import('containers/IntegrationTemplate/IntegrationTemplate'));
+const LazyIntegrationTemplateList = lazy(() => import('containers/IntegrationContainers/IntegrationTemplatesList'));
+const LazyEditRegexTemplateModal = lazy(
+  () => import('containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal')
+);
 
 interface IntegrationState extends PageBaseState {
   isLoading: boolean;
@@ -172,28 +175,30 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
       <>
         <CollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
         {isEditTemplateModalOpen && (
-          <IntegrationTemplate
-            id={id}
-            onHide={() => {
-              this.setState({
-                isEditTemplateModalOpen: undefined,
-              });
-              if (selectedTemplate?.name !== 'route_template') {
-                this.setState({ isTemplateSettingsOpen: true });
+          <Suspense>
+            <LazyIntegrationTemplate
+              id={id}
+              onHide={() => {
+                this.setState({
+                  isEditTemplateModalOpen: undefined,
+                });
+                if (selectedTemplate?.name !== 'route_template') {
+                  this.setState({ isTemplateSettingsOpen: true });
+                }
+                LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
+              }}
+              channelFilterId={channelFilterIdForEdit}
+              onUpdateTemplates={this.onUpdateTemplatesCallback}
+              onUpdateRoute={(values, channelFilterId) => this.onUpdateRoutesCallback(values, channelFilterId, 1)}
+              template={selectedTemplate}
+              templateBody={
+                selectedTemplate?.name === 'route_template'
+                  ? this.getRoutingTemplate(channelFilterIdForEdit)
+                  : templates[selectedTemplate?.name]
               }
-              LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
-            }}
-            channelFilterId={channelFilterIdForEdit}
-            onUpdateTemplates={this.onUpdateTemplatesCallback}
-            onUpdateRoute={(values, channelFilterId) => this.onUpdateRoutesCallback(values, channelFilterId, 1)}
-            template={selectedTemplate}
-            templateBody={
-              selectedTemplate?.name === 'route_template'
-                ? this.getRoutingTemplate(channelFilterIdForEdit)
-                : templates[selectedTemplate?.name]
-            }
-            templates={templates}
-          />
+              templates={templates}
+            />
+          </Suspense>
         )}
       </>
     );
@@ -203,22 +208,23 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
         {() => (
           <div>
             {isTemplateSettingsOpen && (
-              <Drawer
-                width="75%"
-                scrollableContent
-                title="Template Settings"
-                subtitle="Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution, customize visualizations and notifications by extracting data from alerts."
-                onClose={() => this.setState({ isTemplateSettingsOpen: false })}
-                closeOnMaskClick={false}
-              >
-                <IntegrationTemplateList
-                  alertReceiveChannelId={alertReceiveChannel.id}
-                  alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
-                  alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
-                  openEditTemplateModal={this.openEditTemplateModal}
-                  templates={templates}
-                />
-              </Drawer>
+              <Suspense>
+                <Drawer
+                  width="75%"
+                  title="Template Settings"
+                  subtitle="Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution, customize visualizations and notifications by extracting data from alerts."
+                  onClose={() => this.setState({ isTemplateSettingsOpen: false })}
+                  closeOnMaskClick={false}
+                >
+                  <LazyIntegrationTemplateList
+                    alertReceiveChannelId={alertReceiveChannel.id}
+                    alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
+                    alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
+                    openEditTemplateModal={this.openEditTemplateModal}
+                    templates={templates}
+                  />
+                </Drawer>
+              </Suspense>
             )}
 
             <div className={styles.integrationHeadingContainer}>
@@ -287,14 +293,16 @@ class _IntegrationPage extends React.Component<IntegrationProps, IntegrationStat
             )}
 
             {isEditRegexpRouteTemplateModalOpen && (
-              <EditRegexpRouteTemplateModal
-                alertReceiveChannelId={id}
-                channelFilterId={channelFilterIdForEdit}
-                template={selectedTemplate}
-                onHide={() => this.setState({ isEditRegexpRouteTemplateModalOpen: false })}
-                onUpdateRoute={this.onUpdateRoutesCallback}
-                onOpenEditIntegrationTemplate={this.openEditTemplateModal}
-              />
+              <Suspense>
+                <LazyEditRegexTemplateModal
+                  alertReceiveChannelId={id}
+                  channelFilterId={channelFilterIdForEdit}
+                  template={selectedTemplate}
+                  onHide={() => this.setState({ isEditRegexpRouteTemplateModalOpen: false })}
+                  onUpdateRoute={this.onUpdateRoutesCallback}
+                  onOpenEditIntegrationTemplate={this.openEditTemplateModal}
+                />
+              </Suspense>
             )}
           </div>
         )}
@@ -982,3 +990,6 @@ export const IntegrationPage = withRouter<
   RouteProps,
   Omit<IntegrationProps, 'store' | 'meta' | 'theme' | 'drawerConfig'>
 >(withMobXProviderContext(withTheme2(withDrawer<IntegrationDrawerKey>(_IntegrationPage))));
+
+// !! ONLY for React Suspense, NOT for direct import
+export default IntegrationPage;

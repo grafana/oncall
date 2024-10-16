@@ -732,3 +732,6 @@ class _SchedulePage extends React.Component<SchedulePageProps, SchedulePageState
 export const SchedulePage = withRouter<RouteProps, Omit<SchedulePageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_SchedulePage))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default SchedulePage;

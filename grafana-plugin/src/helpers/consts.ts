@@ -1,6 +1,8 @@
 import { GrafanaBootConfig } from '@grafana/runtime';
 import { OnCallAppPluginMeta } from 'app-types';
 
+import { determineCurrentEnv } from './currentEnv';
+
 //@ts-ignore
 import plugin from '../../package.json'; // eslint-disable-line
 
@@ -12,18 +14,6 @@ export type PluginId = (typeof PluginId)[keyof typeof PluginId];
 
 export const getIsIrmPluginPresent = () => PluginId.Irm in (window.grafanaBootData?.settings as GrafanaBootConfig).apps;
 
-// Determine current environment: cloud, oss or local
-const CLOUD_VERSION_REGEX = /^(v\d+\.\d+\.\d+|github-actions-[a-zA-Z0-9-]+)$/;
-const determineCurrentEnv = (): 'oss' | 'cloud' | 'local' => {
-  if (CLOUD_VERSION_REGEX.test(plugin?.version)) {
-    return 'cloud';
-  }
-  try {
-    return process.env.NODE_ENV === 'development' ? 'local' : 'oss';
-  } catch (error) {
-    return 'cloud';
-  }
-};
 const CURRENT_ENV = determineCurrentEnv();
 export const IS_CURRENT_ENV_CLOUD = CURRENT_ENV === 'cloud';
 export const IS_CURRENT_ENV_OSS = CURRENT_ENV === 'oss';
@@ -112,6 +102,7 @@ export enum PAGE {
   Users = 'users',
 }
 
+/* TextEllipsisTooltip's text child should have this class */
 export const TEXT_ELLIPSIS_CLASS = 'overflow-child';
 
 export const INCIDENT_HORIZONTAL_SCROLLING_STORAGE = 'isIncidentalTableHorizontalScrolling';

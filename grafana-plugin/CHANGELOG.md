@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.12.1](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.12.0...grafana-oncall-app-v1.12.1) (2024-10-09)
+
+
+### Miscellaneous Chores
+
+* vitest, eslint, ts improvements of grafana-irm-app ([#232](https://github.com/grafana/irm/issues/232)) ([4193bdc](https://github.com/grafana/irm/commit/4193bdc132830023a2a7ea5cd7c820f3f4e6f332))
+
+## [1.12.0](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.11.0...grafana-oncall-app-v1.12.0) (2024-10-09)
+
+
+### Features
+
+* Split loading of the components ([#202](https://github.com/grafana/irm/issues/202)) ([deecd16](https://github.com/grafana/irm/commit/deecd16a2a0a64f7a5ecb61b93f5012e82862229))
+
+
+### Miscellaneous Chores
+
+* move apps to [@plugins](https://github.com/plugins) folder ([#227](https://github.com/grafana/irm/issues/227)) ([54db2dd](https://github.com/grafana/irm/commit/54db2ddeaaf1fbb33816bce53d37b167bad975eb))
+* swap out dev version number ([#229](https://github.com/grafana/irm/issues/229)) ([bfeb20e](https://github.com/grafana/irm/commit/bfeb20e851049d3d469317f03a78223802886d70))
+
+## [1.11.0](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.10.0...grafana-oncall-app-v1.11.0) (2024-10-02)
+
+
+### Features
+
+* start syncing labels and IRM plugin RBAC permissions ([#200](https://github.com/grafana/irm/issues/200)) ([b4e9e02](https://github.com/grafana/irm/commit/b4e9e02e22322bf5a5691b216a02af83ae9fbf2e))
+
+## [1.10.0](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.9.28...grafana-oncall-app-v1.10.0) (2024-10-02)
+
+
+### Features
+
+* add declare incident escalation step ([#205](https://github.com/grafana/irm/issues/205)) ([02e7215](https://github.com/grafana/irm/commit/02e72157e61ef70fc964927f74b8f69235f541aa))
+* update timeline referenced objects to be links ([#206](https://github.com/grafana/irm/issues/206)) ([309d932](https://github.com/grafana/irm/commit/309d932843d645e97a13dd8f59e8de4100005ef4))
+
+
+### Miscellaneous Chores
+
+* Back merge oncall ([#214](https://github.com/grafana/irm/issues/214)) ([1fc0a28](https://github.com/grafana/irm/commit/1fc0a28f19f56c91ff52e909fb927122f939a646))
+
 ## [1.9.28](https://github.com/grafana/irm/compare/grafana-oncall-app-v1.9.27...grafana-oncall-app-v1.9.28) (2024-10-01)
 
 

@@ -25,3 +25,6 @@ class TeamsSettingsPage extends React.Component<AppRootProps, TeamsSettingsPageS
 }
 
 export const TeamsSettings = withMobXProviderContext(TeamsSettingsPage);
+
+// !! ONLY for React Suspense, NOT for direct import
+export default TeamsSettings;

@@ -17,12 +17,11 @@ export const checkWebhookPresenceInTable = async ({
     .click();
   await page.keyboard.insertText(webhookName);
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(4000);
 
   // webhooks table displays details created webhook
   const webhooksTable = page.getByTestId('outgoing-webhooks-table');
   await expect(webhooksTable.getByRole('cell', { name: webhookName })).toBeVisible();
   await expect(webhooksTable.getByRole('cell', { name: expectedTriggerType })).toBeVisible();
-  await expect(webhooksTable.getByRole('cell', { name: webhookName })).toBeVisible();
   await expect(webhooksTable.getByRole('cell', { name: 'No team' })).toBeVisible();
 };

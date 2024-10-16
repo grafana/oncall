@@ -171,3 +171,5 @@ const _ScheduleFinal: FC<ScheduleFinalProps> = observer(
 );
 
 export const ScheduleFinal = withMobXProviderContext(withTheme2(_ScheduleFinal));
+
+export default ScheduleFinal;

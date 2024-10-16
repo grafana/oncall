@@ -35,12 +35,14 @@ export const getIntegrationTemplateStyles = (theme: GrafanaTheme2) => {
     `,
 
     templateEditorBlockTitle: css`
-        padding: 8px 16px 0;
-    align-items: baseline;
-    border: 1px solid ${theme.colors.border.weak};
-    background-color: ${theme.colors.background.secondary}
-    height: 56px;
-    min-width: min-content;`,
+      min-height: 42px;
+      padding: 8px 16px 0;
+      align-items: baseline;
+      border: 1px solid ${theme.colors.border.weak};
+      background-color: ${theme.colors.background.secondary}
+      height: 56px;
+      min-width: min-content;
+    `,
 
     templateBlockList: css`
       width: 30%;
