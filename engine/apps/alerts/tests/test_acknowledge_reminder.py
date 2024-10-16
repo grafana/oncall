@@ -3,12 +3,13 @@ from unittest.mock import patch
 
 import pytest
 from celery import uuid as celery_uuid
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.alerts.tasks import acknowledge_reminder_task
-from apps.alerts.tasks.acknowledge_reminder import unacknowledge_timeout_task
+from apps.alerts.tasks.acknowledge_reminder import send_post_ack_reminder_message_signal, unacknowledge_timeout_task
 from apps.user_management.models import Organization
 
 TASK_ID = "TASK_ID"
@@ -156,8 +157,10 @@ def test_acknowledge_reminder_task_skip(
 
 @patch.object(unacknowledge_timeout_task, "apply_async")
 @patch.object(acknowledge_reminder_task, "apply_async")
+@patch.object(send_post_ack_reminder_message_signal, "delay")
 @pytest.mark.django_db
-def test_acknowledge_reminder_task_reschedules_itself(
+def test_acknowledge_reminder_task_reschedules_itself_and_sends_signal(
+    mock_send_post_ack_reminder_message_signal,
     mock_acknowledge_reminder_task,
     mock_unacknowledge_timeout_task,
     ack_reminder_test_setup,
@@ -169,9 +172,6 @@ def test_acknowledge_reminder_task_reschedules_itself(
     with django_capture_on_commit_callbacks(execute=True) as callbacks:
         acknowledge_reminder_task(alert_group.pk, TASK_ID)
 
-    # send_alert_group_signal task is queued after commit
-    assert len(callbacks) == 1
-
     mock_unacknowledge_timeout_task.assert_not_called()
     mock_acknowledge_reminder_task.assert_called_once_with(
         (alert_group.pk, TASK_ID),
@@ -181,6 +181,10 @@ def test_acknowledge_reminder_task_reschedules_itself(
     log_record = alert_group.log_records.get()
     assert log_record.type == AlertGroupLogRecord.TYPE_ACK_REMINDER_TRIGGERED
     assert log_record.author == alert_group.acknowledged_by_user
+
+    # send_post_ack_reminder_message_signal task is queued after commit
+    assert len(callbacks) == 1
+    mock_send_post_ack_reminder_message_signal.assert_called_once_with(log_record.id)
 
 
 @patch.object(unacknowledge_timeout_task, "apply_async")
@@ -369,3 +373,46 @@ def test_ack_reminder_cancel_too_old(
     mock_acknowledge_reminder_task.assert_not_called()
 
     assert not alert_group.log_records.exists()
+
+
+@pytest.mark.django_db
+def test_acknowledge_reminder_skip_doubled_notification(
+    ack_reminder_test_setup,
+    django_capture_on_commit_callbacks,
+    caplog,
+):
+    organization, alert_group, user = ack_reminder_test_setup(
+        unacknowledge_timeout=Organization.UNACKNOWLEDGE_TIMEOUT_NEVER
+    )
+    expected_log_text = f"Acknowledge reminder for alert_group {alert_group.id} has already been sent recently."
+
+    # check task lock cache doesn't exist
+    lock_id = f"acknowledge-reminder-lock-{alert_group.id}"
+    assert cache.get(lock_id) is None
+
+    with patch.object(acknowledge_reminder_task, "apply_async") as mock_acknowledge_reminder_task:
+        with patch.object(send_post_ack_reminder_message_signal, "delay") as mock_send_signal:
+            with django_capture_on_commit_callbacks(execute=True):
+                acknowledge_reminder_task(alert_group.pk, TASK_ID)
+
+            log_record = alert_group.log_records.get()
+            assert log_record.type == AlertGroupLogRecord.TYPE_ACK_REMINDER_TRIGGERED
+            mock_send_signal.assert_called_once_with(log_record.id)
+            mock_acknowledge_reminder_task.assert_called_once()
+
+    # check task lock cache exists
+    assert cache.get(lock_id) == TASK_ID
+
+    assert expected_log_text not in caplog.text
+
+    # acknowledge_reminder_task doesn't proceed the second time if it has been called recently
+    with patch.object(acknowledge_reminder_task, "apply_async") as mock_acknowledge_reminder_task:
+        with patch.object(send_post_ack_reminder_message_signal, "delay") as mock_send_signal:
+            with django_capture_on_commit_callbacks(execute=True):
+                acknowledge_reminder_task(alert_group.pk, TASK_ID)
+
+            assert alert_group.log_records.count() == 1
+            mock_send_signal.assert_not_called()
+            mock_acknowledge_reminder_task.assert_not_called()
+
+    assert expected_log_text in caplog.text
