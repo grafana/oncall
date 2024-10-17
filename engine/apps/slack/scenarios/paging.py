@@ -373,7 +373,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
             # user is currently on-call
             error_msg = None
             try:
-                updated_payload = add_or_update_item(payload, DataKey.USERS, selected_user.pk, Policy.DEFAULT)
+                updated_payload = add_or_update_item(payload, DataKey.USERS, selected_user.pk, Policy.IMPORTANT)
             except ValueError:
                 updated_payload = payload
                 error_msg = "Cannot add user, maximum responders exceeded"
@@ -449,7 +449,9 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
 
         error_msg = None
         try:
-            updated_payload = add_or_update_item(previous_view_payload, DataKey.USERS, selected_user.pk, Policy.DEFAULT)
+            updated_payload = add_or_update_item(
+                previous_view_payload, DataKey.USERS, selected_user.pk, Policy.IMPORTANT
+            )
         except ValueError:
             updated_payload = payload
             error_msg = "Cannot add user, maximum responders exceeded"

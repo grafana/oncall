@@ -195,7 +195,7 @@ def test_add_user_no_warning(make_organization_and_user_with_slack_identities, m
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
 
 
 @pytest.mark.django_db
@@ -277,7 +277,7 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
         actions=[
             {
                 "selected_option": {
-                    "value": make_value({"action": Policy.IMPORTANT, "key": DataKey.USERS, "id": user.pk}, organization)
+                    "value": make_value({"action": Policy.DEFAULT, "key": DataKey.USERS, "id": user.pk}, organization)
                 }
             }
         ],
@@ -288,7 +288,7 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
+    assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
 
 
 @pytest.mark.django_db
