@@ -93,6 +93,7 @@ CELERY_TASK_ROUTES = {
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
+    "apps.alerts.tasks.acknowledge_reminder.send_post_ack_reminder_message_signal": {"queue": "critical"},
     "apps.alerts.tasks.declare_incident.declare_incident": {"queue": "critical"},
     "apps.alerts.tasks.distribute_alert.send_alert_create_signal": {"queue": "critical"},
     "apps.alerts.tasks.escalate_alert_group.escalate_alert_group": {"queue": "critical"},

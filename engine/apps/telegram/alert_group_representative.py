@@ -41,7 +41,6 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
             AlertGroupLogRecord.TYPE_AUTO_UN_ACK: "alert_group_action",
             AlertGroupLogRecord.TYPE_RESOLVED: "alert_group_action",
             AlertGroupLogRecord.TYPE_UN_RESOLVED: "alert_group_action",
-            AlertGroupLogRecord.TYPE_ACK_REMINDER_TRIGGERED: "alert_group_action",
             AlertGroupLogRecord.TYPE_SILENCE: "alert_group_action",
             AlertGroupLogRecord.TYPE_UN_SILENCE: "alert_group_action",
             AlertGroupLogRecord.TYPE_ATTACHED: "alert_group_action",

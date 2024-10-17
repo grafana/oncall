@@ -15,7 +15,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack = serializers.DictField(required=False)
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
 
-    SELECT_RELATED = ["team"]
+    SELECT_RELATED = ["team", "user_group"]
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
@@ -23,9 +23,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_on_call_now(self, obj):
-        users_on_call = list_users_to_notify_from_ical(
-            obj, datetime.datetime.now(datetime.timezone.utc), from_cached_final=True
-        )
+        users_on_call = list_users_to_notify_from_ical(obj, datetime.datetime.now(datetime.timezone.utc))
         if users_on_call is not None:
             return [user.public_primary_key for user in users_on_call]
         else:

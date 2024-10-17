@@ -37,7 +37,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "enable_web_overrides",
         ]
 
-    SELECT_RELATED = ["organization"]
+    SELECT_RELATED = ["organization", "team", "user_group"]
 
     CANT_UPDATE_USER_GROUP_WARNING = (
         "Cannot update the user group, make sure to grant user group modification rights to "
