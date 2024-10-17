@@ -46,15 +46,18 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "grafana_incident_enabled",
         ]
 
-    def get_slack_channel(self, obj):
+    def get_slack_channel(self, obj: Organization):
         from apps.slack.models import SlackChannel
 
-        if obj.general_log_channel_id is None or obj.slack_team_identity is None:
+        org_general_log_channel_id = obj.general_log_slack_channel_id
+        slack_team_identity = obj.slack_team_identity
+
+        if org_general_log_channel_id is None or slack_team_identity is None:
             return None
         try:
-            channel = obj.slack_team_identity.get_cached_channels().get(slack_id=obj.general_log_channel_id)
+            channel = slack_team_identity.get_cached_channels().get(slack_id=org_general_log_channel_id)
         except SlackChannel.DoesNotExist:
-            return {"display_name": None, "slack_id": obj.general_log_channel_id, "id": None}
+            return {"display_name": None, "slack_id": org_general_log_channel_id, "id": None}
 
         return {
             "display_name": channel.name,

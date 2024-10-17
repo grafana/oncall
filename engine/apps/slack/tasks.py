@@ -198,8 +198,8 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
     if force:
         organization.slack_team_identity = None
-        organization.general_log_channel_id = None
-        organization.save(update_fields=["slack_team_identity", "general_log_channel_id"])
+        organization.general_log_slack_channel = None
+        organization.save(update_fields=["slack_team_identity", "general_log_slack_channel"])
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
@@ -555,11 +555,14 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
 def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
     """
-    This task removes binding to slack channel after channel arcived or deleted in slack.
+    TODO: once we add/migrate to ChannelFilter.slack_channel, this will mean that we no longer need this task
+    and it can be safely removed (foreign key relationships to a slack channel that is deleted in the db will
+    automatically be set to None due to on_delete=models.SET_NULL)
+
+    This task removes binding to slack channel after channel archived or deleted in slack.
     """
     from apps.alerts.models import ChannelFilter
     from apps.slack.models import SlackTeamIdentity
-    from apps.user_management.models import Organization
 
     try:
         sti = SlackTeamIdentity.objects.get(id=slack_team_identity_id)
@@ -569,16 +572,7 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
         )
         return
 
-    orgs_to_clean_general_log_channel_id = []
     for org in sti.organizations.all():
-        if org.general_log_channel_id == slack_channel_id:
-            logger.info(
-                f"Set general_log_channel_id to None for org_id={org.id}  slack_channel_id={slack_channel_id} since slack_channel is arcived or deleted"
-            )
-            org.general_log_channel_id = None
-            orgs_to_clean_general_log_channel_id.append(org)
         ChannelFilter.objects.filter(alert_receive_channel__organization=org, slack_channel_id=slack_channel_id).update(
             slack_channel_id=None
         )
-
-    Organization.objects.bulk_update(orgs_to_clean_general_log_channel_id, ["general_log_channel_id"], batch_size=5000)
