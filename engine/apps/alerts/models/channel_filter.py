@@ -176,7 +176,7 @@ class ChannelFilter(OrderedModel):
         if slack_team_identity is None:
             return None
         if self.slack_channel_id is None:
-            return organization.general_log_slack_channel_id
+            return organization.general_log_slack_channel_slack_id
         else:
             return self.slack_channel_id
 

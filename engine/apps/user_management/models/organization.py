@@ -356,7 +356,7 @@ class Organization(MaintainableObject):
         )
 
     @property
-    def general_log_slack_channel_id(self) -> typing.Optional[str]:
+    def general_log_slack_channel_slack_id(self) -> typing.Optional[str]:
         return self.general_log_slack_channel.slack_id if self.general_log_slack_channel else None
 
     @property

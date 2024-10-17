@@ -49,7 +49,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def get_slack_channel(self, obj: Organization):
         from apps.slack.models import SlackChannel
 
-        org_general_log_channel_id = obj.general_log_slack_channel_id
+        org_general_log_channel_id = obj.general_log_slack_channel_slack_id
         slack_team_identity = obj.slack_team_identity
 
         if org_general_log_channel_id is None or slack_team_identity is None:

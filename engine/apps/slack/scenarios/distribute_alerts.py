@@ -71,7 +71,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                     alert.group.channel_filter.slack_channel_id_or_general_log_id
                     if alert.group.channel_filter
                     # if channel filter is deleted mid escalation, use default Slack channel
-                    else alert.group.channel.organization.general_log_slack_channel_id
+                    else alert.group.channel.organization.general_log_slack_channel_slack_id
                 )
                 self._send_first_alert(alert, channel_id)
             except (SlackAPIError, TimeoutError):

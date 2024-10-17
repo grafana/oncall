@@ -90,4 +90,4 @@ def test_unpopulate_slack_user_identities(
 
     # check that Slack specific info is reset for organization
     assert organization.slack_team_identity is None
-    assert organization.general_log_slack_channel_id is None
+    assert organization.general_log_slack_channel_slack_id is None

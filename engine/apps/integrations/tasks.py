@@ -169,7 +169,7 @@ def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs)
     else:
         cache.set(cache_key, True, 60 * 15)  # Set cache before sending message to make sure we don't ratelimit slack
         slack_team_identity = organization.slack_team_identity
-        org_general_log_channel_id = organization.general_log_slack_channel_id
+        org_general_log_channel_id = organization.general_log_slack_channel_slack_id
 
         if slack_team_identity is not None and org_general_log_channel_id is not None:
             try:
