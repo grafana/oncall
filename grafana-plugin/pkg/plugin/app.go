@@ -29,8 +29,9 @@ var (
 // App is an example app backend plugin which can respond to data queries.
 type App struct {
 	backend.CallResourceHandler
-	httpClient   *http.Client
-	installMutex sync.Mutex
+	pluginIDsToSyncPermissions []string
+	httpClient                 *http.Client
+	installMutex               sync.Mutex
 	*OnCallSyncCache
 	*OnCallSettingsCache
 	*OnCallUserCache
@@ -41,6 +42,11 @@ type App struct {
 func NewApp(ctx context.Context, settings backend.AppInstanceSettings) (*App, error) {
 	var app App
 
+	app.pluginIDsToSyncPermissions = []string{
+		ONCALL_PLUGIN_ID,
+		IRM_PLUGIN_ID,
+		LABELS_PLUGIN_ID,
+	}
 	app.OnCallSyncCache = &OnCallSyncCache{}
 	app.OnCallSettingsCache = &OnCallSettingsCache{}
 	app.OnCallUserCache = NewOnCallUserCache()

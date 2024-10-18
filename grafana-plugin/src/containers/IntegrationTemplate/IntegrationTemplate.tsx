@@ -251,3 +251,5 @@ export const IntegrationTemplate = observer((props: IntegrationTemplateProps) =>
     );
   }
 });
+
+export default IntegrationTemplate;

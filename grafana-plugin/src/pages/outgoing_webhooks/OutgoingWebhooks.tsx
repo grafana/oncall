@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -25,7 +25,6 @@ import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { WebhookLastEventTimestamp } from 'components/Webhooks/WebhookLastEventTimestamp';
 import { WebhookName } from 'components/Webhooks/WebhookName';
-import { OutgoingWebhookForm } from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -51,6 +50,8 @@ interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookId?: ApiSchemas['Webhook']['id'];
   confirmationModal: ConfirmModalProps;
 }
+
+const LazyOutgoingWebhookForm = lazy(() => import('containers/OutgoingWebhookForm/OutgoingWebhookForm'));
 
 @observer
 class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
@@ -231,17 +232,19 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
             </div>
 
             {outgoingWebhookId && outgoingWebhookAction && (
-              <OutgoingWebhookForm
-                id={outgoingWebhookId}
-                action={outgoingWebhookAction}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
-                onDelete={async () => {
-                  await this.onDeleteClick(outgoingWebhookId);
-                  this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
-                  navigate(`${PLUGIN_ROOT}/outgoing_webhooks`);
-                }}
-              />
+              <Suspense>
+                <LazyOutgoingWebhookForm
+                  id={outgoingWebhookId}
+                  action={outgoingWebhookAction}
+                  onUpdate={this.update}
+                  onHide={this.handleOutgoingWebhookFormHide}
+                  onDelete={async () => {
+                    await this.onDeleteClick(outgoingWebhookId);
+                    this.setState({ outgoingWebhookId: undefined, outgoingWebhookAction: undefined });
+                    navigate(`${PLUGIN_ROOT}/outgoing_webhooks`);
+                  }}
+                />
+              </Suspense>
             )}
           </>
         )}
@@ -356,7 +359,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     return (
       <TextEllipsisTooltip content={url} placement="top">
-        <Text className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-3'))}>{url}</Text>
+        <Text className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-3'), TEXT_ELLIPSIS_CLASS)}>
+          {url}
+        </Text>
       </TextEllipsisTooltip>
     );
   };
@@ -482,3 +487,6 @@ const getStyles = () => {
 export const OutgoingWebhooksPage = withRouter<RouteProps, Omit<OutgoingWebhooksProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(OutgoingWebhooks))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default OutgoingWebhooksPage;

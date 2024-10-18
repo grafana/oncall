@@ -283,3 +283,6 @@ const getStyles = (theme: GrafanaTheme2) => {
 };
 
 export const LiveSettings = withMobXProviderContext(withTheme2(_LiveSettings));
+
+// !! ONLY for React Suspense, NOT for direct import
+export default LiveSettings;

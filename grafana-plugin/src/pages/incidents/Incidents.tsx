@@ -6,7 +6,13 @@ import { LabelTag } from '@grafana/labels';
 import { Button, Icon, RadioButtonGroup, RefreshPicker, Tooltip, Stack, withTheme2 } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { UserActions } from 'helpers/authorization/authorization';
-import { INCIDENT_HORIZONTAL_SCROLLING_STORAGE, PAGE, PLUGIN_ROOT, StackSize } from 'helpers/consts';
+import {
+  INCIDENT_HORIZONTAL_SCROLLING_STORAGE,
+  PAGE,
+  PLUGIN_ROOT,
+  StackSize,
+  TEXT_ELLIPSIS_CLASS,
+} from 'helpers/consts';
 import { PropsWithRouter, withRouter } from 'helpers/hoc';
 import { getItem, setItem } from 'helpers/localStorage';
 import { TableColumn } from 'helpers/types';
@@ -627,7 +633,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
     const styles = getUtilStyles(this.props.theme);
     return (
       <TextEllipsisTooltip placement="top-start" content={`#${record.inside_organization_number}`}>
-        <Text type="secondary" className={cx(styles.overflowChild)}>
+        <Text type="secondary" className={cx(styles.overflowChild, TEXT_ELLIPSIS_CLASS)}>
           #{record.inside_organization_number}
         </Text>
       </TextEllipsisTooltip>
@@ -654,7 +660,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
                 ...query,
               }}
             >
-              <Text className={cx(utilStyles.overflowChild)}>{record.render_for_web.title}</Text>
+              <Text className={cx(utilStyles.overflowChild, TEXT_ELLIPSIS_CLASS)}>{record.render_for_web.title}</Text>
             </PluginLink>
           </Text>
         </TextEllipsisTooltip>
@@ -686,13 +692,21 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <TextEllipsisTooltip
-        className={cx(utilStyles.flex, utilStyles.flexGapXS)}
+        className={cx(
+          utilStyles.flex,
+          css`
+            gap: 8px;
+            align-items: center;
+          `
+        )}
         placement="top-start"
         content={record?.alert_receive_channel?.verbal_name || ''}
       >
-        <IntegrationLogo integration={integration} scale={0.1} />
+        <div>
+          <IntegrationLogo integration={integration} scale={0.1} />
+        </div>
         <Emoji
-          className={cx(utilStyles.overflowChild)}
+          className={cx(utilStyles.overflowChild, TEXT_ELLIPSIS_CLASS)}
           text={record.alert_receive_channel?.verbal_name || ''}
           data-testid="integration-name"
         />
@@ -779,7 +793,7 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <TextEllipsisTooltip placement="top-start" content={teams[record.team]?.name}>
-        <TeamName className={styles.overflowChild} team={teams[record.team]} />
+        <TeamName className={cx(styles.overflowChild, TEXT_ELLIPSIS_CLASS)} team={teams[record.team]} />
       </TextEllipsisTooltip>
     );
   };
@@ -814,7 +828,10 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 
     return (
       <TextEllipsisTooltip placement="top-start" content={matchingLabel}>
-        <Text type="secondary" className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'))}>
+        <Text
+          type="secondary"
+          className={cx(utilStyles.overflowChild, bem(utilStyles.overflowChild, 'line-1'), TEXT_ELLIPSIS_CLASS)}
+        >
           {matchingLabel}
         </Text>
       </TextEllipsisTooltip>
@@ -1052,3 +1069,6 @@ class _IncidentsPage extends React.Component<IncidentsPageProps, IncidentsPageSt
 export const IncidentsPage = withRouter<RouteProps, Omit<IncidentsPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_IncidentsPage))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default IncidentsPage;

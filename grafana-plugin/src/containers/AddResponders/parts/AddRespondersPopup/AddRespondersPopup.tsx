@@ -205,8 +205,8 @@ export const AddRespondersPopup = observer(
 
           return (
             <div onClick={() => addTeamResponder(team)} className={styles.responderItem}>
-              <Stack justifyContent="space-between">
-                <Stack>
+              <Stack justifyContent="space-between" alignItems="center">
+                <Stack alignItems="center">
                   <Avatar size="small" src={avatar_url} />
                   <Text>{name}</Text>
                 </Stack>
@@ -234,7 +234,7 @@ export const AddRespondersPopup = observer(
           return (
             <div onClick={() => (disabled ? undefined : onClickUser(user))} className={styles.responderItem}>
               <Stack justifyContent="space-between">
-                <Stack>
+                <Stack alignItems="center">
                   <Avatar size="small" src={avatar} />
                   <Text type={disabled ? 'disabled' : undefined} className={styles.responderName}>
                     {name || username}

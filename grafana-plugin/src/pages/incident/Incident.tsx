@@ -933,3 +933,6 @@ const AlertGroupStub = ({ buttons }: { buttons: React.ReactNode }) => {
 export const IncidentPage = withRouter<RouteProps, Omit<IncidentPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_IncidentPage))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default IncidentPage;

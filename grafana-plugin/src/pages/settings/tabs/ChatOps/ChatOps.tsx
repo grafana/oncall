@@ -104,6 +104,9 @@ export class _ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
 export const ChatOpsPage = withMobXProviderContext(withTheme2(_ChatOpsPage));
 
+// !! ONLY for React Suspense, NOT for direct import
+export default ChatOpsPage;
+
 interface TabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;

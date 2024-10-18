@@ -58,7 +58,7 @@ export const IntegrationFormContainer = observer((props: IntegrationFormContaine
   return (
     <>
       {showIntegrationsListDrawer && (
-        <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
+        <Drawer title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={styles.content}>
             <Stack direction="column">
               <Text type="secondary">
@@ -164,3 +164,5 @@ const IntegrationBlocks: React.FC<{
     </div>
   );
 };
+
+export default IntegrationFormContainer;

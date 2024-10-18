@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 
-import { css, cx } from '@emotion/css';
+import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, Stack, Icon, ConfirmModal, Tooltip, Tab, TabsBar, TabContent, Alert, withTheme2 } from '@grafana/ui';
+import {
+  Button,
+  Stack,
+  Icon,
+  ConfirmModal,
+  Tooltip,
+  Tab,
+  TabsBar,
+  TabContent,
+  Alert,
+  withTheme2,
+} from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { UserActions } from 'helpers/authorization/authorization';
 import { PAGE, StackSize, TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
@@ -30,8 +41,6 @@ import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
 import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import { IntegrationFormContainer } from 'containers/IntegrationForm/IntegrationFormContainer';
-import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -92,6 +101,9 @@ interface IntegrationsState extends PageBaseState {
 interface IntegrationsProps extends WithStoreProps, PageProps, PropsWithRouter<RouteProps> {
   theme: GrafanaTheme2;
 }
+
+const LazyIntegrationFormContainer = lazy(() => import('containers/IntegrationForm/IntegrationFormContainer'));
+const LazyIntegrationLabelsForm = lazy(() => import('containers/IntegrationLabelsForm/IntegrationLabelsForm'));
 
 @observer
 class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsState> {
@@ -224,9 +236,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
               </Stack>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
-                  onClick={() => {
-                    this.setState({ alertReceiveChannelId: 'new' });
-                  }}
+                  onClick={() => this.setState({ alertReceiveChannelId: 'new' })}
                   icon="plus"
                   className={styles.newIntegrationButton}
                 >
@@ -291,29 +301,33 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
         </div>
 
         {alertReceiveChannelId && (
-          <IntegrationFormContainer
-            onHide={() => {
-              this.setState({ alertReceiveChannelId: undefined });
-            }}
-            onSubmit={this.update}
-            id={alertReceiveChannelId}
-            navigateToAlertGroupLabels={(id: ApiSchemas['AlertReceiveChannel']['id']) => {
-              this.setState({ alertReceiveChannelId: undefined, alertReceiveChannelIdToShowLabels: id });
-            }}
-          />
+          <Suspense>
+            <LazyIntegrationFormContainer
+              onHide={() => {
+                this.setState({ alertReceiveChannelId: undefined });
+              }}
+              onSubmit={this.update}
+              id={alertReceiveChannelId}
+              navigateToAlertGroupLabels={(id: ApiSchemas['AlertReceiveChannel']['id']) => {
+                this.setState({ alertReceiveChannelId: undefined, alertReceiveChannelIdToShowLabels: id });
+              }}
+            />
+          </Suspense>
         )}
 
         {alertReceiveChannelIdToShowLabels && (
-          <IntegrationLabelsForm
-            onHide={() => {
-              this.setState({ alertReceiveChannelIdToShowLabels: undefined });
-            }}
-            onSubmit={this.update}
-            id={alertReceiveChannelIdToShowLabels}
-            onOpenIntegrationSettings={(id: ApiSchemas['AlertReceiveChannel']['id']) => {
-              this.setState({ alertReceiveChannelId: id });
-            }}
-          />
+          <Suspense>
+            <LazyIntegrationLabelsForm
+              onHide={() => {
+                this.setState({ alertReceiveChannelIdToShowLabels: undefined });
+              }}
+              onSubmit={this.update}
+              id={alertReceiveChannelIdToShowLabels}
+              onOpenIntegrationSettings={(id: ApiSchemas['AlertReceiveChannel']['id']) => {
+                this.setState({ alertReceiveChannelId: id });
+              }}
+            />
+          </Suspense>
         )}
 
         {confirmationModal && (
@@ -350,7 +364,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
       >
         <TextEllipsisTooltip placement="top" content={item.verbal_name}>
           <Text type="link" size="medium">
-            <Emoji className={cx(TEXT_ELLIPSIS_CLASS)} text={item.verbal_name} />
+            <Emoji className={TEXT_ELLIPSIS_CLASS} text={item.verbal_name} />
           </Text>
         </TextEllipsisTooltip>
       </PluginLink>
@@ -367,7 +381,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 
     if (isLegacyIntegration) {
       return (
-        <Stack>
+        <Stack alignItems="center">
           <Tooltip placement="top" content={'This integration has been deprecated, consider migrating it.'}>
             <Icon
               name="info-circle"
@@ -390,7 +404,7 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
     }
 
     return (
-      <Stack>
+      <Stack alignItems="center">
         <IntegrationLogo scale={0.08} integration={integration} />
         <Text type="secondary">{integration?.display_name}</Text>
       </Stack>
@@ -717,3 +731,6 @@ class _IntegrationsPage extends React.Component<IntegrationsProps, IntegrationsS
 export const IntegrationsPage = withRouter<RouteProps, Omit<IntegrationsProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_IntegrationsPage))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default IntegrationsPage;

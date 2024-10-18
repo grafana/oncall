@@ -157,3 +157,5 @@ const getStyles = (theme: GrafanaTheme2) => {
     `,
   };
 };
+
+export default ServiceNowConfigDrawer;

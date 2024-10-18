@@ -1,14 +1,15 @@
 import { ComponentClass } from 'react';
 
 import { AppPlugin, PluginExtensionPoints } from '@grafana/data';
+import { OnCallPluginMetaJSONData, OnCallPluginConfigPageProps } from 'app-types';
 import { getIsIrmPluginPresent, IRM_TAB } from 'helpers/consts';
 import { isCurrentGrafanaVersionEqualOrGreaterThan } from 'helpers/helpers';
 
-import { MobileAppConnectionWrapper } from 'containers/MobileAppConnection/MobileAppConnection';
+import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import { PluginConfigPage } from 'containers/PluginConfigPage/PluginConfigPage';
 import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 
-import { OnCallPluginConfigPageProps, OnCallPluginMetaJSONData } from './app-types';
+// const LazyMobileAppConnection = React.lazy(() => import('containers/MobileAppConnection/MobileAppConnection'));
 
 const plugin = new AppPlugin<OnCallPluginMetaJSONData>().setRootPage(GrafanaPluginRootPage).addConfigPage({
   title: 'Configuration',
@@ -25,14 +26,14 @@ if (isUseProfileExtensionPointEnabled()) {
     plugin.addComponent({
       title: IRM_TAB,
       description: 'IRM settings',
-      component: MobileAppConnectionWrapper,
+      component: MobileAppConnection,
       targets: [extensionPointId],
     });
   } else {
     // v10
     // eslint-disable-next-line
     plugin.configureExtensionComponent({
-      component: MobileAppConnectionWrapper,
+      component: MobileAppConnection,
       title: IRM_TAB,
       description: 'IRM settings',
       extensionPointId: extensionPointId,

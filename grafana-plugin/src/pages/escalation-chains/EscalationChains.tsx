@@ -498,3 +498,6 @@ class _EscalationChainsPage extends React.Component<EscalationChainsPageProps, E
 export const EscalationChainsPage = withRouter<RouteProps, Omit<EscalationChainsPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_EscalationChainsPage))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default EscalationChainsPage;

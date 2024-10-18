@@ -376,7 +376,7 @@ function QRLoading() {
   );
 }
 
-export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
+export const MobileAppConnectionWrapper = observer(() => {
   const { userStore } = store;
   const { isConnected } = useInitializePlugin();
 
@@ -410,3 +410,6 @@ export const MobileAppConnectionWrapper: React.FC<{}> = observer(() => {
     </PluginInitializer>
   );
 });
+
+// !! ONLY for React Suspense, NOT for direct import
+export default MobileAppConnectionWrapper;

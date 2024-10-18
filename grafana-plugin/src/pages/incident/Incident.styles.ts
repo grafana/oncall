@@ -38,6 +38,7 @@ export const getIncidentStyles = (theme: GrafanaTheme2) => {
     timelineIconBackground: css`
       width: 28px;
       height: 28px;
+      min-width: 28px;
       border-radius: 50%;
       display: flex;
       justify-content: center;

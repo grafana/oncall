@@ -70,6 +70,7 @@ export const getTemplatesAlertGroupsListStyles = (theme: GrafanaTheme2) => {
       display: flex;
       padding: 8px;
       align-items: center;
+      gap: 8px;
 
       > div {
         margin-right: 8px;

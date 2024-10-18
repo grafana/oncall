@@ -402,3 +402,5 @@ export const getStyles = () => ({
     margin-bottom: 16px;
   `,
 });
+
+export default ScheduleForm;

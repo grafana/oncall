@@ -34,14 +34,14 @@ type OrgUser struct {
 }
 
 type OnCallUser struct {
-	ID          int                `json:"id"`
-	Name        string             `json:"name"`
-	Login       string             `json:"login"`
-	Email       string             `json:"email"`
-	Role        string             `json:"role"`
-	AvatarURL   string             `json:"avatar_url"`
-	Permissions []OnCallPermission `json:"permissions"`
-	Teams       []int              `json:"teams"`
+	ID          int              `json:"id"`
+	Name        string           `json:"name"`
+	Login       string           `json:"login"`
+	Email       string           `json:"email"`
+	Role        string           `json:"role"`
+	AvatarURL   string           `json:"avatar_url"`
+	Permissions []RBACPermission `json:"permissions"`
+	Teams       []int            `json:"teams"`
 }
 
 func (a *OnCallUser) Equal(b *OnCallUser) bool {
@@ -193,7 +193,7 @@ func (a *App) GetUserForHeader(settings *OnCallPluginSettings, user *backend.Use
 		}
 	}
 	if settings.RBACEnabled {
-		onCallUser.Permissions, err = a.GetPermissions(settings, onCallUser)
+		onCallUser.Permissions, err = a.GetPermissionsForUser(settings, onCallUser)
 		if err != nil {
 			return nil, err
 		}
@@ -268,9 +268,9 @@ func (a *App) GetAllUsersWithPermissions(settings *OnCallPluginSettings) ([]OnCa
 			userId := strconv.Itoa(onCallUsers[i].ID)
 			actions, exists := permissions[userId]
 			if exists {
-				onCallUsers[i].Permissions = []OnCallPermission{}
+				onCallUsers[i].Permissions = []RBACPermission{}
 				for action, _ := range actions {
-					onCallUsers[i].Permissions = append(onCallUsers[i].Permissions, OnCallPermission{Action: action})
+					onCallUsers[i].Permissions = append(onCallUsers[i].Permissions, RBACPermission{Action: action})
 				}
 			} else {
 				log.DefaultLogger.Error("Did not find permissions for user", "user", onCallUsers[i].Login, "id", userId)
