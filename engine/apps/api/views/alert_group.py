@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
+from apps.alerts.models import AlertGroup, AlertReceiveChannel, ResolutionNote
 from apps.alerts.paging import unpage_user
 from apps.alerts.tasks import delete_alert_group, send_update_resolution_note_signal
 from apps.alerts.utils import is_declare_incident_step_enabled
@@ -35,6 +35,9 @@ from common.api_helpers.filters import (
     DateRangeFilterMixin,
     ModelFieldFilterMixin,
     MultipleChoiceCharFilter,
+    get_escalation_chain_queryset,
+    get_integration_queryset,
+    get_user_queryset,
 )
 from common.api_helpers.mixins import (
     AlertGroupEnrichingMixin,
@@ -43,27 +46,6 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
 )
 from common.api_helpers.paginators import AlertGroupCursorPaginator
-
-
-def get_integration_queryset(request):
-    if request is None:
-        return AlertReceiveChannel.objects.none()
-
-    return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
-
-
-def get_escalation_chain_queryset(request):
-    if request is None:
-        return EscalationChain.objects.none()
-
-    return EscalationChain.objects.filter(organization=request.user.organization)
-
-
-def get_user_queryset(request):
-    if request is None:
-        return User.objects.none()
-
-    return User.objects.filter(organization=request.user.organization).distinct()
 
 
 class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
@@ -892,6 +874,7 @@ class AlertGroupView(
     def get_alert_to_template(self, payload=None):
         return self.get_object().alerts.first()
 
+    @extend_schema(responses=AlertGroupEscalationSnapshotAPISerializer)
     @action(methods=["get"], detail=True)
     def escalation_snapshot(self, request, pk=None):
         alert_group = self.get_object()
