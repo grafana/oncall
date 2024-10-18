@@ -287,31 +287,29 @@ def populate_slack_user_identities(organization_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def post_slack_rate_limit_message(integration_id):
-    from apps.alerts.models import AlertReceiveChannel
+def post_slack_rate_limit_message(slack_channel_id):
+    from apps.slack.models import SlackChannel
 
     try:
-        integration = AlertReceiveChannel.objects.get(pk=integration_id)
-    except AlertReceiveChannel.DoesNotExist:
-        logger.warning(f"AlertReceiveChannel {integration_id} doesn't exist")
+        slack_channel = SlackChannel.objects.get(pk=slack_channel_id)
+    except SlackChannel.DoesNotExist:
+        logger.warning(f"SlackChannel {slack_channel_id} doesn't exist")
         return
 
-    if not compare_escalations(post_slack_rate_limit_message.request.id, integration.rate_limit_message_task_id):
+    if not compare_escalations(post_slack_rate_limit_message.request.id, slack_channel.rate_limit_message_task_id):
         logger.info(
-            f"post_slack_rate_limit_message. integration {integration_id}. ID mismatch. "
-            f"Active: {integration.rate_limit_message_task_id}"
+            f"post_slack_rate_limit_message. slack_channel {slack_channel_id}. ID mismatch. "
+            f"Active: {slack_channel.rate_limit_message_task_id}"
         )
         return
-    default_route = integration.channel_filters.get(is_default=True)
-    slack_channel = default_route.slack_channel_id_or_general_log_id
-    if slack_channel:
-        text = (
-            f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
-            f"temporarily stopped due to rate limit. You could find new alert groups at "
-            f"<{integration.new_incidents_web_link}|web page "
-            '"Alert Groups">'
-        )
-        post_message_to_channel(integration.organization, slack_channel, text)
+
+    text = (
+        f"Delivering and updating alert groups in this Slack channel is "
+        f"temporarily stopped due to rate limit. You could find new alert groups at "
+        f"<{integration.new_incidents_web_link}|web page "
+        '"Alert Groups">'
+    )
+    post_message_to_channel(integration.organization, slack_channel, text)
 
 
 @shared_dedicated_queue_retry_task(

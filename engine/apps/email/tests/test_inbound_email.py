@@ -84,7 +84,7 @@ def test_amazon_ses_provider_load(
 def test_mailgun_provider_load(
     settings, make_organization_and_user_with_token, make_alert_receive_channel, recipients, expected
 ):
-    settings.INBOUND_EMAIL_ESP = "mailgun"
+    settings.INBOUND_EMAIL_ESP = "amazon_ses"
     settings.INBOUND_EMAIL_DOMAIN = "example.com"
     settings.INBOUND_EMAIL_WEBHOOK_SECRET = "secret"
 
