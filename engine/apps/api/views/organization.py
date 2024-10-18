@@ -127,6 +127,6 @@ class SetGeneralChannel(APIView):
             public_primary_key=slack_channel_id, slack_team_identity=slack_team_identity
         )
 
-        organization.set_general_log_channel(slack_channel.slack_id, slack_channel.name, request.user)
+        organization.set_general_log_channel(slack_channel, request.user)
 
         return Response(status=200)
