@@ -259,6 +259,8 @@ class Organization(MaintainableObject):
     alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
     grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
 
+    direct_paging_use_important_policy = models.BooleanField(default=False, null=True)
+
     class Meta:
         unique_together = ("stack_id", "org_id")
 
