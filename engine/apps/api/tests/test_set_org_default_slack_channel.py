@@ -30,7 +30,9 @@ def test_set_org_default_slack_channel_permissions(
     client = APIClient()
 
     url = reverse("api-internal:set-default-slack-channel")
-    with patch("apps.api.views.organization.SetDefaultSlackChannel.post", return_value=Response(status=status.HTTP_200_OK)):
+    with patch(
+        "apps.api.views.organization.SetDefaultSlackChannel.post", return_value=Response(status=status.HTTP_200_OK)
+    ):
         response = client.post(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
