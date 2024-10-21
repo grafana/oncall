@@ -94,7 +94,7 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
             text += f"_From {OnCallSchedule.CALENDAR_TYPE_VERBAL[empty_shift.calendar_type]} calendar_\n"
             if idx != len(empty_shifts) - 1:
                 text += "\n\n"
-        post_message_to_channel(schedule.organization, schedule.channel, text)
+        post_message_to_channel(schedule.organization, schedule.slack_channel_slack_id, text)
     else:
         schedule.has_empty_shifts = False
     schedule.save(update_fields=["empty_shifts_report_sent_at", "has_empty_shifts"])

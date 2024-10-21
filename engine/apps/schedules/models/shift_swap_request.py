@@ -169,7 +169,7 @@ class ShiftSwapRequest(models.Model):
         This is only set if the schedule associated with the shift swap request
         has a Slack channel configured for it.
         """
-        return self.schedule.channel
+        return self.schedule.slack_channel_slack_id
 
     @property
     def organization(self) -> "Organization":

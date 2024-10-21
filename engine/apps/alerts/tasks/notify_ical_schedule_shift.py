@@ -62,7 +62,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     try:
         schedule = OnCallSchedule.objects.get(
-            pk=schedule_pk, cached_ical_file_primary__isnull=False, channel__isnull=False
+            pk=schedule_pk, cached_ical_file_primary__isnull=False, slack_channel__isnull=False
         )
     except OnCallSchedule.DoesNotExist:
         task_logger.info(f"Trying to notify ical schedule shift for non-existing schedule {schedule_pk}")
@@ -164,7 +164,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
             try:
                 slack_client.chat_postMessage(
-                    channel=schedule.channel,
+                    channel=schedule.slack_channel_slack_id,
                     blocks=report_blocks,
                     text=f"On-call shift for schedule {schedule.name} has changed",
                 )

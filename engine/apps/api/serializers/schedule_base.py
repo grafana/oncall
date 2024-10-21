@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.api.serializers.slack_channel import SlackChannelSerializer
 from apps.api.serializers.user_group import UserGroupSerializer
 from apps.schedules.models import OnCallSchedule
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
@@ -12,7 +13,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
-    slack_channel = serializers.SerializerMethodField()
+    slack_channel = SlackChannelSerializer(read_only=True, allow_null=True, required=False)
     user_group = UserGroupSerializer()
     warnings = serializers.SerializerMethodField()
     on_call_now = serializers.SerializerMethodField()
@@ -37,7 +38,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "enable_web_overrides",
         ]
 
-    SELECT_RELATED = ["organization", "team", "user_group"]
+    SELECT_RELATED = ["organization", "team", "user_group", "slack_channel"]
 
     CANT_UPDATE_USER_GROUP_WARNING = (
         "Cannot update the user group, make sure to grant user group modification rights to "
@@ -45,15 +46,6 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     )
     SCHEDULE_HAS_GAPS_WARNING = "Schedule has unassigned time periods during next 7 days"
     SCHEDULE_HAS_EMPTY_SHIFTS_WARNING = "Schedule has empty shifts during next 7 days"
-
-    def get_slack_channel(self, obj):
-        if obj.channel is None:
-            return None
-        return {
-            "display_name": obj.slack_channel_name,
-            "slack_id": obj.channel,
-            "id": obj.slack_channel_pk,
-        }
 
     def get_warnings(self, obj):
         can_update_user_groups = self.context.get("can_update_user_groups", False)
@@ -83,9 +75,27 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def validate(self, attrs):
         if "slack_channel_id" in attrs:
-            slack_channel_id = attrs.pop("slack_channel_id", None)
-            attrs["channel"] = slack_channel_id.slack_id if slack_channel_id is not None else None
+            # this is set by OrganizationFilteredPrimaryKeyRelatedField in the serializer classes
+            # that subclass ScheduleBaseSerializer
+            slack_channel = attrs.pop("slack_channel_id", None)
+            attrs["slack_channel"] = slack_channel
         return attrs
+
+    # def validate(self, attrs):
+    #     if "slack_channel_id" in attrs:
+    #         slack_channel_id = attrs.pop("slack_channel_id", None)
+    #         attrs["channel"] = slack_channel_id.slack_id if slack_channel_id is not None else None
+    #     return attrs
+
+    # def to_internal_value(self, data):
+    #     result = super().to_internal_value(data)
+
+    #     print("YOOOOO to_internal_value 1", result)
+    #     if "slack_channel_id" in data:
+    #         result["slack_channel"] = data.pop("slack_channel_id", None)
+    #     print("YOOOOO to_internal_value 2", result)
+
+    #     return result
 
     def create(self, validated_data):
         created_schedule = super().create(validated_data)

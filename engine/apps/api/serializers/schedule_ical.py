@@ -33,6 +33,7 @@ class ScheduleICalCreateSerializer(ScheduleICalSerializer):
         queryset=SlackChannel.objects,
         required=False,
         allow_null=True,
+        write_only=True,
     )
     user_group = OrganizationFilteredPrimaryKeyRelatedField(
         filter_field="slack_team_identity__organizations",

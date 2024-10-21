@@ -77,7 +77,7 @@ def notify_about_gaps_in_schedule_task(schedule_pk):
             text += f"From {start_verbal} to {end_verbal} (your TZ)\n"
             if idx != len(gaps) - 1:
                 text += "\n\n"
-        post_message_to_channel(schedule.organization, schedule.channel, text)
+        post_message_to_channel(schedule.organization, schedule.slack_channel_slack_id, text)
     else:
         schedule.has_gaps = False
     schedule.save(update_fields=["gaps_report_sent_at", "has_gaps"])
