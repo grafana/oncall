@@ -32,7 +32,7 @@ def start_notify_about_empty_shifts_in_schedule():
     week_ago = today - timezone.timedelta(days=7)
     schedules = OnCallScheduleICal.objects.filter(
         empty_shifts_report_sent_at__lte=week_ago,
-        channel__isnull=False,
+        slack_channel__isnull=False,
         organization__deleted_at__isnull=True,
     )
 
@@ -54,7 +54,7 @@ def notify_about_empty_shifts_in_schedule_task(schedule_pk):
     if current_task_id != cached_task_id and cached_task_id is not None:
         return
     try:
-        schedule = OnCallSchedule.objects.get(pk=schedule_pk, channel__isnull=False)
+        schedule = OnCallSchedule.objects.get(pk=schedule_pk, slack_channel__isnull=False)
     except OnCallSchedule.DoesNotExist:
         task_logger.info(f"Tried to notify_about_empty_shifts_in_schedule_task for non-existing schedule {schedule_pk}")
         return
