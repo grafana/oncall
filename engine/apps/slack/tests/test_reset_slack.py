@@ -78,7 +78,7 @@ def test_unpopulate_slack_user_identities(
     # create organization and user with Slack connected
     slack_team_identity = make_slack_team_identity()
     slack_channel = make_slack_channel(slack_team_identity)
-    organization = make_organization(slack_team_identity=slack_team_identity,default_slack_channel=slack_channel)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
     user = make_user_for_organization(organization)
 
     assert organization.default_slack_channel_slack_id is not None
