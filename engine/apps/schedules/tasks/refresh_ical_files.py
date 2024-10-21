@@ -51,7 +51,7 @@ def refresh_ical_file(schedule_pk):
         return
 
     schedule.refresh_ical_file()
-    if schedule.channel is not None:
+    if schedule.slack_channel is not None:
         notify_ical_schedule_shift.apply_async((schedule.pk,))
 
     run_task_primary = False

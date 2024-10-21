@@ -37,7 +37,6 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.constants import PREFETCHED_SHIFT_SWAPS
 from apps.schedules.ical_utils import get_oncall_users_for_multiple_schedules
 from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
-from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -171,11 +170,6 @@ class ScheduleView(
 
     def _annotate_queryset(self, queryset):
         """Annotate queryset with additional schedule metadata."""
-        organization = self.request.auth.organization
-        slack_channels = SlackChannel.objects.filter(
-            slack_team_identity=organization.slack_team_identity,
-            slack_id=OuterRef("channel"),
-        )
         escalation_policies = (
             EscalationPolicy.objects.values("notify_schedule")
             .order_by("notify_schedule")
@@ -183,8 +177,6 @@ class ScheduleView(
             .filter(notify_schedule=OuterRef("id"))
         )
         queryset = queryset.annotate(
-            slack_channel_name=Subquery(slack_channels.values("name")[:1]),
-            slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
             num_escalation_chains=Subquery(escalation_policies.values("num_escalation_chains")[:1]),
         )
         return queryset
@@ -317,13 +309,14 @@ class ScheduleView(
         datetime_end = datetime_start + datetime.timedelta(days=1)
         events = schedule.filter_events(datetime_start, datetime_end, with_empty=with_empty, with_gap=with_gap)
 
+        schedule_slack_channel = schedule.slack_channel
         slack_channel = (
             {
-                "id": schedule.slack_channel_pk,
-                "slack_id": schedule.channel,
-                "display_name": schedule.slack_channel_name,
+                "id": schedule_slack_channel.public_primary_key,
+                "slack_id": schedule_slack_channel.slack_id,
+                "display_name": schedule_slack_channel.name,
             }
-            if schedule.channel is not None
+            if schedule_slack_channel is not None
             else None
         )
 
