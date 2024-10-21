@@ -627,7 +627,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         )
 
         if send_to_general_log_channel:
-            general_log_channel_id = self.organization.general_log_slack_channel_slack_id
+            general_log_channel_id = self.organization.default_slack_channel_slack_id
             if general_log_channel_id is not None:
                 channel_ids.append(general_log_channel_id)
         unique_channels_id = set(channel_ids)

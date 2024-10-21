@@ -167,7 +167,7 @@ def test_send_demo_alert_not_enabled(mocked_create_alert, make_organization, mak
 
 @pytest.mark.django_db
 def test_notify_maintenance_no_general_channel(make_organization, make_alert_receive_channel):
-    organization = make_organization(general_log_slack_channel=None)
+    organization = make_organization(default_slack_channel=None)
     alert_receive_channel = make_alert_receive_channel(organization)
 
     with patch("apps.alerts.models.alert_receive_channel.post_message_to_channel") as mock_post_message:
@@ -184,14 +184,14 @@ def test_notify_maintenance_with_general_channel(
     make_slack_channel,
 ):
     slack_channel = make_slack_channel(make_slack_team_identity())
-    organization = make_organization(general_log_slack_channel=slack_channel)
+    organization = make_organization(default_slack_channel=slack_channel)
     alert_receive_channel = make_alert_receive_channel(organization)
 
     with patch("apps.alerts.models.alert_receive_channel.post_message_to_channel") as mock_post_message:
         alert_receive_channel.notify_about_maintenance_action("maintenance mode enabled")
 
     mock_post_message.assert_called_once_with(
-        organization, organization.general_log_slack_channel.slack_id, "maintenance mode enabled"
+        organization, organization.default_slack_channel.slack_id, "maintenance mode enabled"
     )
 
 
@@ -203,7 +203,7 @@ def test_get_or_create_manual_integration_deleted_team(
     make_slack_channel,
 ):
     slack_channel = make_slack_channel(make_slack_team_identity())
-    organization = make_organization(general_log_slack_channel=slack_channel)
+    organization = make_organization(default_slack_channel=slack_channel)
 
     # setup general manual integration
     general_manual = AlertReceiveChannel.get_or_create_manual_integration(

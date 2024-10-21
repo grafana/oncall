@@ -89,7 +89,7 @@ class Organization(MaintainableObject):
     alert_receive_channels: "RelatedManager['AlertReceiveChannel']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
     custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
-    general_log_slack_channel: typing.Optional["SlackChannel"]
+    default_slack_channel: typing.Optional["SlackChannel"]
     migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
@@ -163,10 +163,9 @@ class Organization(MaintainableObject):
         "slack.SlackTeamIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="organizations"
     )
 
-    # TODO: drop this field in a subsequent release, this has been migrated to general_log_slack_channel field
+    # TODO: drop this field in a subsequent release, this has been migrated to default_slack_channel field
     general_log_channel_id = models.CharField(max_length=100, null=True, default=None)
-
-    general_log_slack_channel = models.ForeignKey(
+    default_slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,
         default=None,
@@ -308,13 +307,13 @@ class Organization(MaintainableObject):
             self.alert_group_table_columns = columns
             self.save(update_fields=["alert_group_table_columns"])
 
-    def set_general_log_channel(self, slack_channel: "SlackChannel", user: "User") -> None:
-        if self.general_log_slack_channel != slack_channel:
-            old_general_log_slack_channel = self.general_log_slack_channel
-            old_channel_name = old_general_log_slack_channel.name if old_general_log_slack_channel else None
+    def set_default_slack_channel(self, slack_channel: "SlackChannel", user: "User") -> None:
+        if self.default_slack_channel != slack_channel:
+            old_default_slack_channel = self.default_slack_channel
+            old_channel_name = old_default_slack_channel.name if old_default_slack_channel else None
 
-            self.general_log_slack_channel = slack_channel
-            self.save(update_fields=["general_log_slack_channel"])
+            self.default_slack_channel = slack_channel
+            self.save(update_fields=["default_slack_channel"])
 
             write_chatops_insight_log(
                 author=user,
@@ -356,8 +355,8 @@ class Organization(MaintainableObject):
         )
 
     @property
-    def general_log_slack_channel_slack_id(self) -> typing.Optional[str]:
-        return self.general_log_slack_channel.slack_id if self.general_log_slack_channel else None
+    def default_slack_channel_slack_id(self) -> typing.Optional[str]:
+        return self.default_slack_channel.slack_id if self.default_slack_channel else None
 
     @property
     def web_link_with_uuid(self):

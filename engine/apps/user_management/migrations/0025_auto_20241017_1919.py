@@ -7,16 +7,17 @@ import django_migration_linter as linter
 logger = logging.getLogger(__name__)
 
 
-def populate_general_log_slack_channel(apps, schema_editor):
-    Organization = apps.get_model('user_management', 'Organization')
-    SlackChannel = apps.get_model('slack', 'SlackChannel')
+def populate_default_slack_channel(apps, schema_editor):
+    Organization = apps.get_model("user_management", "Organization")
+    SlackChannel = apps.get_model("slack", "SlackChannel")
 
-    logger.info("Starting migration to populate general_log_slack_channel field.")
+    logger.info("Starting migration to populate default_slack_channel field.")
 
     queryset = Organization.objects.filter(general_log_channel_id__isnull=False, slack_team_identity__isnull=False)
     total_orgs = queryset.count()
     updated_orgs = 0
     missing_channels = 0
+    organizations_to_update = []
 
     logger.info(f"Total organizations to process: {total_orgs}")
 
@@ -27,8 +28,8 @@ def populate_general_log_slack_channel(apps, schema_editor):
         try:
             slack_channel = SlackChannel.objects.get(slack_id=slack_id, slack_team_identity=slack_team_identity)
 
-            org.general_log_slack_channel = slack_channel
-            org.save(update_fields=['general_log_slack_channel'])
+            org.default_slack_channel = slack_channel
+            organizations_to_update.append(org)
 
             updated_orgs += 1
             logger.info(
@@ -37,9 +38,13 @@ def populate_general_log_slack_channel(apps, schema_editor):
         except SlackChannel.DoesNotExist:
             missing_channels += 1
             logger.warning(
-                f"SlackChannel with slack_id '{slack_id}' and slack_team_identity '{slack_team_identity}' "
+                f"SlackChannel with slack_id {slack_id} and slack_team_identity {slack_team_identity} "
                 f"does not exist for Organization {org.id}."
             )
+
+    if organizations_to_update:
+        Organization.objects.bulk_update(organizations_to_update, ["default_slack_channel"])
+        logger.info(f"Bulk updated {len(organizations_to_update)} organizations with their default Slack channel.")
 
     logger.info(
         f"Finished migration. Total organizations processed: {total_orgs}. "
@@ -49,12 +54,12 @@ def populate_general_log_slack_channel(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_management', '0024_organization_general_log_slack_channel'),
+        ("user_management", "0024_organization_default_slack_channel"),
     ]
 
     operations = [
         # simply setting this new field is okay, we are not deleting the value of general_log_channel_id
         # therefore, no need to revert it
         linter.IgnoreMigration(),
-        migrations.RunPython(populate_general_log_slack_channel, migrations.RunPython.noop),
+        migrations.RunPython(populate_default_slack_channel, migrations.RunPython.noop),
     ]

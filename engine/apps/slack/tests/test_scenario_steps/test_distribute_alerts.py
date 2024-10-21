@@ -64,7 +64,7 @@ def test_timeout_error(
     SlackAlertShootingStep = ScenarioStep.get_step("distribute_alerts", "AlertShootingStep")
     slack_team_identity = make_slack_team_identity()
     slack_channel = make_slack_channel(slack_team_identity)
-    organization = make_organization(slack_team_identity=slack_team_identity, general_log_slack_channel=slack_channel)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     alert = make_alert(alert_group, raw_request_data="{}")
@@ -96,8 +96,8 @@ def test_alert_shooting_no_channel_filter(
     make_alert,
 ):
     slack_team_identity = make_slack_team_identity()
-    slack_channel = make_slack_channel(slack_team_identity)
-    organization = make_organization(slack_team_identity=slack_team_identity, general_log_slack_channel=slack_channel)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id="DEFAULT_CHANNEL_ID")
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
     alert_receive_channel = make_alert_receive_channel(organization)
 
     # simulate an alert group with channel filter deleted in the middle of the escalation

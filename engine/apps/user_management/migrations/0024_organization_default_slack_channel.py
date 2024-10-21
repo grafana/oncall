@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='organization',
-            name='general_log_slack_channel',
+            name='default_slack_channel',
             field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='slack.slackchannel'),
         ),
     ]

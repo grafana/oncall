@@ -20,7 +20,7 @@ from apps.api.permissions import LegacyAccessControlRole
         (LegacyAccessControlRole.NONE, status.HTTP_403_FORBIDDEN),
     ],
 )
-def test_set_general_log_channel_permissions(
+def test_set_default_slack_channel_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     role,
@@ -29,7 +29,7 @@ def test_set_general_log_channel_permissions(
     _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
-    url = reverse("api-internal:api-set-general-log-channel")
+    url = reverse("api-internal:set-default-slack-channel")
     with patch("apps.api.views.organization.SetGeneralChannel.post", return_value=Response(status=status.HTTP_200_OK)):
         response = client.post(url, format="json", **make_user_auth_headers(user, token))
 

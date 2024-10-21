@@ -198,8 +198,8 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
     if force:
         organization.slack_team_identity = None
-        organization.general_log_slack_channel = None
-        organization.save(update_fields=["slack_team_identity", "general_log_slack_channel"])
+        organization.default_slack_channel = None
+        organization.save(update_fields=["slack_team_identity", "default_slack_channel"])
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)

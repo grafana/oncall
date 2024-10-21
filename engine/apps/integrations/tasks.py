@@ -169,17 +169,17 @@ def notify_about_integration_ratelimit_in_slack(organization_id, text, **kwargs)
     else:
         cache.set(cache_key, True, 60 * 15)  # Set cache before sending message to make sure we don't ratelimit slack
         slack_team_identity = organization.slack_team_identity
-        org_general_log_channel_id = organization.general_log_slack_channel_slack_id
+        org_default_slack_channel_id = organization.default_slack_channel_slack_id
 
-        if slack_team_identity is not None and org_general_log_channel_id is not None:
+        if slack_team_identity is not None and org_default_slack_channel_id is not None:
             try:
                 sc = SlackClient(slack_team_identity, enable_ratelimit_retry=True)
-                sc.chat_postMessage(channel=org_general_log_channel_id, text=text)
+                sc.chat_postMessage(channel=org_default_slack_channel_id, text=text)
             except SlackAPIError as e:
                 logger.warning(f"Slack exception {e} while sending message for organization {organization_id}")
         else:
             logger.info(
                 f"Slack team identity or general log channel is not set for organization {organization_id} "
                 f"skipping rest of notify_about_integration_ratelimit_in_slack "
-                f"slack_team_identity={slack_team_identity} org_general_log_channel_id={org_general_log_channel_id}"
+                f"slack_team_identity={slack_team_identity} org_default_slack_channel_id={org_default_slack_channel_id}"
             )

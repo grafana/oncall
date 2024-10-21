@@ -69,10 +69,19 @@ def test_clean_slack_integration_leftovers(
 
 @pytest.mark.django_db
 def test_unpopulate_slack_user_identities(
-    make_organization_and_user_with_slack_identities, make_user_with_slack_user_identity
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_user_for_organization,
+    make_user_with_slack_user_identity,
 ):
     # create organization and user with Slack connected
-    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity,default_slack_channel=slack_channel)
+    user = make_user_for_organization(organization)
+
+    assert organization.default_slack_channel_slack_id is not None
 
     # create & delete user with Slack connected
     deleted_user, _ = make_user_with_slack_user_identity(slack_team_identity, organization)
@@ -90,4 +99,4 @@ def test_unpopulate_slack_user_identities(
 
     # check that Slack specific info is reset for organization
     assert organization.slack_team_identity is None
-    assert organization.general_log_slack_channel_slack_id is None
+    assert organization.default_slack_channel_slack_id is None
