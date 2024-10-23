@@ -155,8 +155,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         return result
 
     def to_internal_value(self, data):
-        # if data.get("duration", None):
-        #     data["duration"] = str(data["duration"])
         if data.get("persons_to_notify", []) is None:  # terraform case
             data["persons_to_notify"] = []
         if data.get("persons_to_notify_next_each_time", []) is None:  # terraform case
