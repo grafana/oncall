@@ -2,7 +2,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.settings import api_settings
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers import OrganizationSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.models import Organization
@@ -14,8 +15,12 @@ class OrganizationView(
     RateLimitHeadersMixin,
     ReadOnlyModelViewSet,
 ):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "retrieve": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
+    }
 
     throttle_classes = [UserThrottle]
 

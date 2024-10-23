@@ -5,7 +5,8 @@ import pytest
 from rest_framework import exceptions
 from rest_framework.test import APIRequestFactory
 
-from apps.auth_token.auth import GRAFANA_SA_PREFIX, X_GRAFANA_INSTANCE_ID, GrafanaServiceAccountAuthentication
+from apps.auth_token.auth import X_GRAFANA_INSTANCE_ID, GrafanaServiceAccountAuthentication
+from apps.auth_token.models import ServiceAccountToken
 from settings.base import CLOUD_LICENSE_NAME, OPEN_SOURCE_LICENSE_NAME, SELF_HOSTED_SETTINGS
 
 
@@ -65,7 +66,7 @@ def check_common_inputs() -> (dict[str, typing.Any], str):
     result = GrafanaServiceAccountAuthentication().authenticate(request)
     assert result is None
 
-    token = f"{GRAFANA_SA_PREFIX}xyz"
+    token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
         "HTTP_AUTHORIZATION": token,
     }

@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.webhooks import (
     WebhookCreateSerializer,
     WebhookResponseSerializer,
@@ -20,8 +21,19 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class WebhooksView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (ApiTokenAuthentication, GrafanaServiceAccountAuthentication)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "retrieve": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "create": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "partial_update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+    }
+
     pagination_class = FiftyPageSizePaginator
     throttle_classes = [UserThrottle]
 

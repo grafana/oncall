@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ChannelFilter
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers import ChannelFilterSerializer, ChannelFilterUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
@@ -16,8 +17,17 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+    }
 
     throttle_classes = [UserThrottle]
 
