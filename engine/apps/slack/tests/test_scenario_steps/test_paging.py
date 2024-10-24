@@ -169,7 +169,7 @@ def test_add_user_no_warning(
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     if use_important_policy:
-        organization.direct_paging_use_important_policy = use_important_policy
+        organization.direct_paging_prefer_important_policy = use_important_policy
         organization.save()
     # set up schedule: user is on call
     schedule = make_schedule(
@@ -283,7 +283,7 @@ def test_add_user_raise_warning(make_organization_and_user_with_slack_identities
 def test_change_user_policy(make_organization_and_user_with_slack_identities, use_important_policy):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     if use_important_policy:
-        organization.direct_paging_use_important_policy = use_important_policy
+        organization.direct_paging_prefer_important_policy = use_important_policy
         organization.save()
     value = Policy.IMPORTANT if not use_important_policy else Policy.DEFAULT
     payload = make_paging_view_slack_payload(

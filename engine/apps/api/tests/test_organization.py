@@ -44,7 +44,7 @@ def test_get_organization(
         "slack_channel": None,
         "rbac_enabled": organization.is_rbac_permissions_enabled,
         "grafana_incident_enabled": organization.is_grafana_incident_enabled,
-        "direct_paging_use_important_policy": organization.direct_paging_use_important_policy,
+        "direct_paging_prefer_important_policy": organization.direct_paging_prefer_important_policy,
         "is_resolution_note_required": False,
         "env_status": mock_env_status,
         "banner": mock_banner,
@@ -78,7 +78,7 @@ def test_update_organization_settings(make_organization_and_user_with_plugin_tok
     url = reverse("api-internal:api-organization")
     data = {
         "is_resolution_note_required": True,
-        "direct_paging_use_important_policy": True,
+        "direct_paging_prefer_important_policy": True,
     }
 
     assert organization.is_resolution_note_required is False
@@ -87,7 +87,7 @@ def test_update_organization_settings(make_organization_and_user_with_plugin_tok
     assert response.status_code == status.HTTP_200_OK
     organization.refresh_from_db()
     assert organization.is_resolution_note_required is True
-    assert organization.direct_paging_use_important_policy is True
+    assert organization.direct_paging_prefer_important_policy is True
 
 
 @pytest.mark.django_db

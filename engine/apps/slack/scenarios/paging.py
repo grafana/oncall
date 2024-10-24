@@ -374,7 +374,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
             error_msg = None
             try:
                 policy = Policy.DEFAULT
-                if selected_user.organization.direct_paging_use_important_policy:
+                if selected_user.organization.direct_paging_prefer_important_policy:
                     policy = Policy.IMPORTANT
                 updated_payload = add_or_update_item(payload, DataKey.USERS, selected_user.pk, policy)
             except ValueError:
@@ -453,7 +453,7 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
         error_msg = None
         try:
             policy = Policy.DEFAULT
-            if selected_user.organization.direct_paging_use_important_policy:
+            if selected_user.organization.direct_paging_prefer_important_policy:
                 policy = Policy.IMPORTANT
             updated_payload = add_or_update_item(previous_view_payload, DataKey.USERS, selected_user.pk, policy)
         except ValueError:

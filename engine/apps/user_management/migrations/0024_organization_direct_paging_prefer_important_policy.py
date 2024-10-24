@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='organization',
-            name='direct_paging_use_important_policy',
+            name='direct_paging_prefer_important_policy',
             field=models.BooleanField(default=False, null=True),
         ),
     ]
