@@ -87,7 +87,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7.0.5
+    image: redis:7.0.15
     restart: always
     expose:
       - 6379
