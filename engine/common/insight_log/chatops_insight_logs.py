@@ -1,8 +1,12 @@
 import enum
 import json
 import logging
+import typing
 
 from .insight_logs_enabled_check import is_insight_logs_enabled
+
+if typing.TYPE_CHECKING:
+    from apps.user_management.models import User
 
 insight_logger = logging.getLogger("insight_logger")
 logger = logging.getLogger(__name__)
@@ -24,7 +28,7 @@ class ChatOpsTypePlug(enum.Enum):
     TELEGRAM = "telegram"
 
 
-def write_chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: str, **kwargs):
+def write_chatops_insight_log(author: "User", event_name: ChatOpsEvent, chatops_type: str, **kwargs):
     try:
         organization = author.organization
 

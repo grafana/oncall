@@ -22,7 +22,7 @@ from .views.organization import (
     GetChannelVerificationCode,
     GetTelegramVerificationCode,
     OrganizationConfigChecksView,
-    SetGeneralChannel,
+    SetDefaultSlackChannel,
 )
 from .views.preview_template_options import PreviewTemplateOptionsView
 from .views.public_api_tokens import PublicApiTokenView
@@ -71,7 +71,7 @@ router.register(r"shift_swaps", ShiftSwapViewSet, basename="shift_swap")
 urlpatterns = [
     path("", include(router.urls)),
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
-    optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
+    optional_slash_path("set_general_channel", SetDefaultSlackChannel.as_view(), name="set-default-slack-channel"),
     optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
     optional_slash_path(
         "organization/config-checks",

@@ -617,7 +617,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def force_disable_maintenance(self, user):
         disable_maintenance(alert_receive_channel_id=self.pk, force=True, user_id=user.pk)
 
-    def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
+    def notify_about_maintenance_action(self, text: str, send_to_general_log_channel=True) -> None:
         # TODO: this method should be refactored.
         # It's binded to slack and sending maintenance notification only there.
         channel_ids = list(
@@ -627,7 +627,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         )
 
         if send_to_general_log_channel:
-            general_log_channel_id = self.organization.general_log_channel_id
+            general_log_channel_id = self.organization.default_slack_channel_slack_id
             if general_log_channel_id is not None:
                 channel_ids.append(general_log_channel_id)
         unique_channels_id = set(channel_ids)
