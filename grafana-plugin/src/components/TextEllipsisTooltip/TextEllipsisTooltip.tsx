@@ -6,14 +6,12 @@ import { TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
 
 interface TextEllipsisTooltipProps {
   content?: string;
-  queryClassName?: string;
   placement?: string;
   className?: string;
   children: ReactElement | ReactElement[];
 }
 
 export const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
-  queryClassName = TEXT_ELLIPSIS_CLASS,
   className,
   content: textContent,
   placement,
@@ -44,7 +42,7 @@ export const TextEllipsisTooltip: React.FC<TextEllipsisTooltipProps> = ({
   return elContent;
 
   function setEllipsis() {
-    const el = elContentRef?.current?.querySelector<HTMLElement>(`.${queryClassName}`);
+    let el = elContentRef?.current?.querySelector<HTMLElement>(`.${TEXT_ELLIPSIS_CLASS}`);
     if (!el) {
       return;
     }

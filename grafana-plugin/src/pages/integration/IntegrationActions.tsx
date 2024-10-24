@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 
 import { Button, ConfirmModal, Icon, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
@@ -17,7 +17,6 @@ import { IntegrationFormContainer } from 'containers/IntegrationForm/Integration
 import { IntegrationLabelsForm } from 'containers/IntegrationLabelsForm/IntegrationLabelsForm';
 import { MaintenanceForm } from 'containers/MaintenanceForm/MaintenanceForm';
 import { CompleteServiceNowModal } from 'containers/ServiceNowConfigDrawer/CompleteServiceNowConfigModal';
-import { ServiceNowConfigDrawer } from 'containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannelHelper } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { ApiSchemas } from 'network/oncall-api/api.types';
@@ -34,6 +33,8 @@ interface IntegrationActionsProps {
   changeIsTemplateSettingsOpen: () => void;
   drawerConfig: ReturnType<typeof useDrawer<IntegrationDrawerKey>>;
 }
+
+const LazyServiceNowConfigDrawer = lazy(() => import('containers/ServiceNowConfigDrawer/ServiceNowConfigDrawer'));
 
 export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
@@ -101,7 +102,11 @@ export const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {getIsDrawerOpened(INTEGRATION_SERVICENOW) && <ServiceNowConfigDrawer onHide={closeDrawer} />}
+      {getIsDrawerOpened(INTEGRATION_SERVICENOW) && (
+        <Suspense>
+          <LazyServiceNowConfigDrawer onHide={closeDrawer} />
+        </Suspense>
+      )}
 
       {isCompleteServiceNowConfigOpen && (
         <CompleteServiceNowModal onHide={() => setIsCompleteServiceNowConfigOpen(false)} />

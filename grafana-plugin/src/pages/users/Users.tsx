@@ -283,7 +283,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const styles = getUsersStyles(theme);
 
     return (
-      <Stack>
+      <Stack alignItems="center">
         <Avatar className={styles.userAvatar} size="large" src={user.avatar} />
         <div
           className={cx({
@@ -475,3 +475,6 @@ const getStyles = (theme: GrafanaTheme2) => {
 export const UsersPage = withRouter<RouteProps, Omit<UsersProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(Users))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default UsersPage;

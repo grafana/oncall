@@ -1,4 +1,4 @@
-import React, { SyntheticEvent } from 'react';
+import React, { lazy, Suspense, SyntheticEvent } from 'react';
 
 import { cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -13,7 +13,6 @@ import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
 import { GTable, GTableProps } from 'components/GTable/GTable';
-import { NewScheduleSelector } from 'components/NewScheduleSelector/NewScheduleSelector';
 import { PluginLink } from 'components/PluginLink/PluginLink';
 import { Text } from 'components/Text/Text';
 import { TextEllipsisTooltip } from 'components/TextEllipsisTooltip/TextEllipsisTooltip';
@@ -21,9 +20,7 @@ import { TooltipBadge } from 'components/TooltipBadge/TooltipBadge';
 import { WithConfirm } from 'components/WithConfirm/WithConfirm';
 import { RemoteFilters } from 'containers/RemoteFilters/RemoteFilters';
 import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
-import { ScheduleFinal } from 'containers/Rotations/ScheduleFinal';
 import { SchedulePersonal } from 'containers/Rotations/SchedulePersonal';
-import { ScheduleForm } from 'containers/ScheduleForm/ScheduleForm';
 import { TeamName } from 'containers/TeamName/TeamName';
 import { UserTimezoneSelect } from 'containers/UserTimezoneSelect/UserTimezoneSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -44,6 +41,10 @@ interface SchedulesPageState {
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
 }
+
+const LazyScheduleForm = lazy(() => import('containers/ScheduleForm/ScheduleForm'));
+const LazyScheduleFinal = lazy(() => import('containers/Rotations/ScheduleFinal'));
+const LazyScheduleSelector = lazy(() => import('components/NewScheduleSelector/NewScheduleSelector'));
 
 @observer
 class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
@@ -127,21 +128,25 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
         </div>
 
         {showNewScheduleSelector && (
-          <NewScheduleSelector
-            onCreate={this.handleCreateSchedule}
-            onHide={() => {
-              this.setState({ showNewScheduleSelector: false });
-            }}
-          />
+          <Suspense>
+            <LazyScheduleSelector
+              onCreate={this.handleCreateSchedule}
+              onHide={() => {
+                this.setState({ showNewScheduleSelector: false });
+              }}
+            />
+          </Suspense>
         )}
         {scheduleIdToEdit && (
-          <ScheduleForm
-            id={scheduleIdToEdit}
-            onSubmit={this.update}
-            onHide={() => {
-              this.setState({ scheduleIdToEdit: undefined });
-            }}
-          />
+          <Suspense>
+            <LazyScheduleForm
+              id={scheduleIdToEdit}
+              onSubmit={this.update}
+              onHide={() => {
+                this.setState({ scheduleIdToEdit: undefined });
+              }}
+            />
+          </Suspense>
         )}
       </>
     );
@@ -195,12 +200,14 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 
     return (
       <div className={styles.schedule}>
-        <ScheduleFinal
-          scheduleView={ScheduleView.OneWeek}
-          simplified
-          scheduleId={data.id}
-          onSlotClick={this.getScheduleClickHandler(data.id)}
-        />
+        <Suspense>
+          <LazyScheduleFinal
+            scheduleView={ScheduleView.OneWeek}
+            simplified
+            scheduleId={data.id}
+            onSlotClick={this.getScheduleClickHandler(data.id)}
+          />
+        </Suspense>
       </div>
     );
   };
@@ -474,3 +481,6 @@ class _SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSt
 export const SchedulesPage = withRouter<{}, Omit<SchedulesPageProps, 'store' | 'meta' | 'theme'>>(
   withMobXProviderContext(withTheme2(_SchedulesPage))
 );
+
+// !! ONLY for React Suspense, NOT for direct import
+export default SchedulesPage;

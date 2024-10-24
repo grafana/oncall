@@ -105,13 +105,36 @@ type OnCallSettingsCache struct {
 	otherPluginSettingsExpiry time.Time
 }
 
-const CLOUD_VERSION_PATTERN = `^(v\d+\.\d+\.\d+|github-actions-[a-zA-Z0-9-]+)$`
+const CLOUD_VERSION_PATTERN = `^(v\d+\.\d+\.\d+|grafana-(irm|oncall)-app-v\d+\.\d+\.\d+(-\d+.*)?)$`
 const OSS_VERSION_PATTERN = `^(\d+\.\d+\.\d+)$`
 const CLOUD_LICENSE_NAME = "Cloud"
 const OPEN_SOURCE_LICENSE_NAME = "OpenSource"
+const OTHER_PLUGIN_EXPIRY_SECONDS = 60
+
+const ONCALL_PLUGIN_ID = "grafana-oncall-app"
+const IRM_PLUGIN_ID = "grafana-irm-app"
 const INCIDENT_PLUGIN_ID = "grafana-incident-app"
 const LABELS_PLUGIN_ID = "grafana-labels-app"
-const OTHER_PLUGIN_EXPIRY_SECONDS = 60
+
+// Function to determine license type based on version pattern
+func determineAndSetLicenseFromVersion(settings *OnCallPluginSettings, version string) error {
+	if settings.License != "" {
+		return nil
+	}
+
+	cloudRe := regexp.MustCompile(CLOUD_VERSION_PATTERN)
+	ossRe := regexp.MustCompile(OSS_VERSION_PATTERN)
+
+	if ossRe.MatchString(version) {
+		settings.License = OPEN_SOURCE_LICENSE_NAME
+	} else if cloudRe.MatchString(version) {
+		settings.License = CLOUD_LICENSE_NAME
+	} else {
+		return fmt.Errorf("jsonData.license is not set and version %s did not match a known pattern", version)
+	}
+
+	return nil
+}
 
 func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSettings, error) {
 	pluginContext := httpadapter.PluginConfigFromContext(ctx)
@@ -148,16 +171,8 @@ func (a *App) OnCallSettingsFromContext(ctx context.Context) (*OnCallPluginSetti
 		version = buildInfo.Version
 	}
 
-	if settings.License == "" {
-		cloudRe := regexp.MustCompile(CLOUD_VERSION_PATTERN)
-		ossRe := regexp.MustCompile(OSS_VERSION_PATTERN)
-		if ossRe.MatchString(version) {
-			settings.License = OPEN_SOURCE_LICENSE_NAME
-		} else if cloudRe.MatchString(version) {
-			settings.License = CLOUD_LICENSE_NAME
-		} else {
-			return &settings, fmt.Errorf("jsonData.license is not set and version %s did not match a known pattern", version)
-		}
+	if err = determineAndSetLicenseFromVersion(&settings, version); err != nil {
+		return nil, err
 	}
 
 	settings.OnCallToken = strings.TrimSpace(pluginContext.AppInstanceSettings.DecryptedSecureJSONData["onCallApiToken"])

@@ -69,3 +69,6 @@ const getStyles = () => ({
     margin-bottom: 20px;
   `,
 });
+
+// !! ONLY for React Suspense, NOT for direct import
+export default MainSettings;

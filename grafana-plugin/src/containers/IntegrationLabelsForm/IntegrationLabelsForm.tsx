@@ -405,3 +405,5 @@ const getStyles = () => {
     `,
   };
 };
+
+export default IntegrationLabelsForm;

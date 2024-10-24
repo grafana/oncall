@@ -111,3 +111,5 @@ export const getStyles = () => {
     `,
   };
 };
+
+export default NewScheduleSelector;

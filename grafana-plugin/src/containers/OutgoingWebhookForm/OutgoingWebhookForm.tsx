@@ -524,3 +524,5 @@ export const getWebhookFormStyles = () => {
     `,
   };
 };
+
+export default OutgoingWebhookForm;

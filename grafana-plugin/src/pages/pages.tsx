@@ -1,4 +1,4 @@
-import { NavModelItem } from '@grafana/data';
+import { IconName, NavModelItem } from '@grafana/data';
 import { UserActions, UserAction, isUserActionAllowed } from 'helpers/authorization/authorization';
 import { PLUGIN_ROOT } from 'helpers/consts';
 import { matchPath } from 'react-router-dom-v5-compat';
@@ -6,9 +6,11 @@ import { matchPath } from 'react-router-dom-v5-compat';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore/RootBaseStore';
 
+export const IRMDefaultPage = 'alert-groups';
+
 export type PageDefinition = {
   path: string;
-  icon: string;
+  icon: IconName;
   id: string;
   text: string;
   hideFromTabsFn?: (store: RootBaseStore) => boolean;
@@ -172,6 +174,7 @@ export const pages: { [id: string]: PageDefinition } = [
 }, {});
 
 export const ROUTES = {
+  '': ['alert-groups'], // TODO: change it to homepage
   'alert-groups': ['alert-groups', 'alert-groups/:id'],
   users: ['users', 'users/:id'],
   integrations: ['integrations', 'integrations/:id'],
@@ -191,6 +194,10 @@ export const ROUTES = {
 };
 
 export function getMatchedPage(url: string) {
+  if (url === PLUGIN_ROOT) {
+    return ROUTES[0];
+  }
+
   return Object.keys(ROUTES).find((key) => {
     return ROUTES[key].find((route: string) => {
       const computedRoute = `${PLUGIN_ROOT}/${route}`;

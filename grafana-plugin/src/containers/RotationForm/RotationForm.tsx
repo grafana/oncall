@@ -978,3 +978,5 @@ const ShiftPeriod = ({
     </Stack>
   );
 };
+
+export default RotationForm;

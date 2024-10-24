@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Input, Select, IconButton, withTheme2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
@@ -193,7 +193,14 @@ class _EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
           className={cx(styles.select, styles.control, styles.multiSelect)}
           value={notify_to_users_queue}
           onChange={this.getOnChangeHandler('notify_to_users_queue')}
-          getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
+          getOptionLabel={({ value }: SelectableValue) => (
+            <UserTooltip
+              className={css`
+                padding-right: 8px;
+              `}
+              id={value}
+            />
+          )}
           width={'auto'}
           items={userItems}
           fetchItemsFn={userStore.fetchItems}

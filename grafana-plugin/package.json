@@ -1,6 +1,6 @@
 {
-  "name": "grafana-oncall-app",
-  "version": "1.9.28",
+  "name": "@plugins/grafana-oncall-app",
+  "version": "1.12.1",
   "description": "Grafana OnCall Plugin",
   "scripts": {
     "lint": "eslint --ext .js,.jsx,.ts,.tsx --max-warnings=20 ./src ./e2e-tests",
@@ -16,7 +16,7 @@
     "test-utc": "TZ=UTC jest --verbose --testNamePattern '^((?!@london-tz).)*$'",
     "test-london-tz": "TZ=Europe/London jest --verbose --testNamePattern '@london-tz'",
     "test": "PLUGIN_ID=grafana-oncall-app pnpm test-utc && pnpm test-london-tz",
-    "test:ci": "PLUGIN_ID=grafana-oncall-app pnpm test-utc && pnpm test-london-tz",
+    "test:ci": "PLUGIN_ID=grafana-oncall-app pnpm test-utc && pnpm test-london-tz && go test ./pkg/... -v",
     "test:report": "HTML_REPORT_ENABLED=true pnpm test",
     "test:silent": "pnpm test --silent",
     "test:e2e": "PLUGIN_ID=grafana-oncall-app pnpm playwright test --grep-invert @expensive",
@@ -125,7 +125,6 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.1",
     "webpack": "^5.86.0",
-    "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "^5.1.4",
     "webpack-livereload-plugin": "^3.0.2"
   },

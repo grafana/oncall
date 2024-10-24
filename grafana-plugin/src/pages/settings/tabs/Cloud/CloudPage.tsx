@@ -402,3 +402,6 @@ const _CloudPage = observer((props: CloudPageProps) => {
 });
 
 export const CloudPage = withRouter<{}, PropsWithRouter<{}>>(withMobXProviderContext(_CloudPage));
+
+// !! ONLY for React Suspense, NOT for direct import
+export default CloudPage;

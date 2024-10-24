@@ -1,27 +1,28 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import { css } from '@emotion/css';
 import { AppRootProps } from '@grafana/data';
-import { Tab, TabsBar, useStyles2 } from '@grafana/ui';
+import { Tab, TabsBar } from '@grafana/ui';
 import { LocationHelper } from 'helpers/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'helpers/authorization/authorization';
 import { observer } from 'mobx-react';
 
-import { ChatOpsPage } from 'pages/settings/tabs/ChatOps/ChatOps';
-import { MainSettings } from 'pages/settings/tabs/MainSettings/MainSettings';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { SettingsPageTab } from './SettingsPage.types';
-import { CloudPage } from './tabs/Cloud/CloudPage';
-import { LiveSettings } from './tabs/LiveSettings/LiveSettingsPage';
-import { TeamsSettings } from './tabs/TeamsSettings/TeamsSettings';
 
 interface SettingsPageProps extends AppRootProps, WithStoreProps {}
 interface SettingsPageState {
   activeTab: string;
 }
+
+const LazyCloudPage = React.lazy(() => import('pages/settings/tabs/Cloud/CloudPage'));
+const LazyLiveSettings = React.lazy(() => import('pages/settings/tabs/LiveSettings/LiveSettingsPage'));
+const LazyTeamsSettings = React.lazy(() => import('pages/settings/tabs/TeamsSettings/TeamsSettings'));
+const LazyMainSettings = React.lazy(() => import('pages/settings/tabs/MainSettings/MainSettings'));
+const LazyChatOpsPage = React.lazy(() => import('pages/settings/tabs/ChatOps/ChatOps'));
 
 @observer
 class Settings extends React.Component<SettingsPageProps, SettingsPageState> {
@@ -125,45 +126,43 @@ interface TabsContentProps {
 
 const TabsContent = (props: TabsContentProps) => {
   const { activeTab } = props;
-  const styles = useStyles2(getStyles);
 
   return (
-    <div className={styles.tabsContent}>
+    <div
+      className={css`
+        padding-top: 24px;
+      `}
+    >
       {activeTab === SettingsPageTab.MainSettings.key && (
-        <div>
-          <MainSettings />
-        </div>
+        <Suspense>
+          <LazyMainSettings />
+        </Suspense>
       )}
       {activeTab === SettingsPageTab.TeamsSettings.key && (
-        <div>
-          <TeamsSettings />
-        </div>
+        <Suspense>
+          <LazyTeamsSettings />
+        </Suspense>
       )}
       {activeTab === SettingsPageTab.ChatOps.key && (
-        <div>
-          <ChatOpsPage />
-        </div>
+        <Suspense>
+          <LazyChatOpsPage />
+        </Suspense>
       )}
       {activeTab === SettingsPageTab.EnvVariables.key && (
-        <div>
-          <LiveSettings />
-        </div>
+        <Suspense>
+          <LazyLiveSettings />
+        </Suspense>
       )}
       {activeTab === SettingsPageTab.Cloud.key && (
-        <div>
-          <CloudPage />
-        </div>
+        <Suspense>
+          <LazyCloudPage />
+        </Suspense>
       )}
     </div>
   );
 };
 
-const getStyles = () => {
-  return {
-    tabsContent: css`
-      padding-top: 24px;
-    `,
-  };
-};
-
 export const SettingsPage = withMobXProviderContext(Settings);
+
+// !! ONLY for React Suspense, NOT for direct import
+export default SettingsPage;

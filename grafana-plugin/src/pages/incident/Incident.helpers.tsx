@@ -3,7 +3,7 @@ import React from 'react';
 import { css, cx } from '@emotion/css';
 import { Button, IconButton, Tooltip, Stack, useStyles2 } from '@grafana/ui';
 import { UserActions } from 'helpers/authorization/authorization';
-import { StackSize } from 'helpers/consts';
+import { StackSize, TEXT_ELLIPSIS_CLASS } from 'helpers/consts';
 import { getUtilStyles } from 'styles/utils.styles';
 
 import { Avatar } from 'components/Avatar/Avatar';
@@ -40,13 +40,9 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
 
     return (
       <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false}>
-        <TextEllipsisTooltip placement="top" content={user.username}>
-          <Text type="secondary" className={utilStyles.overflowChild}>
-            <Avatar size="small" src={user.avatar} />{' '}
-            <span className={cx(utilStyles.wordBreakAll, utilStyles.flexGapXS)}>{user.username}</span>
-            <span className={styles.userBadge}>{badge}</span>
-          </Text>
-        </TextEllipsisTooltip>
+        <Avatar size="small" src={user.avatar} />{' '}
+        <span className={cx(utilStyles.wordBreakAll, utilStyles.flexGapXS)}>{user.username}</span>
+        <span className={styles.userBadge}>{badge}</span>
       </PluginLink>
     );
   }
@@ -70,20 +66,30 @@ export const IncidentRelatedUsers = (props: { incident: ApiSchemas['AlertGroup']
 
   if (isFull) {
     return (
-      <>
-        {visibleUsers.map((user, index) => (
-          <>
-            {index ? ', ' : ''}
-            {renderUser(user)}
-          </>
-        ))}
-      </>
+      <TextEllipsisTooltip
+        className={utilStyles.flex}
+        placement="top"
+        content={visibleUsers.map((user) => user.username).join(', ')}
+      >
+        <Text type="secondary" className={cx(utilStyles.overflowChild, TEXT_ELLIPSIS_CLASS)}>
+          {visibleUsers.map((user, index) => (
+            <React.Fragment key={user.pk}>
+              {index ? ', ' : ''}
+              {renderUser(user)}
+            </React.Fragment>
+          ))}
+        </Text>
+      </TextEllipsisTooltip>
     );
   }
 
   return (
     <Stack direction="column" gap={StackSize.xs}>
-      {visibleUsers.map(renderUser)}
+      <TextEllipsisTooltip className={utilStyles.flex} placement="top" content={'figure out something here'}>
+        <Text type="secondary" className={cx(utilStyles.overflowChild, TEXT_ELLIPSIS_CLASS)}>
+          {visibleUsers.map(renderUser)}
+        </Text>
+      </TextEllipsisTooltip>
       {Boolean(otherUsers.length) && (
         <Tooltip
           placement="top"

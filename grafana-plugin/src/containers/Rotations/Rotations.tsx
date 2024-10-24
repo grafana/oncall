@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
@@ -13,7 +13,6 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
-import { RotationForm } from 'containers/RotationForm/RotationForm';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore, scheduleViewToDaysInOneRow } from 'models/schedule/schedule.helpers';
@@ -47,6 +46,8 @@ interface RotationsState {
   shiftStartToShowRotationForm?: dayjs.Dayjs;
   shiftEndToShowRotationForm?: dayjs.Dayjs;
 }
+
+const LazyRotationForm = lazy(() => import('containers/RotationForm/RotationForm'));
 
 @observer
 class _Rotations extends Component<RotationsProps, RotationsState> {
@@ -272,35 +273,37 @@ class _Rotations extends Component<RotationsProps, RotationsState> {
           </div>
         </div>
         {shiftIdToShowRotationForm && (
-          <RotationForm
-            shiftId={shiftIdToShowRotationForm}
-            shiftColor={findColor(shiftIdToShowRotationForm, layers)}
-            scheduleId={scheduleId}
-            layerPriority={layerPriorityToShowRotationForm}
-            shiftStart={toDateWithTimezoneOffset(shiftStartToShowRotationForm, selectedTimezoneOffset)}
-            shiftEnd={toDateWithTimezoneOffset(shiftEndToShowRotationForm, selectedTimezoneOffset)}
-            onHide={() => {
-              this.hideRotationForm();
+          <Suspense>
+            <LazyRotationForm
+              shiftId={shiftIdToShowRotationForm}
+              shiftColor={findColor(shiftIdToShowRotationForm, layers)}
+              scheduleId={scheduleId}
+              layerPriority={layerPriorityToShowRotationForm}
+              shiftStart={toDateWithTimezoneOffset(shiftStartToShowRotationForm, selectedTimezoneOffset)}
+              shiftEnd={toDateWithTimezoneOffset(shiftEndToShowRotationForm, selectedTimezoneOffset)}
+              onHide={() => {
+                this.hideRotationForm();
 
-              store.scheduleStore.clearPreview();
-            }}
-            onUpdate={() => {
-              this.hideRotationForm();
+                store.scheduleStore.clearPreview();
+              }}
+              onUpdate={() => {
+                this.hideRotationForm();
 
-              onUpdate();
-            }}
-            onCreate={() => {
-              this.hideRotationForm();
+                onUpdate();
+              }}
+              onCreate={() => {
+                this.hideRotationForm();
 
-              onCreate();
-            }}
-            onDelete={() => {
-              this.hideRotationForm();
+                onCreate();
+              }}
+              onDelete={() => {
+                this.hideRotationForm();
 
-              onDelete();
-            }}
-            onShowRotationForm={this.onShowRotationForm}
-          />
+                onDelete();
+              }}
+              onShowRotationForm={this.onShowRotationForm}
+            />
+          </Suspense>
         )}
       </>
     );

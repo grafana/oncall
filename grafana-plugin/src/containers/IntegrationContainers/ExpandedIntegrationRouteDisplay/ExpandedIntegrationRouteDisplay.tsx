@@ -338,7 +338,7 @@ export const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteD
                         variant={'secondary'}
                         onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
                       >
-                        <Stack>
+                        <Stack alignItems="center">
                           <Text type="link">{isEscalationCollapsed ? 'Show' : 'Hide'} escalation chain</Text>
                           {isEscalationCollapsed && <Icon name={'angle-right'} />}
                           {!isEscalationCollapsed && <Icon name={'angle-up'} />}

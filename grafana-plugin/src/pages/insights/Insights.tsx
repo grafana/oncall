@@ -250,3 +250,6 @@ const getStyles = () => {
     `,
   };
 };
+
+// !! ONLY for React Suspense, NOT for direct import
+export default Insights;

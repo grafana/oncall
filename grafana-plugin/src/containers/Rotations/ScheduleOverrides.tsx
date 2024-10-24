@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, lazy, Suspense } from 'react';
 
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
@@ -13,7 +13,6 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import { Tag } from 'components/Tag/Tag';
 import { Text } from 'components/Text/Text';
 import { Rotation } from 'containers/Rotation/Rotation';
-import { ScheduleOverrideForm } from 'containers/RotationForm/ScheduleOverrideForm';
 import { TimelineMarks } from 'containers/TimelineMarks/TimelineMarks';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
@@ -55,6 +54,7 @@ interface ScheduleOverridesState {
 }
 
 const animationStyles = getAnimationClasses();
+const LazyScheduleOverrideForm = lazy(() => import('containers/RotationForm/ScheduleOverrideForm'));
 
 @observer
 class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
@@ -206,39 +206,41 @@ class _ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverr
           </div>
         </div>
         {shiftIdToShowRotationForm && (
-          <ScheduleOverrideForm
-            shiftId={shiftIdToShowRotationForm}
-            shiftColor={findColor(shiftIdToShowRotationForm, undefined, shifts)}
-            scheduleId={scheduleId}
-            shiftStart={toDateWithTimezoneOffset(
-              propsShiftStartToShowOverrideForm || shiftStartToShowOverrideForm,
-              store.timezoneStore.selectedTimezoneOffset
-            )}
-            shiftEnd={toDateWithTimezoneOffset(
-              propsShiftEndToShowOverrideForm || shiftEndToShowOverrideForm,
-              store.timezoneStore.selectedTimezoneOffset
-            )}
-            onHide={() => {
-              this.handleHide();
+          <Suspense>
+            <LazyScheduleOverrideForm
+              shiftId={shiftIdToShowRotationForm}
+              shiftColor={findColor(shiftIdToShowRotationForm, undefined, shifts)}
+              scheduleId={scheduleId}
+              shiftStart={toDateWithTimezoneOffset(
+                propsShiftStartToShowOverrideForm || shiftStartToShowOverrideForm,
+                store.timezoneStore.selectedTimezoneOffset
+              )}
+              shiftEnd={toDateWithTimezoneOffset(
+                propsShiftEndToShowOverrideForm || shiftEndToShowOverrideForm,
+                store.timezoneStore.selectedTimezoneOffset
+              )}
+              onHide={() => {
+                this.handleHide();
 
-              store.scheduleStore.clearPreview();
-            }}
-            onUpdate={() => {
-              this.handleHide();
+                store.scheduleStore.clearPreview();
+              }}
+              onUpdate={() => {
+                this.handleHide();
 
-              onUpdate();
-            }}
-            onCreate={() => {
-              this.handleHide();
+                onUpdate();
+              }}
+              onCreate={() => {
+                this.handleHide();
 
-              onCreate();
-            }}
-            onDelete={() => {
-              this.handleHide();
+                onCreate();
+              }}
+              onDelete={() => {
+                this.handleHide();
 
-              onDelete();
-            }}
-          />
+                onDelete();
+              }}
+            />
+          </Suspense>
         )}
       </>
     );
