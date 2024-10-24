@@ -82,6 +82,7 @@ class TeamPrimaryKeyRelatedField(RelatedField):
         return super().validate_empty_values(data)
 
 
+@extend_schema_field(serializers.ListField(child=serializers.CharField()))
 class UsersFilteredByOrganizationField(serializers.Field):
     """
     This field reduces queries count when accessing User many related field (ex: notify_to_users_queue).
