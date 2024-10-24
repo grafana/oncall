@@ -266,7 +266,7 @@ ingress:
   enabled: true
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/issuer: "letsencrypt-prod"
+    # cert-manager.io/issuer: "letsencrypt-prod"
 ```
 
 ### Use PostgreSQL instead of MySQL
