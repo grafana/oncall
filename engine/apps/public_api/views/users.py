@@ -5,8 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from apps.api.permissions import LegacyAccessControlRole
-from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
+from apps.auth_token.auth import (
+    ApiTokenAuthentication,
+    GrafanaServiceAccountAuthentication,
+    UserScheduleExportAuthentication,
+)
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
 from apps.public_api.tf_sync import is_request_from_terraform, sync_users_on_tf_request
@@ -35,8 +39,8 @@ class UserFilter(filters.FilterSet):
 
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
     model = User
     pagination_class = HundredPageSizePaginator
@@ -50,6 +54,11 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
 
     # self.get_object() is not used in export action because UserScheduleExportAuthentication is used
     extra_actions_ignore_no_get_object = ["schedule_export"]
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+    }
 
     def get_queryset(self):
         if is_request_from_terraform(self.request):

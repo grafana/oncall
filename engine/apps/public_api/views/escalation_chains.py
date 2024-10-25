@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationChain
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.api.permissions import RBACPermission
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers import EscalationChainSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
@@ -14,8 +15,17 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EscalationChainView(RateLimitHeadersMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "retrieve": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+    }
 
     throttle_classes = [UserThrottle]
 

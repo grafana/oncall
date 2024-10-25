@@ -8,9 +8,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 
-from apps.api.permissions import AuthenticatedRequest
+from apps.api.permissions import AuthenticatedRequest, RBACPermission
 from apps.api.views.shift_swap import BaseShiftSwapViewSet
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.models import ShiftSwapRequest
 from apps.user_management.models import User
@@ -23,8 +23,18 @@ logger = logging.getLogger(__name__)
 
 class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
     # set authentication and permission classes
-    authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = (ApiTokenAuthentication, GrafanaServiceAccountAuthentication)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.SCHEDULES_READ],
+        "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
+        "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "take": [RBACPermission.Permissions.SCHEDULES_WRITE],
+    }
 
     # public API customizations
     throttle_classes = [UserThrottle]

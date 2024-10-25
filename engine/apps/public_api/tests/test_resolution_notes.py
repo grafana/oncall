@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.alerts.models import ResolutionNote
-from apps.auth_token.auth import GRAFANA_SA_PREFIX, ApiTokenAuthentication, GrafanaServiceAccountAuthentication
-from apps.auth_token.models import ApiAuthToken
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
+from apps.auth_token.models import ApiAuthToken, ServiceAccountToken
 
 
 @pytest.mark.django_db
@@ -366,7 +366,7 @@ def test_create_resolution_note_grafana_auth(make_organization_and_user, make_al
         mock_api_key_auth.assert_called_once()
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    token = f"{GRAFANA_SA_PREFIX}123"
+    token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}123"
     # GrafanaServiceAccountAuthentication handle invalid token
     with patch(
         "apps.auth_token.auth.ApiTokenAuthentication.authenticate", wraps=api_token_auth.authenticate
