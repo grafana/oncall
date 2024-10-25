@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 from rest_framework import serializers
 
+from apps.api.serializers.slack_channel import SlackChannelSerializer
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import LiveSetting
 from apps.phone_notifications.phone_provider import get_phone_provider
@@ -21,7 +22,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_team_identity = FastSlackTeamIdentitySerializer(read_only=True)
 
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
-    slack_channel = serializers.SerializerMethodField()
+    slack_channel = SlackChannelSerializer(read_only=True, allow_null=True, required=False)
 
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
     grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")
@@ -45,16 +46,6 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "rbac_enabled",
             "grafana_incident_enabled",
         ]
-
-    def get_slack_channel(self, obj: Organization):
-        org_default_slack_channel = obj.default_slack_channel
-        if org_default_slack_channel is None:
-            return None
-        return {
-            "display_name": org_default_slack_channel.name,
-            "slack_id": org_default_slack_channel.slack_id,
-            "id": org_default_slack_channel.public_primary_key,
-        }
 
 
 class CurrentOrganizationSerializer(OrganizationSerializer):
