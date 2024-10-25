@@ -2,6 +2,7 @@ from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers.slack_channel import SlackChannelSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
@@ -12,7 +13,12 @@ from common.api_helpers.paginators import FiftyPageSizePaginator
 
 class SlackChannelView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.CHATOPS_READ],
+    }
+
     pagination_class = FiftyPageSizePaginator
     throttle_classes = [UserThrottle]
 
