@@ -39,6 +39,8 @@ Grafana OnCall Cloud includes SMS and Phone notifications.
 
 {{< admonition type="note" >}}
 OSS users can use the [Grafana OSS-Cloud Setup](ref:grafana-oss-cloud-setup) as a relay or configure this notification type using other providers like Twilio.
+
+Some countries are not supported as Grafana follows Twilio's Phone Number Regulations. For the full list of supported countries visit [Twilio](https://www.twilio.com/en-us/guidelines/regulatory).
 {{< /admonition >}}
 
 ## SMS notification behavior
