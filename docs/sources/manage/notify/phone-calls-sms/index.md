@@ -80,10 +80,16 @@ To learn the phone number used by OnCall, make a test call from the “Phone Ver
 
 ### SMS/Voice support by country
 
-The following is a list of countries currently supported by Grafana OnCall. However, please be aware that due to limitations
-in our telecom provider’s service, some numbers within these countries may occasionally be flagged as “high-risk” when
-verifying your phone number. We recommend testing your notification chain to confirm that OnCall can reach you. For added
-reliability, consider backing up phone calls and SMS notifications with additional methods, such as the [Mobile app](ref:mobile-app).
+The following is a list of countries currently supported by Grafana OnCall.
+
+{{< admonition type="note" >}}
+Please be aware that due to limitations
+in our telecom provider’s service, some numbers within supported countries may occasionally be flagged as “high-risk” when
+verifying your phone number, thereby preventing you from being able to use that number to receive notifications.
+
+We recommend testing your notification chain to confirm that OnCall can reach you. For added reliability, consider backing
+up phone calls and SMS notifications with additional methods, such as the [Mobile app](ref:mobile-app).
+{{< /admonition >}}
 
 {{< collapse title="Europe" >}}
 
