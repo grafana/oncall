@@ -50,7 +50,6 @@ if typing.TYPE_CHECKING:
     )
     from apps.base.models import UserNotificationPolicyLogRecord
     from apps.labels.models import AlertGroupAssociatedLabel
-    from apps.mattermost.models import MattermostMessage
     from apps.slack.models import SlackMessage
 
 logger = logging.getLogger(__name__)
@@ -2007,10 +2006,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return self.prefetched_slack_messages[0] if self.prefetched_slack_messages else None
         except AttributeError:
             return self.slack_messages.order_by("created_at").first()
-
-    @property
-    def mattermost_message(self) -> typing.Optional["MattermostMessage"]:
-        return self.mattermost_messages.order_by("created_at").first()
 
     @cached_property
     def last_stop_escalation_log(self):
