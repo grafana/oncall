@@ -77,7 +77,7 @@ from apps.labels.tests.factories import (
     LabelValueFactory,
     WebhookAssociatedLabelFactory,
 )
-from apps.mattermost.tests.factories import MattermostChannelFactory
+from apps.mattermost.tests.factories import MattermostChannelFactory, MattermostMessageFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
@@ -165,6 +165,7 @@ register(AlertReceiveChannelAssociatedLabelFactory)
 register(GoogleOAuth2UserFactory)
 register(UserNotificationBundleFactory)
 register(MattermostChannelFactory)
+register(MattermostMessageFactory)
 
 IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 

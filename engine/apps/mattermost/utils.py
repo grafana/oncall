@@ -1,12 +1,13 @@
-import typing
 import datetime
 import logging
+import typing
 
 import jwt
 from django.conf import settings
 from django.utils import timezone
 
 from apps.mattermost.exceptions import MattermostEventTokenInvalid
+
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization
 
