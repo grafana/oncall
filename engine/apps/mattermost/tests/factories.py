@@ -1,6 +1,6 @@
 import factory
 
-from apps.mattermost.models import MattermostChannel
+from apps.mattermost.models import MattermostChannel, MattermostMessage
 from common.utils import UniqueFaker
 
 
@@ -14,3 +14,11 @@ class MattermostChannelFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = MattermostChannel
+
+
+class MattermostMessageFactory(factory.DjangoModelFactory):
+    post_id = factory.LazyAttribute(lambda v: str(UniqueFaker("pystr", min_chars=5, max_chars=26).generate()))
+    channel_id = factory.LazyAttribute(lambda v: str(UniqueFaker("pystr", min_chars=5, max_chars=26).generate()))
+
+    class Meta:
+        model = MattermostMessage

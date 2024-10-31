@@ -46,7 +46,7 @@ class AlertGroupMattermostRepresentative(AlertGroupAbstractRepresentative):
     def on_alert_group_action(self, alert_group: AlertGroup):
         logger.info(f"Update mattermost message for alert_group {alert_group.pk}")
         payload = MattermostMessageRenderer(alert_group).render_alert_group_message()
-        mattermost_message = alert_group.mattermost_message
+        mattermost_message = alert_group.mattermost_messages.order_by("created_at").first()
         try:
             client = MattermostClient()
             client.update_post(post_id=mattermost_message.post_id, data=payload)
