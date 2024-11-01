@@ -162,9 +162,15 @@ def test_initial_unauthorized(make_organization_and_user_with_slack_identities, 
     )
 
 
+@pytest.mark.parametrize("use_important_policy", (False, True))
 @pytest.mark.django_db
-def test_add_user_no_warning(make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift):
+def test_add_user_no_warning(
+    make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift, use_important_policy
+):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    if use_important_policy:
+        organization.direct_paging_prefer_important_policy = use_important_policy
+        organization.save()
     # set up schedule: user is on call
     schedule = make_schedule(
         organization,
@@ -195,7 +201,10 @@ def test_add_user_no_warning(make_organization_and_user_with_slack_identities, m
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
+    if use_important_policy:
+        assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
+    else:
+        assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
 
 
 @pytest.mark.django_db
@@ -269,15 +278,20 @@ def test_add_user_raise_warning(make_organization_and_user_with_slack_identities
     assert metadata[DataKey.USERS] == {}
 
 
+@pytest.mark.parametrize("use_important_policy", (False, True))
 @pytest.mark.django_db
-def test_change_user_policy(make_organization_and_user_with_slack_identities):
+def test_change_user_policy(make_organization_and_user_with_slack_identities, use_important_policy):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    if use_important_policy:
+        organization.direct_paging_prefer_important_policy = use_important_policy
+        organization.save()
+    value = Policy.IMPORTANT if not use_important_policy else Policy.DEFAULT
     payload = make_paging_view_slack_payload(
         selected_org=organization,
         actions=[
             {
                 "selected_option": {
-                    "value": make_value({"action": Policy.IMPORTANT, "key": DataKey.USERS, "id": user.pk}, organization)
+                    "value": make_value({"action": value, "key": DataKey.USERS, "id": user.pk}, organization)
                 }
             }
         ],
@@ -288,7 +302,7 @@ def test_change_user_policy(make_organization_and_user_with_slack_identities):
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
-    assert metadata[DataKey.USERS] == {str(user.pk): Policy.IMPORTANT}
+    assert metadata[DataKey.USERS] == {str(user.pk): value}
 
 
 @pytest.mark.django_db

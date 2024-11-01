@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from apps.alerts.models import Alert
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers.alerts import AlertSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
@@ -19,7 +20,11 @@ class AlertFilter(filters.FilterSet):
 
 class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+    }
 
     throttle_classes = [UserThrottle]
 

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, DirectPagingUserTeamValidationError, direct_paging
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import AlertGroupSerializer, EscalationSerializer
 from apps.public_api.throttlers import UserThrottle
@@ -16,7 +17,11 @@ class EscalationView(APIView):
     """
 
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.ALERT_GROUPS_DIRECT_PAGING],
+    }
 
     throttle_classes = [UserThrottle]
 

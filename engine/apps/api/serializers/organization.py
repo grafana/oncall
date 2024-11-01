@@ -39,6 +39,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_channel",
             "rbac_enabled",
             "grafana_incident_enabled",
+            "direct_paging_prefer_important_policy",
         ]
         read_only_fields = [
             "stack_slug",

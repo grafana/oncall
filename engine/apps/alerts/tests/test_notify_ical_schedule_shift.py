@@ -499,6 +499,45 @@ def test_next_shift_changes_no_triggering_notification(
 
 
 @pytest.mark.django_db
+def test_current_shifts_using_microseconds(
+    make_organization_and_user_with_slack_identities,
+    make_user,
+    make_schedule,
+):
+    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    user1 = make_user(organization=organization, username="user1")
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_schedule",
+        channel="channel",
+        prev_ical_file_overrides=None,
+        cached_ical_file_overrides=None,
+    )
+    schedule.refresh_ical_file()
+    schedule.current_shifts = json.dumps(
+        {
+            "test_shift_uid": {
+                "users": [user1.pk],
+                "start": timezone.now().replace(microsecond=123456),
+                "end": timezone.now().replace(microsecond=654321) + timezone.timedelta(days=1),
+                "all_day": False,
+                "priority": 1,
+                "priority_increased_by": 0,
+            }
+        },
+        default=str,
+    )
+    schedule.empty_oncall = False
+    schedule.save()
+
+    with patch("apps.slack.client.SlackClient.chat_postMessage") as mock_slack_api_call:
+        notify_ical_schedule_shift(schedule.pk)
+
+    assert mock_slack_api_call.called
+
+
+@pytest.mark.django_db
 def test_lower_priority_changes_no_triggering_notification(
     make_organization_and_user_with_slack_identities,
     make_user,
