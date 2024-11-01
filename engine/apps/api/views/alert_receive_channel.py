@@ -38,7 +38,7 @@ from apps.auth_token.models.integration_backsync_auth_token import IntegrationBa
 from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.exceptions import BadRequest, Conflict
 from common.api_helpers.filters import NO_TEAM_VALUE, ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
@@ -611,7 +611,7 @@ class AlertReceiveChannelView(
         organization = self.request.auth.organization
         name_used = AlertReceiveChannel.objects.filter(organization=organization, verbal_name=verbal_name).exists()
         if name_used:
-            r = Response(status=status.HTTP_409_CONFLICT)
+            raise Conflict()
         else:
             r = Response(status=status.HTTP_200_OK)
 

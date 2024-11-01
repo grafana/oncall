@@ -11,6 +11,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.telegram.client import TelegramClient
+from common.api_helpers.exceptions import BadRequest
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -102,7 +103,7 @@ class GetChannelVerificationCode(APIView):
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
 
         code = backend.generate_channel_verification_code(organization)
         return Response(code)

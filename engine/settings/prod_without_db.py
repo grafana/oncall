@@ -46,6 +46,7 @@ SECURE_HSTS_SECONDS = 360000
 CELERY_TASK_ROUTES = celery_task_routes.CELERY_TASK_ROUTES
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
         "rest_framework.parsers.FormParser",

@@ -1,8 +1,8 @@
 from contextlib import suppress
 
 from django.conf import settings
-from django.http import HttpResponse
-from rest_framework import status, viewsets
+from rest_framework import viewsets
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from telegram import error
 
@@ -32,7 +32,7 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin[LiveSetting], viewsets.ModelViewS
 
     def dispatch(self, request, *args, **kwargs):
         if not settings.FEATURE_LIVE_SETTINGS_ENABLED:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+            raise NotFound()
 
         return super().dispatch(request, *args, **kwargs)
 

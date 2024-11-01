@@ -278,6 +278,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_standardized_errors",
     "django_filters",
     "mirage",
     "engine",
@@ -317,6 +318,7 @@ if DATABASE_TYPE == DatabaseTypes.MYSQL:
     INSTALLED_APPS += ["django_mysql"]
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
         "rest_framework.parsers.FormParser",
@@ -324,6 +326,17 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_SCHEMA_CLASS": "engine.schema.CustomAutoSchema",
+}
+
+DRF_STANDARDIZED_ERRORS = {
+    # class responsible for handling the exceptions. Can be subclassed to change
+    # which exceptions are handled by default, to update which exceptions are
+    # reported to error monitoring tools (like Sentry), ...
+    "EXCEPTION_HANDLER_CLASS": "drf_standardized_errors.handler.ExceptionHandler",
+    # class responsible for generating error response output. Can be subclassed
+    # to change the format of the error response.
+    "EXCEPTION_FORMATTER_CLASS": "apps.api.errors.ExceptionFormatter",
+    "ENABLE_IN_DEBUG_FOR_UNHANDLED_EXCEPTIONS": True,
 }
 
 

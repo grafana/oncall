@@ -44,7 +44,7 @@ def extra_deps():
     return grafana_deps
     
 
-allow_k8s_contexts(["kind-kind"])
+allow_k8s_contexts(["kind-kind", "orbstack"])
 
 # Build the image including frontend folder for pytest
 docker_build_sub(

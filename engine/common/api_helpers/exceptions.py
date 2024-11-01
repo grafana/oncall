@@ -23,3 +23,13 @@ class Conflict(APIException):
     status_code = 409
     default_detail = "duplicate record found"
     default_code = "Conflict"
+
+
+class ServiceUnavailable(APIException):
+    status_code = 503
+    default_detail = "Service temporarily unavailable, try again later."
+    default_code = "service_unavailable"
+
+
+class InternalServerError(APIException):
+    pass
