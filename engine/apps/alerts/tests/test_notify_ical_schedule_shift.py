@@ -532,17 +532,22 @@ def test_next_shift_changes_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_current_shifts_using_microseconds(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
+
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
