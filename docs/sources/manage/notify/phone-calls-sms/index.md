@@ -83,12 +83,12 @@ To learn the phone number used by OnCall, make a test call from the “Phone Ver
 The following is a list of countries currently supported by Grafana OnCall.
 
 {{< admonition type="note" >}}
-Please be aware that due to limitations
+Be aware that due to limitations
 in our telecom provider’s service, some numbers within supported countries may occasionally be flagged as “high-risk” when
 verifying your phone number, thereby preventing you from being able to use that number to receive notifications.
 
-We recommend testing your notification chain to confirm that OnCall can reach you. For added reliability, consider backing
-up phone calls and SMS notifications with additional methods, such as the [Mobile app](ref:mobile-app).
+Ensure that you test your notification rules to confirm that OnCall can reach you. For added reliability, consider backing
+up phone calls and SMS notifications with additional methods, such as the [Mobile app](/docs/grafana-cloud/alerting-and-irm/irm/irm-mobile-app/push-notifications/).
 {{< /admonition >}}
 
 {{< collapse title="Europe" >}}
