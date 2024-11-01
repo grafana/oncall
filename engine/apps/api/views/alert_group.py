@@ -8,7 +8,7 @@ from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import Forbidden, NotFound
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -29,7 +29,7 @@ from apps.base.models.user_notification_policy_log_record import UserNotificatio
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.exceptions import BadRequest, Forbidden
 from common.api_helpers.filters import (
     NO_TEAM_VALUE,
     DateRangeFilterMixin,
