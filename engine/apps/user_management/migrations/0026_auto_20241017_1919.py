@@ -54,7 +54,7 @@ def populate_default_slack_channel(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("user_management", "0024_organization_default_slack_channel"),
+        ("user_management", "0025_organization_default_slack_channel"),
     ]
 
     operations = [

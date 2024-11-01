@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('slack', '0005_slackteamidentity__unified_slack_app_installed'),
-        ('user_management', '0023_organization_is_grafana_irm_enabled'),
+        ('user_management', '0024_organization_direct_paging_prefer_important_policy'),
     ]
 
     operations = [
