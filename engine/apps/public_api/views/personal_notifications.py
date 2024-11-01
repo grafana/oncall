@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.base.models import UserNotificationPolicy
 from apps.public_api.serializers import PersonalNotificationRuleSerializer, PersonalNotificationRuleUpdateSerializer
@@ -17,7 +18,16 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "create": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "destroy": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+    }
 
     throttle_classes = [UserThrottle]
 

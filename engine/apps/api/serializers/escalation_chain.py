@@ -22,11 +22,11 @@ class EscalationChainListSerializer(EscalationChainSerializer):
     class Meta(EscalationChainSerializer.Meta):
         fields = [*EscalationChainSerializer.Meta.fields, "number_of_integrations", "number_of_routes"]
 
-    def get_number_of_integrations(self, obj):
+    def get_number_of_integrations(self, obj) -> int:
         # num_integrations param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
         return getattr(obj, "num_integrations", 0)
 
-    def get_number_of_routes(self, obj):
+    def get_number_of_routes(self, obj) -> int:
         # num_routes param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
         return getattr(obj, "num_routes", 0)
 

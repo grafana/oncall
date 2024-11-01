@@ -9,7 +9,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole, RBACPermission, user_is_authorized
+from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
@@ -52,10 +52,8 @@ class ApiTokenAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).decode("utf-8")
         user, auth_token = self.authenticate_credentials(auth)
 
-        if not user.is_active or not user_is_authorized(user, [RBACPermission.Permissions.API_KEYS_WRITE]):
-            raise exceptions.AuthenticationFailed(
-                "Only users with Admin permissions are allowed to perform this action."
-            )
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed("Only active users are allowed to perform this action.")
 
         return user, auth_token
 

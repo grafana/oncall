@@ -18,7 +18,6 @@ class ResolutionNoteView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelView
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
         "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],

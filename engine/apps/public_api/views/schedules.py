@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentication
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import PolymorphicScheduleSerializer, PolymorphicScheduleUpdateSerializer
@@ -28,7 +29,17 @@ logger = logging.getLogger(__name__)
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.SCHEDULES_READ],
+        "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
+        "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "final_shifts": [RBACPermission.Permissions.SCHEDULES_READ],
+    }
 
     throttle_classes = [UserThrottle]
 
