@@ -1,4 +1,5 @@
 import logging
+import typing
 
 from django.conf import settings
 
@@ -11,6 +12,9 @@ from common.incident_api.client import (
     IncidentAPIException,
 )
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, EscalationPolicy
+
 logger = logging.getLogger(__name__)
 
 ATTACHMENT_CAPTION = "OnCall Alert Group"
@@ -19,7 +23,13 @@ MAX_RETRIES = 1 if settings.DEBUG else 10
 MAX_ATTACHED_ALERT_GROUPS_PER_INCIDENT = 5
 
 
-def _attach_alert_group_to_incident(alert_group, incident_id, incident_title, escalation_policy, attached=False):
+def _attach_alert_group_to_incident(
+    alert_group: "AlertGroup",
+    incident_id: str,
+    incident_title: str,
+    escalation_policy: "EscalationPolicy",
+    attached: bool = False,
+) -> None:
     from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy, RelatedIncident
 
     declared_incident, _ = RelatedIncident.objects.get_or_create(
@@ -41,7 +51,9 @@ def _attach_alert_group_to_incident(alert_group, incident_id, incident_title, es
     )
 
 
-def _create_error_log_record(alert_group, escalation_policy, reason=""):
+def _create_error_log_record(
+    alert_group: "AlertGroup", escalation_policy: "EscalationPolicy", reason: str = ""
+) -> None:
     from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 
     AlertGroupLogRecord.objects.create(
@@ -55,7 +67,7 @@ def _create_error_log_record(alert_group, escalation_policy, reason=""):
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def declare_incident(alert_group_pk, escalation_policy_pk, severity=None):
+def declare_incident(alert_group_pk: int, escalation_policy_pk: int, severity: typing.Optional[str] = None) -> None:
     from apps.alerts.models import AlertGroup, EscalationPolicy, RelatedIncident
 
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)

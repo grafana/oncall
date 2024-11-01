@@ -41,16 +41,10 @@ def test_reset_slack_integration_permissions(
 @pytest.mark.django_db
 def test_clean_slack_integration_leftovers(
     make_organization_with_slack_team_identity,
-    make_alert_receive_channel,
-    make_channel_filter,
     make_slack_user_group,
     make_schedule,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
-
-    # create channel filter with Slack channel
-    alert_receive_channel = make_alert_receive_channel(organization)
-    channel_filter = make_channel_filter(alert_receive_channel, slack_channel_id="test")
 
     # create schedule with Slack channel and user group
     user_group = make_slack_user_group(slack_team_identity)
@@ -58,11 +52,9 @@ def test_clean_slack_integration_leftovers(
 
     # clean Slack integration leftovers
     clean_slack_integration_leftovers(organization.pk)
-    channel_filter.refresh_from_db()
     schedule.refresh_from_db()
 
     # check that references to Slack objects are removed
-    assert channel_filter.slack_channel_id is None
     assert schedule.channel is None
     assert schedule.user_group is None
 

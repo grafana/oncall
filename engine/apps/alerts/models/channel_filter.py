@@ -21,6 +21,7 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
     from apps.labels.types import AlertLabels, LabelPair
+    from apps.slack.models import SlackChannel
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class ChannelFilter(OrderedModel):
     alert_groups: "RelatedManager['AlertGroup']"
     alert_receive_channel: "AlertReceiveChannel"
     filtering_labels: typing.Optional[list["LabelPair"]]
+    slack_channel: typing.Optional["SlackChannel"]
 
     order_with_respect_to = ["alert_receive_channel_id", "is_default"]
 
@@ -68,15 +70,15 @@ class ChannelFilter(OrderedModel):
     notify_in_slack = models.BooleanField(null=True, default=True)
     notify_in_telegram = models.BooleanField(null=True, default=False)
 
-    slack_channel_id = models.CharField(max_length=100, null=True, default=None)
-    # TODO: migrate slack_channel_id to slack_channel
-    # slack_channel = models.ForeignKey(
-    #     'slack.SlackChannel',
-    #     null=True,
-    #     default=None,
-    #     on_delete=models.SET_NULL,
-    #     related_name='+',
-    # )
+    # TODO: remove _slack_channel_id in future release
+    _slack_channel_id = models.CharField(max_length=100, null=True, default=None)
+    slack_channel = models.ForeignKey(
+        "slack.SlackChannel",
+        null=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 
     telegram_channel = models.ForeignKey(
         "telegram.TelegramToOrganizationConnector",
@@ -170,15 +172,18 @@ class ChannelFilter(OrderedModel):
         return False
 
     @property
-    def slack_channel_id_or_general_log_id(self):
+    def slack_channel_slack_id(self) -> typing.Optional[str]:
+        return self.slack_channel.slack_id if self.slack_channel else None
+
+    @property
+    def slack_channel_id_or_org_default_id(self):
         organization = self.alert_receive_channel.organization
-        slack_team_identity = organization.slack_team_identity
-        if slack_team_identity is None:
+
+        if organization.slack_team_identity is None:
             return None
-        if self.slack_channel_id is None:
+        elif self.slack_channel_slack_id is None:
             return organization.default_slack_channel_slack_id
-        else:
-            return self.slack_channel_id
+        return self.slack_channel_slack_id
 
     @property
     def str_for_clients(self):
@@ -212,17 +217,10 @@ class ChannelFilter(OrderedModel):
             "slack_notification_enabled": self.notify_in_slack,
             "telegram_notification_enabled": self.notify_in_telegram,
         }
-        if self.slack_channel_id:
-            if self.slack_channel_id:
-                from apps.slack.models import SlackChannel
 
-                sti = self.alert_receive_channel.organization.slack_team_identity
-                slack_channel = SlackChannel.objects.filter(
-                    slack_team_identity=sti, slack_id=self.slack_channel_id
-                ).first()
-                if slack_channel is not None:
-                    # Case when slack channel was deleted, but channel filter still has it's id
-                    result["slack_channel"] = slack_channel.name
+        if self.slack_channel:
+            result["slack_channel"] = self.slack_channel.name
+
         # TODO: use names instead of pks for telegram and other notifications backends.
         # It's needed to rework messaging backends for that
         if self.telegram_channel:

@@ -71,7 +71,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         predefined_org: typing.Optional["Organization"] = None,
     ) -> None:
         from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
-        from apps.slack.models import SlackMessage, SlackUserIdentity
+        from apps.slack.models import SlackChannel, SlackMessage, SlackUserIdentity
 
         try:
             channel_id = payload["channel"]["id"]
@@ -156,12 +156,17 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 except ResolutionNoteSlackMessage.DoesNotExist:
                     text = payload["message"]["text"]
                     text = text.replace("```", "")
+
+                    slack_channel = SlackChannel.objects.get(
+                        slack_id=channel_id, slack_team_identity=slack_team_identity
+                    )
                     slack_message = SlackMessage.objects.get(
                         slack_id=thread_ts,
                         _slack_team_identity=slack_team_identity,
                         channel_id=channel_id,
                     )
                     alert_group = slack_message.alert_group
+
                     try:
                         author_slack_user_identity = SlackUserIdentity.objects.get(
                             slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity
@@ -174,12 +179,13 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                         )
                         self.open_warning_window(payload, warning_text)
                         return
+
                     resolution_note_slack_message = ResolutionNoteSlackMessage(
                         alert_group=alert_group,
                         user=author_user,
                         added_by_user=self.user,
                         text=text,
-                        slack_channel_id=channel_id,
+                        slack_channel=slack_channel,
                         thread_ts=thread_ts,
                         ts=message_ts,
                         permalink=permalink,
@@ -225,14 +231,14 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         )
 
     def remove_resolution_note_slack_message(self, resolution_note: "ResolutionNote") -> None:
-        resolution_note_slack_message = resolution_note.resolution_note_slack_message
-        if resolution_note_slack_message is not None:
+        if (resolution_note_slack_message := resolution_note.resolution_note_slack_message) is not None:
             resolution_note_slack_message.added_to_resolution_note = False
             resolution_note_slack_message.save(update_fields=["added_to_resolution_note"])
+
             if resolution_note_slack_message.posted_by_bot:
                 try:
                     self._slack_client.chat_delete(
-                        channel=resolution_note_slack_message.slack_channel_id,
+                        channel=resolution_note_slack_message.slack_channel_slack_id,
                         ts=resolution_note_slack_message.ts,
                     )
                 except RESOLUTION_NOTE_EXCEPTIONS:
@@ -242,17 +248,23 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def post_or_update_resolution_note_in_thread(self, resolution_note: "ResolutionNote") -> None:
         from apps.alerts.models import ResolutionNoteSlackMessage
+        from apps.slack.models import SlackChannel
 
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
+        slack_channel_id = alert_group_slack_message.channel_id
         blocks = self.get_resolution_note_blocks(resolution_note)
+
+        slack_channel = SlackChannel.objects.get(
+            slack_id=slack_channel_id, slack_team_identity=self.slack_team_identity
+        )
 
         if resolution_note_slack_message is None:
             resolution_note_text = Truncator(resolution_note.text)
             try:
                 result = self._slack_client.chat_postMessage(
-                    channel=alert_group_slack_message.channel_id,
+                    channel=slack_channel_id,
                     thread_ts=alert_group_slack_message.slack_id,
                     text=resolution_note_text.chars(BLOCK_SECTION_TEXT_MAX_SIZE),
                     blocks=blocks,
@@ -261,17 +273,14 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 pass
             else:
                 message_ts = result["message"]["ts"]
-                result_permalink = self._slack_client.chat_getPermalink(
-                    channel=alert_group_slack_message.channel_id,
-                    message_ts=message_ts,
-                )
+                result_permalink = self._slack_client.chat_getPermalink(channel=slack_channel_id, message_ts=message_ts)
 
                 resolution_note_slack_message = ResolutionNoteSlackMessage(
                     alert_group=alert_group,
                     user=resolution_note.author,
                     added_by_user=resolution_note.author,
                     text=resolution_note.text,
-                    slack_channel_id=alert_group_slack_message.channel_id,
+                    slack_channel=slack_channel,
                     thread_ts=result["ts"],
                     ts=message_ts,
                     permalink=result_permalink["permalink"],
@@ -305,7 +314,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:
             self._slack_client.reactions_add(
-                channel=slack_thread_message.slack_channel_id,
+                channel=slack_thread_message.slack_channel_slack_id,
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )
@@ -315,7 +324,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
     def remove_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage") -> None:
         try:
             self._slack_client.reactions_remove(
-                channel=slack_thread_message.slack_channel_id,
+                channel=slack_thread_message.slack_channel_slack_id,
                 name="memo",
                 timestamp=slack_thread_message.ts,
             )

@@ -10,6 +10,7 @@ from apps.schedules.ical_utils import list_users_to_notify_from_ical
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.alerts.escalation_snapshot.snapshot_classes import EscalationPolicySnapshot, EscalationSnapshot
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
     from apps.user_management.models import User
@@ -170,7 +171,12 @@ class IncidentLogBuilder:
         return escalation_plan_dict
 
     def _render_escalation_plan_from_escalation_snapshot(
-        self, escalation_plan_dict, stop_escalation_log_pk, esc_timedelta, escalation_snapshot, for_slack=False
+        self,
+        escalation_plan_dict,
+        stop_escalation_log_pk: int,
+        esc_timedelta: timezone.timedelta,
+        escalation_snapshot: "EscalationSnapshot",
+        for_slack=False,
     ):
         from apps.alerts.models import EscalationPolicy
 
@@ -374,8 +380,8 @@ class IncidentLogBuilder:
 
     def _render_escalation_step_plan_from_escalation_policy_snapshot(
         self,
-        escalation_policy_snapshot,
-        escalation_snapshot,
+        escalation_policy_snapshot: "EscalationPolicySnapshot",
+        escalation_snapshot: "EscalationSnapshot",
         for_slack=False,
         future_step=False,
         esc_timedelta=None,

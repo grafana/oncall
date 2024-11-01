@@ -29,6 +29,8 @@ class SlackMessage(models.Model):
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
 
     slack_id = models.CharField(max_length=100)
+
+    # TODO: convert this to a foreign key field to SlackChannel
     channel_id = models.CharField(max_length=100, null=True, default=None)
 
     organization = models.ForeignKey(

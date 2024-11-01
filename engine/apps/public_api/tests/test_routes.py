@@ -12,28 +12,36 @@ TEST_MESSAGING_BACKEND_ID = "TESTBACKENDID"
 
 @pytest.fixture()
 def route_public_api_setup(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
     make_alert_receive_channel,
     make_escalation_chain,
     make_channel_filter,
+    make_slack_team_identity,
+    make_slack_channel,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
+
     alert_receive_channel = make_alert_receive_channel(organization)
     escalation_chain = make_escalation_chain(organization)
     channel_filter = make_channel_filter(
         alert_receive_channel,
         is_default=True,
-        slack_channel_id="TEST_SLACK_ID",
+        slack_channel=slack_channel,
         escalation_chain=escalation_chain,
     )
-    return organization, user, token, alert_receive_channel, escalation_chain, channel_filter
+    return organization, token, alert_receive_channel, escalation_chain, channel_filter
 
 
 @pytest.mark.django_db
-def test_get_route(
-    route_public_api_setup,
-):
-    _, _, token, alert_receive_channel, escalation_chain, channel_filter = route_public_api_setup
+def test_get_route(route_public_api_setup):
+    _, token, alert_receive_channel, escalation_chain, channel_filter = route_public_api_setup
 
     client = APIClient()
 
@@ -48,7 +56,7 @@ def test_get_route(
         "routing_regex": channel_filter.filtering_term,
         "position": channel_filter.order,
         "is_the_last_route": channel_filter.is_default,
-        "slack": {"channel_id": channel_filter.slack_channel_id, "enabled": True},
+        "slack": {"channel_id": channel_filter.slack_channel_slack_id, "enabled": True},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
     }
@@ -58,10 +66,8 @@ def test_get_route(
 
 
 @pytest.mark.django_db
-def test_get_routes_list(
-    route_public_api_setup,
-):
-    _, _, token, alert_receive_channel, escalation_chain, channel_filter = route_public_api_setup
+def test_get_routes_list(route_public_api_setup):
+    _, token, alert_receive_channel, escalation_chain, channel_filter = route_public_api_setup
 
     client = APIClient()
 
@@ -81,7 +87,7 @@ def test_get_routes_list(
                 "routing_regex": channel_filter.filtering_term,
                 "position": channel_filter.order,
                 "is_the_last_route": channel_filter.is_default,
-                "slack": {"channel_id": channel_filter.slack_channel_id, "enabled": True},
+                "slack": {"channel_id": channel_filter.slack_channel_slack_id, "enabled": True},
                 "telegram": {"id": None, "enabled": False},
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
@@ -96,10 +102,8 @@ def test_get_routes_list(
 
 
 @pytest.mark.django_db
-def test_get_routes_filter_by_integration_id(
-    route_public_api_setup,
-):
-    _, _, token, alert_receive_channel, escalation_chain, channel_filter = route_public_api_setup
+def test_get_routes_filter_by_integration_id(route_public_api_setup):
+    _, token, alert_receive_channel, escalation_chain, channel_filter = route_public_api_setup
 
     client = APIClient()
 
@@ -121,7 +125,7 @@ def test_get_routes_filter_by_integration_id(
                 "routing_regex": channel_filter.filtering_term,
                 "position": channel_filter.order,
                 "is_the_last_route": channel_filter.is_default,
-                "slack": {"channel_id": channel_filter.slack_channel_id, "enabled": True},
+                "slack": {"channel_id": channel_filter.slack_channel_slack_id, "enabled": True},
                 "telegram": {"id": None, "enabled": False},
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
@@ -136,10 +140,8 @@ def test_get_routes_filter_by_integration_id(
 
 
 @pytest.mark.django_db
-def test_create_route(
-    route_public_api_setup,
-):
-    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+def test_create_route(route_public_api_setup):
+    _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
 
     client = APIClient()
 
@@ -170,7 +172,7 @@ def test_create_route(
 
 @pytest.mark.django_db
 def test_create_route_without_escalation_chain(route_public_api_setup):
-    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    _, token, alert_receive_channel, _, _ = route_public_api_setup
 
     client = APIClient()
     url = reverse("api-public:routes-list")
@@ -203,7 +205,7 @@ def test_create_route_without_escalation_chain(route_public_api_setup):
 def test_invalid_route_data(
     route_public_api_setup,
 ):
-    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
 
     client = APIClient()
 
@@ -219,11 +221,8 @@ def test_invalid_route_data(
 
 
 @pytest.mark.django_db
-def test_update_route(
-    route_public_api_setup,
-    make_channel_filter,
-):
-    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+def test_update_route(route_public_api_setup, make_channel_filter):
+    _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
     new_channel_filter = make_channel_filter(
         alert_receive_channel,
         is_default=False,
@@ -251,7 +250,7 @@ def test_update_route(
         "routing_regex": data_to_update["routing_regex"],
         "position": new_channel_filter.order,
         "is_the_last_route": new_channel_filter.is_default,
-        "slack": {"channel_id": new_channel_filter.slack_channel_id, "enabled": True},
+        "slack": {"channel_id": new_channel_filter.slack_channel_slack_id, "enabled": True},
         "telegram": {"id": None, "enabled": False},
         TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
     }
@@ -261,11 +260,8 @@ def test_update_route(
 
 
 @pytest.mark.django_db
-def test_delete_route(
-    route_public_api_setup,
-    make_channel_filter,
-):
-    _, _, token, alert_receive_channel, _, _ = route_public_api_setup
+def test_delete_route(route_public_api_setup, make_channel_filter):
+    _, token, alert_receive_channel, _, _ = route_public_api_setup
     new_channel_filter = make_channel_filter(
         alert_receive_channel,
         is_default=False,
@@ -285,47 +281,110 @@ def test_delete_route(
 @pytest.mark.django_db
 def test_create_route_slack_error(
     route_public_api_setup,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_alert_receive_channel,
 ):
-    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
-
+    _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
     client = APIClient()
-
     url = reverse("api-public:routes-list")
-    data_for_create = {
-        "integration_id": alert_receive_channel.public_primary_key,
-        "routing_regex": "testreg",
-        "escalation_chain_id": escalation_chain.public_primary_key,
-        "slack": {"channel_id": "TEST_SLACK_ID"},
-    }
-    response = client.post(url, format="json", HTTP_AUTHORIZATION=token, data=data_for_create)
+
+    # Channel does not exist
+    response = client.post(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=token,
+        data={
+            "integration_id": alert_receive_channel.public_primary_key,
+            "routing_regex": "testreg",
+            "escalation_chain_id": escalation_chain.public_primary_key,
+            "slack": {"channel_id": "TEST_SLACK_ID"},
+        },
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["detail"] == "Slack isn't connected to this workspace"
+    assert response.json()["slack"]["channel_id"][0] == "Slack channel does not exist"
+
+    # org doesn't have slack workspace connected
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    assert organization.slack_team_identity is None
+
+    response = client.post(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=token,
+        data={
+            "integration_id": alert_receive_channel.public_primary_key,
+            "slack": {"channel_id": slack_channel.slack_id},
+        },
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Slack isn't connected to this workspace"
 
 
 @pytest.mark.django_db
 def test_update_route_slack_error(
     route_public_api_setup,
     make_channel_filter,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_alert_receive_channel,
 ):
-    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
-    new_channel_filter = make_channel_filter(
-        alert_receive_channel,
-        is_default=False,
-        filtering_term="testreg",
-    )
-
     client = APIClient()
 
-    url = reverse("api-public:routes-detail", kwargs={"pk": new_channel_filter.public_primary_key})
-    data_to_update = {
-        "slack": {"channel_id": "TEST_SLACK_ID"},
-    }
+    # Channel does not exist
+    _, token, alert_receive_channel, _, _ = route_public_api_setup
+    new_channel_filter = make_channel_filter(alert_receive_channel, is_default=False, filtering_term="testreg")
 
-    response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
+    url = reverse("api-public:routes-detail", kwargs={"pk": new_channel_filter.public_primary_key})
+    response = client.put(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=token,
+        data={
+            "slack": {"channel_id": "TEST_SLACK_ID"},
+        },
+    )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["detail"] == "Slack isn't connected to this workspace"
+    assert response.json()["slack"]["channel_id"][0] == "Slack channel does not exist"
+
+    # org doesn't have slack workspace connected
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    new_channel_filter = make_channel_filter(alert_receive_channel, is_default=False, filtering_term="testreg")
+
+    assert organization.slack_team_identity is None
+
+    url = reverse("api-public:routes-detail", kwargs={"pk": new_channel_filter.public_primary_key})
+    response = client.put(
+        url,
+        format="json",
+        HTTP_AUTHORIZATION=token,
+        data={
+            "slack": {"channel_id": slack_channel.slack_id},
+        },
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == "Slack isn't connected to this workspace"
 
 
 @pytest.mark.django_db
@@ -334,7 +393,7 @@ def test_create_route_with_messaging_backend(
     make_slack_team_identity,
     make_slack_channel,
 ):
-    organization, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    organization, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
     slack_team_identity = make_slack_team_identity()
     organization.slack_team_identity = slack_team_identity
     organization.save(update_fields=["slack_team_identity"])
@@ -381,7 +440,7 @@ def test_update_route_with_messaging_backend(
     make_slack_team_identity,
     make_slack_channel,
 ):
-    organization, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+    organization, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
     slack_team_identity = make_slack_team_identity()
     organization.slack_team_identity = slack_team_identity
     organization.save(update_fields=["slack_team_identity"])
@@ -407,7 +466,7 @@ def test_update_route_with_messaging_backend(
     }
 
     # check if route data is different
-    assert new_channel_filter.slack_channel_id != slack_channel.slack_id
+    assert new_channel_filter.slack_channel_slack_id != slack_channel.slack_id
     assert new_channel_filter.notify_in_slack != data_to_update["slack"]["enabled"]
     assert new_channel_filter.notify_in_telegram != data_to_update["telegram"]["enabled"]
     assert new_channel_filter.notification_backends is None
@@ -433,7 +492,7 @@ def test_update_route_with_messaging_backend(
     new_channel_filter.refresh_from_db()
 
     # check if route data is different was changed correctly
-    assert new_channel_filter.slack_channel_id == slack_channel.slack_id
+    assert new_channel_filter.slack_channel_slack_id == slack_channel.slack_id
     assert new_channel_filter.notify_in_slack == data_to_update["slack"]["enabled"]
     assert new_channel_filter.notify_in_telegram == data_to_update["telegram"]["enabled"]
     assert new_channel_filter.notification_backends == {
@@ -467,7 +526,7 @@ def test_update_route_with_messaging_backend(
     new_channel_filter.refresh_from_db()
 
     # check if route data is different was changed correctly
-    assert new_channel_filter.slack_channel_id == data_to_update["slack"]["channel_id"]
+    assert new_channel_filter.slack_channel_slack_id == data_to_update["slack"]["channel_id"]
     assert new_channel_filter.notify_in_slack == data_to_update["slack"]["enabled"]
     assert new_channel_filter.notify_in_telegram == data_to_update["telegram"]["enabled"]
     assert new_channel_filter.notification_backends == {TestOnlyBackend.backend_id: {"channel": None, "enabled": True}}
@@ -504,11 +563,8 @@ def test_update_route_with_manual_ordering(
 
 
 @pytest.mark.django_db
-def test_routes_long_filtering_term(
-    route_public_api_setup,
-    make_channel_filter,
-):
-    organization, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+def test_routes_long_filtering_term(route_public_api_setup, make_channel_filter):
+    _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
     client = APIClient()
     long_filtering_term = "a" * (ChannelFilter.FILTERING_TERM_MAX_LENGTH + 1)
 

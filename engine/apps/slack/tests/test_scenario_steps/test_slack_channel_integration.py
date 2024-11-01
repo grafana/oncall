@@ -433,23 +433,25 @@ class TestSlackChannelMessageEventStep:
         make_alert_receive_channel,
         make_alert_group,
         make_resolution_note_slack_message,
+        make_slack_channel,
     ) -> None:
+        channel_id = "potato"
+        ts = 88945.4849
+        thread_ts = 16789.123
+
         (
             organization,
             user,
             slack_team_identity,
             slack_user_identity,
         ) = make_organization_and_user_with_slack_identities()
+        slack_channel = make_slack_channel(slack_team_identity, slack_id=channel_id)
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
 
-        channel = "potato"
-        ts = 88945.4849
-        thread_ts = 16789.123
-
         payload = {
             "event": {
-                "channel": channel,
+                "channel": channel_id,
                 "previous_message": {
                     "ts": ts,
                     "thread_ts": thread_ts,
@@ -458,7 +460,7 @@ class TestSlackChannelMessageEventStep:
         }
 
         make_resolution_note_slack_message(
-            alert_group, user, user, ts=ts, thread_ts=thread_ts, slack_channel_id=channel
+            alert_group, user, user, ts=ts, thread_ts=thread_ts, slack_channel=slack_channel
         )
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
@@ -471,7 +473,7 @@ class TestSlackChannelMessageEventStep:
             ResolutionNoteSlackMessage.objects.filter(
                 ts=ts,
                 thread_ts=thread_ts,
-                slack_channel_id=channel,
+                slack_channel=slack_channel,
             ).count()
             == 0
         )
