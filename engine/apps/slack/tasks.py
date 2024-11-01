@@ -541,6 +541,9 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     """
+    TODO: once we add/migrate to ChannelFilter.slack_channel, this will mean that we no longer need this task
+    and it can be safely removed (foreign key relationships to a slack channel that is deleted in the db will
+
     This task removes binding to slack (e.g ChannelFilter's slack channel) for a given organization.
     It is used when user changes slack integration.
     """
