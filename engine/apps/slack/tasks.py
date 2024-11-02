@@ -575,5 +575,3 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
         ChannelFilter.objects.filter(alert_receive_channel__organization=org, slack_channel_id=slack_channel_id).update(
             slack_channel_id=None
         )
-
-        # TODO: add back oncallschedules here

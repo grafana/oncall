@@ -92,3 +92,33 @@ def test_unpopulate_slack_user_identities(
     # check that Slack specific info is reset for organization
     assert organization.slack_team_identity is None
     assert organization.default_slack_channel_slack_id is None
+
+
+@pytest.mark.django_db
+def test_delete_slack_channel_and_cascade_deletes(
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    # make_schedule,
+):
+    # TODO: add the schedule related bits once https://github.com/grafana/oncall/pull/5199 is merged
+
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, slack_channel=slack_channel)
+    # schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    assert channel_filter.slack_channel == slack_channel
+    # assert schedule.slack_channel == slack_channel
+
+    slack_channel.delete()
+    channel_filter.refresh_from_db()
+    # schedule.refresh_from_db()
+
+    assert channel_filter.slack_channel is None
+    # assert schedule.slack_channel is None
