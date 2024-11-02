@@ -128,7 +128,8 @@ class TestSlackChannelsFilteredByOrganizationSlackWorkspaceField:
         with pytest.raises(BadRequest) as excinfo:
             serializer.is_valid(raise_exception=True)
 
-        assert "Slack isn't connected to this workspace" in str(excinfo.value)
+        assert excinfo.value.detail == "Slack isn't connected to this workspace"
+        assert excinfo.value.status_code == 400
 
     @pytest.mark.django_db
     def test_org_channel_doesnt_belong_to_org(
@@ -158,7 +159,7 @@ class TestSlackChannelsFilteredByOrganizationSlackWorkspaceField:
         with pytest.raises(serializers.ValidationError) as excinfo:
             serializer.is_valid(raise_exception=True)
 
-        assert "Slack channel does not exist" in str(excinfo.value)
+        assert excinfo.value.detail == {"slack_channel_id": ["Slack channel does not exist"]}
 
     @pytest.mark.django_db
     def test_invalid_slack_channel(
@@ -182,7 +183,7 @@ class TestSlackChannelsFilteredByOrganizationSlackWorkspaceField:
         with pytest.raises(serializers.ValidationError) as excinfo:
             serializer.is_valid(raise_exception=True)
 
-        assert "Invalid Slack channel" in str(excinfo.value)
+        assert excinfo.value.detail == {"slack_channel_id": ["Slack channel does not exist"]}
 
     @pytest.mark.django_db
     def test_valid(
@@ -198,10 +199,13 @@ class TestSlackChannelsFilteredByOrganizationSlackWorkspaceField:
         organization = make_organization(slack_team_identity=slack_team_identity)
         user = make_user_for_organization(organization)
 
-        serializer = self.MySerializer(
-            data={"slack_channel_id": slack_channel_id},
-            context={"request": self.MockRequest(user)},
-        )
+        context = {"request": self.MockRequest(user)}
 
+        serializer = self.MySerializer(data={"slack_channel_id": slack_channel_id}, context=context)
+        serializer.is_valid(raise_exception=True)
+        assert serializer.validated_data["slack_channel_id"] == slack_channel
+
+        # case insensitive
+        serializer = self.MySerializer(data={"slack_channel_id": slack_channel_id.lower()}, context=context)
         serializer.is_valid(raise_exception=True)
         assert serializer.validated_data["slack_channel_id"] == slack_channel

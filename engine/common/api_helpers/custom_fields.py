@@ -136,7 +136,7 @@ class SlackChannelsFilteredByOrganizationSlackWorkspaceField(serializers.Related
 
     def to_internal_value(self, slack_id: str):
         try:
-            return self.get_queryset().get(slack_id=slack_id.upper())
+            return self.get_queryset().get(slack_id__iexact=slack_id)
         except ObjectDoesNotExist:
             raise ValidationError("Slack channel does not exist")
         except (TypeError, ValueError, AttributeError):
