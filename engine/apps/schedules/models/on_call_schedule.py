@@ -1059,7 +1059,6 @@ class OnCallSchedule(PolymorphicModel):
             result["team"] = "General"
 
         if self.organization.slack_team_identity:
-
             if self.slack_channel is not None:
                 result["slack_channel"] = self.slack_channel.name
 
