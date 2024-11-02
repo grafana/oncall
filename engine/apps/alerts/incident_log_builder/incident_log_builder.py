@@ -507,9 +507,11 @@ class IncidentLogBuilder:
                     # it's safe to cast this to `SlackTeamIdentity`
                     slack_team_identity: SlackTeamIdentity = self.alert_group.slack_message.slack_team_identity
 
-                    final_notify_all_users_to_notify = slack_team_identity.get_users_from_slack_conversation_for_organization(
-                        channel_id=channel_id,
-                        organization=self.alert_group.channel.organization,
+                    final_notify_all_users_to_notify = (
+                        slack_team_identity.get_users_from_slack_conversation_for_organization(
+                            channel_id=channel_id,
+                            organization=self.alert_group.channel.organization,
+                        )
                     )
                 else:
                     plan_line = (
