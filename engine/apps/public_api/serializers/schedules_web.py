@@ -54,7 +54,7 @@ class ScheduleWebUpdateSerializer(ScheduleWebSerializer):
         }
 
     def update(self, instance, validated_data):
-        validated_data = self._correct_validated_data(validated_data)
+        validated_data = self._correct_validated_data(validated_data, self.context["request"].auth.organization)
         new_time_zone = validated_data.get("time_zone", instance.time_zone)
         new_shifts = validated_data.get("shifts", [])
         existing_shifts = instance.custom_shifts.all()

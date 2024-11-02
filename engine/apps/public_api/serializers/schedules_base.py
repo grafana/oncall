@@ -37,23 +37,23 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return []
 
     def _correct_validated_data(self, validated_data, organization: "Organization"):
-        slack_field = validated_data.pop("slack", {})
-        slack_team_identity = organization.slack_team_identity
+        if slack_field := validated_data.pop("slack", {}):
+            slack_team_identity = organization.slack_team_identity
 
-        if not slack_team_identity:
-            raise BadRequest("Slack isn't connected to this workspace")
+            if not slack_team_identity:
+                raise BadRequest("Slack isn't connected to this workspace")
 
-        if "channel_id" in slack_field:
-            validated_data["slack_channel"] = SlackChannel.objects.get(
-                slack_team_identity=slack_team_identity,
-                slack_id=slack_field["channel_id"],
-            )
+            if "channel_id" in slack_field:
+                validated_data["slack_channel"] = SlackChannel.objects.get(
+                    slack_team_identity=slack_team_identity,
+                    slack_id=slack_field["channel_id"],
+                )
 
-        if "user_group_id" in slack_field:
-            validated_data["user_group"] = SlackUserGroup.objects.get(
-                slack_team_identity=slack_team_identity,
-                slack_id=slack_field["user_group_id"],
-            )
+            if "user_group_id" in slack_field:
+                validated_data["user_group"] = SlackUserGroup.objects.get(
+                    slack_team_identity=slack_team_identity,
+                    slack_id=slack_field["user_group_id"],
+                )
 
         return validated_data
 

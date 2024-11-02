@@ -62,7 +62,7 @@ class ScheduleICalUpdateSerializer(ScheduleICalSerializer):
 
     def update(self, instance, validated_data):
         ical_changed = False
-        validated_data = self._correct_validated_data(validated_data)
+        validated_data = self._correct_validated_data(validated_data, self.context["request"].auth.organization)
 
         if "ical_url_primary" in validated_data and validated_data["ical_url_primary"] != instance.ical_url_primary:
             ical_changed = True
