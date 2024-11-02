@@ -67,13 +67,12 @@ class IncidentLogBuilder:
     def __init__(self, alert_group: "AlertGroup"):
         self.alert_group = alert_group
 
-    def get_log_records_list(self, with_resolution_notes: bool = False) -> LogRecords:
+    def get_log_records(self, with_resolution_notes: bool = False) -> LogRecords:
         """
-        Generates list of `LogRecords` logs.
-
-        `ResolutionNote`s are optionally included if `with_resolution_notes` is `True`.
+        Generates list of `LogRecords`. `ResolutionNote`s are optionally included if `with_resolution_notes` is `True`.
         """
         all_log_records: LogRecords = list()
+
         # get logs from AlertGroupLogRecord
         alert_group_log_records = self._get_log_records_for_after_resolve_report()
         all_log_records.extend(alert_group_log_records)
@@ -85,9 +84,9 @@ class IncidentLogBuilder:
         if with_resolution_notes:
             resolution_notes = self._get_resolution_notes()
             all_log_records.extend(resolution_notes)
+
         # sort logs by date
-        all_log_records_sorted = sorted(all_log_records, key=lambda log: log.created_at)
-        return all_log_records_sorted
+        return sorted(all_log_records, key=lambda log: log.created_at)
 
     def _get_log_records_for_after_resolve_report(self) -> "RelatedManager['AlertGroupLogRecord']":
         from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy

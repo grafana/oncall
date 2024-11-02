@@ -29,7 +29,7 @@ class TelegramMessageRenderer:
 
         slack_formatter = SlackFormatter(self.alert_group.channel.organization)
         log_builder = IncidentLogBuilder(alert_group=self.alert_group)
-        log_records = log_builder.get_log_records_list()
+        log_records = log_builder.get_log_records()
 
         log_lines = []
         for log_record in log_records:

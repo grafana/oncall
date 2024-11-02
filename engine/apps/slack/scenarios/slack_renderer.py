@@ -15,7 +15,7 @@ class AlertGroupLogSlackRenderer:
         from apps.base.models import UserNotificationPolicyLogRecord
 
         log_builder = IncidentLogBuilder(alert_group)
-        all_log_records = log_builder.get_log_records_list()
+        all_log_records = log_builder.get_log_records()
 
         result = ""
         for log_record in all_log_records:  # list of AlertGroupLogRecord and UserNotificationPolicyLogRecord logs

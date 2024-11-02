@@ -1939,7 +1939,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         from apps.base.models import UserNotificationPolicyLogRecord
 
         log_builder = IncidentLogBuilder(self)
-        log_records_list = log_builder.get_log_records_list(with_resolution_notes=True)
+        log_records_list = log_builder.get_log_records(with_resolution_notes=True)
         result_log_report = list()
 
         for log_record in log_records_list:
