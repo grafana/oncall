@@ -81,22 +81,6 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             attrs["slack_channel"] = slack_channel
         return attrs
 
-    # def validate(self, attrs):
-    #     if "slack_channel_id" in attrs:
-    #         slack_channel_id = attrs.pop("slack_channel_id", None)
-    #         attrs["channel"] = slack_channel_id.slack_id if slack_channel_id is not None else None
-    #     return attrs
-
-    # def to_internal_value(self, data):
-    #     result = super().to_internal_value(data)
-
-    #     print("YOOOOO to_internal_value 1", result)
-    #     if "slack_channel_id" in data:
-    #         result["slack_channel"] = data.pop("slack_channel_id", None)
-    #     print("YOOOOO to_internal_value 2", result)
-
-    #     return result
-
     def create(self, validated_data):
         created_schedule = super().create(validated_data)
         created_schedule.check_gaps_and_empty_shifts_for_next_week()

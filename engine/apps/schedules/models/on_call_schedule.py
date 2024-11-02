@@ -1058,15 +1058,18 @@ class OnCallSchedule(PolymorphicModel):
         else:
             result["team"] = "General"
 
-        if self.slack_channel is not None:
-            result["slack_channel"] = self.slack_channel.name
+        if self.organization.slack_team_identity:
+
+            if self.slack_channel is not None:
+                result["slack_channel"] = self.slack_channel.name
+
+            if self.user_group is not None:
+                result["user_group"] = self.user_group.handle
+
             result["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
             result["current_shift_notification"] = self.mention_oncall_start
             result["next_shift_notification"] = self.mention_oncall_next
             result["notify_empty_oncall"] = self.get_notify_empty_oncall_display()
-
-        if self.user_group is not None:
-            result["user_group"] = self.user_group.handle
 
         return result
 
