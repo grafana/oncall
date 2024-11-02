@@ -194,6 +194,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 resolution_note_slack_message.added_to_resolution_note = True
                 resolution_note_slack_message.save()
                 resolution_note = resolution_note_slack_message.get_resolution_note()
+
                 if resolution_note is None:
                     ResolutionNote(
                         alert_group=alert_group,
@@ -203,6 +204,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                     ).save()
                 else:
                     resolution_note.recreate()
+
                 try:
                     self._slack_client.reactions_add(
                         channel=channel_id,
