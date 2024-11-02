@@ -32,7 +32,7 @@ class SlackUserGroupFactory(factory.DjangoModelFactory):
 
 
 class SlackChannelFactory(factory.DjangoModelFactory):
-    slack_id = UniqueFaker("sentence", nb_words=3)
+    slack_id = factory.Sequence(lambda n: f"TEST_SLACK_ID_{n}")
     name = factory.Faker("word")
 
     class Meta:

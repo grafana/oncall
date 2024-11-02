@@ -183,7 +183,7 @@ class TestSlackChannelsFilteredByOrganizationSlackWorkspaceField:
         with pytest.raises(serializers.ValidationError) as excinfo:
             serializer.is_valid(raise_exception=True)
 
-        assert excinfo.value.detail == {"slack_channel_id": ["Slack channel does not exist"]}
+        assert excinfo.value.detail == {"slack_channel_id": ["Invalid Slack channel"]}
 
     @pytest.mark.django_db
     def test_valid(
