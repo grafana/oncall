@@ -139,7 +139,7 @@ class SlackChannelsFilteredByOrganizationSlackWorkspaceField(serializers.Related
             return self.get_queryset().get(slack_id=slack_id.upper())
         except ObjectDoesNotExist:
             raise ValidationError("Slack channel does not exist")
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, AttributeError):
             raise ValidationError("Invalid Slack channel")
 
     def to_representation(self, obj: "SlackChannel") -> str:
