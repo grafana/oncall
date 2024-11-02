@@ -176,6 +176,8 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
 
 
 class ChannelFilterUpdateSerializer(ChannelFilterCreateSerializer):
+    alert_receive_channel = OrganizationFilteredPrimaryKeyRelatedField(read_only=True)
+
     class Meta(ChannelFilterCreateSerializer.Meta):
         read_only_fields = [*ChannelFilterCreateSerializer.Meta.read_only_fields, "alert_receive_channel"]
         extra_kwargs = {"filtering_term": {"required": False}}
