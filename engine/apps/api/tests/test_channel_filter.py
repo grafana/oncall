@@ -708,12 +708,11 @@ def test_channel_filter_with_slack_channel_crud(
     alert_receive_channel = make_alert_receive_channel(organization)
 
     client = APIClient()
-    url = reverse("api-internal:channel_filter-list")
     auth_headers = make_user_auth_headers(user, token)
 
     # create the channel filter
     response = client.post(
-        url,
+        reverse("api-internal:channel_filter-list"),
         data={
             "alert_receive_channel": alert_receive_channel.public_primary_key,
             "slack_channel_id": slack_channel1.slack_id,
