@@ -497,7 +497,7 @@ class IncidentLogBuilder:
 
         elif escalation_policy_snapshot.step == EscalationPolicy.STEP_FINAL_NOTIFYALL:
             channel_id = escalation_snapshot.slack_channel_id
-            users_to_notify: UsersToNotify = []
+            final_notify_all_users_to_notify: UsersToNotify = []
 
             if future_step:
                 if self.alert_group.is_presented_in_slack and channel_id:
@@ -507,7 +507,7 @@ class IncidentLogBuilder:
                     # it's safe to cast this to `SlackTeamIdentity`
                     slack_team_identity: SlackTeamIdentity = self.alert_group.slack_message.slack_team_identity
 
-                    users_to_notify = slack_team_identity.get_users_from_slack_conversation_for_organization(
+                    final_notify_all_users_to_notify = slack_team_identity.get_users_from_slack_conversation_for_organization(
                         channel_id=channel_id,
                         organization=self.alert_group.channel.organization,
                     )
@@ -518,9 +518,9 @@ class IncidentLogBuilder:
 
                 escalation_plan.setdefault(timedelta, []).append({"plan_lines": [plan_line]})
             else:
-                users_to_notify = escalation_policy_snapshot.notify_to_users_queue
+                final_notify_all_users_to_notify = escalation_policy_snapshot.notify_to_users_queue
 
-            for user_to_notify in users_to_notify:
+            for user_to_notify in final_notify_all_users_to_notify:
                 notification_plan = self._get_notification_plan_for_user(
                     user_to_notify,
                     important=escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_IMPORTANT,
@@ -551,14 +551,14 @@ class IncidentLogBuilder:
             EscalationPolicy.STEP_NOTIFY_GROUP,
             EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT,
         ]:
-            users_to_notify: UsersToNotify = []
+            notify_group_users_to_notify: UsersToNotify = []
 
             if future_step:
                 if self.alert_group.is_presented_in_slack:
                     user_group = escalation_policy_snapshot.notify_to_group
 
                     if user_group is not None:
-                        users_to_notify = user_group.get_users_from_members_for_organization(
+                        notify_group_users_to_notify = user_group.get_users_from_members_for_organization(
                             self.alert_group.channel.organization
                         )
                         user_group_handle = user_group.handle
@@ -580,9 +580,9 @@ class IncidentLogBuilder:
 
                 escalation_plan.setdefault(timedelta, []).append({"plan_lines": [plan_line]})
             else:
-                users_to_notify = escalation_policy_snapshot.notify_to_users_queue
+                notify_group_users_to_notify = escalation_policy_snapshot.notify_to_users_queue
 
-            for user_to_notify in users_to_notify:
+            for user_to_notify in notify_group_users_to_notify:
                 notification_plan = self._get_notification_plan_for_user(
                     user_to_notify,
                     important=escalation_policy_snapshot.step == EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT,

@@ -62,8 +62,6 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
     def _correct_validated_data(self, validated_data: dict) -> dict:
         organization = self.context["request"].auth.organization
 
-        print("VALIDATED DATA BEFORE", validated_data)
-
         if slack_field := validated_data.pop("slack", {}):
             if "channel_id" in slack_field:
                 validated_data["slack_channel"] = slack_field["channel_id"]
@@ -92,8 +90,6 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
                 notification_backends[backend_id] = notification_backend
         if notification_backends:
             validated_data["notification_backends"] = notification_backends
-
-        print("VALIDATED DATA AFTER", validated_data)
 
         return validated_data
 
