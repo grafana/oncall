@@ -67,7 +67,7 @@ class IncidentLogBuilder:
     def __init__(self, alert_group: "AlertGroup"):
         self.alert_group = alert_group
 
-    def get_log_records(self, with_resolution_notes: bool = False) -> LogRecords:
+    def get_log_records_list(self, with_resolution_notes: bool = False) -> LogRecords:
         """
         Generates list of `LogRecords`. `ResolutionNote`s are optionally included if `with_resolution_notes` is `True`.
         """
