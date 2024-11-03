@@ -96,7 +96,7 @@ class CustomLabelSerializer(serializers.Serializer):
     value = CustomLabelValueSerializer()
 
 
-class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
+class IntegrationAlertGroupLabelsSerializer(serializers.Serializer[AlertReceiveChannel]):
     """Alert group labels configuration for the integration. See AlertReceiveChannel.alert_group_labels for details."""
 
     inheritable = serializers.DictField(child=serializers.BooleanField())
@@ -170,8 +170,11 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
         LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
 
-    @classmethod
-    def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:
+    # mypy complains with the following, but in fact it should be okay..
+    #
+    # Return type "IntegrationAlertGroupLabels" of "to_representation" incompatible with return type "dict[str, Any]"
+    # in supertype "Serializer"
+    def to_representation(self, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:  # type: ignore[override]
         """
         The API representation of alert group labels is very different from the underlying model.
 
@@ -179,10 +182,9 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         "custom" is based on AlertReceiveChannel.alert_group_labels_custom, a JSONField with a different schema.
         "template" is based on AlertReceiveChannel.alert_group_labels_template, this one is straightforward.
         """
-
         return {
             "inheritable": {label.key_id: label.inheritable for label in instance.labels.all()},
-            "custom": cls._custom_labels_to_representation(instance.alert_group_labels_custom),
+            "custom": self._custom_labels_to_representation(instance.alert_group_labels_custom),
             "template": instance.alert_group_labels_template,
         }
 
