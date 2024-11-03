@@ -30,6 +30,13 @@ def sync_out_of_office_calendar_events_for_user(google_oauth2_user_pk: int) -> N
 
     users_schedules = OnCallSchedule.objects.related_to_user(user)
     user_google_calendar_settings = user.google_calendar_settings
+
+    if not user_google_calendar_settings:
+        # NOTE: this case should never happen, if it does, we have a bug, doing this check here just in case
+        # (and to appease the type-checker)
+        logger.info(f"User {user_id} has no Google Calendar settings")
+        return
+
     oncall_schedules_to_consider_for_shift_swaps = user_google_calendar_settings[
         "oncall_schedules_to_consider_for_shift_swaps"
     ]

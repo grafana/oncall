@@ -376,7 +376,7 @@ def list_users_to_notify_from_ical_for_period(
 
 
 def get_oncall_users_for_multiple_schedules(
-    schedules: typing.List["OnCallSchedule"], events_datetime=None
+    schedules: typing.List["OnCallSchedule"], events_datetime: typing.Optional[datetime.datetime] = None
 ) -> SchedulesOnCallUsers:
     if events_datetime is None:
         events_datetime = datetime.datetime.now(datetime.timezone.utc)

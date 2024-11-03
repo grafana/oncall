@@ -13,7 +13,7 @@ def batch_ids(queryset, cursor):
     return list(queryset.filter(id__gt=cursor).order_by("id").values_list("id", flat=True)[:BATCH_SIZE])
 
 
-@shared_dedicated_queue_retry_task
+@shared_dedicated_queue_retry_task()
 def update_web_title_cache_for_alert_receive_channel(alert_receive_channel_pk):
     """
     Update the web_title_cache field for all alert groups of alert receive channel with pk = alert_receive_channel_pk.
@@ -38,7 +38,7 @@ def update_web_title_cache_for_alert_receive_channel(alert_receive_channel_pk):
         countdown += 1
 
 
-@shared_dedicated_queue_retry_task
+@shared_dedicated_queue_retry_task()
 def update_web_title_cache(alert_receive_channel_pk, alert_group_pks):
     """
     Update the web_title_cache field for alert groups with pk in alert_group_pks,

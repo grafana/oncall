@@ -89,7 +89,7 @@ def get_cache_key_notify_about_gaps_in_schedule(schedule_pk):
     return f"{CACHE_KEY_PREFIX}_{schedule_pk}"
 
 
-@shared_dedicated_queue_retry_task
+@shared_dedicated_queue_retry_task()
 def schedule_notify_about_gaps_in_schedule(schedule_pk):
     CACHE_LIFETIME = 600
     START_TASK_DELAY = 60

@@ -9,7 +9,6 @@ from django.db.models import Count, JSONField, Q
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
-from apps.alerts.models import MaintainableObject
 from apps.chatops_proxy.utils import (
     register_oncall_tenant_with_async_fallback,
     unlink_slack_team,
@@ -82,10 +81,7 @@ class OrganizationManager(models.Manager):
         return OrganizationQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
-# TODO: in a subsequent PR, remove the inheritance from MaintainableObject (plus generate the database migration file)
-# this will remove the maintenance related columns that're no longer used on the organization object
-# class Organization(models.Model):
-class Organization(MaintainableObject):
+class Organization(models.Model):
     alert_receive_channels: "RelatedManager['AlertReceiveChannel']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
     custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"

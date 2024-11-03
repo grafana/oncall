@@ -36,13 +36,16 @@ humanize==4.10.0
 icalendar==5.0.10
 lxml==5.2.2
 markdown2==2.4.10
-opentelemetry-sdk==1.26.0
-opentelemetry-api==1.26.0
-opentelemetry-exporter-otlp-proto-grpc==1.26.0
-opentelemetry-instrumentation-logging==0.47b0
-opentelemetry-instrumentation-wsgi==0.47b0
-opentelemetry-instrumentation-requests==0.47b0
-opentelemetry-instrumentation-django==0.47b0
+opentelemetry-sdk==1.27.0
+# explicitly mentioning typing-extensions version here to bump version specified by opentelemetry-sdk@1.27.0
+# without this was blocking us from upgrading some mypy related packages
+typing-extensions>=4.11.0
+opentelemetry-api==1.27.0
+opentelemetry-exporter-otlp-proto-grpc==1.27.0
+opentelemetry-instrumentation-logging==0.48b0
+opentelemetry-instrumentation-wsgi==0.48b0
+opentelemetry-instrumentation-requests==0.48b0
+opentelemetry-instrumentation-django==0.48b0
 phonenumbers==8.10.0
 prometheus_client==0.16.0
 psutil==5.9.4

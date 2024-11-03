@@ -26,7 +26,7 @@ class GoogleCalendarEvent:
 
 
 class _GoogleCalendarHTTPError(Exception):
-    def __init__(self, http_error) -> None:
+    def __init__(self, http_error: HttpError) -> None:
         self.error = http_error
 
 
@@ -39,7 +39,7 @@ class GoogleCalendarUnauthorizedHTTPError(_GoogleCalendarHTTPError):
 
 
 class GoogleCalendarRefreshError(Exception):
-    def __init__(self, refresh_error) -> None:
+    def __init__(self, refresh_error: RefreshError) -> None:
         self.error = refresh_error
 
 

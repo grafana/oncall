@@ -152,10 +152,10 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 
 
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
-    def get_oncall_users(self, events_datetime=None):
+    def get_oncall_users(self, events_datetime: typing.Optional[datetime.datetime] = None):
         return get_oncall_users_for_multiple_schedules(self.all(), events_datetime)
 
-    def related_to_user(self, user):
+    def related_to_user(self, user: User):
         username_regex = RE_ICAL_SEARCH_USERNAME.format(user.username)
         return self.filter(
             cached_ical_final_schedule__regex=username_regex,
@@ -171,7 +171,7 @@ class OnCallSchedule(PolymorphicModel):
     team: typing.Optional["Team"]
     user_group: typing.Optional["SlackUserGroup"]
 
-    objects: models.Manager["OnCallSchedule"] = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
+    objects: OnCallScheduleQuerySet = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
 
     # type of calendars in schedule
     TYPE_ICAL_PRIMARY, TYPE_ICAL_OVERRIDES, TYPE_CALENDAR = range(
@@ -1153,6 +1153,7 @@ class OnCallScheduleICal(OnCallSchedule):
 
 
 class OnCallScheduleCalendar(OnCallSchedule):
+    custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
     escalation_policies: "RelatedManager['EscalationPolicy']"
     objects: models.Manager["OnCallScheduleCalendar"]
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"

@@ -8,10 +8,8 @@ if typing.TYPE_CHECKING:
 
 
 class GoogleOAuth2User(models.Model):
-    user: "User"
-
     id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(
+    user = models.OneToOneField["User", "User"](
         to="user_management.User", null=False, blank=False, related_name="google_oauth2_user", on_delete=models.CASCADE
     )
     google_user_id = models.CharField(max_length=100)

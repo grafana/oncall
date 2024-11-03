@@ -165,7 +165,7 @@ class User(models.Model):
 
     user_id = models.PositiveIntegerField()
     organization = models.ForeignKey(to="user_management.Organization", on_delete=models.CASCADE, related_name="users")
-    current_team = models.ForeignKey(
+    current_team = models.ForeignKey["Team"](
         to="user_management.Team", null=True, default=None, on_delete=models.SET_NULL, related_name="current_team_users"
     )
 

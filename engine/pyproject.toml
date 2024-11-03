@@ -11,17 +11,31 @@ target-version = ["py311"]
 force-exclude = "migrations"
 
 [tool.mypy]
+# https://mypy.readthedocs.io/en/stable/config_file.html#using-a-pyproject-toml
+
+# Specifies the paths to use, after trying the paths from MYPYPATH environment variable. Useful if you’d like to keep stubs in your repo, along with the config file. Multiple paths are always separated with a : or , regardless of the platform. User home directory and environment variables will be expanded.
 mypy_path = "$MYPY_CONFIG_FILE_DIR/type_stubs"
+
+# By default, imported values to a module are treated as exported and mypy allows other modules to import them. When false, mypy will not re-export unless the item is imported using from-as or is included in __all__
 implicit_reexport = true
+
+# A comma-separated list of mypy plugins
 plugins = [
     "mypy_django_plugin.main",
     "mypy_drf_plugin.main",
 ]
+
+# Use visually nicer output in error messages: use soft word wrap, show source code snippets, and show error location markers.
+pretty = true
+
+# A regular expression that matches file names, directory names and paths which mypy should ignore while recursively discovering files to check. Use forward slashes (/) as directory separators on all platforms.
 exclude = [
     # TOML's double-quoted strings require escaping backslashes
     "tests/test_.*\\.py$",    # test files
     "migrations/\\d*.*\\.py",  # migration files
 ]
+
+# Allows disabling one or multiple error codes globally.
 disable_error_code = [
     "abstract",
     "annotation-unchecked",
@@ -39,6 +53,8 @@ disable_error_code = [
     "typeddict-item",
     "union-attr",
 ]
+
+enable_incomplete_feature = "NewGenericSyntax"
 
 # mypy per-module options
 [[tool.mypy.overrides]]
@@ -84,6 +100,34 @@ module = [
     "uwsgi.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    # the following are modules that we want to enable strict checks for, we should add more modules here little by
+    # little
+    "apps.google.*",
+]
+enable_error_code = [
+    "abstract",
+    "annotation-unchecked",
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "call-overload",
+    "has-type",
+    "index",
+    "misc",
+    "name-defined",
+    "operator",
+    "return-value",
+    "typeddict-item",
+    "union-attr",
+]
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+# TODO: eventually we should be able to turn on strict mode
+# strict = true
 
 [tool.django-stubs]
 django_settings_module = "settings.dev"

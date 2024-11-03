@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.db.models import Model, QuerySet
+from django.db.models.manager import RelatedManager
 from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
@@ -32,8 +33,6 @@ from apps.slack.types import (
 logger = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
-    from django.db.models.manager import RelatedManager
-
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
     from apps.user_management.models import Organization, Team, User
 
@@ -100,11 +99,8 @@ def reset_items(payload: EventPayload) -> EventPayload:
     return payload
 
 
-T = typing.TypeVar("T", bound=Model)
-
-
-def get_current_items(
-    payload: EventPayload, key: DataKey, qs: "RelatedManager['T']"
+def get_current_items[T: Model](
+    payload: EventPayload, key: DataKey, qs: RelatedManager[T]
 ) -> typing.List[typing.Tuple[T, Policy]]:
     metadata = json.loads(payload["view"]["private_metadata"])
     items: typing.List[typing.Tuple[T, Policy]] = []
@@ -238,7 +234,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
 
         selected_users: UserNotifications = [
             (u, p == Policy.IMPORTANT)
-            for u, p in get_current_items(payload, DataKey.USERS, selected_organization.users)
+            for u, p in get_current_items[User](payload, DataKey.USERS, selected_organization.users)
         ]
 
         # trigger direct paging to selected team + users
@@ -843,7 +839,7 @@ def _get_user_select_blocks(
     blocks.append(_get_users_select(organization, input_id_prefix, OnPagingUserChange.routing_uid()))
 
     # selected items
-    if selected_users := get_current_items(payload, DataKey.USERS, organization.users):
+    if selected_users := get_current_items[User](payload, DataKey.USERS, organization.users):
         blocks += [DIVIDER]
         blocks += _get_selected_entries_list(organization, input_id_prefix, DataKey.USERS, selected_users)
         blocks += [DIVIDER]
