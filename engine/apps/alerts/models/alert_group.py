@@ -43,6 +43,7 @@ if typing.TYPE_CHECKING:
         AlertGroupLogRecord,
         AlertReceiveChannel,
         BundledNotification,
+        Invitation,
         RelatedIncident,
         ResolutionNote,
         ResolutionNoteSlackMessage,
@@ -193,11 +194,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     acknowledged_by_user: typing.Optional["User"]
     alerts: "RelatedManager['Alert']"
     bundled_notifications: "RelatedManager['BundledNotification']"
-    related_incidents: "RelatedManager['RelatedIncident']"
-    dependent_alert_groups: "RelatedManager['AlertGroup']"
     channel: "AlertReceiveChannel"
+    dependent_alert_groups: "RelatedManager['AlertGroup']"
+    invitations: "RelatedManager['Invitation']"
+    labels: "RelatedManager['AlertGroupAssociatedLabel']"
     log_records: "RelatedManager['AlertGroupLogRecord']"
     personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
+    related_incidents: "RelatedManager['RelatedIncident']"
     resolution_notes: "RelatedManager['ResolutionNote']"
     resolution_note_slack_messages: "RelatedManager['ResolutionNoteSlackMessage']"
     resolved_by_user: typing.Optional["User"]
@@ -205,7 +208,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     silenced_by_user: typing.Optional["User"]
     slack_messages: "RelatedManager['SlackMessage']"
     users: "RelatedManager['User']"
-    labels: "RelatedManager['AlertGroupAssociatedLabel']"
 
     objects: models.Manager["AlertGroup"] = AlertGroupQuerySet.as_manager()
 
@@ -1980,13 +1982,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def slack_channel_id(self) -> str | None:
         if not self.channel.organization.slack_team_identity:
             return None
-
-        if self.slack_message:
+        elif self.slack_message:
             return self.slack_message.channel_id
-
-        if self.channel_filter:
-            return self.channel_filter.slack_channel_id_or_general_log_id
-
+        elif self.channel_filter:
+            return self.channel_filter.slack_channel_id_or_org_default_id
         return None
 
     @property

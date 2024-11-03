@@ -36,7 +36,7 @@ def test_escalation_plan_messaging_backends(
     alert_group.save()
 
     log_builder = IncidentLogBuilder(alert_group=alert_group)
-    plan = log_builder.get_incident_escalation_plan()
+    plan = log_builder.get_escalation_plan()
     assert list(plan.values()) == [["send test only backend message to {}".format(user.username)]]
 
 
@@ -156,5 +156,5 @@ def test_escalation_plan_custom_webhooks(
     alert_group.save()
 
     log_builder = IncidentLogBuilder(alert_group=alert_group)
-    plan = log_builder.get_incident_escalation_plan()
+    plan = log_builder.get_escalation_plan()
     assert list(plan.values()) == [[f'trigger outgoing webhook "{custom_webhook.name}"']]

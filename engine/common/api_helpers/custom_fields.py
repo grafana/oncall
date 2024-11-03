@@ -1,3 +1,4 @@
+import typing
 from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -10,6 +11,9 @@ from apps.alerts.models import ChannelFilter
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackChannel
 
 
 @extend_schema_field(serializers.CharField)
@@ -116,6 +120,30 @@ class UsersFilteredByOrganizationField(serializers.Field):
             raise ValidationError(f"User does not exist {missing_users}")
 
         return users
+
+
+class SlackChannelsFilteredByOrganizationSlackWorkspaceField(serializers.RelatedField):
+    def get_queryset(self):
+        request = self.context.get("request", None)
+        if not request:
+            return None
+
+        organization = request.user.organization
+        if organization.slack_team_identity is None:
+            raise BadRequest(detail="Slack isn't connected to this workspace")
+
+        return organization.slack_team_identity.cached_channels.all()
+
+    def to_internal_value(self, slack_id: str):
+        try:
+            return self.get_queryset().get(slack_id=slack_id.upper())
+        except ObjectDoesNotExist:
+            raise ValidationError("Slack channel does not exist")
+        except (TypeError, ValueError, AttributeError):
+            raise ValidationError("Invalid Slack channel")
+
+    def to_representation(self, obj: "SlackChannel") -> str:
+        return obj.public_primary_key
 
 
 class IntegrationFilteredByOrganizationField(serializers.RelatedField):

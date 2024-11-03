@@ -240,6 +240,7 @@ def test_organization_get_channel_verification_code_invalid(
 @pytest.mark.django_db
 def test_get_organization_slack_config_checks(
     make_organization_and_user_with_plugin_token,
+    make_slack_channel,
     make_slack_team_identity,
     make_alert_receive_channel,
     make_channel_filter,
@@ -283,7 +284,7 @@ def test_get_organization_slack_config_checks(
     assert response.json() == expected_result
 
     # connect integration to Slack (set a channel)
-    channel_filter.slack_channel_id = "C123456"
+    channel_filter.slack_channel = make_slack_channel(slack_team_identity)
     channel_filter.save()
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

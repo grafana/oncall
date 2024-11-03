@@ -621,7 +621,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         # TODO: this method should be refactored.
         # It's binded to slack and sending maintenance notification only there.
         channel_ids = list(
-            self.channel_filters.filter(slack_channel_id__isnull=False, notify_in_slack=False).values_list(
+            self.channel_filters.filter(slack_channel__isnull=False, notify_in_slack=False).values_list(
                 "slack_channel_id", flat=True
             )
         )
