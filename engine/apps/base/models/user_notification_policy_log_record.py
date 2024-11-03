@@ -8,7 +8,6 @@ from django.dispatch import receiver
 from django.utils.functional import cached_property
 from rest_framework.fields import DateTimeField
 
-from apps.alerts.tasks import send_update_log_report_signal
 from apps.alerts.utils import render_relative_timeline
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
@@ -359,6 +358,8 @@ class UserNotificationPolicyLogRecord(models.Model):
 
 @receiver(post_save, sender=UserNotificationPolicyLogRecord)
 def listen_for_usernotificationpolicylogrecord_model_save(sender, instance, created, *args, **kwargs):
+    from apps.alerts.tasks import send_update_log_report_signal
+
     alert_group_pk = instance.alert_group.pk
     if instance.type != UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED:
         logger.debug(

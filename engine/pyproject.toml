@@ -13,6 +13,8 @@ force-exclude = "migrations"
 [tool.mypy]
 # https://mypy.readthedocs.io/en/stable/config_file.html#using-a-pyproject-toml
 
+python_version = "3.12"
+
 # Specifies the paths to use, after trying the paths from MYPYPATH environment variable. Useful if you’d like to keep stubs in your repo, along with the config file. Multiple paths are always separated with a : or , regardless of the platform. User home directory and environment variables will be expanded.
 mypy_path = "$MYPY_CONFIG_FILE_DIR/type_stubs"
 
@@ -29,11 +31,13 @@ plugins = [
 pretty = true
 
 # A regular expression that matches file names, directory names and paths which mypy should ignore while recursively discovering files to check. Use forward slashes (/) as directory separators on all platforms.
+#
+# ignore test and migration files
 exclude = [
-    # TOML's double-quoted strings require escaping backslashes
-    "tests/test_.*\\.py$",    # test files
-    "migrations/\\d*.*\\.py",  # migration files
+    "^.*/migrations/.*\\.py$",
+    "^.*/tests/.*\\.py$",
 ]
+# exclude = "^.*/(migrations|tests)/.*\\.py$"
 
 # Allows disabling one or multiple error codes globally.
 disable_error_code = [
@@ -54,7 +58,8 @@ disable_error_code = [
     "union-attr",
 ]
 
-enable_incomplete_feature = "NewGenericSyntax"
+# TODO: add this when we update to mypy>=1.11.0
+# enable_incomplete_feature = "NewGenericSyntax"
 
 # mypy per-module options
 [[tool.mypy.overrides]]
@@ -106,6 +111,7 @@ module = [
     # the following are modules that we want to enable strict checks for, we should add more modules here little by
     # little
     "apps.google.*",
+    "apps.webhooks.*",
 ]
 enable_error_code = [
     "abstract",

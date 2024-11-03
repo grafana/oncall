@@ -4,8 +4,7 @@ asgiref==3.7.2
     # via
     #   -c requirements.txt
     #   django
-    #   django-stubs
-celery-types==0.22.0
+celery-types==0.18.0
     # via -r requirements-dev.in
 certifi==2024.7.4
     # via
@@ -26,14 +25,14 @@ django==4.2.16
     #   django-stubs-ext
 django-filter-stubs==0.1.3
     # via -r requirements-dev.in
-django-stubs==5.1.0
+django-stubs[compatible-mypy]==4.2.2
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
     #   djangorestframework-stubs
-django-stubs-ext==5.1.1
+django-stubs-ext==4.2.7
     # via django-stubs
-djangorestframework-stubs==3.15.1
+djangorestframework-stubs[compatible-mypy]==3.14.2
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
@@ -63,7 +62,7 @@ inflection==0.5.1
     #   pytest-factoryboy
 iniconfig==2.0.0
     # via pytest
-mypy==1.11.0
+mypy==1.4.1
     # via
     #   -r requirements-dev.in
     #   django-filter-stubs
@@ -97,7 +96,7 @@ pytest-django==4.8.0
     # via -r requirements-dev.in
 pytest-factoryboy==2.7.0
     # via -r requirements-dev.in
-pytest-xdist==3.6.1
+pytest-xdist[psutil]==3.6.1
     # via -r requirements-dev.in
 python-dateutil==2.8.2
     # via
@@ -111,10 +110,6 @@ requests==2.32.3
     # via
     #   -c requirements.txt
     #   djangorestframework-stubs
-setuptools==75.3.0
-    # via
-    #   -c requirements.txt
-    #   nodeenv
 six==1.16.0
     # via
     #   -c requirements.txt
@@ -135,6 +130,8 @@ types-pymysql==1.0.19.7
     # via -r requirements-dev.in
 types-python-dateutil==2.8.19.13
     # via -r requirements-dev.in
+types-pytz==2024.1.0.20240203
+    # via django-stubs
 types-pyyaml==6.0.12.12
     # via
     #   django-stubs
@@ -145,7 +142,7 @@ types-requests==2.31.0.1
     #   djangorestframework-stubs
 types-urllib3==1.26.25.14
     # via types-requests
-typing-extensions==4.12.2
+typing-extensions==4.9.0
     # via
     #   -c requirements.txt
     #   celery-types
