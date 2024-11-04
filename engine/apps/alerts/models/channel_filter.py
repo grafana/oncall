@@ -45,6 +45,7 @@ class ChannelFilter(OrderedModel):
     """
 
     alert_groups: "RelatedManager['AlertGroup']"
+    alert_receive_channel: "AlertReceiveChannel"
     filtering_labels: typing.Optional[list["LabelPair"]]
 
     order_with_respect_to = ["alert_receive_channel_id", "is_default"]
@@ -68,6 +69,14 @@ class ChannelFilter(OrderedModel):
     notify_in_telegram = models.BooleanField(null=True, default=False)
 
     slack_channel_id = models.CharField(max_length=100, null=True, default=None)
+    # TODO: migrate slack_channel_id to slack_channel
+    # slack_channel = models.ForeignKey(
+    #     'slack.SlackChannel',
+    #     null=True,
+    #     default=None,
+    #     on_delete=models.SET_NULL,
+    #     related_name='+',
+    # )
 
     telegram_channel = models.ForeignKey(
         "telegram.TelegramToOrganizationConnector",
@@ -167,7 +176,7 @@ class ChannelFilter(OrderedModel):
         if slack_team_identity is None:
             return None
         if self.slack_channel_id is None:
-            return organization.general_log_channel_id
+            return organization.default_slack_channel_slack_id
         else:
             return self.slack_channel_id
 
