@@ -27,7 +27,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
     grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")
 
-    SELECT_RELATED = ["slack_team_identity"]
+    SELECT_RELATED = ["slack_team_identity", "slack_channel"]
 
     class Meta:
         model = Organization

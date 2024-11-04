@@ -31,7 +31,7 @@ def shift_swap_request_test_setup(
         slack_channel = make_slack_channel(slack_team_identity)
         slack_message = make_slack_message(alert_group=None, organization=organization, slack_id="12345")
 
-        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, channel=slack_channel.slack_id)
+        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, slack_channel=slack_channel)
 
         if swap_start is None:
             swap_start = timezone.now() + timezone.timedelta(days=7)

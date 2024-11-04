@@ -54,16 +54,20 @@ END:VCALENDAR
 
 @pytest.mark.django_db
 def test_current_overrides_ical_schedule_is_none(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_schedule,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
 
     ical_schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         ical_url_primary="url",
         prev_ical_file_primary=ICAL_DATA,
         cached_ical_file_primary=ICAL_DATA,
@@ -77,11 +81,15 @@ def test_current_overrides_ical_schedule_is_none(
 
 @pytest.mark.django_db
 def test_next_shift_notification_long_shifts(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_schedule,
     make_user,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     make_user(organization=organization, username="user1")
     make_user(organization=organization, username="user2")
 
@@ -89,7 +97,7 @@ def test_next_shift_notification_long_shifts(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         ical_url_primary="url",
         prev_ical_file_primary=ICAL_DATA,
         cached_ical_file_primary=ICAL_DATA,
@@ -111,12 +119,16 @@ def test_next_shift_notification_long_shifts(
 
 @pytest.mark.django_db
 def test_overrides_changes_no_current_no_triggering_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
 
     ical_before = textwrap.dedent(
@@ -172,7 +184,7 @@ def test_overrides_changes_no_current_no_triggering_notification(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=ical_before,
     )
@@ -209,19 +221,23 @@ def test_overrides_changes_no_current_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_no_changes_no_triggering_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -255,19 +271,23 @@ def test_no_changes_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_current_shift_changes_trigger_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -302,14 +322,18 @@ def test_current_shift_changes_trigger_notification(
 @pytest.mark.django_db
 @pytest.mark.parametrize("swap_taken", [False, True])
 def test_current_shift_changes_swap_split(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
     make_shift_swap_request,
     swap_taken,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
 
@@ -317,7 +341,7 @@ def test_current_shift_changes_swap_split(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -364,13 +388,17 @@ def test_current_shift_changes_swap_split(
 
 @pytest.mark.django_db
 def test_current_shift_changes_end_affected_by_swap(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
     make_shift_swap_request,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
 
@@ -378,7 +406,7 @@ def test_current_shift_changes_end_affected_by_swap(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -431,12 +459,16 @@ def test_current_shift_changes_end_affected_by_swap(
 
 @pytest.mark.django_db
 def test_next_shift_changes_no_triggering_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
 
@@ -444,7 +476,7 @@ def test_next_shift_changes_no_triggering_notification(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -500,17 +532,22 @@ def test_next_shift_changes_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_current_shifts_using_microseconds(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
+
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -539,12 +576,16 @@ def test_current_shifts_using_microseconds(
 
 @pytest.mark.django_db
 def test_lower_priority_changes_no_triggering_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
 
@@ -552,7 +593,7 @@ def test_lower_priority_changes_no_triggering_notification(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -604,11 +645,15 @@ def test_lower_priority_changes_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_vtimezone_changes_no_triggering_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     make_user(organization=organization, username="user1")
 
     ical_before = textwrap.dedent(
@@ -706,7 +751,7 @@ def test_vtimezone_changes_no_triggering_notification(
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         ical_url_primary="url",
         prev_ical_file_primary=None,
         cached_ical_file_primary=ical_before,
@@ -732,19 +777,23 @@ def test_vtimezone_changes_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_no_changes_no_triggering_notification_from_old_to_new_task_version(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -787,12 +836,16 @@ def test_no_changes_no_triggering_notification_from_old_to_new_task_version(
 
 @pytest.mark.django_db
 def test_current_shift_changes_trigger_notification_from_old_to_new_task_version(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
 
@@ -800,7 +853,7 @@ def test_current_shift_changes_trigger_notification_from_old_to_new_task_version
         organization,
         schedule_class=OnCallScheduleCalendar,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -847,12 +900,16 @@ def test_current_shift_changes_trigger_notification_from_old_to_new_task_version
 
 @pytest.mark.django_db
 def test_next_shift_notification_long_and_short_shifts(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2")
     user3 = make_user(organization=organization, username="user3")
@@ -861,7 +918,7 @@ def test_next_shift_notification_long_and_short_shifts(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )

@@ -21,7 +21,7 @@ def test_create_shift_swap_request_message_no_configured_slack_channel_for_sched
     shift_swap_request_setup,
 ):
     ssr, _, _ = shift_swap_request_setup()
-    assert ssr.schedule.channel is None
+    assert ssr.schedule.slack_channel is None
 
     slack_msg_tasks.create_shift_swap_request_message(ssr.pk)
 
@@ -36,9 +36,8 @@ def test_create_shift_swap_request_message_post_message_to_channel_called(
     shift_swap_request_setup,
     make_slack_message,
     make_slack_team_identity,
+    make_slack_channel,
 ):
-    slack_channel_id = "C1234ASDFJ"
-
     ssr, _, _ = shift_swap_request_setup()
     schedule = ssr.schedule
     organization = schedule.organization
@@ -48,7 +47,7 @@ def test_create_shift_swap_request_message_post_message_to_channel_called(
 
     MockBaseShiftSwapRequestStep.return_value.create_message.return_value = slack_message
 
-    schedule.channel = slack_channel_id
+    schedule.slack_channel = make_slack_channel(slack_team_identity)
     schedule.save()
 
     organization.slack_team_identity = slack_team_identity
@@ -79,7 +78,7 @@ def test_update_shift_swap_request_message_no_configured_slack_channel_for_sched
     shift_swap_request_setup,
 ):
     ssr, _, _ = shift_swap_request_setup()
-    assert ssr.schedule.channel is None
+    assert ssr.schedule.slack_channel is None
 
     slack_msg_tasks.update_shift_swap_request_message(ssr.pk)
 
@@ -93,16 +92,15 @@ def test_update_shift_swap_request_message_post_message_to_channel_called(
     MockBaseShiftSwapRequestStep,
     shift_swap_request_setup,
     make_slack_team_identity,
+    make_slack_channel,
 ):
-    slack_channel_id = "C1234ASDFJ"
-
     ssr, _, _ = shift_swap_request_setup()
     schedule = ssr.schedule
     organization = schedule.organization
 
     slack_team_identity = make_slack_team_identity()
 
-    schedule.channel = slack_channel_id
+    schedule.slack_channel = make_slack_channel(slack_team_identity)
     schedule.save()
 
     organization.slack_team_identity = slack_team_identity

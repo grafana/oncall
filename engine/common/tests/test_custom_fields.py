@@ -209,3 +209,111 @@ class TestSlackChannelsFilteredByOrganizationSlackWorkspaceField:
         serializer = self.MySerializer(data={"slack_channel_id": slack_channel_id.lower()}, context=context)
         serializer.is_valid(raise_exception=True)
         assert serializer.validated_data["slack_channel_id"] == slack_channel
+
+
+class TestSlackUserGroupsFilteredByOrganizationSlackWorkspaceField:
+    class MockRequest:
+        def __init__(self, user) -> None:
+            self.user = user
+
+    class MySerializer(serializers.Serializer):
+        slack_user_group_id = cf.SlackUserGroupsFilteredByOrganizationSlackWorkspaceField()
+
+    @pytest.mark.django_db
+    def test_org_does_not_have_slack_connected(
+        self,
+        make_organization,
+        make_user_for_organization,
+    ):
+        organization = make_organization()
+        user = make_user_for_organization(organization)
+
+        serializer = self.MySerializer(
+            data={"slack_user_group_id": "abcd"},
+            context={"request": self.MockRequest(user)},
+        )
+
+        with pytest.raises(BadRequest) as excinfo:
+            serializer.is_valid(raise_exception=True)
+
+        assert excinfo.value.detail == "Slack isn't connected to this workspace"
+        assert excinfo.value.status_code == 400
+
+    @pytest.mark.django_db
+    def test_org_user_group_doesnt_belong_to_org(
+        self,
+        make_organization,
+        make_user_for_organization,
+        make_slack_team_identity,
+        make_slack_user_group,
+    ):
+        slack_user_group1_id = "FOO"
+        slack_user_group2_id = "BAR"
+
+        slack_team_identity1 = make_slack_team_identity()
+        make_slack_user_group(slack_team_identity1, slack_id=slack_user_group1_id)
+
+        slack_team_identity2 = make_slack_team_identity()
+        make_slack_user_group(slack_team_identity2, slack_id=slack_user_group2_id)
+
+        organization = make_organization(slack_team_identity=slack_team_identity1)
+        user = make_user_for_organization(organization)
+
+        serializer = self.MySerializer(
+            data={"slack_user_group_id": slack_user_group2_id},
+            context={"request": self.MockRequest(user)},
+        )
+
+        with pytest.raises(serializers.ValidationError) as excinfo:
+            serializer.is_valid(raise_exception=True)
+
+        assert excinfo.value.detail == {"slack_user_group_id": ["Slack user group does not exist"]}
+
+    @pytest.mark.django_db
+    def test_invalid_slack_user_group(
+        self,
+        make_organization,
+        make_user_for_organization,
+        make_slack_team_identity,
+        make_slack_user_group,
+    ):
+        slack_user_group_id = "FOO"
+        slack_team_identity = make_slack_team_identity()
+        make_slack_user_group(slack_team_identity, slack_id=slack_user_group_id)
+        organization = make_organization(slack_team_identity=slack_team_identity)
+        user = make_user_for_organization(organization)
+
+        serializer = self.MySerializer(
+            data={"slack_user_group_id": 1},
+            context={"request": self.MockRequest(user)},
+        )
+
+        with pytest.raises(serializers.ValidationError) as excinfo:
+            serializer.is_valid(raise_exception=True)
+
+        assert excinfo.value.detail == {"slack_user_group_id": ["Invalid Slack user group"]}
+
+    @pytest.mark.django_db
+    def test_valid(
+        self,
+        make_organization,
+        make_user_for_organization,
+        make_slack_team_identity,
+        make_slack_user_group,
+    ):
+        slack_user_group_id = "FOO"
+        slack_team_identity = make_slack_team_identity()
+        slack_user_group = make_slack_user_group(slack_team_identity, slack_id=slack_user_group_id)
+        organization = make_organization(slack_team_identity=slack_team_identity)
+        user = make_user_for_organization(organization)
+
+        context = {"request": self.MockRequest(user)}
+
+        serializer = self.MySerializer(data={"slack_user_group_id": slack_user_group_id}, context=context)
+        serializer.is_valid(raise_exception=True)
+        assert serializer.validated_data["slack_user_group_id"] == slack_user_group
+
+        # case insensitive
+        serializer = self.MySerializer(data={"slack_user_group_id": slack_user_group_id.lower()}, context=context)
+        serializer.is_valid(raise_exception=True)
+        assert serializer.validated_data["slack_user_group_id"] == slack_user_group
