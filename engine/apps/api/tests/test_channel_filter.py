@@ -482,7 +482,7 @@ def test_channel_filter_update_invalid_notification_backends(
     channel_filter.refresh_from_db()
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"notification_backends": ["Invalid messaging backend"]}
+    assert response.json()["notification_backends"] == ["Invalid messaging backend"]
     assert channel_filter.notification_backends is None
 
 

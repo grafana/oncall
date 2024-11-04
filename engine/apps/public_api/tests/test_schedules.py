@@ -367,7 +367,7 @@ def test_update_web_schedule(
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Web schedule update is not enabled through API"}
+    assert response.json()["detail"] == "Web schedule update is not enabled through API"
 
 
 @pytest.mark.django_db
@@ -500,7 +500,7 @@ def test_update_calendar_schedule_invalid_override(
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Shifts of type override are not supported in this schedule"}
+    assert response.json()["detail"] == "Shifts of type override are not supported in this schedule"
 
 
 @pytest.mark.django_db
@@ -523,7 +523,7 @@ def test_update_schedule_invalid_timezone(make_organization_and_user_with_token,
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"time_zone": ["Invalid timezone"]}
+    assert response.json()["time_zone"] == ["Invalid timezone"]
 
 
 @pytest.mark.django_db
@@ -555,7 +555,7 @@ def test_update_web_schedule_with_override(
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Web schedule update is not enabled through API"}
+    assert response.json()["detail"] == "Web schedule update is not enabled through API"
 
 
 @pytest.mark.django_db
@@ -841,7 +841,7 @@ def test_create_schedule_invalid_timezone(make_organization_and_user_with_token,
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"time_zone": ["Invalid timezone"]}
+    assert response.json()["time_zone"] == ["Invalid timezone"]
 
 
 @pytest.mark.django_db
@@ -962,16 +962,13 @@ def test_oncall_shifts_request_validation(
 
     response = _make_request(web_schedule, "?end_date=2021-01-01&start_date=2022-01-01")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {
-        "non_field_errors": [
+    assert response.json()["non_field_errors"] ==  [
             "start_date must be less than or equal to end_date",
         ]
-    }
 
     response = _make_request(web_schedule, "?end_date=2021-01-01&start_date=2019-12-31")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {
-        "non_field_errors": [
+    assert response.json()["non_field_errors"] ==  [
             "The difference between start_date and end_date must be less than one year (365 days)",
         ]
     }

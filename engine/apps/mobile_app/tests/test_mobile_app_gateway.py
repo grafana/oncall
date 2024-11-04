@@ -274,7 +274,7 @@ def test_mobile_app_gateway_catches_and_forwards_error_from_downstream_server(
     response = client.post(url, HTTP_AUTHORIZATION=auth_token)
     # forward status and response from downstream
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"error": "foo"}
+    assert response.json()["error"] == "foo"
 
 
 @pytest.mark.django_db

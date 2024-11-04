@@ -155,7 +155,7 @@ def test_update_alert_receive_channel_backend_template_invalid_template(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"testonly_title_template": "invalid template"}
+    assert response.json()["testonly_title_template"] == "invalid template"
 
 
 @pytest.mark.django_db

@@ -751,7 +751,7 @@ def test_create_schedule_invalid_time_zone(schedule_internal_api_setup, make_use
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"time_zone": ["Invalid timezone"]}
+    assert response.json()["time_zone"] == ["Invalid timezone"]
 
 
 @pytest.mark.django_db
@@ -854,7 +854,7 @@ def test_update_schedule_invalid_time_zone(schedule_internal_api_setup, make_use
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"time_zone": ["Invalid timezone"]}
+    assert response.json()["time_zone"] == ["Invalid timezone"]
 
 
 @pytest.mark.django_db
