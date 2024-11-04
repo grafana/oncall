@@ -1,6 +1,5 @@
-from django.db.models import OuterRef, Subquery
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -11,11 +10,9 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.channel_filter import (
     ChannelFilterCreateSerializer,
     ChannelFilterSerializer,
-    ChannelFilterUpdateResponseSerializer,
     ChannelFilterUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
-from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ModelFieldFilterMixin, MultipleChoiceCharFilter, get_integration_queryset
 from common.api_helpers.mixins import (
@@ -36,14 +33,6 @@ class ChannelFilterFilter(ModelFieldFilterMixin, filters.FilterSet):
     )
 
 
-@extend_schema_view(
-    list=extend_schema(responses=ChannelFilterSerializer),
-    create=extend_schema(request=ChannelFilterCreateSerializer, responses=ChannelFilterUpdateResponseSerializer),
-    update=extend_schema(request=ChannelFilterUpdateSerializer, responses=ChannelFilterUpdateResponseSerializer),
-    partial_update=extend_schema(
-        request=ChannelFilterUpdateSerializer, responses=ChannelFilterUpdateResponseSerializer
-    ),
-)
 class ChannelFilterView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[ChannelFilter],
@@ -82,22 +71,15 @@ class ChannelFilterView(
     TEAM_LOOKUP = "alert_receive_channel__team"
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
-        slack_channels_subq = SlackChannel.objects.filter(
-            slack_id=OuterRef("slack_channel_id"),
-            slack_team_identity=self.request.auth.organization.slack_team_identity,
-        ).order_by("pk")
-
         queryset = ChannelFilter.objects.filter(
             alert_receive_channel__organization=self.request.auth.organization,
             alert_receive_channel__deleted_at=None,
-        ).annotate(
-            slack_channel_name=Subquery(slack_channels_subq.values("name")[:1]),
-            slack_channel_pk=Subquery(slack_channels_subq.values("public_primary_key")[:1]),
         )
+
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-        queryset = self.serializer_class.setup_eager_loading(queryset)
-        return queryset
+
+        return self.serializer_class.setup_eager_loading(queryset)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

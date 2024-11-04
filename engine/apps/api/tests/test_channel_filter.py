@@ -685,3 +685,64 @@ def test_channel_filter_long_filtering_term(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "Expression is too long" in response.json()["non_field_errors"][0]
+
+
+@pytest.mark.django_db
+def test_channel_filter_with_slack_channel_crud(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_alert_receive_channel,
+    make_user_auth_headers,
+):
+    slack_team_identity = make_slack_team_identity()
+    slack_channel1 = make_slack_channel(slack_team_identity)
+    slack_channel2 = make_slack_channel(slack_team_identity)
+
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization, role=LegacyAccessControlRole.ADMIN)
+    _, token = make_token_for_organization(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    client = APIClient()
+    auth_headers = make_user_auth_headers(user, token)
+
+    # create the channel filter
+    response = client.post(
+        reverse("api-internal:channel_filter-list"),
+        data={
+            "alert_receive_channel": alert_receive_channel.public_primary_key,
+            "slack_channel_id": slack_channel1.slack_id,
+        },
+        format="json",
+        **auth_headers,
+    )
+    created_channel_filter = response.json()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert created_channel_filter["slack_channel"] == {
+        "id": slack_channel1.public_primary_key,
+        "display_name": slack_channel1.name,
+        "slack_id": slack_channel1.slack_id,
+    }
+
+    # update the slack channel
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": created_channel_filter["id"]})
+
+    response = client.patch(url, data={"slack_channel_id": slack_channel2.slack_id}, format="json", **auth_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["slack_channel"] == {
+        "id": slack_channel2.public_primary_key,
+        "display_name": slack_channel2.name,
+        "slack_id": slack_channel2.slack_id,
+    }
+
+    # remove the slack channel
+    response = client.patch(url, data={"slack_channel_id": None}, format="json", **auth_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["slack_channel"] is None

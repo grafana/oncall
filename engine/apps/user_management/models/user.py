@@ -140,7 +140,10 @@ class User(models.Model):
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 
-    objects = UserManager.from_queryset(UserQuerySet)()
+    # mypy/django-stubs support isn't 100% there for this.. however, manually typing this (to what it actually is)
+    # works for now. See this issue for more details
+    # https://github.com/typeddjango/django-stubs/issues/353#issuecomment-1095656633
+    objects: UserQuerySet = UserManager.from_queryset(UserQuerySet)()
 
     class Meta:
         # For some reason there are cases when Grafana user gets deleted,

@@ -302,16 +302,16 @@ def post_slack_rate_limit_message(integration_id):
             f"Active: {integration.rate_limit_message_task_id}"
         )
         return
+
     default_route = integration.channel_filters.get(is_default=True)
-    slack_channel = default_route.slack_channel_id_or_general_log_id
-    if slack_channel:
+    if (slack_channel_id := default_route.slack_channel_id_or_org_default_id) is not None:
         text = (
             f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
             f"temporarily stopped due to rate limit. You could find new alert groups at "
             f"<{integration.new_incidents_web_link}|web page "
             '"Alert Groups">'
         )
-        post_message_to_channel(integration.organization, slack_channel, text)
+        post_message_to_channel(integration.organization, slack_channel_id, text)
 
 
 @shared_dedicated_queue_retry_task(
@@ -548,18 +548,17 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     from apps.schedules.models import OnCallSchedule
 
     logger.info(f"Cleaning up for organization {organization_id}")
-    ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel_id=None)
+    ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel=None)
     OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None, user_group=None)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
 def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
     """
-    TODO: once we add/migrate to ChannelFilter.slack_channel, this will mean that we no longer need this task
-    and it can be safely removed (foreign key relationships to a slack channel that is deleted in the db will
-    automatically be set to None due to on_delete=models.SET_NULL)
+    This task removes binding to slack channel after a channel is archived in Slack.
 
-    This task removes binding to slack channel after channel archived or deleted in slack.
+    **NOTE**: this is only needed for Slack Channel archive. If a channel is deleted, we simply remove references
+    to that channel via `on_delete=models.SET_NULL`.
     """
     from apps.alerts.models import ChannelFilter
     from apps.slack.models import SlackTeamIdentity
