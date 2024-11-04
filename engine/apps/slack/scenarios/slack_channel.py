@@ -81,7 +81,7 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
         clean_slack_channel_leftovers.apply_async((slack_team_identity.id, slack_id))
 
 
-class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
+class SlackChannelUnarchivedEventStep(scenario_step.ScenarioStep):
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
@@ -126,6 +126,6 @@ STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": EventType.CHANNEL_UNARCHIVED,
-        "step": SlackChannelUnArchivedEventStep,
+        "step": SlackChannelUnarchivedEventStep,
     },
 ]
