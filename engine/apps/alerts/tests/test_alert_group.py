@@ -88,12 +88,15 @@ def test_delete(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
     make_slack_message,
     make_resolution_note_slack_message,
     django_capture_on_commit_callbacks,
 ):
     """test alert group deleting"""
     organization, slack_team_identity = make_organization_with_slack_team_identity()
+    slack_channel1 = make_slack_channel(slack_team_identity)
+    slack_channel2 = make_slack_channel(slack_team_identity)
     user = make_user(organization=organization)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -108,7 +111,7 @@ def test_delete(
         user=user,
         added_by_user=user,
         posted_by_bot=True,
-        slack_channel_id="test1_channel_id",
+        slack_channel=slack_channel1,
         ts="test1_ts",
     )
     resolution_note_2 = make_resolution_note_slack_message(
@@ -116,7 +119,7 @@ def test_delete(
         user=user,
         added_by_user=user,
         added_to_resolution_note=True,
-        slack_channel_id="test2_channel_id",
+        slack_channel=slack_channel2,
         ts="test2_ts",
     )
 
@@ -168,11 +171,15 @@ def test_delete_slack_ratelimit(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
     make_slack_message,
     make_resolution_note_slack_message,
     django_capture_on_commit_callbacks,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
+    slack_channel1 = make_slack_channel(slack_team_identity)
+    slack_channel2 = make_slack_channel(slack_team_identity)
+
     user = make_user(organization=organization)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -187,7 +194,7 @@ def test_delete_slack_ratelimit(
         user=user,
         added_by_user=user,
         posted_by_bot=True,
-        slack_channel_id="test1_channel_id",
+        slack_channel=slack_channel1,
         ts="test1_ts",
     )
     make_resolution_note_slack_message(
@@ -195,7 +202,7 @@ def test_delete_slack_ratelimit(
         user=user,
         added_by_user=user,
         added_to_resolution_note=True,
-        slack_channel_id="test2_channel_id",
+        slack_channel=slack_channel2,
         ts="test2_ts",
     )
 
@@ -237,10 +244,13 @@ def test_delete_slack_api_error_other_than_ratelimit(
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
+    make_slack_channel,
     make_slack_message,
     make_resolution_note_slack_message,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
+    slack_channel1 = make_slack_channel(slack_team_identity)
+    slack_channel2 = make_slack_channel(slack_team_identity)
     user = make_user(organization=organization)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -255,7 +265,7 @@ def test_delete_slack_api_error_other_than_ratelimit(
         user=user,
         added_by_user=user,
         posted_by_bot=True,
-        slack_channel_id="test1_channel_id",
+        slack_channel=slack_channel1,
         ts="test1_ts",
     )
     make_resolution_note_slack_message(
@@ -263,7 +273,7 @@ def test_delete_slack_api_error_other_than_ratelimit(
         user=user,
         added_by_user=user,
         added_to_resolution_note=True,
-        slack_channel_id="test2_channel_id",
+        slack_channel=slack_channel2,
         ts="test2_ts",
     )
 

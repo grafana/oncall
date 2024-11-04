@@ -1,3 +1,5 @@
+import typing
+
 from django.conf import settings
 
 from apps.slack.scenarios import scenario_step
@@ -11,7 +13,7 @@ from .task_logger import task_logger
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
+def notify_group_task(alert_group_pk: int, escalation_policy_snapshot_order: typing.Optional[int] = None):
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
     from apps.base.models import UserNotificationPolicy
 

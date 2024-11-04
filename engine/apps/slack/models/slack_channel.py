@@ -43,3 +43,7 @@ class SlackChannel(models.Model):
 
     class Meta:
         unique_together = ("slack_id", "slack_team_identity")
+
+    @classmethod
+    def __str__(self):
+        return f"{self.name}: {self.slack_id}"
