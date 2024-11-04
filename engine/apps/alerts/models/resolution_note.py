@@ -73,7 +73,17 @@ class ResolutionNoteSlackMessage(models.Model):
         related_name="added_resolution_note_slack_messages",
     )
     text = models.TextField(max_length=3000, default=None, null=True)
+
     slack_channel_id = models.CharField(max_length=100, null=True, default=None)
+    # TODO: migrate slack_channel_id to slack_channel
+    # slack_channel = models.ForeignKey(
+    #     'slack.SlackChannel',
+    #     null=True,
+    #     default=None,
+    #     on_delete=models.SET_NULL,
+    #     related_name='+',
+    # )
+
     ts = models.CharField(max_length=100, null=True, default=None)
     thread_ts = models.CharField(max_length=100, null=True, default=None)
     permalink = models.CharField(max_length=250, null=True, default=None)
