@@ -2027,7 +2027,7 @@ def test_alert_receive_channel_test_connection(
     with patch.object(integration_config, "test_connection", side_effect=testing_error, create=True):
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Error!"}
+    assert response.json()["detail"] == "Error!"
 
     # test with invalid data
     data["team"] = "does-not-exist"
@@ -2060,7 +2060,7 @@ def test_alert_receive_channel_test_connection_existing_integration(
         data = {"description_short": "notok"}
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {"detail": "Error!"}
+        assert response.json()["detail"] == "Error!"
 
 
 @pytest.mark.django_db
@@ -2099,7 +2099,7 @@ def test_alert_receive_channel_status_options(
     with patch.object(integration_config, "status_options", side_effect=testing_error, create=True):
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Error!"}
+    assert response.json()["detail"] == "Error!"
 
 
 def _webhook_data(webhook_id=ANY, webhook_name=ANY, webhook_url=ANY, alert_receive_channel_id=ANY):

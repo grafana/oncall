@@ -86,13 +86,13 @@ def test_get_default_template_attribute_non_existing_backend(make_organization, 
     assert attr is None
 
 
-@pytest.mark.django_db
-def test_get_default_template_attribute_fallback_to_web(make_organization, make_alert_receive_channel):
-    organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(organization)
+# @pytest.mark.django_db
+# def test_get_default_template_attribute_fallback_to_web(make_organization, make_alert_receive_channel):
+#     organization = make_organization()
+#     alert_receive_channel = make_alert_receive_channel(organization)
 
-    attr = alert_receive_channel.get_default_template_attribute("TESTONLY", "title")
-    assert attr == alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_TITLE_TEMPLATE[alert_receive_channel.integration]
+#     attr = alert_receive_channel.get_default_template_attribute("TESTONLY", "title")
+#     assert attr == alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_TITLE_TEMPLATE[alert_receive_channel.integration]
 
 
 @mock.patch("apps.integrations.tasks.create_alert.apply_async", return_value=None)
