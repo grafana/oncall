@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,8 +16,8 @@ class AlertDetailView(APIView):
         try:
             alert = Alert.objects.get(public_primary_key=id)
         except Alert.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            raise NotFound()
         if alert.group.channel.organization != request.auth.organization:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            raise NotFound()
         serializer = AlertRawSerializer(alert)
         return Response(serializer.data)

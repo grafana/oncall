@@ -13,7 +13,7 @@ from drf_spectacular.plumbing import resolve_type_hint
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema, inline_serializer
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import MethodNotAllowed, NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -69,7 +69,7 @@ from apps.schedules.models.on_call_schedule import ScheduleEvent
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.user_management.models import Team, User
-from common.api_helpers.exceptions import Conflict
+from common.api_helpers.exceptions import BadRequest, Conflict, Forbidden, InternalServerError, ServiceUnavailable
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
@@ -450,10 +450,8 @@ class UserView(
 
         general_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
 
-        return Response(
-            data={"error_code": "wrong_team", "owner_team": TeamSerializer(general_team).data},
-            status=status.HTTP_403_FORBIDDEN,
-        )
+        # TODO: fix here
+        raise Forbidden({"error_code": "wrong_team", "owner_team": TeamSerializer(general_team).data})
 
     @extend_schema(responses={status.HTTP_200_OK: resolve_type_hint(typing.List[str])})
     @action(detail=False, methods=["get"])
@@ -470,7 +468,7 @@ class UserView(
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
             logger.warning("get_verification_code: invalid reCAPTCHA validation")
-            return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="failed reCAPTCHA check")
         logger.info('get_verification_code: pass reCAPTCHA validation"')
 
         user = self.get_object()
@@ -478,15 +476,13 @@ class UserView(
         try:
             phone_backend.send_verification_sms(user)
         except NumberAlreadyVerified:
-            return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Phone number already verified")
         except PhoneNumberBanned:
-            return Response("Phone number has been banned", status=status.HTTP_403_FORBIDDEN)
+            raise Forbidden(detail="Phone number has been banned")
         except FailedToStartVerification as e:
             return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
-            return Response(
-                "Phone provider not supports sms verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            raise InternalServerError(detail="Phone provider does not support sms verification")
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -499,7 +495,7 @@ class UserView(
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
             logger.warning("get_verification_code_via_call: invalid reCAPTCHA validation")
-            return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="failed reCAPTCHA check")
         logger.info('get_verification_code_via_call: pass reCAPTCHA validation"')
 
         user = self.get_object()
@@ -507,15 +503,13 @@ class UserView(
         try:
             phone_backend.make_verification_call(user)
         except NumberAlreadyVerified:
-            return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Phone number already verified")
         except PhoneNumberBanned:
-            return Response("Phone number has been banned", status=status.HTTP_403_FORBIDDEN)
+            raise (Forbidden(detail="Phone number has been banned"))
         except FailedToStartVerification as e:
             return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
-            return Response(
-                "Phone provider not supports call verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            raise InternalServerError(detail="Phone provider does not support call verification")
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(parameters=[inline_serializer(name="UserVerifyNumber", fields={"token": serializers.CharField()})])
@@ -528,7 +522,7 @@ class UserView(
         target_user = self.get_object()
         code = request.query_params.get("token", None)
         if not code:
-            return Response("Invalid verification code", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Verification code is required")
         prev_state = target_user.insight_logs_serialized
 
         phone_backend = PhoneBackend()
@@ -547,7 +541,7 @@ class UserView(
             )
             return Response(status=status.HTTP_200_OK)
         else:
-            return Response("Verification code is not correct", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Verification code is not correct")
 
     @action(detail=True, methods=["put"])
     def forget_number(self, request, pk) -> Response:
@@ -575,11 +569,11 @@ class UserView(
             phone_backend = PhoneBackend()
             phone_backend.make_test_call(user)
         except NumberNotVerified:
-            return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Phone number is not verified")
         except FailedToMakeCall as e:
             return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
-            return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise InternalServerError(detail="Phone provider does not support phone calls")
 
         return Response(status=status.HTTP_200_OK)
 
@@ -590,11 +584,11 @@ class UserView(
             phone_backend = PhoneBackend()
             phone_backend.send_test_sms(user)
         except NumberNotVerified:
-            return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Phone number is not verified")
         except FailedToMakeCall as e:
             return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
-            return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise InternalServerError(detail="Phone provider doesn't support sms")
 
         return Response(status=status.HTTP_200_OK)
 
@@ -613,15 +607,10 @@ class UserView(
         try:
             send_test_push(user, critical)
         except DeviceNotSet:
-            return Response(
-                data="Mobile device not connected",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise BadRequest(detail="Mobile device not connected")
         except Exception as e:
             logger.info(f"UserView.send_test_push: Unable to send test push due to {e}")
-            return Response(
-                data="Something went wrong while sending a test push", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            raise InternalServerError(detail="Something went wrong while sending a test push")
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -636,7 +625,7 @@ class UserView(
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
 
         code = backend.generate_user_verification_code(user)
         return Response(code)
@@ -655,7 +644,7 @@ class UserView(
         user = self.get_object()
 
         if user.is_telegram_connected:
-            return Response("This user is already connected to a Telegram account", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="This user is already connected to a Telegram account")
 
         try:
             existing_verification_code = user.telegram_verification_code
@@ -704,7 +693,7 @@ class UserView(
                 linked_user_id=user.public_primary_key,
             )
         except TelegramToUserConnector.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -718,7 +707,7 @@ class UserView(
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
 
         try:
             backend.unlink_user(user)
@@ -730,7 +719,7 @@ class UserView(
                 linked_user_id=user.public_primary_key,
             )
         except ObjectDoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
         return Response(status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -748,10 +737,10 @@ class UserView(
         try:
             days = int(request.query_params.get("days", UPCOMING_SHIFTS_DEFAULT_DAYS))
         except ValueError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Invalid days parameter")
 
         if days <= 0 or days > UPCOMING_SHIFTS_MAX_DAYS:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Invalid days parameter")
 
         now = timezone.now()
         # filter user-related schedules
@@ -844,7 +833,7 @@ class UserView(
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        raise MethodNotAllowed()
 
     @extend_schema(
         responses=inline_serializer(
@@ -886,6 +875,6 @@ class UserView(
 
 def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
     if exc.graceful_msg:
-        return Response(exc.graceful_msg, status=status.HTTP_400_BAD_REQUEST)
+        raise BadRequest(exc.graceful_msg)
     else:
-        return Response("Something went wrong", status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        raise ServiceUnavailable(detail="Something went wrong")

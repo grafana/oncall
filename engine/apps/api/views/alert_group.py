@@ -29,7 +29,7 @@ from apps.base.models.user_notification_policy_log_record import UserNotificatio
 from apps.labels.utils import is_labels_feature_enabled
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.exceptions import BadRequest, Forbidden
 from common.api_helpers.filters import (
     NO_TEAM_VALUE,
     DateRangeFilterMixin,
@@ -210,12 +210,9 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
                 if obj_team is None:
                     obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
 
-                return Response(
-                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+                raise Forbidden(detail={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data})
 
-            return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
+            raise Forbidden(detail={"error_code": "wrong_team"})
 
 
 class AlertGroupSearchFilter(SearchFilter):
@@ -509,12 +506,11 @@ class AlertGroupView(
             else:
                 # Check resolution note required setting only if resolution_note_text was not provided.
                 if organization.is_resolution_note_required and not alert_group.has_resolution_notes:
-                    return Response(
-                        data={
+                    raise BadRequest(
+                        detail={
                             "code": AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value,
                             "detail": "Alert group without resolution note cannot be resolved due to organization settings",
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
+                        }
                     )
             alert_group.resolve_by_user_or_backsync(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
@@ -558,11 +554,11 @@ class AlertGroupView(
         try:
             root_alert_group = self.get_queryset().get(public_primary_key=request.data["root_alert_group_pk"])
         except AlertGroup.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
         if root_alert_group.resolved or root_alert_group.root_alert_group is not None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
         if root_alert_group == alert_group:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest()
 
         alert_group.attach_by_user(self.request.user, root_alert_group, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
@@ -832,7 +828,7 @@ class AlertGroupView(
         kwargs = {}
 
         if action_name not in AlertGroup.BULK_ACTIONS:
-            return Response("Unknown action", status=status.HTTP_400_BAD_REQUEST)
+            raise BadRequest(detail="Unknown action")
 
         if action_name == AlertGroup.SILENCE:
             if delay is None:
