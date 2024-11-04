@@ -3,8 +3,8 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
-from apps.slack.scenarios import slack_channel as slack_channel_scenarios
 from apps.slack.models import SlackChannel
+from apps.slack.scenarios import slack_channel as slack_channel_scenarios
 
 
 @pytest.mark.django_db
@@ -36,9 +36,7 @@ class TestSlackChannelCreatedOrRenamedEventStep:
             slack_team_identity=slack_team_identity,
         ).exists()
 
-        step = slack_channel_scenarios.SlackChannelCreatedOrRenamedEventStep(
-            slack_team_identity, organization, user
-        )
+        step = slack_channel_scenarios.SlackChannelCreatedOrRenamedEventStep(slack_team_identity, organization, user)
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
         # Now the SlackChannel should exist with correct data
@@ -72,9 +70,7 @@ class TestSlackChannelCreatedOrRenamedEventStep:
             }
         }
 
-        step = slack_channel_scenarios.SlackChannelCreatedOrRenamedEventStep(
-            slack_team_identity, organization, user
-        )
+        step = slack_channel_scenarios.SlackChannelCreatedOrRenamedEventStep(slack_team_identity, organization, user)
         step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
         slack_channel.refresh_from_db()
@@ -104,12 +100,8 @@ class TestSlackChannelDeletedEventStep:
             slack_team_identity=slack_team_identity,
         ).exists()
 
-        step = slack_channel_scenarios.SlackChannelDeletedEventStep(
-            slack_team_identity, organization, user
-        )
-        step.process_scenario(
-            slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}}
-        )
+        step = slack_channel_scenarios.SlackChannelDeletedEventStep(slack_team_identity, organization, user)
+        step.process_scenario(slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}})
 
         # Now the SlackChannel should not exist
         assert not SlackChannel.objects.filter(
@@ -135,13 +127,9 @@ class TestSlackChannelDeletedEventStep:
             slack_team_identity=slack_team_identity,
         ).exists()
 
-        step = slack_channel_scenarios.SlackChannelDeletedEventStep(
-            slack_team_identity, organization, user
-        )
+        step = slack_channel_scenarios.SlackChannelDeletedEventStep(slack_team_identity, organization, user)
         # The step should not raise an exception even if the channel does not exist
-        step.process_scenario(
-            slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}}
-        )
+        step.process_scenario(slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}})
 
         # Still, the SlackChannel does not exist
         assert not SlackChannel.objects.filter(
@@ -177,7 +165,8 @@ class TestSlackChannelArchivedEventStep:
 
         assert slack_channel.is_archived is True
         mock_clean_slack_channel_leftovers.apply_async.assert_called_once_with(
-            (slack_team_identity.id, slack_channel_id))
+            (slack_team_identity.id, slack_channel_id)
+        )
 
 
 @pytest.mark.django_db
@@ -198,12 +187,8 @@ class TestSlackChannelUnarchivedEventStep:
 
         assert slack_channel.is_archived is True
 
-        step = slack_channel_scenarios.SlackChannelUnarchivedEventStep(
-            slack_team_identity, organization, user
-        )
-        step.process_scenario(
-            slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}}
-        )
+        step = slack_channel_scenarios.SlackChannelUnarchivedEventStep(slack_team_identity, organization, user)
+        step.process_scenario(slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}})
 
         slack_channel.refresh_from_db()
         assert slack_channel.is_archived is False
@@ -224,12 +209,8 @@ class TestSlackChannelUnarchivedEventStep:
 
         assert slack_channel.is_archived is False
 
-        step = slack_channel_scenarios.SlackChannelUnarchivedEventStep(
-            slack_team_identity, organization, user
-        )
-        step.process_scenario(
-            slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}}
-        )
+        step = slack_channel_scenarios.SlackChannelUnarchivedEventStep(slack_team_identity, organization, user)
+        step.process_scenario(slack_user_identity, slack_team_identity, {"event": {"channel": slack_channel_id}})
 
         slack_channel.refresh_from_db()
         # Ensure that is_archived remains False
