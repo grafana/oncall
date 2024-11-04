@@ -971,7 +971,6 @@ def test_oncall_shifts_request_validation(
     assert response.json()["non_field_errors"] ==  [
             "The difference between start_date and end_date must be less than one year (365 days)",
         ]
-    }
 
     # datetime validation
     # invalid request (doesnt match pattern YYYY-MM-DDThh:mm)
