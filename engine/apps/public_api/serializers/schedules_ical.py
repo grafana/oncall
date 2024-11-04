@@ -10,7 +10,9 @@ from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import validate_ical_url
 
 
-class ScheduleICalSerializer(ScheduleBaseSerializer[OnCallScheduleICal]):
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class ScheduleICalSerializer(ScheduleBaseSerializer[OnCallScheduleICal]):
+class ScheduleICalSerializer(ScheduleBaseSerializer):
     class Meta:
         model = OnCallScheduleICal
         fields = [

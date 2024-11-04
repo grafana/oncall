@@ -9,7 +9,9 @@ from common.api_helpers.custom_fields import TimeZoneField, UsersFilteredByOrgan
 from common.api_helpers.exceptions import BadRequest
 
 
-class ScheduleCalendarSerializer(ScheduleBaseSerializer[OnCallScheduleCalendar]):
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class ScheduleCalendarSerializer(ScheduleBaseSerializer[OnCallScheduleCalendar]):
+class ScheduleCalendarSerializer(ScheduleBaseSerializer):
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,

@@ -20,7 +20,9 @@ class SlackSerializer(serializers.Serializer):
     user_group_id = SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(required=False, allow_null=True)
 
 
-class ScheduleBaseSerializer[M: "OnCallSchedule"](EagerLoadingMixin, serializers.ModelSerializer[M]):
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class ScheduleBaseSerializer[M: "OnCallSchedule"](EagerLoadingMixin, serializers.ModelSerializer[M]):
+class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     on_call_now = serializers.SerializerMethodField()
     slack = SlackSerializer(required=False)
@@ -29,10 +31,8 @@ class ScheduleBaseSerializer[M: "OnCallSchedule"](EagerLoadingMixin, serializers
     SELECT_RELATED = ["team", "user_group", "slack_channel"]
 
     def create(self, validated_data):
-        organization = self.context["request"].auth.organization
-
-        validated_data = self._correct_validated_data(validated_data, organization)
-        validated_data["organization"] = organization
+        validated_data = self._correct_validated_data(validated_data)
+        validated_data["organization"] = self.context["request"].auth.organization
         return super().create(validated_data)
 
     def get_on_call_now(self, obj: "OnCallSchedule") -> typing.List[str]:

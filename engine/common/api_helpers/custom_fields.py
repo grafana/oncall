@@ -1,4 +1,3 @@
-import typing
 from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,9 +10,6 @@ from apps.alerts.models import ChannelFilter
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
-
-if typing.TYPE_CHECKING:
-    from apps.slack.models import SlackChannel, SlackUserGroup
 
 
 @extend_schema_field(serializers.CharField)
@@ -122,7 +118,9 @@ class UsersFilteredByOrganizationField(serializers.Field):
         return users
 
 
-class _SlackObjectFilteredByOrganizationSlackWorkspaceField[O: ("SlackChannel", "SlackUserGroup")](RelatedField[O]):
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class _SlackObjectFilteredByOrganizationSlackWorkspaceField[O: ("SlackChannel", "SlackUserGroup")](RelatedField[O]):
+class _SlackObjectFilteredByOrganizationSlackWorkspaceField(RelatedField):
     @property
     def slack_team_identity_field(self):
         raise NotImplementedError
@@ -153,13 +151,15 @@ class _SlackObjectFilteredByOrganizationSlackWorkspaceField[O: ("SlackChannel", 
         except (TypeError, ValueError, AttributeError):
             raise ValidationError(f"Invalid Slack {noun}")
 
-    def to_representation(self, obj: O) -> str:
+    def to_representation(self, obj) -> str:
         return obj.public_primary_key
 
 
-class SlackChannelsFilteredByOrganizationSlackWorkspaceField(
-    _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackChannel"],
-):
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class SlackChannelsFilteredByOrganizationSlackWorkspaceField(
+#     _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackChannel"],
+# ):
+class SlackChannelsFilteredByOrganizationSlackWorkspaceField(_SlackObjectFilteredByOrganizationSlackWorkspaceField):
     @property
     def slack_team_identity_field(self):
         return "cached_channels"
@@ -169,9 +169,11 @@ class SlackChannelsFilteredByOrganizationSlackWorkspaceField(
         return "channel"
 
 
-class SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(
-    _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackUserGroup"],
-):
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(
+#     _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackUserGroup"],
+# ):
+class SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(_SlackObjectFilteredByOrganizationSlackWorkspaceField):
     @property
     def slack_team_identity_field(self):
         return "usergroups"
