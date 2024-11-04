@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
 from apps.api.serializers.labels import LabelPairSerializer
-from apps.api.serializers.slack_channel import SlackChannelDetails, SlackChannelSerializer
+from apps.api.serializers.slack_channel import SlackChannelSerializer
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.telegram.models import TelegramToOrganizationConnector
 from common.api_helpers.custom_fields import (
@@ -188,15 +188,3 @@ class ChannelFilterUpdateSerializer(ChannelFilterCreateSerializer):
             raise BadRequest(detail="Filtering term of default channel filter cannot be changed")
 
         return super().update(instance, validated_data)
-
-
-class ChannelFilterUpdateResponseSerializer(ChannelFilterUpdateSerializer):
-    """
-    This serializer is used in OpenAPI schema to show proper response structure,
-    as `slack_channel` field expects string on create/update and returns dict on response
-    """
-
-    slack_channel = serializers.SerializerMethodField()
-
-    def _get_slack_channel(self, obj) -> SlackChannelDetails | None:
-        pass
