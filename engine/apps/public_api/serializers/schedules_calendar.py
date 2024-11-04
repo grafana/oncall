@@ -9,7 +9,7 @@ from common.api_helpers.custom_fields import TimeZoneField, UsersFilteredByOrgan
 from common.api_helpers.exceptions import BadRequest
 
 
-class ScheduleCalendarSerializer(ScheduleBaseSerializer):
+class ScheduleCalendarSerializer(ScheduleBaseSerializer[OnCallScheduleCalendar]):
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,
@@ -72,7 +72,7 @@ class ScheduleCalendarUpdateSerializer(ScheduleCalendarSerializer):
         }
 
     def update(self, instance, validated_data):
-        validated_data = self._correct_validated_data(validated_data, self.context["request"].auth.organization)
+        validated_data = self._correct_validated_data(validated_data)
         new_time_zone = validated_data.get("time_zone", instance.time_zone)
         new_shifts = validated_data.get("shifts", [])
         existing_shifts = instance.custom_on_call_shifts.all()

@@ -8,7 +8,7 @@ from apps.schedules.tasks import (
 from common.api_helpers.custom_fields import TimeZoneField, UsersFilteredByOrganizationField
 
 
-class ScheduleWebSerializer(ScheduleBaseSerializer):
+class ScheduleWebSerializer(ScheduleBaseSerializer[OnCallScheduleWeb]):
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,
@@ -54,7 +54,7 @@ class ScheduleWebUpdateSerializer(ScheduleWebSerializer):
         }
 
     def update(self, instance, validated_data):
-        validated_data = self._correct_validated_data(validated_data, self.context["request"].auth.organization)
+        validated_data = self._correct_validated_data(validated_data)
         new_time_zone = validated_data.get("time_zone", instance.time_zone)
         new_shifts = validated_data.get("shifts", [])
         existing_shifts = instance.custom_shifts.all()

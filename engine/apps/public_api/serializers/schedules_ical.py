@@ -10,7 +10,7 @@ from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import validate_ical_url
 
 
-class ScheduleICalSerializer(ScheduleBaseSerializer):
+class ScheduleICalSerializer(ScheduleBaseSerializer[OnCallScheduleICal]):
     class Meta:
         model = OnCallScheduleICal
         fields = [
@@ -62,7 +62,7 @@ class ScheduleICalUpdateSerializer(ScheduleICalSerializer):
 
     def update(self, instance, validated_data):
         ical_changed = False
-        validated_data = self._correct_validated_data(validated_data, self.context["request"].auth.organization)
+        validated_data = self._correct_validated_data(validated_data)
 
         if "ical_url_primary" in validated_data and validated_data["ical_url_primary"] != instance.ical_url_primary:
             ical_changed = True

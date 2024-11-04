@@ -13,7 +13,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
 
 if typing.TYPE_CHECKING:
-    from apps.slack.models import SlackChannel
+    from apps.slack.models import SlackChannel, SlackUserGroup
 
 
 @extend_schema_field(serializers.CharField)
@@ -122,7 +122,15 @@ class UsersFilteredByOrganizationField(serializers.Field):
         return users
 
 
-class SlackChannelsFilteredByOrganizationSlackWorkspaceField(serializers.RelatedField):
+class _SlackObjectFilteredByOrganizationSlackWorkspaceField[O: ("SlackChannel", "SlackUserGroup")](RelatedField[O]):
+    @property
+    def slack_team_identity_field(self):
+        raise NotImplementedError
+
+    @property
+    def slack_object_singular_noun(self):
+        raise NotImplementedError
+
     def get_queryset(self):
         request = self.context.get("request", None)
         if not request:
@@ -132,18 +140,45 @@ class SlackChannelsFilteredByOrganizationSlackWorkspaceField(serializers.Related
         if organization.slack_team_identity is None:
             raise BadRequest(detail="Slack isn't connected to this workspace")
 
-        return organization.slack_team_identity.cached_channels.all()
+        slack_team_identity_related_objects = getattr(organization.slack_team_identity, self.slack_team_identity_field)
+        return slack_team_identity_related_objects.all()
 
     def to_internal_value(self, slack_id: str):
+        noun = self.slack_object_singular_noun
+
         try:
             return self.get_queryset().get(slack_id=slack_id.upper())
         except ObjectDoesNotExist:
-            raise ValidationError("Slack channel does not exist")
+            raise ValidationError(f"Slack {noun} does not exist")
         except (TypeError, ValueError, AttributeError):
-            raise ValidationError("Invalid Slack channel")
+            raise ValidationError(f"Invalid Slack {noun}")
 
-    def to_representation(self, obj: "SlackChannel") -> str:
+    def to_representation(self, obj: O) -> str:
         return obj.public_primary_key
+
+
+class SlackChannelsFilteredByOrganizationSlackWorkspaceField(
+    _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackChannel"],
+):
+    @property
+    def slack_team_identity_field(self):
+        return "cached_channels"
+
+    @property
+    def slack_object_singular_noun(self):
+        return "channel"
+
+
+class SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(
+    _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackUserGroup"],
+):
+    @property
+    def slack_team_identity_field(self):
+        return "usergroups"
+
+    @property
+    def slack_object_singular_noun(self):
+        return "user group"
 
 
 class IntegrationFilteredByOrganizationField(serializers.RelatedField):
