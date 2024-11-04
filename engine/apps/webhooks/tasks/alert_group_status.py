@@ -1,4 +1,5 @@
 import logging
+import typing
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -26,9 +27,9 @@ ACTION_TO_TRIGGER_TYPE = {
 
 
 @shared_dedicated_queue_retry_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
 )
-def alert_group_created(self, alert_group_id, is_backsync=False):
+def alert_group_created(alert_group_id: int, is_backsync: typing.Optional[bool] = False) -> None:
     try:
         alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
@@ -53,9 +54,14 @@ def alert_group_created(self, alert_group_id, is_backsync=False):
 
 
 @shared_dedicated_queue_retry_task(
-    bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
 )
-def alert_group_status_change(self, action_type, alert_group_id, user_id, is_backsync=False):
+def alert_group_status_change(
+    action_type: int,
+    alert_group_id: int,
+    user_id: int,
+    is_backsync: typing.Optional[bool] = False,
+) -> None:
     try:
         alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:

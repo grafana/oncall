@@ -63,7 +63,13 @@ class WebhookRequestStatus(typing.TypedDict):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None, is_backsync=False):
+def send_webhook_event(
+    trigger_type: int,
+    alert_group_id: int,
+    organization_id: typing.Optional[int] = None,
+    user_id: typing.Optional[int] = None,
+    is_backsync: typing.Optional[bool] = False,
+) -> None:
     from apps.webhooks.models import Webhook
 
     webhooks_qs = Webhook.objects.filter(
@@ -218,7 +224,14 @@ def make_request(
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else EXECUTE_WEBHOOK_RETRIES
 )
-def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, trigger_type=None, manual_retry_num=0):
+def execute_webhook(
+    webhook_pk: int,
+    alert_group_id: int,
+    user_id: int,
+    escalation_policy_id: int,
+    trigger_type: typing.Optional[int] = None,
+    manual_retry_num: int = 0
+) -> None:
     from apps.webhooks.models import Webhook
 
     try:
@@ -270,7 +283,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id, t
     # create log record
     error_code = None
     log_type = AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED
-    trigger_log = TRIGGER_TYPE_TO_LABEL[webhook.trigger_type]
+    trigger_log: typing.Optional[str] = TRIGGER_TYPE_TO_LABEL[webhook.trigger_type]
     if webhook.trigger_type == Webhook.TRIGGER_MANUAL and escalation_policy is None:
         trigger_log = None  # triggered manually
     reason = str(status["status_code"])

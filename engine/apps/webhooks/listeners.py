@@ -1,12 +1,24 @@
 import logging
+import typing
 
 from .tasks import alert_group_created, alert_group_status_change
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def on_alert_group_created(**kwargs):
+class OnAlertGroupCreatedKwargs(typing.TypedDict, total=False):
+    alert_group: "AlertGroup"
+
+
+class OnActionTriggeredKwargs(typing.TypedDict, total=False):
+    log_record: "AlertGroupLogRecord"
+
+
+def on_alert_group_created(**kwargs: typing.Unpack[OnAlertGroupCreatedKwargs]) -> None:
     alert_group = kwargs["alert_group"]
 
     # if we have an external_id, this alert_group was just created from a backsync update
@@ -16,7 +28,7 @@ def on_alert_group_created(**kwargs):
     alert_group_created.apply_async((kwargs["alert_group"].id,), kwargs={"is_backsync": is_backsync})
 
 
-def on_action_triggered(**kwargs):
+def on_action_triggered(**kwargs: typing.Unpack[OnActionTriggeredKwargs]) -> None:
     from apps.alerts.constants import ActionSource
     from apps.alerts.models import AlertGroupLogRecord
 

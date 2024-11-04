@@ -328,6 +328,8 @@ class Webhook(models.Model):
 
 
 class WebhookResponse(models.Model):
+    webhook: typing.Optional[Webhook]
+
     alert_group = models.ForeignKey(
         "alerts.AlertGroup",
         on_delete=models.CASCADE,
@@ -356,8 +358,14 @@ class WebhookResponse(models.Model):
 
 
 @receiver(post_save, sender=WebhookResponse)
-def webhook_response_post_save(sender, instance, created, *args, **kwargs):
-    if not created:
+def webhook_response_post_save(
+    _sender: WebhookResponse,
+    instance: WebhookResponse,
+    created: bool,
+    *args,
+    **kwargs,
+) -> None:
+    if not created or not instance.webhook:
         return
 
     source_alert_receive_channel = instance.webhook.get_source_alert_receive_channel()

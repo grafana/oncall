@@ -15,6 +15,16 @@ force-exclude = "migrations"
 
 python_version = "3.12"
 
+# A comma-separated list of packages which should be checked by mypy if none are given on the command line.
+# mypy will recursively type check any submodules of the provided package
+packages = [
+    "apps",
+    "common",
+    "config_integrations",
+    "engine",
+    "settings",
+]
+
 # Specifies the paths to use, after trying the paths from MYPYPATH environment variable. Useful if you’d like to keep stubs in your repo, along with the config file. Multiple paths are always separated with a : or , regardless of the platform. User home directory and environment variables will be expanded.
 mypy_path = "$MYPY_CONFIG_FILE_DIR/type_stubs"
 
@@ -31,13 +41,7 @@ plugins = [
 pretty = true
 
 # A regular expression that matches file names, directory names and paths which mypy should ignore while recursively discovering files to check. Use forward slashes (/) as directory separators on all platforms.
-#
-# ignore test and migration files
-exclude = [
-    "^.*/migrations/.*\\.py$",
-    "^.*/tests/.*\\.py$",
-]
-# exclude = "^.*/(migrations|tests)/.*\\.py$"
+exclude = "^.*/(migrations|tests)/.*$"
 
 # Allows disabling one or multiple error codes globally.
 disable_error_code = [
@@ -60,6 +64,7 @@ disable_error_code = [
 
 # TODO: add this when we update to mypy>=1.11.0
 # enable_incomplete_feature = "NewGenericSyntax"
+enable_incomplete_feature = "Unpack"
 
 # mypy per-module options
 [[tool.mypy.overrides]]

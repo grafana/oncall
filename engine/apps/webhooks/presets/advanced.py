@@ -14,10 +14,10 @@ class AdvancedWebhookPreset(WebhookPreset):
             controlled_fields=[],
         )
 
-    def override_parameters_before_save(self, webhook: Webhook):
+    def override_parameters_before_save(self, webhook: Webhook) -> None:
         pass
 
-    def override_parameters_at_runtime(self, webhook: Webhook):
+    def override_parameters_at_runtime(self, webhook: Webhook) -> None:
         pass
 
     def get_masked_headers(self) -> typing.List[str]:

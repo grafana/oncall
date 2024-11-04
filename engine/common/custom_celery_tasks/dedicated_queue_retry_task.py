@@ -2,7 +2,6 @@ import typing
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from typing_extensions import Unpack
 
 from common.custom_celery_tasks.log_exception_on_failure_task import LogExceptionOnFailureTask
 
@@ -45,5 +44,5 @@ class DedicatedQueueRetryTask(LogExceptionOnFailureTask):
             **options,
         )
 
-def shared_dedicated_queue_retry_task(**kwargs: Unpack[SharedDedicatedQueueRetryTaskParams]):
+def shared_dedicated_queue_retry_task(**kwargs: typing.Unpack[SharedDedicatedQueueRetryTaskParams]):
     return shared_task(base=DedicatedQueueRetryTask, **kwargs)

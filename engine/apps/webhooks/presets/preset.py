@@ -27,12 +27,12 @@ class WebhookPreset(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def override_parameters_before_save(self, webhook: Webhook):
+    def override_parameters_before_save(self, webhook: Webhook) -> None:
         """Implement this to write parameters before the webhook is saved to the database"""
         pass
 
     @abstractmethod
-    def override_parameters_at_runtime(self, webhook: Webhook):
+    def override_parameters_at_runtime(self, webhook: Webhook) -> None:
         """Implement this to write parameters before the webhook is executed (These will not be persisted)"""
         pass
 
