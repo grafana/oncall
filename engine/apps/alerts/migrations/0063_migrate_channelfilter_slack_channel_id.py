@@ -14,10 +14,6 @@ def populate_slack_channel(apps, schema_editor):
 
     logger.info("Starting migration to populate slack_channel field.")
 
-    # this query performs an UPDATE on the ChannelFilter table (cf), setting the slack_channel_id by
-    # joining with the SlackChannel (sc), AlertReceiveChannel (arc), and Organization (org) tables
-    # Since this operation is executed directly by the database, which is optimized for such set-based operations,
-    # it's much faster than iterating over records in Python
     sql = f"""
     UPDATE {ChannelFilter._meta.db_table} AS cf
     JOIN {AlertReceiveChannel._meta.db_table} AS arc ON arc.id = cf.alert_receive_channel_id
