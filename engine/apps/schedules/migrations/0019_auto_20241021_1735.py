@@ -9,47 +9,26 @@ logger = logging.getLogger(__name__)
 def populate_slack_channel(apps, schema_editor):
     OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
     SlackChannel = apps.get_model("slack", "SlackChannel")
+    Organization = apps.get_model("user_management", "Organization")
 
     logger.info("Starting migration to populate slack_channel field.")
 
-    queryset = OnCallSchedule.objects.filter(channel__isnull=False, organization__slack_team_identity__isnull=False)
-    total_schedules = queryset.count()
-    updated_schedules = 0
-    missing_channels = 0
-    schedules_to_update = []
+    sql = f"""
+    UPDATE {OnCallSchedule._meta.db_table} AS ocs
+    JOIN {Organization._meta.db_table} AS org ON org.id = ocs.organization_id
+    JOIN {SlackChannel._meta.db_table} AS sc ON sc.slack_id = ocs.channel
+                         AND sc.slack_team_identity_id = org.slack_team_identity_id
+    SET ocs.slack_channel_id = sc.id
+    WHERE ocs.channel IS NOT NULL
+      AND org.slack_team_identity_id IS NOT NULL;
+    """
 
-    logger.info(f"Total schedules to process: {total_schedules}")
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(sql)
+        updated_rows = cursor.rowcount  # Number of rows updated
 
-    for schedule in queryset:
-        slack_id = schedule.channel
-        slack_team_identity = schedule.organization.slack_team_identity
-
-        try:
-            slack_channel = SlackChannel.objects.get(slack_id=slack_id, slack_team_identity=slack_team_identity)
-
-            schedule.slack_channel = slack_channel
-            schedules_to_update.append(schedule)
-
-            updated_schedules += 1
-            logger.info(
-                f"Schedule {schedule.id} updated with SlackChannel {slack_channel.id} (slack_id: {slack_id})."
-            )
-        except SlackChannel.DoesNotExist:
-            missing_channels += 1
-            logger.warning(
-                f"SlackChannel with slack_id {slack_id} and slack_team_identity {slack_team_identity} "
-                f"does not exist for Schedule {schedule.id}."
-            )
-
-    if schedules_to_update:
-        OnCallSchedule.objects.bulk_update(schedules_to_update, ["slack_channel"])
-        logger.info(f"Bulk updated {len(schedules_to_update)} OnCallSchedules with their Slack channel.")
-
-    logger.info(
-        f"Finished migration. Total schedules processed: {total_schedules}. "
-        f"Schedules updated: {updated_schedules}. Missing SlackChannels: {missing_channels}."
-    )
-
+    logger.info(f"Bulk updated {updated_rows} OnCallSchedules with their Slack channel.")
+    logger.info("Finished migration to populate slack_channel field.")
 
 class Migration(migrations.Migration):
 
