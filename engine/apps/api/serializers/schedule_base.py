@@ -13,7 +13,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
-    slack_channel = SlackChannelSerializer(read_only=True, allow_null=True, required=False)
+    slack_channel = SlackChannelSerializer(read_only=True)
     user_group = UserGroupSerializer()
     warnings = serializers.SerializerMethodField()
     on_call_now = serializers.SerializerMethodField()
@@ -75,10 +75,8 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def validate(self, attrs):
         if "slack_channel_id" in attrs:
-            # this is set by OrganizationFilteredPrimaryKeyRelatedField in the serializer classes
-            # that subclass ScheduleBaseSerializer
-            slack_channel = attrs.pop("slack_channel_id", None)
-            attrs["slack_channel"] = slack_channel
+            # this is set in the serializer classes which subclass ScheduleBaseSerializer
+            attrs["slack_channel"] = attrs.pop("slack_channel_id", None)
         return attrs
 
     def create(self, validated_data):

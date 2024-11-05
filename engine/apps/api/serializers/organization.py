@@ -22,7 +22,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_team_identity = FastSlackTeamIdentitySerializer(read_only=True)
 
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
-    slack_channel = SlackChannelSerializer(read_only=True, allow_null=True, required=False)
+    slack_channel = SlackChannelSerializer(read_only=True, source="default_slack_channel")
 
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
     grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")

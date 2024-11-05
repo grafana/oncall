@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
 from apps.api.serializers.labels import LabelPairSerializer
-from apps.api.serializers.slack_channel import SlackChannelSerializer
+from apps.api.serializers.slack_channel import SlackChannelDetails, SlackChannelSerializer
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.telegram.models import TelegramToOrganizationConnector
 from common.api_helpers.custom_fields import (
@@ -29,7 +29,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         allow_null=True,
         required=False,
     )
-    slack_channel = SlackChannelSerializer(read_only=True, allow_null=True)
+    slack_channel = SlackChannelSerializer(read_only=True)
 
     # TODO: we probably don't need both telegram_channel and telegram_channel_details, research which one isn't needed
     # and get rid of it
@@ -143,7 +143,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
 
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):
-    slack_channel_id = SlackChannelsFilteredByOrganizationSlackWorkspaceField(
+    slack_channel = SlackChannelsFilteredByOrganizationSlackWorkspaceField(
         allow_null=True,
         required=False,
         write_only=True,
@@ -156,7 +156,6 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "alert_receive_channel",
             "escalation_chain",
             "slack_channel",
-            "slack_channel_id",
             "created_at",
             "filtering_labels",
             "filtering_term",
@@ -168,6 +167,15 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "notification_backends",
         ]
         read_only_fields = ["created_at", "is_default"]
+
+    def to_representation(self, obj):
+        """
+        This feels hacky.. it's because the UI currently POST/PUTs using "slack_channel", which is the SLACK ID of
+        the slack channel that we'd like to set it to, whereas what we return is an object with more details
+        """
+        result = super().to_representation(obj)
+        result["slack_channel"] = SlackChannelSerializer(obj.slack_channel).data if obj.slack_channel else None
+        return result
 
     def create(self, validated_data):
         instance = super().create(validated_data)
@@ -188,3 +196,15 @@ class ChannelFilterUpdateSerializer(ChannelFilterCreateSerializer):
             raise BadRequest(detail="Filtering term of default channel filter cannot be changed")
 
         return super().update(instance, validated_data)
+
+
+class ChannelFilterUpdateResponseSerializer(ChannelFilterUpdateSerializer):
+    """
+    This serializer is used in OpenAPI schema to show proper response structure,
+    as `slack_channel` field expects string on create/update and returns dict on response
+    """
+
+    slack_channel = serializers.SerializerMethodField()
+
+    def get_slack_channel(self, obj) -> SlackChannelDetails | None:
+        ...

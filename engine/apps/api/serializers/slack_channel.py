@@ -1,6 +1,14 @@
+import typing
+
 from rest_framework import serializers
 
 from apps.slack.models import SlackChannel
+
+
+class SlackChannelDetails(typing.TypedDict):
+    display_name: str
+    slack_id: str
+    id: str
 
 
 class SlackChannelSerializer(serializers.ModelSerializer):
