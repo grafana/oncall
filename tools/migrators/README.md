@@ -172,8 +172,9 @@ Configuration is done via environment variables passed to the docker container.
 
 The tool is capable of migrating user notification rules from PagerDuty to Grafana OnCall.
 Notification rules from the `"When a high-urgency incident is assigned to me..."` section in PagerDuty settings are
-taken into account and will be migrated to default notification rules in Grafana OnCall for each user. Note that delays
-between notification rules may be slightly different in Grafana OnCall, see [Limitations](#limitations) for more info.
+taken into account and will be migrated to both default and important notification rules in Grafana OnCall
+for each user. Note that delays between notification rules may be slightly different in Grafana OnCall,
+see [Limitations](#limitations) for more info.
 
 When running the migration, existing notification rules in Grafana OnCall will be deleted for every affected user.
 
