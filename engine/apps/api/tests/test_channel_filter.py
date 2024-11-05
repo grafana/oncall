@@ -715,7 +715,7 @@ def test_channel_filter_with_slack_channel_crud(
         reverse("api-internal:channel_filter-list"),
         data={
             "alert_receive_channel": alert_receive_channel.public_primary_key,
-            "slack_channel_id": slack_channel1.slack_id,
+            "slack_channel": slack_channel1.slack_id,
         },
         format="json",
         **auth_headers,
@@ -732,7 +732,7 @@ def test_channel_filter_with_slack_channel_crud(
     # update the slack channel
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": created_channel_filter["id"]})
 
-    response = client.patch(url, data={"slack_channel_id": slack_channel2.slack_id}, format="json", **auth_headers)
+    response = client.patch(url, data={"slack_channel": slack_channel2.slack_id}, format="json", **auth_headers)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["slack_channel"] == {
@@ -742,7 +742,7 @@ def test_channel_filter_with_slack_channel_crud(
     }
 
     # remove the slack channel
-    response = client.patch(url, data={"slack_channel_id": None}, format="json", **auth_headers)
+    response = client.patch(url, data={"slack_channel": None}, format="json", **auth_headers)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["slack_channel"] is None

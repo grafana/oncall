@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +10,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.channel_filter import (
     ChannelFilterCreateSerializer,
     ChannelFilterSerializer,
+    ChannelFilterUpdateResponseSerializer,
     ChannelFilterUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
@@ -33,6 +34,14 @@ class ChannelFilterFilter(ModelFieldFilterMixin, filters.FilterSet):
     )
 
 
+@extend_schema_view(
+    list=extend_schema(responses=ChannelFilterSerializer),
+    create=extend_schema(request=ChannelFilterCreateSerializer, responses=ChannelFilterUpdateResponseSerializer),
+    update=extend_schema(request=ChannelFilterUpdateSerializer, responses=ChannelFilterUpdateResponseSerializer),
+    partial_update=extend_schema(
+        request=ChannelFilterUpdateSerializer, responses=ChannelFilterUpdateResponseSerializer
+    ),
+)
 class ChannelFilterView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin[ChannelFilter],

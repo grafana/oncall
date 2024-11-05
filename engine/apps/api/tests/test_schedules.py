@@ -640,7 +640,6 @@ def test_create_calendar_schedule(schedule_internal_api_setup, make_user_auth_he
         "type": 0,
         "name": "created_calendar_schedule",
         "time_zone": "UTC",
-        "slack_channel_id": None,
         "user_group": None,
         "team": None,
         "warnings": [],
@@ -671,7 +670,6 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         "ical_url_overrides": None,
         "name": "created_ical_schedule",
         "type": 1,
-        "slack_channel_id": None,
         "user_group": None,
         "team": None,
         "warnings": [],
@@ -706,7 +704,6 @@ def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers
         "name": "created_web_schedule",
         "type": 2,
         "time_zone": "UTC",
-        "slack_channel_id": None,
         "user_group": None,
         "team": None,
         "warnings": [],
@@ -2457,6 +2454,90 @@ def test_team_not_updated_if_not_in_data(
 
     schedule.refresh_from_db()
     assert schedule.team == team
+
+
+# we don't need to validate the ical URL when creating an ical schedule.. so just patch that functionality
+@patch("apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary", return_value=ICAL_URL)
+@pytest.mark.parametrize(
+    "schedule_type,other_create_data",
+    [
+        (0, {}),
+        (1, {"ical_url_primary": ICAL_URL}),
+        (2, {}),
+    ],
+)
+@pytest.mark.django_db
+def test_can_update_slack_channel(
+    _mock_validate_ical_url_primary,
+    make_organization_and_user_with_plugin_token,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_user_auth_headers,
+    schedule_type,
+    other_create_data,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    auth_headers = make_user_auth_headers(user, token)
+    slack_team_identity = make_slack_team_identity()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+
+    slack_channel1 = make_slack_channel(slack_team_identity)
+    slack_channel2 = make_slack_channel(slack_team_identity)
+
+    client = APIClient()
+
+    # we can set it when creating
+    response = client.post(
+        reverse("api-internal:schedule-list"),
+        {
+            "name": "created_schedule",
+            "type": schedule_type,
+            "slack_channel_id": slack_channel1.public_primary_key,
+            **other_create_data,
+        },
+        format="json",
+        **auth_headers,
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    response_data = response.json()
+    schedule_id = response_data["id"]
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": schedule_id})
+
+    # NOTE: the response returned by the POST/PUT endpoint currently doesn't include slack_channel_id
+    # as it's not used by the UI.. additionally, there was already a bug in it that despite specifying it, it
+    # would return null.. the proper way to refactor this is to change the name of slack_channel_id used in the
+    # request (as this clashes with the slack_channel_id db column)
+    def _assert_slack_channel_updated(new_slack_channel):
+        response = client.get(url, **auth_headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["slack_channel"] == new_slack_channel
+
+    # we can update it
+    response = client.patch(
+        url,
+        data={
+            "slack_channel_id": slack_channel2.public_primary_key,
+        },
+        format="json",
+        **auth_headers,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    _assert_slack_channel_updated(
+        {
+            "id": slack_channel2.public_primary_key,
+            "display_name": slack_channel2.name,
+            "slack_id": slack_channel2.slack_id,
+        }
+    )
+
+    # we can unset it
+    response = client.patch(url, data={"slack_channel_id": None}, format="json", **auth_headers)
+    assert response.status_code == status.HTTP_200_OK
+    _assert_slack_channel_updated(None)
 
 
 @patch.object(SlackUserGroup, "can_be_updated", new_callable=PropertyMock)
