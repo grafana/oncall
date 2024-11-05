@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
@@ -36,7 +36,12 @@ class UserFilter(filters.FilterSet):
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+    }
 
     model = User
     pagination_class = HundredPageSizePaginator

@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 from rest_framework import serializers
 
+from apps.api.serializers.slack_channel import SlackChannelSerializer
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import LiveSetting
 from apps.phone_notifications.phone_provider import get_phone_provider
@@ -21,12 +22,12 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_team_identity = FastSlackTeamIdentitySerializer(read_only=True)
 
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
-    slack_channel = serializers.SerializerMethodField()
+    slack_channel = SlackChannelSerializer(read_only=True, source="default_slack_channel")
 
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
     grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")
 
-    SELECT_RELATED = ["slack_team_identity"]
+    SELECT_RELATED = ["slack_team_identity", "slack_channel"]
 
     class Meta:
         model = Organization
@@ -46,22 +47,6 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "rbac_enabled",
             "grafana_incident_enabled",
         ]
-
-    def get_slack_channel(self, obj):
-        from apps.slack.models import SlackChannel
-
-        if obj.general_log_channel_id is None or obj.slack_team_identity is None:
-            return None
-        try:
-            channel = obj.slack_team_identity.get_cached_channels().get(slack_id=obj.general_log_channel_id)
-        except SlackChannel.DoesNotExist:
-            return {"display_name": None, "slack_id": obj.general_log_channel_id, "id": None}
-
-        return {
-            "display_name": channel.name,
-            "slack_id": channel.slack_id,
-            "id": channel.public_primary_key,
-        }
 
 
 class CurrentOrganizationSerializer(OrganizationSerializer):

@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
 
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers.teams import TeamSerializer
 from apps.public_api.tf_sync import is_request_from_terraform, sync_teams_on_tf_request
@@ -14,7 +15,12 @@ from common.api_helpers.paginators import FiftyPageSizePaginator
 class TeamView(PublicPrimaryKeyMixin, RetrieveModelMixin, ListModelMixin, viewsets.GenericViewSet):
     serializer_class = TeamSerializer
     authentication_classes = (ApiTokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+    }
 
     model = Team
     pagination_class = FiftyPageSizePaginator

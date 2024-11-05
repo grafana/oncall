@@ -1,10 +1,16 @@
 import datetime
 import logging
+import typing
 from functools import partial
 
 from django.db import models, transaction
 
 from apps.alerts import tasks
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+    from apps.user_management.models import User
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -14,6 +20,10 @@ class Invitation(models.Model):
     """
     It's an invitation of a user to join working on Alert Group
     """
+
+    alert_group: "AlertGroup"
+    author: typing.Optional["User"]
+    invitee: typing.Optional["User"]
 
     ATTEMPTS_LIMIT = 10
 
@@ -45,18 +55,18 @@ class Invitation(models.Model):
     attempt = models.IntegerField(default=0)
 
     @property
-    def attempts_left(self):
+    def attempts_left(self) -> int:
         return Invitation.ATTEMPTS_LIMIT - self.attempt
 
     @staticmethod
-    def get_delay_by_attempt(attempt):
+    def get_delay_by_attempt(attempt: int) -> datetime.timedelta:
         countdown = Invitation.time_deltas_by_attempts[-1]
         if attempt < len(Invitation.time_deltas_by_attempts):
             countdown = Invitation.time_deltas_by_attempts[attempt]
         return countdown
 
     @staticmethod
-    def invite_user(invitee_user, alert_group, user):
+    def invite_user(invitee_user: "User", alert_group: "AlertGroup", user: "User") -> None:
         from apps.alerts.models import AlertGroupLogRecord
 
         # RFCT - why atomic? without select for update?
@@ -97,7 +107,7 @@ class Invitation(models.Model):
         transaction.on_commit(partial(tasks.invite_user_to_join_incident.delay, invitation.pk))
 
     @staticmethod
-    def stop_invitation(invitation_pk, user):
+    def stop_invitation(invitation_pk: int, user: "User") -> None:
         from apps.alerts.models import AlertGroupLogRecord
 
         with transaction.atomic():
