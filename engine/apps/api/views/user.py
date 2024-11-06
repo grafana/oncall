@@ -480,7 +480,10 @@ class UserView(
         except PhoneNumberBanned:
             raise Forbidden(detail="Phone number has been banned")
         except FailedToStartVerification as e:
-            return handle_phone_notificator_failed(e)
+            if e.graceful_msg:
+                raise BadRequest(e.graceful_msg)
+            else:
+                raise ServiceUnavailable(detail="Something went wrong")
         except ProviderNotSupports:
             raise InternalServerError(detail="Phone provider does not support sms verification")
         return Response(status=status.HTTP_200_OK)
@@ -507,7 +510,10 @@ class UserView(
         except PhoneNumberBanned:
             raise (Forbidden(detail="Phone number has been banned"))
         except FailedToStartVerification as e:
-            return handle_phone_notificator_failed(e)
+            if e.graceful_msg:
+                raise BadRequest(e.graceful_msg)
+            else:
+                raise ServiceUnavailable(detail="Something went wrong")
         except ProviderNotSupports:
             raise InternalServerError(detail="Phone provider does not support call verification")
         return Response(status=status.HTTP_200_OK)
@@ -529,7 +535,10 @@ class UserView(
         try:
             verified = phone_backend.verify_phone_number(target_user, code)
         except FailedToFinishVerification as e:
-            return handle_phone_notificator_failed(e)
+            if e.graceful_msg:
+                raise BadRequest(e.graceful_msg)
+            else:
+                raise ServiceUnavailable(detail="Something went wrong")
         if verified:
             new_state = target_user.insight_logs_serialized
             write_resource_insight_log(
@@ -571,7 +580,10 @@ class UserView(
         except NumberNotVerified:
             raise BadRequest(detail="Phone number is not verified")
         except FailedToMakeCall as e:
-            return handle_phone_notificator_failed(e)
+            if e.graceful_msg:
+                raise BadRequest(e.graceful_msg)
+            else:
+                raise ServiceUnavailable(detail="Something went wrong")
         except ProviderNotSupports:
             raise InternalServerError(detail="Phone provider does not support phone calls")
 
@@ -586,7 +598,10 @@ class UserView(
         except NumberNotVerified:
             raise BadRequest(detail="Phone number is not verified")
         except FailedToMakeCall as e:
-            return handle_phone_notificator_failed(e)
+            if e.graceful_msg:
+                raise BadRequest(e.graceful_msg)
+            else:
+                raise ServiceUnavailable(detail="Something went wrong")
         except ProviderNotSupports:
             raise InternalServerError(detail="Phone provider doesn't support sms")
 
@@ -871,10 +886,3 @@ class UserView(
         ]
 
         return Response(filter_options)
-
-
-def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
-    if exc.graceful_msg:
-        raise BadRequest(exc.graceful_msg)
-    else:
-        raise ServiceUnavailable(detail="Something went wrong")
