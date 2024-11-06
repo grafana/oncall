@@ -9,49 +9,28 @@ logger = logging.getLogger(__name__)
 def populate_slack_channel(apps, schema_editor):
     ChannelFilter = apps.get_model("alerts", "ChannelFilter")
     SlackChannel = apps.get_model("slack", "SlackChannel")
+    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    Organization = apps.get_model("user_management", "Organization")
 
     logger.info("Starting migration to populate slack_channel field.")
 
-    queryset = ChannelFilter.objects.filter(
-        _slack_channel_id__isnull=False,
-        alert_receive_channel__organization__slack_team_identity__isnull=False,
-    )
-    total_channel_filters = queryset.count()
-    updated_channel_filters = 0
-    missing_channel_filters = 0
-    channel_filters_to_update = []
+    sql = f"""
+    UPDATE {ChannelFilter._meta.db_table} AS cf
+    JOIN {AlertReceiveChannel._meta.db_table} AS arc ON arc.id = cf.alert_receive_channel_id
+    JOIN {Organization._meta.db_table} AS org ON org.id = arc.organization_id
+    JOIN {SlackChannel._meta.db_table} AS sc ON sc.slack_id = cf._slack_channel_id
+                                   AND sc.slack_team_identity_id = org.slack_team_identity_id
+    SET cf.slack_channel_id = sc.id
+    WHERE cf._slack_channel_id IS NOT NULL
+      AND org.slack_team_identity_id IS NOT NULL;
+    """
 
-    logger.info(f"Total channel filters to process: {total_channel_filters}")
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(sql)
+        updated_rows = cursor.rowcount  # Number of rows updated
 
-    for channel_filter in queryset:
-        slack_id = channel_filter._slack_channel_id
-        slack_team_identity = channel_filter.alert_receive_channel.organization.slack_team_identity
-
-        try:
-            slack_channel = SlackChannel.objects.get(slack_id=slack_id, slack_team_identity=slack_team_identity)
-            channel_filter.slack_channel = slack_channel
-            channel_filters_to_update.append(channel_filter)
-
-            updated_channel_filters += 1
-            logger.info(
-                f"ChannelFilter {channel_filter.id} updated with SlackChannel {slack_channel.id} "
-                f"(slack_id: {slack_id})."
-            )
-        except SlackChannel.DoesNotExist:
-            missing_channel_filters += 1
-            logger.warning(
-                f"SlackChannel with slack_id {slack_id} and slack_team_identity {slack_team_identity} "
-                f"does not exist for ChannelFilter {channel_filter.id}."
-            )
-
-    if channel_filters_to_update:
-        ChannelFilter.objects.bulk_update(channel_filters_to_update, ["slack_channel"])
-        logger.info(f"Bulk updated {len(channel_filters_to_update)} ChannelFilters with their Slack channel.")
-
-    logger.info(
-        f"Finished migration. Total channel filters processed: {total_channel_filters}. "
-        f"Channel filters updated: {updated_channel_filters}. Missing SlackChannels: {missing_channel_filters}."
-    )
+    logger.info(f"Bulk updated {updated_rows} ChannelFilters with their Slack channel.")
+    logger.info("Finished migration to populate slack_channel field.")
 
 
 class Migration(migrations.Migration):
