@@ -62,9 +62,6 @@ class ResolutionNoteSlackMessage(models.Model):
         related_name="added_resolution_note_slack_messages",
     )
     text = models.TextField(max_length=3000, default=None, null=True)
-
-    # TODO: remove _slack_channel_id in future release
-    _slack_channel_id = models.CharField(max_length=100, null=True, default=None)
     slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,
@@ -72,7 +69,6 @@ class ResolutionNoteSlackMessage(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-
     ts = models.CharField(max_length=100, null=True, default=None)
     thread_ts = models.CharField(max_length=100, null=True, default=None)
     permalink = models.CharField(max_length=250, null=True, default=None)
@@ -206,6 +202,6 @@ class ResolutionNote(models.Model):
         Postmortems to resolution notes included migrating `AlertGroupPostmortem` to `ResolutionNote`s.
         But `AlertGroupPostmortem` has no author field. So this method was introduced as a workaround.
 
-        See git history for more details on what `AlertGroupPostmortem` was.
+        (see git history for more details on what `AlertGroupPostmortem` was)
         """
         return "" if self.author is None else self.author.get_username_with_slack_verbal(mention)

@@ -119,7 +119,7 @@ class Migration(migrations.Migration):
             name='AlertGroupPostmortem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_primary_key', models.CharField(default=apps.alerts.models.resolution_note.generate_public_primary_key_for_alert_group_postmortem, max_length=20, unique=True, validators=[django.core.validators.MinLengthValidator(13)])),
+                ('public_primary_key', models.CharField(max_length=20, unique=True, validators=[django.core.validators.MinLengthValidator(13)])),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_modified', models.DateTimeField(auto_now=True)),
                 ('text', models.TextField(default=None, max_length=3000, null=True)),
