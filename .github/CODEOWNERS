@@ -1,10 +1,10 @@
-* @grafana/grafana-oncall-backend
-/grafana-plugin @grafana/grafana-oncall-frontend
-/grafana-plugin/pkg @grafana/grafana-oncall-backend
-/grafana-plugin/go.mod @grafana/grafana-oncall-backend
-/grafana-plugin/go.sum @grafana/grafana-oncall-backend
-/grafana-plugin/Magefile.go @grafana/grafana-oncall-backend
-/docs @grafana/docs-gops @grafana/grafana-oncall
+* @grafana/grafana-irm-backend
+/grafana-plugin @grafana/grafana-irm-frontend
+/grafana-plugin/pkg @grafana/grafana-irm-backend
+/grafana-plugin/go.mod @grafana/grafana-irm-backend
+/grafana-plugin/go.sum @grafana/grafana-irm-backend
+/grafana-plugin/Magefile.go @grafana/grafana-irm-backend
+/docs @grafana/docs-gops @grafana/grafana-irm
 
 # `make docs` procedure is owned by @jdbaldry of @grafana/docs-squad.
 /.github/workflows/update-make-docs.yml @jdbaldry
