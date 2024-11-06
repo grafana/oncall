@@ -13,43 +13,21 @@ def populate_default_slack_channel(apps, schema_editor):
 
     logger.info("Starting migration to populate default_slack_channel field.")
 
-    queryset = Organization.objects.filter(general_log_channel_id__isnull=False, slack_team_identity__isnull=False)
-    total_orgs = queryset.count()
-    updated_orgs = 0
-    missing_channels = 0
-    organizations_to_update = []
+    sql = f"""
+    UPDATE {Organization._meta.db_table} AS org
+    JOIN {SlackChannel._meta.db_table} AS sc ON sc.slack_id = org.general_log_channel_id
+                         AND sc.slack_team_identity_id = org.slack_team_identity_id
+    SET org.default_slack_channel_id = sc.id
+    WHERE org.general_log_channel_id IS NOT NULL
+      AND org.slack_team_identity_id IS NOT NULL;
+    """
 
-    logger.info(f"Total organizations to process: {total_orgs}")
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(sql)
+        updated_rows = cursor.rowcount  # Number of rows updated
 
-    for org in queryset:
-        slack_id = org.general_log_channel_id
-        slack_team_identity = org.slack_team_identity
-
-        try:
-            slack_channel = SlackChannel.objects.get(slack_id=slack_id, slack_team_identity=slack_team_identity)
-
-            org.default_slack_channel = slack_channel
-            organizations_to_update.append(org)
-
-            updated_orgs += 1
-            logger.info(
-                f"Organization {org.id} updated with SlackChannel {slack_channel.id} (slack_id: {slack_id})."
-            )
-        except SlackChannel.DoesNotExist:
-            missing_channels += 1
-            logger.warning(
-                f"SlackChannel with slack_id {slack_id} and slack_team_identity {slack_team_identity} "
-                f"does not exist for Organization {org.id}."
-            )
-
-    if organizations_to_update:
-        Organization.objects.bulk_update(organizations_to_update, ["default_slack_channel"])
-        logger.info(f"Bulk updated {len(organizations_to_update)} organizations with their default Slack channel.")
-
-    logger.info(
-        f"Finished migration. Total organizations processed: {total_orgs}. "
-        f"Organizations updated: {updated_orgs}. Missing SlackChannels: {missing_channels}."
-    )
+    logger.info(f"Bulk updated {updated_rows} organizations with their default Slack channel.")
+    logger.info("Finished migration to populate default_slack_channel field.")
 
 class Migration(migrations.Migration):
 
