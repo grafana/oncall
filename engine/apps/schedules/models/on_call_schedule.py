@@ -53,7 +53,7 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ScheduleExportAuthToken
     from apps.schedules.models import ShiftSwapRequest
-    from apps.slack.models import SlackUserGroup
+    from apps.slack.models import SlackChannel, SlackUserGroup
     from apps.user_management.models import Organization, Team
 
 
@@ -167,8 +167,9 @@ class OnCallSchedule(PolymorphicModel):
     custom_shifts: "RelatedManager['CustomOnCallShift']"
     organization: "Organization"
     shift_swap_requests: "RelatedManager['ShiftSwapRequest']"
-    slack_user_group: typing.Optional["SlackUserGroup"]
+    slack_channel: typing.Optional["SlackChannel"]
     team: typing.Optional["Team"]
+    user_group: typing.Optional["SlackUserGroup"]
 
     objects: models.Manager["OnCallSchedule"] = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
 
@@ -207,7 +208,16 @@ class OnCallSchedule(PolymorphicModel):
     )
 
     name = models.CharField(max_length=200)
+
+    # TODO: drop this field in a subsequent release, this has been migrated to slack_channel field
     channel = models.CharField(max_length=100, null=True, default=None)
+    slack_channel = models.ForeignKey(
+        "slack.SlackChannel",
+        null=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 
     # Slack user group to be updated when on-call users change for this schedule
     user_group = models.ForeignKey(
@@ -257,6 +267,10 @@ class OnCallSchedule(PolymorphicModel):
     @property
     def slack_url(self) -> str:
         return f"<{self.web_detail_page_link}|{self.name}>"
+
+    @property
+    def slack_channel_slack_id(self) -> typing.Optional[str]:
+        return self.slack_channel.slack_id if self.slack_channel else None
 
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""
@@ -1043,14 +1057,11 @@ class OnCallSchedule(PolymorphicModel):
             result["team_id"] = self.team.public_primary_key
         else:
             result["team"] = "General"
-        if self.organization.slack_team_identity:
-            if self.channel:
-                from apps.slack.models import SlackChannel
 
-                sti = self.organization.slack_team_identity
-                slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.channel).first()
-                if slack_channel:
-                    result["slack_channel"] = slack_channel.name
+        if self.organization.slack_team_identity:
+            if self.slack_channel is not None:
+                result["slack_channel"] = self.slack_channel.name
+
             if self.user_group is not None:
                 result["user_group"] = self.user_group.handle
 
@@ -1058,6 +1069,7 @@ class OnCallSchedule(PolymorphicModel):
             result["current_shift_notification"] = self.mention_oncall_start
             result["next_shift_notification"] = self.mention_oncall_next
             result["notify_empty_oncall"] = self.get_notify_empty_oncall_display()
+
         return result
 
     @property

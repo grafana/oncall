@@ -118,6 +118,71 @@ class UsersFilteredByOrganizationField(serializers.Field):
         return users
 
 
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class _SlackObjectFilteredByOrganizationSlackWorkspaceField[O: ("SlackChannel", "SlackUserGroup")](RelatedField[O]):
+class _SlackObjectFilteredByOrganizationSlackWorkspaceField(RelatedField):
+    @property
+    def slack_team_identity_field(self):
+        raise NotImplementedError
+
+    @property
+    def slack_object_singular_noun(self):
+        raise NotImplementedError
+
+    def get_queryset(self):
+        request = self.context.get("request", None)
+        if not request:
+            return None
+
+        organization = request.user.organization
+        if organization.slack_team_identity is None:
+            raise BadRequest(detail="Slack isn't connected to this workspace")
+
+        slack_team_identity_related_objects = getattr(organization.slack_team_identity, self.slack_team_identity_field)
+        return slack_team_identity_related_objects.all()
+
+    def to_internal_value(self, slack_id: str):
+        noun = self.slack_object_singular_noun
+
+        try:
+            return self.get_queryset().get(slack_id=slack_id.upper())
+        except ObjectDoesNotExist:
+            raise ValidationError(f"Slack {noun} does not exist")
+        except (TypeError, ValueError, AttributeError):
+            raise ValidationError(f"Invalid Slack {noun}")
+
+    def to_representation(self, obj) -> str:
+        return obj.public_primary_key
+
+
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class SlackChannelsFilteredByOrganizationSlackWorkspaceField(
+#     _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackChannel"],
+# ):
+class SlackChannelsFilteredByOrganizationSlackWorkspaceField(_SlackObjectFilteredByOrganizationSlackWorkspaceField):
+    @property
+    def slack_team_identity_field(self):
+        return "cached_channels"
+
+    @property
+    def slack_object_singular_noun(self):
+        return "channel"
+
+
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(
+#     _SlackObjectFilteredByOrganizationSlackWorkspaceField["SlackUserGroup"],
+# ):
+class SlackUserGroupsFilteredByOrganizationSlackWorkspaceField(_SlackObjectFilteredByOrganizationSlackWorkspaceField):
+    @property
+    def slack_team_identity_field(self):
+        return "usergroups"
+
+    @property
+    def slack_object_singular_noun(self):
+        return "user group"
+
+
 class IntegrationFilteredByOrganizationField(serializers.RelatedField):
     def get_queryset(self):
         request = self.context.get("request", None)

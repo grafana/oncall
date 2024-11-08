@@ -63,25 +63,29 @@ def assert_expected_shifts_export_response(response, users, expected_on_call_tim
 
 @pytest.mark.django_db
 def test_get_calendar_schedule(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
     slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
 
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleCalendar,
-        channel=slack_channel_id,
-    )
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
 
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, slack_channel=slack_channel)
+
+    client = APIClient()
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    result = {
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": schedule.name,
@@ -90,15 +94,12 @@ def test_get_calendar_schedule(
         "on_call_now": [],
         "shifts": [],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
         "ical_url_overrides": None,
         "enable_web_overrides": False,
     }
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -115,7 +116,7 @@ def test_create_calendar_schedule(make_organization_and_user_with_token):
         "type": "calendar",
     }
 
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
 
     result = {
@@ -166,7 +167,7 @@ def test_create_calendar_schedule_with_shifts(make_organization_and_user_with_to
         "shifts": [on_call_shift.public_primary_key],
     }
 
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
 
     result = {
@@ -191,20 +192,24 @@ def test_create_calendar_schedule_with_shifts(make_organization_and_user_with_to
 
 @pytest.mark.django_db
 def test_update_calendar_schedule(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
     slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
 
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleCalendar,
-        channel=slack_channel_id,
-    )
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
 
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, slack_channel=slack_channel)
+
+    client = APIClient()
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
     data = {
@@ -215,9 +220,14 @@ def test_update_calendar_schedule(
     assert schedule.name != data["name"]
     assert schedule.time_zone != data["time_zone"]
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
 
-    result = {
+    schedule.refresh_from_db()
+    assert schedule.name == data["name"]
+    assert schedule.time_zone == data["time_zone"]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": data["name"],
@@ -226,18 +236,12 @@ def test_update_calendar_schedule(
         "on_call_now": [],
         "shifts": [],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
         "ical_url_overrides": None,
         "enable_web_overrides": False,
     }
-
-    assert response.status_code == status.HTTP_200_OK
-    schedule.refresh_from_db()
-    assert schedule.name == data["name"]
-    assert schedule.time_zone == data["time_zone"]
-    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -258,7 +262,7 @@ def test_update_calendar_schedule_enable_web_overrides(
     data = {
         "enable_web_overrides": True,
     }
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
 
     result = {
         "id": schedule.public_primary_key,
@@ -281,25 +285,29 @@ def test_update_calendar_schedule_enable_web_overrides(
 
 @pytest.mark.django_db
 def test_get_web_schedule(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
     slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
 
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        channel=slack_channel_id,
-    )
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
 
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, slack_channel=slack_channel)
+
+    client = APIClient()
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    result = {
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": schedule.name,
@@ -308,13 +316,10 @@ def test_get_web_schedule(
         "on_call_now": [],
         "shifts": [],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
     }
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -332,7 +337,7 @@ def test_create_schedules_same_name(make_organization_and_user_with_token):
     }
 
     for _ in range(2):
-        response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+        response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
         assert response.status_code == status.HTTP_201_CREATED
 
     schedules = OnCallSchedule.objects.filter(name="same-name", organization=organization)
@@ -344,17 +349,10 @@ def test_update_web_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
     client = APIClient()
-
-    slack_channel_id = "SLACKCHANNELID"
-
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        channel=slack_channel_id,
-    )
-
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
     data = {
@@ -365,35 +363,38 @@ def test_update_web_schedule(
     assert schedule.name != data["name"]
     assert schedule.time_zone != data["time_zone"]
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Web schedule update is not enabled through API"
 
 
 @pytest.mark.django_db
 def test_update_ical_url_overrides_calendar_schedule(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
     slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
 
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleCalendar,
-        channel=slack_channel_id,
-    )
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
 
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, slack_channel=slack_channel)
+
+    client = APIClient()
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
-    data = {"ical_url_overrides": ICAL_URL}
-
     with patch("common.api_helpers.utils.validate_ical_url", return_value=ICAL_URL):
-        response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+        response = client.put(url, data={"ical_url_overrides": ICAL_URL}, format="json", HTTP_AUTHORIZATION=token)
 
-    result = {
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": schedule.name,
@@ -402,33 +403,36 @@ def test_update_ical_url_overrides_calendar_schedule(
         "on_call_now": [],
         "shifts": [],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
         "ical_url_overrides": ICAL_URL,
         "enable_web_overrides": False,
     }
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == result
-
 
 @pytest.mark.django_db
 def test_update_calendar_schedule_with_custom_event(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
+
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, slack_channel=slack_channel)
+
     client = APIClient()
 
-    slack_channel_id = "SLACKCHANNELID"
-
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleCalendar,
-        channel=slack_channel_id,
-    )
     start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
@@ -447,9 +451,13 @@ def test_update_calendar_schedule_with_custom_event(
 
     assert len(schedule.custom_on_call_shifts.all()) == 0
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
 
-    result = {
+    schedule.refresh_from_db()
+    assert len(schedule.custom_on_call_shifts.all()) == 1
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": schedule.name,
@@ -458,17 +466,12 @@ def test_update_calendar_schedule_with_custom_event(
         "on_call_now": [],
         "shifts": data["shifts"],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
         "ical_url_overrides": None,
         "enable_web_overrides": False,
     }
-
-    assert response.status_code == status.HTTP_200_OK
-    schedule.refresh_from_db()
-    assert len(schedule.custom_on_call_shifts.all()) == 1
-    assert response.json() == result
 
 
 @pytest.mark.django_db
@@ -498,7 +501,7 @@ def test_update_calendar_schedule_invalid_override(
         "shifts": [on_call_shift.public_primary_key],
     }
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Shifts of type override are not supported in this schedule"
 
@@ -521,7 +524,7 @@ def test_update_schedule_invalid_timezone(make_organization_and_user_with_token,
 
     data = {"time_zone": "asdfasdf"}
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["time_zone"] == ["Invalid timezone"]
 
@@ -553,7 +556,7 @@ def test_update_web_schedule_with_override(
         "shifts": [on_call_shift.public_primary_key],
     }
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Web schedule update is not enabled through API"
 
@@ -570,7 +573,7 @@ def test_delete_calendar_schedule(
 
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
-    response = client.delete(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.delete(url, format="json", HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -580,26 +583,35 @@ def test_delete_calendar_schedule(
 
 @pytest.mark.django_db
 def test_get_ical_schedule(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
     slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
+
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
-        channel=slack_channel_id,
+        slack_channel=slack_channel,
         ical_url_primary=ICAL_URL,
     )
 
+    client = APIClient()
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
-    result = {
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": schedule.name,
@@ -608,18 +620,15 @@ def test_get_ical_schedule(
         "ical_url_overrides": None,
         "on_call_now": [],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
     }
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == result
-
 
 @pytest.mark.django_db
 def test_create_ical_schedule(make_organization_and_user_with_token):
-    organization, user, token = make_organization_and_user_with_token()
+    _, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:schedules-list")
@@ -634,7 +643,7 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
         "apps.public_api.serializers.schedules_ical.ScheduleICalSerializer.validate_ical_url_primary",
         return_value=ICAL_URL,
     ), patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
-        response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+        response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
 
     result = {
@@ -658,21 +667,29 @@ def test_create_ical_schedule(make_organization_and_user_with_token):
 
 @pytest.mark.django_db
 def test_update_ical_schedule(
-    make_organization_and_user_with_token,
+    make_organization,
+    make_user_for_organization,
+    make_public_api_token,
+    make_slack_team_identity,
+    make_slack_channel,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
-    client = APIClient()
-
     slack_channel_id = "SLACKCHANNELID"
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
+
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    user = make_user_for_organization(organization)
+    _, token = make_public_api_token(user, organization)
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
-        channel=slack_channel_id,
+        slack_channel=slack_channel,
         ical_url_primary=ICAL_URL,
     )
 
+    client = APIClient()
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
     data = {
@@ -682,9 +699,10 @@ def test_update_ical_schedule(
     assert schedule.name != data["name"]
 
     with patch("apps.schedules.tasks.refresh_ical_final_schedule.apply_async") as mock_refresh_final:
-        response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+        response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
 
-    result = {
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "id": schedule.public_primary_key,
         "team_id": None,
         "name": data["name"],
@@ -693,15 +711,13 @@ def test_update_ical_schedule(
         "ical_url_overrides": None,
         "on_call_now": [],
         "slack": {
-            "channel_id": "SLACKCHANNELID",
+            "channel_id": slack_channel_id,
             "user_group_id": None,
         },
     }
 
-    assert response.status_code == status.HTTP_200_OK
     schedule.refresh_from_db()
     assert schedule.name == data["name"]
-    assert response.json() == result
     assert not mock_refresh_final.called
 
 
@@ -710,7 +726,7 @@ def test_delete_ical_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     schedule = make_schedule(
@@ -721,7 +737,7 @@ def test_delete_ical_schedule(
 
     url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
 
-    response = client.delete(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.delete(url, format="json", HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -736,26 +752,31 @@ def test_get_schedule_list(
     make_user_for_organization,
     make_public_api_token,
     make_slack_user_group,
+    make_slack_channel,
     make_schedule,
 ):
+    slack_channel_id = "SLACKCHANNELID"
+    user_group_id = "SLACKGROUPID"
+
     slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=slack_channel_id)
     organization = make_organization(slack_team_identity=slack_team_identity)
     user = make_user_for_organization(organization=organization)
     _, token = make_public_api_token(user, organization)
 
-    slack_channel_id = "SLACKCHANNELID"
-    user_group_id = "SLACKGROUPID"
-
     user_group = make_slack_user_group(slack_team_identity, slack_id=user_group_id)
 
     schedule_calendar = make_schedule(
-        organization, schedule_class=OnCallScheduleCalendar, channel=slack_channel_id, user_group=user_group
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        slack_channel=slack_channel,
+        user_group=user_group,
     )
 
     schedule_ical = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
-        channel=slack_channel_id,
+        slack_channel=slack_channel,
         ical_url_primary=ICAL_URL,
         user_group=user_group,
     )
@@ -763,9 +784,10 @@ def test_get_schedule_list(
     client = APIClient()
     url = reverse("api-public:schedules-list")
 
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
-    result = {
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "count": 2,
         "next": None,
         "previous": None,
@@ -798,9 +820,6 @@ def test_get_schedule_list(
         "total_pages": 1,
     }
 
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == result
-
 
 @pytest.mark.django_db
 def test_create_schedule_wrong_type(make_organization_and_user_with_token):
@@ -819,7 +838,7 @@ def test_create_schedule_wrong_type(make_organization_and_user_with_token):
         "apps.public_api.serializers.schedules_ical.ScheduleICalSerializer.validate_ical_url_primary",
         return_value=ICAL_URL,
     ):
-        response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+        response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -839,7 +858,7 @@ def test_create_schedule_invalid_timezone(make_organization_and_user_with_token,
         "type": schedule_type,
     }
 
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["time_zone"] == ["Invalid timezone"]
 
@@ -861,7 +880,7 @@ def test_create_calendar_schedule_slack_error(make_organization_and_user_with_to
         },
     }
 
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Slack isn't connected to this workspace"
     # with slack user group id
@@ -875,7 +894,7 @@ def test_create_calendar_schedule_slack_error(make_organization_and_user_with_to
         },
     }
 
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Slack isn't connected to this workspace"
 
@@ -892,13 +911,13 @@ def test_update_calendar_schedule_slack_error(
 
     data = {"slack": {"channel_id": "TEST_SLACK_ID"}}
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Slack isn't connected to this workspace"
 
     data = {"slack": {"user_group_id": "TEST_SLACK_ID"}}
 
-    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Slack isn't connected to this workspace"
 
@@ -914,7 +933,7 @@ def test_create_ical_schedule_without_ical_url(make_organization_and_user_with_t
         "name": "schedule test name",
         "type": "ical",
     }
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     data = {
@@ -923,7 +942,7 @@ def test_create_ical_schedule_without_ical_url(make_organization_and_user_with_t
         "ical_url_primary": None,
         "type": "ical",
     }
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=token)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 

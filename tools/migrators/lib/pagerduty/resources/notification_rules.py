@@ -27,21 +27,25 @@ def migrate_notification_rules(user: dict) -> None:
         rule for rule in user["notification_rules"] if rule["urgency"] == "high"
     ]
 
-    oncall_rules = transform_notification_rules(
-        notification_rules, user["oncall_user"]["id"]
-    )
+    for important in (False, True):
+        oncall_rules = transform_notification_rules(
+            notification_rules, user["oncall_user"]["id"], important
+        )
 
-    for rule in oncall_rules:
-        OnCallAPIClient.create("personal_notification_rules", rule)
+        for rule in oncall_rules:
+            OnCallAPIClient.create("personal_notification_rules", rule)
 
-    if oncall_rules:
-        # delete old notification rules if any new rules were created
-        for rule in user["oncall_user"]["notification_rules"]:
-            OnCallAPIClient.delete("personal_notification_rules/{}".format(rule["id"]))
+        if oncall_rules:
+            # delete old notification rules if any new rules were created
+            for rule in user["oncall_user"]["notification_rules"]:
+                if rule["important"] == important:
+                    OnCallAPIClient.delete(
+                        "personal_notification_rules/{}".format(rule["id"])
+                    )
 
 
 def transform_notification_rules(
-    notification_rules: list[dict], user_id: str
+    notification_rules: list[dict], user_id: str, important: bool
 ) -> list[dict]:
     """
     Transform PagerDuty user notification rules to Grafana OnCall personal notification rules.
@@ -58,7 +62,9 @@ def transform_notification_rules(
             previous_delay = notification_rules[idx - 1]["start_delay_in_minutes"]
             delay -= previous_delay
 
-        oncall_notification_rules += transform_notification_rule(rule, delay, user_id)
+        oncall_notification_rules += transform_notification_rule(
+            rule, delay, user_id, important
+        )
 
     oncall_notification_rules = remove_duplicate_rules_between_waits(
         oncall_notification_rules
@@ -68,12 +74,12 @@ def transform_notification_rules(
 
 
 def transform_notification_rule(
-    notification_rule: dict, delay: int, user_id: str
+    notification_rule: dict, delay: int, user_id: str, important: bool
 ) -> list[dict]:
     contact_method_type = notification_rule["contact_method"]["type"]
     oncall_type = PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP[contact_method_type]
 
-    notify_rule = {"user_id": user_id, "type": oncall_type, "important": False}
+    notify_rule = {"user_id": user_id, "type": oncall_type, "important": important}
 
     if not delay:
         return [notify_rule]
@@ -82,6 +88,6 @@ def transform_notification_rule(
         "user_id": user_id,
         "type": "wait",
         "duration": transform_wait_delay(delay),
-        "important": "False",
+        "important": important,
     }
     return [wait_rule, notify_rule]

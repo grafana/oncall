@@ -219,6 +219,7 @@ class TestSlackChannelMessageEventStep:
         make_alert_receive_channel,
         make_alert_group,
         make_slack_message,
+        make_slack_channel,
     ) -> None:
         (
             organization,
@@ -229,11 +230,13 @@ class TestSlackChannelMessageEventStep:
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
 
-        channel = "potato"
         ts = 88945.4849
         thread_ts = 16789.123
 
-        make_slack_message(alert_group, slack_id=thread_ts, channel_id=channel)
+        slack_channel = make_slack_channel(slack_team_identity)
+        slack_channel_id = slack_channel.slack_id
+
+        make_slack_message(alert_group, slack_id=thread_ts, channel_id=slack_channel_id)
 
         mock_permalink = "http://example.com"
 
@@ -243,7 +246,7 @@ class TestSlackChannelMessageEventStep:
 
         payload = {
             "event": {
-                "channel": channel,
+                "channel": slack_channel_id,
                 "ts": ts,
                 "thread_ts": thread_ts,
                 "text": "h" * 2901,
@@ -272,6 +275,7 @@ class TestSlackChannelMessageEventStep:
         make_alert_receive_channel,
         make_alert_group,
         make_slack_message,
+        make_slack_channel,
     ) -> None:
         (
             organization,
@@ -282,11 +286,13 @@ class TestSlackChannelMessageEventStep:
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
 
-        channel = "potato"
         ts = 88945.4849
         thread_ts = 16789.123
 
-        make_slack_message(alert_group, slack_id=thread_ts, channel_id=channel)
+        slack_channel = make_slack_channel(slack_team_identity)
+        slack_channel_id = slack_channel.slack_id
+
+        make_slack_message(alert_group, slack_id=thread_ts, channel_id=slack_channel_id)
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
         step._slack_client = Mock()
@@ -296,7 +302,7 @@ class TestSlackChannelMessageEventStep:
 
         payload = {
             "event": {
-                "channel": channel,
+                "channel": slack_channel_id,
                 "ts": ts,
                 "thread_ts": thread_ts,
                 "text": "h" * 2901,
@@ -318,6 +324,7 @@ class TestSlackChannelMessageEventStep:
         make_alert_receive_channel,
         make_alert_group,
         make_slack_message,
+        make_slack_channel,
         make_resolution_note_slack_message,
         resolution_note_slack_message_already_exists,
     ) -> None:
@@ -332,12 +339,13 @@ class TestSlackChannelMessageEventStep:
 
         original_text = "original text"
         new_text = "new text"
-
-        channel = "potato"
         ts = 88945.4849
         thread_ts = 16789.123
 
-        make_slack_message(alert_group, slack_id=thread_ts, channel_id=channel)
+        slack_channel = make_slack_channel(slack_team_identity)
+        slack_channel_id = slack_channel.slack_id
+
+        make_slack_message(alert_group, slack_id=thread_ts, channel_id=slack_channel_id)
 
         resolution_note_slack_message = None
         if resolution_note_slack_message_already_exists:
@@ -353,7 +361,7 @@ class TestSlackChannelMessageEventStep:
 
         payload = {
             "event": {
-                "channel": channel,
+                "channel": slack_channel_id,
                 "ts": ts,
                 "thread_ts": thread_ts,
                 "text": new_text,
@@ -433,23 +441,25 @@ class TestSlackChannelMessageEventStep:
         make_alert_receive_channel,
         make_alert_group,
         make_resolution_note_slack_message,
+        make_slack_channel,
     ) -> None:
+        channel_id = "potato"
+        ts = 88945.4849
+        thread_ts = 16789.123
+
         (
             organization,
             user,
             slack_team_identity,
             slack_user_identity,
         ) = make_organization_and_user_with_slack_identities()
+        slack_channel = make_slack_channel(slack_team_identity, slack_id=channel_id)
         integration = make_alert_receive_channel(organization)
         alert_group = make_alert_group(integration)
 
-        channel = "potato"
-        ts = 88945.4849
-        thread_ts = 16789.123
-
         payload = {
             "event": {
-                "channel": channel,
+                "channel": channel_id,
                 "previous_message": {
                     "ts": ts,
                     "thread_ts": thread_ts,
@@ -458,7 +468,7 @@ class TestSlackChannelMessageEventStep:
         }
 
         make_resolution_note_slack_message(
-            alert_group, user, user, ts=ts, thread_ts=thread_ts, slack_channel_id=channel
+            alert_group, user, user, ts=ts, thread_ts=thread_ts, slack_channel=slack_channel
         )
 
         step = SlackChannelMessageEventStep(slack_team_identity, organization, user)
@@ -471,7 +481,7 @@ class TestSlackChannelMessageEventStep:
             ResolutionNoteSlackMessage.objects.filter(
                 ts=ts,
                 thread_ts=thread_ts,
-                slack_channel_id=channel,
+                slack_channel=slack_channel,
             ).count()
             == 0
         )

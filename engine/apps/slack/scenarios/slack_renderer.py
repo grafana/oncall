@@ -31,7 +31,7 @@ class AlertGroupLogSlackRenderer:
         log_builder = IncidentLogBuilder(alert_group)
         result = ""
         if not (alert_group.resolved or alert_group.wiped_at or alert_group.root_alert_group):
-            escalation_policies_plan = log_builder.get_incident_escalation_plan(for_slack=True)
+            escalation_policies_plan = log_builder.get_escalation_plan(for_slack=True)
             if escalation_policies_plan:
                 result += "\n:arrow_down: :arrow_down: :arrow_down: Plan:\n\n"
                 # humanize time, create plan text
