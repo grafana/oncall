@@ -2149,7 +2149,7 @@ def test_alert_group_resolve_resolution_note(
     response = client.post(url, format="json", **make_user_auth_headers(user, token))
     # check that resolution note is required
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["code"] == AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value
+    assert response.json()["code"] == str(AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value)
 
     with patch(
         "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async"
