@@ -11,19 +11,23 @@ from apps.schedules.tasks import notify_about_empty_shifts_in_schedule_task
 
 @pytest.mark.django_db
 def test_no_empty_shifts_no_triggering_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -58,19 +62,23 @@ def test_no_empty_shifts_no_triggering_notification(
 
 @pytest.mark.django_db
 def test_empty_shifts_trigger_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1", role=LegacyAccessControlRole.VIEWER)
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )
@@ -105,12 +113,16 @@ def test_empty_shifts_trigger_notification(
 
 @pytest.mark.django_db
 def test_empty_non_empty_shifts_trigger_notification(
-    make_organization_and_user_with_slack_identities,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity)
     user1 = make_user(organization=organization, username="user1")
     user2 = make_user(organization=organization, username="user2", role=LegacyAccessControlRole.VIEWER)
 
@@ -118,7 +130,7 @@ def test_empty_non_empty_shifts_trigger_notification(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
-        channel="channel",
+        slack_channel=slack_channel,
         prev_ical_file_overrides=None,
         cached_ical_file_overrides=None,
     )

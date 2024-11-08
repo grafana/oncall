@@ -21,4 +21,4 @@ def is_insight_logs_enabled(organization: "Organization") -> bool:
         f"ONCALL_BACKEND_REGION={settings.ONCALL_BACKEND_REGION} "
         f"cluster_slug={organization.cluster_slug}"
     )
-    return not settings.IS_OPEN_SOURCE and settings.ONCALL_BACKEND_REGION == organization.cluster_slug
+    return not settings.IS_OPEN_SOURCE

@@ -36,3 +36,54 @@ def test_set_org_default_slack_channel_permissions(
         response = client.post(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_set_organization_slack_default_channel(
+    make_organization_and_user_with_plugin_token,
+    make_slack_team_identity,
+    make_slack_channel,
+    make_user_auth_headers,
+):
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization.slack_team_identity = slack_team_identity
+    organization.save()
+
+    auth_headers = make_user_auth_headers(user, token)
+
+    assert organization.default_slack_channel is None
+
+    client = APIClient()
+
+    def _update_default_slack_channel(slack_channel_id):
+        # this endpoint doesn't return any data..
+        response = client.post(
+            reverse("api-internal:set-default-slack-channel"),
+            data={
+                "id": slack_channel_id,
+            },
+            format="json",
+            **auth_headers,
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def _assert_default_slack_channel_is_updated(slack_channel_id):
+        response = client.get(reverse("api-internal:api-organization"), format="json", **auth_headers)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["slack_channel"] == slack_channel_id
+
+    _update_default_slack_channel(slack_channel.public_primary_key)
+    _assert_default_slack_channel_is_updated(
+        {
+            "id": slack_channel.public_primary_key,
+            "display_name": slack_channel.name,
+            "slack_id": slack_channel.slack_id,
+        }
+    )
+
+    # NOTE: currently the endpoint doesn't allow to remove default slack channel, if and when it does, uncomment this
+    # _update_default_slack_channel(None)
+    # _assert_default_slack_channel_is_updated(None)

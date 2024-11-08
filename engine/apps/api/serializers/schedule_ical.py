@@ -33,6 +33,7 @@ class ScheduleICalCreateSerializer(ScheduleICalSerializer):
         queryset=SlackChannel.objects,
         required=False,
         allow_null=True,
+        write_only=True,
     )
     user_group = OrganizationFilteredPrimaryKeyRelatedField(
         filter_field="slack_team_identity__organizations",
@@ -40,12 +41,6 @@ class ScheduleICalCreateSerializer(ScheduleICalSerializer):
         required=False,
         allow_null=True,
     )
-
-    def create(self, validated_data):
-        created_schedule = super().create(validated_data)
-        # for iCal-based schedules we need to refresh final schedule information
-        refresh_ical_final_schedule.apply_async((created_schedule.pk,))
-        return created_schedule
 
     class Meta:
         model = OnCallScheduleICal
@@ -59,6 +54,12 @@ class ScheduleICalCreateSerializer(ScheduleICalSerializer):
             "ical_url_primary": {"required": True, "allow_null": False},
             "ical_url_overrides": {"required": False, "allow_null": True},
         }
+
+    def create(self, validated_data):
+        created_schedule = super().create(validated_data)
+        # for iCal-based schedules we need to refresh final schedule information
+        refresh_ical_final_schedule.apply_async((created_schedule.pk,))
+        return created_schedule
 
 
 class ScheduleICalUpdateSerializer(ScheduleICalCreateSerializer):

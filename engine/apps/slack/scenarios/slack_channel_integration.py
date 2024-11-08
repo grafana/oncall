@@ -44,7 +44,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         self, slack_user_identity: "SlackUserIdentity", payload: EventPayload
     ) -> None:
         from apps.alerts.models import ResolutionNoteSlackMessage
-        from apps.slack.models import SlackMessage
+        from apps.slack.models import SlackChannel, SlackMessage
 
         if slack_user_identity is None:
             logger.warning(
@@ -53,7 +53,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             )
             return
 
-        channel = payload["event"]["channel"]
+        channel_id = payload["event"]["channel"]
         thread_ts = payload["event"].get("thread_ts") or payload["event"]["message"]["thread_ts"]
         # sometimes we get messages with empty text, probably because it's an image or attachment
         event_text = payload["event"].get("text")
@@ -68,10 +68,15 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=thread_ts,
-                channel_id=channel,
+                channel_id=channel_id,
                 _slack_team_identity=self.slack_team_identity,
             )
         except SlackMessage.DoesNotExist:
+            return
+
+        try:
+            slack_channel = SlackChannel.objects.get(slack_id=channel_id, slack_team_identity=self.slack_team_identity)
+        except SlackChannel.DoesNotExist:
             return
 
         if not slack_message.alert_group:
@@ -79,7 +84,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             return
 
         try:
-            result = self._slack_client.chat_getPermalink(channel=channel, message_ts=message_ts)
+            result = self._slack_client.chat_getPermalink(channel=channel_id, message_ts=message_ts)
         except RESOLUTION_NOTE_EXCEPTIONS:
             return
 
@@ -89,7 +94,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 
         if len(text) > 2900:
             self._slack_client.chat_postEphemeral(
-                channel=channel,
+                channel=channel_id,
                 user=slack_user_identity.slack_id,
                 text=":warning: Unable to show the <{}|message> in Resolution Note: the message is too long ({}). "
                 "Max length - 2900 symbols.".format(permalink, len(text)),
@@ -104,7 +109,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
                 "user": self.user,
                 "added_by_user": self.user,
                 "text": text,
-                "slack_channel_id": channel,
+                "slack_channel": slack_channel,
                 "permalink": permalink,
             },
         )
@@ -132,7 +137,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             slack_thread_message = ResolutionNoteSlackMessage.objects.get(
                 ts=message_ts,
                 thread_ts=thread_ts,
-                slack_channel_id=channel_id,
+                slack_channel__slack_id=channel_id,
             )
         except ResolutionNoteSlackMessage.DoesNotExist:
             pass

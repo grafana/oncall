@@ -145,16 +145,22 @@ def test_post_or_update_resolution_note_in_thread_truncate_message_text(
     make_alert_receive_channel,
     make_alert_group,
     make_slack_message,
+    make_slack_channel,
     make_resolution_note,
 ):
-    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
     organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
-    step = UpdateResolutionNoteStep(slack_team_identity)
-
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_slack_message(alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID")
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_channel_id = slack_channel.slack_id
+
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel_id)
+
     resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
+
+    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
+    step = UpdateResolutionNoteStep(slack_team_identity)
 
     with patch("apps.slack.client.SlackClient.api_call") as mock_slack_api_call:
         mock_slack_api_call.return_value = {
@@ -176,16 +182,19 @@ def test_post_or_update_resolution_note_in_thread_update_truncate_message_text(
     make_alert_receive_channel,
     make_alert_group,
     make_slack_message,
+    make_slack_channel,
     make_resolution_note,
     make_resolution_note_slack_message,
 ):
-    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
     organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
-    step = UpdateResolutionNoteStep(slack_team_identity)
-
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_slack_message(alert_group=alert_group, channel_id="RANDOM_CHANNEL_ID", slack_id="RANDOM_MESSAGE_ID")
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_channel_id = slack_channel.slack_id
+
+    make_slack_message(alert_group=alert_group, channel_id=slack_channel_id)
+
     resolution_note = make_resolution_note(alert_group=alert_group, author=user, message_text="a" * 3000)
     make_resolution_note_slack_message(
         alert_group=alert_group,
@@ -196,6 +205,9 @@ def test_post_or_update_resolution_note_in_thread_update_truncate_message_text(
         ts=1,
         text=resolution_note.text,
     )
+
+    UpdateResolutionNoteStep = ScenarioStep.get_step("resolution_note", "UpdateResolutionNoteStep")
+    step = UpdateResolutionNoteStep(slack_team_identity)
 
     with patch("apps.slack.client.SlackClient.api_call") as mock_slack_api_call:
         mock_slack_api_call.return_value = {
@@ -345,16 +357,21 @@ def test_add_to_resolution_note(
     make_alert_group,
     make_alert,
     make_slack_message,
+    make_slack_channel,
     settings,
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
-    slack_message = make_slack_message(alert_group=alert_group)
+
+    slack_channel = make_slack_channel(slack_team_identity)
+    slack_channel_id = slack_channel.slack_id
+
+    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel_id)
 
     payload = {
-        "channel": {"id": slack_message.channel_id},
+        "channel": {"id": slack_channel_id},
         "message_ts": "random_ts",
         "message": {
             "type": "message",

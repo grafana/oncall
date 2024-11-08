@@ -19,7 +19,7 @@ from apps.user_management.models import Organization, User
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.slack.models import SlackChannel
+    from apps.slack.models import SlackChannel, SlackUserGroup
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 class SlackTeamIdentity(models.Model):
     cached_channels: "RelatedManager['SlackChannel']"
     organizations: "RelatedManager[Organization]"
+    usergroups: "RelatedManager['SlackUserGroup']"
 
     id = models.AutoField(primary_key=True)
     slack_id = models.CharField(max_length=100)

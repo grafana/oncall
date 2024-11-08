@@ -82,7 +82,6 @@ def make_schedule_with_on_call_shift(make_schedule, make_on_call_shift):
         schedule = make_schedule(
             organization,
             schedule_class=OnCallScheduleWeb,
-            channel="channel",
             prev_ical_file_overrides=None,
             cached_ical_file_overrides=None,
         )

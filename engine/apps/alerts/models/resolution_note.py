@@ -13,6 +13,7 @@ from common.utils import clean_markup
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackChannel
 
 
 def generate_public_primary_key_for_alert_group_postmortem():
@@ -54,6 +55,7 @@ class ResolutionNoteSlackMessageQueryset(models.QuerySet):
 class ResolutionNoteSlackMessage(models.Model):
     alert_group: "AlertGroup"
     resolution_note: typing.Optional["ResolutionNote"]
+    slack_channel: typing.Optional["SlackChannel"]
 
     alert_group = models.ForeignKey(
         "alerts.AlertGroup",
@@ -74,15 +76,15 @@ class ResolutionNoteSlackMessage(models.Model):
     )
     text = models.TextField(max_length=3000, default=None, null=True)
 
-    slack_channel_id = models.CharField(max_length=100, null=True, default=None)
-    # TODO: migrate slack_channel_id to slack_channel
-    # slack_channel = models.ForeignKey(
-    #     'slack.SlackChannel',
-    #     null=True,
-    #     default=None,
-    #     on_delete=models.SET_NULL,
-    #     related_name='+',
-    # )
+    # TODO: remove _slack_channel_id in future release
+    _slack_channel_id = models.CharField(max_length=100, null=True, default=None)
+    slack_channel = models.ForeignKey(
+        "slack.SlackChannel",
+        null=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 
     ts = models.CharField(max_length=100, null=True, default=None)
     thread_ts = models.CharField(max_length=100, null=True, default=None)
@@ -97,6 +99,10 @@ class ResolutionNoteSlackMessage(models.Model):
             models.Index(fields=["ts", "thread_ts", "alert_group_id"]),
             models.Index(fields=["ts", "thread_ts", "slack_channel_id"]),
         ]
+
+    @property
+    def slack_channel_slack_id(self) -> typing.Optional[str]:
+        return self.slack_channel.slack_id if self.slack_channel else None
 
     def get_resolution_note(self) -> typing.Optional["ResolutionNote"]:
         try:

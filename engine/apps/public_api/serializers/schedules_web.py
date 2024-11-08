@@ -8,6 +8,8 @@ from apps.schedules.tasks import (
 from common.api_helpers.custom_fields import TimeZoneField, UsersFilteredByOrganizationField
 
 
+# TODO: update the following once we bump mypy to 1.11 (which supports generics)
+# class ScheduleWebSerializer(ScheduleBaseSerializer[OnCallScheduleWeb]):
 class ScheduleWebSerializer(ScheduleBaseSerializer):
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(

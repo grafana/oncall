@@ -22,12 +22,13 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_team_identity = FastSlackTeamIdentitySerializer(read_only=True)
 
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
-    slack_channel = SlackChannelSerializer(read_only=True, allow_null=True, required=False)
+    slack_channel = SlackChannelSerializer(read_only=True, source="default_slack_channel")
 
     rbac_enabled = serializers.BooleanField(read_only=True, source="is_rbac_permissions_enabled")
     grafana_incident_enabled = serializers.BooleanField(read_only=True, source="is_grafana_incident_enabled")
+    grafana_irm_enabled = serializers.BooleanField(read_only=True, source="is_grafana_irm_enabled")
 
-    SELECT_RELATED = ["slack_team_identity"]
+    SELECT_RELATED = ["slack_team_identity", "slack_channel"]
 
     class Meta:
         model = Organization
@@ -39,6 +40,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_channel",
             "rbac_enabled",
             "grafana_incident_enabled",
+            "grafana_irm_enabled",
             "direct_paging_prefer_important_policy",
         ]
         read_only_fields = [
@@ -46,6 +48,7 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_team_identity",
             "rbac_enabled",
             "grafana_incident_enabled",
+            "grafana_irm_enabled",
         ]
 
 

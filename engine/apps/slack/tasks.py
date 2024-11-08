@@ -1,6 +1,6 @@
 import logging
 import random
-from typing import Optional
+import typing
 
 from celery import uuid as celery_uuid
 from celery.exceptions import Retry
@@ -302,16 +302,16 @@ def post_slack_rate_limit_message(integration_id):
             f"Active: {integration.rate_limit_message_task_id}"
         )
         return
+
     default_route = integration.channel_filters.get(is_default=True)
-    slack_channel = default_route.slack_channel_id_or_general_log_id
-    if slack_channel:
+    if (slack_channel_id := default_route.slack_channel_id_or_org_default_id) is not None:
         text = (
             f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
             f"temporarily stopped due to rate limit. You could find new alert groups at "
             f"<{integration.new_incidents_web_link}|web page "
             '"Alert Groups">'
         )
-        post_message_to_channel(integration.organization, slack_channel, text)
+        post_message_to_channel(integration.organization, slack_channel_id, text)
 
 
 @shared_dedicated_queue_retry_task(
@@ -433,7 +433,7 @@ def populate_slack_channels():
 
 
 def start_populate_slack_channels_for_team(
-    slack_team_identity_id: int, delay: int, cursor: Optional[str] = None
+    slack_team_identity_id: int, delay: int, cursor: typing.Optional[str] = None
 ) -> None:
     # save active task id in cache to make only one populate task active per team
     task_id = celery_uuid()
@@ -445,7 +445,7 @@ def start_populate_slack_channels_for_team(
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Optional[str] = None) -> None:
+def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: typing.Optional[str] = None) -> None:
     """
     Make paginated request to get slack channels. On ratelimit - update info for got channels, save collected channels
     ids in cache and restart the task with the last successful pagination cursor to avoid any data loss during delay
@@ -539,7 +539,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
-def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
+def clean_slack_integration_leftovers(organization_id: int, *args, **kwargs) -> None:
     """
     This task removes binding to slack (e.g ChannelFilter's slack channel) for a given organization.
     It is used when user changes slack integration.
@@ -548,21 +548,24 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     from apps.schedules.models import OnCallSchedule
 
     logger.info(f"Cleaning up for organization {organization_id}")
-    ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel_id=None)
-    OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None, user_group=None)
+    ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel=None)
+    OnCallSchedule.objects.filter(organization_id=organization_id).update(slack_channel=None, user_group=None)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
-def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
+def clean_slack_channel_leftovers(slack_team_identity_id: int, slack_channel_id: str) -> None:
     """
-    TODO: once we add/migrate to ChannelFilter.slack_channel, this will mean that we no longer need this task
-    and it can be safely removed (foreign key relationships to a slack channel that is deleted in the db will
-    automatically be set to None due to on_delete=models.SET_NULL)
+    This task removes binding to slack channel after a channel is archived in Slack.
 
-    This task removes binding to slack channel after channel archived or deleted in slack.
+    **NOTE**: this is only needed for Slack Channel archive. If a channel is deleted, we simply remove references
+    to that channel via `on_delete=models.SET_NULL`.
     """
     from apps.alerts.models import ChannelFilter
+    from apps.schedules.models import OnCallSchedule
     from apps.slack.models import SlackTeamIdentity
+    from apps.user_management.models import Organization
+
+    orgs_to_clean_default_slack_channel: typing.List[Organization] = []
 
     try:
         sti = SlackTeamIdentity.objects.get(id=slack_team_identity_id)
@@ -573,6 +576,25 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
         return
 
     for org in sti.organizations.all():
-        ChannelFilter.objects.filter(alert_receive_channel__organization=org, slack_channel_id=slack_channel_id).update(
-            slack_channel_id=None
-        )
+        org_id = org.id
+
+        if org.default_slack_channel_slack_id == slack_channel_id:
+            logger.info(
+                f"Set default_slack_channel to None for org_id={org_id} slack_channel_id={slack_channel_id} since slack_channel is arcived or deleted"
+            )
+            org.default_slack_channel = None
+            orgs_to_clean_default_slack_channel.append(org)
+
+        # The channel no longer exists, so update any integration routes (ie. ChannelFilter) or schedules
+        # that reference it
+        ChannelFilter.objects.filter(
+            alert_receive_channel__organization=org,
+            slack_channel__slack_id=slack_channel_id,
+        ).update(slack_channel=None)
+
+        OnCallSchedule.objects.filter(
+            organization_id=org_id,
+            slack_channel__slack_id=slack_channel_id,
+        ).update(slack_channel=None)
+
+    Organization.objects.bulk_update(orgs_to_clean_default_slack_channel, ["default_slack_channel"], batch_size=5000)
