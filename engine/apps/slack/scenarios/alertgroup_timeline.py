@@ -2,6 +2,7 @@ import typing
 
 from apps.api.permissions import RBACPermission
 from apps.slack.chatops_proxy_routing import make_private_metadata
+from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.types import (
@@ -47,9 +48,13 @@ class OpenAlertGroupTimelineDialogStep(AlertGroupActionsMixin, scenario_step.Sce
         future_log_report = AlertGroupLogSlackRenderer.render_alert_group_future_log_report_text(alert_group)
         blocks: typing.List[Block.Section] = []
         if past_log_report:
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": past_log_report}})
+            blocks.append(
+                {"type": "section", "text": {"type": "mrkdwn", "text": past_log_report[:BLOCK_SECTION_TEXT_MAX_SIZE]}}
+            )
         if future_log_report:
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": future_log_report}})
+            blocks.append(
+                {"type": "section", "text": {"type": "mrkdwn", "text": future_log_report[:BLOCK_SECTION_TEXT_MAX_SIZE]}}
+            )
 
         view: ModalView = {
             "blocks": blocks,
