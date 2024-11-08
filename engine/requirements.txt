@@ -6,29 +6,29 @@ appdirs==1.4.4
     # via django-migration-linter
 apscheduler==3.6.3
     # via python-telegram-bot
-asgiref==3.8.1
+asgiref==3.7.2
     # via django
-attrs==24.2.0
+attrs==23.2.0
     # via
     #   jsonschema
     #   referencing
-autopep8==2.3.1
+autopep8==2.0.4
     # via django-silk
 babel==2.12.1
     # via -r requirements.in
 beautifulsoup4==4.12.2
     # via -r requirements.in
-billiard==4.2.1
+billiard==4.2.0
     # via celery
-blinker==1.8.2
+blinker==1.7.0
     # via flask
-boto3==1.35.56
+boto3==1.34.41
     # via django-anymail
-botocore==1.35.56
+botocore==1.34.41
     # via
     #   boto3
     #   s3transfer
-cachecontrol==0.14.1
+cachecontrol==0.14.0
     # via firebase-admin
 cachetools==4.2.2
     # via
@@ -36,15 +36,15 @@ cachetools==4.2.2
     #   python-telegram-bot
 celery==5.3.1
     # via -r requirements.in
-certifi==2024.8.30
+certifi==2024.7.4
     # via
     #   python-telegram-bot
     #   requests
-cffi==1.17.1
+cffi==1.16.0
     # via
     #   cryptography
     #   django-sns-view
-charset-normalizer==3.4.0
+charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via
@@ -54,7 +54,7 @@ click==8.1.7
     #   click-repl
     #   flask
     #   slack-export-viewer
-click-didyoumean==0.3.1
+click-didyoumean==0.3.0
     # via celery
 click-plugins==1.1.1
     # via celery
@@ -66,7 +66,7 @@ cryptography==43.0.1
     #   django-mirage-field
     #   pyopenssl
     #   social-auth-core
-defusedxml==0.7.1
+defusedxml==0.8.0rc2
     # via
     #   python3-openid
     #   social-auth-core
@@ -151,15 +151,15 @@ emoji==2.4.0
     #   slack-export-viewer
 factory-boy==2.12.0
     # via -r requirements.in
-faker==30.8.2
+faker==23.1.0
     # via factory-boy
 fcm-django @ https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.tar.gz#sha256=7ec7cd9d353fc9edf19a4acd4fa14090a31d83d02ac986c5e5e081dea29f564f
     # via -r requirements.in
 firebase-admin==5.4.0
     # via fcm-django
-flask==3.0.3
+flask==3.0.2
     # via slack-export-viewer
-google-api-core==2.22.0
+google-api-core==2.17.0
     # via
     #   firebase-admin
     #   google-api-python-client
@@ -170,14 +170,13 @@ google-api-python-client==2.122.0
     # via
     #   -r requirements.in
     #   firebase-admin
-google-auth==2.36.0
+google-auth==2.27.0
     # via
     #   google-api-core
     #   google-api-python-client
     #   google-auth-httplib2
     #   google-auth-oauthlib
     #   google-cloud-core
-    #   google-cloud-firestore
     #   google-cloud-storage
 google-auth-httplib2==0.2.0
     # via
@@ -189,22 +188,22 @@ google-cloud-core==2.4.1
     # via
     #   google-cloud-firestore
     #   google-cloud-storage
-google-cloud-firestore==2.19.0
+google-cloud-firestore==2.14.0
     # via firebase-admin
-google-cloud-storage==2.18.2
+google-cloud-storage==2.14.0
     # via firebase-admin
-google-crc32c==1.6.0
+google-crc32c==1.5.0
     # via
     #   google-cloud-storage
     #   google-resumable-media
-google-resumable-media==2.7.2
+google-resumable-media==2.7.0
     # via google-cloud-storage
-googleapis-common-protos==1.65.0
+googleapis-common-protos==1.62.0
     # via
     #   google-api-core
     #   grpcio-status
     #   opentelemetry-exporter-otlp-proto-grpc
-gprof2dot==2024.6.6
+gprof2dot==2022.7.29
     # via django-silk
 grpcio==1.64.1
     # via
@@ -212,7 +211,7 @@ grpcio==1.64.1
     #   google-api-core
     #   grpcio-status
     #   opentelemetry-exporter-otlp-proto-grpc
-grpcio-status==1.62.3
+grpcio-status==1.57.0
     # via google-api-core
 hiredis==2.2.3
     # via -r requirements.in
@@ -231,11 +230,11 @@ idna==3.7
     # via
     #   -r requirements.in
     #   requests
-importlib-metadata==8.0.0
+importlib-metadata==6.11.0
     # via opentelemetry-api
 inflection==0.5.1
     # via drf-spectacular
-itsdangerous==2.2.0
+itsdangerous==2.1.2
     # via flask
 jinja2==3.1.4
     # via flask
@@ -243,25 +242,25 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-jsonschema==4.23.0
+jsonschema==4.21.1
     # via drf-spectacular
-jsonschema-specifications==2024.10.1
+jsonschema-specifications==2023.12.1
     # via jsonschema
-kombu==5.4.2
+kombu==5.3.5
     # via celery
 lxml==5.2.2
     # via -r requirements.in
-markdown==3.7
+markdown==3.5.2
     # via pymdown-extensions
 markdown2==2.4.10
     # via
     #   -r requirements.in
     #   slack-export-viewer
-markupsafe==3.0.2
+markupsafe==2.1.5
     # via
     #   jinja2
     #   werkzeug
-msgpack==1.1.0
+msgpack==1.0.7
     # via cachecontrol
 oauthlib==3.2.2
     # via
@@ -323,13 +322,11 @@ phonenumbers==8.10.0
     # via -r requirements.in
 prometheus-client==0.16.0
     # via -r requirements.in
-prompt-toolkit==3.0.48
+prompt-toolkit==3.0.43
     # via click-repl
-proto-plus==1.25.0
-    # via
-    #   google-api-core
-    #   google-cloud-firestore
-protobuf==4.25.5
+proto-plus==1.23.0
+    # via google-cloud-firestore
+protobuf==4.25.2
     # via
     #   google-api-core
     #   google-cloud-firestore
@@ -341,17 +338,17 @@ psutil==5.9.4
     # via -r requirements.in
 psycopg2==2.9.3
     # via -r requirements.in
-pyasn1==0.6.1
+pyasn1==0.5.1
     # via
     #   pyasn1-modules
     #   rsa
-pyasn1-modules==0.4.1
+pyasn1-modules==0.3.0
     # via google-auth
-pycodestyle==2.12.1
+pycodestyle==2.11.1
     # via autopep8
-pycparser==2.22
+pycparser==2.21
     # via cffi
-pyjwt==2.9.0
+pyjwt==2.8.0
     # via
     #   social-auth-core
     #   twilio
@@ -361,9 +358,9 @@ pymysql==1.1.1
     # via -r requirements.in
 pyopenssl==24.2.1
     # via django-sns-view
-pyparsing==3.2.0
+pyparsing==3.1.1
     # via httplib2
-python-dateutil==2.9.0.post0
+python-dateutil==2.8.2
     # via
     #   botocore
     #   celery
@@ -374,7 +371,7 @@ python-telegram-bot==13.13
     # via -r requirements.in
 python3-openid==3.2.0
     # via social-auth-core
-pytz==2024.2
+pytz==2024.1
     # via
     #   apscheduler
     #   icalendar
@@ -382,7 +379,7 @@ pytz==2024.2
     #   recurring-ical-events
     #   twilio
     #   x-wr-timezone
-pyyaml==6.0.2
+pyyaml==6.0.1
     # via
     #   drf-spectacular
     #   pymdown-extensions
@@ -393,7 +390,7 @@ redis==5.0.1
     #   -r requirements.in
     #   celery
     #   django-redis
-referencing==0.35.1
+referencing==0.33.0
     # via
     #   jsonschema
     #   jsonschema-specifications
@@ -410,17 +407,17 @@ requests==2.32.3
     #   requests-oauthlib
     #   social-auth-core
     #   twilio
-requests-oauthlib==2.0.0
+requests-oauthlib==1.3.1
     # via
     #   google-auth-oauthlib
     #   social-auth-core
-rpds-py==0.21.0
+rpds-py==0.18.0
     # via
     #   jsonschema
     #   referencing
 rsa==4.9
     # via google-auth
-s3transfer==0.10.3
+s3transfer==0.10.0
     # via boto3
 setuptools==75.3.0
     # via
@@ -438,11 +435,11 @@ slack-sdk==3.21.3
     # via -r requirements.in
 social-auth-app-django==5.4.1
     # via -r requirements.in
-social-auth-core==4.5.4
+social-auth-core==4.5.2
     # via social-auth-app-django
-soupsieve==2.6
+soupsieve==2.5
     # via beautifulsoup4
-sqlparse==0.5.1
+sqlparse==0.5.0
     # via
     #   django
     #   django-debug-toolbar
@@ -451,18 +448,14 @@ toml==0.10.2
     # via django-migration-linter
 tornado==6.4.1
     # via python-telegram-bot
-tqdm==4.67.0
+tqdm==4.66.3
     # via django-mirage-field
 twilio==6.37.0
     # via -r requirements.in
-typing-extensions==4.12.2
-    # via
-    #   faker
-    #   opentelemetry-sdk
-tzdata==2024.2
-    # via
-    #   celery
-    #   kombu
+typing-extensions==4.9.0
+    # via opentelemetry-sdk
+tzdata==2024.1
+    # via celery
 tzlocal==5.2
     # via apscheduler
 uritemplate==4.1.1
@@ -484,7 +477,7 @@ vine==5.1.0
     #   kombu
 wcwidth==0.2.13
     # via prompt-toolkit
-werkzeug==3.1.2
+werkzeug==3.0.6
     # via flask
 whitenoise==5.3.0
     # via -r requirements.in
@@ -492,7 +485,7 @@ wrapt==1.16.0
     # via
     #   deprecated
     #   opentelemetry-instrumentation
-x-wr-timezone==0.0.7
+x-wr-timezone==0.0.6
     # via recurring-ical-events
-zipp==3.20.2
+zipp==3.19.1
     # via importlib-metadata
