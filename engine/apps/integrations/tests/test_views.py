@@ -17,6 +17,8 @@ from apps.integrations.mixins import AlertChannelDefiningMixin
 from apps.integrations.mixins.alert_channel_defining_mixin import CHANNEL_DOES_NOT_EXIST_PLACEHOLDER
 from apps.integrations.views import UniversalAPIView
 
+from conftest import skip_if_mariadb_in_dev
+
 # https://github.com/pytest-dev/pytest-xdist/issues/432#issuecomment-528510433
 INTEGRATION_TYPES = sorted(AlertReceiveChannel.INTEGRATION_TYPES)
 
@@ -274,6 +276,7 @@ def test_integration_universal_endpoint_not_allow_files(
     assert not mock_create_alert.apply_async.called
 
 
+@skip_if_mariadb_in_dev()
 @patch("apps.integrations.views.create_alert")
 @pytest.mark.parametrize(
     "integration_type",
@@ -328,6 +331,7 @@ def test_integration_universal_endpoint_works_without_db(
     )
 
 
+@skip_if_mariadb_in_dev()
 @patch("apps.integrations.views.create_alertmanager_alerts")
 @pytest.mark.django_db
 def test_integration_grafana_endpoint_without_db_has_alerts(

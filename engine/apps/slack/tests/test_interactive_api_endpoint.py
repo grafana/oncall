@@ -13,6 +13,8 @@ from apps.slack.scenarios.shift_swap_requests import AcceptShiftSwapRequestStep
 from apps.slack.types import PayloadType
 from common.constants.plugin_ids import PluginID
 
+from conftest import skip_if_mariadb_in_dev
+
 EVENT_TRIGGER_ID = "5333959822612.4122782784722.4734ff484b2ac4d36a185bb242ee9932"
 WARNING_TEXT = (
     "OnCall is not able to process this action because one of the following scenarios: \n"
@@ -56,6 +58,7 @@ def slack_team_identity(make_slack_team_identity):
     )
 
 
+@skip_if_mariadb_in_dev()
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch("apps.slack.views.SlackEventApiEndpointView._open_warning_window_if_needed")
 @pytest.mark.django_db
@@ -88,6 +91,7 @@ def test_no_user_in_organization_for_slack_team_identity(
     )
 
 
+@skip_if_mariadb_in_dev()
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch("apps.slack.views.SlackEventApiEndpointView._open_warning_window_if_needed")
 @pytest.mark.django_db

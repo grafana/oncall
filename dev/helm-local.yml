@@ -33,7 +33,7 @@ rabbitmq:
   enabled: false
 oncall:
   devMode: true
-  djangoSettingsModule: settings.helm_dev
+  djangoSettingsModule: settings.dev
 engine:
   replicaCount: 1
 celery:

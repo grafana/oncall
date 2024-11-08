@@ -113,6 +113,10 @@ from apps.webhooks.tests.test_webhook_presets import (
 )
 from common.constants.plugin_ids import PluginID
 
+import functools
+from settings.base import DatabaseTypes
+from django.conf import settings
+
 register(OrganizationFactory)
 register(UserFactory)
 register(TeamFactory)
@@ -1121,3 +1125,21 @@ def make_related_incident():
         return RelatedIncidentFactory(incident_id=incident_id, organization=organization, channel_filter=channel_filter)
 
     return _make_related_incident
+
+def skip_if_mariadb_in_dev():
+    """
+    Skip the test if the environment is a local dev environment and the database type is MySQL.
+    This is because MariaDB is not supported for some tests.
+    See comment: https://github.com/grafana/oncall/commit/381a9ecf54bf0dd076f233b207c13d72ed792181#diff-9d96504027309f2bd1e95352bac1433b09b60eb4fafb611b52a6c15ed16cbc48R219-R223
+    """
+    is_local_dev_env = os.environ.get("DJANGO_SETTINGS_MODULE") in ["settings.dev"]
+    is_db_type_mysql = getattr(settings, "DATABASE_TYPE", None) == DatabaseTypes.MYSQL
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if is_local_dev_env and is_db_type_mysql:
+                pytest.skip("This test is not supported by MariaDB")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

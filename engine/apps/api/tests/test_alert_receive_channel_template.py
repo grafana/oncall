@@ -11,6 +11,8 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import BaseMessagingBackend
 from apps.base.tests.messaging_backend import TestOnlyBackend
 
+from conftest import skip_if_mariadb_in_dev
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -213,6 +215,7 @@ def test_update_alert_receive_channel_backend_template_set_default_template(
     assert response.json()["testonly_image_url_template"] == default_image_url
 
 
+@skip_if_mariadb_in_dev()
 @pytest.mark.django_db
 def test_update_alert_receive_channel_legacy_template_set_default_template(
     make_organization_and_user_with_plugin_token,
