@@ -290,6 +290,9 @@ oncall:
   # startup commands (which configures the hot-reloading)
   devMode: false
 
+  # Specifies the Django settings module to use
+  djangoSettingsModule: settings.helm
+
   # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
   # For existing installation, this should not be changed.
   # mirageCipherIV: 1234567890abcdef

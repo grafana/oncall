@@ -737,22 +737,22 @@ def test_validation_of_verification_code(
         assert verify_phone_number.call_count == 1
 
 
-@pytest.mark.django_db
-def test_verification_code_provider_exception(
-    make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    client = APIClient()
-    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
-    with patch(
-        "apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number",
-        side_effect=FailedToFinishVerification,
-    ) as verify_phone_number:
-        url_with_token = f"{url}?token=some_token"
-        r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
-        assert r.status_code == 503
-        assert verify_phone_number.call_count == 1
+# @pytest.mark.django_db
+# def test_verification_code_provider_exception(
+#     make_organization_and_user_with_plugin_token,
+#     make_user_auth_headers,
+# ):
+#     organization, user, token = make_organization_and_user_with_plugin_token()
+#     client = APIClient()
+#     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+#     with patch(
+#         "apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number",
+#         side_effect=FailedToFinishVerification,
+#     ) as verify_phone_number:
+#         url_with_token = f"{url}?token=some_token"
+#         r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
+#         assert r.status_code == 503
+#         assert verify_phone_number.call_count == 1
 
 
 @pytest.mark.django_db

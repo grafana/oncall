@@ -14,7 +14,7 @@
 - name: MIRAGE_CIPHER_IV
   value: {{ .Values.oncall.mirageCipherIV | default "1234567890abcdef" | quote }}
 - name: DJANGO_SETTINGS_MODULE
-  value: "settings.helm"
+  value:  {{ .Values.oncall.djangoSettingsModule | default "settings.helm" | quote }}
 - name: AMIXR_DJANGO_ADMIN_PATH
   value: "admin"
 - name: OSS

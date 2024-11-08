@@ -5,8 +5,6 @@ env:
     value: "False"
   - name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
     value: "True"
-  - name: DJANGO_SETTINGS_MODULE
-    value: "settings.dev"
   - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
     value: "True"
   - name: FEATURE_SLACK_INTEGRATION_ENABLED
@@ -35,6 +33,7 @@ rabbitmq:
   enabled: false
 oncall:
   devMode: true
+  djangoSettingsModule: settings.helm_dev
 engine:
   replicaCount: 1
 celery:
