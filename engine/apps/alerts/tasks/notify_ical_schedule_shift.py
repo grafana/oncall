@@ -62,7 +62,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     try:
         schedule = OnCallSchedule.objects.get(
-            pk=schedule_pk, cached_ical_file_primary__isnull=False, channel__isnull=False
+            pk=schedule_pk, cached_ical_file_primary__isnull=False, slack_channel__isnull=False
         )
     except OnCallSchedule.DoesNotExist:
         task_logger.info(f"Trying to notify ical schedule shift for non-existing schedule {schedule_pk}")
@@ -90,11 +90,17 @@ def notify_ical_schedule_shift(schedule_pk):
         prev_shifts = convert_prev_shifts_to_new_format(prev_shifts, schedule)
         prev_shifts_updated = True
 
-    # convert datetimes which was dumped to str back to datetime to calculate shift diff correct
-    str_format = "%Y-%m-%d %X%z"
+    def _parse_timestamp(timestamp: str) -> datetime.datetime:
+        # convert datetimes which was dumped to str back to datetime to calculate shift diff correct
+        try:
+            dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %X%z")
+        except ValueError:
+            dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %X.%f%z")
+        return dt
+
     for prev_shift in prev_shifts:
-        prev_shift["start"] = datetime.datetime.strptime(prev_shift["start"], str_format)
-        prev_shift["end"] = datetime.datetime.strptime(prev_shift["end"], str_format)
+        prev_shift["start"] = _parse_timestamp(prev_shift["start"])
+        prev_shift["end"] = _parse_timestamp(prev_shift["end"])
 
     # get shifts in progress now
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -164,7 +170,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
             try:
                 slack_client.chat_postMessage(
-                    channel=schedule.channel,
+                    channel=schedule.slack_channel_slack_id,
                     blocks=report_blocks,
                     text=f"On-call shift for schedule {schedule.name} has changed",
                 )

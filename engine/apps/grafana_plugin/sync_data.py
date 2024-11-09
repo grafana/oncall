@@ -40,6 +40,7 @@ class SyncSettings:
     incident_enabled: bool
     incident_backend_url: str
     labels_enabled: bool
+    irm_enabled: bool
 
 
 @dataclass

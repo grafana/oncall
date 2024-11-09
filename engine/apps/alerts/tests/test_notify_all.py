@@ -11,6 +11,7 @@ from apps.base.models.user_notification_policy import UserNotificationPolicy
 def test_notify_all(
     make_organization,
     make_slack_team_identity,
+    make_slack_channel,
     make_user,
     make_user_notification_policy,
     make_escalation_chain,
@@ -21,6 +22,7 @@ def test_notify_all(
 ):
     organization = make_organization()
     slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
     organization.slack_team_identity = slack_team_identity
     organization.save()
 
@@ -37,7 +39,7 @@ def test_notify_all(
         alert_receive_channel,
         escalation_chain=escalation_chain,
         notify_in_slack=True,
-        slack_channel_id="slack-channel-id",
+        slack_channel=slack_channel,
     )
     # note this is the only escalation step, with order=1
     notify_all = make_escalation_policy(

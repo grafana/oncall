@@ -1,4 +1,3 @@
-import time
 from datetime import timedelta
 
 from django.utils.functional import cached_property
@@ -11,6 +10,7 @@ from apps.slack.models import SlackUserGroup
 from apps.user_management.models import Team, User
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import (
+    DurationSecondsField,
     OrganizationFilteredPrimaryKeyRelatedField,
     UsersFilteredByOrganizationField,
 )
@@ -43,7 +43,15 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         queryset=EscalationChain.objects, source="escalation_chain"
     )
     type = EscalationPolicyTypeField(source="step")
-    duration = serializers.ChoiceField(required=False, source="wait_delay", choices=EscalationPolicy.DURATION_CHOICES)
+
+    duration = DurationSecondsField(
+        required=False,
+        source="wait_delay",
+        allow_null=True,
+        min_value=timedelta(minutes=1),
+        max_value=timedelta(hours=24),
+    )
+
     persons_to_notify = UsersFilteredByOrganizationField(
         queryset=User.objects,
         required=False,
@@ -107,7 +115,13 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         ]
 
     PREFETCH_RELATED = ["notify_to_users_queue"]
-    SELECT_RELATED = ["escalation_chain"]
+    SELECT_RELATED = [
+        "custom_webhook",
+        "escalation_chain",
+        "notify_schedule",
+        "notify_to_group",
+        "notify_to_team_members",
+    ]
 
     @cached_property
     def escalation_chain(self):
@@ -137,18 +151,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
         result = super().to_representation(instance)
         result = self._get_field_to_represent(step, result)
         if "duration" in result and result["duration"] is not None:
-            result["duration"] = result["duration"].seconds
+            result["duration"] = int(float(result["duration"]))
         return result
 
     def to_internal_value(self, data):
-        if data.get("duration", None):
-            try:
-                time.strptime(data["duration"], "%H:%M:%S")
-            except (ValueError, TypeError):
-                try:
-                    data["duration"] = str(timedelta(seconds=data["duration"]))
-                except (ValueError, TypeError):
-                    raise BadRequest(detail="Invalid duration format")
         if data.get("persons_to_notify", []) is None:  # terraform case
             data["persons_to_notify"] = []
         if data.get("persons_to_notify_next_each_time", []) is None:  # terraform case

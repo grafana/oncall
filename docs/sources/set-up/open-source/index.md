@@ -122,7 +122,6 @@ oauth_config:
   scopes:
     user:
       - channels:read
-      - chat:write
       - identify
       - users.profile:read
     bot:

@@ -344,7 +344,8 @@ def list_of_empty_shifts_in_schedule(
 def list_users_to_notify_from_ical(
     schedule: "OnCallSchedule",
     events_datetime: typing.Optional[datetime.datetime] = None,
-) -> typing.Sequence["User"]:
+    from_cached_final: bool = False,
+) -> typing.List["User"]:
     """
     Retrieve on-call users for the current time
     """
@@ -353,6 +354,7 @@ def list_users_to_notify_from_ical(
         schedule,
         events_datetime,
         events_datetime,
+        from_cached_final=from_cached_final,
     )
 
 
@@ -360,8 +362,12 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
-) -> typing.Sequence["User"]:
-    events = schedule.final_events(start_datetime, end_datetime)
+    from_cached_final: bool = False,
+) -> typing.List["User"]:
+    if from_cached_final and schedule.cached_ical_final_schedule:
+        events = schedule.filter_events(start_datetime, end_datetime, from_cached_final=True)
+    else:
+        events = schedule.final_events(start_datetime, end_datetime)
     usernames: typing.List[str] = []
     for event in events:
         usernames += [u["email"] for u in event.get("users", [])]
@@ -600,7 +606,7 @@ def get_missing_users_from_ical_event(event, organization: "Organization"):
     return [u for u in all_usernames if u != "" and u not in found_usernames and u.lower() not in found_emails]
 
 
-def get_users_from_ical_event(event, organization: "Organization") -> typing.Sequence["User"]:
+def get_users_from_ical_event(event, organization: "Organization") -> typing.List["User"]:
     usernames_from_ical, _ = get_usernames_from_ical_event(event)
     users = []
     if len(usernames_from_ical) != 0:
