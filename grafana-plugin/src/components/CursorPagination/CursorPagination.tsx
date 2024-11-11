@@ -6,6 +6,7 @@ import { Button, Icon, Select, Stack } from '@grafana/ui';
 import { StackSize } from 'helpers/consts';
 
 import { Text } from 'components/Text/Text';
+import i18n from '../../i18n/i18n'
 
 interface CursorPaginationProps {
   current: string;
@@ -40,7 +41,7 @@ export const CursorPagination: FC<CursorPaginationProps> = (props) => {
             width: 120px;
           `}
         >
-          Items per list
+          {i18n.t('cursor_pagination.items_per_list')}
         </Text>
         <Select
           className={css`

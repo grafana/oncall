@@ -1,0 +1,44 @@
+{
+    "incidents": {
+        "alert_groups": "Alert Groups",
+        "firing": "Firing",
+        "resolved": "Resolved",
+        "acknowledged": "Acknowledged",
+        "silenced": "Silenced",
+        "alert_groups_not_found": "No alert groups found, review your filter and team settings. Make sure you have at least one working integration.",
+        "go_to_integrations_page": "Go to integrations page",
+        "status": "Status",
+        "alerts": "Alerts",
+        "integration": "Integration",
+        "title": "Title",
+        "created": "Created",
+        "users": "Users",
+        "no_alert_groups_selected": "No Alert Groups selected",
+        "restart": "Restart",
+        "resolve": "Resolve",
+        "acknowledge": "Acknowledge"
+    },
+    "tutorial": {
+        "add_integration":"Add integration with a monitoring system",
+        "configure_escalation_chain": "Setup escalation chain to handle notifications",
+        "connect_to_your_chat_workspace": "Connect to your chat workspace",
+        "add_calendar": "Add your team calendar to define an on-call rotation",
+        "oncall_manages_your_alerts": "OnCall manages your alerts"
+    },
+    "remote_filters": {
+        "search_or_filter": "Search or filter results...",
+        "filter": "'Filter results..."
+    },
+    "incidents_helpers": {
+        "no_users_involved": "No users involved"
+    },
+    "cursor_pagination": {
+        "items_per_list": "Items per list"
+    },
+    "incident_dropdown": {
+        "firing": "Firing"
+    },
+    "silence_select": {
+        "silence_for": "Silence for"
+    }
+}

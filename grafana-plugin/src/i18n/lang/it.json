@@ -1,0 +1,44 @@
+{
+    "incidents": {
+        "alert_groups": "Gruppi di Allarmi",
+        "firing": "Attivi",
+        "resolved": "Risolti",
+        "acknowledged": "Accettati",
+        "silenced": "Silenziati",
+        "alert_groups_not_found": "Nessun gruppo di avvisi trovato, rivedi il tuo filtro e le impostazioni del team. Assicurati di avere almeno un'integrazione funzionante.",
+        "go_to_integrations_page": "Vai alla pagina delle integrazioni",
+        "status": "Stato",
+        "alerts": "Allarmi",
+        "integration": "Integrazione",
+        "title": "Titolo",
+        "created": "Creato",
+        "users": "Utenti",
+        "no_alert_groups_selected": "Nessun Gruppo di Allarme selezionato",
+        "restart": "Riavvia",
+        "resolve": "Risolvi",
+        "acknowledge": "Accetta"
+    },
+    "tutorial": {
+        "add_integration":"Aggiungi un'integrazione con un sistema di monitoraggio",
+        "configure_escalation_chain": "Configura la catena di escalation per gestire le notifiche",
+        "connect_to_your_chat_workspace": "Collegati al tuo spazio di lavoro chat",
+        "add_calendar": "Aggiungi il calendario del tuo team per definire una rotazione di reperibilità",
+        "oncall_manages_your_alerts": "OnCall gestisce i tuoi avvisi"
+    }, 
+    "remote_filters": {
+        "search_or_filter": "Cerca o filtra i risultati...",
+        "filter": "Filtra i risultati..."
+    },
+    "incidents_helpers": {
+        "no_users_involved": "Nessun utente coinvolto"
+    },
+    "cursor_pagination": {
+        "items_per_list": "Elementi per lista"
+    },
+    "incident_dropdown": {
+        "firing": "Attiva"
+    },
+    "silence_select": {
+        "silence_for": "Silenzia per"
+    }
+}

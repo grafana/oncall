@@ -37,6 +37,8 @@ import { parseFilters } from './RemoteFilters.helpers';
 import { FilterOption } from './RemoteFilters.types';
 import { TimeRangePickerWrapper } from './TimeRangePickerWrapper';
 
+import i18n from '../../i18n/i18n';
+
 interface RemoteFiltersProps extends WithStoreProps {
   onChange: (filters: Record<string, any>, isOnMount: boolean, invalidateFn: () => boolean) => void;
   query: KeyValue;
@@ -172,7 +174,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
           <Select
             menuShouldPortal
             key={filters.length}
-            placeholder={allowFreeSearch ? 'Search or filter results...' : 'Filter results...'}
+            placeholder={allowFreeSearch ? i18n.t('remote_filters.search_or_filter') : 'Filter results...'}
             value={undefined}
             onChange={this.handleAddFilter}
             getOptionLabel={(item: SelectableValue) => capitalCase(item.label)}
@@ -201,7 +203,7 @@ class _RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             {filterOption.description && (
               <span className={styles.infoIcon}>
                 <Tooltip content={filterOption.description}>
-                  <Icon name="info-circle" />
+                <Icon name="info-circle" />
                 </Tooltip>
               </span>
             )}

@@ -15,6 +15,7 @@ import scheduleIcon from './icons/calendar-icon.svg';
 import chatIcon from './icons/chat-icon.svg';
 import escalationIcon from './icons/escalation-icon.svg';
 import integrationsIcon from './icons/integration-icon.svg';
+import i18n from '../../i18n/i18n';
 
 interface TutorialProps {
   title: React.ReactNode;
@@ -35,7 +36,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
               <img src={integrationsIcon} />
             </div>
           </PluginLink>
-          <Text type="secondary">Add integration with a monitoring system</Text>
+          <Text type="secondary">{i18n.t('tutorial.add_integration')}</Text>
         </div>
         <Arrow />
         <div className={styles.step}>
@@ -44,7 +45,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
               <img src={escalationIcon} />
             </div>
           </PluginLink>
-          <Text type="secondary">Setup escalation chain to handle notifications</Text>
+          <Text type="secondary">{i18n.t('tutorial.configure_escalation_chain')}</Text>
         </div>
         <Arrow />
         <div className={styles.step}>
@@ -53,7 +54,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
               <img src={chatIcon} />
             </div>
           </PluginLink>
-          <Text type="secondary">Connect to your chat workspace</Text>
+          <Text type="secondary">{i18n.t('tutorial.connect_to_your_chat_workspace')}</Text>
         </div>
         <Arrow />
         <div className={styles.step}>
@@ -62,7 +63,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
               <img src={scheduleIcon} />
             </div>
           </PluginLink>
-          <Text type="secondary">Add your team calendar to define an on-call rotation.</Text>
+          <Text type="secondary">{i18n.t('tutorial.add_calendar')}</Text>
         </div>
         <Arrow />
         <div className={styles.step}>
@@ -71,7 +72,7 @@ export const Tutorial: FC<TutorialProps> = (props) => {
               <img src={bellIcon} />
             </div>
           </PluginLink>
-          <Text type="secondary">OnCall manages your alerts</Text>
+          <Text type="secondary">{i18n.t('tutorial.oncall_manages_your_alerts')}</Text>
         </div>
       </div>
     </Block>
