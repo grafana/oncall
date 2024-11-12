@@ -33,6 +33,12 @@ def on_create_alert_async(self, alert_pk):
             raise e
 
     alert_group = alert.group
+
+    message = alert_group.mattermost_messages.filter(message_type=MattermostMessage.ALERT_GROUP_MESSAGE).first()
+    if message:
+        logger.error(f"Mattermost message exist with post id {message.post_id} hence skipping")
+        return
+
     mattermost_channel = MattermostChannel.get_channel_for_alert_group(alert_group=alert_group)
     payload = MattermostMessageRenderer(alert_group).render_alert_group_message()
 
@@ -66,6 +72,16 @@ def on_alert_group_action_triggered_async(log_record_id):
         raise e
 
     alert_group_id = log_record.alert_group_id
+
+    try:
+        log_record.alert_group.mattermost_messages.get(message_type=MattermostMessage.ALERT_GROUP_MESSAGE)
+    except MattermostMessage.DoesNotExist as e:
+        if on_alert_group_action_triggered_async.request.retries >= 10:
+            logger.error(f"Mattermost message not created for {alert_group_id}. Stop retrying")
+            return
+        else:
+            raise e
+
     logger.info(
         f"Start mattermost on_alert_group_action_triggered for alert_group {alert_group_id}, log record {log_record_id}"
     )
