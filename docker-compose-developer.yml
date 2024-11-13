@@ -351,9 +351,6 @@ services:
         required: false
     profiles:
       - grafana
-    configs:
-      - source: grafana.ini
-        target: /etc/grafana/grafana.ini
 
 volumes:
   redisdata_dev:
