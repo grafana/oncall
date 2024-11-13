@@ -38,6 +38,15 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
             end_date + datetime.timedelta(days=EXTRA_LOOKUP_DAYS),
         )
 
+        for event in events:
+            if hasattr(event[ICAL_DATETIME_END].dt,'tzinfo'):
+                dt = event[ICAL_DATETIME_END].dt
+                tz = dt.tzinfo
+                normalized = tz.normalize(dt)
+                if normalized.tzinfo != tz:
+                    diff = dt.dst() - normalized.dst()
+                    event[ICAL_DATETIME_END].dt = normalized + diff
+
         def filter_extra_days(event):
             event_start, event_end = self.get_start_and_end_with_respect_to_event_type(event)
             if event_start > event_end:
