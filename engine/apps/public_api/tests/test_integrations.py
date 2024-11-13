@@ -1,9 +1,12 @@
+import httpretty
 import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.api import permissions
+from apps.auth_token.tests.helpers import setup_service_account_api_mocks
 from apps.base.tests.messaging_backend import TestOnlyBackend
 
 TEST_MESSAGING_BACKEND_FIELD = TestOnlyBackend.backend_id.lower()
@@ -102,6 +105,45 @@ def test_create_integration(
     url = reverse("api-public:integrations-list")
     response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
+def test_create_integration_via_service_account(
+    make_organization,
+    make_service_account_for_organization,
+    make_token_for_service_account,
+    make_escalation_chain,
+):
+    organization = make_organization(grafana_url="http://grafana.test")
+    service_account = make_service_account_for_organization(organization)
+    token_string = "glsa_token"
+    make_token_for_service_account(service_account, token_string)
+    make_escalation_chain(organization)
+
+    perms = {
+        permissions.PLUGINS_WRITE: ["*"],
+        permissions.RBACPermission.Permissions.INTEGRATIONS_WRITE.value: ["*"],
+    }
+    setup_service_account_api_mocks(organization, perms)
+
+    client = APIClient()
+    data_for_create = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(
+        url,
+        data=data_for_create,
+        format="json",
+        HTTP_AUTHORIZATION=f"{token_string}",
+        HTTP_X_GRAFANA_URL=organization.grafana_url,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    integration = AlertReceiveChannel.objects.get(public_primary_key=response.data["id"])
+    assert integration.service_account == service_account
 
 
 @pytest.mark.django_db

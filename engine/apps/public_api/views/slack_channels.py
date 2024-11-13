@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.slack_channel import SlackChannelSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.slack.models import SlackChannel
@@ -12,7 +12,7 @@ from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
 class SlackChannelView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

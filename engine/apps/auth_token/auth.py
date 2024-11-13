@@ -9,7 +9,6 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
-from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.grafana_plugin.sync_data import SyncPermission, SyncUser
 from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
@@ -20,13 +19,13 @@ from settings.base import SELF_HOSTED_SETTINGS
 
 from .constants import GOOGLE_OAUTH2_AUTH_TOKEN_NAME, SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
-from .grafana.grafana_auth_token import get_service_account_token_permissions
 from .models import (
     ApiAuthToken,
     GoogleOAuth2Token,
     IntegrationBacksyncAuthToken,
     PluginAuthToken,
     ScheduleExportAuthToken,
+    ServiceAccountToken,
     SlackAuthToken,
     UserScheduleExportAuthToken,
 )
@@ -336,8 +335,8 @@ class UserScheduleExportAuthentication(BaseAuthentication):
         return auth_token.user, auth_token
 
 
+X_GRAFANA_URL = "X-Grafana-URL"
 X_GRAFANA_INSTANCE_ID = "X-Grafana-Instance-ID"
-GRAFANA_SA_PREFIX = "glsa_"
 
 
 class GrafanaServiceAccountAuthentication(BaseAuthentication):
@@ -345,7 +344,7 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).decode("utf-8")
         if not auth:
             raise exceptions.AuthenticationFailed("Invalid token.")
-        if not auth.startswith(GRAFANA_SA_PREFIX):
+        if not auth.startswith(ServiceAccountToken.GRAFANA_SA_PREFIX):
             return None
 
         organization = self.get_organization(request)
@@ -359,6 +358,12 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         return self.authenticate_credentials(organization, auth)
 
     def get_organization(self, request):
+        grafana_url = request.headers.get(X_GRAFANA_URL)
+        if grafana_url:
+            organization = Organization.objects.filter(grafana_url=grafana_url).first()
+            if organization:
+                return organization
+
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             instance_id = request.headers.get(X_GRAFANA_INSTANCE_ID)
             if not instance_id:
@@ -370,35 +375,12 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
             return Organization.objects.filter(org_slug=org_slug, stack_slug=instance_slug).first()
 
     def authenticate_credentials(self, organization, token):
-        permissions = get_service_account_token_permissions(organization, token)
-        if not permissions:
+        try:
+            user, auth_token = ServiceAccountToken.validate_token(organization, token)
+        except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
-        role = LegacyAccessControlRole.NONE
-        if not organization.is_rbac_permissions_enabled:
-            role = self.determine_role_from_permissions(permissions)
-
-        user = User(
-            organization_id=organization.pk,
-            name="Grafana Service Account",
-            username="grafana_service_account",
-            role=role,
-            permissions=GrafanaAPIPermissions.construct_permissions(permissions.keys()),
-        )
-
-        auth_token = ApiAuthToken(organization=organization, user=user, name="Grafana Service Account")
-
         return user, auth_token
-
-    # Using default permissions as proxies for roles since we cannot explicitly get role from the service account token
-    def determine_role_from_permissions(self, permissions):
-        if "plugins:write" in permissions:
-            return LegacyAccessControlRole.ADMIN
-        if "dashboards:write" in permissions:
-            return LegacyAccessControlRole.EDITOR
-        if "dashboards:read" in permissions:
-            return LegacyAccessControlRole.VIEWER
-        return LegacyAccessControlRole.NONE
 
 
 class IntegrationBacksyncAuthentication(BaseAuthentication):
