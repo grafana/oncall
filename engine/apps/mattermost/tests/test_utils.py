@@ -1,5 +1,4 @@
 import pytest
-from django.conf import settings
 
 from apps.mattermost.exceptions import MattermostEventTokenInvalid
 from apps.mattermost.utils import MattermostEventAuthenticator
@@ -18,9 +17,10 @@ def test_jwt_token_validation_success(
 @pytest.mark.django_db
 def test_jwt_token_validation_failure(
     make_organization,
+    set_random_mattermost_sigining_secret,
 ):
     organization = make_organization()
     token = MattermostEventAuthenticator.create_token(organization=organization)
-    settings.MATTERMOST_SIGNING_SECRET = "n0cb4954bec053e6e616febf2c2392ff60bd02c453a52ab53d9a8b0d0d6284a6"
+    set_random_mattermost_sigining_secret()
     with pytest.raises(MattermostEventTokenInvalid):
         MattermostEventAuthenticator.verify(token)
