@@ -47,7 +47,7 @@ def make_mattermost_post_response_failure():
             "status_code": kwargs["status_code"] if "status_code" in kwargs else 400,
             "id": kwargs["id"] if "id" in kwargs else "itre5wsjnctbz78mkq9z6ci9itue",
             "message": kwargs["message"] if "message" in kwargs else "API Error",
-            "request_id": kwargs["message"] if "message" in kwargs else "reqe5wsjnctbz78mkq9z6ci9iqer",
+            "request_id": kwargs["request_id"] if "request_id" in kwargs else "reqe5wsjnctbz78mkq9z6ci9iqer",
         }
 
     return _make_mattermost_post_response
@@ -59,3 +59,11 @@ def make_mattermost_message():
         return MattermostMessageFactory(alert_group=alert_group, message_type=message_type, **kwargs)
 
     return _make_mattermost_message
+
+
+@pytest.fixture
+def set_random_mattermost_sigining_secret(settings):
+    def _set_random_mattermost_sigining_secret():
+        settings.MATTERMOST_SIGNING_SECRET = "n0cb4954bec053e6e616febf2c2392ff60bd02c453a52ab53d9a8b0d0d6284a6"
+
+    return _set_random_mattermost_sigining_secret
