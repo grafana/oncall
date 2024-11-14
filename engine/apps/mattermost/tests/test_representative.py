@@ -21,7 +21,7 @@ def test_get_handler(
     make_mattermost_channel(organization=organization, is_default_channel=True)
     ack_alert_group = make_alert_group(
         alert_receive_channel=alert_receive_channel,
-        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        acknowledged_at=timezone.now(),
         acknowledged=True,
     )
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
@@ -46,7 +46,7 @@ def test_is_applicable_success(
     make_mattermost_channel(organization=organization, is_default_channel=True)
     ack_alert_group = make_alert_group(
         alert_receive_channel=alert_receive_channel,
-        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        acknowledged_at=timezone.now(),
         acknowledged=True,
     )
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
@@ -68,7 +68,7 @@ def test_is_applicable_without_channels(
     )
     ack_alert_group = make_alert_group(
         alert_receive_channel=alert_receive_channel,
-        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        acknowledged_at=timezone.now(),
         acknowledged=True,
     )
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
@@ -92,7 +92,7 @@ def test_is_applicable_invalid_type(
     make_mattermost_channel(organization=organization, is_default_channel=True)
     ack_alert_group = make_alert_group(
         alert_receive_channel=alert_receive_channel,
-        acknowledged_at=timezone.now() + timezone.timedelta(hours=1),
+        acknowledged_at=timezone.now(),
         acknowledged=True,
     )
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
