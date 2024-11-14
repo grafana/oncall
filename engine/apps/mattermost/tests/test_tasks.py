@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import httpretty
 import pytest
@@ -49,7 +50,6 @@ def test_on_create_alert_async_skip_post_for_duplicate(
     make_alert_group,
     make_alert,
     make_mattermost_channel,
-    make_mattermost_post_response,
     make_mattermost_message,
 ):
     organization, _ = make_organization_and_user()
@@ -59,26 +59,15 @@ def test_on_create_alert_async_skip_post_for_duplicate(
     make_mattermost_channel(organization=organization, is_default_channel=True)
     make_mattermost_message(alert_group, MattermostMessage.ALERT_GROUP_MESSAGE)
 
-    url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
-    data = make_mattermost_post_response()
-    mock_response = httpretty.Response(json.dumps(data), status=status.HTTP_200_OK)
-    httpretty.register_uri(httpretty.POST, url, responses=[mock_response])
+    with patch("apps.mattermost.client.MattermostClient.create_post") as mock_post_call:
+        on_create_alert_async(alert_pk=alert.pk)
 
-    on_create_alert_async(alert_pk=alert.pk)
-
-    request = httpretty.last_request()
-    assert request.url is None
+    mock_post_call.assert_not_called()
 
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-@pytest.mark.parametrize(
-    "data",
-    [
-        {"status_code": 400},
-        {"status_code": 401},
-    ],
-)
+@pytest.mark.parametrize("status_code", [400, 401])
 def test_on_create_alert_async_mattermost_api_failure(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -86,7 +75,7 @@ def test_on_create_alert_async_mattermost_api_failure(
     make_alert,
     make_mattermost_channel,
     make_mattermost_post_response_failure,
-    data,
+    status_code,
 ):
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -95,9 +84,9 @@ def test_on_create_alert_async_mattermost_api_failure(
     make_mattermost_channel(organization=organization, is_default_channel=True)
 
     url = "{}/api/v4/posts".format(settings.MATTERMOST_HOST)
-    data = make_mattermost_post_response_failure(status_code=data["status_code"])
-    mock_response = httpretty.Response(json.dumps(data), status=data["status_code"])
-    httpretty.register_uri(httpretty.POST, url, status=data["status_code"], responses=[mock_response])
+    data = make_mattermost_post_response_failure(status_code=status_code)
+    mock_response = httpretty.Response(json.dumps(data), status=status_code)
+    httpretty.register_uri(httpretty.POST, url, status=status_code, responses=[mock_response])
 
     on_create_alert_async(alert_pk=alert.pk)
 
@@ -119,9 +108,7 @@ def test_on_alert_group_action_triggered_async_success(
 ):
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
-    ack_alert_group = make_alert_group(
-        alert_receive_channel, acknowledged_at=timezone.now() + timezone.timedelta(hours=1), acknowledged=True
-    )
+    ack_alert_group = make_alert_group(alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True)
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
     make_mattermost_channel(organization=organization, is_default_channel=True)
     ack_log_record = make_alert_group_log_record(ack_alert_group, type=AlertGroupLogRecord.TYPE_ACK, author=None)
@@ -157,9 +144,7 @@ def test_on_alert_group_action_triggered_async_fails_without_alert_group_message
 ):
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
-    ack_alert_group = make_alert_group(
-        alert_receive_channel, acknowledged_at=timezone.now() + timezone.timedelta(hours=1), acknowledged=True
-    )
+    ack_alert_group = make_alert_group(alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True)
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
     make_mattermost_channel(organization=organization, is_default_channel=True)
     ack_log_record = make_alert_group_log_record(ack_alert_group, type=AlertGroupLogRecord.TYPE_ACK, author=None)
@@ -170,13 +155,7 @@ def test_on_alert_group_action_triggered_async_fails_without_alert_group_message
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-@pytest.mark.parametrize(
-    "data",
-    [
-        {"status_code": 400},
-        {"status_code": 401},
-    ],
-)
+@pytest.mark.parametrize("status_code", [400, 401])
 def test_on_alert_group_action_triggered_async_failure(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -186,24 +165,22 @@ def test_on_alert_group_action_triggered_async_failure(
     make_alert_group_log_record,
     make_mattermost_message,
     make_mattermost_post_response_failure,
-    data,
+    status_code,
 ):
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
-    ack_alert_group = make_alert_group(
-        alert_receive_channel, acknowledged_at=timezone.now() + timezone.timedelta(hours=1), acknowledged=True
-    )
+    ack_alert_group = make_alert_group(alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True)
     make_alert(alert_group=ack_alert_group, raw_request_data=alert_receive_channel.config.example_payload)
     make_mattermost_channel(organization=organization, is_default_channel=True)
     ack_log_record = make_alert_group_log_record(ack_alert_group, type=AlertGroupLogRecord.TYPE_ACK, author=None)
     mattermost_message = make_mattermost_message(ack_alert_group, MattermostMessage.ALERT_GROUP_MESSAGE)
 
     url = "{}/api/v4/posts/{}".format(settings.MATTERMOST_HOST, mattermost_message.post_id)
-    data = make_mattermost_post_response_failure(status_code=data["status_code"])
-    mock_response = httpretty.Response(json.dumps(data), status=data["status_code"])
-    httpretty.register_uri(httpretty.PUT, url, status=data["status_code"], responses=[mock_response])
+    data = make_mattermost_post_response_failure(status_code=status_code)
+    mock_response = httpretty.Response(json.dumps(data), status=status_code)
+    httpretty.register_uri(httpretty.PUT, url, status=status_code, responses=[mock_response])
 
-    if data["status_code"] != 401:
+    if status_code != 401:
         with pytest.raises(MattermostAPIException):
             on_alert_group_action_triggered_async(ack_log_record.pk)
     else:

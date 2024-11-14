@@ -30,14 +30,10 @@ def test_alert_group_message_renderer(
         alert_group = make_alert_group(alert_receive_channel)
         make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
     elif alert_type == "ack":
-        alert_group = make_alert_group(
-            alert_receive_channel, acknowledged_at=timezone.now() + timezone.timedelta(hours=1), acknowledged=True
-        )
+        alert_group = make_alert_group(alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True)
         make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
     elif alert_type == "resolved":
-        alert_group = make_alert_group(
-            alert_receive_channel, resolved_at=timezone.now() + timezone.timedelta(hours=1), resolved=True
-        )
+        alert_group = make_alert_group(alert_receive_channel, resolved_at=timezone.now(), resolved=True)
         make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
 
     message = MattermostMessageRenderer(alert_group=alert_group).render_alert_group_message()

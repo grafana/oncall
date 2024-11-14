@@ -26,6 +26,15 @@ class MattermostMessage(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["alert_group", "channel_id", "message_type"],
+                condition=models.Q(message_type__in=[0, 1]),
+                name="unique_alert_group_channel_id_message_type",
+            )
+        ]
+
     @staticmethod
     def create_message(alert_group: AlertGroup, post: MattermostPost, message_type: int):
         return MattermostMessage.objects.create(
