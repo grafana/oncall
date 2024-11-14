@@ -361,8 +361,9 @@ class GrafanaServiceAccountAuthentication(BaseAuthentication):
         grafana_url = request.headers.get(X_GRAFANA_URL)
         if grafana_url:
             organization = Organization.objects.filter(grafana_url=grafana_url).first()
-            if organization:
-                return organization
+            if not organization:
+                raise exceptions.AuthenticationFailed("Invalid Grafana URL.")
+            return organization
 
         if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             instance_id = request.headers.get(X_GRAFANA_INSTANCE_ID)

@@ -97,6 +97,21 @@ def test_grafana_authentication_missing_org():
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
+def test_grafana_authentication_invalid_grafana_url():
+    token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
+    headers = {
+        "HTTP_AUTHORIZATION": token,
+        "HTTP_X_GRAFANA_URL": "http://grafana.test",  # no org for this URL
+    }
+    request = APIRequestFactory().get("/", **headers)
+
+    with pytest.raises(exceptions.AuthenticationFailed) as exc:
+        GrafanaServiceAccountAuthentication().authenticate(request)
+    assert exc.value.detail == "Invalid Grafana URL."
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_permissions_call_fails(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
 
