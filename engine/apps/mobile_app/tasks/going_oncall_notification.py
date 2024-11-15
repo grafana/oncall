@@ -12,11 +12,7 @@ from django.utils import timezone
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import (
-    MAX_RETRIES,
-    construct_fcm_message,
-    send_push_notification,
-)
+from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot

@@ -10,11 +10,7 @@ from django.utils import timezone
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import (
-    MAX_RETRIES,
-    construct_fcm_message,
-    send_push_notification,
-)
+from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
 from apps.schedules.models import ShiftSwapRequest
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task

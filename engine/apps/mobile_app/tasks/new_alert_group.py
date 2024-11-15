@@ -8,11 +8,7 @@ from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, 
 from apps.alerts.models import AlertGroup
 from apps.mobile_app.alert_rendering import get_push_notification_subtitle, get_push_notification_title
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import (
-    MAX_RETRIES,
-    construct_fcm_message,
-    send_push_notification,
-)
+from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
