@@ -144,6 +144,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
+      GF_AUTH_MANAGED_SERVICE_ACCOUNTS_ENABLED: true
     deploy:
       resources:
         limits:
@@ -156,7 +157,16 @@ services:
         condition: service_healthy
     profiles:
       - with_grafana
+    configs:
+      - source: grafana.ini
+        target: /etc/grafana/grafana.ini
 
 volumes:
   dbdata:
   rabbitmqdata:
+
+configs:
+  grafana.ini:
+    content: |
+      [feature_toggles]
+      accessControlOnCall = false

@@ -94,6 +94,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
+      GF_AUTH_MANAGED_SERVICE_ACCOUNTS_ENABLED: true
     volumes:
       - grafana_data:/var/lib/grafana
     deploy:
@@ -103,9 +104,18 @@ services:
           cpus: "0.5"
     profiles:
       - with_grafana
+    configs:
+      - source: grafana.ini
+        target: /etc/grafana/grafana.ini
 
 volumes:
   grafana_data:
   prometheus_data:
   oncall_data:
   redis_data:
+
+configs:
+  grafana.ini:
+    content: |
+      [feature_toggles]
+      accessControlOnCall = false

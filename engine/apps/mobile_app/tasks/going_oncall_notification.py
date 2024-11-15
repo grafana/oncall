@@ -12,12 +12,7 @@ from django.utils import timezone
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import (
-    MAX_RETRIES,
-    add_stack_slug_to_message_title,
-    construct_fcm_message,
-    send_push_notification,
-)
+from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.cache import ensure_cache_key_allocates_to_the_same_hash_slot
@@ -82,7 +77,7 @@ def _get_fcm_message(
     notification_subtitle = _get_notification_subtitle(schedule, schedule_event, mobile_app_user_settings)
 
     data: FCMMessageData = {
-        "title": add_stack_slug_to_message_title(notification_title, user.organization),
+        "title": notification_title,
         "subtitle": notification_subtitle,
         "orgName": user.organization.stack_slug,
         "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
