@@ -10,7 +10,6 @@ from apps.mobile_app.alert_rendering import get_push_notification_subtitle, get_
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
 from apps.mobile_app.utils import (
     MAX_RETRIES,
-    add_stack_slug_to_message_title,
     construct_fcm_message,
     send_push_notification,
 )
@@ -46,7 +45,7 @@ def _get_fcm_message(alert_group: AlertGroup, user: User, device_to_notify: "FCM
     apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
-        "title": add_stack_slug_to_message_title(alert_title, alert_group.channel.organization),
+        "title": alert_title,
         "subtitle": alert_subtitle,
         "orgId": alert_group.channel.organization.public_primary_key,
         "orgName": alert_group.channel.organization.stack_slug,

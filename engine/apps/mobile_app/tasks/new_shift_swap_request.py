@@ -12,7 +12,6 @@ from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, 
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
 from apps.mobile_app.utils import (
     MAX_RETRIES,
-    add_stack_slug_to_message_title,
     construct_fcm_message,
     send_push_notification,
 )
@@ -121,7 +120,7 @@ def _get_fcm_message(
     route = f"/schedules/{shift_swap_request.schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
 
     data: FCMMessageData = {
-        "title": add_stack_slug_to_message_title(notification_title, user.organization),
+        "title": notification_title,
         "subtitle": notification_subtitle,
         "orgName": user.organization.stack_slug,
         "route": route,
