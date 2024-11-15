@@ -11,7 +11,7 @@ from anymail.inbound import AnymailInboundMessage
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.x509 import CertificateBuilder, DNSName, NameOID, SubjectAlternativeName
+from cryptography.x509 import CertificateBuilder, NameOID
 from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
@@ -25,38 +25,23 @@ PRIVATE_KEY = rsa.generate_private_key(
     public_exponent=65537,
     key_size=2048,
 )
+ISSUER_NAME = x509.Name(
+    [
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Test"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, "Test"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Amazon"),
+        x509.NameAttribute(NameOID.COMMON_NAME, "Test"),
+    ]
+)
 CERTIFICATE = (
     CertificateBuilder()
-    .subject_name(
-        x509.Name(
-            [
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Test"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "Test"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Amazon"),
-                x509.NameAttribute(NameOID.COMMON_NAME, "Test"),
-            ]
-        )
-    )
-    .issuer_name(
-        x509.Name(
-            [
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Test"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "Test"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Amazon"),
-                x509.NameAttribute(NameOID.COMMON_NAME, "Test"),
-            ]
-        )
-    )
+    .subject_name(ISSUER_NAME)
+    .issuer_name(ISSUER_NAME)
     .public_key(PRIVATE_KEY.public_key())
     .serial_number(x509.random_serial_number())
     .not_valid_before(datetime.datetime.now() - datetime.timedelta(days=1))
     .not_valid_after(datetime.datetime.now() + datetime.timedelta(days=10))
-    .add_extension(
-        SubjectAlternativeName([DNSName("sns.amazonaws.com")]),
-        critical=False,
-    )
     .sign(PRIVATE_KEY, hashes.SHA256())
     .public_bytes(serialization.Encoding.PEM)
 )
