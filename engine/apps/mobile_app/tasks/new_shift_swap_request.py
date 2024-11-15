@@ -10,12 +10,7 @@ from django.utils import timezone
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import (
-    MAX_RETRIES,
-    add_stack_slug_to_message_title,
-    construct_fcm_message,
-    send_push_notification,
-)
+from apps.mobile_app.utils import MAX_RETRIES, construct_fcm_message, send_push_notification
 from apps.schedules.models import ShiftSwapRequest
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -121,7 +116,7 @@ def _get_fcm_message(
     route = f"/schedules/{shift_swap_request.schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
 
     data: FCMMessageData = {
-        "title": add_stack_slug_to_message_title(notification_title, user.organization),
+        "title": notification_title,
         "subtitle": notification_subtitle,
         "orgName": user.organization.stack_slug,
         "route": route,

@@ -18,7 +18,6 @@ from apps.mobile_app.tasks.going_oncall_notification import (
     conditionally_send_going_oncall_push_notifications_for_schedule,
 )
 from apps.mobile_app.types import MessageType, Platform
-from apps.mobile_app.utils import add_stack_slug_to_message_title
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 
@@ -228,7 +227,7 @@ def test_get_fcm_message(
     maus = MobileAppUserSettings.objects.create(user=user, time_zone=user_tz)
 
     data = {
-        "title": add_stack_slug_to_message_title(mock_notification_title, organization),
+        "title": mock_notification_title,
         "subtitle": mock_notification_subtitle,
         "orgName": organization.stack_slug,
         "info_notification_sound_name": maus.get_notification_sound_name(MessageType.INFO, Platform.ANDROID),
