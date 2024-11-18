@@ -1773,6 +1773,20 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
             {
                 "key": {"id": "test", "name": "test", "prescribed": False},
                 "value": {"id": "123", "name": "123", "prescribed": False},
+            },
+            {
+                "key": {"id": "test2", "name": "test2", "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+            },
+        ],
+        "template": "{{ payload.labels | tojson }}",
+    }
+    expected_alert_group_labels = {
+        "inheritable": {"test": False},
+        "custom": [
+            {
+                "key": {"id": "test2", "name": "test2", "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
             }
         ],
         "template": "{{ payload.labels | tojson }}",
@@ -1790,10 +1804,10 @@ def test_alert_group_labels_post(alert_receive_channel_internal_api_setup, make_
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["labels"] == labels
-    assert response.json()["alert_group_labels"] == alert_group_labels
+    assert response.json()["alert_group_labels"] == expected_alert_group_labels
 
     alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=response.json()["id"])
-    assert alert_receive_channel.alert_group_labels_custom == [["test", "123", None]]
+    assert alert_receive_channel.alert_group_labels_custom == [["test2", None, "{{ payload.foo }}"]]
     assert alert_receive_channel.alert_group_labels_template == "{{ payload.labels | tojson }}"
 
 
