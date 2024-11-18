@@ -74,19 +74,14 @@ Alert Group labeling can be configured for each integration. To find the Alert G
 
 A maximum of 15 labels can be assigned to an alert group. If there are more than 15 labels, only the first 15 will be assigned.
 
-### Dynamic & Static Labels
+### Dynamic Labels
 
-Dynamic and Static labels allow you to assign arbitrary labels to alert groups.
+Dynamic labels allow you to assign arbitrary labels to alert groups.
 Dynamic labels have values extracted from the alert payload using Jinja, with keys remaining static.
-Static labels have both key and value as static and are not derived from the payload. These labels will not be attached to the integration.
+These labels will not be attached to the integration.
 
-1. In the **Alert Group Labeling** tab, navigate to **Dynamic & Static Labels**.
-2. Press the **Add Label** button and choose between dynamic or static.
-
-#### Add Static Labels
-
-1. Select or create key and value from the dropdown list.
-2. These labels will be assigned to all alert groups received by this integration.
+1. In the **Alert Group Labeling** tab, navigate to **Dynamic Labels**.
+2. Press the **Add Label** button.
 
 #### Add Dynamic Labels
 
