@@ -8,7 +8,6 @@ from django.core.cache import cache
 from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
-from apps.alerts.tasks import escalate_alert_group
 from apps.alerts.tasks.task_logger import task_logger
 from apps.phone_notifications.models import SMSRecord
 from apps.twilioapp.models import TwilioSMSstatuses
@@ -199,6 +198,8 @@ def retry_audited_alert_group(alert_group) -> bool:
     task_id = celery_uuid()
     alert_group.active_escalation_id = task_id
     alert_group.save(["active_escalation_id"])
+
+    from apps.alerts.tasks import escalate_alert_group
 
     escalate_alert_group.apply_async(
         args=(alert_group.pk,),
