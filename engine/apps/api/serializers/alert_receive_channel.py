@@ -1,10 +1,8 @@
 import typing
 from collections import OrderedDict
-from functools import partial
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db import transaction
 from django.db.models import Q
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from jinja2 import TemplateSyntaxError
@@ -134,13 +132,10 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         instance.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
 
         # update DB cache for custom labels
-        with transaction.atomic():
-            cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
+        cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
         # save static labels as integration labels
         # todo: it's needed to cover delay between backend and frontend rollout, and can be removed later
-        transaction.on_commit(
-            partial(cls._save_static_labels_as_integration_labels, instance, alert_group_labels["custom"])
-        )
+        cls._save_static_labels_as_integration_labels(instance, alert_group_labels["custom"])
         # update custom labels
         instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
 
