@@ -756,7 +756,6 @@ def test_actions_disabled_for_service_accounts(
     make_escalation_chain(organization)
 
     perms = {
-        permissions.PLUGINS_WRITE: ["*"],
         permissions.RBACPermission.Permissions.ALERT_GROUPS_WRITE.value: ["*"],
     }
     setup_service_account_api_mocks(organization, perms=perms)

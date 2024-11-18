@@ -3,13 +3,7 @@ from hmac import compare_digest
 
 from django.db import models
 
-from apps.api.permissions import (
-    DASHBOARDS_READ,
-    DASHBOARDS_WRITE,
-    PLUGINS_WRITE,
-    GrafanaAPIPermissions,
-    LegacyAccessControlRole,
-)
+from apps.api.permissions import GrafanaAPIPermissions, LegacyAccessControlRole
 from apps.auth_token import constants
 from apps.auth_token.crypto import hash_token_string
 from apps.auth_token.exceptions import InvalidToken
@@ -43,6 +37,10 @@ class ServiceAccountToken(BaseAuthToken):
 
     @classmethod
     def validate_token(cls, organization, token):
+        # require RBAC enabled to allow service account auth
+        if not organization.is_rbac_permissions_enabled:
+            raise InvalidToken
+
         # Grafana API request: get permissions and confirm token is valid
         permissions = get_service_account_token_permissions(organization, token)
         if not permissions:
@@ -100,28 +98,12 @@ class ServiceAccountToken(BaseAuthToken):
                 digest=digest,
             )
 
-        def _determine_role_from_permissions(permissions):
-            # Using default permissions as proxies for roles since
-            # we cannot explicitly get role from the service account token
-            if PLUGINS_WRITE in permissions:
-                return LegacyAccessControlRole.ADMIN
-            if DASHBOARDS_WRITE in permissions:
-                return LegacyAccessControlRole.EDITOR
-            if DASHBOARDS_READ in permissions:
-                return LegacyAccessControlRole.VIEWER
-            return LegacyAccessControlRole.NONE
-
-        # setup an in-mem ServiceAccountUser
-        role = LegacyAccessControlRole.NONE
-        if not organization.is_rbac_permissions_enabled:
-            role = _determine_role_from_permissions(permissions)
-
         user = ServiceAccountUser(
             organization=organization,
             service_account=service_account,
             username=service_account.username,
             public_primary_key=service_account.public_primary_key,
-            role=role,
+            role=LegacyAccessControlRole.NONE,
             permissions=GrafanaAPIPermissions.construct_permissions(permissions.keys()),
         )
 

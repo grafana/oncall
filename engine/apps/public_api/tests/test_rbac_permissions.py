@@ -110,11 +110,8 @@ def test_rbac_permissions(
 @pytest.mark.parametrize(
     "rbac_enabled,role,give_perm",
     [
-        # rbac disabled: we will check the role is enough based on get_most_authorized_role for the perm
+        # rbac disabled: auth is disabled
         (False, LegacyAccessControlRole.ADMIN, None),
-        (False, LegacyAccessControlRole.EDITOR, None),
-        (False, LegacyAccessControlRole.VIEWER, None),
-        (False, LegacyAccessControlRole.NONE, None),
         # rbac enabled: having role None, check the perm is required
         (True, LegacyAccessControlRole.NONE, False),
         (True, LegacyAccessControlRole.NONE, True),
@@ -168,24 +165,8 @@ def test_service_account_auth(
                 perms_url = f"{organization.grafana_url}/api/access-control/user/permissions"
                 httpretty.register_uri(httpretty.GET, perms_url, responses=[mock_response])
             else:
-                # setup Grafana API permissions response
-                # role is given by specific perms
-                permissions = {}
-                if role == LegacyAccessControlRole.ADMIN:
-                    permissions = {"plugins:write": "value"}
-                elif role == LegacyAccessControlRole.EDITOR:
-                    permissions = {"dashboards:write": "value"}
-                elif role == LegacyAccessControlRole.VIEWER:
-                    permissions = {"dashboards:read": "value"}
-
-                mock_response = httpretty.Response(status=200, body=json.dumps(permissions))
-                perms_url = f"{organization.grafana_url}/api/access-control/user/permissions"
-                httpretty.register_uri(httpretty.GET, perms_url, responses=[mock_response])
-
-                # check what the minimum required role for the perms is
-                required_role = get_most_authorized_role(required_perms)
-                # set expected depending on the user's role
-                expected = status.HTTP_200_OK if role <= required_role else status.HTTP_403_FORBIDDEN
+                # service account auth is disabled
+                expected = status.HTTP_403_FORBIDDEN
 
             # iterate over all viewset actions, making an API request for each,
             # using the user's token and confirming the response status code

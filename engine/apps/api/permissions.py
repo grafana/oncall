@@ -18,11 +18,6 @@ if typing.TYPE_CHECKING:
 RBAC_PERMISSIONS_ATTR = "rbac_permissions"
 RBAC_OBJECT_PERMISSIONS_ATTR = "rbac_object_permissions"
 
-# Using default permissions as proxies for roles since
-# we cannot explicitly get role from the service account token
-PLUGINS_WRITE = "plugins:write"
-DASHBOARDS_WRITE = "dashboards:write"
-DASHBOARDS_READ = "dashboards:read"
 
 ViewSetOrAPIView = typing.Union[ViewSet, APIView]
 

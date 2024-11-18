@@ -112,8 +112,29 @@ def test_grafana_authentication_invalid_grafana_url():
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
+def test_grafana_authentication_rbac_disabled_fails(make_organization):
+    organization = make_organization(grafana_url="http://grafana.test")
+    if organization.is_rbac_permissions_enabled:
+        return
+
+    token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
+    headers = {
+        "HTTP_AUTHORIZATION": token,
+        "HTTP_X_GRAFANA_URL": organization.grafana_url,
+    }
+    request = APIRequestFactory().get("/", **headers)
+
+    with pytest.raises(exceptions.AuthenticationFailed) as exc:
+        GrafanaServiceAccountAuthentication().authenticate(request)
+    assert exc.value.detail == "Invalid token."
+
+
+@pytest.mark.django_db
+@httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_permissions_call_fails(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
+    if not organization.is_rbac_permissions_enabled:
+        return
 
     token = f"{ServiceAccountToken.GRAFANA_SA_PREFIX}xyz"
     headers = {
@@ -140,19 +161,12 @@ def test_grafana_authentication_permissions_call_fails(make_organization):
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-@pytest.mark.parametrize(
-    "permissions, expected_role",
-    [
-        ({"plugins:write": "value"}, LegacyAccessControlRole.ADMIN),
-        ({"dashboards:write": "value"}, LegacyAccessControlRole.EDITOR),
-        ({"dashboards:read": "value"}, LegacyAccessControlRole.VIEWER),
-        ({"some-perm": "value"}, LegacyAccessControlRole.NONE),
-    ],
-)
 def test_grafana_authentication_existing_token(
-    make_organization, make_service_account_for_organization, make_token_for_service_account, permissions, expected_role
+    make_organization, make_service_account_for_organization, make_token_for_service_account
 ):
     organization = make_organization(grafana_url="http://grafana.test")
+    if not organization.is_rbac_permissions_enabled:
+        return
     service_account = make_service_account_for_organization(organization)
     token_string = "glsa_the-token"
     token = make_token_for_service_account(service_account, token_string)
@@ -164,7 +178,7 @@ def test_grafana_authentication_existing_token(
     request = APIRequestFactory().get("/", **headers)
 
     # setup Grafana API responses
-    setup_service_account_api_mocks(organization, permissions)
+    setup_service_account_api_mocks(organization, {"some-perm": "value"})
 
     user, auth_token = GrafanaServiceAccountAuthentication().authenticate(request)
 
@@ -172,10 +186,7 @@ def test_grafana_authentication_existing_token(
     assert user.service_account == service_account
     assert user.public_primary_key == service_account.public_primary_key
     assert user.username == service_account.username
-    if not organization.is_rbac_permissions_enabled:
-        assert user.role == expected_role
-    else:
-        assert user.role == LegacyAccessControlRole.NONE
+    assert user.role == LegacyAccessControlRole.NONE
     assert auth_token == token
 
     last_request = httpretty.last_request()
@@ -188,17 +199,10 @@ def test_grafana_authentication_existing_token(
 
 @pytest.mark.django_db
 @httpretty.activate(verbose=True, allow_net_connect=False)
-@pytest.mark.parametrize(
-    "permissions, expected_role",
-    [
-        ({"plugins:write": "value"}, LegacyAccessControlRole.ADMIN),
-        ({"dashboards:write": "value"}, LegacyAccessControlRole.EDITOR),
-        ({"dashboards:read": "value"}, LegacyAccessControlRole.VIEWER),
-        ({"some-perm": "value"}, LegacyAccessControlRole.NONE),
-    ],
-)
-def test_grafana_authentication_token_created(make_organization, permissions, expected_role):
+def test_grafana_authentication_token_created(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
+    if not organization.is_rbac_permissions_enabled:
+        return
     token_string = "glsa_the-token"
 
     headers = {
@@ -208,6 +212,7 @@ def test_grafana_authentication_token_created(make_organization, permissions, ex
     request = APIRequestFactory().get("/", **headers)
 
     # setup Grafana API responses
+    permissions = {"some-perm": "value"}
     user_data = {"login": "some-login", "uid": "service-account:42"}
     setup_service_account_api_mocks(organization, permissions, user_data)
 
@@ -220,10 +225,7 @@ def test_grafana_authentication_token_created(make_organization, permissions, ex
     assert user.username == service_account.username
     assert service_account.grafana_id == 42
     assert service_account.login == "some-login"
-    if not organization.is_rbac_permissions_enabled:
-        assert user.role == expected_role
-    else:
-        assert user.role == LegacyAccessControlRole.NONE
+    assert user.role == LegacyAccessControlRole.NONE
     assert user.permissions == [{"action": p} for p in permissions]
     assert auth_token.service_account == user.service_account
 
@@ -241,6 +243,8 @@ def test_grafana_authentication_token_created(make_organization, permissions, ex
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_token_created_older_grafana(make_organization):
     organization = make_organization(grafana_url="http://grafana.test")
+    if not organization.is_rbac_permissions_enabled:
+        return
     token_string = "glsa_the-token"
 
     headers = {
@@ -269,6 +273,8 @@ def test_grafana_authentication_token_created_older_grafana(make_organization):
 @httpretty.activate(verbose=True, allow_net_connect=False)
 def test_grafana_authentication_token_reuse_service_account(make_organization, make_service_account_for_organization):
     organization = make_organization(grafana_url="http://grafana.test")
+    if not organization.is_rbac_permissions_enabled:
+        return
     service_account = make_service_account_for_organization(organization)
     token_string = "glsa_the-token"
 
