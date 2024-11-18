@@ -34,7 +34,7 @@ if typing.TYPE_CHECKING:
     )
     from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import CustomOnCallShift, OnCallSchedule
-    from apps.slack.models import SlackTeamIdentity
+    from apps.slack.models import SlackChannel, SlackTeamIdentity
     from apps.telegram.models import TelegramToOrganizationConnector
     from apps.user_management.models import Region, Team, User
 
@@ -89,6 +89,7 @@ class Organization(MaintainableObject):
     alert_receive_channels: "RelatedManager['AlertReceiveChannel']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
     custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
+    default_slack_channel: typing.Optional["SlackChannel"]
     migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
@@ -102,25 +103,6 @@ class Organization(MaintainableObject):
 
     objects: models.Manager["Organization"] = OrganizationManager()
     objects_with_deleted = models.Manager()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.subscription_strategy = self._get_subscription_strategy()
-
-    def delete(self):
-        if settings.FEATURE_MULTIREGION_ENABLED:
-            unregister_oncall_tenant(str(self.uuid), settings.ONCALL_BACKEND_REGION)
-            if self.slack_team_identity and not settings.UNIFIED_SLACK_APP_ENABLED:
-                unlink_slack_team(str(self.uuid), self.slack_team_identity.slack_id)
-        self.deleted_at = timezone.now()
-        self.save(update_fields=["deleted_at"])
-
-    def hard_delete(self):
-        super().delete()
-
-    def _get_subscription_strategy(self):
-        if self.pricing_version == self.FREE_PUBLIC_BETA_PRICING:
-            return FreePublicBetaSubscriptionStrategy(self)
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -181,8 +163,15 @@ class Organization(MaintainableObject):
         "slack.SlackTeamIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="organizations"
     )
 
-    # Slack specific field with general log channel id
+    # TODO: drop this field in a subsequent release, this has been migrated to default_slack_channel field
     general_log_channel_id = models.CharField(max_length=100, null=True, default=None)
+    default_slack_channel = models.ForeignKey(
+        "slack.SlackChannel",
+        null=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 
     # uuid used to unuqie identify organization in different clusters
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -259,8 +248,29 @@ class Organization(MaintainableObject):
     alert_group_table_columns: list[AlertGroupTableColumn] | None = JSONField(default=None, null=True)
     grafana_incident_backend_url = models.CharField(max_length=300, null=True, default=None)
 
+    direct_paging_prefer_important_policy = models.BooleanField(default=False, null=True)
+
     class Meta:
         unique_together = ("stack_id", "org_id")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.subscription_strategy = self._get_subscription_strategy()
+
+    def delete(self):
+        if settings.FEATURE_MULTIREGION_ENABLED:
+            unregister_oncall_tenant(str(self.uuid), settings.ONCALL_BACKEND_REGION)
+            if self.slack_team_identity and not settings.UNIFIED_SLACK_APP_ENABLED:
+                unlink_slack_team(str(self.uuid), self.slack_team_identity.slack_id)
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["deleted_at"])
+
+    def hard_delete(self):
+        super().delete()
+
+    def _get_subscription_strategy(self):
+        if self.pricing_version == self.FREE_PUBLIC_BETA_PRICING:
+            return FreePublicBetaSubscriptionStrategy(self)
 
     def provision_plugin(self) -> ProvisionedPlugin:
         from apps.auth_token.models import PluginAuthToken
@@ -299,20 +309,20 @@ class Organization(MaintainableObject):
             self.alert_group_table_columns = columns
             self.save(update_fields=["alert_group_table_columns"])
 
-    def set_general_log_channel(self, channel_id, channel_name, user):
-        if self.general_log_channel_id != channel_id:
-            old_general_log_channel_id = self.slack_team_identity.cached_channels.filter(
-                slack_id=self.general_log_channel_id
-            ).first()
-            old_channel_name = old_general_log_channel_id.name if old_general_log_channel_id else None
-            self.general_log_channel_id = channel_id
-            self.save(update_fields=["general_log_channel_id"])
+    def set_default_slack_channel(self, slack_channel: "SlackChannel", user: "User") -> None:
+        if self.default_slack_channel != slack_channel:
+            old_default_slack_channel = self.default_slack_channel
+            old_channel_name = old_default_slack_channel.name if old_default_slack_channel else None
+
+            self.default_slack_channel = slack_channel
+            self.save(update_fields=["default_slack_channel"])
+
             write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
                 chatops_type=ChatOpsTypePlug.SLACK.value,
                 prev_channel=old_channel_name,
-                new_channel=channel_name,
+                new_channel=slack_channel.name,
             )
 
     def get_notifiable_direct_paging_integrations(self) -> "RelatedManager['AlertReceiveChannel']":
@@ -345,6 +355,10 @@ class Organization(MaintainableObject):
             )
             .distinct()
         )
+
+    @property
+    def default_slack_channel_slack_id(self) -> typing.Optional[str]:
+        return self.default_slack_channel.slack_id if self.default_slack_channel else None
 
     @property
     def web_link_with_uuid(self):

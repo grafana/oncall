@@ -2,13 +2,21 @@ from rest_framework import fields, serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
-from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import (
+    OrganizationFilteredPrimaryKeyRelatedField,
+    SlackChannelsFilteredByOrganizationSlackWorkspaceField,
+)
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import valid_jinja_template_for_serializer_method_field
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.ordered_model.serializer import OrderedModelSerializer
 from common.utils import is_regex_valid
+
+
+class SlackSerializer(serializers.Serializer):
+    channel_id = SlackChannelsFilteredByOrganizationSlackWorkspaceField(required=False, allow_null=True)
+    enabled = serializers.BooleanField(required=False, allow_null=True)
 
 
 class BaseChannelFilterSerializer(OrderedModelSerializer):
@@ -25,13 +33,19 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
             self._declared_fields[field] = serializers.DictField(required=False)
             self.Meta.fields.append(field)
 
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        result["slack"] = {"channel_id": instance.slack_channel_id, "enabled": bool(instance.notify_in_slack)}
-        result["telegram"] = {
-            "id": instance.telegram_channel.public_primary_key if instance.telegram_channel else None,
-            "enabled": bool(instance.notify_in_telegram),
+    def to_representation(self, instance: ChannelFilter):
+        result = {
+            **super().to_representation(instance),
+            "slack": {
+                "channel_id": instance.slack_channel_slack_id,
+                "enabled": bool(instance.notify_in_slack),
+            },
+            "telegram": {
+                "id": instance.telegram_channel.public_primary_key if instance.telegram_channel else None,
+                "enabled": bool(instance.notify_in_telegram),
+            },
         }
+
         # add representation for other messaging backends
         for backend_id, backend in get_messaging_backends():
             if backend is None:
@@ -45,18 +59,16 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
             result[field] = {"id": channel_id, "enabled": notification_enabled}
         return result
 
-    def _correct_validated_data(self, validated_data):
+    def _correct_validated_data(self, validated_data: dict) -> dict:
         organization = self.context["request"].auth.organization
 
-        slack_field = validated_data.pop("slack", {})
-        if slack_field:
+        if slack_field := validated_data.pop("slack", {}):
             if "channel_id" in slack_field:
-                validated_data["slack_channel_id"] = self._validate_slack_channel_id(slack_field.get("channel_id"))
+                validated_data["slack_channel"] = slack_field["channel_id"]
             if "enabled" in slack_field:
-                validated_data["notify_in_slack"] = bool(slack_field.get("enabled"))
+                validated_data["notify_in_slack"] = slack_field["enabled"]
 
-        telegram_field = validated_data.pop("telegram", {})
-        if telegram_field:
+        if telegram_field := validated_data.pop("telegram", {}):
             if "id" in telegram_field:
                 validated_data["telegram_channel"] = self._validate_telegram_channel(telegram_field.get("id"))
             if "enabled" in telegram_field:
@@ -78,22 +90,8 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
                 notification_backends[backend_id] = notification_backend
         if notification_backends:
             validated_data["notification_backends"] = notification_backends
+
         return validated_data
-
-    def _validate_slack_channel_id(self, slack_channel_id):
-        from apps.slack.models import SlackChannel
-
-        if slack_channel_id is not None:
-            slack_channel_id = slack_channel_id.upper()
-            organization = self.context["request"].auth.organization
-            slack_team_identity = organization.slack_team_identity
-            if not slack_team_identity:
-                raise BadRequest(detail="Slack isn't connected to this workspace")
-            try:
-                slack_team_identity.get_cached_channels().get(slack_id=slack_channel_id)
-            except SlackChannel.DoesNotExist:
-                raise BadRequest(detail="Slack channel does not exist")
-        return slack_channel_id
 
     def _validate_telegram_channel(self, telegram_channel_id):
         from apps.telegram.models import TelegramToOrganizationConnector
@@ -132,7 +130,7 @@ class RoutingTypeField(fields.CharField):
 
 class ChannelFilterSerializer(EagerLoadingMixin, BaseChannelFilterSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    slack = serializers.DictField(required=False)
+    slack = SlackSerializer(required=False)
     telegram = serializers.DictField(required=False)
     routing_type = RoutingTypeField(allow_null=False, required=False, source="filtering_term_type")
     routing_regex = serializers.CharField(allow_null=False, required=True, source="filtering_term")
@@ -147,7 +145,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, BaseChannelFilterSerializer):
 
     is_the_last_route = serializers.BooleanField(read_only=True, source="is_default")
 
-    SELECT_RELATED = ["alert_receive_channel", "escalation_chain"]
+    SELECT_RELATED = ["alert_receive_channel", "escalation_chain", "slack_channel"]
 
     class Meta:
         model = ChannelFilter
@@ -214,7 +212,7 @@ class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
 
 class DefaultChannelFilterSerializer(BaseChannelFilterSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    slack = serializers.DictField(required=False)
+    slack = SlackSerializer(required=False)
     telegram = serializers.DictField(required=False)
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects,

@@ -36,7 +36,10 @@ def test_get_organization(
 
     client = APIClient()
     url = reverse("api-internal:api-organization")
-    expected_result = {
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
         "pk": organization.public_primary_key,
         "name": organization.org_title,
         "stack_slug": organization.stack_slug,
@@ -44,13 +47,12 @@ def test_get_organization(
         "slack_channel": None,
         "rbac_enabled": organization.is_rbac_permissions_enabled,
         "grafana_incident_enabled": organization.is_grafana_incident_enabled,
+        "grafana_irm_enabled": organization.is_grafana_irm_enabled,
+        "direct_paging_prefer_important_policy": organization.direct_paging_prefer_important_policy,
         "is_resolution_note_required": False,
         "env_status": mock_env_status,
         "banner": mock_banner,
     }
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected_result
 
 
 @pytest.mark.django_db
@@ -69,13 +71,40 @@ def test_get_organization_rbac_enabled(make_organization_and_user_with_plugin_to
     assert response.json()["rbac_enabled"] == organization.is_rbac_permissions_enabled
 
 
+# NOTE: we need to patch the following because when is_grafana_irm_enabled is True, it alters how
+# API authz works. For the purpose of this test, we don't care about testing that behaviour (it's already tested),
+# just want to test the serializer essentially.
+@patch("apps.api.permissions.user_is_authorized", return_value=True)
+@pytest.mark.django_db
+@pytest.mark.parametrize("is_grafana_irm_enabled", [True, False])
+def test_get_organization_grafana_irm_enabled(
+    _mock_user_is_authorized,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    is_grafana_irm_enabled,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization.is_grafana_irm_enabled = is_grafana_irm_enabled
+    organization.save()
+
+    client = APIClient()
+    url = reverse("api-internal:api-organization")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["grafana_irm_enabled"] is is_grafana_irm_enabled
+
+
 @pytest.mark.django_db
 def test_update_organization_settings(make_organization_and_user_with_plugin_token, make_user_auth_headers):
     organization, user, token = make_organization_and_user_with_plugin_token()
 
     client = APIClient()
     url = reverse("api-internal:api-organization")
-    data = {"is_resolution_note_required": True}
+    data = {
+        "is_resolution_note_required": True,
+        "direct_paging_prefer_important_policy": True,
+    }
 
     assert organization.is_resolution_note_required is False
 
@@ -83,6 +112,7 @@ def test_update_organization_settings(make_organization_and_user_with_plugin_tok
     assert response.status_code == status.HTTP_200_OK
     organization.refresh_from_db()
     assert organization.is_resolution_note_required is True
+    assert organization.direct_paging_prefer_important_policy is True
 
 
 @pytest.mark.django_db
@@ -235,6 +265,7 @@ def test_organization_get_channel_verification_code_invalid(
 @pytest.mark.django_db
 def test_get_organization_slack_config_checks(
     make_organization_and_user_with_plugin_token,
+    make_slack_channel,
     make_slack_team_identity,
     make_alert_receive_channel,
     make_channel_filter,
@@ -278,7 +309,7 @@ def test_get_organization_slack_config_checks(
     assert response.json() == expected_result
 
     # connect integration to Slack (set a channel)
-    channel_filter.slack_channel_id = "C123456"
+    channel_filter.slack_channel = make_slack_channel(slack_team_identity)
     channel_filter.save()
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

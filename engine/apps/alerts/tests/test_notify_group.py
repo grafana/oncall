@@ -16,12 +16,14 @@ def test_notify_group(
     make_escalation_chain,
     make_escalation_policy,
     make_channel_filter,
+    make_slack_channel,
     make_slack_user_group,
     make_alert_receive_channel,
     make_alert_group,
 ):
     organization = make_organization()
     slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
     organization.slack_team_identity = slack_team_identity
     organization.save()
 
@@ -40,7 +42,7 @@ def test_notify_group(
         alert_receive_channel,
         escalation_chain=escalation_chain,
         notify_in_slack=True,
-        slack_channel_id="slack-channel-id",
+        slack_channel=slack_channel,
     )
     usergroup = make_slack_user_group(slack_team_identity)
     # note this is the only escalation step, with order=1

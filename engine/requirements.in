@@ -4,8 +4,7 @@ celery[redis]==5.3.1
 cryptography==43.0.1
 django==4.2.16
 django-add-default-value==0.10.0
-django-amazon-ses==4.0.1
-django-anymail==11.1
+django-anymail[amazon-ses]==12.0
 django-cors-headers==3.7.0
 # pyroscope-io==0.8.1
 django-dbconn-retry==0.1.7

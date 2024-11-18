@@ -353,6 +353,10 @@ SPECTACULAR_INCLUDED_PATHS = [
     "/alertgroups",
     "/alert_receive_channels",
     "/webhooks",
+    "/channel_filters",
+    "/escalation_chains",
+    "/escalation_policies",
+    "/notification_policies",
     # current user endpoint 👇, without trailing slash we pick-up /user_group endpoints, which we don't want for now
     "/user/",
     "/users",
@@ -863,6 +867,7 @@ if FEATURE_EMAIL_INTEGRATION_ENABLED:
 INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
 INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
+INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = os.getenv("INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     # Featured

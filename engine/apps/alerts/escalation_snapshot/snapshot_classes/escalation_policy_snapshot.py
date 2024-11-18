@@ -20,10 +20,13 @@ from apps.alerts.tasks import (
 )
 from apps.alerts.utils import is_declare_incident_step_enabled
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
-from apps.user_management.models import User
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models.alert_group import AlertGroup
+    from apps.schedules.models import OnCallSchedule
+    from apps.slack.models import SlackUserGroup
+    from apps.user_management.models import Team, User
+    from apps.webhooks.models import Webhook
 
 
 class EscalationPolicySnapshot:
@@ -57,24 +60,24 @@ class EscalationPolicySnapshot:
 
     def __init__(
         self,
-        id,
-        order,
-        step,
-        wait_delay,
-        notify_to_users_queue,
-        last_notified_user,
-        from_time,
-        to_time,
-        num_alerts_in_window,
-        num_minutes_in_window,
-        custom_webhook,
-        notify_schedule,
-        notify_to_group,
-        escalation_counter,
-        passed_last_time,
-        pause_escalation,
-        notify_to_team_members=None,
-        severity=None,
+        id: int,
+        order: int,
+        step: int,
+        wait_delay: typing.Optional[datetime.timedelta],
+        notify_to_users_queue: typing.Optional[typing.Sequence["User"]],
+        last_notified_user: typing.Optional["User"],
+        from_time: typing.Optional[datetime.time],
+        to_time: typing.Optional[datetime.time],
+        num_alerts_in_window: typing.Optional[int],
+        num_minutes_in_window: typing.Optional[int],
+        custom_webhook: typing.Optional["Webhook"],
+        notify_schedule: typing.Optional["OnCallSchedule"],
+        notify_to_group: typing.Optional["SlackUserGroup"],
+        escalation_counter: int,
+        passed_last_time: typing.Optional[datetime.datetime],
+        pause_escalation: bool,
+        notify_to_team_members: typing.Optional["Team"] = None,
+        severity: typing.Optional[str] = None,
     ):
         self.id = id
         self.order = order
@@ -107,11 +110,11 @@ class EscalationPolicySnapshot:
         return EscalationPolicy.objects.filter(pk=self.id).first()
 
     @property
-    def sorted_users_queue(self) -> typing.List[User]:
+    def sorted_users_queue(self) -> typing.List["User"]:
         return sorted(self.notify_to_users_queue, key=lambda user: (user.username or "", user.pk))
 
     @property
-    def next_user_in_sorted_queue(self) -> User:
+    def next_user_in_sorted_queue(self) -> "User":
         users_queue = self.sorted_users_queue
         try:
             last_user_index = users_queue.index(self.last_notified_user)
@@ -120,7 +123,7 @@ class EscalationPolicySnapshot:
         next_user = users_queue[(last_user_index + 1) % len(users_queue)]
         return next_user
 
-    def execute(self, alert_group: "AlertGroup", reason) -> StepExecutionResultData:
+    def execute(self, alert_group: "AlertGroup", reason: str) -> StepExecutionResultData:
         action_map: typing.Dict[typing.Optional[int], EscalationPolicySnapshot.StepExecutionFunc] = {
             EscalationPolicy.STEP_WAIT: self._escalation_step_wait,
             EscalationPolicy.STEP_FINAL_NOTIFYALL: self._escalation_step_notify_all,

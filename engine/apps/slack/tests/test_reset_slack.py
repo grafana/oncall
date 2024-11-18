@@ -9,7 +9,11 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import OnCallScheduleWeb
-from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
+from apps.slack.tasks import (
+    clean_slack_channel_leftovers,
+    clean_slack_integration_leftovers,
+    unpopulate_slack_user_identities,
+)
 from apps.user_management.models import User
 
 
@@ -39,22 +43,82 @@ def test_reset_slack_integration_permissions(
 
 
 @pytest.mark.django_db
-def test_clean_slack_integration_leftovers(
-    make_organization_with_slack_team_identity,
+def test_clean_slack_channel_leftovers(
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
     make_alert_receive_channel,
     make_channel_filter,
     make_slack_user_group,
     make_schedule,
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
 
     # create channel filter with Slack channel
     alert_receive_channel = make_alert_receive_channel(organization)
-    channel_filter = make_channel_filter(alert_receive_channel, slack_channel_id="test")
+    channel_filter = make_channel_filter(alert_receive_channel, slack_channel=slack_channel)
 
     # create schedule with Slack channel and user group
     user_group = make_slack_user_group(slack_team_identity)
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, channel="test", user_group=user_group)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        slack_channel=slack_channel,
+        user_group=user_group,
+    )
+
+    assert channel_filter.slack_channel == slack_channel
+    assert schedule.slack_channel == slack_channel
+    assert schedule.user_group == user_group
+    assert organization.default_slack_channel_slack_id == slack_channel.slack_id
+
+    # clean Slack channel leftovers
+    clean_slack_channel_leftovers(slack_team_identity.pk, slack_channel.slack_id)
+    channel_filter.refresh_from_db()
+    schedule.refresh_from_db()
+    organization.refresh_from_db()
+
+    # check that references to Slack objects are removed
+    assert channel_filter.slack_channel is None
+    assert organization.default_slack_channel is None
+
+    # NOTE: user groups shouldn't be updated for schedules, only the channel
+    assert schedule.slack_channel is None
+    assert schedule.user_group == user_group
+
+
+@pytest.mark.django_db
+def test_clean_slack_integration_leftovers(
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_slack_user_group,
+    make_schedule,
+):
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
+
+    # create channel filter with Slack channel
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, slack_channel=slack_channel)
+
+    # create schedule with Slack channel and user group
+    user_group = make_slack_user_group(slack_team_identity)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        slack_channel=slack_channel,
+        user_group=user_group,
+    )
+
+    assert channel_filter.slack_channel == slack_channel
+    assert schedule.slack_channel == slack_channel
+    assert schedule.user_group == user_group
 
     # clean Slack integration leftovers
     clean_slack_integration_leftovers(organization.pk)
@@ -62,17 +126,26 @@ def test_clean_slack_integration_leftovers(
     schedule.refresh_from_db()
 
     # check that references to Slack objects are removed
-    assert channel_filter.slack_channel_id is None
-    assert schedule.channel is None
+    assert channel_filter.slack_channel is None
+    assert schedule.slack_channel is None
     assert schedule.user_group is None
 
 
 @pytest.mark.django_db
 def test_unpopulate_slack_user_identities(
-    make_organization_and_user_with_slack_identities, make_user_with_slack_user_identity
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_user_for_organization,
+    make_user_with_slack_user_identity,
 ):
     # create organization and user with Slack connected
-    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
+    user = make_user_for_organization(organization)
+
+    assert organization.default_slack_channel_slack_id is not None
 
     # create & delete user with Slack connected
     deleted_user, _ = make_user_with_slack_user_identity(slack_team_identity, organization)
@@ -90,4 +163,32 @@ def test_unpopulate_slack_user_identities(
 
     # check that Slack specific info is reset for organization
     assert organization.slack_team_identity is None
-    assert organization.general_log_channel_id is None
+    assert organization.default_slack_channel_slack_id is None
+
+
+@pytest.mark.django_db
+def test_delete_slack_channel_and_cascade_deletes(
+    make_slack_team_identity,
+    make_slack_channel,
+    make_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_schedule,
+):
+    slack_team_identity = make_slack_team_identity()
+    slack_channel = make_slack_channel(slack_team_identity)
+    organization = make_organization(slack_team_identity=slack_team_identity, default_slack_channel=slack_channel)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, slack_channel=slack_channel)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, slack_channel=slack_channel)
+
+    assert channel_filter.slack_channel == slack_channel
+    assert schedule.slack_channel == slack_channel
+
+    slack_channel.delete()
+    channel_filter.refresh_from_db()
+    schedule.refresh_from_db()
+
+    assert channel_filter.slack_channel is None
+    assert schedule.slack_channel is None
