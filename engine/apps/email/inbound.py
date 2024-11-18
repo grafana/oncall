@@ -1,27 +1,42 @@
 import logging
+from functools import cached_property
 from typing import Optional, TypedDict
 
-from anymail.exceptions import AnymailInvalidAddress, AnymailWebhookValidationFailure
+from anymail.exceptions import AnymailAPIError, AnymailInvalidAddress, AnymailWebhookValidationFailure
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.base.utils import live_settings
+from apps.email.validate_amazon_sns_message import validate_amazon_sns_message
 from apps.integrations.mixins import AlertChannelDefiningMixin
 from apps.integrations.tasks import create_alert
 
 logger = logging.getLogger(__name__)
 
 
+class AmazonSESValidatedInboundWebhookView(amazon_ses.AmazonSESInboundWebhookView):
+    # disable "Your Anymail webhooks are insecure and open to anyone on the web." warning
+    warn_if_no_basic_auth = False
+
+    def validate_request(self, request):
+        """Add SNS message validation to Amazon SES inbound webhook view, which is not implemented in Anymail."""
+
+        super().validate_request(request)
+        sns_message = self._parse_sns_message(request)
+        if not validate_amazon_sns_message(sns_message):
+            raise AnymailWebhookValidationFailure("SNS message validation failed")
+
+
 # {<ESP name>: (<django-anymail inbound webhook view class>, <webhook secret argument name to pass to the view>), ...}
 INBOUND_EMAIL_ESP_OPTIONS = {
     "amazon_ses": (amazon_ses.AmazonSESInboundWebhookView, None),
+    "amazon_ses_validated": (AmazonSESValidatedInboundWebhookView, None),
     "mailgun": (mailgun.MailgunInboundWebhookView, "webhook_signing_key"),
     "mailjet": (mailjet.MailjetInboundWebhookView, "webhook_secret"),
     "mandrill": (mandrill.MandrillCombinedWebhookView, "webhook_key"),
@@ -62,38 +77,33 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         return super().dispatch(request, alert_channel_key=integration_token)
 
     def post(self, request):
-        timestamp = timezone.now().isoformat()
-        for message in self.get_messages_from_esp_request(request):
-            payload = self.get_alert_payload_from_email_message(message)
-            create_alert.delay(
-                title=payload["subject"],
-                message=payload["message"],
-                alert_receive_channel_pk=request.alert_receive_channel.pk,
-                image_url=None,
-                link_to_upstream_details=None,
-                integration_unique_data=None,
-                raw_request_data=payload,
-                received_at=timestamp,
-            )
-
+        payload = self.get_alert_payload_from_email_message(self.message)
+        create_alert.delay(
+            title=payload["subject"],
+            message=payload["message"],
+            alert_receive_channel_pk=request.alert_receive_channel.pk,
+            image_url=None,
+            link_to_upstream_details=None,
+            integration_unique_data=None,
+            raw_request_data=payload,
+            received_at=timezone.now().isoformat(),
+        )
         return Response("OK", status=status.HTTP_200_OK)
 
     def get_integration_token_from_request(self, request) -> Optional[str]:
-        messages = self.get_messages_from_esp_request(request)
-        if not messages:
+        if not self.message:
             return None
-        message = messages[0]
         # First try envelope_recipient field.
         # According to AnymailInboundMessage it's provided not by all ESPs.
-        if message.envelope_recipient:
-            recipients = message.envelope_recipient.split(",")
+        if self.message.envelope_recipient:
+            recipients = self.message.envelope_recipient.split(",")
             for recipient in recipients:
                 # if there is more than one recipient, the first matching the expected domain will be used
                 try:
                     token, domain = recipient.strip().split("@")
                 except ValueError:
                     logger.error(
-                        f"get_integration_token_from_request: envelope_recipient field has unexpected format: {message.envelope_recipient}"
+                        f"get_integration_token_from_request: envelope_recipient field has unexpected format: {self.message.envelope_recipient}"
                     )
                     continue
                 if domain == live_settings.INBOUND_EMAIL_DOMAIN:
@@ -113,20 +123,27 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         #         return cc.address.split("@")[0]
         return None
 
-    def get_messages_from_esp_request(self, request: Request) -> list[AnymailInboundMessage]:
-        view_class, secret_name = INBOUND_EMAIL_ESP_OPTIONS[live_settings.INBOUND_EMAIL_ESP]
+    @cached_property
+    def message(self) -> AnymailInboundMessage | None:
+        esps = live_settings.INBOUND_EMAIL_ESP.split(",")
+        for esp in esps:
+            view_class, secret_name = INBOUND_EMAIL_ESP_OPTIONS[esp]
 
-        kwargs = {secret_name: live_settings.INBOUND_EMAIL_WEBHOOK_SECRET} if secret_name else {}
-        view = view_class(**kwargs)
+            kwargs = {secret_name: live_settings.INBOUND_EMAIL_WEBHOOK_SECRET} if secret_name else {}
+            view = view_class(**kwargs)
 
-        try:
-            view.run_validators(request)
-            events = view.parse_events(request)
-        except AnymailWebhookValidationFailure as e:
-            logger.info(f"get_messages_from_esp_request: inbound email webhook validation failed: {e}")
-            return []
+            try:
+                view.run_validators(self.request)
+                events = view.parse_events(self.request)
+            except (AnymailWebhookValidationFailure, AnymailAPIError) as e:
+                logger.info(f"inbound email webhook validation failed for ESP {esp}: {e}")
+                continue
 
-        return [event.message for event in events if isinstance(event, AnymailInboundEvent)]
+            messages = [event.message for event in events if isinstance(event, AnymailInboundEvent)]
+            if messages:
+                return messages[0]
+
+        return None
 
     def check_inbound_email_settings_set(self):
         """
