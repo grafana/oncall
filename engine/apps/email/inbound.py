@@ -2,6 +2,7 @@ import logging
 from functools import cached_property
 from typing import Optional, TypedDict
 
+import requests
 from anymail.exceptions import AnymailAPIError, AnymailInvalidAddress, AnymailWebhookValidationFailure
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
@@ -26,11 +27,13 @@ class AmazonSESValidatedInboundWebhookView(amazon_ses.AmazonSESInboundWebhookVie
 
     def validate_request(self, request):
         """Add SNS message validation to Amazon SES inbound webhook view, which is not implemented in Anymail."""
-
-        super().validate_request(request)
-        sns_message = self._parse_sns_message(request)
-        if not validate_amazon_sns_message(sns_message):
+        if not validate_amazon_sns_message(self._parse_sns_message(request)):
             raise AnymailWebhookValidationFailure("SNS message validation failed")
+
+    def auto_confirm_sns_subscription(self, sns_message):
+        """This method is called after validate_request, so we can be sure that the message is valid."""
+        response = requests.get(sns_message["SubscribeURL"])
+        response.raise_for_status()
 
 
 # {<ESP name>: (<django-anymail inbound webhook view class>, <webhook secret argument name to pass to the view>), ...}
