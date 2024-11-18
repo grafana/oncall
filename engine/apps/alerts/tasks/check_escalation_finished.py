@@ -180,7 +180,7 @@ def check_personal_notifications_task() -> None:
 def retry_audited_alert_group(alert_group) -> bool:
     cache_key = f"audited-alert-group-retry-count-{alert_group.id}"
     retry_count = cache.get(cache_key, 0)
-    if retry_count > settings.AUDITED_ALERT_GROUP_MAX_RETRIES:
+    if retry_count >= settings.AUDITED_ALERT_GROUP_MAX_RETRIES:
         task_logger.info(f"Not retrying audited alert_group={alert_group.id} max retries exceeded.")
         return False
 
