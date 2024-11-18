@@ -47,6 +47,10 @@ CERTIFICATE = (
 )
 AMAZON_SNS_TOPIC_ARN = "arn:aws:sns:us-east-2:123456789012:test"
 SIGNING_CERT_URL = "https://sns.us-east-2.amazonaws.com/SimpleNotificationService-example.pem"
+SENDER_EMAIL = "sender@example.com"
+TO_EMAIL = "test-token@inbound.example.com"
+SUBJECT = "Test email"
+MESSAGE = "This is a test email message body."
 
 
 def _sns_inbound_email_payload_and_headers(sender_email, to_email, subject, message):
@@ -439,15 +443,11 @@ def test_amazon_ses_pass(create_alert_mock, settings, make_organization, make_al
         token="test-token",
     )
 
-    sender_email = "sender@example.com"
-    to_email = "test-token@inbound.example.com"
-    subject = "Test email"
-    message = "This is a test email message body."
     sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
-        sender_email=sender_email,
-        to_email=to_email,
-        subject=subject,
-        message=message,
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
     )
 
     client = APIClient()
@@ -460,16 +460,16 @@ def test_amazon_ses_pass(create_alert_mock, settings, make_organization, make_al
 
     assert response.status_code == status.HTTP_200_OK
     create_alert_mock.assert_called_once_with(
-        title=subject,
-        message=message,
+        title=SUBJECT,
+        message=MESSAGE,
         alert_receive_channel_pk=alert_receive_channel.pk,
         image_url=None,
         link_to_upstream_details=None,
         integration_unique_data=None,
         raw_request_data={
-            "subject": subject,
-            "message": message,
-            "sender": sender_email,
+            "subject": SUBJECT,
+            "message": MESSAGE,
+            "sender": SENDER_EMAIL,
         },
         received_at=ANY,
     )
@@ -493,15 +493,11 @@ def test_amazon_ses_validated_pass(
         token="test-token",
     )
 
-    sender_email = "sender@example.com"
-    to_email = "test-token@inbound.example.com"
-    subject = "Test email"
-    message = "This is a test email message body."
     sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
-        sender_email=sender_email,
-        to_email=to_email,
-        subject=subject,
-        message=message,
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
     )
 
     client = APIClient()
@@ -514,20 +510,97 @@ def test_amazon_ses_validated_pass(
 
     assert response.status_code == status.HTTP_200_OK
     mock_create_alert.assert_called_once_with(
-        title=subject,
-        message=message,
+        title=SUBJECT,
+        message=MESSAGE,
         alert_receive_channel_pk=alert_receive_channel.pk,
         image_url=None,
         link_to_upstream_details=None,
         integration_unique_data=None,
         raw_request_data={
-            "subject": subject,
-            "message": message,
-            "sender": sender_email,
+            "subject": SUBJECT,
+            "message": MESSAGE,
+            "sender": SENDER_EMAIL,
         },
         received_at=ANY,
     )
 
+    mock_requests_get.assert_called_once_with(SIGNING_CERT_URL, timeout=5)
+
+
+@patch("requests.get", return_value=Mock(content=CERTIFICATE))
+@patch.object(create_alert, "delay")
+@pytest.mark.django_db
+def test_amazon_ses_validated_fail_wrong_sns_topic_arn(
+    mock_create_alert, mock_requests_get, settings, make_organization, make_alert_receive_channel
+):
+    settings.INBOUND_EMAIL_ESP = "amazon_ses_validated,mailgun"
+    settings.INBOUND_EMAIL_DOMAIN = "inbound.example.com"
+    settings.INBOUND_EMAIL_WEBHOOK_SECRET = "secret"
+    settings.INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = "arn:aws:sns:us-east-2:123456789013:test"
+
+    organization = make_organization()
+    make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
+        token="test-token",
+    )
+
+    sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
+    )
+
+    client = APIClient()
+    response = client.post(
+        reverse("integrations:inbound_email_webhook"),
+        data=sns_payload,
+        headers=sns_headers,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_create_alert.assert_not_called()
+    mock_requests_get.assert_not_called()
+
+
+@patch("requests.get", return_value=Mock(content=CERTIFICATE))
+@patch.object(create_alert, "delay")
+@pytest.mark.django_db
+def test_amazon_ses_validated_fail_wrong_signature(
+    mock_create_alert, mock_requests_get, settings, make_organization, make_alert_receive_channel
+):
+    settings.INBOUND_EMAIL_ESP = "amazon_ses_validated,mailgun"
+    settings.INBOUND_EMAIL_DOMAIN = "inbound.example.com"
+    settings.INBOUND_EMAIL_WEBHOOK_SECRET = "secret"
+    settings.INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = AMAZON_SNS_TOPIC_ARN
+
+    organization = make_organization()
+    make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
+        token="test-token",
+    )
+
+    sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
+    )
+    sns_payload["Signature"] = "invalid-signature"
+
+    client = APIClient()
+    response = client.post(
+        reverse("integrations:inbound_email_webhook"),
+        data=sns_payload,
+        headers=sns_headers,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    mock_create_alert.assert_not_called()
     mock_requests_get.assert_called_once_with(SIGNING_CERT_URL, timeout=5)
 
 
@@ -545,16 +618,11 @@ def test_mailgun_pass(create_alert_mock, settings, make_organization, make_alert
         token="test-token",
     )
 
-    sender_email = "sender@example.com"
-    to_email = "test-token@inbound.example.com"
-    subject = "Test email"
-    message = "This is a test email message body."
-
     mailgun_payload = _mailgun_inbound_email_payload(
-        sender_email=sender_email,
-        to_email=to_email,
-        subject=subject,
-        message=message,
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
     )
 
     client = APIClient()
@@ -566,16 +634,16 @@ def test_mailgun_pass(create_alert_mock, settings, make_organization, make_alert
 
     assert response.status_code == status.HTTP_200_OK
     create_alert_mock.assert_called_once_with(
-        title=subject,
-        message=message,
+        title=SUBJECT,
+        message=MESSAGE,
         alert_receive_channel_pk=alert_receive_channel.pk,
         image_url=None,
         link_to_upstream_details=None,
         integration_unique_data=None,
         raw_request_data={
-            "subject": subject,
-            "message": message,
-            "sender": sender_email,
+            "subject": SUBJECT,
+            "message": MESSAGE,
+            "sender": SENDER_EMAIL,
         },
         received_at=ANY,
     )
