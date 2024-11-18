@@ -152,6 +152,9 @@ class IncidentLogBuilder:
                     Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED)
                     & Q(notification_policy__step=UserNotificationPolicy.Step.WAIT)
                 )
+                | Q(
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
+                )
             )
             .select_related("author")
             .distinct()

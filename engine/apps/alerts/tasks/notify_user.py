@@ -526,6 +526,16 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
                 task_logger.debug(
                     f"send_slack_notification for alert_group {alert_group.pk} failed because slack posting is disabled."
                 )
+                UserNotificationPolicyLogRecord(
+                    author=user,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+                    notification_policy=notification_policy,
+                    reason="Prevented from posting in Slack",
+                    alert_group=alert_group,
+                    notification_step=notification_policy.step,
+                    notification_channel=notification_channel,
+                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
+                ).save()
                 return
 
             if alert_group.slack_message:
