@@ -1,8 +1,10 @@
 import typing
 from collections import OrderedDict
+from functools import partial
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import transaction
 from django.db.models import Q
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from jinja2 import TemplateSyntaxError
@@ -14,7 +16,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from apps.integrations.legacy_prefix import has_legacy_prefix
-from apps.labels.models import LabelKeyCache, LabelValueCache
+from apps.labels.models import AlertReceiveChannelAssociatedLabel, LabelKeyCache, LabelValueCache
 from apps.labels.types import LabelKey
 from apps.user_management.models import Organization
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -132,7 +134,13 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
         instance.labels.filter(~Q(key_id__in=inheritable_key_ids)).update(inheritable=False)
 
         # update DB cache for custom labels
-        cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
+        with transaction.atomic():
+            cls._create_custom_labels(instance.organization, alert_group_labels["custom"])
+        # save static labels as integration labels
+        # todo: it's needed to cover delay between backend and frontend rollout, and can be removed later
+        transaction.on_commit(
+            partial(cls._save_static_labels_as_integration_labels, instance, alert_group_labels["custom"])
+        )
         # update custom labels
         instance.alert_group_labels_custom = cls._custom_labels_to_internal_value(alert_group_labels["custom"])
 
@@ -169,6 +177,25 @@ class IntegrationAlertGroupLabelsSerializer(serializers.Serializer):
 
         LabelKeyCache.objects.bulk_create(label_keys, ignore_conflicts=True, batch_size=5000)
         LabelValueCache.objects.bulk_create(label_values, ignore_conflicts=True, batch_size=5000)
+
+    @staticmethod
+    def _save_static_labels_as_integration_labels(instance: AlertReceiveChannel, labels: AlertGroupCustomLabelsAPI):
+        labels_associations_to_create = []
+        labels_copy = labels[:]
+        for label in labels_copy:
+            if label["value"]["id"] is not None:
+                labels_associations_to_create.append(
+                    AlertReceiveChannelAssociatedLabel(
+                        key_id=label["key"]["id"],
+                        value_id=label["value"]["id"],
+                        organization=instance.organization,
+                        alert_receive_channel=instance,
+                    )
+                )
+                labels.remove(label)
+        AlertReceiveChannelAssociatedLabel.objects.bulk_create(
+            labels_associations_to_create, ignore_conflicts=True, batch_size=5000
+        )
 
     @classmethod
     def to_representation(cls, instance: AlertReceiveChannel) -> IntegrationAlertGroupLabels:

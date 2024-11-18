@@ -1712,19 +1712,26 @@ def test_alert_group_labels_put(
     response = client.put(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+    # check static labels were saved as integration labels
     assert response.json()["alert_group_labels"] == {
-        "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False},
-        "custom": custom,
+        "inheritable": {label_1.key_id: False, label_2.key_id: True, label_3.key_id: False, "hello": True},
+        "custom": [
+            {
+                "key": {"id": label_3.key.id, "name": label_3.key.name, "prescribed": False},
+                "value": {"id": None, "name": "{{ payload.foo }}", "prescribed": False},
+            }
+        ],
         "template": template,
     }
 
     alert_receive_channel.refresh_from_db()
+    # check static labels are not in the custom labels list
     assert alert_receive_channel.alert_group_labels_custom == [
-        [label_2.key_id, label_2.value_id, None],
-        ["hello", "foo", None],
         [label_3.key_id, None, "{{ payload.foo }}"],
     ]
     assert alert_receive_channel.alert_group_labels_template == template
+    # check static labels were assigned to integration
+    assert alert_receive_channel.labels.filter(key_id__in=[label_2.key_id, "hello"]).count() == 2
 
     # check label keys & values are created
     key = LabelKeyCache.objects.filter(id="hello", name="world", organization=organization).first()
