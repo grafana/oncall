@@ -176,6 +176,7 @@ def check_personal_notifications_task() -> None:
     task_logger.info(f"personal_notifications_triggered={triggered} personal_notifications_completed={completed}")
 
 
+# Retries an alert group that has failed auditing if it is within the retry limit
 # Returns whether an alert group escalation is being retried
 def retry_audited_alert_group(alert_group) -> bool:
     cache_key = f"audited-alert-group-retry-count-{alert_group.id}"
@@ -197,7 +198,7 @@ def retry_audited_alert_group(alert_group) -> bool:
 
     task_id = celery_uuid()
     alert_group.active_escalation_id = task_id
-    alert_group.save(["active_escalation_id"])
+    alert_group.save(update_fields=["active_escalation_id"])
 
     from apps.alerts.tasks import escalate_alert_group
 
