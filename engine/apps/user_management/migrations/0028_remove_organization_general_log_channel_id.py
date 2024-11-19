@@ -7,7 +7,7 @@ import django_migration_linter as linter
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_management', '0026_auto_20241017_1919'),
+        ('user_management', '0027_serviceaccount'),
     ]
 
     operations = [
