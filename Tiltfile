@@ -32,12 +32,23 @@ def plugin_json():
         return plugin_file
     return 'NOT_A_PLUGIN'
 
+def extra_grafana_ini():
+    return {
+        'feature_toggles': {
+            'accessControlOnCall': 'false'
+        }
+    }
+
 def extra_env():
     return {
         "GF_APP_URL": grafana_url,
         "GF_SERVER_ROOT_URL": grafana_url, 
         "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
-        "ONCALL_API_URL": "http://oncall-dev-engine:8080"
+        "ONCALL_API_URL": "http://oncall-dev-engine:8080",
+
+        # Enables managed service accounts for plugin authentication in Grafana >= 11.3
+        # https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#managed_service_accounts_enabled
+        "GF_AUTH_MANAGED_SERVICE_ACCOUNTS_ENABLED": "true",
     }
 
 def extra_deps():
@@ -132,7 +143,16 @@ def load_grafana():
                 "GF_APP_URL": grafana_url,  # older versions of grafana need this
                 "GF_SERVER_ROOT_URL": grafana_url,
                 "GF_FEATURE_TOGGLES_ENABLE": "externalServiceAccounts",
-                "ONCALL_API_URL": "http://oncall-dev-engine:8080"
+                "ONCALL_API_URL": "http://oncall-dev-engine:8080",
+
+                # Enables managed service accounts for plugin authentication in Grafana >= 11.3
+                # https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#managed_service_accounts_enabled
+                "GF_AUTH_MANAGED_SERVICE_ACCOUNTS_ENABLED": "true",
+            },
+            extra_grafana_ini={
+                "feature_toggles": {
+                    "accessControlOnCall": "false"
+                }
             },
         )
 # --- GRAFANA END ----

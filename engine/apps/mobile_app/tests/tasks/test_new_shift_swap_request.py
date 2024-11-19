@@ -19,7 +19,6 @@ from apps.mobile_app.tasks.new_shift_swap_request import (
     notify_shift_swap_requests,
     notify_user_about_shift_swap_request,
 )
-from apps.mobile_app.utils import add_stack_slug_to_message_title
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
@@ -288,7 +287,7 @@ def test_notify_user_about_shift_swap_request(
 
     message: Message = mock_send_push_notification.call_args.args[1]
     assert message.data["type"] == "oncall.info"
-    assert message.data["title"] == add_stack_slug_to_message_title("New shift swap request", organization)
+    assert message.data["title"] == "New shift swap request"
     assert message.data["subtitle"] == "John Doe, Test Schedule"
     assert (
         message.data["route"]
@@ -487,9 +486,7 @@ def test_notify_beneficiary_about_taken_shift_swap_request(
 
     message: Message = mock_send_push_notification.call_args.args[1]
     assert message.data["type"] == "oncall.info"
-    assert message.data["title"] == add_stack_slug_to_message_title(
-        "Your shift swap request has been taken", organization
-    )
+    assert message.data["title"] == "Your shift swap request has been taken"
     assert message.data["subtitle"] == schedule_name
     assert (
         message.data["route"]

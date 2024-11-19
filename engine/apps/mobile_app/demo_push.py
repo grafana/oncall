@@ -8,7 +8,7 @@ from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, 
 
 from apps.mobile_app.exceptions import DeviceNotSet
 from apps.mobile_app.types import FCMMessageData, MessageType, Platform
-from apps.mobile_app.utils import add_stack_slug_to_message_title, construct_fcm_message, send_push_notification
+from apps.mobile_app.utils import construct_fcm_message, send_push_notification
 from apps.user_management.models import User
 
 if typing.TYPE_CHECKING:
@@ -47,7 +47,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
     apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
-        "title": add_stack_slug_to_message_title(get_test_push_title(critical), user.organization),
+        "title": get_test_push_title(critical),
         "orgName": user.organization.stack_slug,
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
