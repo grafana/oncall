@@ -102,7 +102,7 @@ def test_start_slack_ok(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "backend_name,expected_url",
-    ((MATTERMOST_LOGIN_BACKEND, "/a/grafana-oncall-app/users/me"),),
+    ((MATTERMOST_LOGIN_BACKEND, "a/grafana-oncall-app/users/me"),),
 )
 def test_complete_mattermost_auth_redirect_ok(
     make_organization,
