@@ -209,8 +209,6 @@ class OnCallSchedule(PolymorphicModel):
 
     name = models.CharField(max_length=200)
 
-    # TODO: drop this field in a subsequent release, this has been migrated to slack_channel field
-    channel = models.CharField(max_length=100, null=True, default=None)
     slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,
