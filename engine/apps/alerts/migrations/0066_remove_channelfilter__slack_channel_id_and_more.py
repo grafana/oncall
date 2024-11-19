@@ -7,7 +7,7 @@ import django_migration_linter as linter
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0064_migrate_resolutionnoteslackmessage_slack_channel_id'),
+        ('alerts', '0065_alertreceivechannel_service_account'),
     ]
 
     operations = [
