@@ -49,6 +49,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('alerts', '0064_migrate_resolutionnoteslackmessage_slack_channel_id'),
+        ('labels', '0005_labelkeycache_prescribed_labelvaluecache_prescribed'),
     ]
 
     operations = [
