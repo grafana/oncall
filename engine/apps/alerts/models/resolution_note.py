@@ -14,7 +14,7 @@ from common.utils import clean_markup
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
     from apps.slack.models import SlackChannel
-    from user_management.models import User
+    from apps.user_management.models import User
 
 
 def generate_public_primary_key_for_resolution_note():
