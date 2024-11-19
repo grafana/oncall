@@ -135,6 +135,15 @@ class IncidentLogBuilder:
                     Q(Q(type=AlertGroupLogRecord.TYPE_ATTACHED) | Q(type=AlertGroupLogRecord.TYPE_UNATTACHED))
                     & Q(Q(root_alert_group__isnull=True) & Q(dependent_alert_group__isnull=True))
                 )
+                # Exclude SUCCESS + ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED, these cause confusions as the user
+                # has already been notified by another path so this step should not be displayed, although it is kept
+                # for auditing.
+                | Q(
+                    Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS)
+                    & Q(
+                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
+                    )
+                )
             )
             .select_related("author")
             .distinct()
@@ -152,8 +161,14 @@ class IncidentLogBuilder:
                     Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED)
                     & Q(notification_policy__step=UserNotificationPolicy.Step.WAIT)
                 )
+                # Exclude SUCCESS + ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED, these cause confusions as the user
+                # has already been notified by another path so this step should not be displayed, although it is kept
+                # for auditing.
                 | Q(
-                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
+                    Q(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS)
+                    & Q(
+                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
+                    )
                 )
             )
             .select_related("author")
