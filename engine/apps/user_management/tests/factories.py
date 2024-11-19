@@ -1,6 +1,6 @@
 import factory
 
-from apps.user_management.models import Organization, Region, Team, User
+from apps.user_management.models import Organization, Region, ServiceAccount, Team, User
 from common.utils import UniqueFaker
 
 
@@ -41,3 +41,11 @@ class RegionFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Region
+
+
+class ServiceAccountFactory(factory.DjangoModelFactory):
+    grafana_id = UniqueFaker("pyint")
+    login = UniqueFaker("user_name")
+
+    class Meta:
+        model = ServiceAccount

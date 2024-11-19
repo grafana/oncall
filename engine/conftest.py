@@ -1,3 +1,4 @@
+import binascii
 import datetime
 import json
 import os
@@ -46,11 +47,14 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
+from apps.auth_token import constants as auth_token_constants
+from apps.auth_token.crypto import hash_token_string
 from apps.auth_token.models import (
     ApiAuthToken,
     GoogleOAuth2Token,
     IntegrationBacksyncAuthToken,
     PluginAuthToken,
+    ServiceAccountToken,
     SlackAuthToken,
 )
 from apps.base.models.user_notification_policy_log_record import (
@@ -102,7 +106,13 @@ from apps.telegram.tests.factories import (
     TelegramVerificationCodeFactory,
 )
 from apps.user_management.models.user import User, listen_for_user_model_save
-from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
+from apps.user_management.tests.factories import (
+    OrganizationFactory,
+    RegionFactory,
+    ServiceAccountFactory,
+    TeamFactory,
+    UserFactory,
+)
 from apps.webhooks.presets.preset_options import WebhookPresetOptions
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
 from apps.webhooks.tests.test_webhook_presets import (
@@ -250,6 +260,30 @@ def make_user_for_organization(make_user):
         return user
 
     return _make_user_for_organization
+
+
+@pytest.fixture
+def make_service_account_for_organization(make_user):
+    def _make_service_account_for_organization(organization, **kwargs):
+        return ServiceAccountFactory(organization=organization, **kwargs)
+
+    return _make_service_account_for_organization
+
+
+@pytest.fixture
+def make_token_for_service_account():
+    def _make_token_for_service_account(service_account, token_string):
+        prefix_length = len(ServiceAccountToken.GRAFANA_SA_PREFIX)
+        token_key = token_string[prefix_length : prefix_length + auth_token_constants.TOKEN_KEY_LENGTH]
+        hashable_token = binascii.hexlify(token_string.encode()).decode()
+        digest = hash_token_string(hashable_token)
+        return ServiceAccountToken.objects.create(
+            service_account=service_account,
+            token_key=token_key,
+            digest=digest,
+        )
+
+    return _make_token_for_service_account
 
 
 @pytest.fixture

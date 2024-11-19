@@ -28,9 +28,13 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
             )
             if hasattr(request, "user") and request.user and request.user.id and hasattr(request.user, "organization"):
                 user_id = request.user.id
+                if hasattr(request.user, "service_account"):
+                    message += f"service_account_id={user_id} "
+                else:
+                    message += f"user_id={user_id} "
                 org_id = request.user.organization.id
                 org_slug = request.user.organization.org_slug
-                message += f"user_id={user_id} org_id={org_id} org_slug={org_slug} "
+                message += f"org_id={org_id} org_slug={org_slug} "
             if request.path.startswith("/integrations/v1"):
                 split_path = request.path.split("/")
                 integration_type = split_path[3]

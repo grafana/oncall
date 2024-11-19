@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers import CustomOnCallShiftSerializer, CustomOnCallShiftUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.models import CustomOnCallShift
@@ -16,7 +16,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class CustomOnCallShiftView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

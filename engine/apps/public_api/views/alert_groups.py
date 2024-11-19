@@ -12,12 +12,13 @@ from apps.alerts.models import AlertGroup, AlertReceiveChannel
 from apps.alerts.tasks import delete_alert_group, wipe
 from apps.api.label_filtering import parse_label_query
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
 from apps.public_api.helpers import is_valid_group_creation_date, team_has_slack_token_for_deleting
 from apps.public_api.serializers import AlertGroupSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
-from common.api_helpers.exceptions import BadRequest
+from apps.user_management.models import ServiceAccountUser
+from common.api_helpers.exceptions import BadRequest, Forbidden
 from common.api_helpers.filters import (
     NO_TEAM_VALUE,
     ByTeamModelFieldFilterMixin,
@@ -57,7 +58,7 @@ class AlertGroupView(
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
@@ -170,6 +171,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def acknowledge(self, request, pk):
+        if isinstance(request.user, ServiceAccountUser):
+            raise Forbidden(detail="Service accounts are not allowed to acknowledge alert groups")
+
         alert_group = self.get_object()
 
         if alert_group.acknowledged:
@@ -189,6 +193,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unacknowledge(self, request, pk):
+        if isinstance(request.user, ServiceAccountUser):
+            raise Forbidden(detail="Service accounts are not allowed to unacknowledge alert groups")
+
         alert_group = self.get_object()
 
         if not alert_group.acknowledged:
@@ -208,6 +215,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def resolve(self, request, pk):
+        if isinstance(request.user, ServiceAccountUser):
+            raise Forbidden(detail="Service accounts are not allowed to resolve alert groups")
+
         alert_group = self.get_object()
 
         if alert_group.resolved:
@@ -225,6 +235,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unresolve(self, request, pk):
+        if isinstance(request.user, ServiceAccountUser):
+            raise Forbidden(detail="Service accounts are not allowed to unresolve alert groups")
+
         alert_group = self.get_object()
 
         if not alert_group.resolved:
@@ -241,6 +254,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def silence(self, request, pk=None):
+        if isinstance(request.user, ServiceAccountUser):
+            raise Forbidden(detail="Service accounts are not allowed to silence alert groups")
+
         alert_group = self.get_object()
 
         delay = request.data.get("delay")
@@ -267,6 +283,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def unsilence(self, request, pk=None):
+        if isinstance(request.user, ServiceAccountUser):
+            raise Forbidden(detail="Service accounts are not allowed to unsilence alert groups")
+
         alert_group = self.get_object()
 
         if not alert_group.silenced:

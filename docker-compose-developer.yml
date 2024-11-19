@@ -324,6 +324,7 @@ services:
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_FEATURE_TOGGLES_ENABLE: externalServiceAccounts
       ONCALL_API_URL: http://host.docker.internal:8080
+      GF_AUTH_MANAGED_SERVICE_ACCOUNTS_ENABLED: true
     env_file:
       - ./dev/.env.${DB}.dev
     ports:

@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.user_groups import UserGroupSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.slack.models import SlackUserGroup
@@ -12,7 +12,7 @@ from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
 class UserGroupView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
