@@ -14,7 +14,7 @@ class MattermostBackend(BaseMessagingBackend):
         mattermost_user.delete()
 
     def serialize_user(self, user):
-        mattermost_user = getattr(user, "mattermost_connection", None)
+        mattermost_user = getattr(user, "mattermost_user_identity", None)
         if not mattermost_user:
             return None
         return {

@@ -103,7 +103,7 @@ def overridden_complete_social_auth(request: Request, backend: str, *args, **kwa
         # otherwise it pertains to the InstallSlackOAuth2V2 backend, and we should redirect to the chat-ops page
         return_to = (
             url_builder.user_profile()
-            if isinstance(request.backend, (LoginSlackOAuth2V2, GoogleOAuth2))
+            if isinstance(request.backend, (LoginMattermostOAuth2, LoginSlackOAuth2V2, GoogleOAuth2))
             else url_builder.chatops()
         )
 

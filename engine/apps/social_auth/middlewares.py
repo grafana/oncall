@@ -8,7 +8,11 @@ from social_django.middleware import SocialAuthExceptionMiddleware
 
 from apps.grafana_plugin.ui_url_builder import UIURLBuilder
 from apps.social_auth.backends import LoginSlackOAuth2V2
-from apps.social_auth.exceptions import MATTERMOST_AUTH_FETCH_USER_ERROR, InstallMultiRegionSlackException, UserLoginOAuth2MattermostException
+from apps.social_auth.exceptions import (
+    MATTERMOST_AUTH_FETCH_USER_ERROR,
+    InstallMultiRegionSlackException,
+    UserLoginOAuth2MattermostException,
+)
 from common.constants.slack_auth import REDIRECT_AFTER_SLACK_INSTALL, SLACK_AUTH_FAILED, SLACK_REGION_ERROR
 
 logger = logging.getLogger(__name__)
