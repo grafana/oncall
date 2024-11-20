@@ -547,7 +547,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def integration_url(self) -> str | None:
         if self.integration in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
-            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
             AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
