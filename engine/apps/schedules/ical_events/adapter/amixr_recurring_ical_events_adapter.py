@@ -20,6 +20,15 @@ EXTRA_LOOKUP_DAYS = 16
 
 
 class AmixrRecurringIcalEventsAdapter(IcalService):
+    def _normalize(self, dt: datetime.datetime) -> datetime.datetime:
+        tz = getattr(dt, "tzinfo", None)
+        if tz:
+            normalized = tz.normalize(dt)
+            if normalized.tzinfo != tz:
+                diff = dt.dst() - normalized.dst()
+                dt = normalized + diff
+        return dt
+
     def get_events_from_ical_between(
         self, calendar: Calendar, start_date: datetime.datetime, end_date: datetime.datetime
     ) -> typing.List[Event]:
@@ -39,13 +48,8 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         )
 
         for event in events:
-            if hasattr(event[ICAL_DATETIME_END].dt, "tzinfo"):
-                dt = event[ICAL_DATETIME_END].dt
-                tz = dt.tzinfo
-                normalized = tz.normalize(dt)
-                if normalized.tzinfo != tz:
-                    diff = dt.dst() - normalized.dst()
-                    event[ICAL_DATETIME_END].dt = normalized + diff
+            # account for timezones not being properly calculated when DST changes.
+            event[ICAL_DATETIME_END].dt = self._normalize(event[ICAL_DATETIME_END].dt)
 
         def filter_extra_days(event):
             event_start, event_end = self.get_start_and_end_with_respect_to_event_type(event)
