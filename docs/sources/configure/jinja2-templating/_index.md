@@ -23,8 +23,7 @@ refs:
       destination: /docs/grafana-cloud/alerting-and-irm/oncall/configure/integrations/references/webhook/
 ---
 
-
-## Configure templates
+# Configure templates
 
 Grafana OnCall integrates with your monitoring systems using webhooks with JSON payloads.
 By default, these webhooks deliver raw JSON payloads.
