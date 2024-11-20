@@ -105,6 +105,7 @@ jobs:
         run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
 
       - name: Check for RemoveField in Migrations
+        # yamllint disable rule:line-length
         run: |
           # Get the list of files changed in the PR
           git diff --name-only ${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.sha }} > changed_files.txt
@@ -132,14 +133,10 @@ jobs:
 
           # Fail the job if RemoveField was found
           if [ "$FAILED" -eq 1 ]; then
-            cat << EOF
-            ❌ Error: Found migrations.RemoveField in one or more migration files.
-            Please check out our documentation at https://github.com/grafana/oncall/tree/dev/dev#removing-a-nullable-field-from-a-model
-            on how to properly drop columns.
-            EOF
+            echo "❌ Error: Found migrations.RemoveField in one or more migration files. Please check out our documentation at https://github.com/grafana/oncall/tree/dev/dev#removing-a-nullable-field-from-a-model on how to properly drop columns."
             exit 1
           fi
-        shell: bash
+        # yamllint enable rule:line-length
 
   unit-test-helm-chart:
     name: "Helm Chart Unit Tests"
