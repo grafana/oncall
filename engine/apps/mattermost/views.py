@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
+from apps.mattermost.auth import MattermostEventAuthentication
+from apps.mattermost.events.event_manager import EventManager
 from apps.mattermost.models import MattermostChannel
 from apps.mattermost.serializers import MattermostChannelSerializer
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
@@ -65,26 +67,16 @@ class MattermostChannelViewSet(
 
 
 class MattermostEventView(APIView):
+    authentication_classes = (MattermostEventAuthentication,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+    }
+
     def get(self, request, format=None):
         return Response("hello")
 
-    # Sample Request Payload
-    # {
-    #     "user_id":"k8y8fccx57ygpq18oxp8pp3ntr",
-    #     "user_name":"hbx80530",
-    #     "channel_id":"gug81e7stfy8md747sewpeeqga",
-    #     "channel_name":"camelcase",
-    #     "team_id":"kjywdxcbjiyyupdgqst8bj8zrw",
-    #     "team_domain":"local",
-    #     "post_id":"cfsogqc61fbj3yssz78b1tarbw",
-    #     "trigger_id":"cXJhd2Zwc2V3aW5nanBjY2I2YzdxdTc5NmE6azh5OGZjY3g1N3lncHExOG94cDhwcDNudHI6MTcyODgyMzQxODU4NzpNRVFDSUgvbURORjQrWFB1R1QzWHdTWGhDZG9rdEpNb3cydFNJL3l5QktLMkZrVjdBaUFaMjdybFB3c21EWUlyMHFIeVpKVnIyR1gwa2N6RzY5YkpuSDdrOEpuVXhnPT0=",
-    #     "type":"",
-    #     "data_source":"",
-    #     "context":{
-    #         "action":"acknowledge",
-    #         "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25faWQiOiJPMjlJWUQ3S0dRWURNIiwiZXhwIjoxNzMxNDE1Mzc0fQ.RbETrJS_lRDFDa9asGZbNlhMx13qkK0bc10-dj6x4-U"
-    #     }
-    # }
     def post(self, request):
-        # TODO: Implement the webhook
+        EventManager.process_request(request=request)
         return Response(status=200)
