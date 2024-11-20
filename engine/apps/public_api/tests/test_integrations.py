@@ -903,7 +903,6 @@ def test_get_list_integrations_link_and_inbound_email(
 
         if integration_type in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
-            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
             assert integration_link is None
