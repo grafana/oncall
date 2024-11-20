@@ -878,11 +878,9 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.formatted_webhook",
     "config_integrations.kapacitor",
     "config_integrations.elastalert",
-    "config_integrations.heartbeat",
     "config_integrations.inbound_email",
     "config_integrations.maintenance",
     "config_integrations.manual",
-    "config_integrations.slack_channel",
     "config_integrations.zabbix",
     "config_integrations.direct_paging",
     # Actually it's Grafana 8 integration.
