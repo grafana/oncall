@@ -9,7 +9,11 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentication
+from apps.auth_token.auth import (
+    ApiTokenAuthentication,
+    GrafanaServiceAccountAuthentication,
+    ScheduleExportAuthentication,
+)
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import PolymorphicScheduleSerializer, PolymorphicScheduleUpdateSerializer
 from apps.public_api.serializers.schedules_base import FinalShiftQueryParamsSerializer
@@ -28,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

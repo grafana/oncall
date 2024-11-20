@@ -315,6 +315,9 @@ class GrafanaAPIClient(APIClient):
     def get_grafana_irm_plugin_settings(self) -> APIClientResponse["GrafanaAPIClient.Types.PluginSettings"]:
         return self.get_grafana_plugin_settings(PluginID.IRM)
 
+    def get_current_user(self) -> APIClientResponse[typing.Dict[str, typing.List[str]]]:
+        return self.api_get("api/user")
+
     def get_service_account(self, login: str) -> APIClientResponse["GrafanaAPIClient.Types.ServiceAccountResponse"]:
         return self.api_get(f"api/serviceaccounts/search?query={login}")
 

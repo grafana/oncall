@@ -46,3 +46,9 @@ def get_service_account_token_permissions(organization: Organization, token: str
     grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=token)
     permissions, _ = grafana_api_client.get_service_account_token_permissions()
     return permissions
+
+
+def get_service_account_details(organization: Organization, token: str) -> typing.Dict[str, typing.List[str]]:
+    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=token)
+    user_data, _ = grafana_api_client.get_current_user()
+    return user_data

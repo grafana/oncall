@@ -2,7 +2,9 @@ import datetime
 import typing
 
 import requests
+from celery import uuid as celery_uuid
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Avg, F, Max, Q
 from django.utils import timezone
 
@@ -174,6 +176,42 @@ def check_personal_notifications_task() -> None:
     task_logger.info(f"personal_notifications_triggered={triggered} personal_notifications_completed={completed}")
 
 
+# Retries an alert group that has failed auditing if it is within the retry limit
+# Returns whether an alert group escalation is being retried
+def retry_audited_alert_group(alert_group) -> bool:
+    cache_key = f"audited-alert-group-retry-count-{alert_group.id}"
+    retry_count = cache.get(cache_key, 0)
+    if retry_count >= settings.AUDITED_ALERT_GROUP_MAX_RETRIES:
+        task_logger.info(f"Not retrying audited alert_group={alert_group.id} max retries exceeded.")
+        return False
+
+    if alert_group.is_silenced_for_period:
+        task_logger.info(f"Not retrying audited alert_group={alert_group.id} as it is silenced.")
+        return False
+
+    if not alert_group.escalation_snapshot:
+        task_logger.info(f"Not retrying audited alert_group={alert_group.id} as its escalation snapshot is empty.")
+        return False
+
+    retry_count += 1
+    cache.set(cache_key, retry_count, timeout=3600)
+
+    task_id = celery_uuid()
+    alert_group.active_escalation_id = task_id
+    alert_group.save(update_fields=["active_escalation_id"])
+
+    from apps.alerts.tasks import escalate_alert_group
+
+    escalate_alert_group.apply_async(
+        args=(alert_group.pk,),
+        immutable=True,
+        task_id=task_id,
+        eta=alert_group.next_step_eta,
+    )
+    task_logger.info(f"Retrying audited alert_group={alert_group.id} attempt={retry_count}")
+    return True
+
+
 @shared_log_exception_on_failure_task
 def check_escalation_finished_task() -> None:
     """
@@ -221,7 +259,8 @@ def check_escalation_finished_task() -> None:
         try:
             audit_alert_group_escalation(alert_group)
         except AlertGroupEscalationPolicyExecutionAuditException:
-            alert_group_ids_that_failed_audit.append(str(alert_group.id))
+            if not retry_audited_alert_group(alert_group):
+                alert_group_ids_that_failed_audit.append(str(alert_group.id))
 
     failed_alert_groups_count = len(alert_group_ids_that_failed_audit)
     success_ratio = (

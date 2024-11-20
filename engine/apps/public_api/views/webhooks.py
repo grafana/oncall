@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.webhooks import (
     WebhookCreateSerializer,
     WebhookResponseSerializer,
@@ -21,7 +21,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class WebhooksView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

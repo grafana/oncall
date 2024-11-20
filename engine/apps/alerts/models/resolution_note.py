@@ -14,20 +14,7 @@ from common.utils import clean_markup
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
     from apps.slack.models import SlackChannel
-
-
-def generate_public_primary_key_for_alert_group_postmortem():
-    prefix = "P"
-    new_public_primary_key = generate_public_primary_key(prefix)
-
-    failure_counter = 0
-    while AlertGroupPostmortem.objects.filter(public_primary_key=new_public_primary_key).exists():
-        new_public_primary_key = increase_public_primary_key_length(
-            failure_counter=failure_counter, prefix=prefix, model_name="AlertGroupPostmortem"
-        )
-        failure_counter += 1
-
-    return new_public_primary_key
+    from apps.user_management.models import User
 
 
 def generate_public_primary_key_for_resolution_note():
@@ -75,9 +62,6 @@ class ResolutionNoteSlackMessage(models.Model):
         related_name="added_resolution_note_slack_messages",
     )
     text = models.TextField(max_length=3000, default=None, null=True)
-
-    # TODO: remove _slack_channel_id in future release
-    _slack_channel_id = models.CharField(max_length=100, null=True, default=None)
     slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,
@@ -85,7 +69,6 @@ class ResolutionNoteSlackMessage(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-
     ts = models.CharField(max_length=100, null=True, default=None)
     thread_ts = models.CharField(max_length=100, null=True, default=None)
     permalink = models.CharField(max_length=250, null=True, default=None)
@@ -130,6 +113,7 @@ class ResolutionNoteQueryset(models.QuerySet):
 
 class ResolutionNote(models.Model):
     alert_group: "AlertGroup"
+    author: typing.Optional["User"]
     resolution_note_slack_message: typing.Optional[ResolutionNoteSlackMessage]
 
     objects = ResolutionNoteQueryset.as_manager()
@@ -213,29 +197,11 @@ class ResolutionNote(models.Model):
 
         return result
 
-    def author_verbal(self, mention):
+    def author_verbal(self, mention: bool) -> str:
         """
-        Postmortems to resolution notes included migrating AlertGroupPostmortem to ResolutionNotes.
-        But AlertGroupPostmortem has no author field. So this method was introduces as workaround.
+        Postmortems to resolution notes included migrating `AlertGroupPostmortem` to `ResolutionNote`s.
+        But `AlertGroupPostmortem` has no author field. So this method was introduced as a workaround.
+
+        (see git history for more details on what `AlertGroupPostmortem` was)
         """
-        if self.author is not None:
-            return self.author.get_username_with_slack_verbal(mention)
-        else:
-            return ""
-
-
-class AlertGroupPostmortem(models.Model):
-    public_primary_key = models.CharField(
-        max_length=20,
-        validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
-        unique=True,
-        default=generate_public_primary_key_for_alert_group_postmortem,
-    )
-    alert_group = models.ForeignKey(
-        "alerts.AlertGroup",
-        on_delete=models.CASCADE,
-        related_name="postmortem_text",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    text = models.TextField(max_length=3000, default=None, null=True)
+        return "" if self.author is None else self.author.get_username_with_slack_verbal(mention)
