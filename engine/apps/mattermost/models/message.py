@@ -35,6 +35,10 @@ class MattermostMessage(models.Model):
             )
         ]
 
+        indexes = [
+            models.Index(fields=["channel_id", "post_id"]),
+        ]
+
     @staticmethod
     def create_message(alert_group: AlertGroup, post: MattermostPost, message_type: int):
         return MattermostMessage.objects.create(
