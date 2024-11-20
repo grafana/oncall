@@ -1,6 +1,6 @@
 import factory
 
-from apps.mattermost.models import MattermostChannel, MattermostMessage
+from apps.mattermost.models import MattermostChannel, MattermostMessage, MattermostUser
 from common.utils import UniqueFaker
 
 
@@ -22,3 +22,14 @@ class MattermostMessageFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = MattermostMessage
+
+
+class MattermostUserFactory(factory.DjangoModelFactory):
+    mattermost_user_id = factory.LazyAttribute(
+        lambda v: str(UniqueFaker("pystr", min_chars=5, max_chars=26).generate())
+    )
+    username = factory.Faker("word")
+    nickname = factory.Faker("word")
+
+    class Meta:
+        model = MattermostUser

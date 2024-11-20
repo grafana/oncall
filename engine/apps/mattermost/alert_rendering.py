@@ -1,6 +1,7 @@
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
 from apps.alerts.models import Alert, AlertGroup
+from apps.mattermost.events.types import EventAction
 from apps.mattermost.utils import MattermostEventAuthenticator
 from common.api_helpers.utils import create_engine_url
 from common.utils import is_string_with_visible_characters, str_or_backup
@@ -94,6 +95,7 @@ class AlertGroupMattermostRenderer(AlertGroupBaseRenderer):
                     "url": create_engine_url("api/internal/v1/mattermost/event/"),
                     "context": {
                         "action": id,
+                        "alert": self.alert_group.pk,
                         "token": token,
                     },
                 },
@@ -102,14 +104,14 @@ class AlertGroupMattermostRenderer(AlertGroupBaseRenderer):
         token = MattermostEventAuthenticator.create_token(organization=self.alert_group.channel.organization)
         if not self.alert_group.resolved:
             if self.alert_group.acknowledged:
-                actions.append(_make_actions("unacknowledge", "Unacknowledge", token))
+                actions.append(_make_actions(EventAction.UNACKNOWLEDGE.value, "Unacknowledge", token))
             else:
-                actions.append(_make_actions("acknowledge", "Acknowledge", token))
+                actions.append(_make_actions(EventAction.ACKNOWLEDGE.value, "Acknowledge", token))
 
         if self.alert_group.resolved:
-            actions.append(_make_actions("unresolve", "Unresolve", token))
+            actions.append(_make_actions(EventAction.UNRESOLVE.value, "Unresolve", token))
         else:
-            actions.append(_make_actions("resolve", "Resolve", token))
+            actions.append(_make_actions(EventAction.RESOLVE.value, "Resolve", token))
 
         return actions
 
