@@ -132,7 +132,11 @@ jobs:
 
           # Fail the job if RemoveField was found
           if [ "$FAILED" -eq 1 ]; then
-            echo "❌ Error: Found migrations.RemoveField in one or more migration files. Please check out our documentation at https://github.com/grafana/oncall/tree/dev/dev#removing-a-nullable-field-from-a-model on how to properly drop columns."
+            cat << EOF
+            ❌ Error: Found migrations.RemoveField in one or more migration files.
+            Please check out our documentation at https://github.com/grafana/oncall/tree/dev/dev#removing-a-nullable-field-from-a-model
+            on how to properly drop columns.
+            EOF
             exit 1
           fi
         shell: bash
