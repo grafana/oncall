@@ -528,7 +528,7 @@ def perform_notification(log_record_pk, use_default_notification_policy_fallback
                 )
                 UserNotificationPolicyLogRecord(
                     author=user,
-                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
                     notification_policy=notification_policy,
                     reason="Prevented from posting in Slack",
                     alert_group=alert_group,
