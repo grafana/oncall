@@ -35,9 +35,8 @@ class AlertGroupSlackService:
             self._slack_client = SlackClient(slack_team_identity)
 
     def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
-        from apps.alerts.models import AlertReceiveChannel
-
         logger.info(f"Update message for alert_group {alert_group.pk}")
+
         try:
             self._slack_client.chat_update(
                 channel=alert_group.slack_message.channel_id,
@@ -47,7 +46,7 @@ class AlertGroupSlackService:
             )
             logger.info(f"Message has been updated for alert_group {alert_group.pk}")
         except SlackAPIRatelimitError as e:
-            if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
+            if not alert_group.channel.is_maintenace_integration:
                 if not alert_group.channel.is_rate_limited_in_slack:
                     alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
                     logger.info(

@@ -156,7 +156,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             logger.info("Not delivering alert due to channel is archived.")
         except SlackAPIRatelimitError as e:
             # don't rate limit maintenance alert
-            if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
+            if not alert_group.channel.is_maintenace_integration:
                 alert_group.reason_to_skip_escalation = AlertGroup.RATE_LIMITED
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
                 alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
