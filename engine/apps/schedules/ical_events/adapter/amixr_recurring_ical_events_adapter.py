@@ -39,7 +39,7 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         )
 
         for event in events:
-            if hasattr(event[ICAL_DATETIME_END].dt,'tzinfo'):
+            if hasattr(event[ICAL_DATETIME_END].dt, "tzinfo"):
                 dt = event[ICAL_DATETIME_END].dt
                 tz = dt.tzinfo
                 normalized = tz.normalize(dt)
