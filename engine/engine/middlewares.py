@@ -44,7 +44,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
                 if len(split_path) >= 5:
                     integration_token = split_path[4]
                 else:
-                    integration_token = None
+                    integration_token = getattr(request, "inbound_email_integration_token", None)
 
                 message += f"integration_type={integration_type} integration_token={integration_token} "
             logging.info(message)
