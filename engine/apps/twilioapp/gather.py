@@ -86,4 +86,4 @@ def get_gather_url():
 
 
 def get_alert_group_gather_instructions():
-    return "Press 1 to acknowledge, 2 to resolve, 3 to silence to 30 minutes"
+    return "Press 1 to acknowledge, 2 to resolve, 3 to silence for 30 minutes"
