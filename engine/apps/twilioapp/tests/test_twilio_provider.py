@@ -19,7 +19,9 @@ class MockTwilioMessageInstance:
 
 @pytest.mark.django_db
 @mock.patch("apps.twilioapp.phone_provider.TwilioPhoneProvider._call_create", return_value=MockTwilioCallInstance())
-@mock.patch("apps.twilioapp.phone_provider.TwilioPhoneProvider._message_to_twiml", return_value="mocked_twiml")
+@mock.patch(
+    "apps.twilioapp.phone_provider.TwilioPhoneProvider._message_to_twiml_gather", return_value="mocked_twiml_gather"
+)
 def test_make_notification_call(mock_twiml, mock_call_create):
     number = "+1234567890"
     message = "Hello"
@@ -33,7 +35,9 @@ def test_make_notification_call(mock_twiml, mock_call_create):
 
 @pytest.mark.django_db
 @mock.patch("apps.twilioapp.phone_provider.TwilioPhoneProvider._call_create", return_value=MockTwilioCallInstance())
-@mock.patch("apps.twilioapp.phone_provider.TwilioPhoneProvider._message_to_twiml", return_value="mocked_twiml")
+@mock.patch(
+    "apps.twilioapp.phone_provider.TwilioPhoneProvider._message_to_twiml_response", return_value="mocked_twiml_response"
+)
 def test_make_call(mock_twiml, mock_call_create):
     number = "+1234567890"
     message = "Hello"
