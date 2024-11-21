@@ -95,7 +95,7 @@ class AlertGroupMattermostRenderer(AlertGroupBaseRenderer):
                     "url": create_engine_url("api/internal/v1/mattermost/event/"),
                     "context": {
                         "action": id,
-                        "alert": self.alert_group.pk,
+                        "alert": self.alert_group.public_primary_key,
                         "token": token,
                     },
                 },
