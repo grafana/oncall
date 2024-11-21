@@ -82,7 +82,6 @@ django==4.2.16
     #   django-anymail
     #   django-cors-headers
     #   django-debug-toolbar
-    #   django-deprecate-fields
     #   django-filter
     #   django-log-request-id
     #   django-migration-linter
@@ -105,8 +104,6 @@ django-cors-headers==3.7.0
 django-dbconn-retry==0.1.7
     # via -r requirements.in
 django-debug-toolbar==4.1.0
-    # via -r requirements.in
-django-deprecate-fields==0.1.1
     # via -r requirements.in
 django-filter==2.4.0
     # via -r requirements.in

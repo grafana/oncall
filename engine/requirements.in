@@ -9,7 +9,6 @@ django-cors-headers==3.7.0
 # pyroscope-io==0.8.1
 django-dbconn-retry==0.1.7
 django-debug-toolbar==4.1
-django-deprecate-fields==0.1.1
 django-filter==2.4.0
 django-ipware==4.0.2
 django-log-request-id==1.6.0
