@@ -24,9 +24,15 @@ def process_gather_data(call_sid: str, digit: str) -> VoiceResponse:
 
     response = VoiceResponse()
 
+    success_messages = {
+        "1": "Acknowledged",
+        "2": "Resolved",
+        "3": "Silenced",
+    }
     if digit in ["1", "2", "3"]:
         # Success case
-        response.say(f"You have pressed digit {digit}")
+        msg = success_messages.get(digit, f"You have pressed digit {digit}")
+        response.say(msg)
         process_digit(call_sid, digit)
     else:
         # Error wrong digit pressing
