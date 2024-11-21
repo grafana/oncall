@@ -1,8 +1,6 @@
 import logging
 import typing
 
-from django.core.cache import cache
-
 from apps.slack.client import SlackClient
 from apps.slack.errors import (
     SlackAPICantUpdateMessageError,
@@ -25,11 +23,6 @@ logger = logging.getLogger(__name__)
 class AlertGroupSlackService:
     _slack_client: SlackClient
 
-    UPDATE_ALERT_GROUP_DEBOUNCE_INTERVAL_SECONDS = 30
-    """
-    Time in seconds to wait before allowing the next update to the Alert Group slack message
-    """
-
     def __init__(
         self,
         slack_team_identity: "SlackTeamIdentity",
@@ -43,14 +36,8 @@ class AlertGroupSlackService:
 
     def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
         alert_group_pk = alert_group.pk
-        debounce_alert_group_update_cache_key = f"debounce_update_alert_group_slack_message_{alert_group_pk}"
 
         logger.info(f"Update message for alert_group {alert_group_pk}")
-
-        # Check if the method has been called recently for this alert_group, if so skip to avoid approaching rate limits
-        if cache.get(debounce_alert_group_update_cache_key):
-            logger.info(f"Skipping update for alert_group {alert_group_pk} due to debounce interval")
-            return
 
         try:
             self._slack_client.chat_update(
@@ -78,9 +65,6 @@ class AlertGroupSlackService:
             SlackAPIChannelNotFoundError,
         ):
             pass
-        finally:
-            # Set the cache key to enforce debounce interval
-            cache.set(debounce_alert_group_update_cache_key, True, self.UPDATE_ALERT_GROUP_DEBOUNCE_INTERVAL_SECONDS)
 
     def publish_message_to_alert_group_thread(
         self, alert_group: "AlertGroup", attachments=None, mrkdwn=True, unfurl_links=True, text=None

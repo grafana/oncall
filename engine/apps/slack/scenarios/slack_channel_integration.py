@@ -144,7 +144,8 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         else:
             alert_group = slack_thread_message.alert_group
             slack_thread_message.delete()
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+
+            alert_group.slack_message.update_alert_groups_message()
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

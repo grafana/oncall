@@ -214,7 +214,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
                 except SlackAPIError:
                     pass
 
-                self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+                slack_message.update_alert_groups_message()
         else:
             warning_text = "Unable to add this message to resolution note."
             self.open_warning_window(payload, warning_text)
@@ -311,7 +311,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def update_alert_group_resolution_note_button(self, alert_group: "AlertGroup") -> None:
         if alert_group.slack_message is not None:
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+            alert_group.slack_message.update_alert_groups_message()
 
     def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:

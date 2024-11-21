@@ -4,6 +4,7 @@ import typing
 import uuid
 
 from django.db import models
+from django.utils import timezone
 
 from apps.slack.client import SlackClient
 from apps.slack.constants import BLOCK_SECTION_TEXT_MAX_SIZE
@@ -15,9 +16,12 @@ from apps.slack.errors import (
     SlackAPIRatelimitError,
     SlackAPITokenError,
 )
+from apps.slack.tasks import update_alert_group_slack_message
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
+    from apps.base.models import UserNotificationPolicy
+    from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,6 +29,8 @@ logger.setLevel(logging.DEBUG)
 
 class SlackMessage(models.Model):
     alert_group: typing.Optional["AlertGroup"]
+
+    ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS = 45
 
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
 
@@ -46,11 +52,9 @@ class SlackMessage(models.Model):
     )
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
     cached_permalink = models.URLField(max_length=250, null=True, default=None)
 
+    created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(null=True, default=None)
 
     alert_group = models.ForeignKey(
@@ -61,8 +65,10 @@ class SlackMessage(models.Model):
         related_name="slack_messages",
     )
 
-    # ID of a latest celery task to update the message
     active_update_task_id = models.CharField(max_length=100, null=True, default=None)
+    """
+    ID of the latest celery task to update the message
+    """
 
     class Meta:
         # slack_id is unique within the context of a channel or conversation
@@ -105,7 +111,12 @@ class SlackMessage(models.Model):
     def deep_link(self) -> str:
         return f"https://slack.com/app_redirect?channel={self.channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
-    def send_slack_notification(self, user, alert_group, notification_policy):
+    def send_slack_notification(
+        self,
+        user: "User",
+        alert_group: "AlertGroup",
+        notification_policy: "UserNotificationPolicy",
+    ) -> None:
         from apps.base.models import UserNotificationPolicyLogRecord
 
         slack_message = alert_group.slack_message
@@ -220,3 +231,50 @@ class SlackMessage(models.Model):
                     slack_user_identity.send_link_to_slack_message(slack_message)
         except (SlackAPITokenError, SlackAPIMethodNotSupportedForChannelTypeError):
             pass
+
+    def update_alert_groups_message(self) -> None:
+        """
+        Schedule an update task for the associated alert group's Slack message, respecting the debounce interval.
+
+        This method ensures that updates to the Slack message related to an alert group are not performed
+        too frequently, adhering to the `ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS` debounce interval.
+        It schedules a background task to update the message after the appropriate countdown.
+
+        The method performs the following steps:
+        - Checks if there's already an active update task (`active_update_task_id` is set). If so, exits to prevent
+        duplicate scheduling.
+        - Calculates the time since the last update (`last_updated` field) and determines the remaining time needed
+        to respect the debounce interval.
+        - Schedules the `update_alert_group_slack_message` task with the calculated countdown.
+        - Stores the task ID in `active_update_task_id` to prevent multiple tasks from being scheduled.
+        """
+
+        if not self.alert_group:
+            logger.warning(
+                f"skipping update_alert_groups_message as SlackMessage {self.pk} has no alert_group associated with it"
+            )
+            return
+        elif self.active_update_task_id:
+            logger.info(
+                f"skipping update_alert_groups_message as SlackMessage {self.pk} has an active update task {self.active_update_task_id}"
+            )
+            return
+
+        now = timezone.now()
+
+        # we previously weren't updating the last_updated field for messages, so there will be cases
+        # where the last_updated field is None
+        last_updated = self.last_updated or now
+
+        time_since_last_update = (now - last_updated).total_seconds()
+        remaining_time = self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS - time_since_last_update
+        countdown = max(remaining_time, 10)
+
+        logger.info(
+            f"updating message for alert_group {self.alert_group.pk} in {countdown} seconds "
+            f"(debounce interval: {self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS})"
+        )
+
+        active_update_task_id = update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown)
+        self.active_update_task_id = active_update_task_id
+        self.save(update_fields=["active_update_task_id"])
