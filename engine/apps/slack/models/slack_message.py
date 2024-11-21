@@ -3,6 +3,7 @@ import time
 import typing
 import uuid
 
+from celery import uuid as celery_uuid
 from django.db import models
 from django.utils import timezone
 
@@ -267,7 +268,7 @@ class SlackMessage(models.Model):
         last_updated = self.last_updated or now
 
         time_since_last_update = (now - last_updated).total_seconds()
-        remaining_time = self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS - time_since_last_update
+        remaining_time = self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS - int(time_since_last_update)
         countdown = max(remaining_time, 10)
 
         logger.info(
@@ -275,6 +276,7 @@ class SlackMessage(models.Model):
             f"(debounce interval: {self.ALERT_GROUP_UPDATE_DEBOUNCE_INTERVAL_SECONDS})"
         )
 
-        active_update_task_id = update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown)
-        self.active_update_task_id = active_update_task_id
+        task_id = celery_uuid()
+        update_alert_group_slack_message.apply_async((self.pk,), countdown=countdown, task_id=task_id)
+        self.active_update_task_id = task_id
         self.save(update_fields=["active_update_task_id"])
