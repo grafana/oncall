@@ -33,7 +33,7 @@ web_title = """\
 {% set alertname = groupLabels.pop("alertname", "")  -%}
 {% endif -%}
 
-[{{ alertname }} {% if groupLabels | length > 0 %}({{ groupLabels.values()|join(", ") }}){% endif %}
+{{ alertname }} {% if groupLabels | length > 0 %}({{ groupLabels.values()|join(", ") }}){% endif %}
 """  # noqa
 
 web_message = """\
