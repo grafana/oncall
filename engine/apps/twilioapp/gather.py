@@ -33,7 +33,7 @@ def process_gather_data(call_sid: str, digit: str) -> VoiceResponse:
         gather = Gather(action=get_gather_url(), method="POST", num_digits=1)
 
         response.say("Wrong digit")
-        gather.say(get_gather_message())
+        gather.say(get_alert_group_gather_instructions())
 
         response.append(gather)
 
@@ -85,5 +85,5 @@ def get_gather_url():
     return create_engine_url(reverse("twilioapp:gather"))
 
 
-def get_gather_message():
+def get_alert_group_gather_instructions():
     return "Press 1 to acknowledge, 2 to resolve, 3 to silence to 30 minutes"

@@ -16,7 +16,7 @@ from apps.phone_notifications.exceptions import (
     FailedToStartVerification,
 )
 from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
-from apps.twilioapp.gather import get_gather_message, get_gather_url
+from apps.twilioapp.gather import get_alert_group_gather_instructions, get_gather_url
 from apps.twilioapp.models import (
     TwilioCallStatuses,
     TwilioPhoneCall,
@@ -34,7 +34,7 @@ class TwilioPhoneProvider(PhoneProvider):
     def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall | None:
         message = self._escape_call_message(message)
 
-        twiml_query = self._message_to_twiml(message, with_gather=True)
+        twiml_query = self._message_to_twiml_gather(message)
 
         response = None
         try_without_callback = False
@@ -146,7 +146,7 @@ class TwilioPhoneProvider(PhoneProvider):
         return None
 
     def make_call(self, number: str, message: str):
-        twiml_query = self._message_to_twiml(message, with_gather=False)
+        twiml_query = self._message_to_twiml_response(message)
         try:
             self._call_create(twiml_query, number, with_callback=False)
         except TwilioRestException as e:
@@ -160,11 +160,16 @@ class TwilioPhoneProvider(PhoneProvider):
             logger.error(f"TwilioPhoneProvider.send_sms: failed {e}")
             raise FailedToSendSMS(graceful_msg=self._get_graceful_msg(e, number))
 
-    def _message_to_twiml(self, message: str, with_gather=False):
+    def _message_to_twiml_response(self, message: str):
         q = f"<Response><Say>{message}</Say></Response>"
-        if with_gather:
-            gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
-            q = f"<Response><Say>{message}</Say>{gather_subquery}</Response>"
+        return urllib.parse.quote(
+            q,
+            safe="",
+        )
+
+    def _message_to_twiml_gather(self, message: str):
+        message = message + " " + get_alert_group_gather_instructions()
+        q = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{message}</Say></Gather>'
         return urllib.parse.quote(
             q,
             safe="",
