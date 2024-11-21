@@ -1,8 +1,8 @@
-from unittest.mock import patch, MagicMock
+from datetime import timedelta
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.utils import timezone
-from datetime import timedelta
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
@@ -66,7 +66,6 @@ def test_slack_message_deep_link(
 
 
 class TestSlackMessageUpdateAlertGroupsMessage:
-
     @patch("apps.slack.models.slack_message.update_alert_group_slack_message")
     @pytest.mark.django_db
     def test_update_alert_groups_message_no_alert_group(

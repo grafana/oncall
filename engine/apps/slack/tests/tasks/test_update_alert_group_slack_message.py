@@ -6,7 +6,6 @@ from apps.slack.tasks import update_alert_group_slack_message
 
 
 class TestUpdateAlertGroupSlackMessageTask:
-
     @patch("apps.slack.tasks.AlertGroupSlackService.update_alert_group_slack_message")
     @pytest.mark.django_db
     def test_update_alert_group_slack_message_slack_message_not_found(

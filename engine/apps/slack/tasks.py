@@ -56,7 +56,7 @@ def update_alert_group_slack_message(slack_message_pk: int) -> None:
         logger.warning(f"SlackMessage {slack_message_pk} doesn't exist")
         return
 
-    if not current_task_id == slack_message.active_update_task_id:
+    if current_task_id != slack_message.active_update_task_id:
         logger.warning(
             f"update_alert_group_slack_message skipped, because current_task_id ({current_task_id}) "
             f"does not equal to active_update_task_id ({slack_message.active_update_task_id}) "
