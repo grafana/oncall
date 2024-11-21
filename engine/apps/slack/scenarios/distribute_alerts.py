@@ -141,22 +141,6 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                 channel_id=channel_id,
             )
 
-            # If alert was made out of a message:
-            if alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL:
-                channel = json.loads(alert.integration_unique_data)["channel"]
-                result = self._slack_client.chat_postMessage(
-                    channel=channel,
-                    thread_ts=json.loads(alert.integration_unique_data)["ts"],
-                    text=":rocket: <{}|Incident registered!>".format(alert_group.slack_message.permalink),
-                    team=slack_team_identity,
-                )
-                alert_group.slack_messages.create(
-                    slack_id=result["ts"],
-                    organization=alert_group.channel.organization,
-                    _slack_team_identity=self.slack_team_identity,
-                    channel_id=channel,
-                )
-
             alert.delivered = True
         except SlackAPITokenError:
             alert_group.reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
@@ -172,7 +156,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             logger.info("Not delivering alert due to channel is archived.")
         except SlackAPIRatelimitError as e:
             # don't rate limit maintenance alert
-            if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
+            if not alert_group.channel.is_maintenace_integration:
                 alert_group.reason_to_skip_escalation = AlertGroup.RATE_LIMITED
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
                 alert_group.channel.start_send_rate_limit_message_task(e.retry_after)

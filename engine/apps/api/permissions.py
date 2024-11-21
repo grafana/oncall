@@ -18,6 +18,7 @@ if typing.TYPE_CHECKING:
 RBAC_PERMISSIONS_ATTR = "rbac_permissions"
 RBAC_OBJECT_PERMISSIONS_ATTR = "rbac_object_permissions"
 
+
 ViewSetOrAPIView = typing.Union[ViewSet, APIView]
 
 

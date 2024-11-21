@@ -6,12 +6,14 @@ from django.test import override_settings
 from django.utils import timezone
 
 from apps.alerts.models import EscalationPolicy
+from apps.alerts.tasks import escalate_alert_group
 from apps.alerts.tasks.check_escalation_finished import (
     AlertGroupEscalationPolicyExecutionAuditException,
     audit_alert_group_escalation,
     check_alert_group_personal_notifications_task,
     check_escalation_finished_task,
     check_personal_notifications_task,
+    retry_audited_alert_group,
     send_alert_group_escalation_auditor_task_heartbeat,
 )
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
@@ -580,3 +582,124 @@ def test_check_escalation_finished_task_calls_audit_alert_group_personal_notific
     check_personal_notifications_task()
 
     assert "personal_notifications_triggered=6 personal_notifications_completed=2" in caplog.text
+
+
+@patch("apps.alerts.tasks.check_escalation_finished.audit_alert_group_escalation")
+@patch("apps.alerts.tasks.check_escalation_finished.retry_audited_alert_group")
+@patch("apps.alerts.tasks.check_escalation_finished.send_alert_group_escalation_auditor_task_heartbeat")
+@pytest.mark.django_db
+def test_invoke_retry_from_check_escalation_finished_task(
+    mocked_send_alert_group_escalation_auditor_task_heartbeat,
+    mocked_retry_audited_alert_group,
+    mocked_audit_alert_group_escalation,
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group_that_started_at_specific_date,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    # Pass audit (should not be counted in final message or go to retry function)
+    alert_group1 = make_alert_group_that_started_at_specific_date(alert_receive_channel, received_delta=1)
+    # Fail audit but not retrying (should be counted in final message)
+    alert_group2 = make_alert_group_that_started_at_specific_date(alert_receive_channel, received_delta=5)
+    # Fail audit but retry (should not be counted in final message)
+    alert_group3 = make_alert_group_that_started_at_specific_date(alert_receive_channel, received_delta=10)
+
+    def _mocked_audit_alert_group_escalation(alert_group):
+        if alert_group.id == alert_group2.id or alert_group.id == alert_group3.id:
+            raise AlertGroupEscalationPolicyExecutionAuditException(f"{alert_group2.id} failed audit")
+
+    mocked_audit_alert_group_escalation.side_effect = _mocked_audit_alert_group_escalation
+
+    def _mocked_retry_audited_alert_group(alert_group):
+        if alert_group.id == alert_group2.id:
+            return False
+        return True
+
+    mocked_retry_audited_alert_group.side_effect = _mocked_retry_audited_alert_group
+
+    with pytest.raises(AlertGroupEscalationPolicyExecutionAuditException) as exc:
+        check_escalation_finished_task()
+
+    error_msg = str(exc.value)
+
+    assert "The following alert group id(s) failed auditing:" in error_msg
+    assert str(alert_group1.id) not in error_msg
+    assert str(alert_group2.id) in error_msg
+    assert str(alert_group3.id) not in error_msg
+
+    assert mocked_retry_audited_alert_group.call_count == 2
+    mocked_send_alert_group_escalation_auditor_task_heartbeat.assert_not_called()
+
+
+@patch.object(escalate_alert_group, "apply_async")
+@override_settings(AUDITED_ALERT_GROUP_MAX_RETRIES=1)
+@pytest.mark.django_db
+def test_retry_audited_alert_group(
+    mocked_escalate_alert_group,
+    make_organization_and_user,
+    make_user_for_organization,
+    make_user_notification_policy,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_channel_filter,
+    make_alert_receive_channel,
+    make_alert_group_that_started_at_specific_date,
+):
+    organization, user = make_organization_and_user()
+    make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SLACK,
+    )
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    notify_to_multiple_users_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+    )
+    notify_to_multiple_users_step.notify_to_users_queue.set([user])
+
+    alert_group1 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
+    alert_group1.raw_escalation_snapshot = alert_group1.build_raw_escalation_snapshot()
+    alert_group1.raw_escalation_snapshot["last_active_escalation_policy_order"] = 1
+    alert_group1.save()
+
+    # Retry should occur
+    is_retrying = retry_audited_alert_group(alert_group1)
+    assert is_retrying
+    mocked_escalate_alert_group.assert_called()
+    mocked_escalate_alert_group.reset_mock()
+
+    # No retry as attempts == max
+    is_retrying = retry_audited_alert_group(alert_group1)
+    assert not is_retrying
+    mocked_escalate_alert_group.assert_not_called()
+    mocked_escalate_alert_group.reset_mock()
+
+    alert_group2 = make_alert_group_that_started_at_specific_date(alert_receive_channel, channel_filter=channel_filter)
+    # No retry because no escalation snapshot
+    is_retrying = retry_audited_alert_group(alert_group2)
+    assert not is_retrying
+    mocked_escalate_alert_group.assert_not_called()
+    mocked_escalate_alert_group.reset_mock()
+
+    alert_group3 = make_alert_group_that_started_at_specific_date(
+        alert_receive_channel,
+        channel_filter=channel_filter,
+        silenced=True,
+        silenced_at=timezone.now(),
+        silenced_by_user=user,
+        silenced_until=(now + timezone.timedelta(hours=1)),
+    )
+    alert_group3.raw_escalation_snapshot = alert_group1.build_raw_escalation_snapshot()
+    alert_group3.raw_escalation_snapshot["last_active_escalation_policy_order"] = 1
+    alert_group3.save()
+
+    # No retry because alert group silenced
+    is_retrying = retry_audited_alert_group(alert_group3)
+    assert not is_retrying
+    mocked_escalate_alert_group.assert_not_called()

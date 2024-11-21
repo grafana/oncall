@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.alerts.models import Alert
 from apps.api.permissions import RBACPermission
-from apps.auth_token.auth import ApiTokenAuthentication
+from apps.auth_token.auth import ApiTokenAuthentication, GrafanaServiceAccountAuthentication
 from apps.public_api.serializers.alerts import AlertSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.mixins import RateLimitHeadersMixin
@@ -19,7 +19,7 @@ class AlertFilter(filters.FilterSet):
 
 
 class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
-    authentication_classes = (ApiTokenAuthentication,)
+    authentication_classes = (GrafanaServiceAccountAuthentication, ApiTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

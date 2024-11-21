@@ -234,6 +234,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     author = models.ForeignKey(
         "user_management.User", on_delete=models.SET_NULL, related_name="alert_receive_channels", blank=True, null=True
     )
+    service_account = models.ForeignKey(
+        "user_management.ServiceAccount",
+        on_delete=models.SET_NULL,
+        related_name="alert_receive_channels",
+        blank=True,
+        null=True,
+    )
     team = models.ForeignKey(
         "user_management.Team",
         on_delete=models.SET_NULL,
@@ -518,18 +525,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             )
 
     @property
-    def short_name_with_maintenance_status(self):
-        if self.maintenance_mode is not None:
-            return (
-                self.short_name + f" *[ on "
-                f"{AlertReceiveChannel.MAINTENANCE_MODE_CHOICES[self.maintenance_mode][1]}"
-                f" :construction: ]*"
-            )
-        else:
-            return self.short_name
-
-    @property
-    def created_name(self):
+    def created_name(self) -> str:
         return f"{self.get_integration_display()} {self.smile_code}"
 
     @property
@@ -537,10 +533,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return UIURLBuilder(self.organization).integration_detail(self.public_primary_key)
 
     @property
+    def is_maintenace_integration(self) -> bool:
+        return self.integration == AlertReceiveChannel.INTEGRATION_MAINTENANCE
+
+    @property
     def integration_url(self) -> str | None:
         if self.integration in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
-            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
             AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
@@ -764,15 +763,16 @@ def listen_for_alertreceivechannel_model_save(
     from apps.heartbeat.models import IntegrationHeartBeat
 
     if created:
-        write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)
+        author = instance.author or instance.service_account
+        write_resource_insight_log(instance=instance, author=author, event=EntityEvent.CREATED)
         default_filter = ChannelFilter(alert_receive_channel=instance, filtering_term=None, is_default=True)
         default_filter.save()
-        write_resource_insight_log(instance=default_filter, author=instance.author, event=EntityEvent.CREATED)
+        write_resource_insight_log(instance=default_filter, author=author, event=EntityEvent.CREATED)
 
         TEN_MINUTES = 600  # this is timeout for cloud heartbeats
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
-            write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
+            write_resource_insight_log(instance=heartbeat, author=author, event=EntityEvent.CREATED)
 
         metrics_add_integrations_to_cache([instance], instance.organization)
 

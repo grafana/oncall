@@ -69,9 +69,6 @@ class ChannelFilter(OrderedModel):
 
     notify_in_slack = models.BooleanField(null=True, default=True)
     notify_in_telegram = models.BooleanField(null=True, default=False)
-
-    # TODO: remove _slack_channel_id in future release
-    _slack_channel_id = models.CharField(max_length=100, null=True, default=None)
     slack_channel = models.ForeignKey(
         "slack.SlackChannel",
         null=True,
@@ -79,7 +76,6 @@ class ChannelFilter(OrderedModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-
     telegram_channel = models.ForeignKey(
         "telegram.TelegramToOrganizationConnector",
         on_delete=models.SET_NULL,

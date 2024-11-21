@@ -31,10 +31,7 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, r
     from apps.alerts.models import Alert, AlertReceiveChannel
 
     alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(pk=alert_receive_channel_pk)
-    if (
-        alert_receive_channel.deleted_at is not None
-        or alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_MAINTENANCE
-    ):
+    if alert_receive_channel.deleted_at is not None or alert_receive_channel.is_maintenace_integration:
         logger.info("AlertReceiveChannel alert ignored if deleted/maintenance")
         return
 
