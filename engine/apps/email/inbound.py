@@ -77,6 +77,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         integration_token = self.get_integration_token_from_request(request)
         if integration_token is None:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        request.inbound_email_integration_token = integration_token  # used in RequestTimeLoggingMiddleware
         return super().dispatch(request, alert_channel_key=integration_token)
 
     def post(self, request):
@@ -138,14 +139,15 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             try:
                 view.run_validators(self.request)
                 events = view.parse_events(self.request)
-            except (AnymailWebhookValidationFailure, AnymailAPIError) as e:
-                logger.info(f"inbound email webhook validation failed for ESP {esp}: {e}")
+            except (AnymailWebhookValidationFailure, AnymailAPIError):
                 continue
 
             messages = [event.message for event in events if isinstance(event, AnymailInboundEvent)]
             if messages:
+                logger.info(f"Received inbound email message from ESP: {esp}")
                 return messages[0]
 
+        logger.error("Failed to parse inbound email message")
         return None
 
     def check_inbound_email_settings_set(self):
