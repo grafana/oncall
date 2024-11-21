@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.alerts.tasks.compare_escalations import compare_escalations
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.client import SlackClient
 from apps.slack.constants import SLACK_BOT_ID
@@ -324,7 +323,7 @@ def post_slack_rate_limit_message(integration_id: int, error_message_verb: str) 
         logger.warning(f"AlertReceiveChannel {integration_id} doesn't exist")
         return
 
-    if not compare_escalations(post_slack_rate_limit_message.request.id, integration.rate_limit_message_task_id):
+    if post_slack_rate_limit_message.request.id != integration.rate_limit_message_task_id:
         logger.info(
             f"post_slack_rate_limit_message. integration {integration_id}. ID mismatch. "
             f"Active: {integration.rate_limit_message_task_id}"

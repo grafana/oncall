@@ -5,7 +5,6 @@ from django.db import transaction
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
-from .compare_escalations import compare_escalations
 from .send_alert_group_signal import send_alert_group_signal
 from .task_logger import task_logger
 
@@ -23,11 +22,13 @@ def unsilence_task(alert_group_pk):
         except IndexError:
             task_logger.info(f"unsilence_task. alert_group {alert_group_pk} doesn't exist")
             return
-        if not compare_escalations(unsilence_task.request.id, alert_group.unsilence_task_uuid):
+
+        if unsilence_task.request.id != alert_group.unsilence_task_uuid:
             task_logger.info(
                 f"unsilence_task. alert_group {alert_group.pk}.ID mismatch.Active: {alert_group.unsilence_task_uuid}"
             )
             return
+
         if alert_group.status == AlertGroup.SILENCED and alert_group.is_root_alert_group:
             initial_state = alert_group.state
             task_logger.info(f"unsilence alert_group {alert_group_pk} and start escalation if needed")
