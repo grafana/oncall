@@ -146,7 +146,7 @@ class TwilioPhoneProvider(PhoneProvider):
         return None
 
     def make_call(self, number: str, message: str):
-        twiml_query = self._message_to_twiml_response(message)
+        twiml_query = self._message_to_twiml_say(message)
         try:
             self._call_create(twiml_query, number, with_callback=False)
         except TwilioRestException as e:
@@ -160,7 +160,7 @@ class TwilioPhoneProvider(PhoneProvider):
             logger.error(f"TwilioPhoneProvider.send_sms: failed {e}")
             raise FailedToSendSMS(graceful_msg=self._get_graceful_msg(e, number))
 
-    def _message_to_twiml_response(self, message: str):
+    def _message_to_twiml_say(self, message: str):
         q = f"<Response><Say>{message}</Say></Response>"
         return urllib.parse.quote(
             q,
@@ -169,7 +169,7 @@ class TwilioPhoneProvider(PhoneProvider):
 
     def _message_to_twiml_gather(self, message: str):
         message = message + " " + get_alert_group_gather_instructions()
-        q = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{message}</Say></Gather>'
+        q = f'<Response><Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{message}</Say></Gather><Response>'
         return urllib.parse.quote(
             q,
             safe="",
