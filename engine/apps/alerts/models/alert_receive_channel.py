@@ -525,18 +525,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             )
 
     @property
-    def short_name_with_maintenance_status(self):
-        if self.maintenance_mode is not None:
-            return (
-                self.short_name + f" *[ on "
-                f"{AlertReceiveChannel.MAINTENANCE_MODE_CHOICES[self.maintenance_mode][1]}"
-                f" :construction: ]*"
-            )
-        else:
-            return self.short_name
-
-    @property
-    def created_name(self):
+    def created_name(self) -> str:
         return f"{self.get_integration_display()} {self.smile_code}"
 
     @property
@@ -544,10 +533,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return UIURLBuilder(self.organization).integration_detail(self.public_primary_key)
 
     @property
+    def is_maintenace_integration(self) -> bool:
+        return self.integration == AlertReceiveChannel.INTEGRATION_MAINTENANCE
+
+    @property
     def integration_url(self) -> str | None:
         if self.integration in [
             AlertReceiveChannel.INTEGRATION_MANUAL,
-            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
             AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:

@@ -106,12 +106,6 @@ def check_heartbeats() -> str:
 
 
 @shared_dedicated_queue_retry_task()
-def integration_heartbeat_checkup(heartbeat_id: int) -> None:
-    """Deprecated. TODO: Remove this task after this task cleared from queue"""
-    pass
-
-
-@shared_dedicated_queue_retry_task()
 def process_heartbeat_task(alert_receive_channel_pk):
     IntegrationHeartBeat.objects.filter(
         alert_receive_channel__pk=alert_receive_channel_pk,
