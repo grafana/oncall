@@ -1,4 +1,5 @@
-from unittest.mock import patch, ANY
+from unittest.mock import ANY, patch
+
 import pytest
 
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
@@ -17,7 +18,6 @@ class MockSlackResponse:
 
 
 class TestAlertGroupSlackService:
-
     @patch("apps.slack.alert_group_slack_service.SlackClient.chat_update")
     @pytest.mark.django_db
     def test_update_alert_group_slack_message_successful(
@@ -100,10 +100,7 @@ class TestAlertGroupSlackService:
         service.update_alert_group_slack_message(alert_group)
 
         # Assert that start_send_rate_limit_message_task was called
-        mock_start_send_rate_limit_message_task.assert_called_with(
-            "Updating",
-            slack_api_ratelimit_error.retry_after
-        )
+        mock_start_send_rate_limit_message_task.assert_called_with("Updating", slack_api_ratelimit_error.retry_after)
 
     @patch("apps.slack.alert_group_slack_service.SlackClient.chat_update")
     @patch("apps.alerts.models.AlertReceiveChannel.start_send_rate_limit_message_task")
@@ -146,13 +143,16 @@ class TestAlertGroupSlackService:
 
     @patch("apps.slack.alert_group_slack_service.SlackClient.chat_update")
     @patch("apps.alerts.models.AlertReceiveChannel.start_send_rate_limit_message_task")
-    @pytest.mark.parametrize("ExceptionClass", [
-        SlackAPIMessageNotFoundError,
-        SlackAPICantUpdateMessageError,
-        SlackAPIChannelInactiveError,
-        SlackAPITokenError,
-        SlackAPIChannelNotFoundError,
-    ])
+    @pytest.mark.parametrize(
+        "ExceptionClass",
+        [
+            SlackAPIMessageNotFoundError,
+            SlackAPICantUpdateMessageError,
+            SlackAPIChannelInactiveError,
+            SlackAPITokenError,
+            SlackAPIChannelNotFoundError,
+        ],
+    )
     @pytest.mark.django_db
     def test_update_alert_group_slack_message_other_exceptions(
         self,
@@ -207,10 +207,10 @@ class TestAlertGroupSlackService:
         make_slack_message(alert_group=alert_group)
 
         # Slack client raises a generic exception
-        mock_slack_client_chat_update.side_effect = Exception("Unexpected error")
+        mock_slack_client_chat_update.side_effect = ValueError("Unexpected error")
 
         # Call the method and expect the exception to propagate
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             service = AlertGroupSlackService(slack_team_identity=slack_team_identity)
             service.update_alert_group_slack_message(alert_group)
 
