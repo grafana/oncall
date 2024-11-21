@@ -5,7 +5,6 @@ from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.mattermost.events.event_handler import MattermostEventHandler
 from apps.mattermost.events.types import EventAction
-from apps.mattermost.models import MattermostMessage
 
 logger = logging.getLogger(__name__)
 
@@ -46,30 +45,18 @@ class AlertGroupActionHandler(MattermostEventHandler):
             return
 
     def _get_alert_group(self) -> typing.Optional[AlertGroup]:
-        return self._get_alert_group_from_event() or self._get_alert_group_from_message()
+        return self._get_alert_group_from_event()
 
     def _get_alert_group_from_event(self) -> typing.Optional[AlertGroup]:
         if "context" not in self.event or "alert" not in self.event["context"]:
             return
 
         try:
-            alert_group = AlertGroup.objects.get(pk=self.event["context"]["alert"])
+            alert_group = AlertGroup.objects.get(public_primary_key=self.event["context"]["alert"])
         except AlertGroup.DoesNotExist:
             return
 
         return alert_group
-
-    def _get_alert_group_from_message(self) -> typing.Optional[AlertGroup]:
-        try:
-            mattermost_message = MattermostMessage.objects.get(
-                channel_id=self.event["channel_id"], post_id=self.event["post_id"]
-            )
-            return mattermost_message.alert_group
-        except MattermostMessage.DoesNotExist:
-            logger.info(
-                f"Mattermost message not found for channel_id: {self.event['channel_id']} and post_id {self.event['post_id']}"
-            )
-            return
 
     def _get_action_function(self, alert_group: AlertGroup, action: EventAction) -> typing.Tuple[typing.Callable, dict]:
         action_to_fn = {

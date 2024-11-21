@@ -5,7 +5,7 @@ import typing
 class MattermostAlertGroupContext(typing.TypedDict):
     action: str
     token: str
-    alert: int
+    alert: str
 
 
 class MattermostEvent(typing.TypedDict):
