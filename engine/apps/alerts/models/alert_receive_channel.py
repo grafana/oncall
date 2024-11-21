@@ -29,7 +29,7 @@ from apps.metrics_exporter.helpers import (
     metrics_remove_deleted_integration_from_cache,
     metrics_update_integration_cache,
 )
-from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
+from apps.slack.constants import SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
@@ -43,7 +43,7 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import AlertGroup, ChannelFilter
     from apps.labels.models import AlertReceiveChannelAssociatedLabel
-    from apps.user_management.models import Organization, Team
+    from apps.user_management.models import Organization, Team, User
 
 logger = logging.getLogger(__name__)
 
@@ -391,7 +391,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
         return super().save(*args, **kwargs)
 
-    def change_team(self, team_id, user):
+    def change_team(self, team_id: int, user: "User") -> None:
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
@@ -409,26 +409,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return GrafanaAlertingSyncManager(self)
 
     @property
-    def is_alerting_integration(self):
+    def is_alerting_integration(self) -> bool:
         return self.integration in {
             AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
             AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
         }
 
     @cached_property
-    def team_name(self):
+    def team_name(self) -> str:
         return self.team.name if self.team else "No team"
 
     @cached_property
-    def team_id_or_no_team(self):
+    def team_id_or_no_team(self) -> str:
         return self.team_id if self.team else "no_team"
 
     @cached_property
-    def emojized_verbal_name(self):
+    def emojized_verbal_name(self) -> str:
         return emoji.emojize(self.verbal_name, language="alias")
 
     @property
-    def new_incidents_web_link(self):
+    def new_incidents_web_link(self) -> str:
         from apps.alerts.models import AlertGroup
 
         return UIURLBuilder(self.organization).alert_groups(
@@ -436,25 +436,27 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         )
 
     @property
-    def is_rate_limited_in_slack(self):
+    def is_rate_limited_in_slack(self) -> bool:
         return (
             self.rate_limited_in_slack_at is not None
             and self.rate_limited_in_slack_at + SLACK_RATE_LIMIT_TIMEOUT > timezone.now()
         )
 
-    def start_send_rate_limit_message_task(self, delay=SLACK_RATE_LIMIT_DELAY):
+    def start_send_rate_limit_message_task(self, error_message_verb: str, delay: int) -> None:
         task_id = celery_uuid()
+
         self.rate_limit_message_task_id = task_id
         self.rate_limited_in_slack_at = timezone.now()
         self.save(update_fields=["rate_limit_message_task_id", "rate_limited_in_slack_at"])
-        post_slack_rate_limit_message.apply_async((self.pk,), countdown=delay, task_id=task_id)
+
+        post_slack_rate_limit_message.apply_async((self.pk, error_message_verb), countdown=delay, task_id=task_id)
 
     @property
-    def alert_groups_count(self):
+    def alert_groups_count(self) -> int:
         return self.alert_groups.count()
 
     @property
-    def alerts_count(self):
+    def alerts_count(self) -> int:
         from apps.alerts.models import Alert
 
         return Alert.objects.filter(group__channel=self).count()
@@ -548,14 +550,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return create_engine_url(f"integrations/v1/{slug}/{self.token}/")
 
     @property
-    def inbound_email(self):
+    def inbound_email(self) -> typing.Optional[str]:
         if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
             return None
 
         return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
-    def default_channel_filter(self):
+    def default_channel_filter(self) -> typing.Optional["ChannelFilter"]:
         return self.channel_filters.filter(is_default=True).first()
 
     # Templating
@@ -590,7 +592,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         }
 
     @property
-    def is_available_for_custom_templates(self):
+    def is_available_for_custom_templates(self) -> bool:
         return True
 
     # Maintenance

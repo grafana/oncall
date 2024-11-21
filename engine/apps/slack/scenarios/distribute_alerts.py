@@ -159,7 +159,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             if not alert_group.channel.is_maintenace_integration:
                 alert_group.reason_to_skip_escalation = AlertGroup.RATE_LIMITED
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
-                alert_group.channel.start_send_rate_limit_message_task(e.retry_after)
+                alert_group.channel.start_send_rate_limit_message_task("Delivering", e.retry_after)
                 logger.info("Not delivering alert due to slack rate limit.")
             else:
                 raise e

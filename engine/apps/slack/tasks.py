@@ -287,7 +287,7 @@ def populate_slack_user_identities(organization_pk):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def post_slack_rate_limit_message(integration_id):
+def post_slack_rate_limit_message(integration_id: int, error_message_verb: str) -> None:
     from apps.alerts.models import AlertReceiveChannel
 
     try:
@@ -306,10 +306,9 @@ def post_slack_rate_limit_message(integration_id):
     default_route = integration.channel_filters.get(is_default=True)
     if (slack_channel_id := default_route.slack_channel_id_or_org_default_id) is not None:
         text = (
-            f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
-            f"temporarily stopped due to rate limit. You could find new alert groups at "
-            f"<{integration.new_incidents_web_link}|web page "
-            '"Alert Groups">'
+            f"{error_message_verb} Alert Groups in Slack, for integration {integration.verbal_name}, is "
+            f"temporarily rate-limited (due to a Slack rate-limit). Meanwhile, you can still find new Alert Groups "
+            f'in the <{integration.new_incidents_web_link}|"Alert Groups" web page>'
         )
         post_message_to_channel(integration.organization, slack_channel_id, text)
 
