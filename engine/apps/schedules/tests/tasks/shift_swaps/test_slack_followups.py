@@ -161,7 +161,7 @@ def test_send_shift_swap_request_followup(mock_slack_chat_post_message, shift_sw
     send_shift_swap_request_slack_followup(shift_swap_request.pk)
 
     mock_slack_chat_post_message.assert_called_once_with(
-        channel=shift_swap_request.slack_message.channel_id,
+        channel=shift_swap_request.slack_message.channel.slack_id,
         thread_ts=shift_swap_request.slack_message.slack_id,
         reply_broadcast=True,
         blocks=ANY,

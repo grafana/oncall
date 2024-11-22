@@ -18,6 +18,9 @@ from apps.slack.errors import (
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
+    from apps.base.models import UserNotificationPolicy
+    from apps.slack.models import SlackChannel
+    from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,17 +28,38 @@ logger.setLevel(logging.DEBUG)
 
 class SlackMessage(models.Model):
     alert_group: typing.Optional["AlertGroup"]
+    channel: "SlackChannel"
 
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
-
     slack_id = models.CharField(max_length=100)
 
-    # TODO: convert this to a foreign key field to SlackChannel
-    channel_id = models.CharField(max_length=100, null=True, default=None)
+    _channel_id = models.CharField(max_length=100, null=True, default=None)
+    """
+    DEPRECATED: this is no longer being referenced/set, drop in a separate PR/release
+    """
+
+    channel = models.ForeignKey(
+        "slack.SlackChannel", on_delete=models.CASCADE, null=True, default=None, related_name="slack_message"
+    )
+    """
+    TODO: once we've migrated the data in `_channel_id` to this field, set `null=False`
+    as we should always have a `channel` associated with a message
+    """
 
     organization = models.ForeignKey(
-        "user_management.Organization", on_delete=models.CASCADE, null=True, default=None, related_name="slack_message"
+        "user_management.Organization",
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+        related_name="slack_message",
     )
+    """
+    DEPRECATED: this is no longer being referenced/set
+
+    TODO: do we really need organization here? We now have a foreign key reference to channel, which has a foreign
+    key reference to slack_team_identity, which has a foreign key reference to organization...
+    """
+
     _slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity",
         on_delete=models.PROTECT,
@@ -44,6 +68,12 @@ class SlackMessage(models.Model):
         related_name="slack_message",
         db_column="slack_team_identity",
     )
+    """
+    DEPRECATED: this is no longer being referenced/set
+
+    TODO: drop this field in a separate PR/release
+    since we now have a foreign key reference to channel, channel already has a reference to the team identity
+    """
 
     ack_reminder_message_ts = models.CharField(max_length=100, null=True, default=None)
 
@@ -72,21 +102,12 @@ class SlackMessage(models.Model):
 
     @property
     def slack_team_identity(self):
-        if self._slack_team_identity is None:
-            if self.organization is None:  # strange case when organization is None
-                logger.warning(
-                    f"SlackMessage (pk: {self.pk}) fields _slack_team_identity and organization is None. "
-                    f"It is strange!"
-                )
-                return None
-            self._slack_team_identity = self.organization.slack_team_identity
-            self.save()
-        return self._slack_team_identity
+        return self.channel.slack_team_identity
 
     @property
     def permalink(self) -> typing.Optional[str]:
-        # Don't send request for permalink if there is no slack_team_identity or slack token has been revoked
-        if self.cached_permalink or not self.slack_team_identity or self.slack_team_identity.detected_token_revoked:
+        # Don't send request for permalink if slack token has been revoked
+        if self.cached_permalink or self.slack_team_identity.detected_token_revoked:
             return self.cached_permalink
 
         try:
@@ -105,10 +126,18 @@ class SlackMessage(models.Model):
     def deep_link(self) -> str:
         return f"https://slack.com/app_redirect?channel={self.channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
-    def send_slack_notification(self, user, alert_group, notification_policy):
+    def send_slack_notification(
+        self,
+        user: "User",
+        alert_group: "AlertGroup",
+        notification_policy: "UserNotificationPolicy",
+    ) -> None:
         from apps.base.models import UserNotificationPolicyLogRecord
 
         slack_message = alert_group.slack_message
+        slack_channel = slack_message.channel
+        channel_id = slack_channel.slack_id
+
         user_verbal = user.get_username_with_slack_verbal(mention=True)
 
         slack_user_identity = user.slack_user_identity
@@ -142,8 +171,8 @@ class SlackMessage(models.Model):
                 },
             }
         ]
+
         sc = SlackClient(self.slack_team_identity, enable_ratelimit_retry=True)
-        channel_id = slack_message.channel_id
 
         try:
             result = sc.chat_postMessage(
@@ -190,12 +219,8 @@ class SlackMessage(models.Model):
             ).save()
             return
         else:
-            alert_group.slack_messages.create(
-                slack_id=result["ts"],
-                organization=self.organization,
-                _slack_team_identity=self.slack_team_identity,
-                channel_id=channel_id,
-            )
+            alert_group.slack_messages.create(slack_id=result["ts"], channel=slack_channel)
+
             # create success record
             UserNotificationPolicyLogRecord.objects.create(
                 author=user,

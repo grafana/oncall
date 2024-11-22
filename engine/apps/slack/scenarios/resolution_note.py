@@ -255,7 +255,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
-        slack_channel_id = alert_group_slack_message.channel_id
+        slack_channel_id = alert_group_slack_message.channel.slack_id
         blocks = self.get_resolution_note_blocks(resolution_note)
 
         slack_channel = SlackChannel.objects.get(
@@ -298,7 +298,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
             resolution_note_text = Truncator(resolution_note_slack_message.text)
             try:
                 self._slack_client.chat_update(
-                    channel=alert_group_slack_message.channel_id,
+                    channel=slack_channel_id,
                     ts=resolution_note_slack_message.ts,
                     text=resolution_note_text.chars(BLOCK_SECTION_TEXT_MAX_SIZE),
                     blocks=blocks,

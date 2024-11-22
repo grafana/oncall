@@ -428,7 +428,7 @@ def test_add_to_resolution_note_deleted_org(
 ):
     settings.UNIFIED_SLACK_APP_ENABLED = True
 
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    organization, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
@@ -439,7 +439,7 @@ def test_add_to_resolution_note_deleted_org(
     other_user = make_user_for_organization(organization=other_organization, slack_user_identity=slack_user_identity)
 
     payload = {
-        "channel": {"id": slack_message.channel_id},
+        "channel": {"id": slack_message.channel.slack_id},
         "message_ts": "random_ts",
         "message": {
             "type": "message",

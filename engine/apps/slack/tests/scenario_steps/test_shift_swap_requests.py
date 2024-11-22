@@ -158,7 +158,7 @@ class TestBaseShiftSwapRequestStep:
 
         assert slack_message.slack_id == ts
         assert slack_message.organization == organization
-        assert slack_message.channel_id == ssr.slack_channel_id
+        assert slack_message.channel.slack_id == ssr.slack_channel_id
         assert slack_message._slack_team_identity == slack_team_identity
 
     @patch("apps.slack.scenarios.shift_swap_requests.BaseShiftSwapRequestStep._generate_blocks")

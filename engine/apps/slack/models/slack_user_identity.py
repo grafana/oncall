@@ -131,7 +131,8 @@ class SlackUserIdentity(models.Model):
                     {
                         "type": "mrkdwn",
                         "text": (
-                            f"You received this message because you're not a member of <#{slack_message.channel_id}>.\n"
+                            f"You received this message because you're not a member of "
+                            f"<#{slack_message.channel.slack_id}>.\n"
                             "Please join the channel to get notified right in the alert group thread."
                         ),
                     }

@@ -37,7 +37,7 @@ def test_send_message_to_thread_if_bot_not_in_channel(
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
 
-    send_message_to_thread_if_bot_not_in_channel(alert_group.pk, slack_team_identity.pk, slack_channel.pk)
+    send_message_to_thread_if_bot_not_in_channel(alert_group.pk, slack_team_identity.pk, slack_channel)
 
     MockSlackClient.assert_called_once_with(slack_team_identity, enable_ratelimit_retry=True)
     mock_get_conversation_members.assert_called_once_with(MockSlackClient.return_value, slack_channel.pk)
