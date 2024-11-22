@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.x509 import CertificateBuilder, NameOID
 from django.conf import settings
 from django.urls import reverse
+from requests import RequestException
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -601,6 +602,77 @@ def test_amazon_ses_validated_fail_wrong_signature(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     mock_create_alert.assert_not_called()
+    mock_requests_get.assert_called_once_with(SIGNING_CERT_URL, timeout=5)
+
+
+@patch("requests.get", side_effect=RequestException)
+@pytest.mark.django_db
+def test_amazon_ses_validated_fail_cant_download_certificate(
+    _, settings, make_organization, make_alert_receive_channel
+):
+    settings.INBOUND_EMAIL_ESP = "amazon_ses_validated,mailgun"
+    settings.INBOUND_EMAIL_DOMAIN = "inbound.example.com"
+    settings.INBOUND_EMAIL_WEBHOOK_SECRET = "secret"
+    settings.INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = AMAZON_SNS_TOPIC_ARN
+
+    organization = make_organization()
+    make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
+        token="test-token",
+    )
+
+    sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
+    )
+
+    client = APIClient()
+    with pytest.raises(RequestException):
+        client.post(
+            reverse("integrations:inbound_email_webhook"),
+            data=sns_payload,
+            headers=sns_headers,
+            format="json",
+        )
+
+
+@patch("requests.get", return_value=Mock(content=CERTIFICATE))
+@pytest.mark.django_db
+def test_amazon_ses_validated_caches_certificate(
+    mock_requests_get, settings, make_organization, make_alert_receive_channel
+):
+    settings.INBOUND_EMAIL_ESP = "amazon_ses_validated,mailgun"
+    settings.INBOUND_EMAIL_DOMAIN = "inbound.example.com"
+    settings.INBOUND_EMAIL_WEBHOOK_SECRET = "secret"
+    settings.INBOUND_EMAIL_AMAZON_SNS_TOPIC_ARN = AMAZON_SNS_TOPIC_ARN
+
+    organization = make_organization()
+    make_alert_receive_channel(
+        organization,
+        integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL,
+        token="test-token",
+    )
+
+    sns_payload, sns_headers = _sns_inbound_email_payload_and_headers(
+        sender_email=SENDER_EMAIL,
+        to_email=TO_EMAIL,
+        subject=SUBJECT,
+        message=MESSAGE,
+    )
+
+    client = APIClient()
+    for _ in range(2):
+        response = client.post(
+            reverse("integrations:inbound_email_webhook"),
+            data=sns_payload,
+            headers=sns_headers,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
     mock_requests_get.assert_called_once_with(SIGNING_CERT_URL, timeout=5)
 
 
