@@ -28,7 +28,7 @@ def test_send_slack_notification(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
+    slack_message = make_slack_message(alert_group=alert_group, channel=slack_channel)
 
     with patch("apps.slack.client.SlackClient.conversations_members") as mock_members:
         mock_members.return_value = {"members": [slack_user_identity.slack_id]}

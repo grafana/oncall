@@ -255,7 +255,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
-        slack_channel_id = alert_group_slack_message.channel.slack_id
+        slack_channel_id = alert_group_slack_message.channel_slack_id
         blocks = self.get_resolution_note_blocks(resolution_note)
 
         slack_channel = SlackChannel.objects.get(

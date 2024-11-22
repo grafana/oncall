@@ -439,7 +439,7 @@ def test_add_to_resolution_note_deleted_org(
     other_user = make_user_for_organization(organization=other_organization, slack_user_identity=slack_user_identity)
 
     payload = {
-        "channel": {"id": slack_message.channel.slack_id},
+        "channel": {"id": slack_message.channel_slack_id},
         "message_ts": "random_ts",
         "message": {
             "type": "message",

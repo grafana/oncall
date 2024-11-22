@@ -105,6 +105,10 @@ class SlackMessage(models.Model):
         return self.channel.slack_team_identity
 
     @property
+    def channel_slack_id(self) -> str:
+        return self.channel.slack_id
+
+    @property
     def permalink(self) -> typing.Optional[str]:
         # Don't send request for permalink if slack token has been revoked
         if self.cached_permalink or self.slack_team_identity.detected_token_revoked:
@@ -112,7 +116,7 @@ class SlackMessage(models.Model):
 
         try:
             result = SlackClient(self.slack_team_identity).chat_getPermalink(
-                channel=self.channel_id, message_ts=self.slack_id
+                channel=self.channel_slack_id, message_ts=self.slack_id
             )
         except SlackAPIError:
             return None
@@ -124,7 +128,7 @@ class SlackMessage(models.Model):
 
     @property
     def deep_link(self) -> str:
-        return f"https://slack.com/app_redirect?channel={self.channel_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
+        return f"https://slack.com/app_redirect?channel={self.channel_slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
     def send_slack_notification(
         self,

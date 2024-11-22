@@ -39,7 +39,7 @@ class AlertGroupSlackService:
 
         try:
             self._slack_client.chat_update(
-                channel=alert_group.slack_message.channel.slack_id,
+                channel=alert_group.slack_message.channel_slack_id,
                 ts=alert_group.slack_message.slack_id,
                 attachments=alert_group.render_slack_attachments(),
                 blocks=alert_group.render_slack_blocks(),
@@ -72,15 +72,13 @@ class AlertGroupSlackService:
             return
 
         slack_message = alert_group.slack_message
-        slack_channel = slack_message.channel
-        slack_channel_id = slack_channel.slack_id
 
         if attachments is None:
             attachments = []
 
         try:
             result = self._slack_client.chat_postMessage(
-                channel=slack_channel_id,
+                channel=slack_message.channel_slack_id,
                 text=text,
                 attachments=attachments,
                 thread_ts=slack_message.slack_id,
@@ -95,4 +93,4 @@ class AlertGroupSlackService:
         ):
             return
 
-        alert_group.slack_messages.create(slack_id=result["ts"], channel=slack_channel)
+        alert_group.slack_messages.create(slack_id=result["ts"], channel=slack_message.channel)
