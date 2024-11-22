@@ -528,8 +528,16 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(alert_group=None, **kwargs):
-        return SlackMessageFactory(alert_group=alert_group, **kwargs)
+    def _make_slack_message(alert_group=None, organization=None, **kwargs):
+        organization = organization or alert_group.channel.organization
+
+        # TODO: remove organization and _slack_team_identity once we migrate this
+        return SlackMessageFactory(
+            alert_group=alert_group,
+            organization=organization,
+            _slack_team_identity=organization.slack_team_identity,
+            **kwargs,
+        )
 
     return _make_slack_message
 
