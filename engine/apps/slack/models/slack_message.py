@@ -130,14 +130,10 @@ class SlackMessage(models.Model):
     def deep_link(self) -> str:
         return f"https://slack.com/app_redirect?channel={self.channel_slack_id}&team={self.slack_team_identity.slack_id}&message={self.slack_id}"
 
-    def send_slack_notification(
-        self,
-        user: "User",
-        alert_group: "AlertGroup",
-        notification_policy: "UserNotificationPolicy",
-    ) -> None:
+    def send_slack_notification(self, user: "User", notification_policy: "UserNotificationPolicy") -> None:
         from apps.base.models import UserNotificationPolicyLogRecord
 
+        alert_group = self.alert_group
         slack_message = alert_group.slack_message
         slack_channel = slack_message.channel
         channel_id = slack_channel.slack_id
